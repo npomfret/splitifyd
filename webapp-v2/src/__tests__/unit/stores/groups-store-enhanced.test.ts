@@ -1,33 +1,47 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import type { CreateGroupRequest, Group, ListGroupsResponse } from '@splitifyd/shared';
+import { ChangeDetector } from '@/utils/change-detector';
+import type { CreateGroupRequest, Group, ListGroupsResponse } from '@shared/shared-types';
+
+// Create mock instance that will be returned by ChangeDetector constructor
+const mockChangeDetectorInstance = {
+    subscribeToGroupChanges: vi.fn(() => vi.fn()),
+    subscribeToExpenseChanges: vi.fn(() => vi.fn()),
+    subscribeToBalanceChanges: vi.fn(() => vi.fn()),
+    dispose: vi.fn(),
+};
 
 // Mock the API client
-vi.mock('../../app/apiClient');
-const mockApiClient = vi.mocked(apiClient);
+vi.mock('@/app/apiClient', () => ({
+    apiClient: {
+        getGroups: vi.fn(),
+        createGroup: vi.fn(),
+        updateGroup: vi.fn(),
+        deleteGroup: vi.fn(),
+        leaveGroup: vi.fn(),
+        removeGroupMember: vi.fn(),
+    },
+    ApiError: class ApiError extends Error {
+        constructor(message: string, public statusCode?: number, public code?: string) {
+            super(message);
+            this.name = 'ApiError';
+        }
+    },
+}));
 
 // Mock browser-logger
-vi.mock('../../utils/browser-logger', () => ({
+vi.mock('@/utils/browser-logger', () => ({
     logWarning: vi.fn(),
     logError: vi.fn(),
     logInfo: vi.fn(),
 }));
 
 // Mock the ChangeDetector
-vi.mock('../../utils/change-detector', () => {
-    const mockInstance = {
-        subscribeToGroupChanges: vi.fn(() => vi.fn()),
-        subscribeToExpenseChanges: vi.fn(() => vi.fn()),
-        subscribeToBalanceChanges: vi.fn(() => vi.fn()),
-        dispose: vi.fn(),
-    };
+vi.mock('@/utils/change-detector');
 
-    return {
-        ChangeDetector: vi.fn(() => mockInstance),
-        mockChangeDetectorInstance: mockInstance, // Export for test access
-    };
-});
+// Set up the ChangeDetector mock implementation
+vi.mocked(ChangeDetector).mockImplementation(() => mockChangeDetectorInstance as any);
 
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {
@@ -99,9 +113,7 @@ function createTestResponseWithMetadata(
     };
 }
 
-// Import the mock instance
-// @ts-ignore
-import { mockChangeDetectorInstance } from '@/utils/change-detector';
+// mockChangeDetectorInstance is already defined above
 
 describe('EnhancedGroupsStore', () => {
     beforeEach(() => {
@@ -120,11 +132,11 @@ describe('EnhancedGroupsStore', () => {
                 hasRecentChanges: true,
             });
 
-            mockApiClient.getGroups.mockResolvedValueOnce(mockResponse);
+            vi.mocked(apiClient.getGroups).mockResolvedValueOnce(mockResponse);
 
             await enhancedGroupsStore.fetchGroups();
 
-            expect(mockApiClient.getGroups).toHaveBeenCalledWith({ includeMetadata: true });
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledWith({ includeMetadata: true });
             expect(enhancedGroupsStore.groups).toEqual(testGroups);
             expect(enhancedGroupsStore.lastRefresh).toBe(67890);
             expect(enhancedGroupsStore.initialized).toBe(true);
@@ -138,7 +150,7 @@ describe('EnhancedGroupsStore', () => {
             const initialResponse = createTestResponseWithMetadata([testGroup], {
                 serverTime: oldTimestamp,
             });
-            mockApiClient.getGroups.mockResolvedValueOnce(initialResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(initialResponse);
             await enhancedGroupsStore.fetchGroups();
 
             // Mock a response with older change timestamp
@@ -146,12 +158,12 @@ describe('EnhancedGroupsStore', () => {
                 lastChangeTimestamp: oldTimestamp - 5000, // Older change
                 serverTime: oldTimestamp + 1000,
             });
-            mockApiClient.getGroups.mockResolvedValueOnce(newResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(newResponse);
 
             await enhancedGroupsStore.fetchGroups();
 
             // Should have been called twice (initial + second call)
-            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2);
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledTimes(2);
             expect(enhancedGroupsStore.lastRefresh).toBe(oldTimestamp); // Should remain old timestamp
         });
 
@@ -164,7 +176,7 @@ describe('EnhancedGroupsStore', () => {
             const initialResponse = createTestResponseWithMetadata([oldGroup], {
                 serverTime: oldTimestamp,
             });
-            mockApiClient.getGroups.mockResolvedValueOnce(initialResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(initialResponse);
             await enhancedGroupsStore.fetchGroups();
 
             // Second fetch with newer change timestamp
@@ -172,7 +184,7 @@ describe('EnhancedGroupsStore', () => {
                 lastChangeTimestamp: oldTimestamp + 5000, // Newer change
                 serverTime: oldTimestamp + 10000,
             });
-            mockApiClient.getGroups.mockResolvedValueOnce(newResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(newResponse);
 
             await enhancedGroupsStore.fetchGroups();
 
@@ -198,7 +210,7 @@ describe('EnhancedGroupsStore', () => {
                 pagination: { limit: 100, order: 'desc' },
                 // No metadata
             };
-            mockApiClient.getGroups.mockResolvedValueOnce(initialResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(initialResponse);
             await enhancedGroupsStore.fetchGroups();
 
             // Second fetch with newer group
@@ -208,7 +220,7 @@ describe('EnhancedGroupsStore', () => {
                 hasMore: false,
                 pagination: { limit: 100, order: 'desc' },
             };
-            mockApiClient.getGroups.mockResolvedValueOnce(newResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(newResponse);
 
             await enhancedGroupsStore.fetchGroups();
 
@@ -222,7 +234,7 @@ describe('EnhancedGroupsStore', () => {
             const testGroups = [createTestGroup()];
             const mockResponse = createTestResponseWithMetadata(testGroups);
 
-            mockApiClient.getGroups.mockResolvedValue(mockResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValue(mockResponse);
 
             // Mock the change callback being called
             let changeCallback: (() => void) | undefined;
@@ -252,7 +264,7 @@ describe('EnhancedGroupsStore', () => {
                 // Wait for async refresh to complete
                 await new Promise((resolve) => setTimeout(resolve, 0));
 
-                expect(mockApiClient.getGroups).toHaveBeenCalled();
+                expect(vi.mocked(apiClient).getGroups).toHaveBeenCalled();
             }
         });
 
@@ -299,7 +311,7 @@ describe('EnhancedGroupsStore', () => {
                 resolvePromise = resolve;
             });
 
-            mockApiClient.getGroups.mockReturnValueOnce(controllablePromise);
+            vi.mocked(apiClient).getGroups.mockReturnValueOnce(controllablePromise);
 
             // Start the refresh
             const refreshPromise = enhancedGroupsStore.refreshGroups();
@@ -317,7 +329,7 @@ describe('EnhancedGroupsStore', () => {
 
         it('clears isRefreshing state even on error', async () => {
             const error = new Error('Network error');
-            mockApiClient.getGroups.mockRejectedValueOnce(error);
+            vi.mocked(apiClient).getGroups.mockRejectedValueOnce(error);
 
             try {
                 await enhancedGroupsStore.refreshGroups();
@@ -342,7 +354,7 @@ describe('EnhancedGroupsStore', () => {
                 description: 'Test description',
             });
 
-            mockApiClient.createGroup.mockResolvedValueOnce(mockCreatedGroup);
+            vi.mocked(apiClient).createGroup.mockResolvedValueOnce(mockCreatedGroup);
 
             const result = await enhancedGroupsStore.createGroup(groupRequest);
 
@@ -355,12 +367,12 @@ describe('EnhancedGroupsStore', () => {
             // Set up existing groups
             const existingGroup = createTestGroup({ id: 'existing-1' });
             const initialResponse = createTestResponseWithMetadata([existingGroup]);
-            mockApiClient.getGroups.mockResolvedValueOnce(initialResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(initialResponse);
             await enhancedGroupsStore.fetchGroups();
 
             // Create new group
             const newGroup = createTestGroup({ id: 'new-group' });
-            mockApiClient.createGroup.mockResolvedValueOnce(newGroup);
+            vi.mocked(apiClient).createGroup.mockResolvedValueOnce(newGroup);
 
             await enhancedGroupsStore.createGroup({ name: 'New Group' });
 
@@ -376,15 +388,15 @@ describe('EnhancedGroupsStore', () => {
             const mockResponse = createTestResponseWithMetadata(testGroups);
 
             // Setup initial state with the group
-            mockApiClient.getGroups.mockResolvedValue(mockResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValue(mockResponse);
             await enhancedGroupsStore.fetchGroups();
 
             // Update the group
-            mockApiClient.updateGroup.mockResolvedValue({ message: 'Group updated successfully' });
+            vi.mocked(apiClient).updateGroup.mockResolvedValue({ message: 'Group updated successfully' });
             await enhancedGroupsStore.updateGroup('group-1', { name: 'Updated Name' });
 
             // Verify refresh was called (2 times: initial fetch + after update)
-            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2);
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledTimes(2);
         });
     });
 
@@ -413,7 +425,7 @@ describe('EnhancedGroupsStore', () => {
             // Set some initial state
             const testGroups = [createTestGroup()];
             const mockResponse = createTestResponseWithMetadata(testGroups);
-            mockApiClient.getGroups.mockResolvedValueOnce(mockResponse);
+            vi.mocked(apiClient.getGroups).mockResolvedValueOnce(mockResponse);
             await enhancedGroupsStore.fetchGroups();
 
             expect(enhancedGroupsStore.groups).toHaveLength(1);
@@ -433,7 +445,7 @@ describe('EnhancedGroupsStore', () => {
     describe('error handling', () => {
         it('handles fetch errors properly', async () => {
             const error = new Error('Network error');
-            mockApiClient.getGroups.mockRejectedValueOnce(error);
+            vi.mocked(apiClient).getGroups.mockRejectedValueOnce(error);
 
             await expect(enhancedGroupsStore.fetchGroups()).rejects.toThrow('Network error');
 
@@ -443,7 +455,7 @@ describe('EnhancedGroupsStore', () => {
 
         it('handles create group errors properly', async () => {
             const error = new Error('Creation failed');
-            mockApiClient.createGroup.mockRejectedValueOnce(error);
+            vi.mocked(apiClient).createGroup.mockRejectedValueOnce(error);
 
             await expect(enhancedGroupsStore.createGroup({ name: 'Test' })).rejects.toThrow('Creation failed');
 
@@ -454,7 +466,7 @@ describe('EnhancedGroupsStore', () => {
         it('clears error state', async () => {
             // Set error via a failed API call first
             const error = new Error('Test error');
-            mockApiClient.getGroups.mockRejectedValueOnce(error);
+            vi.mocked(apiClient).getGroups.mockRejectedValueOnce(error);
 
             try {
                 await enhancedGroupsStore.fetchGroups();
@@ -477,7 +489,7 @@ describe('EnhancedGroupsStore', () => {
             const updatedGroups = [createTestGroup({ id: 'group-1', name: 'Updated' })];
 
             // Setup initial state
-            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
             await enhancedGroupsStore.fetchGroups();
             expect(enhancedGroupsStore.groups[0].name).toBe('Initial');
 
@@ -491,7 +503,7 @@ describe('EnhancedGroupsStore', () => {
             enhancedGroupsStore.subscribeToChanges(userId);
 
             // Mock the refresh response
-            mockApiClient.getGroups.mockResolvedValueOnce(
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(
                 createTestResponseWithMetadata(updatedGroups, {
                     lastChangeTimestamp: Date.now() + 1000,
                     serverTime: Date.now() + 1000,
@@ -509,7 +521,7 @@ describe('EnhancedGroupsStore', () => {
 
             // Verify data was refreshed
             expect(enhancedGroupsStore.groups[0].name).toBe('Updated');
-            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2); // Initial + refresh
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledTimes(2); // Initial + refresh
         });
 
         it('handles rapid change notifications by triggering multiple refreshes', async () => {
@@ -524,7 +536,7 @@ describe('EnhancedGroupsStore', () => {
             enhancedGroupsStore.subscribeToChanges(userId);
 
             const mockResponse = createTestResponseWithMetadata([createTestGroup()]);
-            mockApiClient.getGroups.mockResolvedValue(mockResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValue(mockResponse);
 
             // Trigger multiple rapid changes
             if (changeCallback) {
@@ -537,7 +549,7 @@ describe('EnhancedGroupsStore', () => {
             }
 
             // Each change triggers a refresh (no debouncing implemented)
-            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(3);
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledTimes(3);
         });
 
         it('applies optimistic updates and refreshes after server update', async () => {
@@ -546,17 +558,17 @@ describe('EnhancedGroupsStore', () => {
             const originalGroup = createTestGroup({ id: groupId, name: 'Original' });
 
             // Setup initial state
-            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([originalGroup]));
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([originalGroup]));
             await enhancedGroupsStore.fetchGroups();
             expect(enhancedGroupsStore.groups[0].name).toBe('Original');
 
             // Mock successful update and subsequent refresh
             const optimisticName = 'Optimistic Update';
-            mockApiClient.updateGroup.mockResolvedValue({ message: 'Updated' });
+            vi.mocked(apiClient).updateGroup.mockResolvedValue({ message: 'Updated' });
 
             // Mock the refresh that happens after updateGroup
             const updatedGroup = createTestGroup({ id: groupId, name: optimisticName });
-            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([updatedGroup]));
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(createTestResponseWithMetadata([updatedGroup]));
 
             // Perform the update
             await enhancedGroupsStore.updateGroup(groupId, { name: optimisticName });
@@ -565,8 +577,8 @@ describe('EnhancedGroupsStore', () => {
             expect(enhancedGroupsStore.groups[0].name).toBe(optimisticName);
 
             // Verify both the update and refresh were called
-            expect(mockApiClient.updateGroup).toHaveBeenCalledWith(groupId, { name: optimisticName });
-            expect(mockApiClient.getGroups).toHaveBeenCalledTimes(2); // Initial + after update
+            expect(vi.mocked(apiClient).updateGroup).toHaveBeenCalledWith(groupId, { name: optimisticName });
+            expect(vi.mocked(apiClient).getGroups).toHaveBeenCalledTimes(2); // Initial + after update
         });
 
         it('recovers from failed auto-refresh attempts', async () => {
@@ -574,7 +586,7 @@ describe('EnhancedGroupsStore', () => {
 
             // Set initial state first
             const initialGroups = [createTestGroup({ id: 'initial' })];
-            mockApiClient.getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(createTestResponseWithMetadata(initialGroups));
             await enhancedGroupsStore.fetchGroups();
 
             let changeCallback: (() => void) | undefined;
@@ -586,7 +598,7 @@ describe('EnhancedGroupsStore', () => {
             enhancedGroupsStore.subscribeToChanges(userId);
 
             // First refresh fails - error is set by fetchGroups
-            mockApiClient.getGroups.mockRejectedValueOnce(new Error('Network error'));
+            vi.mocked(apiClient).getGroups.mockRejectedValueOnce(new Error('Network error'));
 
             if (changeCallback) {
                 changeCallback();
@@ -602,7 +614,7 @@ describe('EnhancedGroupsStore', () => {
             // Second refresh succeeds
             const newGroups = [createTestGroup({ id: 'new' })];
             const successResponse = createTestResponseWithMetadata(newGroups);
-            mockApiClient.getGroups.mockResolvedValueOnce(successResponse);
+            vi.mocked(apiClient).getGroups.mockResolvedValueOnce(successResponse);
 
             if (changeCallback) {
                 changeCallback();
