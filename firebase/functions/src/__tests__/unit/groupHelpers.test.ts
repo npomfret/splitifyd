@@ -53,7 +53,7 @@ describe('Group Helpers', () => {
             expect(owner).toBe('user-alice');
         });
 
-        it('should return null if no owner exists', () => {
+        it('should return createdBy as fallback when no admin exists in members', () => {
             const groupWithNoOwner: Group = {
                 ...mockGroup,
                 members: {
@@ -66,7 +66,7 @@ describe('Group Helpers', () => {
                 },
             };
             const owner = getGroupOwner(groupWithNoOwner);
-            expect(owner).toBeNull();
+            expect(owner).toBe('user-alice'); // Returns createdBy as fallback
         });
     });
 
