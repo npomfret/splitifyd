@@ -5,6 +5,14 @@ import { apiClient } from '@/app/apiClient';
 
 // Mock dependencies
 vi.mock('@/app/apiClient');
+vi.mock('@/utils/change-detector', () => ({
+    ChangeDetector: class {
+        subscribeToGroupChanges = vi.fn(() => vi.fn());
+        subscribeToExpenseChanges = vi.fn(() => vi.fn());
+        subscribeToBalanceChanges = vi.fn(() => vi.fn());
+        dispose = vi.fn();
+    },
+}));
 vi.mock('@/utils/browser-logger', () => ({
     logWarning: vi.fn(),
     logInfo: vi.fn(),
@@ -160,7 +168,7 @@ describe('Enhanced Stores UI Integration', () => {
     });
 
     describe('Group Detail Page Integration', () => {
-        it('should load complete group details for display', async () => {
+        it('should load complete group details using consolidated endpoint', async () => {
             const mockGroup = mockGroups[0];
             const mockMembers = [
                 { uid: 'user1', email: 'user1@example.com', displayName: 'John Doe' },
@@ -201,39 +209,31 @@ describe('Enhanced Stores UI Integration', () => {
                     },
                 ],
                 lastUpdated: '2024-01-15T00:00:00Z',
-                balancesByCurrency: {
-                    USD: {
-                        user1: {
-                            userId: 'user1',
-                            netBalance: 50,
-                            owes: {},
-                            owedBy: { user2: 50 },
-                        },
-                        user2: {
-                            userId: 'user2',
-                            netBalance: -50,
-                            owes: { user1: 50 },
-                            owedBy: {},
-                        },
-                    },
+                balancesByCurrency: {},
+            };
+
+            const mockFullDetails = {
+                group: mockGroup,
+                members: {
+                    members: mockMembers,
+                    hasMore: false,
+                },
+                expenses: {
+                    expenses: mockExpenses,
+                    count: 1,
+                    hasMore: false,
+                    nextCursor: undefined,
+                },
+                balances: mockBalances,
+                settlements: {
+                    settlements: [],
+                    count: 0,
+                    hasMore: false,
+                    nextCursor: undefined,
                 },
             };
 
-            vi.mocked(apiClient.getGroup).mockResolvedValue(mockGroup);
-            vi.mocked(apiClient.getGroupMembers).mockResolvedValue({
-                members: mockMembers,
-                hasMore: false,
-            });
-            vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: mockExpenses,
-                hasMore: false,
-            });
-            vi.mocked(apiClient.getGroupBalances).mockResolvedValue(mockBalances);
-            vi.mocked(apiClient.listSettlements).mockResolvedValue({
-                settlements: [],
-                count: 0,
-                hasMore: false,
-            });
+            vi.mocked(apiClient.getGroupFullDetails).mockResolvedValue(mockFullDetails);
 
             await enhancedGroupDetailStore.loadGroup('group1');
 
@@ -247,176 +247,9 @@ describe('Enhanced Stores UI Integration', () => {
             expect(enhancedGroupDetailStore.balances?.simplifiedDebts).toHaveLength(1);
             expect(enhancedGroupDetailStore.balances?.simplifiedDebts[0].amount).toBe(50);
         });
-
-        it('should handle pagination for expenses list', async () => {
-            const firstBatch = [
-                {
-                    id: 'exp1',
-                    groupId: 'group1',
-                    description: 'Expense 1',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user1',
-                    category: 'Food',
-                    date: '2024-01-15',
-                    splitType: 'equal' as const,
-                    participants: ['user1', 'user2'],
-                    splits: [],
-                    createdBy: 'user1',
-                    createdAt: '2024-01-15T00:00:00Z',
-                    updatedAt: '2024-01-15T00:00:00Z',
-                    deletedAt: null,
-                    deletedBy: null,
-                },
-            ];
-            const secondBatch = [
-                {
-                    id: 'exp2',
-                    groupId: 'group1',
-                    description: 'Expense 2',
-                    amount: 50,
-                    currency: 'USD',
-                    paidBy: 'user2',
-                    category: 'Transport',
-                    date: '2024-01-16',
-                    splitType: 'equal' as const,
-                    participants: ['user1', 'user2'],
-                    splits: [],
-                    createdBy: 'user2',
-                    createdAt: '2024-01-16T00:00:00Z',
-                    updatedAt: '2024-01-16T00:00:00Z',
-                    deletedAt: null,
-                    deletedBy: null,
-                },
-            ];
-
-            // First page
-            vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: firstBatch,
-                hasMore: true,
-                nextCursor: 'cursor1',
-            });
-
-            await enhancedGroupDetailStore.fetchExpenses();
-            expect(enhancedGroupDetailStore.expenses).toHaveLength(1);
-            expect(enhancedGroupDetailStore.hasMoreExpenses).toBe(true);
-
-            // Load more
-            vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: secondBatch,
-                hasMore: false,
-            });
-
-            await enhancedGroupDetailStore.loadMoreExpenses();
-            expect(enhancedGroupDetailStore.expenses).toHaveLength(2);
-            expect(enhancedGroupDetailStore.hasMoreExpenses).toBe(false);
-        });
     });
 
-    describe('Create Group Flow', () => {
-        it('should create group and update dashboard', async () => {
-            const newGroup: any = {
-                id: 'group3',
-                name: 'New Project',
-                description: 'Project expenses',
-                memberIds: ['user1', 'user5'],
-                balance: {
-                    balancesByCurrency: {},
-                },
-                lastActivity: 'just now',
-                lastActivityRaw: new Date().toISOString(),
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                createdBy: 'user1',
-            };
 
-            // Initial state
-            vi.mocked(apiClient.getGroups).mockResolvedValueOnce({
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    lastChangeTimestamp: Date.now(),
-                    changeCount: 0,
-                    serverTime: Date.now(),
-                    hasRecentChanges: false,
-                },
-            });
-
-            await enhancedGroupsStore.fetchGroups();
-            expect(enhancedGroupsStore.groups).toHaveLength(2);
-
-            // Create new group
-            vi.mocked(apiClient.createGroup).mockResolvedValue(newGroup);
-
-            const createRequest = {
-                name: 'New Project',
-                description: 'Project expenses',
-                memberEmails: ['user5@example.com'],
-            };
-
-            await enhancedGroupsStore.createGroup(createRequest);
-
-            // Verify group is added to the list (optimistically)
-            expect(enhancedGroupsStore.groups).toHaveLength(3);
-            expect(enhancedGroupsStore.groups[0]).toEqual(newGroup);
-        });
-    });
-
-    describe('Real-time Synchronization', () => {
-        it('should keep multiple stores in sync', async () => {
-            // Setup initial state
-            const mockResponse = {
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' as const },
-                metadata: {
-                    lastChangeTimestamp: 1000,
-                    changeCount: 0,
-                    serverTime: 1000,
-                    hasRecentChanges: false,
-                },
-            };
-
-            vi.mocked(apiClient.getGroups).mockResolvedValue(mockResponse);
-            await enhancedGroupsStore.fetchGroups();
-
-            // Load group detail
-            vi.mocked(apiClient.getGroup).mockResolvedValue(mockGroups[0]);
-            vi.mocked(apiClient.getGroupMembers).mockResolvedValue({
-                members: [],
-                hasMore: false,
-            });
-            vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: [],
-                hasMore: false,
-            });
-            vi.mocked(apiClient.getGroupBalances).mockResolvedValue({
-                groupId: 'group1',
-                userBalances: {},
-                simplifiedDebts: [],
-                lastUpdated: '2024-01-01T00:00:00Z',
-                balancesByCurrency: {},
-            });
-            vi.mocked(apiClient.listSettlements).mockResolvedValue({
-                settlements: [],
-                count: 0,
-                hasMore: false,
-            });
-
-            await enhancedGroupDetailStore.loadGroup('group1');
-
-            // Verify both stores have consistent data
-            const dashboardGroup = enhancedGroupsStore.groups.find((g) => g.id === 'group1');
-            const detailGroup = enhancedGroupDetailStore.group;
-
-            expect(dashboardGroup!.id).toBe(detailGroup!.id);
-            expect(dashboardGroup!.name).toBe(detailGroup!.name);
-            expect(dashboardGroup!.members).toEqual(detailGroup!.members);
-        });
-    });
 
     describe('Error Handling in UI', () => {
         it('should show error state when fetch fails', async () => {

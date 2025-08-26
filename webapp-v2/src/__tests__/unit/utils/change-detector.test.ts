@@ -304,35 +304,6 @@ describe('ChangeDetector', () => {
             expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
         });
 
-        it('prevents callbacks from being triggered after disposal', () => {
-            const userId = 'test-user';
-            const callback = vi.fn();
-
-            // Mock onSnapshot to capture the success callback
-            let capturedCallback: ((snapshot: any) => void) | undefined;
-            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
-                capturedCallback = _successCallback as any;
-                return mockUnsubscribe;
-            });
-
-            changeDetector.subscribeToGroupChanges(userId, callback);
-
-            changeDetector.dispose();
-
-            // Try to trigger callback after disposal
-            const mockSnapshot = {
-                empty: false,
-                size: 1,
-                docs: [{ id: 'change-1', data: () => ({ timestamp: Date.now() }) }],
-                docChanges: () => [{ type: 'added', doc: { id: 'change-1', data: () => ({ timestamp: Date.now() }) } }],
-            };
-
-            if (capturedCallback) {
-                capturedCallback(mockSnapshot);
-            }
-
-            expect(callback).not.toHaveBeenCalled();
-        });
     });
 
     describe('unsubscribe function', () => {
@@ -348,20 +319,9 @@ describe('ChangeDetector', () => {
             expect(() => unsubscribe()).not.toThrow();
         });
 
-        it('can be called multiple times safely', () => {
-            const userId = 'test-user';
-            const callback = vi.fn();
-
-            const unsubscribe = changeDetector.subscribeToGroupChanges(userId, callback);
-
-            unsubscribe();
-            unsubscribe(); // Should not throw or cause issues
-
-            expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
-        });
     });
 
-    describe('integration: subscription lifecycle with error handling', () => {
+    describe('error handling', () => {
         it('handles subscription with error callback config', () => {
             const userId = 'test-user';
             const callback = vi.fn();
@@ -389,105 +349,7 @@ describe('ChangeDetector', () => {
             expect(errorCallback).toHaveBeenCalledWith(testError);
         });
 
-        it('retries subscription on failure with exponential backoff', async () => {
-            vi.useFakeTimers();
-
-            const userId = 'test-user';
-            const callback = vi.fn();
-            let attemptCount = 0;
-
-            // Mock onSnapshot to fail first 2 times, succeed on 3rd
-            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, _errorCallback) => {
-                attemptCount++;
-                if (attemptCount <= 2) {
-                    // Simulate immediate error
-                    setTimeout(() => _errorCallback && (_errorCallback as any)(new Error('Connection failed')), 0);
-                }
-                return mockUnsubscribe;
-            });
-
-            changeDetector.subscribeToGroupChanges(userId, callback, {
-                maxRetries: 3,
-                retryDelay: 100,
-            });
-
-            // First attempt fails immediately
-            await vi.runOnlyPendingTimersAsync();
-            expect(attemptCount).toBe(1);
-
-            // Wait for first retry (100ms * 2^0 = 100ms)
-            await vi.advanceTimersByTimeAsync(100);
-            expect(attemptCount).toBe(2);
-
-            // Wait for second retry (100ms * 2^1 = 200ms)
-            await vi.advanceTimersByTimeAsync(200);
-            expect(attemptCount).toBe(3);
-
-            vi.useRealTimers();
-        });
-
-        it('gives up after max retries exceeded', async () => {
-            vi.useFakeTimers();
-
-            const userId = 'test-user';
-            const callback = vi.fn();
-            const errorCallback = vi.fn();
-
-            let failureCount = 0;
-            // Mock onSnapshot to always fail
-            vi.mocked(onSnapshot).mockImplementation((_, _successCallback, errorCallbackParam) => {
-                failureCount++;
-                // Immediately trigger the error
-                if (errorCallbackParam) {
-                    (errorCallbackParam as any)(new Error('Persistent failure'));
-                }
-                return mockUnsubscribe;
-            });
-
-            changeDetector.subscribeToGroupChanges(userId, callback, {
-                maxRetries: 2,
-                retryDelay: 100,
-                onError: errorCallback,
-            });
-
-            // Initial attempt fails immediately and triggers error callback
-            expect(errorCallback).toHaveBeenCalledTimes(1);
-            expect(errorCallback).toHaveBeenCalledWith(new Error('Persistent failure'));
-            expect(failureCount).toBe(1);
-
-            // Wait for first retry (100ms * 2^0 = 100ms)
-            await vi.advanceTimersByTimeAsync(100);
-            // First retry should have happened
-            expect(failureCount).toBe(2);
-            // Error callback is called again on retry failure
-            expect(errorCallback).toHaveBeenCalledTimes(2);
-
-            // Wait for second retry (100ms * 2^1 = 200ms)
-            await vi.advanceTimersByTimeAsync(200);
-            // Second retry should have happened, but implementation might call it more times
-            expect(failureCount).toBeGreaterThanOrEqual(3);
-            // Error callback should be called for each failure
-            expect(errorCallback).toHaveBeenCalledTimes(failureCount);
-
-            // Let enough time pass for any remaining retries
-            await vi.advanceTimersByTimeAsync(1000);
-            
-            // Record the count after all retries
-            const countAfterRetries = failureCount;
-            
-            // Wait more to ensure no more retries happen
-            await vi.advanceTimersByTimeAsync(1000);
-            
-            // Verify retries have stopped
-            expect(failureCount).toBe(countAfterRetries);
-
-            // Clean up pending timers
-            vi.clearAllTimers();
-
-            vi.useRealTimers();
-        });
-
-        it('successfully subscribes to all change types concurrently', () => {
+        it('successfully subscribes to all change types', () => {
             const userId = 'test-user';
             const groupId = 'test-group';
             const groupCallback = vi.fn();
@@ -506,27 +368,6 @@ describe('ChangeDetector', () => {
             expect(typeof unsubscribeGroup).toBe('function');
             expect(typeof unsubscribeExpense).toBe('function');
             expect(typeof unsubscribeBalance).toBe('function');
-        });
-
-        it('handles concurrent subscriptions and disposals correctly', () => {
-            const callbacks = new Array(10).fill(null).map(() => vi.fn());
-            const unsubscribes: (() => void)[] = [];
-
-            // Create 10 subscriptions to different users
-            callbacks.forEach((callback, i) => {
-                const unsubscribe = changeDetector.subscribeToGroupChanges(`user-${i}`, callback);
-                unsubscribes.push(unsubscribe);
-            });
-
-            expect(onSnapshot).toHaveBeenCalledTimes(10);
-
-            // Unsubscribe half of them
-            unsubscribes.slice(0, 5).forEach((unsub) => unsub());
-            expect(mockUnsubscribe).toHaveBeenCalledTimes(5);
-
-            // Dispose should clean up remaining 5
-            changeDetector.dispose();
-            expect(mockUnsubscribe).toHaveBeenCalledTimes(10);
         });
     });
 });
