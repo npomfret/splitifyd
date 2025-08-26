@@ -4,7 +4,7 @@ import {FieldValue} from 'firebase-admin/firestore';
 import {firestoreDb} from '../firebase';
 import {AuthenticatedRequest} from '../auth/middleware';
 import {Errors} from '../utils/errors';
-import {userService} from '../services/userService';
+import {userService} from '../services/UserService';
 import {validateGroupId} from './validation';
 import {logger, LoggerContext} from '../logger';
 import {FirestoreCollections, Group, GroupMembersResponse, User} from '../shared/shared-types';
@@ -55,7 +55,7 @@ const getInitials = (nameOrEmail: string): string => {
  */
 export const _getGroupMembersData = async (groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> => {
     const memberIds = Object.keys(membersMap);
-    
+
     // Fetch member profiles
     const memberProfiles = await userService.getUsers(memberIds);
 
@@ -63,7 +63,7 @@ export const _getGroupMembersData = async (groupId: string, membersMap: Record<s
     const members: User[] = memberIds.map((memberId: string) => {
         const profile = memberProfiles.get(memberId);
         const memberInfo = membersMap[memberId];
-        
+
         if (!profile) {
             // Return minimal user object for missing profiles
             return {

@@ -7,7 +7,7 @@ import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { createOptimisticTimestamp, createTrueServerTimestamp, parseISOToTimestamp, timestampToISO, getRelativeTime } from '../utils/dateHelpers';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group, GroupWithBalance } from '../types/group-types';
-import { 
+import {
     FirestoreCollections,
     UserThemeColor,
     GroupFullDetails,
@@ -21,7 +21,7 @@ import {
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { logger, LoggerContext } from '../logger';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from '../services/balance';
-import { userService } from '../services/userService';
+import { userService } from '../services/UserService';
 import { PermissionEngine } from '../permissions';
 import { calculateExpenseMetadata } from '../services/expenseMetadataService';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
@@ -39,7 +39,7 @@ const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
     const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
     const color = USER_COLORS[colorIndex];
     const pattern = COLOR_PATTERNS[patternIndex];
-    
+
     return {
         light: color.light,
         dark: color.dark,
@@ -93,7 +93,7 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
         members: transformedMembers,
         createdAt: data.createdAt!.toDate().toISOString(),
         updatedAt: data.updatedAt!.toDate().toISOString(),
-        
+
         // Permission system fields - guaranteed to be present
         securityPreset,
         permissions,
@@ -195,11 +195,11 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         // For the data field, we need actual timestamps for the response
         const now = createOptimisticTimestamp();
-        
+
         // Create member list with theme assignments
         const initialMemberIds = sanitizedData.members ? sanitizedData.members.map((m: any) => m.uid) : [userId];
         const members: Record<string, any> = {};
-        
+
         // Ensure creator is always first with theme index 0 and gets admin role
         members[userId] = {
             role: MemberRoles.ADMIN,
@@ -207,7 +207,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
             theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(), // Convert to ISO string for consistency
         };
-        
+
         // Add other members with incrementing theme indices
         let memberIndex = 1;
         for (const memberId of initialMemberIds) {
@@ -244,7 +244,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
-        
+
         // Log without explicitly passing userId - it will be automatically included
         logger.info('group-created', { id: docRef.id });
 
@@ -367,7 +367,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
     // Set group context
     LoggerContext.setBusinessContext({ groupId });
-    
+
     // Log without explicitly passing userId - it will be automatically included
     logger.info('group-updated', { id: groupId });
 
@@ -400,7 +400,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
     // Set group context
     LoggerContext.setBusinessContext({ groupId });
-    
+
     // Log without explicitly passing userId - it will be automatically included
     logger.info('group-deleted', { id: groupId });
 
@@ -536,7 +536,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
 
     // Execute parallel queries for performance
     const queries: Promise<any>[] = [paginatedQuery.get()];
-    
+
     // Include metadata query if requested
     if (includeMetadata) {
         // Get recent changes (last 60 seconds)
@@ -561,7 +561,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
     // Transform documents to groups and extract group IDs
-    const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) => 
+    const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) =>
         transformGroupDocument(doc)
     );
     const groupIds = groups.map(group => group.id);
@@ -728,25 +728,25 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     try {
         // Reuse existing tested functions for each data type
         const { group } = await fetchGroupWithAccess(groupId, userId);
-        
+
         // Use extracted internal functions to eliminate duplication
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
             // Get members using extracted function with theme information
             _getGroupMembersData(groupId, group.members),
-            
+
             // Get expenses using extracted function with pagination
-            _getGroupExpensesData(groupId, { 
+            _getGroupExpensesData(groupId, {
                 limit: expenseLimit,
-                cursor: expenseCursor 
+                cursor: expenseCursor
             }),
-            
+
             // Get balances using existing calculator
             calculateGroupBalances(groupId),
-            
+
             // Get settlements using extracted function with pagination
-            _getGroupSettlementsData(groupId, { 
+            _getGroupSettlementsData(groupId, {
                 limit: settlementLimit,
-                cursor: settlementCursor 
+                cursor: settlementCursor
             })
         ]);
 

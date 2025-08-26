@@ -53,7 +53,7 @@ describe('Group Helpers', () => {
             expect(owner).toBe('user-alice');
         });
 
-        it('should return null if no owner exists', () => {
+        it('should throw error when no admins exist (invalid state)', () => {
             const groupWithNoOwner: Group = {
                 ...mockGroup,
                 members: {
@@ -65,8 +65,7 @@ describe('Group Helpers', () => {
                     },
                 },
             };
-            const owner = getGroupOwner(groupWithNoOwner);
-            expect(owner).toBeNull();
+            expect(() => getGroupOwner(groupWithNoOwner)).toThrow('Group test-group-id has no admin - invalid state');
         });
     });
 
