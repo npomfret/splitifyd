@@ -5,8 +5,8 @@ const { execSync } = require('child_process');
 
 const rootDir = path.join(__dirname, '../..');
 const sharedDir = path.join(rootDir, 'packages/shared');
-const srcFunctions = path.join(rootDir, 'firebase/functions');
-const stageRoot = path.join(rootDir, '.firebase/deploy');
+const srcFunctions = path.join(__dirname, '../functions');
+const stageRoot = path.join(__dirname, '../.firebase/deploy');
 const stageFunctions = path.join(stageRoot, 'functions');
 
 console.log('=== Preparing Firebase Functions for Deployment ===');
@@ -40,11 +40,20 @@ console.log(`Copied tarball to staging: ${filename}`);
 const pkgPath = path.join(stageFunctions, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 pkg.dependencies = pkg.dependencies || {};
+pkg.devDependencies = pkg.devDependencies || {};
 
 // Replace workspace reference with local tarball
 pkg.dependencies['@splitifyd/shared'] = `file:./${filename}`;
 
-// Write updated package.json
+// Remove any other @splitifyd workspace packages from devDependencies 
+// since they won't be available and we're using --omit=dev anyway
+Object.keys(pkg.devDependencies).forEach(dep => {
+    if (dep.startsWith('@splitifyd/')) {
+        console.log(`Removing devDependency: ${dep}`);
+        delete pkg.devDependencies[dep];
+    }
+});
+
 fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2));
 console.log('Updated staged package.json with local tarball reference');
 
@@ -54,7 +63,7 @@ console.log('Cleaned up temporary tarball');
 
 // Install production dependencies in staged directory
 console.log('Installing production dependencies in staged functions...');
-execSync('npm ci --omit=dev', { cwd: stageFunctions, stdio: 'inherit' });
+execSync('npm install --omit=dev --package-lock=false', { cwd: stageFunctions, stdio: 'inherit' });
 
 console.log(`\n✓ Deployment stage ready at ${stageFunctions}`);
 console.log('Firebase will deploy from this staged directory.');

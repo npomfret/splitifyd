@@ -25,6 +25,12 @@ const requiredVars: readonly string[] = [
     'EMULATOR_UI_PORT'
 ] as const;
 
+// Optional staging variables with defaults
+const optionalVars: Record<string, string> = {
+    'FUNCTIONS_SOURCE': 'functions',
+    'FUNCTIONS_PREDEPLOY': 'npm --prefix "$RESOURCE_DIR" run build'
+};
+
 const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
 if (missingVars.length > 0) {
     logger.error('❌ Missing required environment variables', {
@@ -34,10 +40,18 @@ if (missingVars.length > 0) {
     process.exit(1);
 }
 
+// Replace required variables (ports)
 requiredVars.forEach((varName) => {
     const placeholder: string = `{{${varName}}}`;
     const value: number = parseInt(process.env[varName]!);
     configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
+});
+
+// Replace optional variables (staging configuration)
+Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
+    const placeholder: string = `{{${varName}}}`;
+    const value: string = process.env[varName] || defaultValue;
+    configContent = configContent.replace(new RegExp(placeholder, 'g'), value);
 });
 
 fs.writeFileSync(configPath, configContent);
