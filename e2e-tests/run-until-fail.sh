@@ -10,8 +10,8 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/group-management.e2e.test.ts"
-TEST_FILTER="should allow group owner to edit group name"
+TEST_FILE="e2e-tests/src/tests/normal-flow/user-profile-management.e2e.test.ts"
+TEST_FILTER=""
 
 # Make max runs configurable, default to 25
 MAX_SUCCESSES=${1:-25}

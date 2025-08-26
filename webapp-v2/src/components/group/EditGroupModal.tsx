@@ -15,12 +15,13 @@ interface EditGroupModalProps {
 
 export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: EditGroupModalProps) {
     const { t } = useTranslation();
-    const [groupName, setGroupName] = useState(group.name);
-    const [groupDescription, setGroupDescription] = useState(group.description || '');
+    // Initialize with empty strings - will be set when modal opens
+    const [groupName, setGroupName] = useState('');
+    const [groupDescription, setGroupDescription] = useState('');
     
     // Track initial values when modal opens to properly detect changes
-    const [initialName, setInitialName] = useState(group.name);
-    const [initialDescription, setInitialDescription] = useState(group.description || '');
+    const [initialName, setInitialName] = useState('');
+    const [initialDescription, setInitialDescription] = useState('');
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -35,7 +36,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     // Only reset form when modal opens, NOT when group prop changes while open
     // This prevents user input from being wiped out by real-time updates
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && group) {
             // Capture the group values at the moment the modal opens
             setInitialName(group.name);
             setInitialDescription(group.description || '');

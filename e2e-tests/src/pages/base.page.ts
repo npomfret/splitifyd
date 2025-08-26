@@ -139,7 +139,7 @@ export abstract class BasePage {
 
                 // Ensure still focused before typing
                 await this.waitForFocus(input);
-                await this._page.waitForLoadState('networkidle');
+                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
 
                 // Check if this is a number input or has decimal inputMode
                 const inputType = await input.getAttribute('type');
@@ -162,7 +162,7 @@ export abstract class BasePage {
                 // Check if input was successful
                 const actualValue = await input.inputValue();
                 if (actualValue === value) {
-                    await this._page.waitForLoadState('networkidle');
+                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                     return; // Success!
                 }
 
@@ -174,7 +174,7 @@ export abstract class BasePage {
                     if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
                         // Values are numerically equal (e.g., "45.50" and "45.5")
                         // With text inputs, this should no longer happen, but keep for safety
-                        await this._page.waitForLoadState('networkidle');
+                        await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                         return; // Success - number normalization is expected!
                     }
                 }
@@ -187,7 +187,7 @@ export abstract class BasePage {
                         console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
                     }
                     // Use DOM state waiting instead of arbitrary timeout
-                    await this._page.waitForLoadState('networkidle');
+                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                 }
             } catch (error) {
                 if (attempt === maxRetries) {
@@ -195,13 +195,13 @@ export abstract class BasePage {
                 }
                 console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
                 // Use DOM state waiting instead of arbitrary timeout
-                await this._page.waitForLoadState('networkidle');
+                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
             }
         }
 
         // Final validation after all retries (throws error if still incorrect)
         await this.validateInputValue(input, value);
-        await this._page.waitForLoadState('networkidle');
+        await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
     }
 
     async waitForNetworkIdle() {
