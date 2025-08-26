@@ -32,11 +32,17 @@
         - Used TypeScript assertion signature for proper type narrowing
     *   **All tests passing, build successful**
 
-2.  **Task 1.2: Move User Registration to `UserService`**:
-    *   Implement a `registerUser` method in `UserService`.
-    *   Write unit tests for `UserService.registerUser`, covering all validation and success cases.
-    *   Refactor the `/register` handler to use `UserService.registerUser`.
-    *   Update and run all relevant integration tests.
+2.  **Task 1.2: Move User Registration to `UserService`**: ✅ **COMPLETED** (2025-08-26)
+    *   ✅ Implemented a `registerUser` method in `UserService`
+    *   ✅ Wrote comprehensive unit tests for `UserService.registerUser` (9 test cases covering all scenarios)
+    *   ✅ Refactored the `/register` handler to use `UserService.registerUser`
+    *   ✅ Updated and ran all relevant integration tests (all registration tests passing)
+    *   **Key improvements:**
+        - Centralized registration logic in UserService
+        - Maintained all existing functionality (validation, policy acceptance, theme color assignment)
+        - Proper error handling including orphaned user cleanup
+        - Clean separation of concerns between handler and service layer
+    *   **All tests passing, build successful**
 
 3.  **Task 1.3: Move other user operations to `UserService`**:
     *   Incrementally move the remaining user operations (update profile, change password, etc.) into `UserService`, following the same pattern of unit tests, refactoring, and integration tests for each.

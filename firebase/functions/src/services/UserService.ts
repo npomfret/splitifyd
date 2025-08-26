@@ -1,9 +1,14 @@
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
-import { FirestoreCollections } from '@splitifyd/shared';
+import { FirestoreCollections, UserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { Errors } from '../utils/errors';
+import { Errors, ApiError } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { createServerTimestamp } from '../utils/dateHelpers';
+import { getCurrentPolicyVersions } from '../auth/policy-helpers';
+import { assignThemeColor } from '../user-management/assign-theme-color';
+import { validateRegisterRequest } from '../auth/validation';
 
 /**
  * User profile interface for consistent user data across the application
@@ -18,6 +23,34 @@ export interface UserProfile {
     preferredLanguage?: string;
     createdAt?: Timestamp;
     updatedAt?: Timestamp;
+}
+
+/**
+ * Result of a successful user registration
+ */
+export interface RegisterUserResult {
+    success: boolean;
+    message: string;
+    user: {
+        uid: string;
+        email: string | undefined;
+        displayName: string | undefined;
+    };
+}
+
+/**
+ * Firestore user document structure for registration
+ */
+interface FirestoreUserDocument {
+    email: string;
+    displayName: string;
+    role: typeof UserRoles.USER | typeof UserRoles.ADMIN;
+    createdAt: admin.firestore.Timestamp;
+    updatedAt: admin.firestore.Timestamp;
+    acceptedPolicies: Record<string, string>;
+    themeColor: UserThemeColor;
+    termsAcceptedAt?: admin.firestore.Timestamp;
+    cookiePolicyAcceptedAt?: admin.firestore.Timestamp;
 }
 
 /**
@@ -146,6 +179,91 @@ export class UserService {
 
         // Handle not found users - log warning but don't throw error
         // Let calling code handle missing users gracefully
+    }
+
+    /**
+     * Register a new user in the system
+     * @param requestBody - The raw request body containing user registration data
+     * @returns A RegisterUserResult with the newly created user information
+     * @throws ApiError if registration fails
+     */
+    async registerUser(requestBody: unknown): Promise<RegisterUserResult> {
+        // Validate the request body
+        const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
+        
+        let userRecord: admin.auth.UserRecord | null = null;
+
+        try {
+            // Create the user in Firebase Auth
+            userRecord = await admin.auth().createUser({
+                email,
+                password,
+                displayName,
+            });
+
+            // Get current policy versions for user acceptance
+            const currentPolicyVersions = await getCurrentPolicyVersions();
+
+            // Assign theme color for new user
+            const themeColor = await assignThemeColor(userRecord.uid);
+
+            // Create user document in Firestore
+            const userDoc: FirestoreUserDocument = {
+                email,
+                displayName,
+                role: UserRoles.USER, // Default role for new users
+                createdAt: createServerTimestamp(),
+                updatedAt: createServerTimestamp(),
+                acceptedPolicies: currentPolicyVersions, // Capture current policy versions
+                themeColor, // Add automatic theme color assignment
+            };
+
+            // Only set acceptance timestamps if the user actually accepted the terms
+            if (termsAccepted) {
+                userDoc.termsAcceptedAt = createServerTimestamp();
+            }
+            if (cookiePolicyAccepted) {
+                userDoc.cookiePolicyAcceptedAt = createServerTimestamp();
+            }
+
+            await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
+            
+            logger.info('user-registered', { id: userRecord.uid });
+
+            return {
+                success: true,
+                message: 'Account created successfully',
+                user: {
+                    uid: userRecord.uid,
+                    email: userRecord.email,
+                    displayName: userRecord.displayName,
+                },
+            };
+        } catch (error: unknown) {
+            // If user was created but firestore failed, clean up the orphaned auth record
+            if (userRecord) {
+                try {
+                    await admin.auth().deleteUser(userRecord.uid);
+                } catch (cleanupError) {
+                    // Add cleanup failure context to the error
+                    logger.error('Failed to cleanup orphaned auth user', cleanupError, {
+                        userId: userRecord.uid,
+                    });
+                }
+            }
+
+            // Handle specific auth errors
+            if (error && typeof error === 'object' && 'code' in error && error.code === AuthErrors.EMAIL_EXISTS) {
+                throw new ApiError(
+                    HTTP_STATUS.CONFLICT,
+                    AuthErrors.EMAIL_EXISTS_CODE,
+                    'An account with this email already exists'
+                );
+            }
+
+            // Re-throw the error for the handler to catch
+            throw error;
+        }
     }
 }
 
