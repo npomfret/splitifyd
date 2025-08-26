@@ -146,8 +146,8 @@ export class ConnectionManager {
             return; // Don't check server if we're offline
         }
 
-        if (typeof window === 'undefined' || !(window as any).API_BASE_URL) {
-            throw new Error('window.API_BASE_URL is not available - cannot check server health');
+        if (typeof window === 'undefined' || !(window as any).getApiBaseUrl) {
+            throw new Error('window.getApiBaseUrl function is not available - cannot check server health');
         }
 
         this.lastServerCheck = Date.now();
@@ -156,8 +156,8 @@ export class ConnectionManager {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT);
 
-            const apiBaseUrl = (window as any).API_BASE_URL as string;
-            const response = await fetch(`${apiBaseUrl}/health`, {
+            const apiUrl = (window as any).getApiBaseUrl();
+            const response = await fetch(`${apiUrl}/health`, {
                 method: 'GET',
                 signal: controller.signal,
                 cache: 'no-cache',

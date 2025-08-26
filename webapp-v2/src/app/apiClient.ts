@@ -49,21 +49,7 @@ import type {
 
 // All types are now imported from shared-types
 
-// API configuration - use window.API_BASE_URL injected during build
-const getApiBaseUrl = () => {
-    // During SSG, return empty string (no API calls happen during SSG)
-    if (typeof window === 'undefined') {
-        return '/api';
-    }
-
-    const apiBaseUrl = (window as any).API_BASE_URL;
-    if (!apiBaseUrl) {
-        throw new Error('API_BASE_URL is not set - check build configuration');
-    }
-    return apiBaseUrl + '/api';
-};
-
-const API_BASE_URL = getApiBaseUrl();
+// API configuration - use global getApiBaseUrl function injected during build
 
 export class ApiValidationError extends Error {
     constructor(
@@ -352,7 +338,8 @@ export class ApiClient {
     // Internal method that handles the actual request with retry logic
     private async requestWithRetry<T = any>(config: RequestConfig<T>, attemptNumber: number): Promise<T> {
         const { endpoint, ...options } = config;
-        const url = buildUrl(`${API_BASE_URL}${endpoint}`, options.params, options.query);
+        const apiBaseUrl = (window as any).getApiBaseUrl ? (window as any).getApiBaseUrl() : '/api';
+        const url = buildUrl(`${apiBaseUrl}${endpoint}`, options.params, options.query);
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',

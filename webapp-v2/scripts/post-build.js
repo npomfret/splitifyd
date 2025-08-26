@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,17 +30,31 @@ if (isDev) {
 // Always inject API_BASE_URL (empty string for production)
 // The build outputs to dist, so we need to process all HTML files
 
-// Inject the API_BASE_URL script before the closing </head> tag
-let scriptContent;
+// Generate build timestamp and git hash
+const buildTime = new Date().toISOString();
+const gitHash = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+
+// Inject the getApiBaseUrl function before the closing </head> tag
+let baseUrlValue;
 if (isDev) {
     // In development, dynamically construct URL to match the hostname used to access the app
-    scriptContent = `window.API_BASE_URL = window.location.protocol + '//' + window.location.hostname + ':${firebaseConfig.emulators?.functions?.port}/${firebaseRc.projects?.default}/us-central1/api';`;
-    console.log(`injecting firebase emulator URL: ${scriptContent}`);
+    baseUrlValue = `window.location.protocol + '//' + window.location.hostname + ':${firebaseConfig.emulators?.functions?.port}/${firebaseRc.projects?.default}/us-central1/api'`;
+    console.log(`injecting firebase emulator base URL function`);
 } else {
-    // In production, use empty string for relative URLs
-    scriptContent = `window.API_BASE_URL = '';`;
+    // In production, use relative URL that gets rewritten by Firebase Hosting
+    baseUrlValue = `'/api'`;
 }
-const scriptTag = `    <script>${scriptContent}</script>\n  `;
+
+const scriptContent = `window.getApiBaseUrl = function() {
+    if (typeof window === 'undefined') {
+        return '/api';
+    }
+    
+    return ${baseUrlValue};
+};`;
+
+const buildComment = `    <!-- Built: ${buildTime} | Git: ${gitHash} -->\n    `;
+const scriptTag = buildComment + `<script>${scriptContent}</script>\n  `;
 
 // Function to process an HTML file
 const processHtmlFile = (filePath) => {
@@ -47,7 +62,7 @@ const processHtmlFile = (filePath) => {
         let html = fs.readFileSync(filePath, 'utf8');
 
         // Only inject if not already present
-        if (!html.includes('window.API_BASE_URL')) {
+        if (!html.includes('window.getApiBaseUrl')) {
             html = html.replace('</head>', scriptTag + '</head>');
             fs.writeFileSync(filePath, html);
             console.log(`Post-build: Injected API_BASE_URL into ${path.relative(path.join(__dirname, '..'), filePath)}`);

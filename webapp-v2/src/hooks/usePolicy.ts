@@ -10,21 +10,10 @@ interface PolicyResponse {
     createdAt: string;
 }
 
-// API base URL from window
-const getApiBaseUrl = () => {
-    if (typeof window === 'undefined') {
-        return '/api';
-    }
-
-    const apiBaseUrl = (window as any).API_BASE_URL;
-    if (!apiBaseUrl) {
-        throw new Error('API_BASE_URL is not set - check build configuration');
-    }
-    return apiBaseUrl + '/api';
-};
+// Use global getApiBaseUrl function injected by build script
 
 async function fetchCurrentPolicy(policyId: string): Promise<PolicyResponse> {
-    const response = await fetch(getApiBaseUrl() + '/policies/' + policyId + '/current');
+    const response = await fetch((window as any).getApiBaseUrl() + '/policies/' + policyId + '/current');
     if (!response.ok) {
         throw new Error('Failed to fetch policy ' + policyId + ': ' + response.status);
     }

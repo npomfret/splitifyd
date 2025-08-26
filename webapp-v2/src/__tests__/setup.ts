@@ -2,9 +2,9 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 
-// Mock window.API_BASE_URL - use dynamic port from shared config
+// Mock global getApiBaseUrl function - use dynamic port from shared config
 const config = getFirebaseEmulatorConfig();
-(window as any).API_BASE_URL = config.baseUrl;
+(window as any).getApiBaseUrl = () => config.baseUrl + '/api';
 
 // Mock fetch for API client tests
 global.fetch = vi.fn();

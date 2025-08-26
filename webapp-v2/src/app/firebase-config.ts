@@ -47,7 +47,7 @@ class FirebaseConfigManager {
                     throw new Error('API_BASE_URL is not set - call setApiBaseUrl() first');
                 }
 
-                const configUrl = `${this.apiBaseUrl}/api/config`;
+                const configUrl = `${this.apiBaseUrl}/config`;
 
                 const response = await fetch(configUrl, {
                     method: 'GET',
@@ -76,17 +76,20 @@ class FirebaseConfigManager {
 
 export const firebaseConfigManager = new FirebaseConfigManager();
 
-// Set up API base URL from window object (injected during build)
+// Set up API base URL using global function (injected during build)
 const setupApiBaseUrl = () => {
     // Skip during SSG
     if (typeof window === 'undefined') {
         return;
     }
 
-    const apiBaseUrl = (window as any).API_BASE_URL;
-    if (!apiBaseUrl) {
-        throw new Error('API_BASE_URL is not set - check build configuration');
+    const getApiBaseUrl = (window as any).getApiBaseUrl;
+    if (!getApiBaseUrl) {
+        throw new Error('getApiBaseUrl function is not available - check post-build.js');
     }
+    
+    const apiBaseUrl = getApiBaseUrl();
+    console.log({apiBaseUrl})
     firebaseConfigManager.setApiBaseUrl(apiBaseUrl);
 };
 
