@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
 import { SimplifiedDebt } from '@splitifyd/shared';
-import { UserProfile } from '../../services/UserService2';
+import { UserProfile } from '../../services/UserService';
 import { ExpenseBuilder, SettlementBuilder } from '../support/builders';
 
 // Mock dependencies
@@ -11,7 +11,7 @@ jest.mock('../../firebase', () => ({
     },
 }));
 
-jest.mock('../../services/UserService2', () => ({
+jest.mock('../../services/UserService', () => ({
     userService: {
         getUsers: jest.fn(),
     },
@@ -23,7 +23,7 @@ jest.mock('../../utils/debtSimplifier', () => ({
 
 // Import mocked dependencies
 import { firestoreDb } from '../../firebase';
-import { userService } from '../../services/UserService2';
+import { userService } from '../../services/UserService';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions

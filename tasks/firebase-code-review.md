@@ -20,7 +20,7 @@
 **Goal**: Extract all user-related business logic into a new `UserService2`.
 
 1.  **Task 1.1: Create `UserService2` with `getUser`**: ✅ **COMPLETED** (2025-08-26)
-    *   ✅ Created `src/services/UserService2.ts` (renamed from existing `UserService2.ts`)
+    *   ✅ Created `src/services/UserService.ts` (renamed from existing `UserService.ts`)
     *   ✅ Implemented a `getUser` method that fetches a user's profile from Firebase Auth + Firestore
     *   ✅ Wrote comprehensive unit tests for `UserService2.getUser` (8 tests total)
     *   ✅ Refactored the `getUserProfile` handler to use `UserService2.getUser`

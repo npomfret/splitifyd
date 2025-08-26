@@ -1,5 +1,5 @@
 import { firestoreDb } from '../../firebase';
-import { userService } from '../UserService2';
+import { userService } from '../UserService';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
 
