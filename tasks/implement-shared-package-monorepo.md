@@ -1,6 +1,7 @@
 # Task: Implement Shared Package for Monorepo
 
-**Status:** To Do
+**Status:** To Do  
+**Updated:** December 2024 (with industry research)
 
 ## 1. Problem Statement
 
@@ -20,11 +21,30 @@ The project already has:
 - Path alias `@shared/*` configured in `webapp-v2/tsconfig.json`
 - 44+ files in webapp-v2 importing from `@shared/shared-types`
 
-## 3. Proposed Solution
+## 3. Research Findings (2024)
 
-Create a proper `@splitifyd/shared` package within the existing monorepo structure to house all shared code, ensuring clean imports and better tooling support.
+Based on current best practices research, Firebase monorepo deployment remains challenging but has established solutions:
 
-## 4. Implementation Plan (Incremental Steps)
+### Core Challenge
+Firebase's deployment pipeline only packages the `functions` directory and doesn't understand monorepo workspace protocols (`workspace:*`). This causes deployment failures when shared packages can't be resolved.
+
+### Industry Solutions
+1. **Tarball Packing**: Pack shared packages into .tgz files and reference them locally (reliable but requires custom scripts)
+2. **isolate-package Tool**: Purpose-built tool that isolates packages with dependencies (handles complex cases automatically)
+3. **Bundling**: Webpack/Rollup to create single artifact (can cause issues with Firebase SDK and increase cold starts)
+4. **Firebase Codebase Feature**: Native support in Firebase CLI v10.7.1+ for managing multiple packages
+
+### Critical Best Practices
+- Use scoped package names (`@org/package`) to avoid npm registry collisions
+- Avoid generic names like `shared`, `core`, `common` that exist on npm
+- Test deployment thoroughly - builds can succeed but fail at runtime
+- Consider modern tools like Turborepo for build orchestration
+
+## 4. Proposed Solution
+
+Create a proper `@splitifyd/shared` package within the existing monorepo structure to house all shared code, using a tarball packing approach for Firebase deployment compatibility.
+
+## 5. Implementation Plan (Incremental Steps)
 
 ### Phase 1: Package Setup (Non-Breaking)
 **Goal:** Create the shared package structure without breaking existing code
@@ -246,7 +266,39 @@ rm -rf firebase/functions/src/shared
 #### Step 5.3: Update Test Support
 Ensure `@splitifyd/test-support` is properly configured as `devDependency` where used.
 
-## 5. Testing Strategy
+## 6. Alternative Approach: isolate-package
+
+For teams preferring a community-maintained solution, `isolate-package` offers a battle-tested alternative:
+
+### Setup
+1. Install: `npm install --save-dev isolate-package`
+2. Configure `firebase.json`:
+```json
+{
+  "functions": {
+    "source": "firebase/functions-isolated",
+    "predeploy": [
+      "npm run build --workspaces --if-present",
+      "npx isolate-package firebase/functions --output firebase/functions-isolated"
+    ]
+  }
+}
+```
+3. Add `firebase/functions-isolated/` to `.gitignore`
+
+### Advantages
+- Zero-config for most use cases
+- Handles recursive internal dependencies automatically
+- Generates pruned lockfile for deterministic deployments
+- Compatible with all package managers (npm, yarn, pnpm)
+- Active community support
+
+### Trade-offs
+- Additional tool dependency
+- May need firebase-tools fork for emulator support
+- Less control over the isolation process
+
+## 7. Testing Strategy
 
 ### After Each Phase:
 1. Run all unit tests: `npm test`
@@ -260,7 +312,7 @@ Ensure `@splitifyd/test-support` is properly configured as `devDependency` where
 3. Emulator test: Full app functionality
 4. Production build test: `cd firebase && npm run deploy:prod --dry-run`
 
-## 6. Rollback Plan
+## 8. Rollback Plan
 
 If issues arise at any phase:
 
@@ -280,7 +332,7 @@ If issues arise at any phase:
 - Restore path aliases
 - Restore `firebase/functions/src/shared` from git
 
-## 7. Benefits
+## 9. Benefits
 
 - **Clean Imports:** `import { Group } from '@splitifyd/shared'`
 - **Better Tooling:** IDEs and test runners understand package imports
@@ -288,17 +340,57 @@ If issues arise at any phase:
 - **Firebase Compatibility:** Works with Firebase's deployment constraints
 - **Future-Proof:** Easy to add more shared packages
 
-## 8. Timeline Estimate
+## 10. Recommendation
 
+Based on research and project analysis:
+
+### For This Project
+The **tarball approach** (as detailed in the implementation plan) is recommended because:
+- You already have a working monorepo setup with npm workspaces
+- Full control over the deployment process
+- No additional dependencies
+- Transparent and debuggable
+
+### When to Consider isolate-package
+Switch to isolate-package if you encounter:
+- Complex nested internal dependencies
+- Need for deterministic lockfile generation
+- Multiple teams needing standardized deployment
+- Desire to reduce custom script maintenance
+
+### Timeline Estimate
+
+**Tarball Approach:**
 - Phase 1: 30 minutes (setup)
 - Phase 2: 1 hour (migration and testing)
 - Phase 3: 1 hour (Firebase integration)
 - Phase 4: 2-3 hours (gradual migration and testing)
 - Phase 5: 30 minutes (cleanup)
+- **Total:** 5-6 hours with careful testing
 
-**Total:** 5-6 hours with careful testing between phases
+**isolate-package Approach:**
+- Setup and configuration: 1 hour
+- Migration and testing: 2-3 hours
+- **Total:** 3-4 hours (simpler but less control)
 
-## 9. Success Criteria
+## 11. Important Considerations
+
+### Package Naming
+- **Critical**: Use scoped names like `@splitifyd/shared` to avoid npm registry conflicts
+- **Warning**: Never use generic names (`shared`, `core`, `common`) that exist on npm
+- Deployment may succeed but fail at runtime with wrong package
+
+### Deployment Validation
+- Test the full deployment pipeline, not just local builds
+- Verify shared code is actually included in the deployment
+- Check function cold start times aren't negatively impacted
+
+### Nested Dependencies
+- If shared packages depend on other shared packages, complexity increases
+- Tarball approach requires packing dependencies in correct order
+- isolate-package handles this automatically
+
+## 12. Success Criteria
 
 - [ ] All tests pass
 - [ ] Emulator runs without errors
