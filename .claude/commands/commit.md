@@ -6,6 +6,7 @@ First:
 Next:
 - [ ] use the git cli to view and analyse this changeset. ALL OF IT, every single changed file. No exceptions.
 - [ ] **check every change in every file**
+- [ ] is it as good as it can be? (is there unused code, duplication, missing tests, compile errors, lack of type safety... etc)
 - [ ] have we violated any of the rules, or deviated from the patterns? If so: **STOP HERE**
 
 If it's ok:
