@@ -4,7 +4,17 @@ import { apiClient } from '@/app/apiClient';
 
 // Mock dependencies
 vi.mock('@/app/apiClient');
-vi.mock('@/utils/change-detector');
+
+// Mock ChangeDetector properly
+vi.mock('@/utils/change-detector', () => ({
+    ChangeDetector: class {
+        subscribeToGroupChanges = vi.fn(() => vi.fn());
+        subscribeToExpenseChanges = vi.fn(() => vi.fn());
+        subscribeToBalanceChanges = vi.fn(() => vi.fn());
+        dispose = vi.fn();
+    },
+}));
+
 vi.mock('@/utils/browser-logger', () => ({
     logWarning: vi.fn(),
     logInfo: vi.fn(),
@@ -154,18 +164,25 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
             expect(enhancedGroupDetailStore.hasMoreExpenses).toBe(false);
         });
 
-        it('should reset state properly', () => {
-            // Set some state
-            (enhancedGroupDetailStore as any).groupSignal.value = mockGroup;
-            (enhancedGroupDetailStore as any).membersSignal.value = mockFullDetails.members.members;
+        it('should reset state properly', async () => {
+            // Set some state by loading a group
+            vi.mocked(apiClient).getGroupFullDetails.mockResolvedValueOnce(mockFullDetails);
+            await enhancedGroupDetailStore.loadGroup('group1');
+            
+            // Verify state is loaded
+            expect(enhancedGroupDetailStore.group).toEqual(mockGroup);
+            expect(enhancedGroupDetailStore.members).toEqual(mockFullDetails.members.members);
 
             // Reset
             enhancedGroupDetailStore.reset();
 
+            // Verify state is cleared
             expect(enhancedGroupDetailStore.group).toBeNull();
             expect(enhancedGroupDetailStore.members).toEqual([]);
             expect(enhancedGroupDetailStore.expenses).toEqual([]);
             expect(enhancedGroupDetailStore.balances).toBeNull();
+            expect(enhancedGroupDetailStore.loading).toBe(false);
+            expect(enhancedGroupDetailStore.error).toBeNull();
         });
     });
 
@@ -225,48 +242,40 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
     });
 
     describe('Real-time updates', () => {
-        it('should subscribe to changes when group is loaded', () => {
-            const mockChangeDetector = {
-                subscribeToExpenseChanges: vi.fn().mockReturnValue(vi.fn()),
-                subscribeToBalanceChanges: vi.fn().mockReturnValue(vi.fn()),
-            };
+        it('should subscribe to changes when group is loaded', async () => {
+            // Load a group first
+            vi.mocked(apiClient).getGroupFullDetails.mockResolvedValueOnce(mockFullDetails);
+            await enhancedGroupDetailStore.loadGroup('group1');
 
-            (enhancedGroupDetailStore as any).changeDetector = mockChangeDetector;
-            (enhancedGroupDetailStore as any).currentGroupId = 'group1';
+            // Get the mocked changeDetector instance
+            const mockChangeDetector = (enhancedGroupDetailStore as any).changeDetector;
 
+            // Subscribe to changes
             enhancedGroupDetailStore.subscribeToChanges('user1');
 
+            // Verify subscriptions were set up
             expect(mockChangeDetector.subscribeToExpenseChanges).toHaveBeenCalledWith('group1', expect.any(Function));
-            expect(mockChangeDetector.subscribeToBalanceChanges).toHaveBeenCalledWith('group1', expect.any(Function));
+            expect(mockChangeDetector.subscribeToGroupChanges).toHaveBeenCalledWith('user1', expect.any(Function));
         });
 
         it('should refresh data when changes are detected', async () => {
+            // Load a group first
+            vi.mocked(apiClient).getGroupFullDetails.mockResolvedValueOnce(mockFullDetails);
+            await enhancedGroupDetailStore.loadGroup('group1');
+
+            // Get the mock changeDetector and capture the callback
             let expenseCallback: (() => void) | undefined;
-            const mockChangeDetector = {
-                subscribeToExpenseChanges: vi.fn((_, callback) => {
-                    expenseCallback = callback;
-                    return vi.fn();
-                }),
-                subscribeToBalanceChanges: vi.fn().mockReturnValue(vi.fn()),
-            };
-
-            (enhancedGroupDetailStore as any).changeDetector = mockChangeDetector;
-            (enhancedGroupDetailStore as any).currentGroupId = 'group1';
-
-            // Mock refresh responses
-            vi.mocked(apiClient.getExpenses).mockResolvedValue({
-                expenses: [...mockFullDetails.expenses.expenses],
-                hasMore: false,
-                nextCursor: undefined,
-            });
-            vi.mocked(apiClient.listSettlements).mockResolvedValue({
-                settlements: [],
-                count: 0,
-                hasMore: false,
-                nextCursor: undefined,
+            const mockChangeDetector = (enhancedGroupDetailStore as any).changeDetector;
+            mockChangeDetector.subscribeToExpenseChanges.mockImplementation((_, callback: () => void) => {
+                expenseCallback = callback;
+                return vi.fn();
             });
 
+            // Subscribe to changes
             enhancedGroupDetailStore.subscribeToChanges('user1');
+
+            // Mock the refresh call (refreshAll calls loadGroup which calls getGroupFullDetails)
+            vi.mocked(apiClient).getGroupFullDetails.mockResolvedValueOnce(mockFullDetails);
 
             // Trigger change
             if (expenseCallback) {
@@ -275,8 +284,8 @@ describe('EnhancedGroupDetailStore - Simplified', () => {
                 await new Promise((resolve) => setTimeout(resolve, 10));
             }
 
-            expect(apiClient.getExpenses).toHaveBeenCalled();
-            expect(apiClient.listSettlements).toHaveBeenCalled();
+            // Verify refresh was called
+            expect(apiClient.getGroupFullDetails).toHaveBeenCalledTimes(2); // Initial load + refresh
         });
     });
 
