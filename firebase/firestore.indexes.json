@@ -1,141 +1,111 @@
 {
-    "indexes": [
+  "indexes": [
+    {
+      "collectionGroup": "balance-changes",
+      "queryScope": "COLLECTION",
+      "fields": [
         {
-            "collectionGroup": "documents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "data.memberIds",
-                    "arrayConfig": "CONTAINS"
-                },
-                {
-                    "fieldPath": "updatedAt",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "__name__",
-                    "order": "ASCENDING"
-                }
-            ]
+          "fieldPath": "groupId",
+          "order": "ASCENDING"
         },
         {
-            "collectionGroup": "documents",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "data.memberIds",
-                    "arrayConfig": "CONTAINS"
-                },
-                {
-                    "fieldPath": "updatedAt",
-                    "order": "DESCENDING"
-                },
-                {
-                    "fieldPath": "__name__",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "expenses",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "groupId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "date",
-                    "order": "DESCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                },
-                {
-                    "fieldPath": "__name__",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "expenses",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "memberIds",
-                    "arrayConfig": "CONTAINS"
-                },
-                {
-                    "fieldPath": "date",
-                    "order": "DESCENDING"
-                },
-                {
-                    "fieldPath": "createdAt",
-                    "order": "DESCENDING"
-                },
-                {
-                    "fieldPath": "__name__",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "group-changes",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "users",
-                    "arrayConfig": "CONTAINS"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "group-changes",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "id",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "transaction-changes",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "groupId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
-        },
-        {
-            "collectionGroup": "balance-changes",
-            "queryScope": "COLLECTION",
-            "fields": [
-                {
-                    "fieldPath": "groupId",
-                    "order": "ASCENDING"
-                },
-                {
-                    "fieldPath": "timestamp",
-                    "order": "DESCENDING"
-                }
-            ]
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
         }
-    ],
-    "fieldOverrides": []
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "groupId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "expenses",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "memberIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "group-changes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "group-changes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "metadata.affectedUsers",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "group-changes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "users",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "transaction-changes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "groupId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
 }
