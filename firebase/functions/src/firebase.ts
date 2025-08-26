@@ -15,10 +15,10 @@ if (!admin.apps || admin.apps.length === 0) {
         projectId: process.env.GCLOUD_PROJECT
     });
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.FUNCTIONS_EMULATOR === 'true') {
         const firebaseJsonPath = join(__dirname, '../../firebase.json');
         let firebaseConfig;
-        
+
         try {
             const firebaseJsonContent = readFileSync(firebaseJsonPath, 'utf8');
             firebaseConfig = JSON.parse(firebaseJsonContent);
