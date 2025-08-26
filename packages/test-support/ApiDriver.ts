@@ -24,10 +24,15 @@ import {
     UserPoliciesResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
-import {API_BASE_URL, FIREBASE_API_KEY, FIREBASE_AUTH_URL} from "./firebase-emulator";
+
 import type {DocumentData} from "firebase-admin/firestore";
 import * as admin from "firebase-admin";
 import {getFirebaseEmulatorConfig} from "./firebase-emulator-config";
+
+const config = getFirebaseEmulatorConfig();
+const FIREBASE_API_KEY = config.firebaseApiKey;
+const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
+const API_BASE_URL = config.baseUrl;
 
 // Test-specific extension of User to include auth token
 export interface User extends BaseUser {
