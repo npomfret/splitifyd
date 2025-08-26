@@ -31,7 +31,7 @@ const requiredVars: readonly string[] = isProduction ? [] : [
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
     'FUNCTIONS_SOURCE': 'functions',
-    'FUNCTIONS_PREDEPLOY': 'npm --prefix "$RESOURCE_DIR" run build'
+    'FUNCTIONS_PREDEPLOY': 'npm --prefix \\"$RESOURCE_DIR\\" run build'
 };
 
 const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
