@@ -3,8 +3,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver } from '../../support/ApiDriver';
-import { CreateGroupRequestBuilder } from '../../support/builders';
+import { ApiDriver } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { beforeAll } from '@jest/globals';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';

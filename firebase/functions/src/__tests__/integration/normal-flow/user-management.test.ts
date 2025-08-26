@@ -5,9 +5,9 @@
 // Tests for user management endpoints
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import { CreateGroupRequestBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('User Management Tests', () => {
     let driver: ApiDriver;

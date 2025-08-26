@@ -1,6 +1,6 @@
 import { FirestoreCollections, PolicyIds } from '@splitifyd/shared';
 import * as crypto from 'crypto';
-import { ApiDriver } from '../../support/ApiDriver';
+import { ApiDriver } from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
 
 describe('Policies API Integration Tests', () => {

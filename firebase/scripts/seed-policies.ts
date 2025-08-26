@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import {PolicyIds, FirestoreCollections} from '@splitifyd/shared';
 import {createPolicyInternal, publishPolicyInternal} from '../functions/src/policies/handlers';
 import {firestoreDb} from '../functions/src/firebase';
-import {ApiDriver} from '../functions/src/__tests__/support/ApiDriver';
+import {ApiDriver} from '@splitifyd/test-support';
 import assert from "node:assert";
 
 /*

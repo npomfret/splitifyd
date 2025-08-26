@@ -5,12 +5,12 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-import { ApiDriver, User } from '../../support/ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
-import { UserBuilder } from '../../support/builders';
-import { CreateGroupRequestBuilder } from '../../support/builders';
-import { ExpenseBuilder } from '../../support/builders';
-import { SettlementBuilder } from '../../support/builders';
+import { UserBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder } from '@splitifyd/test-support';
+import { SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Complex Unsettled Balance - API Integration Test', () => {
     let driver: ApiDriver;

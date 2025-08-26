@@ -3,8 +3,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import {Group, groupSize} from '@splitifyd/shared';
 
 describe('Error Handling and Recovery Testing', () => {

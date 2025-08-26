@@ -1,5 +1,5 @@
-import {ApiDriver, User} from '../../support/ApiDriver';
-import {CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder} from '../../support/builders';
+import {ApiDriver, User} from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder} from '@splitifyd/test-support';
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver: ApiDriver;

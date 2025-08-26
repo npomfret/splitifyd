@@ -3,7 +3,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 
 describe('Expense Locking Debug Test', () => {

@@ -17,13 +17,11 @@ export interface FirebaseEmulatorConfig {
 
 /**
  * Reads Firebase emulator configuration from firebase.json and .firebaserc
- * @param projectRoot - Path to the project root (where firebase/ directory exists)
  * @returns Firebase emulator configuration
  */
-export function getFirebaseEmulatorConfig(projectRoot: string): FirebaseEmulatorConfig {
-    if(!fs.statSync(projectRoot)) {
-        throw Error(`Project root ${projectRoot} => ${path.resolve(projectRoot)} does not exist!`);
-    }
+export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
+    const projectRoot = findProjectRoot();
+    
     // Read emulator configuration from firebase.json
     const firebaseConfigPath = path.join(projectRoot, 'firebase', 'firebase.json');
     const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
@@ -51,11 +49,10 @@ export function getFirebaseEmulatorConfig(projectRoot: string): FirebaseEmulator
 
 /**
  * Finds the project root by looking for firebase/firebase.json
- * @param startPath - Starting directory to search from
  * @returns Path to project root
  */
-export function findProjectRoot(startPath: string): string {
-    let currentPath = startPath;
+export function findProjectRoot(): string {
+    let currentPath = process.cwd();
 
     while (currentPath !== '/') {
         try {

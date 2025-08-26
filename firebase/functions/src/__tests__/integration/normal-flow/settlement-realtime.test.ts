@@ -7,8 +7,8 @@
 
 import * as admin from 'firebase-admin';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { ApiDriver } from '../../support/ApiDriver';
-import { SettlementBuilder } from '../../support/builders';
+import { ApiDriver } from '@splitifyd/test-support';
+import { SettlementBuilder } from '@splitifyd/test-support';
 import { randomUUID } from 'crypto';
 import {firestoreDb} from "../../../firebase";
 

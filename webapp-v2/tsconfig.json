@@ -19,9 +19,7 @@
         "forceConsistentCasingInFileNames": true,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "@test-builders": ["../firebase/functions/src/__tests__/support/builders"],
-            "@test-support/ApiDriver": ["../firebase/functions/src/__tests__/support/ApiDriver.ts"]
+            "@/*": ["./src/*"]
         }
     },
     "include": ["src"],

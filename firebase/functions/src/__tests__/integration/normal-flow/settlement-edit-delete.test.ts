@@ -4,8 +4,8 @@
 
 // Integration tests for settlement editing and deletion functionality
 
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { SettlementBuilder, SettlementUpdateBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 describe('Settlement Edit and Delete Operations', () => {

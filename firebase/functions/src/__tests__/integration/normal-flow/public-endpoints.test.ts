@@ -4,7 +4,7 @@
 
 // Tests for public endpoints that don't require authentication
 
-import { ApiDriver } from '../../support/ApiDriver';
+import { ApiDriver } from '@splitifyd/test-support';
 
 describe('Public Endpoints Tests', () => {
     let driver: ApiDriver;

@@ -4,8 +4,8 @@
 
 // Tests for duplicate user registration handling
 
-import { ApiDriver } from '../../support/ApiDriver';
-import { UserBuilder } from '../../support/builders';
+import { ApiDriver } from '@splitifyd/test-support';
+import { UserBuilder } from '@splitifyd/test-support';
 
 describe('Duplicate User Registration Tests', () => {
     let driver: ApiDriver;

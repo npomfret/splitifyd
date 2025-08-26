@@ -1,6 +1,6 @@
-import { ApiDriver, User } from '../../support/ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { ExpenseBuilder } from '../../support/builders';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Expenses Full Details API', () => {
     let apiDriver: ApiDriver;

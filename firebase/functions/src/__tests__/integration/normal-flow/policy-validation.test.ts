@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { UserBuilder } from '@splitifyd/test-support';
 
 describe('Policy Validation Tests', () => {
     let driver: ApiDriver;

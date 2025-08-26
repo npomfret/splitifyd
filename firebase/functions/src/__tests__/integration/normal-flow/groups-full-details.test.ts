@@ -1,6 +1,6 @@
-import { ApiDriver, User } from '../../support/ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { ExpenseBuilder, SettlementBuilder } from '../../support/builders';
+import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Groups Full Details API', () => {
     let apiDriver: ApiDriver;

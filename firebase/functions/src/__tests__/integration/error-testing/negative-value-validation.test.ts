@@ -4,8 +4,8 @@
 
 import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder, ExpenseBuilder, SettlementBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { UserBuilder, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Negative Value Validation', () => {
     let driver: ApiDriver;

@@ -3,8 +3,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, CreateGroupRequestBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 
 describe('Business Logic Edge Cases', () => {

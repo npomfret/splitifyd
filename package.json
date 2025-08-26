@@ -4,9 +4,8 @@
     "workspaces": [
         "firebase/functions",
         "webapp-v2",
-        "test-support",
         "e2e-tests",
-        "packages/shared"
+        "packages/*"
     ],
     "scripts": {
         "clean": "npm run clean -ws --if-present",

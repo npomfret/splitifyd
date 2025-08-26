@@ -9,8 +9,8 @@
 
 // Using native fetch from Node.js 18+
 import {v4 as uuidv4} from 'uuid';
-import {ApiDriver, User} from '../../support/ApiDriver';
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '../../support/builders';
+import {ApiDriver, User} from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '@splitifyd/test-support';
 import {FirebaseIntegrationTestUserPool} from '../../support/FirebaseIntegrationTestUserPool';
 import {groupSize} from "@splitifyd/shared";
 

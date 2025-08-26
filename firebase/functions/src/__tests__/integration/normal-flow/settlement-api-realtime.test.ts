@@ -5,8 +5,8 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { SettlementBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { SettlementBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {firestoreDb} from "../../../firebase";

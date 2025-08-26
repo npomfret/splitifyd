@@ -9,8 +9,8 @@
 
 // Using native fetch from Node.js 18+
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, ExpenseUpdateBuilder, UserBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { ExpenseBuilder, ExpenseUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
 
 describe('Edit Expense Integration Tests', () => {
     let driver: ApiDriver;

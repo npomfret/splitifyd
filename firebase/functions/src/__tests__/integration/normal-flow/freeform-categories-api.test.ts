@@ -3,8 +3,8 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 
 describe('Freeform Categories API Integration', () => {

@@ -8,8 +8,8 @@
 // Run the emulator with: `firebase emulators:start`
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
 
 describe('RESTful Group Endpoints', () => {
     let driver: ApiDriver;

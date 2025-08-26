@@ -8,8 +8,8 @@
 // Run the emulator with: `firebase emulators:start`
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '../../support/ApiDriver';
-import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '../../support/builders';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { 
     CreateCommentResponse, 
     ListCommentsApiResponse,

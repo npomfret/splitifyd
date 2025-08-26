@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
-import { ApiDriver, User } from '../../support/ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '../../support/builders';
+import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Trigger Debug Tests', () => {
     let apiDriver: ApiDriver;

@@ -1,4 +1,4 @@
-import { ApiDriver, User } from './ApiDriver';
+import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder } from './builders';
 
 /**

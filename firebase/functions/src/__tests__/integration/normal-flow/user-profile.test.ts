@@ -1,6 +1,6 @@
-import { ApiDriver } from '../../support/ApiDriver';
-import { UserBuilder } from '../../support/builders';
-import { CreateGroupRequestBuilder } from '../../support/builders';
+import { ApiDriver } from '@splitifyd/test-support';
+import { UserBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('User Profile Management API Tests', () => {
     let driver: ApiDriver;

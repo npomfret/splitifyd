@@ -1,7 +1,7 @@
 import type {Page} from '@playwright/test';
-import {findProjectRoot, getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import {getFirebaseEmulatorConfig} from '@splitifyd/test-support';
 
-const config = getFirebaseEmulatorConfig(findProjectRoot(process.cwd()));
+const config = getFirebaseEmulatorConfig();
 
 export const EMULATOR_URL = `http://localhost:${config.hostingPort}`; // App uses root URLs, not /v2 prefix
 
