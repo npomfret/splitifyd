@@ -14,6 +14,7 @@
         "deploy:hosting": "cd .. && NODE_ENV=production npm run build && cd firebase && firebase deploy --only hosting",
         "deploy:rules": "firebase deploy --only firestore:rules",
         "deploy:indexes": "firebase deploy --only firestore:indexes --force",
+        "seed-policies:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/seed-policies.ts production && rm functions/.env",
         "logs": "firebase functions:log",
         "manage-functions": "tsx scripts/manage-deployed-functions.ts",
         "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",

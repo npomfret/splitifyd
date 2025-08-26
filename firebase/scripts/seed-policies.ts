@@ -1,15 +1,95 @@
 #!/usr/bin/env npx tsx
 import * as path from 'path';
 import * as fs from 'fs';
-import {PolicyIds, FirestoreCollections} from '@splitifyd/shared';
-import {createPolicyInternal, publishPolicyInternal} from '../functions/src/policies/handlers';
-import {firestoreDb} from '../functions/src/firebase';
-import {ApiDriver} from '@splitifyd/test-support';
+import * as admin from 'firebase-admin';
 import assert from "node:assert";
 
 /*
- * this script only seeds policy files to the emulator
+ * This script seeds policy files to either the emulator or production
+ * Usage:
+ *   tsx seed-policies.ts emulator
+ *   tsx seed-policies.ts production
  */
+
+// Parse command line arguments or detect environment
+const args = process.argv.slice(2);
+const targetEnvironment = args[0];
+
+// If called directly, require explicit argument
+// If called as a module, detect from environment
+let isEmulator: boolean;
+let environment: string;
+
+if (require.main === module) {
+    // Called directly - require explicit argument
+    if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
+        console.error('❌ Usage: tsx seed-policies.ts <emulator|production>');
+        process.exit(1);
+    }
+    isEmulator = targetEnvironment === 'emulator';
+    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
+} else {
+    // Called as module - detect from FUNCTIONS_EMULATOR env var (set by emulator)
+    isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
+}
+
+console.log(`🎯 Running policy seeding for ${environment}`);
+
+// Initialize Firebase Admin for production BEFORE any other imports
+if (!isEmulator && require.main === module) {
+    console.log('   Using Production Firebase');
+    
+    const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
+    
+    if (!fs.existsSync(serviceAccountPath)) {
+        console.error('❌ Service account key not found at firebase/service-account-key.json');
+        console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
+        process.exit(1);
+    }
+    
+    if (admin.apps.length === 0) {
+        console.log('🔑 Initializing Firebase Admin with service account...');
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccountPath),
+            projectId: process.env.GCLOUD_PROJECT
+        });
+    }
+} else if (isEmulator) {
+    console.log('   Using Firebase Emulator Suite');
+}
+
+// Now import modules that depend on Firebase initialization
+import {PolicyIds, FirestoreCollections} from '@splitifyd/shared';
+import {ApiDriver} from '@splitifyd/test-support';
+
+// We'll get these instances dynamically
+let firestoreDb: admin.firestore.Firestore;
+let createPolicyInternal: any;
+let publishPolicyInternal: any;
+
+/**
+ * Initialize Firebase and import handlers
+ */
+async function initializeFirebase() {
+    if (!isEmulator && require.main === module) {
+        // Production mode - use the admin instance we already initialized
+        firestoreDb = admin.firestore();
+        
+        // Import handlers that will use our initialized admin instance
+        const handlers = await import('../functions/src/policies/handlers');
+        createPolicyInternal = handlers.createPolicyInternal;
+        publishPolicyInternal = handlers.publishPolicyInternal;
+    } else {
+        // Emulator mode - import everything normally
+        const firebaseModule = await import('../functions/src/firebase');
+        const handlers = await import('../functions/src/policies/handlers');
+        
+        firestoreDb = firebaseModule.firestoreDb;
+        createPolicyInternal = handlers.createPolicyInternal;
+        publishPolicyInternal = handlers.publishPolicyInternal;
+    }
+}
 
 /**
  * Read policy file from docs/policies directory
@@ -57,9 +137,14 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
 }
 
 /**
- * Verify policies are accessible via API
+ * Verify policies are accessible via API (only for emulator)
  */
 async function verifyPoliciesViaApi(): Promise<void> {
+    if (!isEmulator) {
+        console.log('⏭️  Skipping API verification (not available for production)');
+        return;
+    }
+
     console.log('\n═══════════════════════════════════════════════════════');
     console.log('🔍 VERIFYING POLICIES VIA API...');
     console.log('═══════════════════════════════════════════════════════');
@@ -98,20 +183,17 @@ async function verifyPoliciesViaApi(): Promise<void> {
     }
 }
 
-interface EmulatorConfig {
-    projectId: string;
-    firestorePort: string;
-    authPort: string;
-}
-
 /**
  * Seed initial policies using admin API
  */
-export async function seedPolicies(emulatorConfig: EmulatorConfig) {
-    console.log('Reading policy documents from docs/policies...');
+export async function seedPolicies() {
+    console.log(`📚 Reading policy documents from docs/policies...`);
+    console.log(`🌍 Target environment: ${environment}`);
 
-    // Set up environment variables if config is provided
     assert(process.env.GCLOUD_PROJECT, "GCLOUD_PROJECT must be set");
+
+    // Initialize Firebase and import handlers
+    await initializeFirebase();
 
     try {
         // Verify all policy files exist first
@@ -129,7 +211,7 @@ export async function seedPolicies(emulatorConfig: EmulatorConfig) {
         await seedPolicy(PolicyIds.COOKIE_POLICY, 'Cookie Policy', 'cookie-policy.md');
         await seedPolicy(PolicyIds.PRIVACY_POLICY, 'Privacy Policy', 'privacy-policy.md');
 
-        console.log('✅ Successfully seeded all policies');
+        console.log(`✅ Successfully seeded all policies to ${environment}`);
 
         // Verify policies were created by querying Firestore directly
         const docs = await firestoreDb.collection(FirestoreCollections.POLICIES).get();
@@ -144,11 +226,27 @@ export async function seedPolicies(emulatorConfig: EmulatorConfig) {
             });
         });
 
-        // Verify policies are accessible via API
+        // Verify policies are accessible via API (emulator only)
         await verifyPoliciesViaApi();
 
+        console.log(`\n🎉 ${environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);
+
     } catch (error) {
+        console.error(`❌ Failed to seed policies to ${environment}:`, error);
         throw error;
     }
+}
+
+// Run the seeding if this script is executed directly
+if (require.main === module) {
+    seedPolicies()
+        .then(() => {
+            console.log('\n✅ Policy seeding script completed successfully!');
+            process.exit(0);
+        })
+        .catch((error) => {
+            console.error('\n❌ Policy seeding script failed:', error);
+            process.exit(1);
+        });
 }
 

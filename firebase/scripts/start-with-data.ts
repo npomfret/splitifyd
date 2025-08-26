@@ -21,13 +21,6 @@ interface PolicyConfig {
     authPort: string;
 }
 
-interface TestDataConfig {
-    projectId: string;
-    functionsPort: string;
-    firestorePort: string;
-    authPort: string;
-}
-
 async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
     try {
         logger.info('');
@@ -36,11 +29,7 @@ async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
 
-        await seedPolicies({
-            projectId: config.projectId,
-            firestorePort: config.firestorePort,
-            authPort: config.authPort,
-        });
+        await seedPolicies();
 
         logger.info('');
         logger.info('✅ Policy seeding completed successfully!');
