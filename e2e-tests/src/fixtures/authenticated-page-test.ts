@@ -1,6 +1,6 @@
 import { multiUserTest } from './multi-user-declarative';
 import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 export interface AuthenticatedPageFixtures {
     authenticatedPage: {

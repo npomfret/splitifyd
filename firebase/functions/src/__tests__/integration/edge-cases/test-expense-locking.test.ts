@@ -4,7 +4,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import { SplitTypes } from '../../../shared/shared-types';
+import { SplitTypes } from '@splitifyd/shared';
 
 describe('Expense Locking Debug Test', () => {
     jest.setTimeout(10000);

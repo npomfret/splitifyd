@@ -1,4 +1,4 @@
-import { Group, groupSize } from '@shared/shared-types';
+import { Group, groupSize } from '@splitifyd/shared';
 import { Card } from '../ui';
 import { formatCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';

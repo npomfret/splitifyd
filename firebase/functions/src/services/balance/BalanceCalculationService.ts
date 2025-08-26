@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { UserBalance } from '../../shared/shared-types';
+import { UserBalance } from '@splitifyd/shared';
 import { BalanceCalculationResult, CurrencyBalances, BalanceCalculationInput } from './types';
 import { DataFetcher } from './DataFetcher';
 import { ExpenseProcessor } from './ExpenseProcessor';

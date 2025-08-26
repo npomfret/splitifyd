@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import type { Group, User, ExpenseData, GroupBalances, SettlementListItem } from '@shared/shared-types';
+import type { Group, User, ExpenseData, GroupBalances, SettlementListItem } from '@splitifyd/shared';
 
 // Mock dependencies
 vi.mock('@/app/apiClient');

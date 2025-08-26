@@ -42,7 +42,7 @@ import type {
     AcceptPolicyRequest,
     CreateSettlementResponse,
     ListSettlementsApiResponse,
-} from '@shared/shared-types';
+} from '@splitifyd/shared';
 
 // All types are now imported from shared-types
 

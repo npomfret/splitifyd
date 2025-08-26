@@ -11,7 +11,7 @@ import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, Bal
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { logError, logInfo } from '../utils/browser-logger';
-import type { SettlementListItem } from '@shared/shared-types.ts';
+import type { SettlementListItem } from '@splitifyd/shared';
 
 interface GroupDetailPageProps {
     id?: string;

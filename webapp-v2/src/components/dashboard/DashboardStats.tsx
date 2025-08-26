@@ -2,7 +2,7 @@ import { useComputed } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { SidebarCard } from '@/components/ui';
-import { groupSize } from '@shared/shared-types.ts';
+import { groupSize } from '@splitifyd/shared';
 
 export function DashboardStats() {
     const { t } = useTranslation();

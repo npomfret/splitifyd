@@ -5,7 +5,8 @@
         "firebase/functions",
         "webapp-v2",
         "test-support",
-        "e2e-tests"
+        "e2e-tests",
+        "packages/shared"
     ],
     "scripts": {
         "clean": "npm run clean -ws --if-present",
@@ -13,7 +14,7 @@
         "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
         "dev:prep": "npm run clean:logs && cd firebase && npm run clean && cd .. && npm run build",
         "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
-        "build": "npm run build -ws --if-present",
+        "build": "npm run build -w @splitifyd/shared && npm run build -ws --if-present",
         "webapp-v2:build": "cd webapp-v2 && npm run build",
         "build:all": "npm run build -w webapp-v2",
         "watch": "npm run watch -ws --if-present",
@@ -25,6 +26,7 @@
         "report": "repo-statter . -o reports",
         "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
         "postinstall": "cd e2e-tests && npx playwright install chromium",
+        "prepare": "npm run build -w @splitifyd/shared || true",
         "format": "prettier --write ."
     },
     "devDependencies": {

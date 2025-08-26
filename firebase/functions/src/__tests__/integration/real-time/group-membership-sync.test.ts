@@ -8,7 +8,7 @@ import { CreateGroupRequestBuilder } from '../../support/builders';
 import { beforeAll } from '@jest/globals';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';
-import { FirestoreCollections } from '../../../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 

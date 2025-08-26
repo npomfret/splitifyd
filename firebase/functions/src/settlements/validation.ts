@@ -1,5 +1,5 @@
 import * as Joi from 'joi';
-import { CreateSettlementRequest, UpdateSettlementRequest } from '../shared/shared-types';
+import { CreateSettlementRequest, UpdateSettlementRequest } from '@splitifyd/shared';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 
 const amountSchema = Joi.number().positive().precision(2).max(999999.99).required().messages({

@@ -6,7 +6,7 @@
 
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { Group, groupSize } from '@shared/shared-types.ts';
+import { Group, groupSize } from '@splitifyd/shared';
 
 interface GroupPreviewProps {
     group: Group;

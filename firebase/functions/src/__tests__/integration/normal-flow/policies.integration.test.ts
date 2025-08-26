@@ -1,4 +1,4 @@
-import { FirestoreCollections, PolicyIds } from '../../../shared/shared-types';
+import { FirestoreCollections, PolicyIds } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { ApiDriver } from '../../support/ApiDriver';
 import {firestoreDb} from "../../../firebase";

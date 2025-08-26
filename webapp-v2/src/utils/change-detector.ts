@@ -1,7 +1,7 @@
 import { collection, query, where, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { getDb } from '../app/firebase';
 import { logInfo, logWarning } from './browser-logger';
-import { FirestoreCollections } from '@shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { streamingMetrics } from './streaming-metrics';
 
 export type ChangeCallback = () => void;

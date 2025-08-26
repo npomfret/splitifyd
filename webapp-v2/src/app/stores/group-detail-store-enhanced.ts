@@ -1,7 +1,7 @@
 import { signal, batch } from '@preact/signals';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
-import type { ExpenseData, Group, GroupBalances, User, SettlementListItem } from '@shared/shared-types.ts';
+import type { ExpenseData, Group, GroupBalances, User, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
 export interface EnhancedGroupDetailStore {

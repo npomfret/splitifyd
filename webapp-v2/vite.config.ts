@@ -30,7 +30,6 @@ export default defineConfig(() => ({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
-            '@shared': path.resolve(__dirname, '../firebase/functions/src/shared'),
             // React compatibility for libraries that expect React
             react: 'preact/compat',
             'react-dom': 'preact/compat',

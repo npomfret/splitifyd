@@ -19,12 +19,18 @@
 
 **Goal**: Extract all user-related business logic into a new `UserService`.
 
-1.  **Task 1.1: Create `UserService` with `getUser`**:
-    *   Create `src/services/UserService.ts`.
-    *   Implement a `getUser` method that fetches a user's profile.
-    *   Write unit tests for `UserService.getUser`.
-    *   Refactor the `getUserProfile` handler to use `UserService.getUser`.
-    *   Update and run all relevant integration tests.
+1.  **Task 1.1: Create `UserService` with `getUser`**: ✅ **COMPLETED** (2025-08-26)
+    *   ✅ Created `src/services/UserService.ts` (renamed from existing `userService.ts`)
+    *   ✅ Implemented a `getUser` method that fetches a user's profile from Firebase Auth + Firestore
+    *   ✅ Wrote comprehensive unit tests for `UserService.getUser` (8 tests total)
+    *   ✅ Refactored the `getUserProfile` handler to use `UserService.getUser`
+    *   ✅ Fixed all import paths across the codebase
+    *   **Improvements made during review:**
+        - Added missing test cases for users without email/displayName
+        - Improved type safety by using `Timestamp` instead of `any`
+        - Removed code duplication by extracting `validateUserRecord` method
+        - Used TypeScript assertion signature for proper type narrowing
+    *   **All tests passing, build successful**
 
 2.  **Task 1.2: Move User Registration to `UserService`**:
     *   Implement a `registerUser` method in `UserService`.

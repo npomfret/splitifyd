@@ -20,6 +20,7 @@
     },
     "main": "lib/index.js",
     "dependencies": {
+        "@splitifyd/shared": "*",
         "cors": "^2.8.5",
         "deep-object-diff": "^1.1.9",
         "dotenv": "^17.2.0",

@@ -4,7 +4,7 @@ import {
     Group, 
     MemberRole,
     GroupPermissions
-} from '@shared/shared-types';
+} from '@splitifyd/shared';
 import { getDb } from '../app/firebase';
 
 /**

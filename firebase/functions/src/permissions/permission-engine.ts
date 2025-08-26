@@ -8,8 +8,8 @@ import {
     MemberRoles,
     PermissionLevels,
     MemberStatuses
-} from '../shared/shared-types';
-import { ExpenseData } from '../shared/shared-types';
+} from '@splitifyd/shared';
+import { ExpenseData } from '@splitifyd/shared';
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;

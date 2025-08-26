@@ -14,7 +14,7 @@ import {
     CreateCommentResponse, 
     ListCommentsApiResponse,
     FirestoreCollections
-} from '../../../shared/shared-types';
+} from '@splitifyd/shared';
 
 // Extend ApiDriver with comment-specific methods
 interface CommentApiDriver extends ApiDriver {

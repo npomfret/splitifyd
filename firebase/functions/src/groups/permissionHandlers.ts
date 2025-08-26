@@ -11,7 +11,7 @@ import {
     SecurityPresets,
     MemberRoles,
     PermissionChangeLog
-} from '../shared/shared-types';
+} from '@splitifyd/shared';
 import { PermissionEngine, permissionCache } from '../permissions';
 import { transformGroupDocument } from './handlers';
 import { createServerTimestamp } from '../utils/dateHelpers';

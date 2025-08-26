@@ -4,7 +4,7 @@ import {GroupDetailPage, JoinGroupPage, LoginPage} from '../../pages';
 import {GroupWorkflow} from '../../workflows';
 import {DEFAULT_PASSWORD, generateTestGroupName} from '../../utils/test-helpers';
 import {getUserPool} from '../../fixtures/user-pool.fixture';
-import {User} from "@shared/shared-types.ts";
+import {User} from "@splitifyd/shared";
 
 setupMCPDebugOnFailure();
 

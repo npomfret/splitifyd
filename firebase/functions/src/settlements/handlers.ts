@@ -20,7 +20,7 @@ import {
     DeleteSettlementResponse,
     GetSettlementResponse,
     ListSettlementsApiResponse,
-} from '../shared/shared-types';
+} from '@splitifyd/shared';
 import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { verifyGroupMembership } from '../utils/groupHelpers';

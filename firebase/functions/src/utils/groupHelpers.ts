@@ -1,13 +1,14 @@
-import { Group, FirestoreCollections, MemberRoles } from '../shared/shared-types';
+import { Group, FirestoreCollections, MemberRoles } from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';
 
 /**
  * Get the group owner's user ID from the members map
- * In the new permission system, we look for the creator or any admin
+ * Returns the first admin found, prioritizing the creator if they're an admin
+ * @throws Error if no admin exists (invalid state)
  */
-export const getGroupOwner = (group: Group): string | null => {
+export const getGroupOwner = (group: Group): string => {
     // First check if the creator is still an admin
     const creator = group.members[group.createdBy];
     if (creator && creator.role === MemberRoles.ADMIN) {
@@ -20,18 +21,18 @@ export const getGroupOwner = (group: Group): string | null => {
             return userId;
         }
     }
-    
-    // Fallback to creator if no admins (for legacy groups)
-    return group.createdBy;
+
+    // Groups must have at least one admin - this is an invalid state
+    throw new Error(`Group ${group.id} has no admin - invalid state`);
 };
 
 /**
  * Check if a user is the owner of a group
- * Updated to work with new permission system - checks if user is admin or creator
+ * Checks if user has admin role
  */
 export const isGroupOwner = (group: Group, userId: string): boolean => {
     const member = group.members[userId];
-    return member?.role === MemberRoles.ADMIN || userId === group.createdBy || false;
+    return member?.role === MemberRoles.ADMIN || false;
 };
 
 /**

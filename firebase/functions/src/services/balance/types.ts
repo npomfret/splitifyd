@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { UserBalance, SimplifiedDebt } from '../../shared/shared-types';
+import { UserBalance, SimplifiedDebt } from '@splitifyd/shared';
 
 // Core entity interfaces - properly typed versions of data from Firestore
 export interface Expense {
@@ -57,7 +57,7 @@ export interface BalanceCalculationInput {
     expenses: Expense[];
     settlements: Settlement[];
     groupData: GroupData;
-    memberProfiles: Map<string, import('../../services/userService').UserProfile>;
+    memberProfiles: Map<string, import('../../services/UserService').UserProfile>;
 }
 
 export interface CurrencyBalances {

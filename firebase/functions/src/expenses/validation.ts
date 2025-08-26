@@ -4,7 +4,7 @@ import { HTTP_STATUS } from '../constants';
 import * as admin from 'firebase-admin';
 import { sanitizeString } from '../utils/security';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
-import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '../shared/shared-types';
+import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
 
 export interface Expense {
     id: string;

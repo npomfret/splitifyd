@@ -1,7 +1,7 @@
 import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
-import type { ExpenseData, User } from '@shared/shared-types.ts';
-import { SplitTypes } from '@shared/shared-types.ts';
+import type { ExpenseData, User } from '@splitifyd/shared';
+import { SplitTypes } from '@splitifyd/shared';
 
 interface SplitBreakdownProps {
     expense: ExpenseData;

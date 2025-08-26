@@ -4,7 +4,7 @@ import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { UserPlusIcon } from '@heroicons/react/24/outline';
-import type { User } from '@shared/shared-types.ts';
+import type { User } from '@splitifyd/shared';
 
 interface MembersListProps {
     members: User[];

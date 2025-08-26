@@ -2,7 +2,7 @@ import { signal } from '@preact/signals';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { Button, Form, CurrencyAmountInput } from '../ui';
 import { CurrencyService } from '@/app/services/currencyService.ts';
-import type { CreateSettlementRequest, User, SimplifiedDebt, SettlementListItem } from '@shared/shared-types.ts';
+import type { CreateSettlementRequest, User, SimplifiedDebt, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';

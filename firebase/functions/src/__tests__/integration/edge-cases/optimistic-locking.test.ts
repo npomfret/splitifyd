@@ -6,7 +6,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
-import {groupSize} from '../../../shared/shared-types';
+import {groupSize} from '@splitifyd/shared';
 import { ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, UserBuilder } from '../../support/builders';
 
 describe('Optimistic Locking Integration Tests', () => {

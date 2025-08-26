@@ -1,6 +1,6 @@
 import {Page} from '@playwright/test';
 import {DashboardPage, LoginPage} from '../pages';
-import type {User as BaseUser} from '@shared/shared-types';
+import type {User as BaseUser} from '@splitifyd/shared';
 import {DEFAULT_PASSWORD} from "../utils/test-helpers.ts";
 
 /**

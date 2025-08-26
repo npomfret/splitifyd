@@ -3,7 +3,7 @@ import { LoadingSpinner, ConfirmDialog } from '../ui';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { apiClient } from '@/app/apiClient.ts';
-import type { SettlementListItem } from '@shared/shared-types.ts';
+import type { SettlementListItem } from '@splitifyd/shared';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useTranslation } from 'react-i18next';
 

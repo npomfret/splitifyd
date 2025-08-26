@@ -4,7 +4,7 @@ import { useSignal, useComputed } from '@preact/signals';
 import { expenseFormStore, getRecentAmounts } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
-import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@shared/shared-types';
+import { ExpenseData, PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { logError } from '@/utils/browser-logger.ts';
 import { useAuth } from './useAuth';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';

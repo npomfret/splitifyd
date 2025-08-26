@@ -8,7 +8,7 @@ import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../u
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calculateSplits, Expense } from './validation';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group } from '../shared/shared-types';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
 import { verifyGroupMembership } from '../utils/groupHelpers';

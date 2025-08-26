@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
-import type { UserThemeColor } from '../shared/shared-types';
+import type { UserThemeColor } from '@splitifyd/shared';
 
 export async function assignThemeColor(userId: string): Promise<UserThemeColor> {
     const db = getFirestore();

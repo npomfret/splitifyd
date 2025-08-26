@@ -1,5 +1,5 @@
 import { signal, computed } from '@preact/signals';
-import type { UserThemeColor } from '@shared/shared-types';
+import type { UserThemeColor } from '@splitifyd/shared';
 import type { User } from '@/types/auth.ts';
 
 export interface ThemeState {

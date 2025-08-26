@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DOCUMENT_CONFIG, SYSTEM, VALIDATION_LIMITS } from './constants';
-import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from './shared/shared-types';
+import { AppConfiguration, EnvironmentConfig, FirebaseConfig } from '@splitifyd/shared';
 import { validateAppConfiguration } from './middleware/config-validation';
 import { logger } from './logger';
 

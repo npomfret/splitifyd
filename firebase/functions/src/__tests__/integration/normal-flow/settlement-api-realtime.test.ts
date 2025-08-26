@@ -8,7 +8,7 @@
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { SettlementBuilder } from '../../support/builders';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import { FirestoreCollections } from '../../../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import {firestoreDb} from "../../../firebase";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {

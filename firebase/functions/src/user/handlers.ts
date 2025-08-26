@@ -3,45 +3,25 @@ import { Response } from 'express';
 import { logger } from '../logger';
 import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { LocalizedRequest } from '../utils/i18n';
 import { Errors } from '../utils/errors';
 import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword } from './validation';
+import { userService } from '../services/UserService';
 
 /**
  * Get current user's profile
  */
 export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-        const userId = req.user?.uid;
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        // Get user from Firebase Auth
-        const userRecord = await admin.auth().getUser(userId);
-        
-        // Get additional user data from Firestore
-        const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
-        const userData = userDoc.data();
-
-        res.status(HTTP_STATUS.OK).json({
-            uid: userRecord.uid,
-            email: userRecord.email,
-            displayName: userRecord.displayName,
-            photoURL: userRecord.photoURL || null,
-            emailVerified: userRecord.emailVerified,
-            themeColor: userData?.themeColor,
-            preferredLanguage: userData?.preferredLanguage,
-            createdAt: userData?.createdAt,
-            updatedAt: userData?.updatedAt,
-        });
-    } catch (error) {
-        logger.error('Failed to get user profile', { error: error as Error, userId: req.user?.uid });
-        throw error;
+    const userId = req.user?.uid;
+    if (!userId) {
+        throw Errors.UNAUTHORIZED();
     }
+
+    const userProfile = await userService.getUser(userId);
+    res.status(HTTP_STATUS.OK).json(userProfile);
 };
 
 /**
@@ -166,7 +146,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
 
         // Validate request body using Joi
         validateDeleteUser(req.body);
-        
+
         // confirmDelete validation is handled by Joi, no need for manual check
 
         // Check if user has any groups or outstanding balances

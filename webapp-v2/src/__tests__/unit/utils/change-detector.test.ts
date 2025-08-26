@@ -2,7 +2,7 @@ import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { ChangeDetector } from '@/utils/change-detector';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDb } from '@/app/firebase';
-import { FirestoreCollections } from '@shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 // Mock Firebase
 vi.mock('firebase/firestore');

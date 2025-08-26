@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 import * as path from 'path';
 import * as fs from 'fs';
-import {PolicyIds, FirestoreCollections} from '../functions/src/shared/shared-types';
+import {PolicyIds, FirestoreCollections} from '@splitifyd/shared';
 import {createPolicyInternal, publishPolicyInternal} from '../functions/src/policies/handlers';
 import {firestoreDb} from '../functions/src/firebase';
 import {ApiDriver} from '../functions/src/__tests__/support/ApiDriver';

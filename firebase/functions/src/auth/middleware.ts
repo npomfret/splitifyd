@@ -4,7 +4,7 @@ import { Errors, sendError } from '../utils/errors';
 import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
-import { FirestoreCollections, UserRoles } from '../shared/shared-types';
+import { FirestoreCollections, UserRoles } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
 
 /**

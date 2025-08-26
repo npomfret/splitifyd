@@ -9,7 +9,7 @@ import {
     createMinimalBalanceChangeDocument,
     ChangeType 
 } from '../utils/change-detection';
-import { FirestoreCollections } from '../shared/shared-types';
+import { FirestoreCollections } from '@splitifyd/shared';
 import {firestore} from "firebase-admin";
 import DocumentSnapshot = firestore.DocumentSnapshot;
 import {ParamsOf} from "firebase-functions";

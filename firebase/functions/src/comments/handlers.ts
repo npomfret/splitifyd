@@ -17,7 +17,7 @@ import {
     CreateCommentResponse,
     ListCommentsResponse,
     ListCommentsApiResponse
-} from '../shared/shared-types';
+} from '@splitifyd/shared';
 import { isGroupMember } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 

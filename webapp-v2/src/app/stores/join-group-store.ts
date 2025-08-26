@@ -6,7 +6,7 @@
 
 import { signal } from '@preact/signals';
 import { apiClient } from '../apiClient';
-import type { Group } from '@shared/shared-types.ts';
+import type { Group } from '@splitifyd/shared';
 
 // Signals for join group state
 const groupSignal = signal<Group | null>(null);

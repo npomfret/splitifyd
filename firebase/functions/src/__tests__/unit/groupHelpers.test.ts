@@ -1,5 +1,5 @@
 import { getGroupOwner, isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
-import { Group, MemberRoles, MemberStatuses } from '../../shared/shared-types';
+import { Group, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 describe('Group Helpers', () => {
     const mockGroup: Group = {
@@ -53,7 +53,7 @@ describe('Group Helpers', () => {
             expect(owner).toBe('user-alice');
         });
 
-        it('should return createdBy as fallback when no admin exists in members', () => {
+        it('should throw error when no admins exist (invalid state)', () => {
             const groupWithNoOwner: Group = {
                 ...mockGroup,
                 members: {
@@ -65,8 +65,7 @@ describe('Group Helpers', () => {
                     },
                 },
             };
-            const owner = getGroupOwner(groupWithNoOwner);
-            expect(owner).toBe('user-alice'); // Returns createdBy as fallback
+            expect(() => getGroupOwner(groupWithNoOwner)).toThrow('Group test-group-id has no admin - invalid state');
         });
     });
 

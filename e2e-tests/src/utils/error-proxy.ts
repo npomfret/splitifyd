@@ -6,7 +6,7 @@
 import { Page } from '@playwright/test';
 import { ProxiedMethodError } from '../errors/test-errors';
 import { collectPageState } from './page-state-collector';
-import type { User as BaseUser } from '@shared/shared-types';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 /**
  * Configuration for the error handling proxy

@@ -5,7 +5,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '../../support/ApiDriver';
 import { ExpenseBuilder, UserBuilder } from '../../support/builders';
-import {Group, groupSize} from '../../../shared/shared-types';
+import {Group, groupSize} from '@splitifyd/shared';
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;

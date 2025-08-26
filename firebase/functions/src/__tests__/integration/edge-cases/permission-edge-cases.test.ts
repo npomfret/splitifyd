@@ -14,7 +14,7 @@ import {
     SecurityPresets, 
     MemberRoles,
     Group
-} from '../../../shared/shared-types';
+} from '@splitifyd/shared';
 
 describe('Permission System Edge Cases', () => {
     let driver: ApiDriver;

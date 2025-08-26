@@ -15,7 +15,7 @@ import {
     MemberRoles, 
     PermissionLevels,
     Group
-} from '../../../shared/shared-types';
+} from '@splitifyd/shared';
 
 describe('Permission System Integration Tests', () => {
     let driver: ApiDriver;

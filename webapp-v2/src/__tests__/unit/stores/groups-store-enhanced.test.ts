@@ -1,7 +1,7 @@
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced';
 import { apiClient } from '@/app/apiClient';
-import type { CreateGroupRequest, Group, ListGroupsResponse } from '@shared/shared-types';
+import type { CreateGroupRequest, Group, ListGroupsResponse } from '@splitifyd/shared';
 
 // Mock the API client
 vi.mock('../../app/apiClient');
