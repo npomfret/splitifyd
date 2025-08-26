@@ -6,7 +6,7 @@ import { ExpenseBuilder, SettlementBuilder } from '../support/builders';
 
 // Mock dependencies
 jest.mock('../../firebase', () => ({
-    db: {
+    firestoreDb: {
         collection: jest.fn(),
     },
 }));
