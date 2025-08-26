@@ -57,7 +57,7 @@ export interface BalanceCalculationInput {
     expenses: Expense[];
     settlements: Settlement[];
     groupData: GroupData;
-    memberProfiles: Map<string, import('../../services/UserService').UserProfile>;
+    memberProfiles: Map<string, import('../../services/userService').UserProfile>;
 }
 
 export interface CurrencyBalances {

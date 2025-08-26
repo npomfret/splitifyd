@@ -44,12 +44,13 @@ try {
 
     const isProduction: boolean = instance === 'prod';
 
-    if (!isProduction) {
-        execSync('tsx scripts/generate-firebase-config.ts', {
-            cwd: path.join(__dirname, '..'),
-            stdio: 'inherit',
-        });
+    // Generate firebase.json for both emulator and production environments
+    execSync('tsx scripts/generate-firebase-config.ts', {
+        cwd: path.join(__dirname, '..'),
+        stdio: 'inherit',
+    });
 
+    if (!isProduction) {
         logger.info('📍 Emulator ports configured', {
             ui: process.env.EMULATOR_UI_PORT,
             auth: process.env.EMULATOR_AUTH_PORT,
@@ -59,7 +60,10 @@ try {
             nextStep: 'npm run dev:with-data',
         });
     } else {
-        logger.info('🚀 Production environment configured - ready for deployment');
+        logger.info('🚀 Production environment configured - ready for deployment', {
+            functions_source: process.env.FUNCTIONS_SOURCE,
+            functions_predeploy: process.env.FUNCTIONS_PREDEPLOY,
+        });
     }
 } catch (error: any) {
     logger.error('❌ Failed to switch instance', { error: error.message });

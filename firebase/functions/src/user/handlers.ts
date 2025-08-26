@@ -9,7 +9,7 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { LocalizedRequest } from '../utils/i18n';
 import { Errors } from '../utils/errors';
 import { validateUpdateUserProfile, validateDeleteUser, validateChangePassword } from './validation';
-import { userService } from '../services/UserService';
+import { userService } from '../services/userService';
 
 /**
  * Get current user's profile

@@ -17,7 +17,10 @@ if (!fs.existsSync(templatePath)) {
 
 let configContent: string = fs.readFileSync(templatePath, 'utf8');
 
-const requiredVars: readonly string[] = [
+// Determine if this is production mode based on FUNCTIONS_SOURCE
+const isProduction = process.env.FUNCTIONS_SOURCE && process.env.FUNCTIONS_SOURCE !== 'functions';
+
+const requiredVars: readonly string[] = isProduction ? [] : [
     'EMULATOR_AUTH_PORT',
     'EMULATOR_FUNCTIONS_PORT',
     'EMULATOR_FIRESTORE_PORT',
@@ -41,11 +44,26 @@ if (missingVars.length > 0) {
 }
 
 // Replace required variables (ports)
-requiredVars.forEach((varName) => {
-    const placeholder: string = `{{${varName}}}`;
-    const value: number = parseInt(process.env[varName]!);
-    configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
-});
+if (!isProduction) {
+    requiredVars.forEach((varName) => {
+        const placeholder: string = `{{${varName}}}`;
+        const value: number = parseInt(process.env[varName]!);
+        configContent = configContent.replace(new RegExp(placeholder, 'g'), value.toString());
+    });
+} else {
+    // For production, replace emulator placeholders with default values (won't be used anyway)
+    const defaultPorts = {
+        'EMULATOR_AUTH_PORT': '6002',
+        'EMULATOR_FUNCTIONS_PORT': '6003',
+        'EMULATOR_FIRESTORE_PORT': '6004',
+        'EMULATOR_HOSTING_PORT': '6005',
+        'EMULATOR_UI_PORT': '6001'
+    };
+    Object.entries(defaultPorts).forEach(([varName, defaultValue]) => {
+        const placeholder: string = `{{${varName}}}`;
+        configContent = configContent.replace(new RegExp(placeholder, 'g'), defaultValue);
+    });
+}
 
 // Replace optional variables (staging configuration)
 Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
@@ -56,12 +74,19 @@ Object.entries(optionalVars).forEach(([varName, defaultValue]) => {
 
 fs.writeFileSync(configPath, configContent);
 
-logger.info('🔥 Firebase configuration generated', {
-    ports: {
-        ui: process.env.EMULATOR_UI_PORT!,
-        auth: process.env.EMULATOR_AUTH_PORT!,
-        functions: process.env.EMULATOR_FUNCTIONS_PORT!,
-        firestore: process.env.EMULATOR_FIRESTORE_PORT!,
-        hosting: process.env.EMULATOR_HOSTING_PORT!,
-    },
-});
+if (isProduction) {
+    logger.info('🔥 Firebase configuration generated for production', {
+        functions_source: process.env.FUNCTIONS_SOURCE || optionalVars.FUNCTIONS_SOURCE,
+        functions_predeploy: process.env.FUNCTIONS_PREDEPLOY || optionalVars.FUNCTIONS_PREDEPLOY,
+    });
+} else {
+    logger.info('🔥 Firebase configuration generated', {
+        ports: {
+            ui: process.env.EMULATOR_UI_PORT!,
+            auth: process.env.EMULATOR_AUTH_PORT!,
+            functions: process.env.EMULATOR_FUNCTIONS_PORT!,
+            firestore: process.env.EMULATOR_FIRESTORE_PORT!,
+            hosting: process.env.EMULATOR_HOSTING_PORT!,
+        },
+    });
+}

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
-import { userService } from '../services/UserService';
+import { userService } from '../services/userService';
 import { ApiError } from '../utils/errors';
 
 export const register = async (req: Request, res: Response): Promise<void> => {

@@ -27,7 +27,7 @@ jest.mock('../../auth/validation', () => ({
 }));
 
 // Import after mocking
-import { UserService } from '../../services/UserService';
+import { UserService } from '../../services/userService';
 import { firestoreDb } from '../../firebase';
 import { logger } from '../../logger';
 import { getCurrentPolicyVersions } from '../../auth/policy-helpers';
