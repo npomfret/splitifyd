@@ -1,25 +1,39 @@
 {
-    "mcpServers": {
-        "context7": {
-            "type": "http",
-            "url": "https://mcp.context7.com/mcp"
-        },
-        "typescript-mcp": {
-            "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@mizchi/lsmcp", "-p", "typescript"]
-        },
-        "ts-morph": {
-            "command": "npx",
-            "args": ["-y", "@sirosuzume/mcp-tsmorph-refactor"]
-        },
-        "context-provider": {
-            "command": "npx",
-            "args": ["-y", "code-context-provider-mcp"]
-        },
-        "playwright": {
-            "command": "npx",
-            "args": ["-y", "@playwright/mcp@latest"]
-        }
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "typescript-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mizchi/lsmcp",
+        "-p",
+        "typescript"
+      ]
+    },
+    "ts-morph": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@sirosuzume/mcp-tsmorph-refactor"
+      ]
+    },
+    "context-provider": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "code-context-provider-mcp"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
     }
+  }
 }

@@ -79,3 +79,5 @@ directives
 .mcp.local.json
 .claude/mcp-inventory.json
 .claude/agents/prompt-advisor.md
+.claude/commands/commit.md
+.claude/commands/merge.md
