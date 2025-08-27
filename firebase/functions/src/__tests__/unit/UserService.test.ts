@@ -25,6 +25,11 @@ jest.mock('../../user-management/assign-theme-color', () => ({
 jest.mock('../../auth/validation', () => ({
     validateRegisterRequest: jest.fn(),
 }));
+jest.mock('../../user/validation', () => ({
+    validateUpdateUserProfile: jest.fn(),
+    validateChangePassword: jest.fn(),
+    validateDeleteUser: jest.fn(),
+}));
 
 // Import after mocking
 import { UserService } from '../../services/UserService2';
@@ -33,6 +38,7 @@ import { logger } from '../../logger';
 import { getCurrentPolicyVersions } from '../../auth/policy-helpers';
 import { assignThemeColor } from '../../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../../auth/validation';
+import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../../user/validation';
 
 describe('UserService', () => {
     let userService: UserService;
@@ -509,6 +515,660 @@ describe('UserService', () => {
             // Act & Assert
             await expect(userService.registerUser(validRegisterData)).rejects.toThrow(themeError);
             expect(mockDeleteUser).toHaveBeenCalledWith(mockUserRecord.uid); // Should cleanup
+        });
+    });
+
+    describe('updateProfile', () => {
+        let mockUpdateUser: jest.Mock;
+        let mockFirestoreUpdate: jest.Mock;
+
+        beforeEach(() => {
+            mockUpdateUser = jest.fn();
+            mockFirestoreUpdate = jest.fn();
+
+            (admin.auth as jest.Mock).mockReturnValue({
+                getUser: mockGetUser,
+                updateUser: mockUpdateUser,
+            });
+
+            const mockDoc = {
+                get: mockFirestoreGet,
+                update: mockFirestoreUpdate,
+            };
+
+            const mockCollection = {
+                doc: jest.fn().mockReturnValue(mockDoc),
+            };
+
+            (firestoreDb.collection as jest.Mock).mockReturnValue(mockCollection);
+
+            // Setup default validation mock
+            (validateUpdateUserProfile as jest.Mock).mockImplementation((body) => body);
+        });
+
+        it('should update user profile with displayName only', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { displayName: 'Updated Name' };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'Updated Name',
+                photoURL: null,
+                emailVerified: true,
+            };
+            const mockFirestoreData = {
+                themeColor: 'blue',
+                preferredLanguage: 'en',
+                createdAt: { seconds: 1234567890, nanoseconds: 0 },
+                updatedAt: { seconds: 1234567900, nanoseconds: 0 },
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => mockFirestoreData });
+
+            // Act
+            const result = await userService.updateProfile(userId, updateData, 'en');
+
+            // Assert
+            expect(validateUpdateUserProfile).toHaveBeenCalledWith(updateData, 'en');
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, { displayName: 'Updated Name' });
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                displayName: 'Updated Name',
+                updatedAt: expect.anything(),
+            }));
+            expect(result).toEqual({
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'Updated Name',
+                photoURL: null,
+                emailVerified: true,
+                themeColor: 'blue',
+                preferredLanguage: 'en',
+                createdAt: mockFirestoreData.createdAt,
+                updatedAt: mockFirestoreData.updatedAt,
+            });
+        });
+
+        it('should update user profile with photoURL', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { photoURL: 'https://example.com/photo.jpg' };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'Test User',
+                photoURL: 'https://example.com/photo.jpg',
+                emailVerified: true,
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => ({}) });
+
+            // Act
+            const result = await userService.updateProfile(userId, updateData);
+
+            // Assert
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, { photoURL: 'https://example.com/photo.jpg' });
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                photoURL: 'https://example.com/photo.jpg',
+                updatedAt: expect.anything(),
+            }));
+            expect(result.photoURL).toBe('https://example.com/photo.jpg');
+        });
+
+        it('should handle null photoURL (remove photo)', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { photoURL: null };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'Test User',
+                photoURL: null,
+                emailVerified: true,
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => ({}) });
+
+            // Act
+            const result = await userService.updateProfile(userId, updateData);
+
+            // Assert
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, { photoURL: null });
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                photoURL: null,
+                updatedAt: expect.anything(),
+            }));
+            expect(result.photoURL).toBeNull();
+        });
+
+        it('should update preferredLanguage (Firestore only)', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { preferredLanguage: 'en' };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'Test User',
+                photoURL: null,
+                emailVerified: true,
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => ({ preferredLanguage: 'en' }) });
+
+            // Act
+            const result = await userService.updateProfile(userId, updateData);
+
+            // Assert
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, {}); // No Auth updates for language
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                preferredLanguage: 'en',
+                updatedAt: expect.anything(),
+            }));
+            expect(result.preferredLanguage).toBe('en');
+        });
+
+        it('should update multiple fields at once', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = {
+                displayName: 'New Name',
+                photoURL: 'https://example.com/new.jpg',
+                preferredLanguage: 'en',
+            };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'New Name',
+                photoURL: 'https://example.com/new.jpg',
+                emailVerified: true,
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => ({ preferredLanguage: 'en' }) });
+
+            // Act
+            const result = await userService.updateProfile(userId, updateData);
+
+            // Assert
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, {
+                displayName: 'New Name',
+                photoURL: 'https://example.com/new.jpg',
+            });
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                displayName: 'New Name',
+                photoURL: 'https://example.com/new.jpg',
+                preferredLanguage: 'en',
+                updatedAt: expect.anything(),
+            }));
+            expect(result.displayName).toBe('New Name');
+            expect(result.photoURL).toBe('https://example.com/new.jpg');
+            expect(result.preferredLanguage).toBe('en');
+        });
+
+        it('should clear cache after successful update', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { displayName: 'New Name' };
+            const mockAuthUser = {
+                uid: userId,
+                email: 'test@example.com',
+                displayName: 'New Name',
+                photoURL: null,
+                emailVerified: true,
+            };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+            mockGetUser.mockResolvedValue(mockAuthUser);
+            mockFirestoreGet.mockResolvedValue({ data: () => ({}) });
+
+            // First, cache the user
+            await userService.getUser(userId);
+            expect(mockGetUser).toHaveBeenCalledTimes(1);
+
+            // Act
+            await userService.updateProfile(userId, updateData);
+
+            // Assert - getUser should be called again (cache was cleared)
+            expect(mockGetUser).toHaveBeenCalledTimes(2);
+        });
+
+        it('should throw validation error with localized message', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const validationError = Errors.INVALID_INPUT('Invalid display name');
+            
+            (validateUpdateUserProfile as jest.Mock).mockImplementation(() => {
+                throw validationError;
+            });
+
+            // Act & Assert
+            await expect(userService.updateProfile(userId, { displayName: '' }, 'en'))
+                .rejects.toThrow(validationError);
+            
+            expect(validateUpdateUserProfile).toHaveBeenCalledWith({ displayName: '' }, 'en');
+            expect(mockUpdateUser).not.toHaveBeenCalled();
+        });
+
+        it('should throw NOT_FOUND error when user does not exist', async () => {
+            // Arrange
+            const userId = 'non-existent-user';
+            const updateData = { displayName: 'New Name' };
+            const authError = { code: 'auth/user-not-found' };
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.updateProfile(userId, updateData))
+                .rejects.toThrow(Errors.NOT_FOUND('User not found'));
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'User not found in Firebase Auth',
+                { userId }
+            );
+        });
+
+        it('should throw original error for other Firebase Auth errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { displayName: 'New Name' };
+            const authError = new Error('Firebase Auth error');
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.updateProfile(userId, updateData))
+                .rejects.toThrow(authError);
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to update user profile',
+                { error: authError, userId }
+            );
+        });
+
+        it('should handle Firestore update errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const updateData = { displayName: 'New Name' };
+            const firestoreError = new Error('Firestore update failed');
+
+            (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockRejectedValue(firestoreError);
+
+            // Act & Assert
+            await expect(userService.updateProfile(userId, updateData))
+                .rejects.toThrow(firestoreError);
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to update user profile',
+                { error: firestoreError, userId }
+            );
+        });
+    });
+
+    describe('changePassword', () => {
+        let mockUpdateUser: jest.Mock;
+        let mockFirestoreUpdate: jest.Mock;
+
+        beforeEach(() => {
+            mockUpdateUser = jest.fn();
+            mockFirestoreUpdate = jest.fn();
+
+            (admin.auth as jest.Mock).mockReturnValue({
+                getUser: mockGetUser,
+                updateUser: mockUpdateUser,
+            });
+
+            const mockDoc = {
+                update: mockFirestoreUpdate,
+            };
+
+            const mockCollection = {
+                doc: jest.fn().mockReturnValue(mockDoc),
+            };
+
+            (firestoreDb.collection as jest.Mock).mockReturnValue(mockCollection);
+
+            // Setup default validation mock
+            (validateChangePassword as jest.Mock).mockImplementation((body) => body);
+        });
+
+        it('should change user password successfully', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const passwordData = {
+                currentPassword: 'OldPass123!',
+                newPassword: 'NewPass456!',
+            };
+            const mockUserRecord = {
+                uid: userId,
+                email: 'test@example.com',
+            };
+
+            (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
+            mockGetUser.mockResolvedValue(mockUserRecord);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockResolvedValue(undefined);
+
+            // Act
+            const result = await userService.changePassword(userId, passwordData);
+
+            // Assert
+            expect(validateChangePassword).toHaveBeenCalledWith(passwordData);
+            expect(mockGetUser).toHaveBeenCalledWith(userId);
+            expect(mockUpdateUser).toHaveBeenCalledWith(userId, { password: 'NewPass456!' });
+            expect(mockFirestoreUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                updatedAt: expect.anything(),
+                passwordChangedAt: expect.anything(),
+            }));
+            expect(result).toEqual({ message: 'Password changed successfully' });
+            expect(logger.info).toHaveBeenCalledWith('Password changed successfully', { userId });
+        });
+
+        it('should throw error when user email not found', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const passwordData = {
+                currentPassword: 'OldPass123!',
+                newPassword: 'NewPass456!',
+            };
+            const mockUserRecord = {
+                uid: userId,
+                email: undefined, // No email
+            };
+
+            (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
+            mockGetUser.mockResolvedValue(mockUserRecord);
+
+            // Act & Assert
+            await expect(userService.changePassword(userId, passwordData))
+                .rejects.toThrow(Errors.INVALID_INPUT('User email not found'));
+
+            expect(mockUpdateUser).not.toHaveBeenCalled();
+        });
+
+        it('should throw validation error', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const validationError = Errors.INVALID_INPUT('Passwords must be different');
+            
+            (validateChangePassword as jest.Mock).mockImplementation(() => {
+                throw validationError;
+            });
+
+            // Act & Assert
+            await expect(userService.changePassword(userId, { currentPassword: 'same', newPassword: 'same' }))
+                .rejects.toThrow(validationError);
+            
+            expect(mockGetUser).not.toHaveBeenCalled();
+        });
+
+        it('should throw NOT_FOUND error when user does not exist', async () => {
+            // Arrange
+            const userId = 'non-existent-user';
+            const passwordData = { currentPassword: 'old', newPassword: 'new' };
+            const authError = { code: 'auth/user-not-found' };
+
+            (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
+            mockGetUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.changePassword(userId, passwordData))
+                .rejects.toThrow(Errors.NOT_FOUND('User not found'));
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'User not found in Firebase Auth',
+                { userId }
+            );
+        });
+
+        it('should handle Firebase Auth update errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const passwordData = { currentPassword: 'old', newPassword: 'new' };
+            const authError = new Error('Firebase Auth update failed');
+            const mockUserRecord = { uid: userId, email: 'test@example.com' };
+
+            (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
+            mockGetUser.mockResolvedValue(mockUserRecord);
+            mockUpdateUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.changePassword(userId, passwordData))
+                .rejects.toThrow(authError);
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to change password',
+                { error: authError, userId }
+            );
+        });
+
+        it('should handle Firestore update errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const passwordData = { currentPassword: 'old', newPassword: 'new' };
+            const firestoreError = new Error('Firestore update failed');
+            const mockUserRecord = { uid: userId, email: 'test@example.com' };
+
+            (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
+            mockGetUser.mockResolvedValue(mockUserRecord);
+            mockUpdateUser.mockResolvedValue(undefined);
+            mockFirestoreUpdate.mockRejectedValue(firestoreError);
+
+            // Act & Assert
+            await expect(userService.changePassword(userId, passwordData))
+                .rejects.toThrow(firestoreError);
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to change password',
+                { error: firestoreError, userId }
+            );
+        });
+    });
+
+    describe('deleteAccount', () => {
+        let mockDeleteUser: jest.Mock;
+        let mockFirestoreDelete: jest.Mock;
+        let mockFirestoreWhere: jest.Mock;
+        let mockFirestoreGet: jest.Mock;
+
+        beforeEach(() => {
+            mockDeleteUser = jest.fn();
+            mockFirestoreDelete = jest.fn();
+            mockFirestoreWhere = jest.fn();
+            mockFirestoreGet = jest.fn();
+
+            (admin.auth as jest.Mock).mockReturnValue({
+                deleteUser: mockDeleteUser,
+            });
+
+            const mockDoc = {
+                delete: mockFirestoreDelete,
+            };
+
+            const mockCollection = {
+                doc: jest.fn().mockReturnValue(mockDoc),
+                where: mockFirestoreWhere,
+            };
+
+            mockFirestoreWhere.mockReturnValue({
+                get: mockFirestoreGet,
+            });
+
+            (firestoreDb.collection as jest.Mock).mockImplementation((collection) => {
+                if (collection === 'groups') {
+                    return mockCollection;
+                }
+                return {
+                    doc: jest.fn().mockReturnValue(mockDoc),
+                };
+            });
+
+            // Setup default validation mock
+            (validateDeleteUser as jest.Mock).mockImplementation(() => undefined);
+        });
+
+        it('should delete user account successfully', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const deleteData = { confirmDelete: true };
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockResolvedValue({ empty: true }); // No groups
+            mockFirestoreDelete.mockResolvedValue(undefined);
+            mockDeleteUser.mockResolvedValue(undefined);
+
+            // Act
+            const result = await userService.deleteAccount(userId, deleteData);
+
+            // Assert
+            expect(validateDeleteUser).toHaveBeenCalledWith(deleteData);
+            expect(mockFirestoreWhere).toHaveBeenCalledWith(`data.members.${userId}`, '!=', null);
+            expect(mockFirestoreDelete).toHaveBeenCalled();
+            expect(mockDeleteUser).toHaveBeenCalledWith(userId);
+            expect(result).toEqual({ message: 'Account deleted successfully' });
+            expect(logger.info).toHaveBeenCalledWith('User account deleted successfully', { userId });
+        });
+
+        it('should prevent deletion when user has groups', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const deleteData = { confirmDelete: true };
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockResolvedValue({ 
+                empty: false, // User has groups
+                docs: [{ id: 'group1' }],
+            });
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, deleteData))
+                .rejects.toThrow(Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.'));
+
+            expect(mockFirestoreDelete).not.toHaveBeenCalled();
+            expect(mockDeleteUser).not.toHaveBeenCalled();
+        });
+
+        it('should throw validation error when confirmDelete is not true', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const validationError = Errors.INVALID_INPUT('Account deletion must be explicitly confirmed');
+            
+            (validateDeleteUser as jest.Mock).mockImplementation(() => {
+                throw validationError;
+            });
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, { confirmDelete: false }))
+                .rejects.toThrow(validationError);
+            
+            expect(mockFirestoreWhere).not.toHaveBeenCalled();
+        });
+
+        it('should throw NOT_FOUND error when user does not exist in Auth', async () => {
+            // Arrange
+            const userId = 'non-existent-user';
+            const deleteData = { confirmDelete: true };
+            const authError = { code: 'auth/user-not-found' };
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockResolvedValue({ empty: true });
+            mockFirestoreDelete.mockResolvedValue(undefined);
+            mockDeleteUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, deleteData))
+                .rejects.toThrow(Errors.NOT_FOUND('User not found'));
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'User not found in Firebase Auth',
+                { userId }
+            );
+        });
+
+        it('should handle Firestore query errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const deleteData = { confirmDelete: true };
+            const firestoreError = new Error('Firestore query failed');
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockRejectedValue(firestoreError);
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, deleteData))
+                .rejects.toThrow(firestoreError);
+
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to delete user account',
+                { error: firestoreError, userId }
+            );
+        });
+
+        it('should handle Firestore deletion errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const deleteData = { confirmDelete: true };
+            const firestoreError = new Error('Firestore delete failed');
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockResolvedValue({ empty: true });
+            mockFirestoreDelete.mockRejectedValue(firestoreError);
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, deleteData))
+                .rejects.toThrow(firestoreError);
+
+            expect(mockDeleteUser).not.toHaveBeenCalled(); // Should not delete from Auth if Firestore fails
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to delete user account',
+                { error: firestoreError, userId }
+            );
+        });
+
+        it('should handle Firebase Auth deletion errors', async () => {
+            // Arrange
+            const userId = 'test-user-id';
+            const deleteData = { confirmDelete: true };
+            const authError = new Error('Auth delete failed');
+
+            (validateDeleteUser as jest.Mock).mockReturnValue(undefined);
+            mockFirestoreGet.mockResolvedValue({ empty: true });
+            mockFirestoreDelete.mockResolvedValue(undefined);
+            mockDeleteUser.mockRejectedValue(authError);
+
+            // Act & Assert
+            await expect(userService.deleteAccount(userId, deleteData))
+                .rejects.toThrow(authError);
+
+            // Note: Firestore was already deleted at this point
+            expect(logger.error).toHaveBeenCalledWith(
+                'Failed to delete user account',
+                { error: authError, userId }
+            );
         });
     });
 });

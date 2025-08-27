@@ -14,12 +14,35 @@ test('generate walkthrough screenshots', async ({ page }) => {
   
   console.log('Generating walkthrough screenshots...');
   
-  // Register page
-  console.log('📸 Capturing register page...');
+  // Register page - empty
+  console.log('📸 Capturing register page (empty)...');
   await registerPage.navigate();
   await page.waitForLoadState('networkidle');
   await page.screenshot({ 
-    path: path.join(screenshotsDir, '02-register.png'),
+    path: path.join(screenshotsDir, '01-register-empty.png'),
+    fullPage: true 
+  });
+  
+  // Register page with validation errors
+  console.log('📸 Capturing register page with validation errors...');
+  // Fill in form with all required fields but with validation errors
+  await page.fill('input[placeholder*="name"]', 'Test User');
+  await page.fill('input[type="email"]', 'notanemail');  // Invalid email
+  await page.fill('input[type="password"]', '123');      // Too short password
+  await page.fill('input[placeholder*="Confirm"]', '456'); // Mismatched password
+  
+  // Check the terms checkbox if present
+  const termsCheckbox = page.locator('input[type="checkbox"]').first();
+  if (await termsCheckbox.count() > 0) {
+    await termsCheckbox.check();
+  }
+  
+  // Try to submit to trigger validation (force click even if disabled)
+  await page.click('button[type="submit"]', { force: true });
+  await page.waitForTimeout(500); // Wait for validation messages to appear
+  
+  await page.screenshot({ 
+    path: path.join(screenshotsDir, '02-register-validation-errors.png'),
     fullPage: true 
   });
   
