@@ -6,6 +6,7 @@ import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { getUserPool } from '../../../fixtures/user-pool.fixture';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -162,7 +163,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // First, create a second user that we'll login as
             // We need to use the user pool to get an existing user
-            const userPool = await import('../../../fixtures/user-pool.fixture').then(m => m.getUserPool());
+            const userPool = getUserPool();
             const user2 = await userPool.claimUser(page2.context().browser());
 
             // Navigate to share link with unauthenticated user

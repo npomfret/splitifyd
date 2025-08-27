@@ -2,6 +2,7 @@ import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import {DEFAULT_PASSWORD, generateTestEmail, generateTestUserName} from '../../../../../packages/test-support/test-helpers';
+import { DashboardPage } from '../../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -24,7 +25,6 @@ test.describe('Duplicate User Registration E2E', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out to attempt second registration using page object
-        const { DashboardPage } = await import('../../../pages');
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.signOut();
 
@@ -88,7 +88,6 @@ test.describe('Duplicate User Registration E2E', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out using page object
-        const { DashboardPage } = await import('../../../pages');
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.signOut();
 
@@ -149,7 +148,6 @@ test.describe('Duplicate User Registration E2E', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out using page object
-        const { DashboardPage } = await import('../../../pages');
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.signOut();
 

@@ -1,7 +1,7 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
+import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
 
@@ -149,8 +149,7 @@ test.describe('Real-time Comments E2E', () => {
         // Wait for navigation to expense detail page
         await alicePage.waitForURL(new RegExp(`/groups/${groupId}/expenses/[a-zA-Z0-9]+$`), { timeout: 3000 });
         
-        // Import and create the expense detail page object
-        const { ExpenseDetailPage } = await import('../../../pages');
+        // Create the expense detail page object
         const expenseDetailPage = new ExpenseDetailPage(alicePage, alice);
         
         // Verify we're on the expense detail page

@@ -3,6 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../hel
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { JoinGroupPage } from '../../../pages';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -28,7 +29,6 @@ multiUserTest.describe('Multi-User Group Access', () => {
         const shareLink = await multiUserWorkflow.getShareLink(user1Page);
         
         // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
-        const { JoinGroupPage } = await import('../../../pages');
         const joinGroupPage = new JoinGroupPage(user2Page);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
