@@ -1,7 +1,7 @@
 import { expect, multiUserTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from '../../utils/test-helpers.ts';
+import { generateShortId } from '../../../../packages/test-support/test-helpers.ts';
 import { GroupDetailPage, JoinGroupPage } from '../../pages';
 
 setupMCPDebugOnFailure();

@@ -1,7 +1,7 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();

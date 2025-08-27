@@ -3,7 +3,7 @@ import { authenticatedPageTest } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 

@@ -4,7 +4,7 @@ import {multiUserTest} from '../../fixtures';
 import {singleMixedAuthTest} from '../../fixtures/mixed-auth-test';
 import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupConsoleErrorReporting();

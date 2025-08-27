@@ -3,7 +3,7 @@ import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();

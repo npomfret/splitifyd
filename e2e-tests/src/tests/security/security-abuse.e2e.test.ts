@@ -2,7 +2,7 @@ import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
 import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
 import type { Response } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging

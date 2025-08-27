@@ -1,8 +1,7 @@
 #!/usr/bin/env tsx
 
 import type { User } from '@splitifyd/test-support';
-import { ApiDriver } from '@splitifyd/test-support';
-import { ExpenseBuilder } from '../functions/src/__tests__/support/builders';
+import { ApiDriver, ExpenseBuilder } from '@splitifyd/test-support';
 import type { Group } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 

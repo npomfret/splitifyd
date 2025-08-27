@@ -42,7 +42,7 @@ describe('Comprehensive API Test Suite', () => {
             users.forEach((user) => {
                 expect(user.uid).toBeDefined();
                 expect(user.token).toBeDefined();
-                expect(user.email).toContain('@test.com');
+                expect(user.email).toContain('@example.com');
             });
         });
     });

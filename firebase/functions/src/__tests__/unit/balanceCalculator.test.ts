@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
 import { SimplifiedDebt } from '@splitifyd/shared';
 import { UserProfile } from '../../services/UserService2';
-import { ExpenseBuilder, SettlementBuilder } from '../support/builders';
+import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 // Mock dependencies
 jest.mock('../../firebase', () => ({

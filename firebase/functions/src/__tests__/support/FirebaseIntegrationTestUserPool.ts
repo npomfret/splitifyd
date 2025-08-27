@@ -1,5 +1,4 @@
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { UserBuilder } from './builders';
+import { ApiDriver, User, UserBuilder } from '@splitifyd/test-support';
 
 /**
  * Manages a pool of test users for Firebase integration tests.

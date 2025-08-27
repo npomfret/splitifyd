@@ -1,6 +1,6 @@
 import { pageTest, expect } from '../../fixtures';
 import { RegisterPage } from '../../pages';
-import {DEFAULT_PASSWORD} from "../../utils/test-helpers.ts";
+import {DEFAULT_PASSWORD, generateTestEmail} from "../../../../packages/test-support/test-helpers.ts";
 
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     pageTest.beforeEach(async ({ page }) => {
@@ -28,7 +28,7 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         // Fill form but leave terms unchecked
         const registerPage = new RegisterPage(page);
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-terms-${Date.now()}@example.com`);
+        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
         await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
         await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
@@ -43,7 +43,7 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         const registerPage = new RegisterPage(page);
         // Fill form but leave cookie policy unchecked
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-cookie-${Date.now()}@example.com`);
+        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
         await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
         await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
@@ -58,7 +58,7 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         const registerPage = new RegisterPage(page);
         // Fill form completely
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-both-${Date.now()}@example.com`);
+        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
         await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
         await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 
@@ -74,7 +74,7 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         const registerPage = new RegisterPage(page);
         // Fill form but don't check any boxes
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', `test-validation-${Date.now()}@example.com`);
+        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
         await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
         await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
 

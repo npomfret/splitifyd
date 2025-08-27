@@ -13,8 +13,8 @@
 # In headed mode, workers are automatically set to 1 for better visibility.
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/tests/normal-flow/comments-realtime.e2e.test.ts"
-TEST_FILTER=""
+TEST_FILE="e2e-tests/src/tests/normal-flow/group-management.e2e.test.ts"
+TEST_FILTER="should allow group owner to edit group name"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

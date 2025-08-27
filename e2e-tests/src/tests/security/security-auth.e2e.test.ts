@@ -2,7 +2,7 @@ import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
 import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import {DEFAULT_PASSWORD, generateTestGroupName} from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName} from '../../../../packages/test-support/test-helpers.ts';
 import type { Request } from '@playwright/test';
 
 // Enable console error reporting and MCP debugging
@@ -67,8 +67,8 @@ test.describe('Security Authentication and Session Tests', () => {
             );
 
             // Attempt login with valid credentials
-            await page.fill('[data-testid="email-input"]', 'test@example.com');
-            await page.fill('[data-testid="password-input"]', 'ValidPassword123!');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
 
             // Wait for login response (might succeed or fail, doesn't matter for this test)
@@ -93,7 +93,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.goto('/login');
 
             // Attempt authentication
-            await page.fill('[data-testid="email-input"]', 'test@example.com');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
             await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -200,7 +200,7 @@ test.describe('Security Authentication and Session Tests', () => {
             ];
 
             for (const password of weakPasswords) {
-                await page.fill('[data-testid="email-input"]', 'test@example.com');
+                await page.fill('[data-testid="email-input"]', generateTestEmail());
                 await page.fill('[data-testid="password-input"]', password);
                 await page.fill('[data-testid="confirm-password-input"]', password);
                 await page.fill('[data-testid="display-name-input"]', 'Test User');
@@ -230,16 +230,16 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.waitForSelector('[data-testid="login-form"]');
 
             // Try login with non-existent email
-            await page.fill('[data-testid="email-input"]', 'nonexistent@example.com');
-            await page.fill('[data-testid="password-input"]', 'SomePassword123!');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             const errorMessage1 = await page.locator('[data-testid="error-message"]').textContent();
 
             // Clear and try with existing email but wrong password
-            await page.fill('[data-testid="email-input"]', 'test@example.com');
-            await page.fill('[data-testid="password-input"]', 'WrongPassword123!');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -282,7 +282,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 }
 
                 // Test with valid email format
-                await page.fill('[data-testid="email-input"]', 'test@example.com');
+                await page.fill('[data-testid="email-input"]', generateTestEmail());
                 await page.click('[data-testid="reset-submit"]');
                 await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -303,8 +303,8 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.waitForSelector('[data-testid="login-form"]');
 
             // Try login that might trigger MFA
-            await page.fill('[data-testid="email-input"]', 'mfa-user@example.com');
-            await page.fill('[data-testid="password-input"]', 'ValidPassword123!');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -347,7 +347,7 @@ test.describe('Security Authentication and Session Tests', () => {
             const startTime = Date.now();
 
             for (let i = 0; i < failedAttempts; i++) {
-                await page.fill('[data-testid="email-input"]', 'test@example.com');
+                await page.fill('[data-testid="email-input"]', generateTestEmail());
                 await page.fill('[data-testid="password-input"]', `WrongPassword${i}`);
                 await page.click('[data-testid="login-submit"]');
                 await page.waitForLoadState('domcontentloaded', { timeout: 5000 });

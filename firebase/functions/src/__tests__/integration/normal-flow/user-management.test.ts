@@ -5,7 +5,7 @@
 // Tests for user management endpoints
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, generateTestEmail, User} from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
@@ -71,8 +71,8 @@ describe('User Management Tests', () => {
         test('should reject registration with missing required fields', async () => {
             const incompleteData = [
                 { password: 'Password123!', displayName: 'Test User' }, // missing email
-                { email: 'test@example.com', displayName: 'Test User' }, // missing password
-                { email: 'test@example.com', password: 'Password123!' }, // missing displayName
+                { email: generateTestEmail(), displayName: 'Test User' }, // missing password
+                { email: generateTestEmail(), password: 'Password123!' }, // missing displayName
                 {}, // missing all
             ];
 

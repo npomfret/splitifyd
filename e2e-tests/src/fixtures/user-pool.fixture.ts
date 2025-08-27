@@ -1,6 +1,6 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@splitifyd/shared';
-import {generateNewUserDetails, generateShortId} from '../utils/test-helpers';
+import {generateNewUserDetails, generateShortId} from '../../../packages/test-support/test-helpers.ts';
 import {LoginPage, RegisterPage} from '../pages';
 import { expect } from '@playwright/test';
 

@@ -2,7 +2,7 @@ import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
 import { pageTest } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateTestGroupName } from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateTestEmail, generateTestGroupName} from '../../../../packages/test-support/test-helpers.ts';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -602,8 +602,8 @@ pageTest.describe('CSRF Protection', () => {
         // Check for SameSite cookie attributes if login form exists
         const loginForm = page.locator('[data-testid="login-form"]');
         if (await loginForm.isVisible()) {
-            await page.fill('[data-testid="email-input"]', 'test@example.com');
-            await page.fill('[data-testid="password-input"]', 'testpassword');
+            await page.fill('[data-testid="email-input"]', generateTestEmail());
+            await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
 
             // Monitor cookies set during login attempt
             const cookiePromise = page.waitForEvent('response', (response) => response.url().includes('login') && response.status() !== 200);

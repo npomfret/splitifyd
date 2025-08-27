@@ -1,7 +1,5 @@
 import {beforeAll, describe, expect, it} from '@jest/globals';
-import {ApiDriver, User} from '@splitifyd/test-support';
-import {generateNewUserDetails} from "../../support/test-helpers";
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from "../../support/builders";
+import {ApiDriver, generateNewUserDetails, User, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from '@splitifyd/test-support';
 
 describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();

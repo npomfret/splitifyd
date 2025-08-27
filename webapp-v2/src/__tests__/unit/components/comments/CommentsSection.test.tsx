@@ -37,7 +37,12 @@ vi.mock('@/components/comments/CommentsList', () => ({
             <div data-testid="has-more">{hasMore ? 'has-more' : 'no-more'}</div>
             <div data-testid="max-height">{maxHeight}</div>
             {hasMore && (
-                <button data-testid="load-more-button" onClick={onLoadMore}>
+                <button data-testid="load-more-button" onClick={() => {
+                    // Properly handle the promise to avoid unhandled rejections
+                    Promise.resolve(onLoadMore()).catch(() => {
+                        // Error is handled by the store
+                    });
+                }}>
                     Load More
                 </button>
             )}
@@ -57,7 +62,10 @@ vi.mock('@/components/comments/CommentInput', () => ({
                 onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                         const target = e.target as HTMLInputElement;
-                        onSubmit(target.value);
+                        // Properly handle the promise to avoid unhandled rejections
+                        onSubmit(target.value).catch(() => {
+                            // Error is handled by the store
+                        });
                         target.value = '';
                     }
                 }}
@@ -241,7 +249,9 @@ describe('CommentsSection', () => {
             await user.type(input, 'Failed comment');
             await user.keyboard('{Enter}');
 
-            expect(mockCommentsStore.addComment).toHaveBeenCalledWith('Failed comment');
+            await vi.waitFor(() => {
+                expect(mockCommentsStore.addComment).toHaveBeenCalledWith('Failed comment');
+            });
             // Error should be handled by the store, component should not crash
         });
     });
@@ -269,7 +279,9 @@ describe('CommentsSection', () => {
             const loadMoreButton = screen.getByTestId('load-more-button');
             await user.click(loadMoreButton);
 
-            expect(mockCommentsStore.loadMoreComments).toHaveBeenCalled();
+            await vi.waitFor(() => {
+                expect(mockCommentsStore.loadMoreComments).toHaveBeenCalled();
+            });
             // Error should be handled by the store
         });
     });

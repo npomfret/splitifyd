@@ -2,7 +2,7 @@ import {Browser, BrowserContext, expect, Page, test} from '@playwright/test';
 import {setupMCPDebugOnFailure} from '../../helpers';
 import {DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage} from '../../pages';
 import {GroupWorkflow} from '../../workflows';
-import {DEFAULT_PASSWORD, generateTestGroupName} from '../../utils/test-helpers';
+import {DEFAULT_PASSWORD, generateTestGroupName} from '../../../../packages/test-support/test-helpers.ts';
 import {getUserPool} from '../../fixtures/user-pool.fixture';
 import {User} from "@splitifyd/shared";
 

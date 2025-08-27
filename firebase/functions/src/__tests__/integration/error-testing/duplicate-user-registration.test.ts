@@ -4,8 +4,7 @@
 
 // Tests for duplicate user registration handling
 
-import { ApiDriver } from '@splitifyd/test-support';
-import { UserBuilder } from '@splitifyd/test-support';
+import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
 
 describe('Duplicate User Registration Tests', () => {
     let driver: ApiDriver;
@@ -96,7 +95,7 @@ describe('Duplicate User Registration Tests', () => {
 
     describe('Case Sensitivity', () => {
         test('should treat email addresses case-insensitively', async () => {
-            const baseEmail = `test${Date.now()}@example.com`;
+            const baseEmail = generateTestEmail();
             const userData = new UserBuilder().withEmail(baseEmail.toLowerCase()).build();
 
             // Register with lowercase
@@ -120,7 +119,7 @@ describe('Duplicate User Registration Tests', () => {
 
     describe('Edge Cases', () => {
         test('should handle registration with trimmed email addresses', async () => {
-            const baseEmail = `trim${Date.now()}@example.com`;
+            const baseEmail = generateTestEmail();
             const userData = new UserBuilder().withEmail(baseEmail).build();
 
             // Register normally
@@ -134,9 +133,8 @@ describe('Duplicate User Registration Tests', () => {
         });
 
         test('should allow different users with different emails', async () => {
-            const timestamp = Date.now();
-            const user1 = new UserBuilder().withEmail(`user1-${timestamp}@example.com`).build();
-            const user2 = new UserBuilder().withEmail(`user2-${timestamp}@example.com`).build();
+            const user1 = new UserBuilder().build();
+            const user2 = new UserBuilder().build();
 
             // Both registrations should succeed
             const response1 = await driver.register(user1);

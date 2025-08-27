@@ -1,4 +1,4 @@
-import { v4 as uuidv4 } from 'uuid';
+import { generateNewUserDetails} from "../test-helpers";
 
 export interface TestUser {
     email: string;
@@ -10,12 +10,7 @@ export class UserBuilder {
     private user: TestUser;
 
     constructor() {
-        const uniqueId = uuidv4().slice(0, 8);
-        this.user = {
-            email: `testuser-${uniqueId}@test.com`,
-            password: 'Password123!',
-            displayName: `Test User ${uniqueId}`,
-        };
+        this.user = generateNewUserDetails();
     }
 
     withEmail(email: string): this {

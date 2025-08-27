@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { multiUserTest } from '../../fixtures';
 import { EMULATOR_URL, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
-import { generateShortId } from '../../utils/test-helpers';
+import { generateShortId } from '../../../../packages/test-support/test-helpers.ts';
 
 setupMCPDebugOnFailure();
 

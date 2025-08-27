@@ -13,25 +13,8 @@ describe('User Profile Management API Tests', () => {
 
 
     beforeEach(async () => {
-        // Use unique emails with timestamp and random suffix to ensure isolation
-        const timestamp = Date.now();
-        const randomSuffix = Math.random().toString(36).substring(7);
-        
-        testUser = await driver.createUser(
-            new UserBuilder()
-                .withEmail(`profile-test-${timestamp}-${randomSuffix}@example.com`)
-                .withDisplayName('Profile Test User')
-                .withPassword('ValidPass123!')
-                .build()
-        );
-        
-        secondUser = await driver.createUser(
-            new UserBuilder()
-                .withEmail(`second-user-${timestamp}-${randomSuffix}@example.com`)
-                .withDisplayName('Second User')
-                .withPassword('ValidPass123!')
-                .build()
-        );
+        testUser = await driver.createUser(new UserBuilder().build());
+        secondUser = await driver.createUser(new UserBuilder().build());
     });
 
     describe('GET /user/profile', () => {
@@ -405,11 +388,7 @@ describe('User Profile Management API Tests', () => {
         it('should strip unknown fields from delete request', async () => {
             // This test would need actual delete, which we don't want to do
             // Just verify the validation would work by checking a non-member user
-            const userWithoutGroups = await driver.createUser(
-                new UserBuilder()
-                    .withEmail(`delete-test-${Date.now()}@example.com`)
-                    .build()
-            );
+            const userWithoutGroups = await driver.createUser(new UserBuilder().build());
             
             try {
                 // This test specifically needs to send extra fields to test Joi stripping

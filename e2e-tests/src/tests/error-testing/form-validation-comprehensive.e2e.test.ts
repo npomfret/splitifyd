@@ -1,6 +1,6 @@
 import { authenticatedPageTest, expect, pageTest } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../utils/test-helpers';
+import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../workflows';
 
 // Enable MCP debugging for failed tests
