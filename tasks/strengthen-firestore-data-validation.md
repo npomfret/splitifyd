@@ -133,3 +133,222 @@ This refactor is critical for the stability and long-term health of the applicat
 2.  **Refactor Read Path:** Systematically replace all instances of `doc.data() as Type` with `Schema.parse(doc.data())`. Start with `transformGroupDocument` and `fetchExpense`.
 3.  **Refactor Write Path:** Systematically add `Schema.parse(objectToWrite)` calls before every `.set()`, `.add()`, and `.update()` operation.
 4.  **Update Tests:** All unit and integration tests will need to be updated to account for the new, stricter validation. Mocks will need to provide data that passes schema validation.
+
+## 5. Detailed Implementation Plan
+
+### Phase 1: Foundation Setup (Non-Breaking)
+These commits lay the groundwork without affecting existing code.
+
+#### Commit 1: Create Core Zod Schemas Infrastructure
+- **Files:** Create `firebase/functions/src/schemas/index.ts`
+- **Changes:** 
+  - Export placeholder schemas module
+  - Set up the basic structure for schema organization
+- **Why Safe:** New file, no existing code affected
+
+#### Commit 2: Implement User and Policy Schemas
+- **Files:** Create `firebase/functions/src/schemas/user.schema.ts` and `firebase/functions/src/schemas/policy.schema.ts`
+- **Changes:**
+  - Define `UserSchema`, `PolicySchema`, `PolicyDocumentSchema` using Zod
+  - Export inferred types: `ParsedUser`, `ParsedPolicy`
+- **Why Safe:** New files, no integration with existing code
+
+#### Commit 3: Implement Group Schema
+- **Files:** Create `firebase/functions/src/schemas/group.schema.ts`
+- **Changes:**
+  - Define `GroupMemberSchema`, `GroupPermissionsSchema`, `GroupSchema`
+  - Handle the nested structure with `data` field wrapper
+  - Export `ParsedGroup` type
+- **Why Safe:** New file, existing code continues using old approach
+
+#### Commit 4: Implement Expense and Settlement Schemas
+- **Files:** Create `firebase/functions/src/schemas/expense.schema.ts` and `firebase/functions/src/schemas/settlement.schema.ts`
+- **Changes:**
+  - Define `ExpenseSplitSchema`, `ExpenseSchema`, `SettlementSchema`
+  - Handle Firestore Timestamp conversion logic
+  - Export `ParsedExpense`, `ParsedSettlement` types
+- **Why Safe:** New files only
+
+#### Commit 5: Implement Change Document Schemas
+- **Files:** Create `firebase/functions/src/schemas/change-documents.schema.ts`
+- **Changes:**
+  - Define schemas for `GroupChangeDocument`, `TransactionChangeDocument`, `BalanceChangeDocument`
+  - Export parsed types
+- **Why Safe:** New file, no existing functionality affected
+
+### Phase 2: Create Safe Parser Utilities (Non-Breaking)
+Create utilities that can coexist with existing code.
+
+#### Commit 6: Implement Safe Parser Wrapper Functions
+- **Files:** Create `firebase/functions/src/utils/firestore-parsers.ts`
+- **Changes:**
+  - Create `safeParseDocument<T>()` function that logs errors but doesn't throw
+  - Create `parseDocumentStrict<T>()` function for strict validation
+  - Add conversion utilities for Timestamps
+- **Why Safe:** New utilities, not used anywhere yet
+
+#### Commit 7: Add Dual-Mode Transform Functions
+- **Files:** Create `firebase/functions/src/utils/document-transformers.ts`
+- **Changes:**
+  - Create `transformGroupDocumentSafe()` - new version using Zod
+  - Create `transformExpenseSafe()` - new version using Zod
+  - These coexist with existing transform functions
+- **Why Safe:** New functions alongside existing ones
+
+### Phase 3: Gradual Read-Path Migration (Backwards Compatible)
+Start using schemas for validation while maintaining compatibility.
+
+#### Commit 8: Add Validation Logging to Groups
+- **Files:** Modify `firebase/functions/src/groups/handlers.ts`
+- **Changes:**
+  - In `transformGroupDocument`, add non-throwing validation:
+    ```typescript
+    // After getting data, validate but don't throw
+    try {
+      GroupSchema.parse(data);
+    } catch (e) {
+      logger.warn('Group document validation would fail', { error: e, docId: doc.id });
+    }
+    // Continue with existing logic
+    ```
+- **Why Safe:** Only logs warnings, doesn't change behavior
+
+#### Commit 9: Add Validation Logging to Expenses
+- **Files:** Modify `firebase/functions/src/expenses/handlers.ts`
+- **Changes:**
+  - In `fetchExpense`, add validation logging after the cast
+  - Log validation errors without throwing
+- **Why Safe:** Monitoring only, no functional changes
+
+#### Commit 10: Add Validation Logging to Settlements
+- **Files:** Modify `firebase/functions/src/settlements/handlers.ts`
+- **Changes:**
+  - Add validation logging in `getSettlement`
+  - Monitor what would fail in production
+- **Why Safe:** Observability without breaking changes
+
+### Phase 4: Implement Write-Path Validation (Defensive)
+Add validation that prevents bad data from being written.
+
+#### Commit 11: Validate Group Creates
+- **Files:** Modify `firebase/functions/src/groups/handlers.ts`
+- **Changes:**
+  - In `createGroup`, before `docRef.set()`:
+    ```typescript
+    // Validate the complete document structure
+    const documentToWrite = { data: newGroup, createdAt, updatedAt };
+    GroupSchema.parse(documentToWrite); // Throws if invalid
+    await docRef.set(documentToWrite);
+    ```
+- **Why Safe:** Prevents invalid data from being written, fails fast
+
+#### Commit 12: Validate Expense Creates
+- **Files:** Modify `firebase/functions/src/expenses/handlers.ts`
+- **Changes:**
+  - In `createExpense`, validate before transaction.set()
+  - Ensures only valid expenses are created
+- **Why Safe:** Fails fast on bad data, prevents corruption
+
+#### Commit 13: Validate Settlement Creates
+- **Files:** Modify `firebase/functions/src/settlements/handlers.ts`
+- **Changes:**
+  - In `createSettlement`, validate before `.set()`
+- **Why Safe:** Prevents invalid settlements
+
+#### Commit 14: Validate Trigger Writes
+- **Files:** Modify `firebase/functions/src/triggers/change-tracker.ts`
+- **Changes:**
+  - Validate change documents before `.add()` in all three triggers
+  - Critical for data integrity
+- **Why Safe:** Ensures change tracking data is always valid
+
+### Phase 5: Careful Read-Path Switchover
+Replace unsafe casts with parsed data, one endpoint at a time.
+
+#### Commit 15: Switch transformGroupDocument to Strict Parsing
+- **Files:** Modify `firebase/functions/src/groups/handlers.ts`
+- **Changes:**
+  - Replace `doc.data() as Type` with `GroupSchema.parse(doc.data())`
+  - Update return type handling
+  - Test thoroughly with existing groups
+- **Testing Required:** Run integration tests for all group operations
+
+#### Commit 16: Switch fetchExpense to Strict Parsing
+- **Files:** Modify `firebase/functions/src/expenses/handlers.ts`
+- **Changes:**
+  - Replace unsafe cast with `ExpenseSchema.parse()`
+  - Handle parse errors appropriately
+- **Testing Required:** Test expense CRUD operations
+
+#### Commit 17: Switch Settlement Reads to Strict Parsing
+- **Files:** Modify `firebase/functions/src/settlements/handlers.ts`
+- **Changes:**
+  - Use `SettlementSchema.parse()` in getSettlement and list operations
+- **Testing Required:** Settlement operations
+
+### Phase 6: Update Validation & Error Handling
+
+#### Commit 18: Enhance Error Messages
+- **Files:** Modify `firebase/functions/src/utils/errors.ts`
+- **Changes:**
+  - Add `INVALID_DOCUMENT_STRUCTURE` error type
+  - Improve Zod error formatting for client consumption
+- **Why Safe:** Better error reporting
+
+#### Commit 19: Update Unit Tests
+- **Files:** Modify test files in `firebase/functions/src/__tests__/`
+- **Changes:**
+  - Update mocks to provide valid data per schemas
+  - Add tests for validation edge cases
+- **Why Safe:** Test improvements only
+
+#### Commit 20: Add Integration Tests for Validation
+- **Files:** Create new test files
+- **Changes:**
+  - Test that invalid data is rejected on write
+  - Test that corrupted documents are caught on read
+  - Test migration scenarios
+- **Why Safe:** New tests only
+
+### Phase 7: Complete Migration
+
+#### Commit 21: Remove Old Validation Logging
+- **Files:** Clean up logging code added in Phase 3
+- **Changes:**
+  - Remove warning logs since we're now throwing errors
+  - Clean up dual-mode functions
+- **Why Safe:** Cleanup only
+
+#### Commit 22: Add Schema Documentation
+- **Files:** Create `firebase/functions/src/schemas/README.md`
+- **Changes:**
+  - Document schema patterns
+  - Provide migration guide for future changes
+  - Document Timestamp handling approach
+- **Why Safe:** Documentation only
+
+### Rollback Strategy
+
+If issues arise at any phase:
+
+1. **Phase 1-2:** No rollback needed (new code only)
+2. **Phase 3:** Remove logging calls
+3. **Phase 4:** Temporarily disable validation (comment out parse calls)
+4. **Phase 5:** Revert to unsafe casts while investigating
+5. **Emergency:** Feature flag to toggle validation on/off
+
+### Success Metrics
+
+Monitor after each phase:
+- Error rate changes
+- Validation failure logs (Phase 3)
+- Response time impact
+- Test coverage maintenance
+
+### Notes
+
+- Each commit should pass all existing tests
+- Run `npm run build` and `npm test` after each commit
+- Deploy to staging after each phase for validation
+- Keep commits small and focused for easy rollback
+- Document any data migration needs discovered during Phase 3
