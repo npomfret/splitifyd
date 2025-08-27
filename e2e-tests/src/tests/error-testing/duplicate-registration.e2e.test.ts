@@ -93,7 +93,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await dashboardPage.signOut();
 
         // Wait for navigation after logout using page object
-        await page.waitForURL(
+        await expect(page).toHaveURL(
             (url) => {
                 const urlStr = url.toString();
                 const path = new URL(urlStr).pathname;
@@ -155,7 +155,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await dashboardPage.signOut();
 
         // Wait for navigation after logout
-        await page.waitForURL(
+        await expect(page).toHaveURL(
             (url) => {
                 const urlStr = url.toString();
                 const path = new URL(urlStr).pathname;

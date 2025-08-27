@@ -24,7 +24,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, DEFAULT_PASSWORD);
-            await page.waitForURL(/\/dashboard/, {timeout: 5000});
+            await expect(page).toHaveURL(/\/dashboard/, {timeout: 5000});
 
             contexts.push(context);
             pages.push(page);

@@ -57,7 +57,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         await joinGroupPage2.getJoinGroupButton().click();
         try {
-            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
         } catch (error) {
             throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
         }
@@ -180,7 +180,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         await joinGroupPage2.getJoinGroupButton().click();
         try {
-            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
         } catch (error) {
             throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
         }

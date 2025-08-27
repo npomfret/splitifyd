@@ -93,7 +93,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
             await groupDetailPage.handleDeleteConfirmDialog(true);
 
             // Wait for navigation to dashboard after successful deletion
-            await page.waitForURL(/\/dashboard/, { timeout: 5000 });
+            await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
             
             // Verify we're on the dashboard
             await expect(page).toHaveURL(/\/dashboard/);

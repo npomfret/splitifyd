@@ -308,7 +308,7 @@ export class ExpenseFormPage extends BasePage {
         // If no error messages, proceed with normal flow
         try {
             // Wait for navigation back to group page with a reasonable timeout
-            await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+            await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
 
             // Verify expense was created by checking it appears in the list
             await expect(this.page.getByText(expense.description)).toBeVisible({ timeout: 3000 });

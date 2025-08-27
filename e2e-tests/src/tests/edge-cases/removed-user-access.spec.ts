@@ -41,7 +41,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
 
         // User 2 adds an expense using new ExpenseFormPage pattern
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
-        await user2Page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+        await expect(user2Page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
         await expenseFormPage.fillDescription('Shared Expense');
         await expenseFormPage.fillAmount('25.50');

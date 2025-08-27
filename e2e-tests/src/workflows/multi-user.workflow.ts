@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { GroupDetailPage, JoinGroupPage } from '../pages';
 
 /**
@@ -30,7 +30,7 @@ export class MultiUserWorkflow {
         await joinGroupPage.navigateToShareLink(shareLink);
 
         // Should redirect to group page since user is already a member
-        await page.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
 
         // Verify we're on the group page (not the join page)
         const isOnGroupPage = page.url().includes('/groups/') && !page.url().includes('/join');

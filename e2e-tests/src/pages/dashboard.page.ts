@@ -104,7 +104,7 @@ export class DashboardPage extends BasePage {
 
     async waitForDashboard() {
         // Wait for navigation to dashboard if not already there - handle both /dashboard and /dashboard/
-        await this.page.waitForURL(/\/dashboard\/?$/);
+        await expect(this.page).toHaveURL(/\/dashboard\/?$/);
 
         // Wait for the dashboard to be fully loaded
         await this.waitForDomContentLoaded();
@@ -140,7 +140,7 @@ export class DashboardPage extends BasePage {
         await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
 
         // Wait for redirect to login page after sign out
-        await this.page.waitForURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await expect(this.page).toHaveURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
     }
 
     // Security testing methods

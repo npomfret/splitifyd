@@ -56,7 +56,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for both users to see each other in the member list
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -72,7 +72,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberGroupDetailPage.confirmLeaveGroup();
             
             // Member should be redirected to dashboard
-            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Owner should see updated member count (only 1 member now)
             await groupDetailPage.waitForMemberCount(1);
@@ -103,7 +103,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -165,7 +165,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -210,7 +210,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberGroupDetailPage.confirmLeaveGroup();
             
             // Member should be redirected to dashboard
-            await memberPage.waitForURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
         },
     );
 
@@ -231,7 +231,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             const joinGroupPage = new JoinGroupPage(memberPage);
             await memberPage.goto(shareLink);
             await joinGroupPage.getJoinGroupButton().click();
-            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -273,7 +273,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             const joinGroupPage = new JoinGroupPage(memberPage);
             await memberPage.goto(shareLink);
             await joinGroupPage.getJoinGroupButton().click();
-            await memberPage.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
             
             // Wait for synchronization  
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);

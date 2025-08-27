@@ -31,7 +31,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
             // Verify user2 is now in the group
-            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible
@@ -87,7 +87,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Navigate to share link with unauthenticated user
             // Should throw AuthenticationError since user is not logged in
             await joinGroupPage.navigateToShareLink(shareLink);
-            await page2.waitForURL(/\/login/, {timeout: 2000});
+            await expect(page2).toHaveURL(/\/login/, {timeout: 2000});
             expect(page2.url()).toContain('/login');
         });
 
@@ -125,7 +125,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await registerPage.submitForm();
 
             // After registration, user goes to dashboard (returnUrl is not preserved)
-            await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
@@ -136,7 +136,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
@@ -179,7 +179,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await loginPage.submitForm();
 
             // After login, user goes to dashboard (returnUrl is not preserved through login)
-            await page2.waitForURL(/\/dashboard/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
@@ -190,7 +190,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await page2.waitForURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);

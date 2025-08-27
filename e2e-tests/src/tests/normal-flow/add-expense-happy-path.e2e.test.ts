@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { groupDetailUrlPattern, waitForURLWithContext } from '../../helpers/wait-helpers';
+import { groupDetailUrlPattern } from '../../helpers/wait-helpers';
 import { GroupWorkflow } from '../../workflows';
 
 setupMCPDebugOnFailure();
@@ -33,7 +33,7 @@ test.describe('Add Expense E2E', () => {
         // Submit the expense
         await expenseFormPage.clickSaveExpenseButton();
 
-        await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible();
@@ -90,7 +90,7 @@ test.describe('Add Expense E2E', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
         // Wait for navigation to add expense page
-        await page.waitForURL(`**/groups/${groupId}/add-expense`);
+        await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Select all participants for the expense
@@ -134,7 +134,7 @@ test.describe('Add Expense E2E', () => {
 
         await expenseFormPage.clickSaveExpenseButton();
 
-        await waitForURLWithContext(page, groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();

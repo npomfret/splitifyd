@@ -82,6 +82,7 @@ Flakiness is the primary enemy of a useful test suite. Our architecture and prin
 - **`waitForTimeout()` is strictly forbidden.** There are no exceptions. Using it will fail code review.
 - **Use Web-First Assertions**: Rely on Playwright's built-in waiting mechanisms. `expect(locator).toBeVisible()` waits automatically.
 - **Build Robust Helpers**: For complex asynchronous operations (e.g., waiting for balance calculations), create dedicated, polling-based helper methods within the Page Object. These methods should repeatedly check the DOM for a specific state until it is met or a timeout is exceeded.
+- Don't use `page.waitForURL(...`, instead use `expect(page).toHaveURL(...` which has a built-in short timeout
 
 **Example: A Robust Waiting Helper**
 

@@ -38,7 +38,7 @@ test.describe('Firebase Security Rules Tests', () => {
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to 404 due to Firestore security rules
-            await page2.waitForURL('**/404', { timeout: 5000 });
+            await expect(page2).toHaveURL(/\/404/, { timeout: 5000 });
 
             // Check that any Firestore requests returned appropriate error codes
             const unauthorizedRequests = networkLogs.filter((log) => log.includes('groups') && (log.startsWith('403') || log.startsWith('401')));
@@ -85,7 +85,7 @@ test.describe('Firebase Security Rules Tests', () => {
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected due to Firestore security rules
-            await page2.waitForURL('**/404', { timeout: 5000 });
+            await expect(page2).toHaveURL(/\/404/, { timeout: 5000 });
 
             // Should have received Firestore permission errors
             expect(firestoreErrors.length).toBeGreaterThan(0);
