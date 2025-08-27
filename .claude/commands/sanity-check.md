@@ -2,11 +2,9 @@
 
 First, read all md files in docs/guides/ from the project root - study them, they are extremely important.
 
-**Do not run any tests.**
-
 Simply analyse the current changeset...
 
-- [ ] is it sufficiently tested? 
+- [ ] is it sufficiently tested? **Do not run any tests!** Analyse the code changes and any tests that exercise them.
 - [ ] are tests _tidy_?  do they user builders to hide away noise?  Do they use drivers or POMs to abstract away complexity?
 - [ ] is there any unused code? 
 - [ ] are there any type safety improvements that could be made? 
