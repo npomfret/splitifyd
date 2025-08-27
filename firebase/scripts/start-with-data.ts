@@ -8,24 +8,16 @@ import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { ChildProcess } from 'child_process';
 import { logger } from './logger';
-import { FIRESTORE_URL } from "../functions/src/__tests__/support/firebase-emulator";
 import assert from "node:assert";
 import { startEmulator } from './start-emulator';
 import { seedPolicies } from './seed-policies';
 import { generateTestData } from './generate-test-data';
 
-interface PolicyConfig {
-    projectId: string;
-    firestoreUrl: string;
-    firestorePort: string;
-    authPort: string;
-}
-
-async function runSeedPoliciesStep(config: PolicyConfig): Promise<void> {
+async function runSeedPoliciesStep(): Promise<void> {
     try {
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');
-        logger.info(`📊 STARTING POLICY SEEDING (to ${config.firestoreUrl})...`);
+        logger.info(`📊 STARTING POLICY SEEDING ...`);
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
 
@@ -124,12 +116,7 @@ const main = async () => {
         logger.info('🚀 You can now use the webapp and all endpoints are available');
 
         // Step 2: Seed policies
-        await runSeedPoliciesStep({
-            projectId: PROJECT_ID,
-            firestoreUrl: FIRESTORE_URL,
-            firestorePort: FIRESTORE_PORT,
-            authPort: AUTH_PORT,
-        });
+        await runSeedPoliciesStep();
 
         // Step 3: Generate test data
         await runGenerateTestDataStep();
