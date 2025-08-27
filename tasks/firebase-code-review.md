@@ -44,8 +44,21 @@
         - Clean separation of concerns between handler and service layer
     *   **All tests passing, build successful**
 
-3.  **Task 1.3: Move other user operations to `UserService2`**:
-    *   Incrementally move the remaining user operations (update profile, change password, etc.) into `UserService2`, following the same pattern of unit tests, refactoring, and integration tests for each.
+3.  **Task 1.3: Move other user operations to `UserService2`**: ✅ **COMPLETED** (2025-08-27)
+    *   ✅ Implemented `updateProfile` method in `UserService2`
+    *   ✅ Implemented `changePassword` method in `UserService2`  
+    *   ✅ Implemented `deleteAccount` method in `UserService2`
+    *   ✅ Wrote comprehensive unit tests for all three methods (13 new tests covering all scenarios)
+    *   ✅ Refactored all three handlers (`updateUserProfile`, `changePassword`, `deleteUserAccount`) to use service methods
+    *   ✅ Removed all unnecessary imports from handlers
+    *   **Key improvements:**
+        - All user operations now centralized in UserService2
+        - Consistent error handling across all operations  
+        - Cache invalidation on profile updates
+        - Security note added for future password verification improvements
+        - Clean separation of concerns maintained
+        - Handler code reduced by ~80%
+    *   **All 297 unit tests passing**
 
 ### Phase 2: Refactor Group Management (Read Operations)
 
