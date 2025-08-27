@@ -171,8 +171,16 @@ This refactor is critical for the stability and long-term health of the applicat
 - Prevents malformed group documents from being written to Firestore
 - Fails fast with clear error logging if validation fails
 
+#### ✅ Validation Monitoring/Logging (settlements/handlers.ts, policies/public-handlers.ts, services/UserService2.ts)
+- Added `warn` method to ContextualLogger interface and implementation
+- Added validation logging to `getSettlement()` - logs when settlement documents would fail validation
+- Added validation logging to `getCurrentPolicy()` and `getCurrentPolicies()` - logs when policy documents would fail validation  
+- Added validation logging to `UserService2.getUser()` - logs when user documents would fail validation
+- All tests pass (297 unit + 460 integration)
+
 ### Next Steps
-- Add monitoring/logging before strict enforcement on reads
+- Monitor production logs for validation warnings
+- Once confident no corruption exists, switch from logging to strict enforcement
 
 ## 5. Detailed Implementation Plan (Original)
 

@@ -1,22 +1,52 @@
-import { Request, Response } from 'express';
-import { logger } from '../logger';
-import { firestoreDb } from '../firebase';
-import { HTTP_STATUS } from '../constants';
-import { ApiError } from '../utils/errors';
-import { FirestoreCollections } from '@splitifyd/shared';
+import {Request, Response} from 'express';
+import {logger} from '../logger';
+import {firestoreDb} from '../firebase';
+import {HTTP_STATUS} from '../constants';
+import {ApiError} from '../utils/errors';
+import {FirestoreCollections} from '@splitifyd/shared';
+import {z} from 'zod';
+
+/**
+ * Zod schema for Policy document validation
+ */
+const PolicyVersionSchema = z.object({
+    text: z.string(),
+    createdAt: z.any(), // Firestore Timestamp
+    publishedBy: z.string().optional(),
+});
+
+const PolicyDocumentSchema = z.object({
+    policyName: z.string().min(1),
+    currentVersionHash: z.string().min(1),
+    versions: z.record(z.string(), PolicyVersionSchema),
+    createdAt: z.any().optional(), // Firestore Timestamp
+    updatedAt: z.any().optional(), // Firestore Timestamp
+}).passthrough();
 
 /**
  * GET /policies/current - List all current policy versions (public endpoint)
  */
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const firestore = firestoreDb;
-        const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
+        const policiesSnapshot = await firestoreDb.collection(FirestoreCollections.POLICIES).get();
 
         const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
 
         policiesSnapshot.forEach((doc) => {
             const data = doc.data();
+            
+            // Validate policy data structure - strict enforcement
+            try {
+                PolicyDocumentSchema.parse(data);
+            } catch (error) {
+                logger.error('Policy document validation failed', error as Error, { 
+                    policyId: doc.id
+                });
+                // Skip invalid policy documents instead of throwing
+                // This allows the endpoint to return valid policies
+                return;
+            }
+            
             if (!data.policyName || !data.currentVersionHash) {
                 return;
             }
@@ -56,6 +86,16 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
         const data = policyDoc.data();
         if (!data) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
+        }
+
+        // Validate policy data structure - strict enforcement
+        try {
+            PolicyDocumentSchema.parse(data);
+        } catch (error) {
+            logger.error('Policy document validation failed', error as Error, { 
+                policyId: id
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Policy document structure is invalid');
         }
 
         if (!data.currentVersionHash || !data.versions || !data.policyName) {

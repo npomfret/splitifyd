@@ -417,6 +417,21 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
 
         const settlement = settlementDoc.data() as any;
 
+        // Validate settlement data structure - strict enforcement
+        try {
+            SettlementDocumentSchema.parse({ ...settlement, id: settlementId });
+        } catch (error) {
+            logger.error('Settlement document validation failed', error as Error, { 
+                settlementId,
+                userId
+            });
+            throw new ApiError(
+                HTTP_STATUS.INTERNAL_ERROR,
+                'INVALID_SETTLEMENT_DATA',
+                'Settlement document structure is invalid'
+            );
+        }
+
         await verifyGroupMembership(settlement.groupId, userId);
 
         const [payerData, payeeData] = await Promise.all([fetchUserData(settlement.payerId), fetchUserData(settlement.payeeId)]);

@@ -6,6 +6,7 @@ import { LoggerContext, LogContext } from './logger-context';
  */
 export interface ContextualLogger {
     info(label: string, data?: Record<string, any>): void;
+    warn(label: string, data?: Record<string, any>): void;
     error(message: string, error: Error | any, context?: any): void;
     child(context: Partial<LogContext>): ContextualLogger;
 }
@@ -58,6 +59,35 @@ class ContextualLoggerImpl implements ContextualLogger {
         }
         
         functions.logger.info(label, logData);
+    }
+    
+    /**
+     * Log warning with automatic context inclusion
+     */
+    warn(label: string, data?: Record<string, any>): void {
+        const context = this.getFullContext();
+        
+        const logData: Record<string, any> = {};
+        
+        // Add context fields that have values
+        if (context.userId) logData.userId = context.userId;
+        if (context.correlationId) logData.correlationId = context.correlationId;
+        if (context.groupId) logData.groupId = context.groupId;
+        if (context.expenseId) logData.expenseId = context.expenseId;
+        if (context.settlementId) logData.settlementId = context.settlementId;
+        if (context.operation) logData.operation = context.operation;
+        if (context.service) logData.service = context.service;
+        
+        // Add any additional data fields
+        if (data) {
+            Object.keys(data).forEach(key => {
+                if (key !== 'id' && key !== 'userId' && key !== 'correlationId') {
+                    logData[key] = data[key];
+                }
+            });
+        }
+        
+        functions.logger.warn(label, logData);
     }
     
     /**
