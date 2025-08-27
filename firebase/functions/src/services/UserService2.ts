@@ -9,6 +9,7 @@ import { createServerTimestamp } from '../utils/dateHelpers';
 import { getCurrentPolicyVersions } from '../auth/policy-helpers';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
+import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../user/validation';
 
 /**
  * User profile interface for consistent user data across the application
@@ -179,6 +180,162 @@ export class UserService {
 
         // Handle not found users - log warning but don't throw error
         // Let calling code handle missing users gracefully
+    }
+
+    /**
+     * Update a user's profile
+     * @param userId - The Firebase UID of the user
+     * @param requestBody - The raw request body containing profile update data
+     * @param language - The user's preferred language for validation messages
+     * @returns The updated user profile
+     * @throws ApiError if update fails
+     */
+    async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
+        // Validate the request body with localized error messages
+        const validatedData = validateUpdateUserProfile(requestBody, language);
+
+        try {
+            // Build update object for Firebase Auth
+            const authUpdateData: admin.auth.UpdateRequest = {};
+            if (validatedData.displayName !== undefined) {
+                authUpdateData.displayName = validatedData.displayName;
+            }
+            if (validatedData.photoURL !== undefined) {
+                authUpdateData.photoURL = validatedData.photoURL === null ? null : validatedData.photoURL;
+            }
+
+            // Update Firebase Auth
+            await admin.auth().updateUser(userId, authUpdateData);
+
+            // Build update object for Firestore
+            const firestoreUpdate: any = {
+                updatedAt: createServerTimestamp(),
+            };
+            if (validatedData.displayName !== undefined) {
+                firestoreUpdate.displayName = validatedData.displayName;
+            }
+            if (validatedData.photoURL !== undefined) {
+                firestoreUpdate.photoURL = validatedData.photoURL;
+            }
+            if (validatedData.preferredLanguage !== undefined) {
+                firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
+            }
+
+            // Update Firestore user document
+            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
+
+            // Clear cache for this user to ensure fresh data
+            this.cache.delete(userId);
+
+            // Return the updated profile
+            return await this.getUser(userId);
+        } catch (error: unknown) {
+            // Check if error is from Firebase Auth (user not found)
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
+                logger.error('User not found in Firebase Auth', { userId });
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            logger.error('Failed to update user profile', { error: error as Error, userId });
+            throw error;
+        }
+    }
+
+    /**
+     * Change a user's password
+     * @param userId - The Firebase UID of the user
+     * @param requestBody - The raw request body containing password change data
+     * @returns Success message
+     * @throws ApiError if password change fails
+     */
+    async changePassword(userId: string, requestBody: unknown): Promise<{ message: string }> {
+        // Validate the request body
+        const validatedData = validateChangePassword(requestBody);
+
+        try {
+            // Get user to ensure they exist
+            const userRecord = await admin.auth().getUser(userId);
+            if (!userRecord.email) {
+                throw Errors.INVALID_INPUT('User email not found');
+            }
+
+            // TODO: In a production environment, we should verify the current password
+            // by attempting to sign in with it using the Firebase Client SDK.
+            // For now, we're updating the password directly as this is a backend service.
+            // Consider implementing a more secure password verification flow.
+
+            // Update password in Firebase Auth
+            await admin.auth().updateUser(userId, {
+                password: validatedData.newPassword,
+            });
+
+            // Update Firestore to track password change
+            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update({
+                updatedAt: createServerTimestamp(),
+                passwordChangedAt: createServerTimestamp(),
+            });
+
+            logger.info('Password changed successfully', { userId });
+
+            return {
+                message: 'Password changed successfully',
+            };
+        } catch (error: unknown) {
+            // Check if error is from Firebase Auth (user not found)
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
+                logger.error('User not found in Firebase Auth', { userId });
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            logger.error('Failed to change password', { error: error as Error, userId });
+            throw error;
+        }
+    }
+
+    /**
+     * Delete a user account
+     * @param userId - The Firebase UID of the user to delete
+     * @param requestBody - The raw request body containing deletion confirmation
+     * @returns Success message
+     * @throws ApiError if deletion fails or user has active groups
+     */
+    async deleteAccount(userId: string, requestBody: unknown): Promise<{ message: string }> {
+        // Validate the request body - ensures confirmDelete is true
+        validateDeleteUser(requestBody);
+
+        try {
+            // Check if user has any groups or outstanding balances
+            // This is a simplified check - in production you'd want more thorough validation
+            const groupsSnapshot = await firestoreDb
+                .collection(FirestoreCollections.GROUPS)
+                .where(`data.members.${userId}`, '!=', null)
+                .get();
+
+            if (!groupsSnapshot.empty) {
+                throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
+            }
+
+            // Delete user data from Firestore first (before Auth deletion)
+            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).delete();
+
+            // Delete user from Firebase Auth
+            await admin.auth().deleteUser(userId);
+
+            logger.info('User account deleted successfully', { userId });
+
+            return {
+                message: 'Account deleted successfully',
+            };
+        } catch (error: unknown) {
+            // Check if error is from Firebase Auth (user not found)
+            if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
+                logger.error('User not found in Firebase Auth', { userId });
+                throw Errors.NOT_FOUND('User not found');
+            }
+
+            logger.error('Failed to delete user account', { error: error as Error, userId });
+            throw error;
+        }
     }
 
     /**
