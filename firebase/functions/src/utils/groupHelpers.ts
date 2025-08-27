@@ -1,4 +1,11 @@
-import { Group, FirestoreCollections, MemberRoles } from '@splitifyd/shared';
+import {
+    Group,
+    FirestoreCollections,
+    MemberRoles,
+    UserThemeColor,
+    USER_COLORS,
+    COLOR_PATTERNS
+} from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';
@@ -69,4 +76,23 @@ export const verifyGroupMembership = async (groupId: string, userId: string): Pr
     }
 
     throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
+};
+
+/**
+ * Get theme color for a member based on their index
+ */
+export const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
+    const colorIndex = memberIndex % USER_COLORS.length;
+    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+    const color = USER_COLORS[colorIndex];
+    const pattern = COLOR_PATTERNS[patternIndex];
+
+    return {
+        light: color.light,
+        dark: color.dark,
+        name: color.name,
+        pattern,
+        assignedAt: new Date().toISOString(),
+        colorIndex,
+    };
 };

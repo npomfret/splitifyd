@@ -2,17 +2,17 @@ import * as admin from 'firebase-admin';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { Group, GroupWithBalance } from '../types/group-types';
-import {FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD, USER_COLORS, COLOR_PATTERNS} from '@splitifyd/shared';
+import {FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD} from '@splitifyd/shared';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from './balance';
 import { calculateExpenseMetadata } from './expenseMetadataService';
 import { transformGroupDocument } from '../groups/handlers';
-import { isGroupOwner, isGroupMember } from '../utils/groupHelpers';
+import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { userService } from './UserService2';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { DOCUMENT_CONFIG } from '../constants';
 import { logger } from '../logger';
 import { parseISOToTimestamp, getRelativeTime, createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { MemberRoles, MemberStatuses, SecurityPresets, UserThemeColor, CreateGroupRequest, MessageResponse } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses, SecurityPresets, CreateGroupRequest, MessageResponse } from '@splitifyd/shared';
 import { PermissionEngine } from '../permissions';
 import { LoggerContext } from '../logger';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
@@ -28,25 +28,6 @@ export class GroupService {
      */
     private getGroupsCollection() {
         return firestoreDb.collection(FirestoreCollections.GROUPS);
-    }
-
-    /**
-     * Get theme color for a member based on their index
-     */
-    private getThemeColorForMember(memberIndex: number): UserThemeColor {
-        const colorIndex = memberIndex % USER_COLORS.length;
-        const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
-        const color = USER_COLORS[colorIndex];
-        const pattern = COLOR_PATTERNS[patternIndex];
-
-        return {
-            light: color.light,
-            dark: color.dark,
-            name: color.name,
-            pattern,
-            assignedAt: new Date().toISOString(),
-            colorIndex,
-        };
     }
 
     /**
@@ -177,8 +158,8 @@ export class GroupService {
      * PERFORMANCE OPTIMIZED: Reduces N database queries to just 2-3
      */
     private async batchFetchGroupData(groupIds: string[]): Promise<{
-        expensesByGroup: Map<string, any[]>,
-        settlementsByGroup: Map<string, any[]>,
+        expensesByGroup: Map<string, any[]>;
+        settlementsByGroup: Map<string, any[]>;
         expenseMetadataByGroup: Map<string, { count: number, lastExpenseTime?: Date }>
     }> {
         if (groupIds.length === 0) {
@@ -507,7 +488,7 @@ export class GroupService {
         members[userId] = {
             role: MemberRoles.ADMIN,
             status: MemberStatuses.ACTIVE,
-            theme: this.getThemeColorForMember(0),
+            theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(),
         };
 
@@ -518,7 +499,7 @@ export class GroupService {
                 members[memberId] = {
                     role: MemberRoles.MEMBER,
                     status: MemberStatuses.ACTIVE,
-                    theme: this.getThemeColorForMember(memberIndex),
+                    theme: getThemeColorForMember(memberIndex),
                     joinedAt: now.toDate().toISOString(),
                 };
                 memberIndex++;

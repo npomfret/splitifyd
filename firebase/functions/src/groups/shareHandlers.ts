@@ -5,10 +5,9 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import {FirestoreCollections, ShareLink, MemberRoles, MemberStatuses, USER_COLORS, COLOR_PATTERNS} from '@splitifyd/shared';
+import {FirestoreCollections, ShareLink, MemberRoles, MemberStatuses} from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
-import type { UserThemeColor } from '@splitifyd/shared';
-import { isGroupOwner as checkIsGroupOwner, isGroupMember } from '../utils/groupHelpers';
+import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 
 const generateShareToken = (): string => {
     const bytes = randomBytes(12);
@@ -39,25 +38,6 @@ const findShareLinkByToken = async (token: string): Promise<{ groupId: string; s
     };
     
     return { groupId, shareLink };
-};
-
-/**
- * Get theme color for a member based on their index
- */
-const getThemeColorForMember = (memberIndex: number): UserThemeColor => {
-    const colorIndex = memberIndex % USER_COLORS.length;
-    const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
-    const color = USER_COLORS[colorIndex];
-    const pattern = COLOR_PATTERNS[patternIndex];
-    
-    return {
-        light: color.light,
-        dark: color.dark,
-        name: color.name,
-        pattern,
-        assignedAt: new Date().toISOString(),
-        colorIndex,
-    };
 };
 
 interface ValidationResult {
