@@ -55,7 +55,7 @@ const GroupDataSchema = z.object({
     presetAppliedAt: z.any().optional(), // Firestore Timestamp
 }).passthrough();
 
-const GroupDocumentSchema = z.object({
+export const GroupDocumentSchema = z.object({
     data: GroupDataSchema,
     createdAt: z.any(), // Firestore Timestamp
     updatedAt: z.any(), // Firestore Timestamp

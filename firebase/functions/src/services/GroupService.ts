@@ -5,7 +5,7 @@ import { Group, GroupWithBalance } from '../types/group-types';
 import {FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD} from '@splitifyd/shared';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from './balance';
 import { calculateExpenseMetadata } from './expenseMetadataService';
-import { transformGroupDocument } from '../groups/handlers';
+import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
 import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { userService } from './UserService2';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
@@ -519,12 +519,25 @@ export class GroupService {
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
         };
 
-        // Store in Firestore with true server timestamps for the document-level timestamps
-        await docRef.set({
+        // Validate the complete document structure before writing
+        const documentToWrite = {
             data: newGroup,
             createdAt: serverTimestamp,
             updatedAt: serverTimestamp,
-        });
+        };
+        
+        try {
+            GroupDocumentSchema.parse(documentToWrite);
+        } catch (error) {
+            logger.error('Invalid group document to write', error as Error, {
+                groupId: docRef.id,
+                userId
+            });
+            throw Errors.INVALID_INPUT();
+        }
+
+        // Store in Firestore with true server timestamps for the document-level timestamps
+        await docRef.set(documentToWrite);
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });

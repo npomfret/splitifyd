@@ -7,6 +7,13 @@ jest.mock('../../firebase', () => ({
         collection: jest.fn(),
     },
 }));
+jest.mock('../../utils/errors', () => ({
+    Errors: {
+        INVALID_INPUT: jest.fn(() => new Error('Invalid input')),
+        NOT_FOUND: jest.fn(() => new Error('Not found')),
+        FORBIDDEN: jest.fn(() => new Error('Forbidden')),
+    },
+}));
 jest.mock('../../logger', () => ({
     logger: {
         error: jest.fn(),
@@ -22,6 +29,9 @@ jest.mock('../../services/expenseMetadataService', () => ({
 }));
 jest.mock('../../groups/handlers', () => ({
     transformGroupDocument: jest.fn(),
+    GroupDocumentSchema: {
+        parse: jest.fn((data) => data),
+    },
 }));
 jest.mock('../../utils/groupHelpers', () => ({
     isGroupOwner: jest.fn(),

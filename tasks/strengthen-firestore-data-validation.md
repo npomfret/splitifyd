@@ -178,9 +178,20 @@ This refactor is critical for the stability and long-term health of the applicat
 - Added validation logging to `UserService2.getUser()` - logs when user documents would fail validation
 - All tests pass (297 unit + 460 integration)
 
-### Next Steps
-- Monitor production logs for validation warnings
-- Once confident no corruption exists, switch from logging to strict enforcement
+#### ✅ Group Write Validation in GroupService (services/GroupService.ts)
+- Exported `GroupDocumentSchema` from handlers for reuse
+- Added validation to `GroupService.createGroup()` before `.set()` operation
+- Validates complete document structure with Zod schema
+- Prevents malformed group documents from being written via GroupService
+- Fails fast with clear error logging if validation fails
+
+### Status: ✅ COMPLETE
+
+All validation has been successfully migrated to strict enforcement mode:
+- All read operations use Zod schemas with `.parse()` that throw on invalid data
+- All write operations validate documents before `.set()`, `.add()`, or `.update()`
+- No validation warnings remain - all validation failures now throw errors immediately
+- GroupService.createGroup() now validates before writing (last remaining gap closed)
 
 ## 5. Detailed Implementation Plan (Original)
 
