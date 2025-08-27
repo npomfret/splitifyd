@@ -3,6 +3,113 @@ import { Errors, ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { AuthErrors } from '@splitifyd/shared';
 
+// Test builders to reduce noise and focus tests on what matters
+class MockAuthUserBuilder {
+    private authUser: any = {
+        uid: 'test-user-id',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        photoURL: null,
+        emailVerified: true,
+    };
+
+    withUid(uid: string): MockAuthUserBuilder {
+        this.authUser.uid = uid;
+        return this;
+    }
+
+    withEmail(email: string | undefined): MockAuthUserBuilder {
+        this.authUser.email = email;
+        return this;
+    }
+
+    withDisplayName(displayName: string | undefined): MockAuthUserBuilder {
+        this.authUser.displayName = displayName;
+        return this;
+    }
+
+    withPhotoURL(photoURL: string | null): MockAuthUserBuilder {
+        this.authUser.photoURL = photoURL;
+        return this;
+    }
+
+    withEmailVerified(emailVerified: boolean): MockAuthUserBuilder {
+        this.authUser.emailVerified = emailVerified;
+        return this;
+    }
+
+    build(): any {
+        return { ...this.authUser };
+    }
+}
+
+class MockFirestoreDataBuilder {
+    private firestoreData: any = {};
+
+    withThemeColor(themeColor: string | any): MockFirestoreDataBuilder {
+        this.firestoreData.themeColor = themeColor;
+        return this;
+    }
+
+    withPreferredLanguage(language: string): MockFirestoreDataBuilder {
+        this.firestoreData.preferredLanguage = language;
+        return this;
+    }
+
+    withCreatedAt(createdAt: any): MockFirestoreDataBuilder {
+        this.firestoreData.createdAt = createdAt;
+        return this;
+    }
+
+    withUpdatedAt(updatedAt: any): MockFirestoreDataBuilder {
+        this.firestoreData.updatedAt = updatedAt;
+        return this;
+    }
+
+    build(): any {
+        return { ...this.firestoreData };
+    }
+}
+
+class RegisterDataBuilder {
+    private registerData: any = {
+        email: 'newuser@example.com',
+        password: 'SecurePass123!',
+        displayName: 'New User',
+        termsAccepted: true,
+        cookiePolicyAccepted: true,
+    };
+
+    withEmail(email: string): RegisterDataBuilder {
+        this.registerData.email = email;
+        return this;
+    }
+
+    withPassword(password: string): RegisterDataBuilder {
+        this.registerData.password = password;
+        return this;
+    }
+
+    withDisplayName(displayName: string): RegisterDataBuilder {
+        this.registerData.displayName = displayName;
+        return this;
+    }
+
+    withTermsAccepted(accepted: boolean): RegisterDataBuilder {
+        this.registerData.termsAccepted = accepted;
+        return this;
+    }
+
+    withCookiePolicyAccepted(accepted: boolean): RegisterDataBuilder {
+        this.registerData.cookiePolicyAccepted = accepted;
+        return this;
+    }
+
+    build(): any {
+        return { ...this.registerData };
+    }
+}
+
 // Mock Firebase modules with implementations
 jest.mock('firebase-admin');
 jest.mock('../../firebase', () => ({
@@ -89,20 +196,16 @@ describe('UserService', () => {
         it('should fetch user profile from Firebase Auth and Firestore', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: 'https://example.com/photo.jpg',
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withPhotoURL('https://example.com/photo.jpg')
+                .build();
 
-            const mockFirestoreData = {
-                themeColor: '#FF5733',
-                preferredLanguage: 'en',
-                createdAt: { seconds: 1234567890 },
-                updatedAt: { seconds: 1234567900 },
-            };
+            const mockFirestoreData = new MockFirestoreDataBuilder()
+                .withThemeColor('#FF5733')
+                .withPreferredLanguage('en')
+                .withCreatedAt({ seconds: 1234567890 })
+                .withUpdatedAt({ seconds: 1234567900 })
+                .build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
             mockFirestoreGet.mockResolvedValue({
@@ -132,13 +235,9 @@ describe('UserService', () => {
         it('should handle user with no photoURL', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: false,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withEmailVerified(false)
+                .build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
             mockFirestoreGet.mockResolvedValue({
@@ -165,13 +264,7 @@ describe('UserService', () => {
         it('should return cached user on subsequent calls', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder().build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
             mockFirestoreGet.mockResolvedValue({
@@ -227,13 +320,9 @@ describe('UserService', () => {
         it('should throw error when user is missing required fields (email)', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: undefined, // Missing required field
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withEmail(undefined) // Missing required field
+                .build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
 
@@ -248,13 +337,9 @@ describe('UserService', () => {
         it('should throw error when user is missing required fields (displayName)', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: undefined, // Missing required field
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withDisplayName(undefined) // Missing required field
+                .build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
 
@@ -269,13 +354,7 @@ describe('UserService', () => {
         it('should handle Firestore errors gracefully', async () => {
             // Arrange
             const userId = 'test-user-id';
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder().build();
 
             mockGetUser.mockResolvedValue(mockAuthUser);
             mockFirestoreGet.mockRejectedValue(new Error('Firestore error'));
@@ -294,13 +373,7 @@ describe('UserService', () => {
     });
 
     describe('registerUser', () => {
-        const validRegisterData = {
-            email: 'newuser@example.com',
-            password: 'SecurePass123!',
-            displayName: 'New User',
-            termsAccepted: true,
-            cookiePolicyAccepted: true,
-        };
+        const validRegisterData = new RegisterDataBuilder().build();
 
         const mockPolicyVersions = {
             terms: 'v1.0.0',
@@ -372,11 +445,10 @@ describe('UserService', () => {
 
         it('should register user without policy acceptance timestamps if not accepted', async () => {
             // Arrange
-            const dataWithoutAcceptance = {
-                ...validRegisterData,
-                termsAccepted: false,
-                cookiePolicyAccepted: false,
-            };
+            const dataWithoutAcceptance = new RegisterDataBuilder()
+                .withTermsAccepted(false)
+                .withCookiePolicyAccepted(false)
+                .build();
             (validateRegisterRequest as jest.Mock).mockReturnValue(dataWithoutAcceptance);
 
             const mockUserRecord = {
@@ -550,19 +622,15 @@ describe('UserService', () => {
             // Arrange
             const userId = 'test-user-id';
             const updateData = { displayName: 'Updated Name' };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Updated Name',
-                photoURL: null,
-                emailVerified: true,
-            };
-            const mockFirestoreData = {
-                themeColor: 'blue',
-                preferredLanguage: 'en',
-                createdAt: { seconds: 1234567890, nanoseconds: 0 },
-                updatedAt: { seconds: 1234567900, nanoseconds: 0 },
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withDisplayName('Updated Name')
+                .build();
+            const mockFirestoreData = new MockFirestoreDataBuilder()
+                .withThemeColor('blue')
+                .withPreferredLanguage('en')
+                .withCreatedAt({ seconds: 1234567890, nanoseconds: 0 })
+                .withUpdatedAt({ seconds: 1234567900, nanoseconds: 0 })
+                .build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -597,13 +665,9 @@ describe('UserService', () => {
             // Arrange
             const userId = 'test-user-id';
             const updateData = { photoURL: 'https://example.com/photo.jpg' };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: 'https://example.com/photo.jpg',
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withPhotoURL('https://example.com/photo.jpg')
+                .build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -627,13 +691,7 @@ describe('UserService', () => {
             // Arrange
             const userId = 'test-user-id';
             const updateData = { photoURL: null };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder().build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -657,13 +715,7 @@ describe('UserService', () => {
             // Arrange
             const userId = 'test-user-id';
             const updateData = { preferredLanguage: 'en' };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'Test User',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder().build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -691,13 +743,10 @@ describe('UserService', () => {
                 photoURL: 'https://example.com/new.jpg',
                 preferredLanguage: 'en',
             };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'New Name',
-                photoURL: 'https://example.com/new.jpg',
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withDisplayName('New Name')
+                .withPhotoURL('https://example.com/new.jpg')
+                .build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -728,13 +777,9 @@ describe('UserService', () => {
             // Arrange
             const userId = 'test-user-id';
             const updateData = { displayName: 'New Name' };
-            const mockAuthUser = {
-                uid: userId,
-                email: 'test@example.com',
-                displayName: 'New Name',
-                photoURL: null,
-                emailVerified: true,
-            };
+            const mockAuthUser = new MockAuthUserBuilder()
+                .withDisplayName('New Name')
+                .build();
 
             (validateUpdateUserProfile as jest.Mock).mockReturnValue(updateData);
             mockUpdateUser.mockResolvedValue(undefined);
@@ -863,10 +908,7 @@ describe('UserService', () => {
                 currentPassword: 'OldPass123!',
                 newPassword: 'NewPass456!',
             };
-            const mockUserRecord = {
-                uid: userId,
-                email: 'test@example.com',
-            };
+            const mockUserRecord = new MockAuthUserBuilder().build();
 
             (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
             mockGetUser.mockResolvedValue(mockUserRecord);
@@ -895,10 +937,9 @@ describe('UserService', () => {
                 currentPassword: 'OldPass123!',
                 newPassword: 'NewPass456!',
             };
-            const mockUserRecord = {
-                uid: userId,
-                email: undefined, // No email
-            };
+            const mockUserRecord = new MockAuthUserBuilder()
+                .withEmail(undefined) // No email
+                .build();
 
             (validateChangePassword as jest.Mock).mockReturnValue(passwordData);
             mockGetUser.mockResolvedValue(mockUserRecord);

@@ -31,25 +31,69 @@ const mockDb = firestoreDb as jest.Mocked<typeof firestoreDb>;
 const mockUserService = userService as jest.Mocked<typeof userService>;
 const mockSimplifyDebts = simplifyDebts as jest.MockedFunction<typeof simplifyDebts>;
 
-// Adapter functions to convert existing builders to Firestore format
-function createFirestoreExpense(overrides: Partial<any> = {}) {
-    const testExpense = new ExpenseBuilder().build();
-    return {
+// Enhanced builders - only specify what's needed for each test
+class FirestoreExpenseBuilder extends ExpenseBuilder {
+    private firestoreFields: any = {
         id: 'expense-1',
-        createdAt: Timestamp.now(),
-        ...testExpense,
-        ...overrides
+        createdAt: Timestamp.now()
     };
+    private excludeCurrency = false;
+
+    withId(id: string): FirestoreExpenseBuilder {
+        this.firestoreFields.id = id;
+        return this;
+    }
+
+    withoutCurrency(): FirestoreExpenseBuilder {
+        // For testing missing currency validation
+        this.excludeCurrency = true;
+        return this;
+    }
+
+    build(): any {
+        const baseExpense = super.build();
+        const result = {
+            ...this.firestoreFields,
+            ...baseExpense
+        };
+        // Remove currency if withoutCurrency was called
+        if (this.excludeCurrency) {
+            delete result.currency;
+        }
+        return result;
+    }
 }
 
-function createFirestoreSettlement(overrides: Partial<any> = {}) {
-    const testSettlement = new SettlementBuilder().build();
-    return {
+class FirestoreSettlementBuilder extends SettlementBuilder {
+    private firestoreFields: any = {
         id: 'settlement-1',
-        createdAt: Timestamp.now(),
-        ...testSettlement,
-        ...overrides
+        createdAt: Timestamp.now()
     };
+    private excludeCurrency = false;
+
+    withId(id: string): FirestoreSettlementBuilder {
+        this.firestoreFields.id = id;
+        return this;
+    }
+
+    withoutCurrency(): FirestoreSettlementBuilder {
+        // For testing missing currency validation
+        this.excludeCurrency = true;
+        return this;
+    }
+
+    build(): any {
+        const baseSettlement = super.build();
+        const result = {
+            ...this.firestoreFields,
+            ...baseSettlement
+        };
+        // Remove currency if withoutCurrency was called
+        if (this.excludeCurrency) {
+            delete result.currency;
+        }
+        return result;
+    }
 }
 
 // Helper class for mock Firestore responses
@@ -73,37 +117,60 @@ class MockFirestoreBuilder {
     }
 }
 
-// Mock group data with correct nested structure expected by balance calculator
-const mockGroup = {
-    id: 'group-1',
-    data: {
+// Builder for mock group
+class MockGroupBuilder {
+    private group: any = {
+        id: 'group-1',
         data: {
-            name: 'Test Group',
-            members: {
-                'user-1': { role: 'owner' },
-                'user-2': { role: 'member' }
+            data: {
+                name: 'Test Group',
+                members: {
+                    'user-1': { role: 'owner' },
+                    'user-2': { role: 'member' }
+                }
             }
         }
-    }
-};
+    };
 
-// Mock user profiles
-const mockUsers: UserProfile[] = [
-    {
-        uid: 'user-1',
-        displayName: 'User One',
-        email: 'user1@test.com',
-        photoURL: null,
-        emailVerified: true
-    },
-    {
-        uid: 'user-2',
-        displayName: 'User Two',
-        email: 'user2@test.com',
-        photoURL: null,
-        emailVerified: true
+    withMembers(members: Record<string, any>): MockGroupBuilder {
+        this.group.data.data.members = members;
+        return this;
     }
-];
+
+    build(): any {
+        return { ...this.group };
+    }
+}
+
+// Builder for user profiles
+class UserProfileBuilder {
+    private user: UserProfile = {
+        uid: 'user-1',
+        displayName: 'Test User',
+        email: 'test@example.com',
+        photoURL: null,
+        emailVerified: true
+    };
+
+    withUid(uid: string): UserProfileBuilder {
+        this.user.uid = uid;
+        return this;
+    }
+
+    withDisplayName(name: string): UserProfileBuilder {
+        this.user.displayName = name;
+        return this;
+    }
+
+    withEmail(email: string): UserProfileBuilder {
+        this.user.email = email;
+        return this;
+    }
+
+    build(): UserProfile {
+        return { ...this.user };
+    }
+}
 
 describe('calculateGroupBalances', () => {
     let mockGet: jest.Mock;
@@ -118,6 +185,20 @@ describe('calculateGroupBalances', () => {
             doc: jest.fn().mockReturnThis()
         } as any);
 
+        // Setup default user profiles
+        const mockUsers = [
+            new UserProfileBuilder()
+                .withUid('user-1')
+                .withDisplayName('User One')
+                .withEmail('user1@test.com')
+                .build(),
+            new UserProfileBuilder()
+                .withUid('user-2')
+                .withDisplayName('User Two')
+                .withEmail('user2@test.com')
+                .build()
+        ];
+        
         const userMap = new Map<string, UserProfile>();
         mockUsers.forEach(user => userMap.set(user.uid, user));
         mockUserService.getUsers.mockResolvedValue(userMap);
@@ -126,6 +207,8 @@ describe('calculateGroupBalances', () => {
 
     describe('edge cases', () => {
         it('should return empty balances for group with no expenses or settlements', async () => {
+            const mockGroup = new MockGroupBuilder().build();
+            
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([])) // expenses
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([])) // settlements
@@ -143,7 +226,11 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should throw error when expense is missing currency', async () => {
-            const expenseWithoutCurrency = createFirestoreExpense({ currency: undefined });
+            const expenseWithoutCurrency = new FirestoreExpenseBuilder()
+                .withoutCurrency()
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expenseWithoutCurrency]))
@@ -154,7 +241,11 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should throw error when settlement is missing currency', async () => {
-            const settlementWithoutCurrency = createFirestoreSettlement({ currency: undefined });
+            const settlementWithoutCurrency = new FirestoreSettlementBuilder()
+                .withoutCurrency()
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([]))
@@ -167,15 +258,17 @@ describe('calculateGroupBalances', () => {
 
     describe('single currency scenarios', () => {
         it('should handle single expense split equally between two users', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withParticipants(['user-1', 'user-2'])
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -191,27 +284,26 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should handle multiple expenses between same users', async () => {
-            const expense1 = createFirestoreExpense({
-                id: 'expense-1',
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense1 = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
 
-            const expense2 = createFirestoreExpense({
-                id: 'expense-2',
-                amount: 60,
-                paidBy: 'user-2',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense2 = new FirestoreExpenseBuilder()
+                .withId('expense-2')
+                .withAmount(60)
+                .withPaidBy('user-2')
+                .withSplits([
                     { userId: 'user-1', amount: 30 },
                     { userId: 'user-2', amount: 30 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense1, expense2]))
@@ -227,16 +319,17 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should handle exact split expenses', async () => {
-            const expense = createFirestoreExpense({
-                amount: 150,
-                splitType: 'exact',
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(150)
+                .withSplitType('exact')
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 60 },
                     { userId: 'user-2', amount: 90 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -252,21 +345,22 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should handle settlements', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
 
-            const settlement = createFirestoreSettlement({
-                payerId: 'user-2',
-                payeeId: 'user-1',
-                amount: 25
-            });
+            const settlement = new FirestoreSettlementBuilder()
+                .withPayer('user-2')
+                .withPayee('user-1')
+                .withAmount(25)
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -284,29 +378,28 @@ describe('calculateGroupBalances', () => {
 
     describe('multi-currency scenarios', () => {
         it('should handle expenses in different currencies', async () => {
-            const expenseUSD = createFirestoreExpense({
-                id: 'expense-1',
-                amount: 100,
-                currency: 'USD',
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expenseUSD = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withCurrency('USD')
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
 
-            const expenseEUR = createFirestoreExpense({
-                id: 'expense-2',
-                amount: 80,
-                currency: 'EUR',
-                paidBy: 'user-2',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expenseEUR = new FirestoreExpenseBuilder()
+                .withId('expense-2')
+                .withAmount(80)
+                .withCurrency('EUR')
+                .withPaidBy('user-2')
+                .withSplits([
                     { userId: 'user-1', amount: 40 },
                     { userId: 'user-2', amount: 40 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expenseUSD, expenseEUR]))
@@ -328,16 +421,17 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should use first currency for legacy userBalances field', async () => {
-            const expenseEUR = createFirestoreExpense({
-                currency: 'EUR',
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expenseEUR = new FirestoreExpenseBuilder()
+                .withCurrency('EUR')
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expenseEUR]))
@@ -356,21 +450,22 @@ describe('calculateGroupBalances', () => {
 
     describe('settlement processing', () => {
         it('should handle settlements between same users as expenses', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
 
-            const settlement = createFirestoreSettlement({
-                payerId: 'user-2',
-                payeeId: 'user-1',
-                amount: 50
-            });
+            const settlement = new FirestoreSettlementBuilder()
+                .withPayer('user-2')
+                .withPayee('user-1')
+                .withAmount(50)
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -386,21 +481,22 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should handle partial settlements', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
 
-            const settlement = createFirestoreSettlement({
-                payerId: 'user-2',
-                payeeId: 'user-1',
-                amount: 25
-            });
+            const settlement = new FirestoreSettlementBuilder()
+                .withPayer('user-2')
+                .withPayee('user-1')
+                .withAmount(25)
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -418,13 +514,15 @@ describe('calculateGroupBalances', () => {
 
     describe('data structure validation', () => {
         it('should include all required fields in response', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -441,15 +539,16 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should have consistent balance totals that sum to zero', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -475,15 +574,16 @@ describe('calculateGroupBalances', () => {
             ];
             mockSimplifyDebts.mockReturnValue(mockSimplifiedDebts);
 
-            const expense = createFirestoreExpense({
-                amount: 100,
-                paidBy: 'user-1',
-                participants: ['user-1', 'user-2'],
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withPaidBy('user-1')
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
@@ -497,13 +597,15 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should fetch user profiles correctly', async () => {
-            const expense = createFirestoreExpense({
-                amount: 100,
-                splits: [
+            const expense = new FirestoreExpenseBuilder()
+                .withAmount(100)
+                .withSplits([
                     { userId: 'user-1', amount: 50 },
                     { userId: 'user-2', amount: 50 }
-                ]
-            });
+                ])
+                .build();
+            
+            const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))

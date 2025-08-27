@@ -20,51 +20,172 @@ vi.mock('@/utils/browser-logger', () => ({
     logApiResponse: vi.fn(),
 }));
 
+// Test builders - only specify what's needed for each test
+class GroupBuilder {
+    private group: any = {
+        id: 'group1',
+        name: 'Test Group',
+        description: 'Test description',
+        memberIds: ['user1'],
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: new Date().toISOString(),
+        createdBy: 'user1',
+    };
+
+    withId(id: string): GroupBuilder {
+        this.group.id = id;
+        return this;
+    }
+
+    withName(name: string): GroupBuilder {
+        this.group.name = name;
+        return this;
+    }
+
+    withDescription(description: string): GroupBuilder {
+        this.group.description = description;
+        return this;
+    }
+
+    withMemberIds(memberIds: string[]): GroupBuilder {
+        this.group.memberIds = memberIds;
+        return this;
+    }
+
+    withBalance(currency: string, netBalance: number, totalOwed: number = 0, totalOwing: number = 0): GroupBuilder {
+        if (!this.group.balance) {
+            this.group.balance = { balancesByCurrency: {} };
+        }
+        this.group.balance.balancesByCurrency[currency] = {
+            currency,
+            netBalance,
+            totalOwed,
+            totalOwing,
+        };
+        return this;
+    }
+
+    withLastActivity(activity: string, raw?: string): GroupBuilder {
+        this.group.lastActivity = activity;
+        this.group.lastActivityRaw = raw || new Date().toISOString();
+        return this;
+    }
+
+    build(): any {
+        return { ...this.group };
+    }
+}
+
+class GroupsResponseBuilder {
+    private response: any = {
+        groups: [],
+        count: 0,
+        hasMore: false,
+        pagination: { limit: 20, order: 'desc' },
+        metadata: {
+            lastChangeTimestamp: Date.now(),
+            changeCount: 0,
+            serverTime: Date.now(),
+            hasRecentChanges: false,
+        },
+    };
+
+    withGroups(groups: any[]): GroupsResponseBuilder {
+        this.response.groups = groups;
+        this.response.count = groups.length;
+        return this;
+    }
+
+    withMetadata(timestamp: number, changeCount: number = 0, hasRecentChanges: boolean = false): GroupsResponseBuilder {
+        this.response.metadata = {
+            lastChangeTimestamp: timestamp,
+            changeCount,
+            serverTime: timestamp,
+            hasRecentChanges,
+        };
+        return this;
+    }
+
+    build(): any {
+        return { ...this.response };
+    }
+}
+
+class MemberBuilder {
+    private member: any = {
+        uid: 'user1',
+        email: 'user@example.com',
+        displayName: 'Test User',
+    };
+
+    withUid(uid: string): MemberBuilder {
+        this.member.uid = uid;
+        return this;
+    }
+
+    withEmail(email: string): MemberBuilder {
+        this.member.email = email;
+        return this;
+    }
+
+    withDisplayName(name: string): MemberBuilder {
+        this.member.displayName = name;
+        return this;
+    }
+
+    build(): any {
+        return { ...this.member };
+    }
+}
+
+class ExpenseBuilder {
+    private expense: any = {
+        id: 'exp1',
+        groupId: 'group1',
+        description: 'Test expense',
+        amount: 100,
+        currency: 'USD',
+        paidBy: 'user1',
+        category: 'General',
+        date: '2024-01-15',
+        splitType: 'equal' as const,
+        participants: ['user1'],
+        createdBy: 'user1',
+        createdAt: '2024-01-15T00:00:00Z',
+        updatedAt: '2024-01-15T00:00:00Z',
+    };
+
+    withDescription(description: string): ExpenseBuilder {
+        this.expense.description = description;
+        return this;
+    }
+
+    withAmount(amount: number): ExpenseBuilder {
+        this.expense.amount = amount;
+        return this;
+    }
+
+    withCategory(category: string): ExpenseBuilder {
+        this.expense.category = category;
+        return this;
+    }
+
+    withParticipants(participants: string[]): ExpenseBuilder {
+        this.expense.participants = participants;
+        return this;
+    }
+
+    withSplits(splits: any[]): ExpenseBuilder {
+        this.expense.splits = splits;
+        return this;
+    }
+
+    build(): any {
+        return { ...this.expense };
+    }
+}
+
 describe('Enhanced Stores UI Integration', () => {
-    const mockGroups: any[] = [
-        {
-            id: 'group1',
-            name: 'Family Expenses',
-            description: 'Shared family expenses',
-            memberIds: ['user1', 'user2', 'user3'],
-            balance: {
-                balancesByCurrency: {
-                    USD: {
-                        currency: 'USD',
-                        netBalance: 150,
-                        totalOwed: 150,
-                        totalOwing: 0,
-                    },
-                },
-            },
-            lastActivity: '2 hours ago',
-            lastActivityRaw: new Date().toISOString(),
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: new Date().toISOString(),
-            createdBy: 'user1',
-        },
-        {
-            id: 'group2',
-            name: 'Trip to Paris',
-            description: 'Vacation expenses',
-            memberIds: ['user1', 'user4'],
-            balance: {
-                balancesByCurrency: {
-                    EUR: {
-                        currency: 'EUR',
-                        netBalance: -75,
-                        totalOwed: 0,
-                        totalOwing: 75,
-                    },
-                },
-            },
-            lastActivity: '1 day ago',
-            lastActivityRaw: new Date(Date.now() - 86400000).toISOString(),
-            createdAt: '2024-01-10T00:00:00Z',
-            updatedAt: new Date(Date.now() - 86400000).toISOString(),
-            createdBy: 'user1',
-        },
-    ];
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -74,18 +195,27 @@ describe('Enhanced Stores UI Integration', () => {
 
     describe('Dashboard Integration', () => {
         it('should initialize and fetch groups on mount', async () => {
-            const mockResponse = {
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    lastChangeTimestamp: Date.now(),
-                    changeCount: 0,
-                    serverTime: Date.now(),
-                    hasRecentChanges: false,
-                },
-            };
+            const mockGroups = [
+                new GroupBuilder()
+                    .withName('Family Expenses')
+                    .withDescription('Shared family expenses')
+                    .withMemberIds(['user1', 'user2', 'user3'])
+                    .withBalance('USD', 150, 150, 0)
+                    .withLastActivity('2 hours ago')
+                    .build(),
+                new GroupBuilder()
+                    .withId('group2')
+                    .withName('Trip to Paris')
+                    .withDescription('Vacation expenses')
+                    .withMemberIds(['user1', 'user4'])
+                    .withBalance('EUR', -75, 0, 75)
+                    .withLastActivity('1 day ago', new Date(Date.now() - 86400000).toISOString())
+                    .build(),
+            ];
+            
+            const mockResponse = new GroupsResponseBuilder()
+                .withGroups(mockGroups)
+                .build();
 
             vi.mocked(apiClient.getGroups).mockResolvedValue(mockResponse);
 
@@ -103,32 +233,31 @@ describe('Enhanced Stores UI Integration', () => {
 
         it('should handle real-time updates in dashboard', async () => {
             // Initial load
-            const initialResponse = {
-                groups: [mockGroups[0]],
-                metadata: {
-                    lastChangeTimestamp: 1000,
-                    changeCount: 0,
-                    serverTime: 1000,
-                },
-            };
+            const firstGroup = new GroupBuilder()
+                .withName('Family Expenses')
+                .withBalance('USD', 150, 150, 0)
+                .build();
+                
+            const initialResponse = new GroupsResponseBuilder()
+                .withGroups([firstGroup])
+                .withMetadata(1000)
+                .build();
 
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(initialResponse as any);
             await enhancedGroupsStore.fetchGroups();
             expect(enhancedGroupsStore.groups).toHaveLength(1);
 
             // Simulate real-time update with new group
-            const updatedResponse = {
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    lastChangeTimestamp: 2000,
-                    changeCount: 1,
-                    serverTime: 2000,
-                    hasRecentChanges: true,
-                },
-            };
+            const secondGroup = new GroupBuilder()
+                .withId('group2')
+                .withName('Trip to Paris')
+                .withBalance('EUR', -75, 0, 75)
+                .build();
+                
+            const updatedResponse = new GroupsResponseBuilder()
+                .withGroups([firstGroup, secondGroup])
+                .withMetadata(2000, 1, true)
+                .build();
 
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(updatedResponse as any);
             await enhancedGroupsStore.refreshGroups();
@@ -138,18 +267,19 @@ describe('Enhanced Stores UI Integration', () => {
         });
 
         it('should display correct balance information', async () => {
-            const mockResponse = {
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    lastChangeTimestamp: Date.now(),
-                    changeCount: 0,
-                    serverTime: Date.now(),
-                    hasRecentChanges: false,
-                },
-            };
+            const mockGroups = [
+                new GroupBuilder()
+                    .withBalance('USD', 150, 150, 0)
+                    .build(),
+                new GroupBuilder()
+                    .withId('group2')
+                    .withBalance('EUR', -75, 0, 75)
+                    .build(),
+            ];
+            
+            const mockResponse = new GroupsResponseBuilder()
+                .withGroups(mockGroups)
+                .build();
 
             vi.mocked(apiClient.getGroups).mockResolvedValue(mockResponse);
             await enhancedGroupsStore.fetchGroups();
@@ -169,33 +299,32 @@ describe('Enhanced Stores UI Integration', () => {
 
     describe('Group Detail Page Integration', () => {
         it('should load complete group details using consolidated endpoint', async () => {
-            const mockGroup = mockGroups[0];
+            const mockGroup = new GroupBuilder()
+                .withName('Family Expenses')
+                .build();
+            
             const mockMembers = [
-                { uid: 'user1', email: 'user1@example.com', displayName: 'John Doe' },
-                { uid: 'user2', email: 'user2@example.com', displayName: 'Jane Doe' },
+                new MemberBuilder()
+                    .withEmail('user1@example.com')
+                    .withDisplayName('John Doe')
+                    .build(),
+                new MemberBuilder()
+                    .withUid('user2')
+                    .withEmail('user2@example.com')
+                    .withDisplayName('Jane Doe')
+                    .build(),
             ];
+            
             const mockExpenses = [
-                {
-                    id: 'exp1',
-                    groupId: 'group1',
-                    description: 'Groceries',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user1',
-                    category: 'Food',
-                    date: '2024-01-15',
-                    splitType: 'equal' as const,
-                    participants: ['user1', 'user2'],
-                    splits: [
+                new ExpenseBuilder()
+                    .withDescription('Groceries')
+                    .withCategory('Food')
+                    .withParticipants(['user1', 'user2'])
+                    .withSplits([
                         { userId: 'user1', amount: 50 },
                         { userId: 'user2', amount: 50 },
-                    ],
-                    createdBy: 'user1',
-                    createdAt: '2024-01-15T00:00:00Z',
-                    updatedAt: '2024-01-15T00:00:00Z',
-                    deletedAt: null,
-                    deletedBy: null,
-                },
+                    ])
+                    .build(),
             ];
             const mockBalances = {
                 groupId: 'group1',
@@ -271,18 +400,15 @@ describe('Enhanced Stores UI Integration', () => {
             expect(enhancedGroupsStore.error).toBe('Network error');
 
             // Second attempt succeeds
-            vi.mocked(apiClient.getGroups).mockResolvedValueOnce({
-                groups: mockGroups,
-                count: 2,
-                hasMore: false,
-                pagination: { limit: 20, order: 'desc' },
-                metadata: {
-                    lastChangeTimestamp: Date.now(),
-                    changeCount: 0,
-                    serverTime: Date.now(),
-                    hasRecentChanges: false,
-                },
-            });
+            const mockGroups = [
+                new GroupBuilder().withName('Test Group').build(),
+            ];
+            
+            const mockResponse = new GroupsResponseBuilder()
+                .withGroups(mockGroups)
+                .build();
+            
+            vi.mocked(apiClient.getGroups).mockResolvedValueOnce(mockResponse);
 
             await enhancedGroupsStore.fetchGroups();
 
