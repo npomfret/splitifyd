@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { FORM_LABELS, SPLIT_TYPES, SPLIT_INSTRUCTIONS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@splitifyd/shared';
+import {groupDetailUrlPattern} from "./group-detail.page.ts";
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -308,7 +309,7 @@ export class ExpenseFormPage extends BasePage {
         // If no error messages, proceed with normal flow
         try {
             // Wait for navigation back to group page with a reasonable timeout
-            await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 5000 });
+            await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 });
 
             // Verify expense was created by checking it appears in the list
             await expect(this.page.getByText(expense.description)).toBeVisible({ timeout: 3000 });

@@ -1,6 +1,7 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -140,7 +141,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
         await expenseFormPage.clickSaveExpenseButton();
 
         // Verify we're back on the group page
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify the expense appears in the list
         await groupDetailPage.verifyExpenseInList('Dinner with custom datetime', '$45.50');
@@ -157,7 +158,7 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
         await expenseFormPage2.clickSaveExpenseButton();
 
         // Should navigate back to group
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(page.getByText('Lunch with default time')).toBeVisible();
     });
 });

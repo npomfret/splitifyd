@@ -4,6 +4,7 @@ import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -30,14 +31,9 @@ test.describe('Multi-User Collaboration E2E', () => {
         const memberCount = 2;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
-        const user1 = user;
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
-        // Get share link - verify page state first with detailed error messages
-        try {
-            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
-        } catch (error) {
-            throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
-        }
+        const user1 = user;
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
@@ -57,7 +53,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         await joinGroupPage2.getJoinGroupButton().click();
         try {
-            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
         } catch (error) {
             throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
         }
@@ -158,7 +154,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Get share link - verify page state first with detailed error messages
         try {
-            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         } catch (error) {
             throw new Error(`Expected to be on group page after creation, but got: ${page.url()}. Original error: ${(error as Error).message}`);
         }
@@ -180,7 +176,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         await joinGroupPage2.getJoinGroupButton().click();
         try {
-            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
         } catch (error) {
             throw new Error(`Second user should navigate to group page after joining, but stayed on: ${page2.url()}`);
         }

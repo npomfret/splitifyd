@@ -2,6 +2,7 @@ import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -47,7 +48,7 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
         const groupName = generateTestGroupName('FullWorkflow');
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Complete workflow test');
 
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getGroupTitleByName(groupName)).toBeVisible();
         expect(groupId).toBeTruthy();
 

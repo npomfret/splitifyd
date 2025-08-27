@@ -2,8 +2,8 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { groupDetailUrlPattern } from '../../helpers/wait-helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -33,7 +33,7 @@ test.describe('Add Expense E2E', () => {
         // Submit the expense
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible();
@@ -134,7 +134,7 @@ test.describe('Add Expense E2E', () => {
 
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();

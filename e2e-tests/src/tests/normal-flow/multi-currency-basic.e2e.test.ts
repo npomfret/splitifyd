@@ -1,6 +1,7 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable debugging helpers
 setupMCPDebugOnFailure();
@@ -16,7 +17,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create fresh group for test
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate('Multi Currency Test');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Create USD expense using page object methods
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -29,7 +30,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         });
 
         // Verify back on group page with USD expense
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getCurrencyAmount('25.00')).toBeVisible();
 
         // Create EUR expense
@@ -63,7 +64,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create fresh group
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate('Currency Memory Test');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Create first expense with EUR
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -102,7 +103,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create fresh group
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate('Settlement Currency Test');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Create USD expense
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -152,7 +153,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create a group with multi-currency expenses
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate('Multi-Currency Display Test');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Add expenses in different currencies
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -216,7 +217,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create fresh group
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate('Currency Display Test');
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Test different currency symbols
         const testCases = [

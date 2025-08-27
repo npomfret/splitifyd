@@ -4,6 +4,7 @@ import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { RegisterPage } from '../../pages';
 import { DashboardPage } from '../../pages';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable debugging helpers
 setupConsoleErrorReporting();
@@ -23,8 +24,8 @@ authenticatedPageTest.describe('Group Management', () => {
             await expect(page).toHaveURL(/\/dashboard/);
 
             // Create a group
-            await groupWorkflow.createGroupAndNavigate('Original Group Name', 'Original description');
-            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+            const groupId = await groupWorkflow.createGroupAndNavigate('Original Group Name', 'Original description');
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
             // Wait for group page to load
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -180,7 +181,7 @@ authenticatedPageTest.describe('Group Management', () => {
             await joinGroupPage.clickJoinGroup();
             
             // Should be on the group page now
-            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+            await expect(page).toHaveURL(groupDetailUrlPattern());
             
             // Wait for page to fully load and ensure group detail is visible
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });

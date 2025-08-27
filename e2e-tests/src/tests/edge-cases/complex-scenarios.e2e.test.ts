@@ -3,6 +3,7 @@ import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupDetailPage } from '../../pages';
 import { JoinGroupPage } from '../../pages';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -32,7 +33,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         await bobJoinGroupPage.joinGroupUsingShareLink(shareLink);
 
         // Verify Bob is now on the group page
-        await expect(bobPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(bobPage).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(bobPage.getByText(groupName)).toBeVisible();
 
         // Alice adds beach house expense ($800)

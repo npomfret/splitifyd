@@ -5,6 +5,7 @@ import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable debugging helpers
 setupConsoleErrorReporting();
@@ -48,7 +49,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member leave functionality');
             
             // Get share link
-            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
             const shareLink = await groupDetailPage.getShareLink();
             
             // Member joins the group
@@ -56,7 +57,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for both users to see each other in the member list
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -95,7 +96,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal');
             
             // Get share link
-            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
             const shareLink = await groupDetailPage.getShareLink();
             
             // Member joins the group
@@ -103,7 +104,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -165,7 +166,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -231,7 +232,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             const joinGroupPage = new JoinGroupPage(memberPage);
             await memberPage.goto(shareLink);
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -266,14 +267,14 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             // Owner creates group
             const groupWorkflow = new GroupWorkflow(ownerPage);
             const groupName = generateTestGroupName('Last Member');
-            await groupWorkflow.createGroupAndNavigate(groupName, 'Testing last member removal');
+            const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing last member removal');
             
             // Member joins
             const shareLink = await groupDetailPage.getShareLink();
             const joinGroupPage = new JoinGroupPage(memberPage);
             await memberPage.goto(shareLink);
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Wait for synchronization  
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -283,7 +284,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await groupDetailPage.confirmRemoveMember();
             
             // Owner should still be in the group
-            await expect(ownerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Group should show only 1 member (the owner)
             await groupDetailPage.waitForMemberCount(1);

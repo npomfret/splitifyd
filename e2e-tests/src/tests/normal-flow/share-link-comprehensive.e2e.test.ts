@@ -5,6 +5,7 @@ import {singleMixedAuthTest} from '../../fixtures/mixed-auth-test';
 import {GroupWorkflow, MultiUserWorkflow} from '../../workflows';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
 import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -19,7 +20,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Create group with user1
             const uniqueId = generateShortId();
             const groupWorkflow = new GroupWorkflow(page1);
-            await groupWorkflow.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
+            const groupId = await groupWorkflow.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
 
             // Get share link from user1's page
             const multiUserWorkflow = new MultiUserWorkflow(); // Not using browser here
@@ -31,7 +32,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
             // Verify user2 is now in the group
-            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible
@@ -98,7 +99,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Create group with authenticated user
             const uniqueId = generateShortId();
             const groupWorkflow = new GroupWorkflow(page1);
-            await groupWorkflow.createGroupAndNavigate(`Register Test ${uniqueId}`, 'Testing registration via share link');
+            const groupId = await groupWorkflow.createGroupAndNavigate(`Register Test ${uniqueId}`, 'Testing registration via share link');
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -136,7 +137,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: 10000 });
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
@@ -154,7 +155,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Create group with authenticated user
             const uniqueId = generateShortId();
             const groupWorkflow = new GroupWorkflow(page1);
-            await groupWorkflow.createGroupAndNavigate(`Login Then Join ${uniqueId}`, 'Testing login then join flow');
+            const groupId = await groupWorkflow.createGroupAndNavigate(`Login Then Join ${uniqueId}`, 'Testing login then join flow');
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -190,7 +191,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await expect(page2).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 10000 });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: 10000 });
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);

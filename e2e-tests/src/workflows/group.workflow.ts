@@ -1,5 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { DashboardPage, CreateGroupModalPage, GroupDetailPage } from '../pages';
+import {groupDetailUrlPattern} from "../pages/group-detail.page.ts";
 
 /**
  * Group workflow class that handles group creation and management flows.
@@ -37,7 +38,7 @@ export class GroupWorkflow {
         await createGroupModal.createGroup(name, description);
 
         // Wait for navigation and verify URL
-        await dashboard.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
+        await dashboard.expectUrl(groupDetailUrlPattern());
 
         // Extract and return group ID
         const groupId = dashboard.getUrlParam('groupId')!;

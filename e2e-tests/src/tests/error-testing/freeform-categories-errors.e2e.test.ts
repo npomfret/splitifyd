@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { GroupWorkflow, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { groupDetailUrlPattern } from '../../helpers/wait-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -34,7 +34,7 @@ test.describe('Freeform Categories Error Testing', () => {
 
         // Submit expense
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
 
         // Verify expense was created with special character category
         await expect(groupDetailPage.getExpenseByDescription('Special characters test')).toBeVisible();
@@ -58,7 +58,7 @@ test.describe('Freeform Categories Error Testing', () => {
         await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
 
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(groupDetailUrlPattern());
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify expense was created
         await expect(groupDetailPage.getExpenseByDescription('Business lunch')).toBeVisible();

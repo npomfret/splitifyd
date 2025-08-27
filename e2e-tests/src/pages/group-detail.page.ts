@@ -1,11 +1,10 @@
-import { expect, Locator, Page } from '@playwright/test';
-import * as path from 'path';
-import { BasePage } from './base.page';
-import { ExpenseFormPage } from './expense-form.page';
-import { ExpenseDetailPage } from './expense-detail.page';
-import { SettlementFormPage } from './settlement-form.page';
-import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import type { User as BaseUser } from '@splitifyd/shared';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ExpenseFormPage} from './expense-form.page';
+import {ExpenseDetailPage} from './expense-detail.page';
+import {SettlementFormPage} from './settlement-form.page';
+import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
+import type {User as BaseUser} from '@splitifyd/shared';
 
 interface ExpenseData {
     description: string;
@@ -50,7 +49,7 @@ export class GroupDetailPage extends BasePage {
 
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
         // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
         
         // Assert button is visible and enabled before clicking
         const settleButton = this.getSettleUpButton();
@@ -624,7 +623,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(joinButton, { buttonName: 'Join Group' });
 
         // Wait for navigation with reasonable timeout
-        await expect(joinerPage).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, { timeout: 3000 });
+        await expect(joinerPage).toHaveURL(groupDetailUrlPattern(), { timeout: 3000 });
 
         // Wait for real-time updates to propagate the new member (expecting 2 members now)
         await this.waitForMemberCount(2);
@@ -1052,7 +1051,7 @@ export class GroupDetailPage extends BasePage {
      */
     async clickEditSettlement(settlementNote: string): Promise<void> {
         // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
         
         await this.openSettlementHistoryIfNeeded();
         
@@ -1076,7 +1075,7 @@ export class GroupDetailPage extends BasePage {
      */
     async clickDeleteSettlement(settlementNote: string, confirm: boolean = true): Promise<void> {
         // Assert we're on the group detail page before action
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
         
         await this.openSettlementHistoryIfNeeded();
         
@@ -1143,7 +1142,7 @@ export class GroupDetailPage extends BasePage {
      */
     async openHistoryIfClosed(): Promise<void> {
         // Assert we're on the group detail page
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
         
         const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
         const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
@@ -1187,7 +1186,7 @@ export class GroupDetailPage extends BasePage {
         payeeName: string;
     }): Promise<void> {
         // Assert we're in the right state
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
         
         // The Payment History is in a SidebarCard within the page, not in a modal with role="region"
         // Look for the settlement card directly within the page
@@ -1544,4 +1543,14 @@ export class GroupDetailPage extends BasePage {
             }
         }
     }
+}
+
+/**
+ * Helper to build a group detail URL pattern
+ */
+export function groupDetailUrlPattern(groupId?: string): RegExp {
+    if (groupId) {
+        return new RegExp(`/groups/${groupId}$`);
+    }
+    return /\/groups\/[a-zA-Z0-9]+$/;
 }

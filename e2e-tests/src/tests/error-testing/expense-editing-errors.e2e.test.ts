@@ -2,6 +2,7 @@ import { authenticatedPageTest as test } from '../../fixtures/authenticated-page
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { generateTestGroupName } from '../../utils/test-helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -14,7 +15,7 @@ test.describe('Expense Editing Error Testing', () => {
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -27,7 +28,7 @@ test.describe('Expense Editing Error Testing', () => {
 
         // Save expense
         await formPage.clickSaveExpenseButton();
-        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
+        await groupDetailPage.expectUrl(groupDetailUrlPattern(groupId));
 
         // Verify expense was created
         await groupDetailPage.verifyExpenseInList('Amount Edit Test', '$50.00');
@@ -63,7 +64,7 @@ test.describe('Expense Editing Error Testing', () => {
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
+        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
@@ -74,7 +75,7 @@ test.describe('Expense Editing Error Testing', () => {
         await formPage.selectCategoryFromSuggestions('Food & Dining');
 
         await formPage.clickSaveExpenseButton();
-        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
+        await groupDetailPage.expectUrl(groupDetailUrlPattern(groupId));
 
         // Edit to decrease amount
         await groupDetailPage.verifyExpenseVisible('High Amount Expense');
@@ -106,7 +107,7 @@ test.describe('Expense Editing Error Testing', () => {
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
-        await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
+        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
@@ -117,7 +118,7 @@ test.describe('Expense Editing Error Testing', () => {
         await formPage.selectCategoryFromSuggestions('Food & Dining');
 
         await formPage.clickSaveExpenseButton();
-        await groupDetailPage.expectUrl(/\/groups\/[a-zA-Z0-9]+$/);
+        await groupDetailPage.expectUrl(groupDetailUrlPattern(groupId));
 
         // Verify expense was created
         await groupDetailPage.verifyExpenseVisible('Original Description');

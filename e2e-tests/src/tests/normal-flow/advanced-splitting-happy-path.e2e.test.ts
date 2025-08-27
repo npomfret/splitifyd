@@ -1,6 +1,7 @@
 import { authenticatedPageTest as test, expect } from '../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -26,7 +27,7 @@ test.describe('Advanced Splitting Options', () => {
         await expect(expenseFormPage.getEqualRadio()).toBeChecked();
 
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getExpenseByDescription('Pizza for everyone')).toBeVisible();
         await expect(groupDetailPage.getExpenseAmount('$60.00')).toBeVisible();
 
@@ -46,7 +47,7 @@ test.describe('Advanced Splitting Options', () => {
         await groupDetailPage.fillPreactInput(expenseFormPage.getExactAmountInput(), '75');
 
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getExpenseByDescription('Shared groceries with exact amounts')).toBeVisible();
 
         // === PERCENTAGE SPLIT EXPENSE ===
@@ -65,7 +66,7 @@ test.describe('Advanced Splitting Options', () => {
         await expect(expenseFormPage.getPercentageInput()).toHaveValue('100');
 
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getExpenseByDescription('Consulting project split by percentage')).toBeVisible();
 
         // === SPLIT TYPE CHANGES TEST ===
@@ -95,7 +96,7 @@ test.describe('Advanced Splitting Options', () => {
 
         // Submit final expense to complete the user journey
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getExpenseByDescription('Testing split type changes')).toBeVisible();
     });
 });

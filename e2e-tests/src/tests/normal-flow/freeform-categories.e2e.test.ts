@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { GroupWorkflow, setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../utils/test-helpers';
-import { groupDetailUrlPattern } from '../../helpers/wait-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -39,7 +39,7 @@ test.describe('Freeform Categories E2E', () => {
         // Submit expense (handles button enable check and spinner wait)
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
 
         // Verify expense was created
         await expect(groupDetailPage.getExpenseByDescription('Grocery shopping')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Freeform Categories E2E', () => {
 
         // Submit expense (handles button enable check and spinner wait)
         await expenseFormPage2.clickSaveExpenseButton();
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
 
         // Verify expense was created with custom category
         await expect(groupDetailPage.getExpenseByDescription('Team building activity')).toBeVisible();

@@ -3,6 +3,7 @@ import { setupMCPDebugOnFailure } from '../../helpers';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -54,7 +55,6 @@ test.describe('Error Handling', () => {
     });
 
     test('prevents form submission with invalid data', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
         // Already authenticated via fixture
 
         await dashboardPage.openCreateGroupModal();
@@ -75,7 +75,7 @@ test.describe('Error Handling', () => {
 
         // Now submit button should work using page object method
         await createGroupModalPage.submitForm();
-        await expect(dashboardPage.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
     });
 
     test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {

@@ -2,6 +2,7 @@ import {expect, Locator, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {TIMEOUT_CONTEXTS} from '../config/timeouts';
 import type {User as BaseUser} from '@splitifyd/shared';
+import {groupDetailUrlPattern} from "./group-detail.page.ts";
 
 /**
  * Page object for join group functionality via share links.
@@ -189,7 +190,7 @@ export class JoinGroupPage extends BasePage {
         await joinButton.waitFor({state: 'visible', timeout: 2000});
         await this.clickButton(joinButton, {buttonName: 'Join Group'});
 
-        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/, {
+        await expect(this.page).toHaveURL(groupDetailUrlPattern(), {
             timeout: TIMEOUT_CONTEXTS.GROUP_CREATION,
         });
     }

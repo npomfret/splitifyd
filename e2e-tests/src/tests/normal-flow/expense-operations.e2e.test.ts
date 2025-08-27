@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -38,7 +39,7 @@ test.describe('Basic Expense Operations E2E', () => {
         await groupDetailPage.deleteExpense();
 
         // Should redirect back to group
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Expense should no longer be visible (deletion verification)
         await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).not.toBeVisible();
