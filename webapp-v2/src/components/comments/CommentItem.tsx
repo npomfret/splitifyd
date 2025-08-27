@@ -36,7 +36,7 @@ export function CommentItem({ comment, showAvatar = true, className = '' }: Comm
     };
 
     return (
-        <div className={`flex gap-3 ${className}`}>
+        <div className={`flex gap-3 ${className}`} data-testid="comment-item">
             {showAvatar && (
                 <div className="flex-shrink-0">
                     {comment.authorAvatar ? (

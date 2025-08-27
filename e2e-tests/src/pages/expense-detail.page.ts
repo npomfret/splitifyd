@@ -88,4 +88,124 @@ export class ExpenseDetailPage extends BasePage {
     async verifyExpenseHeading(pattern: RegExp): Promise<void> {
         await expect(this.getExpenseHeading(pattern)).toBeVisible();
     }
+
+    // ====== COMMENTS METHODS ======
+
+    /**
+     * Get the discussion section (contains comments)
+     */
+    getDiscussionSection() {
+        return this.page.getByTestId('comments-section');
+    }
+
+    /**
+     * Get the comment input textarea
+     */
+    getCommentInput() {
+        return this.getDiscussionSection().getByRole('textbox', { name: /comment text/i });
+    }
+
+    /**
+     * Get the send comment button
+     */
+    getSendCommentButton() {
+        return this.getDiscussionSection().getByRole('button', { name: /send comment/i });
+    }
+
+    /**
+     * Get all comment items in the comments list
+     */
+    getCommentItems() {
+        return this.getDiscussionSection().locator('[data-testid="comment-item"]');
+    }
+
+    /**
+     * Get a specific comment by its text content
+     */
+    getCommentByText(text: string) {
+        return this.getDiscussionSection().getByText(text);
+    }
+
+    /**
+     * Add a comment to the expense
+     */
+    async addComment(text: string): Promise<void> {
+        const input = this.getCommentInput();
+        const sendButton = this.getSendCommentButton();
+
+        // Verify discussion section is visible
+        await expect(this.getDiscussionSection()).toBeVisible();
+
+        // Type the comment using fillPreactInput for proper signal updates
+        await this.fillPreactInput(input, text);
+
+        // Verify the send button becomes enabled
+        await expect(sendButton).toBeEnabled();
+
+        // Click send button
+        await this.clickButton(sendButton, { buttonName: 'Send comment' });
+
+        // Wait for comment to be sent (button should become disabled briefly while submitting)
+        await expect(sendButton).toBeDisabled({ timeout: 2000 });
+        
+        // After successful submission, input should be cleared and button should be disabled
+        await expect(input).toHaveValue('');
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Wait for a comment with specific text to appear
+     */
+    async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
+        const comment = this.getCommentByText(text);
+        await expect(comment).toBeVisible({ timeout });
+    }
+
+    /**
+     * Wait for the comment count to reach a specific number
+     */
+    async waitForCommentCount(expectedCount: number, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const count = await this.getCommentItems().count();
+            expect(count).toBe(expectedCount);
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Verify that comments section is present and functional
+     */
+    async verifyCommentsSection(): Promise<void> {
+        // Check that discussion section exists
+        await expect(this.getDiscussionSection()).toBeVisible();
+        
+        // Check that input exists and has correct placeholder
+        const input = this.getCommentInput();
+        await expect(input).toBeVisible();
+        await expect(input).toHaveAttribute('placeholder', /add a comment to this expense/i);
+
+        // Check that send button exists
+        const sendButton = this.getSendCommentButton();
+        await expect(sendButton).toBeVisible();
+        
+        // Send button should be disabled when input is empty
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Get the error message in comments section if present
+     */
+    getCommentsError() {
+        return this.getDiscussionSection().locator('.text-red-700, .text-red-400').first();
+    }
+
+    /**
+     * Wait for comments to load (no loading spinner visible)
+     */
+    async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
+        // Wait for any loading spinners to disappear
+        const loadingSpinner = this.getDiscussionSection().locator('.animate-spin');
+        if (await loadingSpinner.count() > 0) {
+            await expect(loadingSpinner).toHaveCount(0, { timeout });
+        }
+    }
 }

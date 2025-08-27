@@ -1396,4 +1396,152 @@ export class GroupDetailPage extends BasePage {
             throw new Error('The error message for removing member with an outstanding balance did not appear within 10 seconds');
         }
     }
+
+    // ====== COMMENTS METHODS ======
+
+    /**
+     * Get the comments section container
+     */
+    getCommentsSection() {
+        return this.page.getByTestId('comments-section');
+    }
+
+    /**
+     * Get the comment input textarea
+     */
+    getCommentInput() {
+        return this.getCommentsSection().getByRole('textbox', { name: /comment text/i });
+    }
+
+    /**
+     * Get the send comment button
+     */
+    getSendCommentButton() {
+        return this.getCommentsSection().getByRole('button', { name: /send comment/i });
+    }
+
+    /**
+     * Get all comment items in the comments list
+     */
+    getCommentItems() {
+        return this.getCommentsSection().locator('[data-testid="comment-item"]');
+    }
+
+    /**
+     * Get a specific comment by its text content
+     */
+    getCommentByText(text: string) {
+        return this.getCommentsSection().getByText(text);
+    }
+
+    /**
+     * Add a comment to the group
+     */
+    async addComment(text: string): Promise<void> {
+        const input = this.getCommentInput();
+        const sendButton = this.getSendCommentButton();
+
+        // Verify comments section is visible
+        await expect(this.getCommentsSection()).toBeVisible();
+
+        // Type the comment using fillPreactInput for proper signal updates
+        await this.fillPreactInput(input, text);
+
+        // Verify the send button becomes enabled
+        await expect(sendButton).toBeEnabled();
+
+        // Click send button
+        await this.clickButton(sendButton, { buttonName: 'Send comment' });
+
+        // Wait for comment to be sent (button should become disabled briefly)
+        await expect(sendButton).toBeDisabled({ timeout: 2000 });
+
+        // Verify input is cleared and button remains disabled (empty input = disabled button)
+        await expect(input).toHaveValue('');
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Wait for a comment with specific text to appear
+     */
+    async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
+        const comment = this.getCommentByText(text);
+        await expect(comment).toBeVisible({ timeout });
+    }
+
+    /**
+     * Wait for the comment count to reach a specific number
+     */
+    async waitForCommentCount(expectedCount: number, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const count = await this.getCommentItems().count();
+            expect(count).toBe(expectedCount);
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Verify that comments section is present and functional
+     */
+    async verifyCommentsSection(): Promise<void> {
+        // Check that comments section exists
+        await expect(this.getCommentsSection()).toBeVisible();
+        
+        // Check that input exists and has correct placeholder
+        const input = this.getCommentInput();
+        await expect(input).toBeVisible();
+        await expect(input).toHaveAttribute('placeholder', /add a comment to this group/i);
+
+        // Check that send button exists
+        const sendButton = this.getSendCommentButton();
+        await expect(sendButton).toBeVisible();
+        
+        // Send button should be disabled when input is empty
+        await expect(sendButton).toBeDisabled();
+    }
+
+    /**
+     * Get the error message in comments section if present
+     */
+    getCommentsError() {
+        return this.getCommentsSection().locator('.text-red-700, .text-red-400').first();
+    }
+
+    /**
+     * Wait for comments to load (no loading spinner visible)
+     */
+    async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
+        // Wait for any loading spinners to disappear
+        const loadingSpinner = this.getCommentsSection().locator('.animate-spin');
+        if (await loadingSpinner.count() > 0) {
+            await expect(loadingSpinner).toHaveCount(0, { timeout });
+        }
+    }
+
+    /**
+     * Verify real-time comment updates work between multiple users
+     * This method should be used in multi-user tests
+     */
+    async verifyRealtimeCommentSync(
+        pages: Array<{ page: any; groupDetailPage: GroupDetailPage; userName?: string }>,
+        commentText: string,
+        authorUserIndex: number = 0
+    ): Promise<void> {
+        const authorPage = pages[authorUserIndex];
+        const otherPages = pages.filter((_, index) => index !== authorUserIndex);
+
+        // Author adds the comment
+        await authorPage.groupDetailPage.addComment(commentText);
+
+        // Wait for the comment to appear for all users (real-time updates)
+        for (let i = 0; i < pages.length; i++) {
+            const { groupDetailPage, userName } = pages[i];
+            const userIdentifier = userName || `User ${i + 1}`;
+
+            try {
+                await groupDetailPage.waitForCommentToAppear(commentText);
+            } catch (error) {
+                throw new Error(`${userIdentifier} did not see real-time comment update: ${error}`);
+            }
+        }
+    }
 }

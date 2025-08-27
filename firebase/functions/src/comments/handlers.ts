@@ -128,7 +128,7 @@ const transformCommentDocument = (doc: admin.firestore.DocumentSnapshot): Commen
         id: doc.id,
         authorId: data.authorId,
         authorName: data.authorName,
-        authorAvatar: data.authorAvatar,
+        authorAvatar: data.authorAvatar || undefined,
         text: data.text,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
+import { useSignal } from '@preact/signals';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 interface CommentInputProps {
@@ -14,12 +15,14 @@ export function CommentInput({
     placeholder = 'Add a comment...', 
     className = '' 
 }: CommentInputProps) {
-    const [text, setText] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const isEditing = useSignal(false);
+    const text = useSignal('');
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     
-    const remainingChars = 500 - text.length;
+    const remainingChars = 500 - text.value.length;
     const isOverLimit = remainingChars < 0;
 
     // Auto-resize textarea based on content
@@ -29,12 +32,12 @@ export function CommentInput({
             textarea.style.height = 'auto';
             textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
         }
-    }, [text]);
+    }, [text.value]);
 
     const handleSubmit = async (e?: Event) => {
         e?.preventDefault();
         
-        const trimmedText = text.trim();
+        const trimmedText = text.value.trim();
         
         if (!trimmedText) {
             return;
@@ -50,15 +53,21 @@ export function CommentInput({
 
         try {
             await onSubmit(trimmedText);
-            setText('');
+            text.value = '';
             setError(null);
             
             // Reset textarea height
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
             }
+            
+            // Delay clearing editing state to prevent race condition with disabled prop
+            setTimeout(() => {
+                isEditing.value = false;
+            }, 100);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add comment');
+            // Keep editing state on error so user can retry
         } finally {
             setIsSubmitting(false);
         }
@@ -77,11 +86,25 @@ export function CommentInput({
             <div className="relative">
                 <textarea
                     ref={textareaRef}
-                    value={text}
-                    onInput={(e) => setText((e.target as HTMLTextAreaElement).value)}
+                    value={text.value}
+                    onFocus={() => {
+                        isEditing.value = true;
+                    }}
+                    onBlur={() => {
+                        // Only clear editing state if the textarea is empty
+                        // This prevents clearing during submit which causes a blur event
+                        if (!text.value.trim()) {
+                            isEditing.value = false;
+                        }
+                    }}
+                    onInput={(e) => {
+                        const newValue = (e.target as HTMLTextAreaElement).value;
+                        isEditing.value = true; // Mark as editing when user types
+                        text.value = newValue;
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
-                    disabled={disabled || isSubmitting}
+                    disabled={(disabled && !isEditing.value) || isSubmitting}
                     className={`
                         w-full px-3 py-2 pr-10
                         border rounded-lg
@@ -100,12 +123,12 @@ export function CommentInput({
                 />
                 <button
                     type="submit"
-                    disabled={!text.trim() || isOverLimit || disabled || isSubmitting}
+                    disabled={!text.value.trim() || isOverLimit || (disabled && !isEditing.value) || isSubmitting}
                     className={`
                         absolute right-2 bottom-2
                         p-1.5 rounded-lg
                         transition-colors
-                        ${text.trim() && !isOverLimit && !disabled && !isSubmitting
+                        ${text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
                             ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
                             : 'text-gray-400 cursor-not-allowed'
                         }
@@ -130,7 +153,7 @@ export function CommentInput({
                         </span>
                     )}
                 </div>
-                {text.length > 0 && (
+                {text.value.length > 0 && (
                     <span className={`
                         ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500 dark:text-gray-400'}
                     `}>

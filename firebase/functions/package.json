@@ -20,7 +20,9 @@
     },
     "main": "lib/index.js",
     "dependencies": {
+        "@jest/globals": "^30.0.5",
         "@splitifyd/shared": "*",
+        "@types/jest": "^30.0.0",
         "cors": "^2.8.5",
         "deep-object-diff": "^1.1.9",
         "dotenv": "^17.2.0",

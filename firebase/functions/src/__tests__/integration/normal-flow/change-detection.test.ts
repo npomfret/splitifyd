@@ -1,6 +1,6 @@
 import {beforeAll, describe, expect, it} from '@jest/globals';
 import {ApiDriver, User} from '@splitifyd/test-support';
-import {generateNewUserDetails} from "@splitifyd/e2e-tests/src/utils/test-helpers";
+import {generateNewUserDetails} from "../../support/test-helpers";
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from "../../support/builders";
 
 describe('Change Detection Integration Tests', () => {

@@ -10,8 +10,8 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/user-profile-management.e2e.test.ts"
-TEST_FILTER=""
+TEST_FILE="e2e-tests/src/tests/normal-flow/comments-realtime.e2e.test.ts"
+TEST_FILTER="should support real-time expense comments across multiple users"
 
 # Make max runs configurable, default to 25
 MAX_SUCCESSES=${1:-25}
