@@ -222,7 +222,9 @@ export class JoinGroupPage extends BasePage {
 
         // Wait for the join to complete - several possible outcomes:
         const joinSuccessIndicator = this.page.locator('[data-join-success="true"]');
-        const errorMessage = this.page.getByText(/error|failed|try again|something went wrong/i);
+        // More specific error selectors to avoid false positives from group descriptions
+        const errorMessage = this.page.locator('.error-message, [role="alert"], [data-error="true"]')
+            .or(this.page.getByText(/join failed|try again|something went wrong|unable to join/i));
         
         // Wait for one of the expected outcomes
         await Promise.race([

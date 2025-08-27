@@ -213,8 +213,8 @@ test.describe('Real-time Comments E2E', () => {
         // Setup group with both users
         const groupWorkflow = new GroupWorkflow(alicePage);
         const groupId = await groupWorkflow.createGroupAndNavigate(
-            generateTestGroupName('bad comment'),
-            'bad comment error handling'
+            generateTestGroupName('invalid comments'),
+            'testing invalid comment submissions'
         );
 
         const shareLink = await groupDetailPage.getShareLink();
