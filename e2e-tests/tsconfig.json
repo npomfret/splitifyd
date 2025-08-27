@@ -20,6 +20,6 @@
         },
         "types": ["@types/node", "@playwright/test", "jest"]
     },
-    "include": ["src/**/*.ts", "src/**/*.tsx"],
+    "include": ["src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts"],
     "exclude": ["node_modules"]
 }
