@@ -2,7 +2,9 @@
 
 First, read all md files in docs/guides/ from the project root - study them, they are extremely important.
 
-Analyse the current changeset...
+**Do not run any tests.**
+
+Simply analyse the current changeset...
 
 - [ ] is it sufficiently tested? 
 - [ ] are tests _tidy_?  do they user builders to hide away noise?  Do they use drivers or POMs to abstract away complexity?
@@ -16,3 +18,5 @@ Analyse the current changeset...
 - [ ] have any relevant any task docs been updated? 
 
 Finally: do you have any questions for the user?
+
+Report back.
