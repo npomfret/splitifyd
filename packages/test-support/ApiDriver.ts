@@ -15,6 +15,7 @@ import {
     ListGroupsResponse,
     ListSettlementsResponse,
     MessageResponse,
+    PendingMembersResponse,
     RegisterResponse,
     RemoveGroupMemberResponse,
     type Settlement,
@@ -23,6 +24,9 @@ import {
     User as BaseUser,
     UserPoliciesResponse,
     UserProfileResponse,
+    SecurityPreset,
+    GroupPermissions,
+    MemberRole,
 } from '@splitifyd/shared';
 
 import type {DocumentData} from "firebase-admin/firestore";
@@ -373,6 +377,30 @@ export class ApiDriver {
 
     async deleteGroup(groupId: string, token: string): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
+    }
+
+    async applySecurityPreset(groupId: string, token: string, preset: SecurityPreset): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', { preset }, token);
+    }
+
+    async updateGroupPermissions(groupId: string, token: string, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
+    }
+
+    async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', { role }, token);
+    }
+
+    async approveMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/approve`, 'PUT', { targetUserId }, token);
+    }
+
+    async rejectMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/reject`, 'PUT', { targetUserId }, token);
+    }
+
+    async getPendingMembers(groupId: string, token: string): Promise<PendingMembersResponse> {
+        return await this.apiRequest(`/groups/${groupId}/members/pending`, 'GET', null, token);
     }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {

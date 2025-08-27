@@ -424,7 +424,7 @@ describe('UserService', () => {
                 expect.objectContaining({
                     email: validRegisterData.email,
                     displayName: validRegisterData.displayName,
-                    role: 'user',
+                    role: 'system_user',
                     acceptedPolicies: mockPolicyVersions,
                     themeColor: mockThemeColor,
                     termsAcceptedAt: expect.anything(),

@@ -497,39 +497,64 @@ class PermissionSync {
    - ✅ Update group helpers to use new permission system
    - ✅ Resolve balance calculation type conflicts
 
-### Phase 2: Managed Group Preset (Week 3-4)
+### Phase 2: Managed Group Preset (Week 3-4) ⚠️ PARTIALLY COMPLETE
 **Goal**: Add role-based permissions and admin approval
 
 **Backend Tasks**:
-8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`)
-   - `applySecurityPreset(groupId, preset)` endpoint
-   - `setMemberRole(groupId, targetUserId, role)` with last admin protection
-   - `approveMember(groupId, userId)` and `rejectMember(groupId, userId)`
-   - `getPendingMembers(groupId)` endpoint
+8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`) ⚠️ UNCLEAR STATUS
+   - ⚠️ `applySecurityPreset(groupId, preset)` endpoint - **ApiDriver method exists, backend implementation status unclear**
+   - ⚠️ `setMemberRole(groupId, targetUserId, role)` with last admin protection - **ApiDriver method exists, tests pass**
+   - ❌ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)` - **ApiDriver methods exist, endpoints return 404**
+   - ❌ `getPendingMembers(groupId)` endpoint - **ApiDriver method exists, endpoint returns 404**
 
-9. **Invite System** (`firebase/functions/src/invites/`)
+9. **Invite System** (`firebase/functions/src/invites/`) ❌ NOT STARTED
    - `createInviteLink(groupId, options)` with expiry/usage limits
    - Update join flow to handle pending status
    - Auto-cleanup of expired pending members (7-day job)
 
 **Frontend Tasks**:
-10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`)
+10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`) ❌ NOT STARTED
     - Preset selection buttons with descriptions
     - Custom permission toggles
     - Member role management interface
     - Pending members approval interface
 
-11. **Permission-Aware Components** 
+11. **Permission-Aware Components** ❌ NOT STARTED
     - Update expense list/forms to show/hide edit/delete based on permissions
     - Add permission tooltips explaining restrictions
     - Update member invitation flow for managed groups
 
 **Testing**:
-12. **Role-based Permission Tests**
-    - Admin vs member permission boundaries
-    - Last admin protection scenarios
-    - Pending member approval workflow
-    - Invite link expiry and usage limits
+12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED
+    - ✅ Admin vs member permission boundaries - **4 tests passing for security presets and role changes**
+    - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted**
+    - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)**
+    - ❌ Invite link expiry and usage limits - **Not tested**
+
+**Current Changeset Analysis (2025-08-27):**
+
+**✅ Completed in this changeset:**
+1. **System Role Renaming**: Changed `UserRoles.ADMIN/USER` → `SystemUserRoles.SYSTEM_ADMIN/SYSTEM_USER`
+2. **Type System Improvements**: 
+   - Fixed User interface to use `SystemUserRole` instead of incorrectly using `MemberRole`
+   - Added backward compatibility alias `UserRoles = SystemUserRoles`
+   - Clear separation between system-level roles (app admin) and group-level roles (group admin/member/viewer)
+3. **Test Infrastructure**:
+   - Added 6 new ApiDriver methods for security management
+   - Created integration tests verifying security preset application and role management
+   - Tests confirm permission boundaries work (admins can change settings, members cannot)
+
+**⚠️ Key Findings:**
+1. **Security preset tests PASS** - Admin can apply presets, members get 403
+2. **Member role tests PASS** - Admin can change roles, members get 403, last admin protected
+3. **Pending member tests FAIL** - Endpoints return 404 (not implemented)
+4. **Type confusion fixed** - User.role now correctly typed as SystemUserRole
+
+**Next Steps Required:**
+1. Verify backend handler implementations for security preset and role management
+2. Implement pending member approval endpoints (currently missing)
+3. Build frontend UI components for security management
+4. Implement invite system with expiry/usage limits
 
 ### Phase 3: Advanced Features (Week 5-6)
 **Goal**: Complete the full feature set

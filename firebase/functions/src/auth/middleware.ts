@@ -4,7 +4,7 @@ import { Errors, sendError } from '../utils/errors';
 import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
-import { FirestoreCollections, UserRoles } from '@splitifyd/shared';
+import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
 
 /**
@@ -15,7 +15,7 @@ export interface AuthenticatedRequest extends Request {
         uid: string;
         email: string;
         displayName: string;
-        role?: typeof UserRoles.ADMIN | typeof UserRoles.USER;
+        role?: typeof SystemUserRoles.SYSTEM_ADMIN | typeof SystemUserRoles.SYSTEM_USER;
     };
 }
 
@@ -58,7 +58,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
         // Default to "user" role for existing users without role field (backward compatibility)
         // New users should always have role field set during registration
-        const userRole = userData?.role ?? UserRoles.USER;
+        const userRole = userData?.role ?? SystemUserRoles.SYSTEM_USER;
 
         // Attach user information to request
         req.user = {
@@ -99,7 +99,7 @@ export const requireAdmin = async (req: AuthenticatedRequest, res: Response, nex
     }
 
     // Check if user has admin role
-    if (req.user.role !== UserRoles.ADMIN) {
+    if (req.user.role !== SystemUserRoles.SYSTEM_ADMIN) {
         // Admin access denied - insufficient permissions
         sendError(res, Errors.FORBIDDEN(), correlationId);
         return;

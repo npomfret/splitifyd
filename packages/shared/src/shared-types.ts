@@ -2,6 +2,7 @@
 // This file contains all type definitions used by the webapp client
 import type { ColorPattern } from './user-colors';
 
+
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
 // ========================================================================
@@ -14,10 +15,7 @@ export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanos
 // Constants
 // ========================================================================
 
-export const UserRoles = {
-    ADMIN: 'admin',
-    USER: 'user',
-} as const;
+
 
 export const FirestoreCollections = {
     GROUPS: 'groups',
@@ -56,8 +54,28 @@ export const PolicyIds = {
 export const DELETED_AT_FIELD = 'deletedAt';
 
 // ========================================================================
-// Permission and Security Types
+// System User Roles (App-level)
 // ========================================================================
+
+// System-level roles for the entire application
+// These control admin panel access and system-wide features
+export const SystemUserRoles = {
+    SYSTEM_ADMIN: 'system_admin',  // Can access admin panel, manage all users
+    SYSTEM_USER: 'system_user',     // Regular user, no admin access
+} as const;
+
+export type SystemUserRole = typeof SystemUserRoles[keyof typeof SystemUserRoles];
+
+// ========================================================================
+// Permission and Security Types (Group-level)
+// ========================================================================
+
+// Group member roles - these are specific to individual groups
+// A user can have different roles in different groups
+
+
+
+
 
 export const SecurityPresets = {
     OPEN: 'open',
@@ -89,6 +107,9 @@ export const MemberStatuses = {
 } as const;
 
 export type MemberStatus = typeof MemberStatuses[keyof typeof MemberStatuses];
+
+
+
 
 export interface GroupPermissions {
     expenseEditing: PermissionLevel;
@@ -228,7 +249,7 @@ export interface User {
     uid: string;
     email: string;
     displayName: string;
-    role?: typeof UserRoles.ADMIN | typeof UserRoles.USER; // Role field for admin access control
+    role?: SystemUserRole; // Role field for admin access control
     termsAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     cookiePolicyAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     acceptedPolicies?: Record<string, string>; // Map of policyId -> versionHash

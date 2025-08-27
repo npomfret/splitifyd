@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
-import { FirestoreCollections, UserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
+import { FirestoreCollections, SystemUserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { Errors, ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
@@ -33,7 +33,7 @@ const UserDocumentSchema = z.object({
     preferredLanguage: z.string().optional(),
     createdAt: z.any().optional(), // Firestore Timestamp
     updatedAt: z.any().optional(), // Firestore Timestamp
-    role: z.nativeEnum(UserRoles).optional(),
+    role: z.nativeEnum(SystemUserRoles).optional(),
     acceptedPolicies: z.record(z.string(), z.string()).optional(),
     termsAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
     cookiePolicyAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
@@ -75,7 +75,7 @@ export interface RegisterUserResult {
 interface FirestoreUserDocument {
     email: string;
     displayName: string;
-    role: typeof UserRoles.USER | typeof UserRoles.ADMIN;
+    role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
     createdAt: admin.firestore.Timestamp;
     updatedAt: admin.firestore.Timestamp;
     acceptedPolicies: Record<string, string>;
@@ -413,7 +413,7 @@ export class UserService {
             const userDoc: FirestoreUserDocument = {
                 email,
                 displayName,
-                role: UserRoles.USER, // Default role for new users
+                role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: createServerTimestamp(),
                 updatedAt: createServerTimestamp(),
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions

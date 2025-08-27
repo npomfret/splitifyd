@@ -1,7 +1,3 @@
-export const COLOR_PATTERNS = ['solid', 'dots', 'stripes', 'diagonal'] as const;
-
-export type ColorPattern = (typeof COLOR_PATTERNS)[number];
-
 export interface UserColorPalette {
     light: string;
     dark: string;
@@ -27,3 +23,7 @@ export const USER_COLORS: UserColorPalette[] = [
     { light: '#0c4a6e', dark: '#0284c7', name: 'Blue', contrastRatio: 4.9 },
     { light: '#991b1b', dark: '#ef4444', name: 'Red', contrastRatio: 4.7 },
 ];
+
+export const COLOR_PATTERNS = ['solid', 'dots', 'stripes', 'diagonal'] as const;
+
+export type ColorPattern = (typeof COLOR_PATTERNS)[number];
