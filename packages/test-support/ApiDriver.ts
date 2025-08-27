@@ -375,11 +375,12 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc' }): Promise<ListGroupsResponse> {
+    async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
         if (params?.limit) queryParams.append('limit', params.limit.toString());
         if (params?.cursor) queryParams.append('cursor', params.cursor);
         if (params?.order) queryParams.append('order', params.order);
+        if (params?.includeMetadata !== undefined) queryParams.append('includeMetadata', params.includeMetadata.toString());
         const queryString = queryParams.toString();
         return await this.apiRequest(`/groups${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }

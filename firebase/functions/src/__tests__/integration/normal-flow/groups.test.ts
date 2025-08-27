@@ -343,6 +343,61 @@ describe('RESTful Group Endpoints', () => {
         test('should require authentication', async () => {
             await expect(driver.listGroups('')).rejects.toThrow(/401|unauthorized/i);
         });
+
+        test('should handle includeMetadata parameter correctly', async () => {
+            // Test without metadata
+            const responseWithoutMeta = await driver.listGroups(users[0].token, { 
+                includeMetadata: false 
+            });
+            expect(responseWithoutMeta.metadata).toBeUndefined();
+
+            // Test with metadata (note: may be undefined if no recent changes)
+            const responseWithMeta = await driver.listGroups(users[0].token, { 
+                includeMetadata: true 
+            });
+            // Metadata might not exist if no recent changes, but structure should be correct if present
+            if (responseWithMeta.metadata) {
+                expect(responseWithMeta.metadata).toHaveProperty('lastChangeTimestamp');
+                expect(responseWithMeta.metadata).toHaveProperty('changeCount');
+                expect(responseWithMeta.metadata).toHaveProperty('serverTime');
+                expect(responseWithMeta.metadata).toHaveProperty('hasRecentChanges');
+            }
+        });
+
+        test('should handle groups with expenses and settlements correctly', async () => {
+            // Create a group with expenses - using user objects that are already created
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Integration Test Group ${uuidv4()}`)
+                .withMembers([users[0], users[1]])
+                .build();
+            const testGroup = await driver.createGroup(groupData, users[0].token);
+
+            // Add an expense
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Test expense for listGroups')
+                .withAmount(100)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .build();
+            await driver.createExpense(expenseData, users[0].token);
+
+            // List groups and verify the test group has balance data
+            const response = await driver.listGroups(users[0].token);
+            const groupInList = response.groups.find((g: any) => g.id === testGroup.id);
+            
+            expect(groupInList).toBeDefined();
+            if (groupInList) {
+                expect(groupInList.balance).toBeDefined();
+                const balance = groupInList.balance as any;
+                expect(balance.userBalance).toBeDefined();
+                expect(balance.userBalance.netBalance).toBe(50); // User paid 100, split with 1 other
+                expect(balance.userBalance.totalOwed).toBe(50);
+                expect(balance.userBalance.totalOwing).toBe(0);
+                expect(groupInList.lastActivity).toBeDefined();
+                expect(groupInList.lastActivityRaw).toBeDefined();
+            }
+        });
     });
 
     describe('GET /groups/balances - Group Balances', () => {

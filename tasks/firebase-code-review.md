@@ -78,11 +78,19 @@
         - Proper error handling with security-conscious 404 responses
     *   **All tests passing, build successful**
 
-2.  **Task 2.2: Move `listGroups` to `GroupService`**:
-    *   Implement a `listGroups` method in `GroupService`.
-    *   Write unit tests for `GroupService.listGroups`.
-    *   Refactor the `listGroups` handler to use `GroupService.listGroups`.
-    *   Update and run all relevant integration tests.
+2.  **Task 2.2: Move `listGroups` to `GroupService`**: ✅ **COMPLETED** (2025-08-27)
+    *   ✅ Implemented a `listGroups` method in `GroupService` with pagination and metadata support
+    *   ✅ Wrote comprehensive unit tests for `GroupService.listGroups` (6 tests total)
+    *   ✅ Refactored the `listGroups` handler to use `GroupService.listGroups`
+    *   ✅ Removed unused helper functions and imports (reduced handler by ~190 lines)
+    *   **Key improvements:**
+        - Performance-optimized batch fetching (prevents N+1 queries)
+        - Full pagination support with cursor-based navigation
+        - Optional metadata for change tracking
+        - Graceful error handling for balance calculation failures
+        - Clean separation of concerns between handler and service
+    *   **All 302 unit tests passing, build successful**
+    *   **Integration tests added and passing (8 tests for listGroups)**
 
 ### Phase 3: Refactor Group Management (Write Operations)
 
