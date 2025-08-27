@@ -5,9 +5,9 @@ import { EMULATOR_URL } from './src/helpers';
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-    testDir: './src/tests',
-    /* Output directory for test results */
-    outputDir: '../tmp/playwright-test-results',
+    testDir: './src/__tests__/integration',
+    /* Output directory for test results - must be inside e2e-tests for HTML report to find attachments */
+    outputDir: './playwright-report/output',
     /* Global setup and teardown for user pool management */
     globalSetup: './src/fixtures/global-setup.ts',
     globalTeardown: './src/fixtures/global-teardown.ts',
