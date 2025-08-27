@@ -2,7 +2,6 @@ import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
