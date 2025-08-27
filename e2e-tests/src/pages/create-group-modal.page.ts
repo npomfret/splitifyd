@@ -50,6 +50,31 @@ export class CreateGroupModalPage extends BasePage {
         await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
     }
 
+    async trySubmitForm(): Promise<boolean> {
+        // Attempt to submit form - returns true if successful (modal closes), false if validation prevented submission
+        const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
+        
+        // Check if button is enabled before attempting to click
+        const isEnabled = await submitButton.isEnabled();
+        if (!isEnabled) {
+            return false; // Form validation prevented submission
+        }
+        
+        // Button is enabled, attempt to click it
+        try {
+            await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
+            
+            // Wait a moment for either form submission or validation errors to appear
+            await this.page.waitForTimeout(1000);
+            
+            // If modal is still open, form validation prevented submission
+            const modalStillOpen = await this.isOpen();
+            return !modalStillOpen; // Return true if modal closed (successful submission)
+        } catch {
+            return false; // Click failed for some other reason
+        }
+    }
+
     async cancel() {
         // Modal MUST have a cancel/close button - this is basic UX
         // Use a regex that matches either "Cancel" or "Close"

@@ -13,8 +13,8 @@
 # In headed mode, workers are automatically set to 1 for better visibility.
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/__tests__/integration/security/auth-security.e2e.test.ts"
-TEST_FILTER="should redirect unauthenticated users to login"
+TEST_FILE="e2e-tests/src/__tests__/integration/security/input-validation.e2e.test.ts"
+TEST_FILTER="should validate group name inputs"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

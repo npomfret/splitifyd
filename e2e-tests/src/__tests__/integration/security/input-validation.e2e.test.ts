@@ -20,24 +20,24 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         
         // Test empty group name
         await createGroupModalPage.fillGroupForm('');
-        await createGroupModalPage.submitForm();
+        const emptySubmitSucceeded = await createGroupModalPage.trySubmitForm();
         
-        // Should still be on the modal (form validation should prevent submission)
+        // Form validation should prevent submission
+        expect(emptySubmitSucceeded).toBe(false);
         expect(await createGroupModalPage.isOpen()).toBe(true);
         
         // Test extremely long group name
         const longName = 'A'.repeat(1000);
         await createGroupModalPage.fillGroupForm(longName);
-        await createGroupModalPage.submitForm();
+        const longSubmitSucceeded = await createGroupModalPage.trySubmitForm();
         
-        // Should either limit input or show validation error
-        const modalVisible = await createGroupModalPage.isOpen();
-        if (!modalVisible) {
-            // If form submitted, check that name was truncated
-            await page.waitForURL(/\/groups\//);
-            const pageContent = await page.textContent('body');
-            expect(pageContent).not.toContain(longName);
-        }
+        // The form should show validation error and stay open
+        expect(longSubmitSucceeded).toBe(false);
+        expect(await createGroupModalPage.isOpen()).toBe(true);
+        
+        // Check for validation error message (may be slightly different text)
+        const errorMessages = await page.locator('[role="alert"], .error-message, .text-red-500, .alert, .validation-error').count();
+        expect(errorMessages).toBeGreaterThan(0);
     });
 
     authenticatedPageTest('should handle special characters in group names safely', async ({ 

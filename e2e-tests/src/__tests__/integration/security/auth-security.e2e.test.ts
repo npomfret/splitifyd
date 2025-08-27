@@ -36,15 +36,16 @@ authenticatedPageTest.describe('Authentication Security', () => {
         await page.waitForURL(/\/groups\/[a-zA-Z0-9]+/);
         const groupId = page.url().split('/groups/')[1];
         
-        // Log out by going to login page (this clears authentication)
-        await page.goto('/login');
-        await expect(page).toHaveURL(/\/login/);
+        // Navigate back to dashboard and log out properly
+        await dashboardPage.navigate();
+        await dashboardPage.waitForDashboard();
+        await dashboardPage.signOut();
         
         // Try to access the group page directly while logged out
         await page.goto(`/groups/${groupId}`);
         
-        // Should be redirected to login
-        await expect(page).toHaveURL(/\/login/);
+        // Should be redirected to login (may take a few seconds for auth check)
+        await expect(page).toHaveURL(/\/login(\?|$)/, { timeout: 15000 });
     });
 });
 
