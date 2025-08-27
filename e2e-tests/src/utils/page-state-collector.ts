@@ -3,7 +3,7 @@
  * Gathers relevant debugging information from the current page.
  */
 
-import { Page, Locator } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * Page state information for debugging

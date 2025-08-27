@@ -1,4 +1,4 @@
-import { expect, multiUserTest as test } from '../../fixtures/multi-user-test';
+import { multiUserTest as test } from '../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../../../packages/test-support/test-helpers.ts';
