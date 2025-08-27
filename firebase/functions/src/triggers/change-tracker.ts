@@ -13,6 +13,35 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import {firestore} from "firebase-admin";
 import DocumentSnapshot = firestore.DocumentSnapshot;
 import {ParamsOf} from "firebase-functions";
+import { z } from 'zod';
+
+/**
+ * Zod schemas for change documents - validates data before writing to Firestore
+ */
+const GroupChangeDocumentSchema = z.object({
+    id: z.string().min(1),
+    type: z.literal('group'),
+    action: z.enum(['created', 'updated', 'deleted']),
+    timestamp: z.any(), // Firestore Timestamp
+    users: z.array(z.string()),
+});
+
+const TransactionChangeDocumentSchema = z.object({
+    id: z.string().min(1),
+    type: z.enum(['expense', 'settlement']),
+    action: z.enum(['created', 'updated', 'deleted']),
+    timestamp: z.any(), // Firestore Timestamp
+    users: z.array(z.string()),
+    groupId: z.string().min(1),
+});
+
+const BalanceChangeDocumentSchema = z.object({
+    groupId: z.string().min(1),
+    type: z.literal('balance'),
+    action: z.literal('recalculated'),
+    timestamp: z.any(), // Firestore Timestamp
+    users: z.array(z.string()),
+});
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -60,9 +89,11 @@ export const trackGroupChanges = onDocumentWritten(
                 affectedUsers
             );
 
+            // Validate before writing to prevent corrupted documents
+            const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
 
             // Write to group-changes collection
-            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
 
             logger.info('group-changed', { id: groupId });
         } catch (error) {
@@ -125,8 +156,11 @@ export const trackExpenseChanges = onDocumentWritten(
                 groupId
             );
 
+            // Validate before writing to prevent corrupted documents
+            const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
+
             // Write to transaction-changes collection (expenses use transaction-changes)
-            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
 
             // Also create a minimal balance change document since expenses affect balances
             const balanceChangeDoc = createMinimalBalanceChangeDocument(
@@ -134,7 +168,10 @@ export const trackExpenseChanges = onDocumentWritten(
                 Array.from(affectedUsers)
             );
 
-            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
+            // Validate balance change document
+            const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
+
+            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
 
             logger.info('expense-changed', { id: expenseId, groupId });
         } catch (error) {
@@ -201,8 +238,11 @@ export const trackSettlementChanges = onDocumentWritten(
                 groupId
             );
 
+            // Validate before writing to prevent corrupted documents
+            const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
+
             // Write to transaction-changes collection (settlements are a type of transaction)
-            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(changeDoc);
+            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
 
             // Also create a minimal balance change document since settlements affect balances
             const balanceChangeDoc = createMinimalBalanceChangeDocument(
@@ -210,7 +250,10 @@ export const trackSettlementChanges = onDocumentWritten(
                 Array.from(affectedUsers)
             );
 
-            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(balanceChangeDoc);
+            // Validate balance change document
+            const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
+
+            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
 
             logger.info('settlement-changed', { id: settlementId, groupId });
         } catch (error) {

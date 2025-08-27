@@ -24,6 +24,33 @@ import {
 import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { verifyGroupMembership } from '../utils/groupHelpers';
+import { z } from 'zod';
+
+/**
+ * Zod schema for User document - ensures critical fields are present
+ */
+const UserDataSchema = z.object({
+    email: z.string().email(),
+    displayName: z.string().min(1),
+    // Other fields are optional for this basic validation
+}).passthrough(); // Allow additional fields to pass through
+
+/**
+ * Zod schema for Settlement document - validates before writing to Firestore
+ */
+const SettlementDocumentSchema = z.object({
+    id: z.string().min(1),
+    groupId: z.string().min(1),
+    payerId: z.string().min(1),
+    payeeId: z.string().min(1),
+    amount: z.number().min(0),
+    currency: z.string().min(1),
+    date: z.any(), // Firestore Timestamp
+    createdBy: z.string().min(1),
+    createdAt: z.any(), // Firestore Timestamp
+    updatedAt: z.any(), // Firestore Timestamp
+    note: z.string().optional(),
+});
 
 const getSettlementsCollection = () => {
     return firestoreDb.collection(FirestoreCollections.SETTLEMENTS);
@@ -69,31 +96,26 @@ const fetchUserData = async (userId: string): Promise<User> => {
         );
     }
 
-    const userData = userDoc.data()!;
-
-    if (!userData.email) {
-        // User exists but missing required email field
+    const rawData = userDoc.data();
+    
+    // Validate user data with Zod instead of manual field checking
+    try {
+        const validatedData = UserDataSchema.parse(rawData);
+        
+        return {
+            uid: userId,
+            email: validatedData.email,
+            displayName: validatedData.displayName,
+        };
+    } catch (error) {
+        // Zod validation failed - user document is corrupted
+        logger.error('User document validation failed', error, { userId });
         throw new ApiError(
             500,
             'INVALID_USER_DATA',
-            `User ${userId} has invalid data: missing email`
+            `User ${userId} has invalid data structure`
         );
     }
-
-    if (!userData.displayName) {
-        // User exists but missing required email field
-        throw new ApiError(
-            500,
-            'INVALID_USER_DATA',
-            `User ${userId} has invalid data: missing email`
-        );
-    }
-
-    return {
-        uid: userId,
-        email: userData.email,
-        displayName: userData.displayName ,
-    };
 };
 
 export const createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -134,7 +156,10 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
             settlement.note = settlementData.note;
         }
 
-        await getSettlementsCollection().doc(settlementId).set(settlement);
+        // Validate settlement document structure before writing to Firestore
+        const validatedSettlement = SettlementDocumentSchema.parse(settlement);
+
+        await getSettlementsCollection().doc(settlementId).set(validatedSettlement);
 
         const responseData: Settlement = {
             ...settlement,

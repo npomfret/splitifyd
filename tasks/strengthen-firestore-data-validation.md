@@ -134,7 +134,31 @@ This refactor is critical for the stability and long-term health of the applicat
 3.  **Refactor Write Path:** Systematically add `Schema.parse(objectToWrite)` calls before every `.set()`, `.add()`, and `.update()` operation.
 4.  **Update Tests:** All unit and integration tests will need to be updated to account for the new, stricter validation. Mocks will need to provide data that passes schema validation.
 
-## 5. Detailed Implementation Plan
+## 5. Implementation Progress
+
+### Completed Changes
+
+#### ✅ Change Document Validation (triggers/change-tracker.ts)
+- Added Zod schemas directly in the file for minimal overhead
+- Validates `GroupChangeDocument`, `TransactionChangeDocument`, and `BalanceChangeDocument` before writing
+- All change tracking tests pass
+
+#### ✅ User Data Validation (settlements/handlers.ts)
+- Added `UserDataSchema` to validate user documents when fetched
+- Replaces manual field checking with schema validation
+- Better error messages for corrupted user data
+
+#### ✅ Settlement Write Validation (settlements/handlers.ts)
+- Added `SettlementDocumentSchema` to validate before `.set()`
+- Ensures data integrity when creating settlements
+- Prevents malformed settlement documents
+
+### Next Steps
+- Add validation to expense creates and updates
+- Add validation to group document transforms
+- Add monitoring/logging before strict enforcement on reads
+
+## 5. Detailed Implementation Plan (Original)
 
 ### Phase 1: Foundation Setup (Non-Breaking)
 These commits lay the groundwork without affecting existing code.
