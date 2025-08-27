@@ -1,0 +1,450 @@
+import { ExpenseService } from '../../services/ExpenseService';
+import { firestoreDb } from '../../firebase';
+import { ApiError, Errors } from '../../utils/errors';
+import { HTTP_STATUS } from '../../constants';
+import { FirestoreCollections, SplitTypes } from '@splitifyd/shared';
+import { timestampToISO } from '../../utils/dateHelpers';
+import { Timestamp } from 'firebase-admin/firestore';
+
+// Mock dependencies
+jest.mock('../../firebase');
+jest.mock('../../logger');
+jest.mock('../../utils/groupHelpers');
+jest.mock('../../groups/handlers');
+jest.mock('../../permissions');
+
+describe('ExpenseService', () => {
+    let service: ExpenseService;
+    let mockExpensesCollection: any;
+    let mockGroupsCollection: any;
+    let mockDoc: any;
+    let mockGroupDoc: any;
+
+    const mockExpenseId = 'expense123';
+    const mockUserId = 'user123';
+    const mockGroupId = 'group123';
+
+    const mockTimestamp = Timestamp.fromDate(new Date('2024-01-01'));
+
+    const mockExpenseData = {
+        id: mockExpenseId,
+        groupId: mockGroupId,
+        createdBy: mockUserId,
+        paidBy: mockUserId,
+        amount: 100,
+        currency: 'USD',
+        description: 'Test expense',
+        category: 'Food',
+        date: mockTimestamp,
+        splitType: SplitTypes.EQUAL,
+        participants: [mockUserId, 'user456'],
+        splits: [
+            { userId: mockUserId, amount: 50 },
+            { userId: 'user456', amount: 50 }
+        ],
+        receiptUrl: 'https://example.com/receipt.jpg',
+        createdAt: mockTimestamp,
+        updatedAt: mockTimestamp,
+        deletedAt: null,
+        deletedBy: null,
+    };
+
+    const mockGroupData = {
+        data: {
+            name: 'Test Group',
+            members: {
+                [mockUserId]: { role: 'ADMIN', joinedAt: mockTimestamp },
+                'user456': { role: 'MEMBER', joinedAt: mockTimestamp }
+            }
+        }
+    };
+
+    beforeEach(() => {
+        // Create mock document references
+        mockDoc = {
+            exists: true,
+            id: mockExpenseId,
+            data: jest.fn(() => mockExpenseData),
+            get: jest.fn(),
+        };
+
+        mockGroupDoc = {
+            exists: true,
+            id: mockGroupId,
+            data: jest.fn(() => mockGroupData),
+            get: jest.fn(),
+        };
+
+        // Create mock collections
+        mockExpensesCollection = {
+            doc: jest.fn(() => ({
+                get: jest.fn().mockResolvedValue(mockDoc),
+            })),
+            where: jest.fn(),
+            select: jest.fn(),
+            orderBy: jest.fn(),
+            limit: jest.fn(),
+            startAfter: jest.fn(),
+            get: jest.fn(),
+        };
+
+        mockGroupsCollection = {
+            doc: jest.fn(() => ({
+                get: jest.fn().mockResolvedValue(mockGroupDoc),
+            })),
+        };
+
+        // Mock Firestore database
+        (firestoreDb.collection as jest.Mock).mockImplementation((collection: string) => {
+            if (collection === FirestoreCollections.EXPENSES) {
+                return mockExpensesCollection;
+            }
+            if (collection === FirestoreCollections.GROUPS) {
+                return mockGroupsCollection;
+            }
+            return null;
+        });
+
+        service = new ExpenseService();
+    });
+
+    describe('getExpense', () => {
+        it('should successfully get an expense when user is a participant', async () => {
+            const result = await service.getExpense(mockExpenseId, mockUserId);
+
+            expect(result).toEqual({
+                id: mockExpenseId,
+                groupId: mockGroupId,
+                createdBy: mockUserId,
+                paidBy: mockUserId,
+                amount: 100,
+                currency: 'USD',
+                description: 'Test expense',
+                category: 'Food',
+                date: timestampToISO(mockTimestamp),
+                splitType: SplitTypes.EQUAL,
+                participants: [mockUserId, 'user456'],
+                splits: [
+                    { userId: mockUserId, amount: 50 },
+                    { userId: 'user456', amount: 50 }
+                ],
+                receiptUrl: 'https://example.com/receipt.jpg',
+                createdAt: timestampToISO(mockTimestamp),
+                updatedAt: timestampToISO(mockTimestamp),
+                deletedAt: null,
+                deletedBy: null,
+            });
+
+            expect(mockExpensesCollection.doc).toHaveBeenCalledWith(mockExpenseId);
+        });
+
+        it('should deny access to group members who are not participants in the expense', async () => {
+            // User is not a participant but is a group member
+            const nonParticipantUserId = 'user789';
+            
+            // This should throw a FORBIDDEN error
+            await expect(service.getExpense(mockExpenseId, nonParticipantUserId))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.FORBIDDEN, 
+                    'NOT_EXPENSE_PARTICIPANT', 
+                    'You are not a participant in this expense'
+                ));
+        });
+
+        it('should throw NOT_FOUND error when expense does not exist', async () => {
+            mockDoc.exists = false;
+
+            await expect(service.getExpense(mockExpenseId, mockUserId))
+                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+
+            expect(mockExpensesCollection.doc).toHaveBeenCalledWith(mockExpenseId);
+        });
+
+        it('should throw NOT_FOUND error when expense is soft-deleted', async () => {
+            mockDoc.data.mockReturnValue({
+                ...mockExpenseData,
+                deletedAt: mockTimestamp,
+                deletedBy: 'someUserId',
+            });
+
+            await expect(service.getExpense(mockExpenseId, mockUserId))
+                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+        });
+
+        it('should throw FORBIDDEN error when user is neither participant nor group member', async () => {
+            const unauthorizedUserId = 'unauthorized123';
+
+            await expect(service.getExpense(mockExpenseId, unauthorizedUserId))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.FORBIDDEN, 
+                    'NOT_EXPENSE_PARTICIPANT', 
+                    'You are not a participant in this expense'
+                ));
+        });
+
+
+        it('should handle expense without receiptUrl', async () => {
+            mockDoc.data.mockReturnValue({
+                ...mockExpenseData,
+                receiptUrl: undefined,
+            });
+
+            const result = await service.getExpense(mockExpenseId, mockUserId);
+
+            expect(result.receiptUrl).toBeUndefined();
+        });
+
+        it('should throw INVALID_EXPENSE_DATA error when document structure is invalid', async () => {
+            // Missing required field like groupId
+            mockDoc.data.mockReturnValue({
+                ...mockExpenseData,
+                groupId: undefined,
+            });
+
+            await expect(service.getExpense(mockExpenseId, mockUserId))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR, 
+                    'INVALID_EXPENSE_DATA', 
+                    'Expense data is corrupted'
+                ));
+        });
+
+        it('should handle expense with empty participants array', async () => {
+            mockDoc.data.mockReturnValue({
+                ...mockExpenseData,
+                participants: [],
+            });
+
+            await expect(service.getExpense(mockExpenseId, mockUserId))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.INTERNAL_ERROR, 
+                    'INVALID_EXPENSE_DATA', 
+                    'Expense data is corrupted'
+                ));
+        });
+    });
+
+    describe('listGroupExpenses', () => {
+        const mockQuerySnapshot = {
+            docs: [
+                {
+                    id: 'expense1',
+                    data: () => ({
+                        groupId: mockGroupId,
+                        createdBy: mockUserId,
+                        paidBy: mockUserId,
+                        amount: 100,
+                        currency: 'USD',
+                        description: 'Expense 1',
+                        category: 'Food',
+                        date: mockTimestamp,
+                        splitType: SplitTypes.EQUAL,
+                        participants: [mockUserId, 'user456'],
+                        splits: [
+                            { userId: mockUserId, amount: 50 },
+                            { userId: 'user456', amount: 50 }
+                        ],
+                        createdAt: mockTimestamp,
+                        updatedAt: mockTimestamp,
+                        deletedAt: null,
+                        deletedBy: null,
+                    }),
+                },
+                {
+                    id: 'expense2',
+                    data: () => ({
+                        groupId: mockGroupId,
+                        createdBy: 'user456',
+                        paidBy: 'user456',
+                        amount: 200,
+                        currency: 'USD',
+                        description: 'Expense 2',
+                        category: 'Entertainment',
+                        date: mockTimestamp,
+                        splitType: SplitTypes.EQUAL,
+                        participants: [mockUserId, 'user456'],
+                        splits: [
+                            { userId: mockUserId, amount: 100 },
+                            { userId: 'user456', amount: 100 }
+                        ],
+                        createdAt: mockTimestamp,
+                        updatedAt: mockTimestamp,
+                        deletedAt: null,
+                        deletedBy: null,
+                    }),
+                },
+            ],
+        };
+
+        beforeEach(() => {
+            // Mock the query chain
+            const mockQuery = {
+                where: jest.fn().mockReturnThis(),
+                select: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                startAfter: jest.fn().mockReturnThis(),
+                get: jest.fn().mockResolvedValue(mockQuerySnapshot),
+            };
+
+            mockExpensesCollection.where.mockReturnValue(mockQuery);
+            mockExpensesCollection.select = mockQuery.select;
+            mockExpensesCollection.orderBy = mockQuery.orderBy;
+            mockExpensesCollection.limit = mockQuery.limit;
+            mockExpensesCollection.startAfter = mockQuery.startAfter;
+            mockExpensesCollection.get = mockQuery.get;
+
+            // Mock verifyGroupMembership
+            const { verifyGroupMembership } = require('../../utils/groupHelpers');
+            verifyGroupMembership.mockResolvedValue(undefined);
+        });
+
+        it('should successfully list group expenses', async () => {
+            const result = await service.listGroupExpenses(mockGroupId, mockUserId);
+
+            expect(result).toEqual({
+                expenses: expect.arrayContaining([
+                    expect.objectContaining({
+                        id: 'expense1',
+                        description: 'Expense 1',
+                        amount: 100,
+                    }),
+                    expect.objectContaining({
+                        id: 'expense2',
+                        description: 'Expense 2',
+                        amount: 200,
+                    }),
+                ]),
+                count: 2,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+        });
+
+        it('should handle pagination with limit', async () => {
+            await service.listGroupExpenses(mockGroupId, mockUserId, { limit: 10 });
+
+            expect(mockExpensesCollection.limit).toHaveBeenCalledWith(11); // limit + 1 for hasMore check
+        });
+
+        it('should handle cursor-based pagination', async () => {
+            const cursor = Buffer.from(JSON.stringify({
+                date: '2024-01-01T00:00:00.000Z',
+                createdAt: '2024-01-01T00:00:00.000Z',
+                id: 'lastExpenseId'
+            })).toString('base64');
+
+            await service.listGroupExpenses(mockGroupId, mockUserId, { cursor });
+
+            expect(mockExpensesCollection.startAfter).toHaveBeenCalled();
+        });
+
+        it('should filter out deleted expenses by default', async () => {
+            // Reset the mock to track calls properly
+            const mockQuery = {
+                where: jest.fn().mockReturnThis(),
+                select: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                startAfter: jest.fn().mockReturnThis(),
+                get: jest.fn().mockResolvedValue(mockQuerySnapshot),
+            };
+
+            mockExpensesCollection.where = jest.fn().mockReturnValue(mockQuery);
+            
+            await service.listGroupExpenses(mockGroupId, mockUserId);
+
+            // Check that the where method was called with deletedAt filter
+            const collectionWhereCalls = mockExpensesCollection.where.mock.calls;
+            const queryWhereCalls = mockQuery.where.mock.calls;
+            
+            // First where should be on collection for groupId
+            expect(collectionWhereCalls[0]).toEqual(['groupId', '==', mockGroupId]);
+            // Second where should be on query for deletedAt
+            expect(queryWhereCalls[0]).toEqual(['deletedAt', '==', null]);
+        });
+
+        it('should include deleted expenses when requested', async () => {
+            await service.listGroupExpenses(mockGroupId, mockUserId, { includeDeleted: true });
+
+            expect(mockExpensesCollection.where).not.toHaveBeenCalledWith('deletedAt', '==', null);
+        });
+
+        it('should throw error for invalid cursor', async () => {
+            const invalidCursor = 'invalid-cursor-format';
+
+            await expect(service.listGroupExpenses(mockGroupId, mockUserId, { cursor: invalidCursor }))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'INVALID_CURSOR',
+                    'Invalid cursor format'
+                ));
+        });
+
+        it('should handle empty expense list', async () => {
+            mockQuerySnapshot.docs = [];
+
+            const result = await service.listGroupExpenses(mockGroupId, mockUserId);
+
+            expect(result).toEqual({
+                expenses: [],
+                count: 0,
+                hasMore: false,
+                nextCursor: undefined,
+            });
+        });
+
+        it('should generate nextCursor when there are more results', async () => {
+            // Create a custom mock for this test with 3 expenses
+            const mockQueryWithThreeDocs = {
+                docs: [
+                    {
+                        id: 'expense1',
+                        data: () => ({
+                            ...mockExpenseData,
+                            id: 'expense1',
+                            description: 'Expense 1',
+                            amount: 100,
+                        }),
+                    },
+                    {
+                        id: 'expense2',
+                        data: () => ({
+                            ...mockExpenseData,
+                            id: 'expense2',
+                            description: 'Expense 2',
+                            amount: 200,
+                        }),
+                    },
+                    {
+                        id: 'expense3',
+                        data: () => ({
+                            ...mockExpenseData,
+                            id: 'expense3',
+                            description: 'Expense 3',
+                            amount: 300,
+                        }),
+                    }
+                ]
+            };
+
+            // Mock the query chain to return 3 docs when limit is 3 (service requests limit+1)
+            const mockQuery: any = {
+                where: jest.fn().mockReturnThis(),
+                select: jest.fn().mockReturnThis(),
+                orderBy: jest.fn().mockReturnThis(),
+                limit: jest.fn().mockReturnThis(),
+                startAfter: jest.fn().mockReturnThis(),
+                get: jest.fn().mockResolvedValue(mockQueryWithThreeDocs),
+            };
+
+            mockExpensesCollection.where = jest.fn().mockReturnValue(mockQuery);
+
+            const result = await service.listGroupExpenses(mockGroupId, mockUserId, { limit: 2 });
+
+            expect(result.expenses.length).toBe(2);
+            expect(result.hasMore).toBe(true);
+            expect(result.nextCursor).toBeDefined();
+        });
+    });
+});

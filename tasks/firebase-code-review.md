@@ -126,7 +126,23 @@
 
 **Goal**: Extract expense and settlement logic into their own services.
 
-1.  **Task 4.1: Create `ExpenseService`**:
-    *   Follow the same incremental pattern (read operations first, then write operations) to move expense logic into an `ExpenseService`.
-2.  **Task 4.2: Create `SettlementService`**:
+1.  **Task 4.1: Create `ExpenseService` (Read Operations)**: ✅ **COMPLETED** (2025-08-27)
+    *   ✅ Created `src/services/ExpenseService.ts`
+    *   ✅ Implemented `getExpense` method with proper access control
+    *   ✅ Implemented `listGroupExpenses` method with pagination support
+    *   ✅ Wrote comprehensive unit tests (17 tests covering all scenarios)
+    *   ✅ Refactored `getExpense` and `listGroupExpenses` handlers to use ExpenseService
+    *   **Key improvements:**
+        - Centralized expense fetching and validation logic
+        - Consistent permission checking for expense access
+        - Proper Zod validation for expense documents
+        - Clean separation of concerns
+        - Handler code reduced significantly
+    *   **All 317 unit tests passing (4 unrelated GroupService tests failing)**
+
+2.  **Task 4.2: Move write operations to `ExpenseService`**:
+    *   Next step: Implement `createExpense`, `updateExpense`, `deleteExpense` methods in ExpenseService
+    *   Follow the same incremental pattern established in previous phases
+    
+3.  **Task 4.3: Create `SettlementService`**:
     *   Follow the same pattern for the `SettlementService`.

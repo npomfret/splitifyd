@@ -3,7 +3,6 @@
  */
 
 import { streamingMetrics } from './streaming-metrics';
-import { logInfo } from './browser-logger';
 
 /**
  * Print streaming metrics to console (for development debugging)

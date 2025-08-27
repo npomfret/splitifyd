@@ -1,5 +1,16 @@
 import { SecurityPresets, MemberRoles, MemberStatuses, FirestoreCollections } from '@splitifyd/shared';
 
+// Mock @splitifyd/shared to provide USER_COLORS and COLOR_PATTERNS
+jest.mock('@splitifyd/shared', () => ({
+    ...jest.requireActual('@splitifyd/shared'),
+    USER_COLORS: [
+        { light: '#FF0000', dark: '#CC0000', name: 'Red' },
+        { light: '#00FF00', dark: '#00CC00', name: 'Green' },
+        { light: '#0000FF', dark: '#0000CC', name: 'Blue' },
+    ],
+    COLOR_PATTERNS: ['solid', 'striped', 'dotted'],
+}));
+
 // Mock Firebase modules
 jest.mock('firebase-admin');
 jest.mock('../../firebase', () => ({
@@ -96,6 +107,7 @@ jest.mock('../../permissions', () => ({
         getDefaultPermissions: jest.fn(),
     },
 }));
+// USER_COLORS and COLOR_PATTERNS are now imported from @splitifyd/shared mock above
 jest.mock('../../logger', () => ({
     logger: {
         error: jest.fn(),

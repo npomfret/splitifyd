@@ -15,6 +15,7 @@ import { verifyGroupMembership } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 import { PermissionEngine, permissionCache, PermissionCache } from '../permissions';
 import { z } from 'zod';
+import { expenseService } from '../services/ExpenseService';
 
 /**
  * Zod schemas for expense document validation
@@ -288,33 +289,11 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
 
 export const getExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-
     const expenseId = validateExpenseId(req.query.id);
 
-    const { expense } = await fetchExpense(expenseId, userId);
-
-    // Check if user is a participant in this expense (basic access control for viewing)
-    if (!expense.participants || !expense.participants.includes(userId)) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
-    }
-
-    res.json({
-        id: expense.id,
-        groupId: expense.groupId,
-        createdBy: expense.createdBy,
-        paidBy: expense.paidBy,
-        amount: expense.amount,
-        currency: expense.currency,
-        description: expense.description,
-        category: expense.category,
-        date: timestampToISO(expense.date),
-        splitType: expense.splitType,
-        participants: expense.participants,
-        splits: expense.splits,
-        receiptUrl: expense.receiptUrl,
-        createdAt: timestampToISO(expense.createdAt),
-        updatedAt: timestampToISO(expense.updatedAt),
-    });
+    const expense = await expenseService.getExpense(expenseId, userId);
+    
+    res.json(expense);
 };
 
 export const updateExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -693,14 +672,11 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
     }
 
-    await verifyGroupMembership(groupId, userId);
-
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
     const cursor = req.query.cursor as string;
     const includeDeleted = req.query.includeDeleted === 'true';
 
-    // Use extracted function to get expenses data
-    const result = await _getGroupExpensesData(groupId, {
+    const result = await expenseService.listGroupExpenses(groupId, userId, {
         limit,
         cursor,
         includeDeleted
