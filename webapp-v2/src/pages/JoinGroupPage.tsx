@@ -158,7 +158,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             {/* Error message if any */}
                             {error && (
                                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                    <p className="text-red-700 text-sm">{error}</p>
+                                    <p className="text-red-700 text-sm" role="alert" data-testid="join-group-error-message">{error}</p>
                                     <Button variant="ghost" size="sm" onClick={joinGroupStore.clearError} className="mt-2 text-red-600 hover:text-red-700">
                                         Dismiss
                                     </Button>

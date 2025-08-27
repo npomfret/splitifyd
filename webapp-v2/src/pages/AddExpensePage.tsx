@@ -29,7 +29,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">Error</h2>
                             <p className="text-gray-600">No group specified. Cannot add expense without a group.</p>
                             <Button variant="primary" onClick={() => route('/dashboard')}>
                                 Back to Dashboard
@@ -66,7 +66,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">Error</h2>
                             <p className="text-gray-600">{formState.initError}</p>
                             <Button variant="primary" onClick={() => route(`/groups/${groupId}`)}>
                                 Back to Group
@@ -85,7 +85,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600">Group Not Found</h2>
+                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">Group Not Found</h2>
                             <p className="text-gray-600">The group you're trying to add an expense to doesn't exist or you don't have access to it.</p>
                             <Button variant="primary" onClick={() => route('/dashboard')}>
                                 Back to Dashboard
@@ -156,7 +156,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                             updateSplitPercentage={formState.updateSplitPercentage}
                                         />
 
-                                        {formState.validationErrors.splits && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{formState.validationErrors.splits}</p>}
+                                        {formState.validationErrors.splits && <p className="text-sm text-red-600 dark:text-red-400 mt-2" role="alert" data-testid="validation-error-splits">{formState.validationErrors.splits}</p>}
                                     </Card>
                                 </>
                             )}

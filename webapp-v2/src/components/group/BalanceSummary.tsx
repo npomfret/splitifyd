@@ -77,7 +77,7 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
                                         {t('balanceSummary.debtArrow')}
                                         {getUserName(debt.to.userId)}
                                     </span>
-                                    <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'}>{formatCurrency(debt.amount, debt.currency)}</span>
+                                    <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'} data-financial-amount="debt">{formatCurrency(debt.amount, debt.currency)}</span>
                                 </div>
                             </div>
                         ))}

@@ -177,7 +177,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                 )}
             </div>
             {error && (
-                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600">
+                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert" data-testid="category-input-error-message">
                     {error}
                 </p>
             )}

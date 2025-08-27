@@ -132,7 +132,7 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
 
                         {error && (
                             <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                                <p class="text-sm text-red-800">{error}</p>
+                                <p class="text-sm text-red-800" role="alert" data-testid="share-group-error-message">{error}</p>
                             </div>
                         )}
 

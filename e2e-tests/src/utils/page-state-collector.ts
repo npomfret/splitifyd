@@ -71,17 +71,33 @@ async function collectVisibleHeadings(page: Page, limit = 10): Promise<string[]>
 }
 
 /**
- * Collect visible error messages
+ * Collect visible error messages using semantic selectors to avoid false positives
+ * from financial amounts displayed in red
  */
 async function collectVisibleErrors(page: Page): Promise<string[]> {
     try {
         const errorSelectors = [
-            '.error-message:visible',
-            '.text-red-500:visible',
-            '.text-red-600:visible',
+            // Semantic error selectors (preferred)
             '[role="alert"]:visible',
+            '[data-testid*="error"]:visible',
+            '[data-testid*="validation-error"]:visible',
+            
+            // Legacy class-based selectors (deprecated but kept for compatibility)
+            '.error-message:visible',
             '.alert-error:visible',
             '.validation-error:visible',
+            
+            // Form validation errors (red text near form inputs, excluding financial amounts)
+            'input ~ p.text-red-500:visible, input ~ p.text-red-600:visible',
+            'textarea ~ p.text-red-500:visible, textarea ~ p.text-red-600:visible',
+            'select ~ p.text-red-500:visible, select ~ p.text-red-600:visible',
+        ];
+        
+        // Financial display exclusion selectors
+        const financialSelectors = [
+            '[data-financial-amount]:visible',
+            '[data-balance]:visible', 
+            '[data-debt]:visible',
         ];
         
         const errors: string[] = [];
@@ -91,8 +107,22 @@ async function collectVisibleErrors(page: Page): Promise<string[]> {
             const count = await elements.count();
             
             for (let i = 0; i < count; i++) {
-                const text = await elements.nth(i).textContent();
-                if (text?.trim() && !errors.includes(text.trim())) {
+                const element = elements.nth(i);
+                const text = await element.textContent();
+                
+                if (!text?.trim()) continue;
+                
+                // Check if this element is a financial display (skip if so)
+                let isFinancialDisplay = false;
+                for (const financialSelector of financialSelectors) {
+                    const matches = await page.locator(financialSelector).locator(`text="${text.trim()}"`).count();
+                    if (matches > 0) {
+                        isFinancialDisplay = true;
+                        break;
+                    }
+                }
+                
+                if (!isFinancialDisplay && !errors.includes(text.trim())) {
                     errors.push(text.trim());
                 }
             }

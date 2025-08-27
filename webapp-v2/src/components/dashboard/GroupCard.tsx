@@ -98,14 +98,14 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                         // Multiple currencies - show each balance
                         <div class="space-y-1">
                             {balanceDisplays.map((display, index) => (
-                                <div key={index} class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color} mr-2`}>
+                                <div key={index} class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color} mr-2`} data-financial-amount="balance">
                                     {display.text}
                                 </div>
                             ))}
                         </div>
                     ) : (
                         // Single currency
-                        <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`}>{balanceDisplays[0].text}</div>
+                        <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`} data-financial-amount="balance">{balanceDisplays[0].text}</div>
                     )}
                 </div>
 

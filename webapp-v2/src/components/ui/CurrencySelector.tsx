@@ -332,7 +332,7 @@ export function CurrencySelector({
                 )}
             </div>
             {error && (
-                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600">
+                <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert" data-testid="currency-selector-error-message">
                     {error}
                 </p>
             )}

@@ -183,7 +183,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                 </div>
             )}
 
-            {error && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="time-input-error-message">{error}</p>}
         </div>
     );
 }

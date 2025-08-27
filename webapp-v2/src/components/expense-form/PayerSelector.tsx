@@ -42,7 +42,7 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
                         </label>
                     ))}
                 </div>
-                {validationErrors.paidBy && <p className="text-sm text-red-600 dark:text-red-400">{validationErrors.paidBy}</p>}
+                {validationErrors.paidBy && <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="validation-error-paidBy">{validationErrors.paidBy}</p>}
             </Stack>
         </Card>
     );

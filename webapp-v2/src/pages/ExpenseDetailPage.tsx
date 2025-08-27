@@ -170,7 +170,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
                     <Card className="max-w-md mx-auto mt-8">
                         <Stack spacing="md">
-                            <h2 className="text-xl font-semibold text-red-600">Error</h2>
+                            <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">Error</h2>
                             <p className="text-gray-600 dark:text-gray-400">{error.value || 'Expense not found'}</p>
                             <Button onClick={handleBack}>Back to Group</Button>
                         </Stack>
