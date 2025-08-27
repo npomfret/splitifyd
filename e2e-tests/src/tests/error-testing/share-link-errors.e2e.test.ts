@@ -13,7 +13,7 @@ test.describe('Share Link Error Handling', () => {
 
         // Navigate to invalid share link using page object method
         await groupDetailPage.navigateToShareLink(invalidShareLink);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // The app now shows an error message for invalid links instead of 404
         await expect(joinGroupPage.getErrorMessage()).toBeVisible();

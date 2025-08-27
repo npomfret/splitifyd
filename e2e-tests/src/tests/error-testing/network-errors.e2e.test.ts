@@ -33,7 +33,7 @@ test.describe('Error Handling', () => {
         await createGroupModalPage.submitForm();
 
         // Wait for error handling using page object method
-        await dashboardPage.page.waitForLoadState('domcontentloaded');
+        await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify error indication is shown using page object method for error detection
         const errorElement = createGroupModalPage.getErrorMessage(/error|failed|try again/i);
@@ -102,7 +102,7 @@ test.describe('Error Handling', () => {
         await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
         await createGroupModalPage.submitForm();
 
-        await dashboardPage.page.waitForLoadState('domcontentloaded');
+        await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Should show some error indication using page object method
         const errorIndication = createGroupModalPage.getErrorMessage(/error|failed|wrong/i);
@@ -141,7 +141,7 @@ test.describe('Error Handling', () => {
         });
 
         // Wait for load state using page object
-        await dashboardPage.page.waitForLoadState('domcontentloaded');
+        await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // App should still be functional despite malformed response
         const createButton = dashboardPage.getCreateGroupButton();

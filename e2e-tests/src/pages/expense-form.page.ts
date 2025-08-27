@@ -314,7 +314,7 @@ export class ExpenseFormPage extends BasePage {
             await expect(this.page.getByText(expense.description)).toBeVisible({ timeout: 3000 });
 
             // Wait for page to stabilize after expense creation
-            await this.page.waitForLoadState('domcontentloaded');
+            await this.waitForDomContentLoaded();
         } catch (navigationError) {
             // Check again for error messages that might have appeared during the wait
             for (const errorMessage of permissionErrorMessages) {

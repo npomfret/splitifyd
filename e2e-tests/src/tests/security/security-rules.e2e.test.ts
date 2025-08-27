@@ -35,7 +35,7 @@ test.describe('Firebase Security Rules Tests', () => {
 
             // User 2 attempts to access the group - this will trigger Firestore requests
             await page2.goto(groupUrl);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to 404 due to Firestore security rules
             await page2.waitForURL('**/404', { timeout: 5000 });
@@ -82,7 +82,7 @@ test.describe('Firebase Security Rules Tests', () => {
 
             // User 2 attempts to access the expense
             await page2.goto(expenseUrl);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected due to Firestore security rules
             await page2.waitForURL('**/404', { timeout: 5000 });
@@ -190,7 +190,7 @@ test.describe('Firebase Security Rules Tests', () => {
             await page1.waitForSelector('[data-testid="expense-item"]');
 
             // Wait for potential real-time updates to settle
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // User 2 should NOT have received any real-time updates about User 1's group
             const unauthorizedUpdates = wsConnections.filter((data) => data.includes(groupName) || data.includes('Real-time test expense'));
@@ -421,7 +421,7 @@ test.describe('Firebase Security Rules Tests', () => {
             await page.click('[data-testid="save-expense-button"]');
 
             // Wait for function responses to complete
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Functions should either validate and reject malicious data, or ignore extra fields
             const errorResponses = functionResponses.filter((r) => r.status >= 400);

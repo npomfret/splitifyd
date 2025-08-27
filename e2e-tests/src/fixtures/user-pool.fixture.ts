@@ -177,7 +177,7 @@ export class UserPool {
 
             // Logout so the user can be used later
             // Wait for page to be stable before clicking menu
-            await tempPage.waitForLoadState('domcontentloaded');
+            await tempPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Wait for user menu button to be ready and clickable
             const userMenuButton = tempPage.locator('[data-testid="user-menu-button"]');

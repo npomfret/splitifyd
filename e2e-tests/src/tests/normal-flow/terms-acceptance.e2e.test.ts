@@ -5,7 +5,7 @@ import {DEFAULT_PASSWORD} from "../../utils/test-helpers.ts";
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     pageTest.beforeEach(async ({ page }) => {
         await page.goto('/register');
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     });
 
     pageTest('should display both terms and cookie policy checkboxes', async ({ page }) => {

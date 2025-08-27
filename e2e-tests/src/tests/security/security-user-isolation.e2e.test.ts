@@ -27,7 +27,7 @@ test.describe('User Storage Isolation', () => {
 
         // Navigate to add expense page for user 1
         await page1.click('[data-testid="add-expense-button"]');
-        await page1.waitForLoadState('domcontentloaded');
+        await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // User 1 interacts with currency selector to create recent currency data
         const currencySelect1 = page1.locator('[data-testid="expense-currency"]');
@@ -43,14 +43,14 @@ test.describe('User Storage Isolation', () => {
 
         // Navigate back to dashboard
         await page1.goto(`${EMULATOR_URL}/dashboard`);
-        await page1.waitForLoadState('domcontentloaded');
+        await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // User 2 creates a group and should not see User 1's currency preferences
         await groupWorkflow2.createGroupAndNavigate(`User2 Group ${uniqueId2}`, 'Testing currency isolation for user 2');
 
         // Navigate to add expense page for user 2
         await page2.click('[data-testid="add-expense-button"]');
-        await page2.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Check user 2's currency selector - it should not have User 1's recent currencies
         const currencySelect2 = page2.locator('[data-testid="expense-currency"]');
@@ -69,9 +69,9 @@ test.describe('User Storage Isolation', () => {
         // User 1 - add an expense with 'entertainment' category
         await page1.goto(`${EMULATOR_URL}/dashboard`);
         await page1.click(`[href*="/groups/"]`); // Click on User 1's group
-        await page1.waitForLoadState('domcontentloaded');
+        await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await page1.click('[data-testid="add-expense-button"]');
-        await page1.waitForLoadState('domcontentloaded');
+        await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Fill out expense form for User 1 with entertainment category
         await page1.fill('[data-testid="expense-description"]', 'Movie tickets');
@@ -86,9 +86,9 @@ test.describe('User Storage Isolation', () => {
         // User 2 - add an expense with 'food' category
         await page2.goto(`${EMULATOR_URL}/dashboard`);
         await page2.click(`[href*="/groups/"]`); // Click on User 2's group
-        await page2.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await page2.click('[data-testid="add-expense-button"]');
-        await page2.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Fill out expense form for User 2 with food category
         await page2.fill('[data-testid="expense-description"]', 'Restaurant dinner');
@@ -154,7 +154,7 @@ test.describe('User Storage Isolation', () => {
 
         // Add some user-scoped data by going to add expense
         await page.click('[data-testid="add-expense-button"]');
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Fill out form to create recent categories/amounts
         await page.fill('[data-testid="expense-description"]', 'Test expense');
@@ -175,7 +175,7 @@ test.describe('User Storage Isolation', () => {
 
         // Log out the user
         await page.goto(`${EMULATOR_URL}/dashboard`);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Click user menu to show logout option
         await page.getByRole('button', { name: user.displayName }).click();

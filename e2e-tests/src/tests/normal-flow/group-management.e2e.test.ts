@@ -27,7 +27,7 @@ authenticatedPageTest.describe('Group Management', () => {
             await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
 
             // Wait for group page to load
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Verify settings button is visible for owner
             const settingsButton = groupDetailPage.getSettingsButton();
@@ -44,7 +44,7 @@ authenticatedPageTest.describe('Group Management', () => {
             await editModal.saveChanges();
             
             // Wait for save to complete and real-time updates to propagate
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Verify the group name was updated (relying on real-time updates)
             await groupDetailPage.waitForGroupTitle('Updated Group Name');
@@ -63,7 +63,7 @@ authenticatedPageTest.describe('Group Management', () => {
 
             // Create a group
             await groupWorkflow.createGroupAndNavigate('Test Group', 'Test description');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             // Wait for the page to fully settle
             await expect(groupDetailPage.getGroupTitle()).toBeVisible();
 
@@ -110,7 +110,7 @@ authenticatedPageTest.describe('Group Management', () => {
             const groupName = 'No Changes Group';
             const groupDescription = 'No changes description';
             await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open edit modal
             const editModal = await groupDetailPage.openEditGroupModal();
@@ -147,14 +147,14 @@ authenticatedPageTest.describe('Group Management', () => {
             // Create a group with the first user as owner
             const groupName = 'Owner Only Settings';
             await groupWorkflow.createGroupAndNavigate(groupName, 'Only owner can edit');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Get the share link (this method closes the modal automatically)
             const shareLink = await groupDetailPage.getShareLink();
             
             // Navigate to dashboard first before signing out
             await page.goto('/dashboard');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Sign out current user
             const dashboard = new DashboardPage(page);
@@ -183,7 +183,7 @@ authenticatedPageTest.describe('Group Management', () => {
             await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+/);
             
             // Wait for page to fully load and ensure group detail is visible
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             await expect(groupDetailPage.getGroupTitle()).toBeVisible();
 
             // Verify settings button is NOT visible for non-owner

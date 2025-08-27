@@ -9,7 +9,7 @@ pageTest.describe('Form Behavior Edge Cases', () => {
         const { page, loginPage } = loginPageNavigated;
 
         // Wait for any pre-filled data to load
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Clear any pre-filled data first
         const emailInput = loginPage.getEmailInput();

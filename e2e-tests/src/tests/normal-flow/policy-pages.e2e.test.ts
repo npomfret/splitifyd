@@ -8,7 +8,7 @@ pageTest.describe('Policy Pages E2E', () => {
     pageTest('should load terms of service page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/terms');
         await waitForApp(page);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify the page loaded with terms content
         await homepagePage
@@ -21,7 +21,7 @@ pageTest.describe('Policy Pages E2E', () => {
     pageTest('should load privacy policy page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/privacy');
         await waitForApp(page);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify the page loaded with privacy content
         await homepagePage
@@ -34,7 +34,7 @@ pageTest.describe('Policy Pages E2E', () => {
     pageTest('should load cookie policy page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/cookies');
         await waitForApp(page);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify the page loaded with cookie content
         await homepagePage

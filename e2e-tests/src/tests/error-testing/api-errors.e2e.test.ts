@@ -25,7 +25,7 @@ test.describe('API Error Handling', () => {
         });
 
         // Wait for load state using page object
-        await dashboardPage.page.waitForLoadState('domcontentloaded');
+        await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // App should still be functional despite malformed response
         const createButton = dashboardPage.getCreateGroupButton();

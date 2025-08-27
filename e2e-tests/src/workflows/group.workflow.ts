@@ -47,7 +47,7 @@ export class GroupWorkflow {
 
         await expect(this.page.getByText(name)).toBeVisible();
 
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         const groupDetailPage = new GroupDetailPage(this.page);
         await groupDetailPage.ensureNewGroupPageReadyWithOneMember(groupId);

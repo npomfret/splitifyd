@@ -172,7 +172,7 @@ export class LoginPage extends BasePage {
      * Wait for page to be ready for form interaction
      */
     async waitForFormReady(): Promise<void> {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         await expect(this.getSubmitButton()).toBeVisible();
         await expect(this.getEmailInput()).toBeVisible();
         await expect(this.getPasswordInput()).toBeVisible();

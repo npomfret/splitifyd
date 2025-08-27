@@ -312,7 +312,7 @@ export class RegisterPage extends BasePage {
             throw new Error(`Register form URL validation failed - expected /register, got ${currentUrl}`);
         }
 
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         
         await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
         await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });

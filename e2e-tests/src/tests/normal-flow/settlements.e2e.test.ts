@@ -32,7 +32,7 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.submitSettlement(settlementData, memberCount);
             
             // Wait for settlement to propagate
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open history and verify settlement appears
             await groupDetailPage.openHistoryIfClosed();
@@ -72,7 +72,7 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.submitSettlement(settlementData, memberCount);
             
             // Wait for settlement to propagate
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Verify settlement appears correctly
             await groupDetailPage.openHistoryIfClosed();
@@ -106,7 +106,7 @@ test.describe('Settlements - Complete Functionality', () => {
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open history and click edit
             await groupDetailPage.openHistoryIfClosed();
@@ -131,7 +131,7 @@ test.describe('Settlements - Complete Functionality', () => {
 
             // Wait for modal to close and update to propagate
             await settlementForm.waitForModalClosed();
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Verify updated settlement in history
             await groupDetailPage.verifySettlementInHistoryVisible(updatedData.note);
@@ -163,7 +163,7 @@ test.describe('Settlements - Complete Functionality', () => {
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open edit form
             await groupDetailPage.openHistoryIfClosed();
@@ -217,7 +217,7 @@ test.describe('Settlements - Complete Functionality', () => {
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open history and verify settlement exists
             await groupDetailPage.openHistoryIfClosed();
@@ -227,7 +227,7 @@ test.describe('Settlements - Complete Functionality', () => {
             await groupDetailPage.deleteSettlement(settlementData.note, true);
 
             // Wait for deletion to propagate
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Verify settlement is removed from history
             await groupDetailPage.openHistoryIfClosed();
@@ -254,7 +254,7 @@ test.describe('Settlements - Complete Functionality', () => {
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open history and attempt deletion
             await groupDetailPage.openHistoryIfClosed();

@@ -22,7 +22,7 @@ authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
             await groupWorkflow.createGroupAndNavigate(groupName, 'Testing owner restrictions');
             
             // Wait for group to load
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
 
             // Verify Leave Group button is NOT visible for owner

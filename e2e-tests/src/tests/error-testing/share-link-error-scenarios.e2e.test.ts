@@ -10,7 +10,7 @@ test.describe('Share Link - Error Scenarios', () => {
         const { page } = authenticatedPage;
 
         // Get the base URL from the current page
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         const baseUrl = page.url().split('/dashboard')[0];
         const invalidShareLink = `${baseUrl}/join?linkId=invalid-group-id-12345`;
 
@@ -22,7 +22,7 @@ test.describe('Share Link - Error Scenarios', () => {
         const { page } = authenticatedPage;
 
         // Get the base URL from the current page using page object
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         const baseUrl = page.url().split('/dashboard')[0];
 
         // Test various malformed links using page object navigation
@@ -31,7 +31,7 @@ test.describe('Share Link - Error Scenarios', () => {
 
         for (const link of emptyLinkCases) {
             await page.goto(link);
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Should stay on /join page and show error message
             expect(page.url()).toContain('/join');

@@ -204,8 +204,8 @@ export abstract class BasePage {
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
     }
 
-    async waitForDomContentLoaded() {
-        await this._page.waitForLoadState('domcontentloaded');
+    async waitForDomContentLoaded(timeout = 5000) {
+        await this._page.waitForLoadState('domcontentloaded', { timeout });
     }
 
     /**
@@ -336,7 +336,7 @@ export abstract class BasePage {
 
     async navigateToRoot(): Promise<void> {
         await this._page.goto(EMULATOR_URL);
-        await this._page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToLogin(): Promise<void> {
@@ -356,7 +356,7 @@ export abstract class BasePage {
 
     async navigateToDashboard(): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}/dashboard`);
-        await this._page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     async navigateToShareLink(shareLink: string): Promise<void> {

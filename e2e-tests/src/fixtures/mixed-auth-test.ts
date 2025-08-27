@@ -68,7 +68,7 @@ async function createUnauthenticatedUser(browser: any): Promise<UnauthenticatedU
 
     // Navigate to the app's homepage first to have a proper domain for storage access
     await page.goto(EMULATOR_URL);
-    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
     // Clear all possible authentication storage from the app domain
     await page.evaluate(() => {

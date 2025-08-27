@@ -24,12 +24,12 @@ pageTest.describe('Error Monitoring E2E', () => {
     pageTest('should load terms page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/terms');
         await waitForApp(page);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     });
 
     pageTest('should load privacy page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/privacy');
         await waitForApp(page);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     });
 });

@@ -25,7 +25,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await expect(page2).toHaveURL(/\/dashboard/);
 
         // Wait a moment to ensure authentication is stable
-        await page2.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // User2 joins using robust JoinGroupPage
         const joinGroupPage = new JoinGroupPage(page2, user2);
@@ -384,7 +384,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
         );
 
         // Wait for settlement to propagate via real-time updates
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
 
@@ -467,7 +467,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
         );
 
         // Wait for settlement to propagate via real-time updates
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await secondUser.groupDetailPage.waitForBalancesToLoad(groupId);
 

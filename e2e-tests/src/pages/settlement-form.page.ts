@@ -229,7 +229,7 @@ export class SettlementFormPage extends BasePage {
         await expect(modal).not.toBeVisible({ timeout: 5000 });
 
         // Wait for settlement processing to complete
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     /**

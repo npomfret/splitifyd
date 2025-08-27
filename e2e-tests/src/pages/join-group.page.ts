@@ -65,7 +65,7 @@ export class JoinGroupPage extends BasePage {
                 .catch(() => false);
             if (checkingAuth) {
                 // Wait for auth check to complete
-                await this.page.waitForLoadState('domcontentloaded');
+                await this.waitForDomContentLoaded();
                 // Re-check URL after auth check
                 if (this.page.url().includes('/login')) {
                     return false;
@@ -157,7 +157,7 @@ export class JoinGroupPage extends BasePage {
 
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this.page.goto(shareLink);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         // will either go to login page or join group page
         // will show either join button or "already a member" message
     }
@@ -168,7 +168,7 @@ export class JoinGroupPage extends BasePage {
      */
     async clickJoinGroup(): Promise<void> {
         // Wait for page to be ready
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Check if user is already a member
         if (await this.isUserAlreadyMember()) {

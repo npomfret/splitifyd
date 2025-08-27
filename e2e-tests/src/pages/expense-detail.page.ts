@@ -14,7 +14,7 @@ export class ExpenseDetailPage extends BasePage {
     async waitForPageReady(): Promise<void> {
         // Wait for URL pattern to match expense detail
         await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+$/);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Wait for expense heading to be visible
         const expenseHeading = this.page.getByRole('heading', { level: 1 }).first();
@@ -37,7 +37,7 @@ export class ExpenseDetailPage extends BasePage {
 
         // Wait for navigation to edit expense page
         await this.page.waitForURL(/\/groups\/[a-zA-Z0-9]+\/add-expense\?.*edit=true/);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Create and validate the expense form page in edit mode
         const expenseFormPage = new ExpenseFormPage(this.page);

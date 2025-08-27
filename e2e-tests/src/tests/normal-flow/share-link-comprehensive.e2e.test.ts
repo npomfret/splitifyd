@@ -105,7 +105,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Navigate to share link with unauthenticated user
             await page2.goto(shareLink);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
             await expect(page2).toHaveURL(/\/login/);
@@ -129,7 +129,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
@@ -166,7 +166,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Navigate to share link with unauthenticated user
             await page2.goto(shareLink);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page with returnUrl
             await expect(page2).toHaveURL(/\/login/);
@@ -183,7 +183,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);

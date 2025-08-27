@@ -121,7 +121,7 @@ export class DashboardPage extends BasePage {
         }
 
         // Wait for DOM to be fully loaded instead of arbitrary timeout
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Dashboard is now ready - we don't check for specific content since users may have existing groups
     }

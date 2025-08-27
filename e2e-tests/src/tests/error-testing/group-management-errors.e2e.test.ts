@@ -23,7 +23,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
 
             // Create a group
             const groupId = await groupWorkflow.createGroupAndNavigate('Group to Delete', 'Will have expenses');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Add an expense using proper page objects
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
@@ -81,7 +81,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
 
             // Create a group
             await groupWorkflow.createGroupAndNavigate('Group to Delete', 'Will be deleted');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open edit modal
             const editModal = await groupDetailPage.openEditGroupModal();
@@ -99,7 +99,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
             await expect(page).toHaveURL(/\/dashboard/);
 
             // Wait for dashboard to load and real-time updates to propagate
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             
             // Verify the group is no longer in the list (relying on real-time updates)
             const groupCard = page.getByText('Group to Delete');

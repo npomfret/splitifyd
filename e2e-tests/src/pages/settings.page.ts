@@ -221,7 +221,7 @@ export class SettingsPage extends BasePage {
 
     // Form State Verification
     async waitForFormReady(): Promise<void> {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         await expect(this.getDisplayNameInput()).toBeVisible();
         await expect(this.getSaveChangesButton()).toBeVisible();
         await expect(this.getChangePasswordButton()).toBeVisible();

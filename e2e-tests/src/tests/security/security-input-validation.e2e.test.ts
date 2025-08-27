@@ -57,7 +57,7 @@ test.describe('Security Input Validation Tests', () => {
 
                 // Try to save
                 await page.click('[data-testid="save-expense-button"]');
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 if (page.url().includes('/add-expense')) {
                     // If still on add expense page, should show validation error
@@ -116,7 +116,7 @@ test.describe('Security Input Validation Tests', () => {
                 await page.fill('[data-testid="group-description-input"]', `Test description ${index}`);
                 await page.click('[data-testid="create-group-submit"]');
 
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 if (page.url().includes('/dashboard')) {
                     // Check for validation error
@@ -170,7 +170,7 @@ test.describe('Security Input Validation Tests', () => {
                             const saveButton = page.locator('[data-testid="save-profile"], [type="submit"]');
                             if (await saveButton.isVisible()) {
                                 await saveButton.click();
-                                await page.waitForLoadState('domcontentloaded');
+                                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                                 // Check for validation error or sanitization
                                 const errorElement = page.locator('[data-testid="error-message"]');
@@ -248,7 +248,7 @@ test.describe('Security Input Validation Tests', () => {
                         // If no search button, submit the form containing the search input
                         await page.locator('[data-testid="expense-search"]').press('Enter');
                     }
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     // Should either show no results or validation error, not crash
                     const expenseItems = page.locator('[data-testid="expense-item"]');
@@ -277,7 +277,7 @@ test.describe('Security Input Validation Tests', () => {
                 // Test SQL injection in URL parameters
                 const maliciousUrl = `/groups/${groupId}?search=${encodeURIComponent(payload)}`;
                 await page.goto(maliciousUrl);
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 // Should not crash or expose sensitive data
                 const pageContent = await page.textContent('body');
@@ -304,7 +304,7 @@ test.describe('Security Input Validation Tests', () => {
                 const categoryFilter = page.locator('[data-testid="category-filter"]');
                 if (await categoryFilter.isVisible()) {
                     await categoryFilter.selectOption(payload);
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     // Should handle gracefully
                     const errorElement = page.locator('[data-testid="error-message"]');
@@ -319,7 +319,7 @@ test.describe('Security Input Validation Tests', () => {
                 const dateFilter = page.locator('[data-testid="date-filter"]');
                 if (await dateFilter.isVisible()) {
                     await dateFilter.fill(payload);
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     // Should validate date format
                     const dateError = page.locator('[data-testid="date-error"]');
@@ -372,7 +372,7 @@ test.describe('Security Input Validation Tests', () => {
                         });
 
                         await page.click('[data-testid="save-expense-button"]');
-                        await page.waitForLoadState('domcontentloaded');
+                        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                         if (page.url().includes('/add-expense')) {
                             // Should show validation error for dangerous filenames
@@ -564,7 +564,7 @@ test.describe('Security Input Validation Tests', () => {
                     await maliciousElement.click();
 
                     // No alert should appear (CSP should block inline event handlers)
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     // Check that no alert appeared
                     const alerts = await page.evaluate(() => {

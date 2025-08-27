@@ -46,7 +46,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                             await page.fill('[data-testid="expense-description"]', `Rapid expense ${i}`);
                             await page.fill('[data-testid="expense-amount"]', `${10 + i}.00`);
                             await page.click('[data-testid="save-expense-button"]');
-                            await page.waitForLoadState('domcontentloaded');
+                            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                             if (page.url().includes('/add-expense')) {
                                 await page.click('[data-testid="cancel-button"]');
@@ -98,7 +98,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                     await page.fill('[data-testid="group-name-input"]', `Rapid Group ${i}`);
                     await page.fill('[data-testid="group-description-input"]', `Description ${i}`);
                     await page.click('[data-testid="create-group-submit"]');
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     if (page.url().includes('/groups/')) {
                         groupsCreated++;
@@ -128,7 +128,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                 }
 
                 // Wait for operation to complete before next attempt
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             }
 
             const endTime = Date.now();
@@ -175,7 +175,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                         });
 
                         await page.click('[data-testid="save-expense-button"]');
-                        await page.waitForLoadState('domcontentloaded');
+                        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                         if (page.url().includes('/add-expense')) {
                             // Check for upload error
@@ -247,7 +247,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                     await page.fill('[data-testid="expense-description"]', largeDescription);
                     await page.fill('[data-testid="expense-amount"]', '50.00');
                     await page.click('[data-testid="save-expense-button"]');
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     if (page.url().includes('/add-expense')) {
                         // Should show validation error for large payloads
@@ -316,7 +316,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                 await page.fill('[data-testid="expense-description"]', 'Recursion test');
                 await page.fill('[data-testid="expense-amount"]', '45.00');
                 await page.click('[data-testid="save-expense-button"]');
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 // Server should either reject the deeply nested data or handle it gracefully
                 if (page.url().includes('/add-expense')) {
@@ -368,7 +368,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                             await page1.fill('[data-testid="expense-description"]', `User 1 expense ${i}`);
                             await page1.fill('[data-testid="expense-amount"]', `${10 + i}.00`);
                             await page1.click('[data-testid="save-expense-button"]');
-                            await page1.waitForLoadState('domcontentloaded');
+                            await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
                             return { user: 1, expense: i, success: true };
                         } catch (error) {
                             return { user: 1, expense: i, success: false, error };
@@ -386,7 +386,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                             await page2.fill('[data-testid="expense-description"]', `User 2 expense ${i}`);
                             await page2.fill('[data-testid="expense-amount"]', `${20 + i}.00`);
                             await page2.click('[data-testid="save-expense-button"]');
-                            await page2.waitForLoadState('domcontentloaded');
+                            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
                             return { user: 2, expense: i, success: true };
                         } catch (error) {
                             return { user: 2, expense: i, success: false, error };
@@ -506,7 +506,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                         await page.fill('[data-testid="expense-description"]', `Size test ${size}`);
                         await page.fill('[data-testid="expense-amount"]', '30.00');
                         await page.click('[data-testid="save-expense-button"]');
-                        await page.waitForLoadState('domcontentloaded');
+                        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                         if (size > 5242880) {
                             // 5MB - should be rejected
@@ -553,7 +553,7 @@ test.describe('Security Abuse Prevention Tests', () => {
 
                 while ((await loadMoreButton.isVisible()) && clickCount < maxClicks) {
                     await loadMoreButton.click();
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
                     clickCount++;
 
                     // Check for rate limiting or query limits
@@ -568,7 +568,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                     }
 
                     // Wait for request to complete before next one
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
                 }
 
                 // Should not allow unlimited data loading
@@ -596,7 +596,7 @@ test.describe('Security Abuse Prevention Tests', () => {
                         // If no search button, submit the form containing the search input
                         await searchField.press('Enter');
                     }
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     // Should handle complex queries gracefully
                     const errorElement = page.locator('[data-testid="error-message"]');

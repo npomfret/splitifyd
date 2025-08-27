@@ -22,7 +22,7 @@ test.describe('Security Authorization Tests', () => {
 
             // User 2 attempts direct access to User 1's private group
             await page2.goto(groupUrl);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should redirect to 404 (security by obscurity - don't reveal group exists)
             await page2.waitForURL('**/404', { timeout: 5000 });
@@ -40,7 +40,7 @@ test.describe('Security Authorization Tests', () => {
 
             for (const url of directUrls) {
                 await page2.goto(`${page2.context().browser()?.contexts()[0]?.pages()[0]?.url().split('/')[0]}://${page2.url().split('://')[1].split('/')[0]}${url}`);
-                await page2.waitForLoadState('domcontentloaded');
+                await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
                 // Should redirect to 404 for all unauthorized group URLs
                 await expect(page2.locator('h1')).toHaveText('404');
             }
@@ -68,7 +68,7 @@ test.describe('Security Authorization Tests', () => {
 
             // User 2 attempts to access the expense directly
             await page2.goto(expenseUrl);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to 404 or access denied
             await page2.waitForURL('**/404', { timeout: 5000 });
@@ -121,7 +121,7 @@ test.describe('Security Authorization Tests', () => {
 
             for (const url of adminUrls) {
                 await page2.goto(`${page2.url().split('/groups')[0]}${url}`);
-                await page2.waitForLoadState('domcontentloaded');
+                await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
                 // Should redirect away from admin pages
                 expect(page2.url()).not.toContain('/settings');
                 expect(page2.url()).not.toContain('/admin');
@@ -169,7 +169,7 @@ test.describe('Security Authorization Tests', () => {
             const editUrl = `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`;
 
             await page2.goto(`${page2.url().split('/groups')[0]}${editUrl}`);
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected away from edit page or show error
             if (page2.url().includes('add-expense')) {
@@ -203,7 +203,7 @@ test.describe('Security Authorization Tests', () => {
             });
 
             // Try to access protected content
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
             await page.waitForURL('**/login', { timeout: 5000 });
@@ -240,7 +240,7 @@ test.describe('Security Authorization Tests', () => {
 
             // User 2 should NOT see User 1's new group
             await page2.goto('/dashboard');
-            await page2.waitForLoadState('domcontentloaded');
+            await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
             const user2AfterGroupCount = await page2.locator('[data-testid="group-card"]').count();
             expect(user2AfterGroupCount).toBe(user2Groups);
         });
@@ -274,7 +274,7 @@ test.describe('Security Authorization Tests', () => {
                 await page.click('[data-testid="save-expense-button"]');
 
                 // Should either reject the input or sanitize it
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 if (page.url().includes('/add-expense')) {
                     // If still on add expense page, should show validation error
@@ -309,7 +309,7 @@ test.describe('Security Authorization Tests', () => {
             await page.click('[data-testid="create-group-submit"]');
 
             // Should either reject the input or sanitize it
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             if (page.url().includes('/dashboard')) {
                 // If still on dashboard, group creation might have failed
@@ -379,7 +379,7 @@ test.describe('Security Authorization Tests', () => {
                         await page.fill('[data-testid="expense-description"]', `Rapid expense ${i}`);
                         await page.fill('[data-testid="expense-amount"]', '10.00');
                         await page.click('[data-testid="save-expense-button"]');
-                        await page.waitForLoadState('domcontentloaded');
+                        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
                     })(),
                 );
             }
@@ -413,7 +413,7 @@ test.describe('Security Authorization Tests', () => {
             await page.click('[data-testid="save-expense-button"]');
 
             // Should either reject or truncate the excessive data
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             if (page.url().includes('/add-expense')) {
                 // If still on add page, should show validation error

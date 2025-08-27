@@ -45,7 +45,7 @@ test.describe('Security Authentication and Session Tests', () => {
             });
 
             // Try to access protected content
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
             await page.waitForURL('**/login', { timeout: 10000 });
@@ -72,7 +72,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.click('[data-testid="login-submit"]');
 
             // Wait for login response (might succeed or fail, doesn't matter for this test)
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Get cookies after login attempt
             const postLoginCookies = await page.context().cookies();
@@ -96,7 +96,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.fill('[data-testid="email-input"]', 'test@example.com');
             await page.fill('[data-testid="password-input"]', DEFAULT_PASSWORD);
             await page.click('[data-testid="login-submit"]');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Check all cookies for security attributes
             const cookies = await page.context().cookies();
@@ -206,7 +206,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 await page.fill('[data-testid="display-name-input"]', 'Test User');
 
                 await page.click('[data-testid="register-submit"]');
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 // Should show password validation error for weak passwords
                 const passwordError = page.locator('[data-testid="password-error"], [data-testid="error-message"]');
@@ -233,7 +233,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.fill('[data-testid="email-input"]', 'nonexistent@example.com');
             await page.fill('[data-testid="password-input"]', 'SomePassword123!');
             await page.click('[data-testid="login-submit"]');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             const errorMessage1 = await page.locator('[data-testid="error-message"]').textContent();
 
@@ -241,7 +241,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.fill('[data-testid="email-input"]', 'test@example.com');
             await page.fill('[data-testid="password-input"]', 'WrongPassword123!');
             await page.click('[data-testid="login-submit"]');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             const errorMessage2 = await page.locator('[data-testid="error-message"]').textContent();
 
@@ -272,7 +272,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 for (const email of invalidEmails) {
                     await page.fill('[data-testid="email-input"]', email);
                     await page.click('[data-testid="reset-submit"]');
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     const emailError = page.locator('[data-testid="email-error"], [data-testid="error-message"]');
                     if (await emailError.isVisible()) {
@@ -284,7 +284,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 // Test with valid email format
                 await page.fill('[data-testid="email-input"]', 'test@example.com');
                 await page.click('[data-testid="reset-submit"]');
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 // Should show success message (even for non-existent emails to prevent enumeration)
                 const successMessage = page.locator('[data-testid="success-message"], text=sent, text=email');
@@ -306,7 +306,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.fill('[data-testid="email-input"]', 'mfa-user@example.com');
             await page.fill('[data-testid="password-input"]', 'ValidPassword123!');
             await page.click('[data-testid="login-submit"]');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Check if MFA challenge appears
             const mfaChallenge = page.locator('[data-testid="mfa-challenge"], [data-testid="verification-code"], text=verification code');
@@ -326,7 +326,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 for (const code of invalidCodes) {
                     await page.fill('[data-testid="mfa-code"], [data-testid="verification-code"]', code);
                     await page.click('[data-testid="verify-submit"]');
-                    await page.waitForLoadState('domcontentloaded');
+                    await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                     const mfaError = page.locator('[data-testid="mfa-error"], [data-testid="error-message"]');
                     if (await mfaError.isVisible()) {
@@ -350,7 +350,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 await page.fill('[data-testid="email-input"]', 'test@example.com');
                 await page.fill('[data-testid="password-input"]', `WrongPassword${i}`);
                 await page.click('[data-testid="login-submit"]');
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
                 // Check for rate limiting after several attempts
                 if (i > 3) {
@@ -368,7 +368,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 }
 
                 // Wait for login attempt to complete before next one
-                await page.waitForLoadState('domcontentloaded');
+                await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
             }
 
             const endTime = Date.now();
@@ -418,7 +418,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.fill('[data-testid="group-name-input"]', 'CSRF Test Group');
             await page.fill('[data-testid="group-description-input"]', 'Testing CSRF protection');
             await page.click('[data-testid="create-group-submit"]');
-            await page.waitForLoadState('domcontentloaded');
+            await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         });
     });
 });

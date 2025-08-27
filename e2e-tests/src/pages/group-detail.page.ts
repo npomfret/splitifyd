@@ -93,12 +93,12 @@ export class GroupDetailPage extends BasePage {
     }
 
     async waitForGroupTitle(text: string ) {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         await expect(this.getGroupTitle()).toHaveText(text, { timeout: 2000});
     }
 
     async waitForGroupDescription(text: string ) {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         await expect(this.getGroupDescription()).toHaveText(text, { timeout: 2000});
     }
 
@@ -115,7 +115,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for navigation to expense form
         await this.page.waitForURL(expectedUrlPattern, { timeout: 5000 });
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Verify we're on the correct page
         const currentUrl = this.page.url();
@@ -236,7 +236,7 @@ export class GroupDetailPage extends BasePage {
             console.log(`Expected member text '${expectedText}' not found, checking for members section updates`);
 
             // Wait for real-time updates to sync
-            await this.page.waitForLoadState('domcontentloaded');
+            await this.waitForDomContentLoaded();
 
             // Final attempt with the expected text
             await expect(this.page.getByText(expectedText)).toBeVisible({ timeout: 3000 });
@@ -257,7 +257,7 @@ export class GroupDetailPage extends BasePage {
         const totalUsers = allUserNames.length;
 
         // Wait for network to be idle first to allow any join operations to complete
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // Primary approach: verify all users are visible in the group (more reliable than member count)
         for (const userName of allUserNames) {
@@ -334,7 +334,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         // Final network idle wait to ensure all updates have propagated
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     /**
@@ -392,7 +392,7 @@ export class GroupDetailPage extends BasePage {
         await expect(balanceSection).toBeVisible();
 
         // Wait for network requests to complete
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     /**
@@ -638,7 +638,7 @@ export class GroupDetailPage extends BasePage {
      */
     private async navigatePageToShareLink(page: any, shareLink: string): Promise<void> {
         await page.goto(shareLink);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     }
 
     /**
@@ -647,7 +647,7 @@ export class GroupDetailPage extends BasePage {
      */
     private async navigatePageToUrl(page: any, url: string): Promise<void> {
         await page.goto(url);
-        await page.waitForLoadState('domcontentloaded');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     }
 
     // ==============================
@@ -734,7 +734,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(confirmButton, { buttonName: 'Confirm Delete' });
 
         // Wait for deletion to complete
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
     /**
      * Gets the share link from the group page.
@@ -784,7 +784,7 @@ export class GroupDetailPage extends BasePage {
      */
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this.page.goto(shareLink);
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
     }
 
     /**
@@ -903,7 +903,7 @@ export class GroupDetailPage extends BasePage {
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
                 await expect(modal).not.toBeVisible({ timeout: 2000 });
-                await this._page.waitForLoadState('domcontentloaded');
+                await this.waitForDomContentLoaded();
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });
@@ -922,7 +922,7 @@ export class GroupDetailPage extends BasePage {
     async handleDeleteConfirmDialog(confirm: boolean) {
         // Wait for confirmation dialog to appear
         // The confirmation dialog appears on top of the edit modal
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
 
         // The ConfirmDialog component creates a fixed overlay with the Delete Group title
         // Look for the modal content within the overlay - it has "Delete Group" as title
@@ -1291,7 +1291,7 @@ export class GroupDetailPage extends BasePage {
      * This should be called after creating a group or navigating to a group page.
      */
     async ensureNewGroupPageReadyWithOneMember(groupId: string): Promise<void> {
-        await this.page.waitForLoadState('domcontentloaded');
+        await this.waitForDomContentLoaded();
         await this.waitForMemberCount(1); // Wait for at least the creator to show
         await this.waitForBalancesToLoad(groupId);
     }
