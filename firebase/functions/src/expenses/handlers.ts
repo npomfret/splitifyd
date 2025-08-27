@@ -14,6 +14,36 @@ import { _getGroupMembersData } from '../groups/memberHandlers';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 import { PermissionEngine, permissionCache, PermissionCache } from '../permissions';
+import { z } from 'zod';
+
+/**
+ * Zod schemas for expense document validation
+ */
+const ExpenseSplitSchema = z.object({
+    userId: z.string().min(1),
+    amount: z.number().positive(),
+    percentage: z.number().min(0).max(100).optional(),
+});
+
+const ExpenseDocumentSchema = z.object({
+    id: z.string().min(1),
+    groupId: z.string().min(1),
+    createdBy: z.string().min(1),
+    paidBy: z.string().min(1),
+    amount: z.number().positive(),
+    currency: z.string().length(3),
+    description: z.string().min(1).max(200),
+    category: z.string().min(1).max(50),
+    date: z.any(), // Firestore Timestamp
+    splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
+    participants: z.array(z.string().min(1)).min(1),
+    splits: z.array(ExpenseSplitSchema),
+    receiptUrl: z.string().url().optional().nullable(),
+    createdAt: z.any(), // Firestore Timestamp
+    updatedAt: z.any(), // Firestore Timestamp
+    deletedAt: z.any().nullable(), // Firestore Timestamp or null
+    deletedBy: z.string().nullable(),
+}).passthrough(); // Allow additional fields that may exist
 
 const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
@@ -90,7 +120,29 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
         throw Errors.NOT_FOUND('Expense');
     }
 
-    const expense = doc.data() as Expense;
+    const rawData = doc.data();
+    if (!rawData) {
+        throw Errors.NOT_FOUND('Expense');
+    }
+
+    // Validate the expense data structure
+    let expense: Expense;
+    try {
+        // Add the id field since it's not stored in the document data
+        const dataWithId = { ...rawData, id: doc.id };
+        const validatedData = ExpenseDocumentSchema.parse(dataWithId);
+        expense = validatedData as Expense;
+    } catch (error) {
+        logger.error('Invalid expense document structure', error as Error, { 
+            expenseId, 
+            validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+        });
+        throw new ApiError(
+            HTTP_STATUS.INTERNAL_ERROR, 
+            'INVALID_EXPENSE_DATA', 
+            'Expense data is corrupted'
+        );
+    }
 
     // Check if the expense is soft-deleted
     if (expense.deletedAt) {
@@ -180,6 +232,20 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     }
 
     try {
+        // Validate the expense document before writing
+        try {
+            ExpenseDocumentSchema.parse(expense);
+        } catch (error) {
+            logger.error('Invalid expense document to write', error as Error, { 
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+            });
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_EXPENSE_DATA',
+                'Invalid expense data format'
+            );
+        }
+
         // Use transaction to create expense and update group metadata atomically
         await firestoreDb.runTransaction(async (transaction) => {
             const groupDocRef = getGroupsCollection().doc(expenseData.groupId);

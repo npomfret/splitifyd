@@ -31,6 +31,48 @@ import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import { isGroupOwner, isGroupMember } from '../utils/groupHelpers';
+import { z } from 'zod';
+
+/**
+ * Zod schemas for group document validation
+ */
+const GroupMemberSchema = z.object({
+    role: z.nativeEnum(MemberRoles),
+    status: z.nativeEnum(MemberStatuses),
+    joinedAt: z.any(), // Firestore Timestamp
+    invitedBy: z.string().optional(),
+    invitedAt: z.any().optional(), // Firestore Timestamp
+    color: z.object({
+        light: z.string(),
+        dark: z.string(),
+        name: z.string(),
+        pattern: z.string(),
+        assignedAt: z.string(),
+        colorIndex: z.number(),
+    }).optional(),
+}).passthrough();
+
+const GroupDataSchema = z.object({
+    name: z.string().min(1),
+    description: z.string().optional(),
+    createdBy: z.string().min(1),
+    members: z.record(z.string(), GroupMemberSchema),
+    securityPreset: z.nativeEnum(SecurityPresets).optional(),
+    permissions: z.object({
+        expenseEditing: z.string(),
+        expenseDeletion: z.string(),
+        memberInvitation: z.string(),
+        memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
+        settingsManagement: z.string(),
+    }).passthrough().optional(), // Allow extra fields like settlementCreation, memberManagement, groupManagement
+    presetAppliedAt: z.any().optional(), // Firestore Timestamp
+}).passthrough();
+
+const GroupDocumentSchema = z.object({
+    data: GroupDataSchema,
+    createdAt: z.any(), // Firestore Timestamp
+    updatedAt: z.any(), // Firestore Timestamp
+}).passthrough();
 
 /**
  * Get theme color for a member based on their index
@@ -62,15 +104,23 @@ const getGroupsCollection = () => {
  * Transform Firestore document to Group format
  */
 export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
-    const data = doc.data();
-    if (!data) {
+    const rawData = doc.data();
+    if (!rawData) {
         throw new Error('Invalid group document');
     }
 
-    // Expect consistent document structure
-    if (!data.data) {
-        throw new Error('Invalid group document structure: missing data field');
+    // Validate the group document structure
+    let data: z.infer<typeof GroupDocumentSchema>;
+    try {
+        data = GroupDocumentSchema.parse(rawData);
+    } catch (error) {
+        logger.error('Invalid group document structure', error as Error, { 
+            groupId: doc.id, 
+            validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+        });
+        throw new Error('Group data is corrupted');
     }
+
     const groupData = data.data;
 
     // Transform members to ensure joinedAt follows the same pattern as createdAt/updatedAt
@@ -97,7 +147,7 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
 
         // Permission system fields - guaranteed to be present
         securityPreset,
-        permissions,
+        permissions: permissions as any, // Cast to any since extra fields are allowed and will be handled by permission engine
         presetAppliedAt: groupData.presetAppliedAt
     };
 };

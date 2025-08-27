@@ -153,10 +153,21 @@ This refactor is critical for the stability and long-term health of the applicat
 - Ensures data integrity when creating settlements
 - Prevents malformed settlement documents
 
+#### ✅ Expense Validation (expenses/handlers.ts)
+- Added `ExpenseDocumentSchema` with Zod for strict validation
+- Validates on read in `fetchExpense()` - parses doc.data() and fails loudly on corruption
+- Validates on create in `createExpense()` - ensures only valid expenses are written
+- Better error messages with validation details
+
+#### ✅ Group Document Transform Validation (groups/handlers.ts)
+- Added `GroupDocumentSchema`, `GroupDataSchema`, and `GroupMemberSchema` for comprehensive validation
+- Validates in `transformGroupDocument()` - ensures group data integrity
+- Handles nested structure with data field wrapper
+- Validates permissions with flexibility for extra fields
+
 ### Next Steps
-- Add validation to expense creates and updates
-- Add validation to group document transforms
 - Add monitoring/logging before strict enforcement on reads
+- Add validation to createGroup write operations
 
 ## 5. Detailed Implementation Plan (Original)
 
