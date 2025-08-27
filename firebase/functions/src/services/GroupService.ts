@@ -12,10 +12,12 @@ import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { DOCUMENT_CONFIG } from '../constants';
 import { logger } from '../logger';
 import { parseISOToTimestamp, getRelativeTime, createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { MemberRoles, MemberStatuses, SecurityPresets, UserThemeColor, CreateGroupRequest } from '@splitifyd/shared';
+import { MemberRoles, MemberStatuses, SecurityPresets, UserThemeColor, CreateGroupRequest, MessageResponse } from '@splitifyd/shared';
 import { PermissionEngine } from '../permissions';
 import { USER_COLORS, COLOR_PATTERNS } from '../constants/user-colors';
 import { LoggerContext } from '../logger';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { UpdateGroupRequest } from '../types/group-types';
 
 /**
  * Service for managing group operations
@@ -558,6 +560,89 @@ export class GroupService {
         const groupWithComputed = await this.addComputedFields(group, userId);
         
         return groupWithComputed;
+    }
+
+    /**
+     * Update an existing group
+     * Only the owner can update a group
+     */
+    async updateGroup(
+        groupId: string,
+        userId: string,
+        updates: UpdateGroupRequest
+    ): Promise<MessageResponse> {
+        // Fetch group with write access check
+        const { docRef, group } = await this.fetchGroupWithAccess(groupId, userId, true);
+
+        // Update with optimistic locking (timestamp is handled by optimistic locking system)
+        await firestoreDb.runTransaction(async (transaction) => {
+            const freshDoc = await transaction.get(docRef);
+            if (!freshDoc.exists) {
+                throw Errors.NOT_FOUND('Group');
+            }
+
+            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
+
+            // Create updated data with current timestamp (will be converted to ISO in the data field)
+            const now = createOptimisticTimestamp();
+            const updatedData = {
+                ...group,
+                ...updates,
+                updatedAt: now.toDate(),
+            };
+
+            // Use existing pattern since we already have the fresh document from transaction read
+            await updateWithTimestamp(
+                transaction,
+                docRef,
+                {
+                    'data.name': updatedData.name,
+                    'data.description': updatedData.description,
+                    'data.updatedAt': updatedData.updatedAt.toISOString(),
+                },
+                originalUpdatedAt,
+            );
+        });
+
+        // Set group context
+        LoggerContext.setBusinessContext({ groupId });
+
+        // Log without explicitly passing userId - it will be automatically included
+        logger.info('group-updated', { id: groupId });
+
+        return { message: 'Group updated successfully' };
+    }
+
+    /**
+     * Delete a group
+     * Only the owner can delete a group
+     * Group cannot be deleted if it has expenses
+     */
+    async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
+        // Fetch group with write access check
+        const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
+
+        // Check if group has expenses
+        const expensesSnapshot = await firestoreDb
+            .collection(FirestoreCollections.EXPENSES)
+            .where('groupId', '==', groupId)
+            .limit(1)
+            .get();
+
+        if (!expensesSnapshot.empty) {
+            throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
+        }
+
+        // Delete the group
+        await docRef.delete();
+
+        // Set group context
+        LoggerContext.setBusinessContext({ groupId });
+
+        // Log without explicitly passing userId - it will be automatically included
+        logger.info('group-deleted', { id: groupId });
+
+        return { message: 'Group deleted successfully' };
     }
 }
 

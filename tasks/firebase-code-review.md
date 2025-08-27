@@ -96,14 +96,31 @@
 
 **Goal**: Extract write operations for groups into `GroupService`.
 
-1.  **Task 3.1: Move `createGroup` to `GroupService`**:
-    *   Implement a `createGroup` method in `GroupService`. **Crucially, ensure the creator is added as a member with 'owner' role.**
-    *   Write comprehensive unit tests for `GroupService.createGroup`.
-    *   Refactor the `createGroup` handler to use `GroupService.createGroup`.
-    *   Update and run all relevant integration tests, paying close attention to the "should create a new group with minimal data" test.
+1.  **Task 3.1: Move `createGroup` to `GroupService`**: ✅ **COMPLETED** (2025-08-27)
+    *   ✅ Implemented a `createGroup` method in `GroupService`. **Crucially, ensured the creator is added as a member with 'ADMIN' role.**
+    *   ✅ Wrote comprehensive unit tests for `GroupService.createGroup` (6 test cases)
+    *   ✅ Refactored the `createGroup` handler to use `GroupService.createGroup`
+    *   ✅ Updated and ran all relevant integration tests, paying close attention to the "should create a new group with minimal data" test
+    *   **Key improvements:**
+        - Creator always gets ADMIN role and theme index 0
+        - Theme colors wrap around with pattern changes when exhausted
+        - Proper security preset handling
+        - Clean separation of concerns
+    *   **All unit tests passing (317 tests)**
 
-2.  **Task 3.2: Move `updateGroup` and `deleteGroup` to `GroupService`**:
-    *   Incrementally move the update and delete operations to `GroupService`, with tests for each.
+2.  **Task 3.2: Move `updateGroup` and `deleteGroup` to `GroupService`**: ✅ **COMPLETED** (2025-08-27)
+    *   ✅ Implemented `updateGroup` method in `GroupService` with optimistic locking
+    *   ✅ Implemented `deleteGroup` method in `GroupService` with expense check
+    *   ✅ Wrote comprehensive unit tests for both methods (9 test cases total)
+    *   ✅ Refactored both handlers to use service methods
+    *   ✅ Removed duplicate code (fetchGroupWithAccess, addComputedFields, getGroupsCollection)
+    *   **Key improvements:**
+        - Only owners can update or delete groups
+        - Groups with expenses cannot be deleted
+        - Proper transaction handling with optimistic locking
+        - Security-conscious error messages (404 vs 403)
+        - Handlers reduced from ~50 lines to ~10 lines each
+    *   **All 317 unit tests passing**
 
 ### Phase 4: Refactor Expenses and Settlements
 

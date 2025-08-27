@@ -1,30 +1,23 @@
 import { Response } from 'express';
 import * as admin from 'firebase-admin';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group } from '../types/group-types';
 import {
-    FirestoreCollections,
     GroupFullDetails,
-    MessageResponse,
     SecurityPresets,
     MemberRoles,
     MemberStatuses,
 } from '@splitifyd/shared';
-import { logger, LoggerContext } from '../logger';
+import { logger } from '../logger';
 import { PermissionEngine } from '../permissions';
 import { calculateGroupBalances } from '../services/balance';
 import { groupService } from '../services/GroupService';
-import { calculateExpenseMetadata } from '../services/expenseMetadataService';
-import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
 import { _getGroupSettlementsData } from '../settlements/handlers';
-import { isGroupOwner, isGroupMember } from '../utils/groupHelpers';
 import { z } from 'zod';
 
 /**
@@ -69,12 +62,6 @@ const GroupDocumentSchema = z.object({
 }).passthrough();
 
 
-/**
- * Get the groups collection reference
- */
-const getGroupsCollection = () => {
-    return firestoreDb.collection(FirestoreCollections.GROUPS); // Using existing collection during migration
-};
 
 /**
  * Transform Firestore document to Group format
@@ -128,77 +115,7 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
     };
 };
 
-/**
- * Add computed fields to Group
- */
-const addComputedFields = async (group: Group, userId: string): Promise<Group> => {
-    // Calculate real balance for the user
-    const groupBalances = await calculateGroupBalances(group.id);
 
-    // Calculate expense metadata on-demand
-    const expenseMetadata = await calculateExpenseMetadata(group.id);
-
-    // Calculate currency-specific balances
-    const balancesByCurrency: Record<string, any> = {};
-    if (groupBalances.balancesByCurrency) {
-        for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
-            const currencyUserBalance = currencyBalances[userId];
-            if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                balancesByCurrency[currency] = {
-                    currency,
-                    netBalance: currencyUserBalance.netBalance,
-                    totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                    totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
-                };
-            }
-        }
-    }
-
-    return {
-        ...group,
-        balance: {
-            balancesByCurrency,
-        },
-        lastActivity: expenseMetadata.lastExpenseTime ? `Last expense ${expenseMetadata.lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
-        lastActivityRaw: expenseMetadata.lastExpenseTime ? expenseMetadata.lastExpenseTime.toISOString() : group.createdAt,
-    };
-};
-
-/**
- * Fetch a group and verify user access
- */
-const fetchGroupWithAccess = async (groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: admin.firestore.DocumentReference; group: Group }> => {
-    const docRef = getGroupsCollection().doc(groupId);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-        throw Errors.NOT_FOUND('Group');
-    }
-
-    const group = transformGroupDocument(doc);
-
-    // Check if user is the owner
-    if (isGroupOwner(group, userId)) {
-        const groupWithComputed = await addComputedFields(group, userId);
-        return { docRef, group: groupWithComputed };
-    }
-
-    // For write operations, only the owner is allowed
-    if (requireWriteAccess) {
-        throw Errors.FORBIDDEN();
-    }
-
-    // For read operations, check if user is a member
-    if (isGroupMember(group, userId)) {
-        const groupWithComputed = await addComputedFields(group, userId);
-        return { docRef, group: groupWithComputed };
-    }
-
-    // User doesn't have access to this group
-    // SECURITY: Return 404 instead of 403 to prevent information disclosure.
-    // This prevents attackers from enumerating valid group IDs.
-    throw Errors.NOT_FOUND('Group');
-};
 
 /**
  * Create a new group
@@ -251,46 +168,9 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     // Sanitize update data
     const sanitizedUpdates = sanitizeGroupData(updates);
 
-    // Fetch group with write access check
-    const { docRef, group } = await fetchGroupWithAccess(groupId, userId, true);
-
-    // Update with optimistic locking (timestamp is handled by optimistic locking system)
-    await firestoreDb.runTransaction(async (transaction) => {
-        const freshDoc = await transaction.get(docRef);
-        if (!freshDoc.exists) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
-
-        // Create updated data with current timestamp (will be converted to ISO in the data field)
-        const now = createOptimisticTimestamp();
-        const updatedData = {
-            ...group,
-            ...sanitizedUpdates,
-            updatedAt: now.toDate(),
-        };
-
-        // Use existing pattern since we already have the fresh document from transaction read
-        await updateWithTimestamp(
-            transaction,
-            docRef,
-            {
-                'data.name': updatedData.name,
-                'data.description': updatedData.description,
-                'data.updatedAt': updatedData.updatedAt.toISOString(),
-            },
-            originalUpdatedAt,
-        );
-    });
-
-    // Set group context
-    LoggerContext.setBusinessContext({ groupId });
-
-    // Log without explicitly passing userId - it will be automatically included
-    logger.info('group-updated', { id: groupId });
-
-    const response: MessageResponse = { message: 'Group updated successfully' };
+    // Use GroupService to update the group
+    const response = await groupService.updateGroup(groupId, userId, sanitizedUpdates);
+    
     res.json(response);
 };
 
@@ -304,26 +184,9 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     }
     const groupId = validateGroupId(req.params.id);
 
-    // Fetch group with write access check
-    const { docRef } = await fetchGroupWithAccess(groupId, userId, true);
-
-    // Check if group has expenses
-    const expensesSnapshot = await firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
-
-    if (!expensesSnapshot.empty) {
-        throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
-    }
-
-    // Delete the group
-    await docRef.delete();
-
-    // Set group context
-    LoggerContext.setBusinessContext({ groupId });
-
-    // Log without explicitly passing userId - it will be automatically included
-    logger.info('group-deleted', { id: groupId });
-
-    const response: MessageResponse = { message: 'Group deleted successfully' };
+    // Use GroupService to delete the group
+    const response = await groupService.deleteGroup(groupId, userId);
+    
     res.json(response);
 };
 
@@ -372,8 +235,21 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     const settlementCursor = req.query.settlementCursor as string;
 
     try {
-        // Reuse existing tested functions for each data type
-        const { group } = await fetchGroupWithAccess(groupId, userId);
+        // Get group with access check (this will throw if user doesn't have access)
+        const groupWithBalance = await groupService.getGroup(groupId, userId);
+        // Extract the base group data (without the balance field added by getGroup)
+        const group: Group = {
+            id: groupWithBalance.id,
+            name: groupWithBalance.name,
+            description: groupWithBalance.description,
+            createdBy: groupWithBalance.createdBy,
+            members: groupWithBalance.members,
+            createdAt: groupWithBalance.createdAt,
+            updatedAt: groupWithBalance.updatedAt,
+            securityPreset: groupWithBalance.securityPreset,
+            permissions: groupWithBalance.permissions,
+            presetAppliedAt: groupWithBalance.presetAppliedAt,
+        };
 
         // Use extracted internal functions to eliminate duplication
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([

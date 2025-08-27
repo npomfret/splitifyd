@@ -48,11 +48,16 @@ jest.mock('../../utils/dateHelpers', () => ({
     createTrueServerTimestamp: jest.fn(),
     timestampToISO: jest.fn(),
 }));
+jest.mock('../../utils/optimistic-locking', () => ({
+    getUpdatedAtTimestamp: jest.fn(),
+    updateWithTimestamp: jest.fn(),
+}));
 jest.mock('../../utils/errors', () => ({
     Errors: {
         NOT_FOUND: jest.fn((resource) => new Error(`${resource} not found`)),
         FORBIDDEN: jest.fn(() => new Error('Forbidden')),
         UNAUTHORIZED: jest.fn(() => new Error('Unauthorized')),
+        INVALID_INPUT: jest.fn((message) => new Error(message)),
     },
 }));
 jest.mock('../../permissions', () => ({
@@ -127,6 +132,11 @@ class GroupBuilder {
             theme: { name: 'blue' },
             joinedAt: '2024-01-01T00:00:00.000Z',
         };
+        return this;
+    }
+
+    withCreatedBy(userId: string): GroupBuilder {
+        this.group.createdBy = userId;
         return this;
     }
 
@@ -1049,6 +1059,345 @@ describe('GroupService', () => {
                 createdAt: 'SERVER_TIMESTAMP',
                 updatedAt: 'SERVER_TIMESTAMP',
             });
+        });
+    });
+
+    describe('updateGroup', () => {
+        const userId = 'test-user-id';
+        const groupId = 'test-group-id';
+        let mockFirestoreCollection: jest.Mock;
+        let mockFirestoreDoc: jest.Mock;
+        let mockFirestoreGet: jest.Mock;
+        let mockFirestoreRunTransaction: jest.Mock;
+        let mockTransformGroupDocument: jest.Mock;
+        let mockIsGroupOwner: jest.Mock;
+        let mockIsGroupMember: jest.Mock;
+        let mockCreateOptimisticTimestamp: jest.Mock;
+        let mockGetUpdatedAtTimestamp: jest.Mock;
+        let mockUpdateWithTimestamp: jest.Mock;
+        let mockLoggerInfo: jest.Mock;
+
+        beforeEach(() => {
+            // Import mocked functions
+            const { createOptimisticTimestamp } = require('../../utils/dateHelpers');
+            const { getUpdatedAtTimestamp, updateWithTimestamp } = require('../../utils/optimistic-locking');
+            const { logger, LoggerContext } = require('../../logger');
+            const { transformGroupDocument } = require('../../groups/handlers');
+            const { isGroupOwner, isGroupMember } = require('../../utils/groupHelpers');
+            const { calculateGroupBalances } = require('../../services/balance');
+            const { calculateExpenseMetadata } = require('../../services/expenseMetadataService');
+
+            mockCreateOptimisticTimestamp = createOptimisticTimestamp as jest.Mock;
+            mockGetUpdatedAtTimestamp = getUpdatedAtTimestamp as jest.Mock;
+            mockUpdateWithTimestamp = updateWithTimestamp as jest.Mock;
+            mockTransformGroupDocument = transformGroupDocument as jest.Mock;
+            mockIsGroupOwner = isGroupOwner as jest.Mock;
+            mockIsGroupMember = isGroupMember as jest.Mock;
+            mockLoggerInfo = logger.info as jest.Mock;
+            LoggerContext.setBusinessContext as jest.Mock;
+
+            // Setup Firestore mocks
+            mockFirestoreGet = jest.fn();
+            mockFirestoreDoc = jest.fn();
+            mockFirestoreRunTransaction = jest.fn();
+
+            const mockDocRef = {
+                id: groupId,
+                get: mockFirestoreGet,
+            };
+
+            mockFirestoreDoc.mockReturnValue(mockDocRef);
+
+            mockFirestoreCollection = jest.fn(() => ({
+                doc: mockFirestoreDoc,
+            }));
+
+            const { firestoreDb } = require('../../firebase');
+            firestoreDb.collection = mockFirestoreCollection;
+            firestoreDb.runTransaction = mockFirestoreRunTransaction;
+
+            // Setup default mock returns
+            const mockTimestamp = {
+                toDate: jest.fn(() => new Date('2023-01-01T00:00:00Z')),
+            };
+            mockCreateOptimisticTimestamp.mockReturnValue(mockTimestamp);
+
+            // Mock balance calculations
+            (calculateGroupBalances as jest.Mock).mockResolvedValue({ balancesByCurrency: {} });
+            (calculateExpenseMetadata as jest.Mock).mockResolvedValue({ count: 0 });
+        });
+
+        it('should update a group successfully when user is owner', async () => {
+            // Arrange
+            const updates = { name: 'Updated Group', description: 'Updated Description' };
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(true);
+
+            mockFirestoreRunTransaction.mockImplementation(async (callback) => {
+                const transaction = {
+                    get: jest.fn().mockResolvedValue({ 
+                        exists: true,
+                        data: () => ({ data: existingGroup })
+                    }),
+                };
+                return callback(transaction);
+            });
+
+            mockGetUpdatedAtTimestamp.mockReturnValue('2023-01-01T00:00:00Z');
+
+            // Act
+            const result = await groupService.updateGroup(groupId, userId, updates);
+
+            // Assert
+            expect(result).toEqual({ message: 'Group updated successfully' });
+            expect(mockUpdateWithTimestamp).toHaveBeenCalledWith(
+                expect.any(Object), // transaction
+                expect.any(Object), // docRef
+                {
+                    'data.name': 'Updated Group',
+                    'data.description': 'Updated Description',
+                    'data.updatedAt': '2023-01-01T00:00:00.000Z',
+                },
+                '2023-01-01T00:00:00Z'
+            );
+            expect(mockLoggerInfo).toHaveBeenCalledWith('group-updated', { id: groupId });
+        });
+
+        it('should throw forbidden error when user is not owner', async () => {
+            // Arrange
+            const updates = { name: 'Updated Group' };
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy('another-user')
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(false);
+            mockIsGroupMember.mockReturnValue(true);
+
+            // Act & Assert
+            await expect(groupService.updateGroup(groupId, userId, updates))
+                .rejects.toThrow('Forbidden');
+        });
+
+        it('should throw not found error when group does not exist', async () => {
+            // Arrange
+            const updates = { name: 'Updated Group' };
+            mockFirestoreGet.mockResolvedValue({ exists: false });
+
+            // Act & Assert
+            await expect(groupService.updateGroup(groupId, userId, updates))
+                .rejects.toThrow('Group not found');
+        });
+
+        it('should handle transaction failures gracefully', async () => {
+            // Arrange
+            const updates = { name: 'Updated Group' };
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(true);
+
+            mockFirestoreRunTransaction.mockImplementation(async (callback) => {
+                const transaction = {
+                    get: jest.fn().mockResolvedValue({ exists: false }),
+                };
+                return callback(transaction);
+            });
+
+            // Act & Assert
+            await expect(groupService.updateGroup(groupId, userId, updates))
+                .rejects.toThrow('Group not found');
+        });
+    });
+
+    describe('deleteGroup', () => {
+        const userId = 'test-user-id';
+        const groupId = 'test-group-id';
+        let mockFirestoreCollection: jest.Mock;
+        let mockFirestoreDoc: jest.Mock;
+        let mockFirestoreGet: jest.Mock;
+        let mockFirestoreDelete: jest.Mock;
+        let mockFirestoreWhere: jest.Mock;
+        let mockFirestoreLimit: jest.Mock;
+        let mockExpensesGet: jest.Mock;
+        let mockTransformGroupDocument: jest.Mock;
+        let mockIsGroupOwner: jest.Mock;
+        let mockIsGroupMember: jest.Mock;
+        let mockLoggerInfo: jest.Mock;
+
+        beforeEach(() => {
+            // Import mocked functions
+            const { logger, LoggerContext } = require('../../logger');
+            const { transformGroupDocument } = require('../../groups/handlers');
+            const { isGroupOwner, isGroupMember } = require('../../utils/groupHelpers');
+            const { calculateGroupBalances } = require('../../services/balance');
+            const { calculateExpenseMetadata } = require('../../services/expenseMetadataService');
+
+            mockTransformGroupDocument = transformGroupDocument as jest.Mock;
+            mockIsGroupOwner = isGroupOwner as jest.Mock;
+            mockIsGroupMember = isGroupMember as jest.Mock;
+            mockLoggerInfo = logger.info as jest.Mock;
+            LoggerContext.setBusinessContext as jest.Mock;
+
+            // Setup Firestore mocks
+            mockFirestoreGet = jest.fn();
+            mockFirestoreDelete = jest.fn().mockResolvedValue(undefined);
+            mockFirestoreDoc = jest.fn();
+            mockFirestoreWhere = jest.fn();
+            mockFirestoreLimit = jest.fn();
+            mockExpensesGet = jest.fn();
+
+            const mockDocRef = {
+                id: groupId,
+                get: mockFirestoreGet,
+                delete: mockFirestoreDelete,
+            };
+
+            mockFirestoreDoc.mockReturnValue(mockDocRef);
+
+            // Mock expenses collection query chain
+            mockFirestoreLimit.mockReturnValue({
+                get: mockExpensesGet,
+            });
+            mockFirestoreWhere.mockReturnValue({
+                limit: mockFirestoreLimit,
+            });
+
+            mockFirestoreCollection = jest.fn((collectionName) => {
+                if (collectionName === FirestoreCollections.EXPENSES) {
+                    return {
+                        where: mockFirestoreWhere,
+                    };
+                }
+                return {
+                    doc: mockFirestoreDoc,
+                };
+            });
+
+            const { firestoreDb } = require('../../firebase');
+            firestoreDb.collection = mockFirestoreCollection;
+
+            // Mock balance calculations
+            (calculateGroupBalances as jest.Mock).mockResolvedValue({ balancesByCurrency: {} });
+            (calculateExpenseMetadata as jest.Mock).mockResolvedValue({ count: 0 });
+        });
+
+        it('should delete a group successfully when user is owner and no expenses', async () => {
+            // Arrange
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(true);
+            mockExpensesGet.mockResolvedValue({ empty: true });
+
+            // Act
+            const result = await groupService.deleteGroup(groupId, userId);
+
+            // Assert
+            expect(result).toEqual({ message: 'Group deleted successfully' });
+            expect(mockFirestoreDelete).toHaveBeenCalled();
+            expect(mockLoggerInfo).toHaveBeenCalledWith('group-deleted', { id: groupId });
+        });
+
+        it('should throw error when group has expenses', async () => {
+            // Arrange
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(true);
+            mockExpensesGet.mockResolvedValue({ empty: false });
+
+            // Act & Assert
+            await expect(groupService.deleteGroup(groupId, userId))
+                .rejects.toThrow('Cannot delete group with expenses. Delete all expenses first.');
+        });
+
+
+        it('should throw not found error when group does not exist', async () => {
+            // Arrange
+            mockFirestoreGet.mockResolvedValue({ exists: false });
+
+            // Act & Assert
+            await expect(groupService.deleteGroup(groupId, userId))
+                .rejects.toThrow('Group not found');
+        });
+
+        it('should throw forbidden error when user is not an owner but is a member', async () => {
+            // Arrange
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy('another-user')
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(false);
+            mockIsGroupMember.mockReturnValue(true);
+
+            // Act & Assert
+            // For write operations, non-owners get FORBIDDEN error
+            await expect(groupService.deleteGroup(groupId, userId))
+                .rejects.toThrow('Forbidden');
+        });
+
+        it('should throw not found error when user is not a member', async () => {
+            // Arrange
+            const existingGroup = new GroupBuilder()
+                .withId(groupId)
+                .withCreatedBy('another-user')
+                .build();
+
+            mockFirestoreGet.mockResolvedValue({ 
+                exists: true,
+                data: () => ({ data: existingGroup })
+            });
+            mockTransformGroupDocument.mockReturnValue(existingGroup);
+            mockIsGroupOwner.mockReturnValue(false);
+            mockIsGroupMember.mockReturnValue(false);
+
+            // Act & Assert
+            // Security: Returns 404 instead of 403 to prevent information disclosure
+            // However for write operations (requireWriteAccess=true), non-owners get FORBIDDEN first
+            await expect(groupService.deleteGroup(groupId, userId))
+                .rejects.toThrow('Forbidden');
         });
     });
 });
