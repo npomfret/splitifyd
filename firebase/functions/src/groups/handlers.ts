@@ -414,4 +414,3 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
         throw error;
     }
 };
-
