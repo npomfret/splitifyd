@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Usage:
+#   ./run-until-fail.sh [max_runs] [--headed]
+#
+# Examples:
+#   ./run-until-fail.sh              # Run up to 25 times (default) in headless mode
+#   ./run-until-fail.sh 50           # Run up to 50 times in headless mode
+#   ./run-until-fail.sh --headed     # Run up to 25 times in headed mode (visible browser)
+#   ./run-until-fail.sh 50 --headed  # Run up to 50 times in headed mode
+#
+# The script will stop on the first failure or after max_runs successful runs.
+# In headed mode, workers are automatically set to 1 for better visibility.
+
+# edit these to pick your test cases
+TEST_FILE="e2e-tests/src/tests/normal-flow/comments-realtime.e2e.test.ts"
+TEST_FILTER=""
+
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -10,23 +26,29 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
     cd "$PROJECT_ROOT"
 fi
 
-TEST_FILE="e2e-tests/src/tests/normal-flow/comments-realtime.e2e.test.ts"
-TEST_FILTER="should support real-time expense comments across multiple users"
+# Parse command line arguments
+MAX_SUCCESSES=25
+HEADED_FLAG=""
+WORKERS=3
 
-# Make max runs configurable, default to 25
-MAX_SUCCESSES=${1:-25}
+for arg in "$@"; do
+    if [[ "$arg" == "--headed" ]]; then
+        HEADED_FLAG="--headed"
+        WORKERS=1
+    elif [[ "$arg" =~ ^[0-9]+$ ]]; then
+        MAX_SUCCESSES=$arg
+    fi
+done
 
 RUN_COUNT=0
 SUCCESS_COUNT=0
 START_TIME=$(date +%s)
 
-# Determine if we should run headed or headless
-HEADED_FLAG="--headed"
-if [[ " $* " == *" --headed "* ]] || [[ " $* " == *" headed "* ]]; then
-    HEADED_FLAG="--headed"
-    echo "🖥️ Browser mode: HEADED (visible browser window)"
+# Display browser mode
+if [ -n "$HEADED_FLAG" ]; then
+    echo "🖥️ Browser mode: HEADED (visible browser window, workers=$WORKERS)"
 else
-    echo "🖥️ Browser mode: HEADLESS (background execution)"
+    echo "🖥️ Browser mode: HEADLESS (background execution, workers=$WORKERS)"
 fi
 
 # Clean up any existing screenshots in the ad-hoc folder
@@ -56,9 +78,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     
     # Run the test
     if [ -n "$TEST_FILTER" ]; then
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
     else
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=1 $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE"
     fi
     
     # Check exit code
