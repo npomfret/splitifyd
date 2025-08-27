@@ -174,21 +174,3 @@ export function translate(
     const t = getTranslationFunction(language);
     return t(key, interpolation);
 }
-
-/**
- * Create localized error response
- */
-export function createLocalizedError(
-    statusCode: number,
-    errorKey: string,
-    language: string = 'en',
-    interpolation?: Record<string, any>
-): { statusCode: number; message: string; key: string } {
-    const message = translate(errorKey, language, interpolation);
-    
-    return {
-        statusCode,
-        message,
-        key: errorKey
-    };
-}

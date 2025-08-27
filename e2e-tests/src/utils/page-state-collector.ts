@@ -315,34 +315,3 @@ export async function collectPageState(page: Page, methodName?: string): Promise
     
     return state;
 }
-
-/**
- * Format page state for error messages (condensed version)
- */
-export function formatPageStateForError(state: PageState): string {
-    const parts: string[] = [];
-    
-    parts.push(`URL: ${state.url}`);
-    
-    if (state.title) {
-        parts.push(`Title: ${state.title}`);
-    }
-    
-    if (state.visibleErrors.length > 0) {
-        parts.push(`Errors: ${state.visibleErrors.join(', ')}`);
-    }
-    
-    if (state.dialogOpen) {
-        parts.push('Dialog/Modal is open');
-    }
-    
-    if (state.loadingIndicators) {
-        parts.push('Loading indicators visible');
-    }
-    
-    if (state.visibleButtons.length > 0) {
-        parts.push(`Visible buttons: ${state.visibleButtons.slice(0, 5).join(', ')}`);
-    }
-    
-    return parts.join(' | ');
-}

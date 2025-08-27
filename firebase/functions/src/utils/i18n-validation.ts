@@ -114,23 +114,3 @@ export function translateJoiError(error: ValidationError, language: string = 'en
     // Return the first error, translated
     return translateValidationError(error.details[0], language);
 }
-
-/**
- * Create a localized validation error from Joi ValidationError
- */
-export function createLocalizedValidationError(
-    error: ValidationError, 
-    language: string = 'en'
-): { message: string; details: string[] } {
-    const translatedMessage = translateJoiError(error, language);
-    
-    // Translate all error details for comprehensive error reporting
-    const translatedDetails = error.details.map(detail => 
-        translateValidationError(detail, language)
-    );
-    
-    return {
-        message: translatedMessage,
-        details: translatedDetails
-    };
-}

@@ -3,10 +3,10 @@
  * Wraps all async methods to automatically capture context on errors.
  */
 
-import { Page } from '@playwright/test';
-import { ProxiedMethodError } from '../errors/test-errors';
-import { collectPageState } from './page-state-collector';
-import type { User as BaseUser } from '@splitifyd/shared';
+import {Page} from '@playwright/test';
+import {ProxiedMethodError} from '../errors/test-errors';
+import {collectPageState} from './page-state-collector';
+import type {User as BaseUser} from '@splitifyd/shared';
 
 /**
  * Configuration for the error handling proxy
@@ -172,8 +172,7 @@ export function createErrorHandlingProxy<T extends object>(
                         // Collect page state if configured
                         if (collectState) {
                             try {
-                                const pageState = await collectPageState(page, methodName);
-                                errorContext.pageState = pageState;
+                                errorContext.pageState = await collectPageState(page, methodName);
                             } catch (stateError) {
                                 // Don't fail if we can't collect state
                                 errorContext.stateCollectionError = String(stateError);
@@ -204,31 +203,4 @@ export function createErrorHandlingProxy<T extends object>(
             };
         }
     });
-}
-
-/**
- * Type guard to check if an object has a page property
- */
-export function hasPageProperty(obj: any): obj is { page: Page } {
-    return obj && typeof obj === 'object' && 'page' in obj;
-}
-
-/**
- * Type guard to check if an object has a _page property
- */
-export function hasUnderscorePageProperty(obj: any): obj is { _page: Page } {
-    return obj && typeof obj === 'object' && '_page' in obj;
-}
-
-/**
- * Get the Page instance from a page object
- */
-export function getPageFromInstance(instance: any): Page | null {
-    if (hasUnderscorePageProperty(instance)) {
-        return instance._page;
-    }
-    if (hasPageProperty(instance)) {
-        return instance.page;
-    }
-    return null;
 }

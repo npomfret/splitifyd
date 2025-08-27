@@ -17,15 +17,6 @@ export function debugStreamingMetrics(): void {
     console.log('📋 Raw Metrics:', debug.metrics);
     console.groupEnd();
 }
-
-/**
- * Log streaming metrics at info level
- */
-export function logStreamingMetrics(): void {
-    const debug = streamingMetrics.getDebugInfo();
-    logInfo('Streaming metrics snapshot', debug);
-}
-
 /**
  * Enable streaming debug mode (adds window.streamingDebug)
  */
@@ -40,16 +31,6 @@ export function enableStreamingDebug(): void {
 
         console.log('🔧 Streaming debug enabled. Use window.streamingDebug to access utilities.');
         console.log('Available methods:', Object.keys((window as any).streamingDebug));
-    }
-}
-
-/**
- * Disable streaming debug mode
- */
-export function disableStreamingDebug(): void {
-    if (typeof window !== 'undefined' && (window as any).streamingDebug) {
-        delete (window as any).streamingDebug;
-        console.log('🔧 Streaming debug disabled.');
     }
 }
 

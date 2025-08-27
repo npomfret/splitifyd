@@ -64,12 +64,6 @@ export interface CurrencyBalances {
     [currency: string]: Record<string, UserBalance>;
 }
 
-export interface ProcessingContext {
-    groupId: string;
-    currencies: Set<string>;
-    memberIds: string[];
-}
-
 // Result interface - matches what the service returns
 export interface BalanceCalculationResult {
     groupId: string;
@@ -77,10 +71,4 @@ export interface BalanceCalculationResult {
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: Timestamp;
     balancesByCurrency: CurrencyBalances;
-}
-
-// Internal processing state
-export interface BalanceState {
-    balancesByCurrency: CurrencyBalances;
-    allSimplifiedDebts: SimplifiedDebt[];
 }
