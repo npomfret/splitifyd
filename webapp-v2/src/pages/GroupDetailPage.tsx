@@ -160,9 +160,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleGroupUpdateSuccess = async () => {
-        // Real-time updates will handle the refresh automatically
-        // Immediate manual refresh causes race conditions with change detection
-        logInfo('Group update successful - letting real-time updates handle refresh', { groupId });
+        // Since we don't have Firebase websockets for real-time updates yet,
+        // we need to manually refresh the group data after a successful update
+        logInfo('Group update successful - manually refreshing group data', { groupId });
+        await enhancedGroupDetailStore.refreshAll();
     };
 
     const handleGroupDelete = () => {

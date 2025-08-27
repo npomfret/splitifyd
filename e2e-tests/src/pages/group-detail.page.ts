@@ -93,12 +93,32 @@ export class GroupDetailPage extends BasePage {
 
     async waitForGroupTitle(text: string ) {
         await this.waitForDomContentLoaded();
-        await expect(this.getGroupTitle()).toHaveText(text, { timeout: 2000});
+        
+        // Use polling pattern to handle async updates (since no real-time websockets yet)
+        await expect(async () => {
+            const title = await this.getGroupTitle().textContent();
+            if (title !== text) {
+                throw new Error(`Title is still "${title}", waiting for "${text}"`);
+            }
+        }).toPass({ 
+            timeout: 5000, 
+            intervals: [500, 1000, 1500, 2000]  // Retry at these intervals
+        });
     }
 
     async waitForGroupDescription(text: string ) {
         await this.waitForDomContentLoaded();
-        await expect(this.getGroupDescription()).toHaveText(text, { timeout: 2000});
+        
+        // Use polling pattern to handle async updates (since no real-time websockets yet)
+        await expect(async () => {
+            const description = await this.getGroupDescription().textContent();
+            if (description !== text) {
+                throw new Error(`Description is still "${description}", waiting for "${text}"`);
+            }
+        }).toPass({ 
+            timeout: 5000, 
+            intervals: [500, 1000, 1500, 2000]  // Retry at these intervals
+        });
     }
 
     /**
@@ -903,6 +923,18 @@ export class GroupDetailPage extends BasePage {
                 // Use a longer timeout as the save operation might take time
                 await expect(modal).not.toBeVisible({ timeout: 2000 });
                 await this.waitForDomContentLoaded();
+                
+                // Wait for the data refresh to complete (since no real-time websockets yet)
+                // Look for any loading indicators that appear during refresh
+                const spinner = this.page.locator('.animate-spin');
+                const spinnerCount = await spinner.count();
+                if (spinnerCount > 0) {
+                    // Wait for any spinners to disappear
+                    await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
+                }
+                
+                // Small stability pause to ensure data has propagated
+                await this.page.waitForTimeout(300);
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });
