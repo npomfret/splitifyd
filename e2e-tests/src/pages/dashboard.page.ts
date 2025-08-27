@@ -84,14 +84,21 @@ export class DashboardPage extends BasePage {
         // Simply click the first visible create group button
         const createButton = this.page
             .getByRole('button')
-            .filter({ hasText: /Create.*Group/i })
+            .filter({ hasText: /Create.*Group/i })//there are several
             .first();
         await this.clickButton(createButton, { buttonName: 'Create Group' });
         
-        // Wait for the modal to actually open
+        // Wait for the modal dialog container to appear first (more reliable)
+        await this.page.getByRole('dialog').waitFor({
+            state: 'visible',
+            timeout: 2000
+        });
+        
+        // Additional verification: wait for the modal heading to appear
+        // This provides extra confidence that the modal content has fully loaded
         await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor({
             state: 'visible',
-            timeout: 5000 
+            timeout: 2000  // Shorter timeout since dialog should already be visible
         });
     }
 
