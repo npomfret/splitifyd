@@ -140,7 +140,7 @@ export class DashboardPage extends BasePage {
         await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
 
         // Wait for redirect to login page after sign out
-        await expect(this.page).toHaveURL(/\/login/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await expect(this.page).toHaveURL(/\/login/);
     }
 
     // Security testing methods

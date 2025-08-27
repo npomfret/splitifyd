@@ -88,7 +88,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Navigate to share link with unauthenticated user
             // Should throw AuthenticationError since user is not logged in
             await joinGroupPage.navigateToShareLink(shareLink);
-            await expect(page2).toHaveURL(/\/login/, {timeout: 2000});
+            await expect(page2).toHaveURL(/\/login/);
             expect(page2.url()).toContain('/login');
         });
 
@@ -126,7 +126,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await registerPage.submitForm();
 
             // After registration, user goes to dashboard (returnUrl is not preserved)
-            await expect(page2).toHaveURL(/\/dashboard/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/dashboard/);
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
@@ -137,7 +137,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: 10000 });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
@@ -180,7 +180,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await loginPage.submitForm();
 
             // After login, user goes to dashboard (returnUrl is not preserved through login)
-            await expect(page2).toHaveURL(/\/dashboard/, { timeout: 10000 });
+            await expect(page2).toHaveURL(/\/dashboard/);
 
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
@@ -191,7 +191,7 @@ test.describe('Comprehensive Share Link Testing', () => {
             await joinPage.joinGroupUsingShareLink(shareLink);
             
             // Should be redirected to the group
-            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId), { timeout: 10000 });
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);

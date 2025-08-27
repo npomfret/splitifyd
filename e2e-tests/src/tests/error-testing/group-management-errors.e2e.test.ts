@@ -1,6 +1,7 @@
 import { authenticatedPageTest, expect } from '../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable debugging helpers
 setupConsoleErrorReporting();
@@ -49,7 +50,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
 
             // Wait for the API response and check that delete failed
             // The page should remain on the same group URL
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}`), { timeout: 5000 });
+            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}`));
             
             // Close all dialogs by pressing Escape until none are visible
             await expect(async () => {
@@ -61,7 +62,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
             }).toPass({ timeout: 5000, intervals: [100, 200, 500, 1000] });
 
             // Verify we're still on the group page
-            await expect(page).toHaveURL(new RegExp(`/groups/${groupId}`));
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         },
     );
 
@@ -92,9 +93,6 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
             // Confirm deletion
             await groupDetailPage.handleDeleteConfirmDialog(true);
 
-            // Wait for navigation to dashboard after successful deletion
-            await expect(page).toHaveURL(/\/dashboard/, { timeout: 5000 });
-            
             // Verify we're on the dashboard
             await expect(page).toHaveURL(/\/dashboard/);
 

@@ -182,7 +182,7 @@ test.describe('User Storage Isolation', () => {
         await page.getByRole('button', { name: /logout|sign out/i }).click();
 
         // Wait for logout to complete
-        await expect(page).toHaveURL((url: URL) => !url.toString().includes('/dashboard'), { timeout: 5000 });
+        await expect(page).toHaveURL((url: URL) => !url.toString().includes('/dashboard'));
 
         // Check that user-specific storage is cleared
         const storageAfterLogout = await page.evaluate(() => {

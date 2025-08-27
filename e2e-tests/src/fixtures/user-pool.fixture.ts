@@ -173,7 +173,7 @@ export class UserPool {
             await tempPage.click('button:has-text("Create Account")');
 
             // Wait for redirect to dashboard
-            await expect(tempPage).toHaveURL(/\/dashboard/, { timeout: TIMEOUTS.EXTENDED * 2 });
+            await expect(tempPage).toHaveURL(/\/dashboard/, { timeout: 5000 });// can be slow
 
             // Logout so the user can be used later
             // Wait for page to be stable before clicking menu
@@ -212,9 +212,7 @@ export class UserPool {
             await signOutButton.click({ force: true, timeout: TIMEOUTS.EXTENDED });
 
             // Wait for logout to complete - should redirect to login page
-            await expect(tempPage).toHaveURL(/\/login/, {
-                timeout: TIMEOUTS.EXTENDED * 2,
-            });
+            await expect(tempPage).toHaveURL(/\/login/,);
 
             // debugging mystery screenshots
             await new LoginPage(tempPage).fillLoginForm(displayName, "", false);

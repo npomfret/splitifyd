@@ -75,7 +75,7 @@ test.describe('Error Handling', () => {
 
         // Now submit button should work using page object method
         await createGroupModalPage.submitForm();
-        await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern(), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern());
     });
 
     test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {

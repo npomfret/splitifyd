@@ -31,7 +31,7 @@ export class MultiUserWorkflow {
         await joinGroupPage.navigateToShareLink(shareLink);
 
         // Should redirect to group page since user is already a member
-        await expect(page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 });
+        await expect(page).toHaveURL(groupDetailUrlPattern());
 
         // Verify we're on the group page (not the join page)
         const isOnGroupPage = page.url().includes('/groups/') && !page.url().includes('/join');

@@ -39,7 +39,7 @@ test.describe('Freeform Categories E2E', () => {
         // Submit expense (handles button enable check and spinner wait)
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify expense was created
         await expect(groupDetailPage.getExpenseByDescription('Grocery shopping')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Freeform Categories E2E', () => {
 
         // Submit expense (handles button enable check and spinner wait)
         await expenseFormPage2.clickSaveExpenseButton();
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify expense was created with custom category
         await expect(groupDetailPage.getExpenseByDescription('Team building activity')).toBeVisible();

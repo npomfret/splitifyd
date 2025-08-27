@@ -3,6 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helper
 import { GroupWorkflow } from '../../workflows';
 import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 // Enable error reporting and debugging
 setupConsoleErrorReporting();
@@ -25,7 +26,7 @@ test.describe('Real-time Comments E2E', () => {
         );
 
         // Verify Alice is on the group page
-        await expect(alicePage).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(alicePage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify comments section is visible and functional for Alice
         await groupDetailPage.verifyCommentsSection();
@@ -36,7 +37,7 @@ test.describe('Real-time Comments E2E', () => {
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         // Verify Bob is now on the group page
-        await expect(bobPage).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(bobPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify comments section is visible and functional for Bob
         await bobGroupDetailPage.verifyCommentsSection();
@@ -65,8 +66,8 @@ test.describe('Real-time Comments E2E', () => {
         await groupDetailPage.waitForCommentToAppear(bobComment, 8000);
 
         // Test 3: Verify both users see both comments
-        await expect(alicePage).toHaveURL(new RegExp(`/groups/${groupId}$`)); // Still on group page
-        await expect(bobPage).toHaveURL(new RegExp(`/groups/${groupId}$`)); // Still on group page
+        await expect(alicePage).toHaveURL(groupDetailUrlPattern(groupId)); // Still on group page
+        await expect(bobPage).toHaveURL(groupDetailUrlPattern(groupId)); // Still on group page
 
         // Both users should see 2 comments total
         await groupDetailPage.waitForCommentCount(2);

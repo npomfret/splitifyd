@@ -48,7 +48,7 @@ test.describe('Security Authentication and Session Tests', () => {
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
-            await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
+            await expect(page).toHaveURL(/\/login/);
             expect(page.url()).toContain('/login');
 
             // Should see login form
@@ -167,7 +167,7 @@ test.describe('Security Authentication and Session Tests', () => {
                 }
 
                 // User 2 should be logged out
-                await expect(page2).toHaveURL(/\/login/, { timeout: 5000 });
+                await expect(page2).toHaveURL(/\/login/);
 
                 // User 1 should still be logged in
                 await page1.waitForSelector('[data-testid="dashboard"]');

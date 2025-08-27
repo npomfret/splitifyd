@@ -54,7 +54,7 @@ export class RegisterPage extends BasePage {
         await expect(submitButton).toBeDisabled({ timeout: 2000 });
         
         // Then wait for the redirect to dashboard (registration success)
-        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+        await expect(this.page).toHaveURL(/\/dashboard/);
     }
 
     // Element accessors for direct interaction in tests

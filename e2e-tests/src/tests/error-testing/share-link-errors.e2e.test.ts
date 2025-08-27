@@ -28,7 +28,6 @@ test.describe('Share Link Error Handling', () => {
 
         // Click the button to verify it works using page object method
         await backButton.click();
-        await expect(joinGroupPage.page).toHaveURL(/\/dashboard/);
         await joinGroupPage.expectUrl(/\/dashboard/);
     });
 });

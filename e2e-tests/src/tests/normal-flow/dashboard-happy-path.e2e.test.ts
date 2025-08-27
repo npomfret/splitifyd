@@ -81,18 +81,18 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
 
         // Phase 4: Verify authentication state is cleared - dashboard access should redirect to login
         await page.goto('/dashboard');
-        await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+        await expect(page).toHaveURL(/\/login/);
 
         // Phase 5: Verify protected group pages are inaccessible with the cached URL
         await page.goto(groupUrl);
-        await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+        await expect(page).toHaveURL(/\/login/);
 
         // Phase 6: Verify that attempting to access any group URL pattern fails
         const testGroupUrls = ['/groups/test123', `/groups/${groupId}`, '/dashboard'];
 
         for (const testUrl of testGroupUrls) {
             await page.goto(testUrl);
-            await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+            await expect(page).toHaveURL(/\/login/);
         }
 
         // Phase 7: Verify browser storage is cleared
@@ -118,6 +118,6 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
 
         // Wait for the redirect to login page to complete
         // The auth guard should redirect unauthenticated users
-        await expect(page).toHaveURL(/\/login/, { timeout: 10000 });
+        await expect(page).toHaveURL(/\/login/);
     });
 });

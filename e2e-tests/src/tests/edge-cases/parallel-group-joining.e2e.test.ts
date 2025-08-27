@@ -1,6 +1,6 @@
 import {Browser, BrowserContext, expect, Page, test} from '@playwright/test';
 import {setupMCPDebugOnFailure} from '../../helpers';
-import {GroupDetailPage, JoinGroupPage, LoginPage} from '../../pages';
+import {DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage} from '../../pages';
 import {GroupWorkflow} from '../../workflows';
 import {DEFAULT_PASSWORD, generateTestGroupName} from '../../utils/test-helpers';
 import {getUserPool} from '../../fixtures/user-pool.fixture';
@@ -24,7 +24,9 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
             await loginPage.login(user.email, DEFAULT_PASSWORD);
-            await expect(page).toHaveURL(/\/dashboard/, {timeout: 5000});
+
+            const dashboardPage = new DashboardPage(page);
+            await dashboardPage.waitForDashboard();
 
             contexts.push(context);
             pages.push(page);

@@ -57,7 +57,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Wait for both users to see each other in the member list
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -73,7 +73,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberGroupDetailPage.confirmLeaveGroup();
             
             // Member should be redirected to dashboard
-            await expect(memberPage).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/dashboard/);
             
             // Owner should see updated member count (only 1 member now)
             await groupDetailPage.waitForMemberCount(1);
@@ -104,7 +104,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -166,7 +166,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberPage.goto(shareLink);
             await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
             await joinGroupPage.getJoinGroupButton().click();
-            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
             
             // Wait for synchronization
             await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
@@ -211,7 +211,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             await memberGroupDetailPage.confirmLeaveGroup();
             
             // Member should be redirected to dashboard
-            await expect(memberPage).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+            await expect(memberPage).toHaveURL(/\/dashboard/);
         },
     );
 

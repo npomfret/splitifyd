@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../fixtures/authentica
 import { setupMCPDebugOnFailure } from '../../helpers';
 import { GroupWorkflow } from '../../workflows';
 import { generateTestGroupName } from '../../utils/test-helpers';
+import {groupDetailUrlPattern} from "../../pages/group-detail.page.ts";
 
 setupMCPDebugOnFailure();
 
@@ -34,7 +35,7 @@ test.describe('Group Details E2E', () => {
 
         // Navigate back to group to continue verification
         await groupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
-        await expect(page).toHaveURL(`/groups/${groupId}`);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify share button is available (more reliable than settings)
         const shareButton = groupDetailPage.getShareButton();

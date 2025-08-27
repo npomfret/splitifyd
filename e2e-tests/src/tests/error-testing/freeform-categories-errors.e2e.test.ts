@@ -34,7 +34,7 @@ test.describe('Freeform Categories Error Testing', () => {
 
         // Submit expense
         await expenseFormPage.clickSaveExpenseButton();
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify expense was created with special character category
         await expect(groupDetailPage.getExpenseByDescription('Special characters test')).toBeVisible();

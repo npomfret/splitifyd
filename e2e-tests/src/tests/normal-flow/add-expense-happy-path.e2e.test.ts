@@ -33,7 +33,7 @@ test.describe('Add Expense E2E', () => {
         // Submit the expense
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible();
@@ -71,7 +71,7 @@ test.describe('Add Expense E2E', () => {
         await expenseFormPage.clickSaveExpenseButton();
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
     });
 
@@ -134,7 +134,7 @@ test.describe('Add Expense E2E', () => {
 
         await expenseFormPage.clickSaveExpenseButton();
 
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId), { timeout: TIMEOUT_CONTEXTS.PAGE_NAVIGATION });
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();

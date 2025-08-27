@@ -190,9 +190,7 @@ export class JoinGroupPage extends BasePage {
         await joinButton.waitFor({state: 'visible', timeout: 2000});
         await this.clickButton(joinButton, {buttonName: 'Join Group'});
 
-        await expect(this.page).toHaveURL(groupDetailUrlPattern(), {
-            timeout: TIMEOUT_CONTEXTS.GROUP_CREATION,
-        });
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
     }
 
     /**

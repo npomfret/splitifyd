@@ -44,7 +44,7 @@ export class GroupWorkflow {
         const groupId = dashboard.getUrlParam('groupId')!;
 
         // Verify we're on the correct group page by checking URL contains the pattern
-        await expect(this.page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
 
         await expect(this.page.getByText(name)).toBeVisible();
 

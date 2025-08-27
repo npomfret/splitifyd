@@ -25,7 +25,7 @@ test.describe('Security Authorization Tests', () => {
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should redirect to 404 (security by obscurity - don't reveal group exists)
-            await expect(page2).toHaveURL(/\/404/, { timeout: 5000 });
+            await expect(page2).toHaveURL(/\/404/);
             expect(page2.url()).toContain('/404');
 
             // Verify 404 page content
@@ -71,7 +71,7 @@ test.describe('Security Authorization Tests', () => {
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to 404 or access denied
-            await expect(page2).toHaveURL(/\/404/, { timeout: 5000 });
+            await expect(page2).toHaveURL(/\/404/);
             expect(page2.url()).toContain('/404');
 
             // Expense details should not be visible
@@ -206,7 +206,7 @@ test.describe('Security Authorization Tests', () => {
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Should be redirected to login page
-            await expect(page).toHaveURL(/\/login/, { timeout: 5000 });
+            await expect(page).toHaveURL(/\/login/);
             expect(page.url()).toContain('/login');
 
             // Should show appropriate message

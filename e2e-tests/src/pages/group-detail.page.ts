@@ -113,7 +113,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(addButton, { buttonName: 'Add Expense' });
 
         // Wait for navigation to expense form
-        await expect(this.page).toHaveURL(expectedUrlPattern, { timeout: 5000 });
+        await expect(this.page).toHaveURL(expectedUrlPattern);
         await this.waitForDomContentLoaded();
 
         // Verify we're on the correct page
@@ -623,7 +623,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(joinButton, { buttonName: 'Join Group' });
 
         // Wait for navigation with reasonable timeout
-        await expect(joinerPage).toHaveURL(groupDetailUrlPattern(), { timeout: 3000 });
+        await expect(joinerPage).toHaveURL(groupDetailUrlPattern());
 
         // Wait for real-time updates to propagate the new member (expecting 2 members now)
         await this.waitForMemberCount(2);

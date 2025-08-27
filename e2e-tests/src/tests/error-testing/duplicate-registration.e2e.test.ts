@@ -21,7 +21,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await registerPage.register(displayName, email, password);
 
         // Should redirect to dashboard after successful registration
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out to attempt second registration using page object
         const { DashboardPage } = await import('../../pages');
@@ -85,7 +85,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await registerPage.register(displayName, email, password);
 
         // Wait for dashboard
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out using page object
         const { DashboardPage } = await import('../../pages');
@@ -99,7 +99,6 @@ test.describe('Duplicate User Registration E2E', () => {
                 const path = new URL(urlStr).pathname;
                 return path === '/' || path === '/login' || path === '/home';
             },
-            { timeout: TIMEOUT_CONTEXTS.URL_CHANGE },
         );
 
         // Second attempt - navigate to register page using page object
@@ -147,7 +146,7 @@ test.describe('Duplicate User Registration E2E', () => {
         await registerPage.navigate();
         await registerPage.waitForFormReady();
         await registerPage.register(displayName, email1, password);
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.GROUP_CREATION });
+        await expect(page).toHaveURL(/\/dashboard/);
 
         // Log out using page object
         const { DashboardPage } = await import('../../pages');
@@ -160,8 +159,7 @@ test.describe('Duplicate User Registration E2E', () => {
                 const urlStr = url.toString();
                 const path = new URL(urlStr).pathname;
                 return path === '/' || path === '/login' || path === '/home';
-            },
-            { timeout: TIMEOUT_CONTEXTS.URL_CHANGE },
+            }
         );
 
         // Try duplicate (should fail) using page object methods
@@ -190,6 +188,6 @@ test.describe('Duplicate User Registration E2E', () => {
         await registerPage.submitForm();
 
         // Should succeed this time
-        await expect(page).toHaveURL(/\/dashboard/, { timeout: TIMEOUT_CONTEXTS.URL_CHANGE });
+        await expect(page).toHaveURL(/\/dashboard/);
     });
 });
