@@ -36,6 +36,27 @@ jest.mock('../../groups/handlers', () => ({
 jest.mock('../../utils/groupHelpers', () => ({
     isGroupOwner: jest.fn(),
     isGroupMember: jest.fn(),
+    getThemeColorForMember: jest.fn((memberIndex) => {
+        const colors = [
+            { light: '#FF0000', dark: '#CC0000', name: 'Red' },
+            { light: '#00FF00', dark: '#00CC00', name: 'Green' },
+            { light: '#0000FF', dark: '#0000CC', name: 'Blue' },
+        ];
+        const patterns = ['solid', 'striped', 'dotted'];
+        const colorIndex = memberIndex % colors.length;
+        const patternIndex = Math.floor(memberIndex / colors.length) % patterns.length;
+        const color = colors[colorIndex];
+        const pattern = patterns[patternIndex];
+        
+        return {
+            light: color.light,
+            dark: color.dark,
+            name: color.name,
+            pattern: pattern,
+            assignedAt: '2024-01-01T00:00:00Z',
+            colorIndex: colorIndex,
+        };
+    }),
 }));
 jest.mock('../../services/UserService2', () => ({
     userService: {
@@ -74,14 +95,6 @@ jest.mock('../../permissions', () => ({
     PermissionEngine: {
         getDefaultPermissions: jest.fn(),
     },
-}));
-jest.mock('../../constants/user-colors', () => ({
-    USER_COLORS: [
-        { light: '#FF0000', dark: '#CC0000', name: 'Red' },
-        { light: '#00FF00', dark: '#00CC00', name: 'Green' },
-        { light: '#0000FF', dark: '#0000CC', name: 'Blue' },
-    ],
-    COLOR_PATTERNS: ['solid', 'striped', 'dotted'],
 }));
 jest.mock('../../logger', () => ({
     logger: {
