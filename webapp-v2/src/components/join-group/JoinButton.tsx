@@ -15,7 +15,13 @@ interface JoinButtonProps {
 
 export function JoinButton({ onJoin, loading = false, disabled = false }: JoinButtonProps) {
     return (
-        <Button onClick={onJoin} disabled={loading || disabled} fullWidth className="py-3">
+        <Button 
+            onClick={onJoin} 
+            disabled={loading || disabled} 
+            fullWidth 
+            className="py-3"
+            data-joining={loading ? 'true' : 'false'}
+        >
             {loading ? (
                 <>
                     <LoadingSpinner size="sm" />

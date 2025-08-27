@@ -164,34 +164,25 @@ export class JoinGroupPage extends BasePage {
     }
 
     /**
-     * Attempts to join group with comprehensive error handling and retry logic.
-     * Handles different authentication states automatically.
+     * Simply clicks the join group button. Nothing more.
+     * All navigation and state checking should be done by the caller.
      */
-    async clickJoinGroup(): Promise<void> {
-        // Wait for page to be ready
-        await this.waitForDomContentLoaded();
-
-        // Check if user is already a member
-        if (await this.isUserAlreadyMember()) {
-            throw new Error('User is already a member of this group');
-        }
-
-        // Check if this is an error page
-        if (await this.isErrorPage()) {
-            throw new Error('Share link is invalid or group not found');
-        }
-
-        if(!this._page.url().includes('/join?linkId=')) {
-            throw Error(`${this._page.url()} is not the join group page`);
-        }
-
-        // Wait for join button to be available
+    private async clickJoinGroup(): Promise<void> {
         const joinButton = this.getJoinGroupButton();
-        await joinButton.waitFor({state: 'visible', timeout: 2000});
+        
+        // Make sure button is enabled
+        if (!(await joinButton.isEnabled())) {
+            throw new Error('Join Group button is disabled');
+        }
+        
+        // Check if button is already in joining state
+        const dataJoining = await joinButton.getAttribute('data-joining');
+        if (dataJoining === 'true') {
+            throw new Error('Join Group button is already in joining state');
+        }
+        
+        // Click the button
         await this.clickButton(joinButton, {buttonName: 'Join Group'});
-
-        // todo: a spinner appears on the button and the text changes to "joining..." - we should wait for these
-        await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 3000 });// join group can be slow
     }
 
     /**
@@ -199,28 +190,76 @@ export class JoinGroupPage extends BasePage {
      * Throws specific error types based on the failure reason.
      * @param shareLink - The share link to join
      */
-    async joinGroupUsingShareLink(shareLink: string,): Promise<void> {
+    async joinGroupUsingShareLink(shareLink: string): Promise<void> {
+        // Navigate to the share link
         await this.navigateToShareLink(shareLink);
 
-        // Check if we've been redirected to login page
-        const error = await this.isErrorPage();
-        if (error) {
-            throw Error("on error page")
+        // Wait a bit for page to stabilize
+        await this.waitForDomContentLoaded();
+
+        // Check various error conditions
+        if (await this.isErrorPage()) {
+            throw new Error('Share link is invalid or expired');
         }
 
-        const alreadyMember = await this.isUserAlreadyMember();
-        if (alreadyMember) {
-            throw Error("already a member")
+        if (await this.isUserAlreadyMember()) {
+            // User is already a member - should redirect to group page
+            await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 });
+            return; // Success - already a member
         }
 
-        // If join page is visible, user is definitely logged in - proceed to join
-        const joinPageVisible = await this.isJoinPageVisible();
-        if (joinPageVisible) {
-            await this.clickJoinGroup();
-        } else {
+        // Wait for join button to be available (don't just check if join page is visible)
+        const joinButton = this.getJoinGroupButton();
+        try {
+            await joinButton.waitFor({ state: 'visible', timeout: 5000 });
+        } catch (e) {
             const currentUrl = this.page.url();
-            throw Error(`join group button not visible on ${currentUrl}`);
+            throw new Error(`Join button never appeared. Current URL: ${currentUrl}`);
         }
+
+        // Click the join button
+        await this.clickJoinGroup();
+
+        // Wait for the join to complete - several possible outcomes:
+        const joinSuccessIndicator = this.page.locator('[data-join-success="true"]');
+        const errorMessage = this.page.getByText(/error|failed|try again|something went wrong/i);
+        
+        // Wait for one of the expected outcomes
+        await Promise.race([
+            // Success: Welcome screen appears then navigates
+            (async () => {
+                await expect(joinSuccessIndicator).toBeVisible({ timeout: 10000 });
+                await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 2000 });
+            })(),
+            
+            // Success: Direct navigation to group (fast join)
+            expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 10000 }),
+            
+            // Failure: Error message appears
+            (async () => {
+                await expect(errorMessage).toBeVisible({ timeout: 10000 });
+                const errorText = await errorMessage.textContent();
+                throw new Error(`Join failed: ${errorText}`);
+            })(),
+            
+            // Timeout: Button stuck in joining state
+            (async () => {
+                await this.page.waitForTimeout(10000);
+                // Check if button is still showing "Joining..."
+                const buttonText = await joinButton.textContent().catch(() => null);
+                if (buttonText?.includes('Joining...')) {
+                    throw new Error('Join operation timed out - button stuck in joining state');
+                }
+                throw new Error('Join operation timed out - unknown state');
+            })()
+        ]).catch(error => {
+            // If we got here due to success conditions, check if we're actually on the group page
+            const currentUrl = this.page.url();
+            if (currentUrl.match(groupDetailUrlPattern())) {
+                return; // Success!
+            }
+            throw error; // Re-throw the actual error
+        });
     }
 
     // Helper for debugging failed joins

@@ -177,9 +177,8 @@ authenticatedPageTest.describe('Group Management', () => {
 
             // Join the group via share link
             const joinGroupPage = new JoinGroupPage(page);
-            await joinGroupPage.navigateToShareLink(shareLink);
-            await joinGroupPage.clickJoinGroup();
-            
+            await joinGroupPage.joinGroupUsingShareLink(shareLink);
+
             // Should be on the group page now
             await expect(page).toHaveURL(groupDetailUrlPattern());
             

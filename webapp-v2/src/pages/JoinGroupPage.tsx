@@ -8,6 +8,7 @@ import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { joinGroupStore } from '../app/stores/join-group-store';
 // import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { BaseLayout } from '../components/layout/BaseLayout';
 import { Card } from '@/components/ui';
 import { Stack } from '@/components/ui';
 import { Button } from '@/components/ui';
@@ -66,117 +67,129 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show error if no link ID provided
     if (!actualLinkId) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <div className="text-center py-8">
-                        <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Link</h2>
-                        <p className="text-gray-600 mb-6">No group invitation link was provided. Please use a valid invitation link to join a group.</p>
-                        <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
-                            Back to Dashboard
-                        </Button>
-                    </div>
-                </Card>
-            </div>
+            <BaseLayout title="Join Group - Splitifyd" headerVariant="dashboard">
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md">
+                        <div className="text-center py-8">
+                            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Link</h2>
+                            <p className="text-gray-600 mb-6">No group invitation link was provided. Please use a valid invitation link to join a group.</p>
+                            <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
+                                Back to Dashboard
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            </BaseLayout>
         );
     }
 
     // Show loading state while loading preview
     if (loadingPreview) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <div className="text-center py-8">
-                        <LoadingSpinner size="lg" />
-                        <p className="text-gray-600 mt-4">Loading group information...</p>
-                    </div>
-                </Card>
-            </div>
+            <BaseLayout title="Join Group - Splitifyd" headerVariant="dashboard">
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md">
+                        <div className="text-center py-8">
+                            <LoadingSpinner size="lg" />
+                            <p className="text-gray-600 mt-4">Loading group information...</p>
+                        </div>
+                    </Card>
+                </div>
+            </BaseLayout>
         );
     }
 
     // Show error state
     if (error && !group) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <div className="text-center py-8">
-                        <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to Join Group</h2>
-                        <p className="text-gray-600 mb-6">{error}</p>
-                        <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
-                            Back to Dashboard
-                        </Button>
-                    </div>
-                </Card>
-            </div>
+            <BaseLayout title="Join Group - Splitifyd" headerVariant="dashboard">
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                    <Card className="w-full max-w-md">
+                        <div className="text-center py-8">
+                            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to Join Group</h2>
+                            <p className="text-gray-600 mb-6">{error}</p>
+                            <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
+                                Back to Dashboard
+                            </Button>
+                        </div>
+                    </Card>
+                </div>
+            </BaseLayout>
         );
     }
 
     // Show success state
     if (joinSuccess && group) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <Card className="w-full max-w-md">
-                    <div className="text-center py-8">
-                        <div className="text-green-500 text-4xl mb-4">✅</div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to {group.name}!</h2>
-                        <p className="text-gray-600 mb-6">You've successfully joined the group. Redirecting to group page...</p>
-                        <LoadingSpinner size="sm" />
-                    </div>
-                </Card>
-            </div>
+            <BaseLayout title={`Joined ${group.name} - Splitifyd`} headerVariant="dashboard">
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" data-join-success="true">
+                    <Card className="w-full max-w-md">
+                        <div className="text-center py-8">
+                            <div className="text-green-500 text-4xl mb-4">✅</div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to {group.name}!</h2>
+                            <p className="text-gray-600 mb-6">You've successfully joined the group. Redirecting to group page...</p>
+                            <LoadingSpinner size="sm" />
+                        </div>
+                    </Card>
+                </div>
+            </BaseLayout>
         );
     }
 
     // Show group preview and join option
     if (group) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md">
-                    <div className="text-center mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900 mb-2">Join Group</h1>
-                    </div>
+            <BaseLayout title={`Join ${group.name} - Splitifyd`} headerVariant="dashboard">
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                    <div className="w-full max-w-md">
+                        <div className="text-center mb-6">
+                            <h1 className="text-2xl font-bold text-gray-900 mb-2">Join Group</h1>
+                        </div>
 
-                    <Stack spacing="lg">
-                        {/* Group Preview */}
-                        <GroupPreview group={group} />
+                        <Stack spacing="lg">
+                            {/* Group Preview */}
+                            <GroupPreview group={group} />
 
-                        {/* Members Preview */}
-                        <MembersPreview group={group} />
+                            {/* Members Preview */}
+                            <MembersPreview group={group} />
 
-                        {/* Error message if any */}
-                        {error && (
-                            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                <p className="text-red-700 text-sm">{error}</p>
-                                <Button variant="ghost" size="sm" onClick={joinGroupStore.clearError} className="mt-2 text-red-600 hover:text-red-700">
-                                    Dismiss
+                            {/* Error message if any */}
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                                    <p className="text-red-700 text-sm">{error}</p>
+                                    <Button variant="ghost" size="sm" onClick={joinGroupStore.clearError} className="mt-2 text-red-600 hover:text-red-700">
+                                        Dismiss
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <Stack spacing="md">
+                                <JoinButton onJoin={handleJoinGroup} loading={joining} />
+
+                                <Button variant="secondary" onClick={() => route('/dashboard')} fullWidth>
+                                    Cancel
                                 </Button>
-                            </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <Stack spacing="md">
-                            <JoinButton onJoin={handleJoinGroup} loading={joining} />
-
-                            <Button variant="secondary" onClick={() => route('/dashboard')} fullWidth>
-                                Cancel
-                            </Button>
+                            </Stack>
                         </Stack>
-                    </Stack>
+                    </div>
                 </div>
-            </div>
+            </BaseLayout>
         );
     }
 
     // Fallback - shouldn't reach here
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
-                <div className="text-center py-8">
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </Card>
-        </div>
+        <BaseLayout title="Join Group - Splitifyd" headerVariant="dashboard">
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+                <Card className="w-full max-w-md">
+                    <div className="text-center py-8">
+                        <p className="text-gray-600">Loading...</p>
+                    </div>
+                </Card>
+            </div>
+        </BaseLayout>
     );
 }

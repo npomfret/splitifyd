@@ -60,13 +60,8 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             // Other users join in parallel
             await Promise.all(otherPages.map(async (page, i) => {
                 const joinGroupPage = new JoinGroupPage(page);
-
-                // Navigate to share link using page object method
-                await joinGroupPage.navigateToShareLink(shareLink);
-                await joinGroupPage.getJoinGroupButton().waitFor({state: 'visible', timeout: 2000});
-
                 // Use the joinGroup method with proper error handling
-                await joinGroupPage.clickJoinGroup();
+                await joinGroupPage.joinGroupUsingShareLink(shareLink)
             }));
 
             // Verify all users see complete member list
