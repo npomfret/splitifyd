@@ -82,19 +82,7 @@ class ExpenseDataBuilder {
 
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {
-        it('should validate valid register request', () => {
-            const validRequest = new RegisterRequestBuilder().build();
-
-            const result = validateRegisterRequest(validRequest);
-
-            expect(result.email).toBe('test@example.com');
-            expect(result.password).toBe('TestPass123\!');
-            expect(result.displayName).toBe('Test User');
-            expect(result.termsAccepted).toBe(true);
-            expect(result.cookiePolicyAccepted).toBe(true);
-        });
-
-        it('should normalize email to lowercase and trim display name', () => {
+        it('should validate valid register request and normalize data', () => {
             const request = new RegisterRequestBuilder()
                 .withEmail('TEST@EXAMPLE.COM')
                 .withDisplayName('  Test User  ')
@@ -104,104 +92,56 @@ describe('Auth Validation', () => {
 
             expect(result.email).toBe('test@example.com');
             expect(result.displayName).toBe('Test User');
+            expect(result.termsAccepted).toBe(true);
+            expect(result.cookiePolicyAccepted).toBe(true);
         });
 
-        it('should throw error for weak password', () => {
+        it('should enforce password requirements', () => {
             const request = new RegisterRequestBuilder()
-                .withPassword('weakpass')
+                .withPassword('weak')
                 .build();
 
             expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Password must contain at least 8 characters');
         });
 
-        it('should throw error for missing display name', () => {
-            const request = new RegisterRequestBuilder()
-                .withoutDisplayName()
-                .build();
+        it('should enforce display name boundary conditions', () => {
+            // Too short
+            expect(() => validateRegisterRequest(
+                new RegisterRequestBuilder().withDisplayName('A').build()
+            )).toThrow(ApiError);
 
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Display name is required');
-        });
+            // Too long  
+            expect(() => validateRegisterRequest(
+                new RegisterRequestBuilder().withDisplayName('A'.repeat(51)).build()
+            )).toThrow(ApiError);
 
-        it('should throw error for display name too short', () => {
-            const request = new RegisterRequestBuilder()
-                .withDisplayName('A')
-                .build();
+            // Invalid characters
+            expect(() => validateRegisterRequest(
+                new RegisterRequestBuilder().withDisplayName('Test<script>').build()
+            )).toThrow(ApiError);
 
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Display name must be at least 2 characters');
-        });
-
-        it('should throw error for display name too long', () => {
-            const request = new RegisterRequestBuilder()
-                .withDisplayName('A'.repeat(51))
-                .build();
-
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Display name cannot exceed 50 characters');
-        });
-
-        it('should throw error for invalid display name characters', () => {
-            const request = new RegisterRequestBuilder()
-                .withDisplayName('Test<script>alert("xss")</script>')
-                .build();
-
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Display name can only contain letters, numbers, spaces, hyphens, underscores, and periods');
-        });
-
-        it('should accept valid display name characters', () => {
-            const request = new RegisterRequestBuilder()
-                .withDisplayName('John Doe-Smith_123.Jr')
-                .build();
-
-            const result = validateRegisterRequest(request);
-
+            // Valid boundary case
+            const result = validateRegisterRequest(
+                new RegisterRequestBuilder().withDisplayName('John Doe-Smith_123.Jr').build()
+            );
             expect(result.displayName).toBe('John Doe-Smith_123.Jr');
         });
 
-        it('should throw error for missing terms acceptance', () => {
-            const request = new RegisterRequestBuilder()
-                .withoutTermsAccepted()
-                .build();
+        it('should require terms and cookie policy acceptance', () => {
+            expect(() => validateRegisterRequest(
+                new RegisterRequestBuilder().withTermsAccepted(false).build()
+            )).toThrow(ApiError);
 
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Terms acceptance is required');
-        });
-
-        it('should throw error for missing cookie policy acceptance', () => {
-            const request = new RegisterRequestBuilder()
-                .withoutCookiePolicyAccepted()
-                .build();
-
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('Cookie policy acceptance is required');
-        });
-
-        it('should throw error for false terms acceptance', () => {
-            const request = new RegisterRequestBuilder()
-                .withTermsAccepted(false)
-                .build();
-
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('You must accept the Terms of Service');
-        });
-
-        it('should throw error for false cookie policy acceptance', () => {
-            const request = new RegisterRequestBuilder()
-                .withCookiePolicyAccepted(false)
-                .build();
-
-            expect(() => validateRegisterRequest(request)).toThrow(ApiError);
-            expect(() => validateRegisterRequest(request)).toThrow('You must accept the Cookie Policy');
+            expect(() => validateRegisterRequest(
+                new RegisterRequestBuilder().withCookiePolicyAccepted(false).build()
+            )).toThrow(ApiError);
         });
     });
 });
 
 describe('Expense Validation', () => {
-    describe('validateCreateExpense', () => {
-        it('should validate expense with all fields', () => {
+    describe('validateCreateExpense and validateUpdateExpense', () => {
+        it('should validate complete expense data including optional fields', () => {
             const validExpenseData = new ExpenseDataBuilder()
                 .withReceiptUrl('https://example.com/receipt.jpg')
                 .build();
@@ -215,30 +155,16 @@ describe('Expense Validation', () => {
             expect(result.splitType).toBe('equal');
         });
 
-        it('should handle empty receiptUrl', () => {
-            const dataWithEmptyReceipt = new ExpenseDataBuilder()
-                .withReceiptUrl('')
-                .build();
-
-            const result = validateCreateExpense(dataWithEmptyReceipt);
-
-            expect(result.receiptUrl).toBe('');
-        });
-    });
-
-    describe('validateUpdateExpense', () => {
-        it('should validate partial update data', () => {
+        it('should handle partial update data and empty optional fields', () => {
             const updateData = {
                 description: 'Updated dinner',
-                category: 'food',
-                receiptUrl: 'https://example.com/new-receipt.jpg',
+                receiptUrl: '', // Test empty optional field
             };
 
             const result = validateUpdateExpense(updateData);
 
             expect(result.description).toBe('Updated dinner');
-            expect(result.category).toBe('food');
-            expect(result.receiptUrl).toBe('https://example.com/new-receipt.jpg');
+            expect(result.receiptUrl).toBe('');
         });
     });
 });

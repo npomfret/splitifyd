@@ -1119,7 +1119,7 @@ describe('ExpenseService', () => {
         
         beforeEach(() => {
             // Reset all mocks before each test
-            jest.clearAllMocks();
+            vi.clearAllMocks();
 
             // Set up default successful fetch
             mockDoc.exists = true;
