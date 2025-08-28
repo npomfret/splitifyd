@@ -14,11 +14,33 @@ Our testing philosophy is guided by the following principles:
 
 ## Build Process
 
+### No-Compile Development Mode
+
+**Important**: This project uses a no-compile development mode for faster startup times. Instead of compiling TypeScript to JavaScript during development, we use `tsx` to run TypeScript files directly.
+
+#### How It Works
+
+The build system uses conditional logic based on the `NODE_ENV` environment variable:
+
+- **Development** (`NODE_ENV` undefined): Creates lightweight wrapper files that use `tsx` to execute TypeScript directly. No compilation occurs, resulting in instant startup.
+- **Testing** (`NODE_ENV=test`): Compiles TypeScript to JavaScript because Jest cannot handle tsx wrappers.
+- **Production** (`NODE_ENV=production`): Full TypeScript compilation for optimized deployment.
+
+#### Impact on Development
+
+- `npm run dev`: Starts instantly without compilation
+- `npm run test`: Compiles code first (required for Jest)
+- `npm run build`: Creates development wrappers (unless `NODE_ENV=production`)
+- `npm run build:prod` or `NODE_ENV=production npm run build`: Full production compilation
+
+### Traditional Build Process
+
 Before any tests are run, the entire project must "compile". We use TypeScript's `tsc` compiler with the `--noEmit` flag to perform type-checking without generating JavaScript files. This ensures that all code, including test files, adheres to our type-safety standards.
 
 The root `package.json` provides a script to build all sub-projects:
 
-- `npm run build`: Builds all workspaces.
+- `npm run build`: Builds all workspaces (development mode by default).
+- `npm run build:prod`: Builds all workspaces for production.
 
 ## Test Directory Structure
 

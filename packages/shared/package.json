@@ -15,7 +15,8 @@
   "sideEffects": false,
   "files": ["dist"],
   "scripts": {
-    "build": "tsup",
+    "build": "node scripts/conditional-build.js",
+    "build:prod": "tsup",
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
     "test": "npm run test:unit && npm run test:integration",

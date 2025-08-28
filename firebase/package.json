@@ -4,7 +4,7 @@
     "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
     "scripts": {
         "build": "cd functions && npm run build",
-        "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",
+        "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public && cd functions && npm run build",
         "kill-emulators": "tsx scripts/kill-emulators.ts",
         "switch-instance": "tsx scripts/switch-instance.ts",
         "test": "cd functions && npm test",
