@@ -163,17 +163,21 @@ describe('Optimistic Locking Integration Tests', () => {
 
             const results = await Promise.allSettled(updatePromises);
 
-            // Check the actual errors
-
             // Check results
             const successes = results.filter((r) => r.status === 'fulfilled');
-            const conflicts = results.filter((r) => r.status === 'rejected' && r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE');
-
+            const failures = results.filter((r) => r.status === 'rejected');
+            // Check for CONCURRENT_UPDATE in error message since the error structure varies
+            const conflicts = results.filter((r) => 
+                r.status === 'rejected' && 
+                (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' ||
+                 r.reason?.message?.includes('CONCURRENT_UPDATE') ||
+                 r.reason?.message?.includes('409')));
+            
             // At least one should succeed
             expect(successes.length).toBeGreaterThan(0);
 
             // If there are failures, they should be concurrent update conflicts
-            if (results.length - successes.length > 0) {
+            if (failures.length > 0) {
                 expect(conflicts.length).toBeGreaterThan(0);
             }
 

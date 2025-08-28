@@ -146,8 +146,18 @@
         - Added comprehensive unit tests (12 test cases)
         - Refactored handler to use service (reduced from ~100 lines to 10 lines)
         - All 345 unit tests passing
-    *   🔄 **Step 2: updateExpense** - Next to implement
-    *   🔄 **Step 3: deleteExpense** - To be implemented after updateExpense
+    *   ✅ **Step 2: updateExpense** - **COMPLETED**
+        - Implemented `updateExpense` method in ExpenseService with all features:
+          * Permission checking with PermissionEngine
+          * Member validation for paidBy/participants
+          * Split recalculation based on amount/type changes
+          * Optimistic locking for concurrent update prevention
+          * History tracking for all changes
+          * Full transaction support
+        - Added comprehensive unit tests (14 test cases)
+        - Refactored handler to use service (reduced from ~180 lines to 10 lines)
+        - All 339 unit tests passing
+    *   🔄 **Step 3: deleteExpense** - To be implemented next
     
 3.  **Task 4.3: Create `SettlementService`**:
     *   Follow the same pattern for the `SettlementService`.

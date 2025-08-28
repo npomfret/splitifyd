@@ -3,7 +3,7 @@ import { firestoreDb } from '../../firebase';
 import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { FirestoreCollections, SplitTypes, CreateExpenseRequest } from '@splitifyd/shared';
-import { timestampToISO } from '../../utils/dateHelpers';
+import { timestampToISO, parseISOToTimestamp } from '../../utils/dateHelpers';
 import * as dateHelpers from '../../utils/dateHelpers';
 import * as groupHelpers from '../../utils/groupHelpers';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -62,6 +62,9 @@ describe('ExpenseService', () => {
         }
     };
 
+    let mockExpenseDocRef: any;
+    let mockTransaction: any;
+
     beforeEach(() => {
         // Create mock document references
         mockDoc = {
@@ -78,11 +81,24 @@ describe('ExpenseService', () => {
             get: jest.fn(),
         };
 
+        // Create mock expense document reference
+        mockExpenseDocRef = {
+            get: jest.fn().mockResolvedValue(mockDoc),
+            collection: jest.fn(() => ({
+                doc: jest.fn(() => ({}))
+            }))
+        };
+
+        // Create mock transaction
+        mockTransaction = {
+            get: jest.fn().mockResolvedValue(mockDoc),
+            set: jest.fn(),
+            update: jest.fn(),
+        };
+
         // Create mock collections
         mockExpensesCollection = {
-            doc: jest.fn(() => ({
-                get: jest.fn().mockResolvedValue(mockDoc),
-            })),
+            doc: jest.fn(() => mockExpenseDocRef),
             where: jest.fn(),
             select: jest.fn(),
             orderBy: jest.fn(),
@@ -106,6 +122,11 @@ describe('ExpenseService', () => {
                 return mockGroupsCollection;
             }
             return null;
+        });
+
+        // Mock runTransaction
+        (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            return callback(mockTransaction);
         });
 
         service = new ExpenseService();
@@ -744,6 +765,352 @@ describe('ExpenseService', () => {
 
             await expect(service.createExpense(mockUserId, mockCreateExpenseData))
                 .rejects.toThrow('Group group123 is missing permissions configuration');
+        });
+    });
+
+    describe('updateExpense', () => {
+        const mockExpenseId = 'expense123';
+        const mockUpdateData = {
+            amount: 200,
+            description: 'Updated dinner'
+        };
+
+        const mockExistingExpense = {
+            id: mockExpenseId,
+            groupId: 'group123',
+            createdBy: mockUserId,
+            paidBy: mockUserId,
+            amount: 150,
+            currency: 'USD',
+            description: 'Dinner',
+            category: 'Food',
+            date: mockTimestamp,
+            splitType: SplitTypes.EQUAL,
+            participants: [mockUserId, 'user456'],
+            splits: [
+                { userId: mockUserId, amount: 75 },
+                { userId: 'user456', amount: 75 }
+            ],
+            createdAt: mockTimestamp,
+            updatedAt: mockTimestamp,
+            deletedAt: null,
+            deletedBy: null
+        };
+
+        const setupUpdateExpenseMock = (updatedData: any) => {
+            const updatedExpense = {
+                ...mockExistingExpense,
+                ...updatedData,
+                updatedAt: mockTimestamp
+            };
+            
+            mockExpenseDocRef.get
+                .mockResolvedValueOnce({
+                    exists: true,
+                    id: mockExpenseId,
+                    data: jest.fn(() => mockExistingExpense)
+                })
+                .mockResolvedValueOnce({
+                    exists: true,
+                    id: mockExpenseId,
+                    data: jest.fn(() => updatedExpense)
+                });
+        };
+
+        beforeEach(() => {
+            // Reset PermissionEngine mock to allow edits by default
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+
+            // Setup existing expense fetch  
+            mockExpenseDocRef.get.mockResolvedValue({
+                exists: true,
+                id: mockExpenseId,
+                data: jest.fn(() => mockExistingExpense)
+            });
+
+            // Setup transaction get for optimistic locking
+            mockTransaction.get.mockResolvedValue({
+                exists: true,
+                data: jest.fn(() => mockExistingExpense)
+            });
+        });
+
+        it('should successfully update expense amount with equal splits', async () => {
+            setupUpdateExpenseMock({
+                amount: 200,
+                splits: [
+                    { userId: mockUserId, amount: 100 },
+                    { userId: 'user456', amount: 100 }
+                ]
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                amount: 200
+            });
+
+            expect(result).toEqual(expect.objectContaining({
+                id: mockExpenseId,
+                amount: 200,
+                description: 'Dinner',
+                splits: [
+                    { userId: mockUserId, amount: 100 },
+                    { userId: 'user456', amount: 100 }
+                ]
+            }));
+
+            expect(mockTransaction.update).toHaveBeenCalledWith(
+                mockExpenseDocRef,
+                expect.objectContaining({
+                    amount: 200,
+                    splits: [
+                        { userId: mockUserId, amount: 100 },
+                        { userId: 'user456', amount: 100 }
+                    ]
+                })
+            );
+
+            expect(mockTransaction.set).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    ...mockExistingExpense,
+                    modifiedBy: mockUserId,
+                    changeType: 'update',
+                    changes: ['amount']
+                })
+            );
+        });
+
+        it('should convert exact splits to equal when only amount changes', async () => {
+            const expenseWithExactSplits = {
+                ...mockExistingExpense,
+                splitType: SplitTypes.EXACT,
+                splits: [
+                    { userId: mockUserId, amount: 100 },
+                    { userId: 'user456', amount: 50 }
+                ]
+            };
+
+            mockExpenseDocRef.get.mockResolvedValue({
+                exists: true,
+                id: mockExpenseId,
+                data: jest.fn(() => expenseWithExactSplits)
+            });
+
+            mockTransaction.get.mockResolvedValue({
+                exists: true,
+                data: jest.fn(() => expenseWithExactSplits)
+            });
+
+            setupUpdateExpenseMock({
+                amount: 300,
+                splitType: SplitTypes.EQUAL,
+                splits: [
+                    { userId: mockUserId, amount: 150 },
+                    { userId: 'user456', amount: 150 }
+                ]
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                amount: 300
+            });
+
+            expect(result.splitType).toBe(SplitTypes.EQUAL);
+            expect(result.splits).toEqual([
+                { userId: mockUserId, amount: 150 },
+                { userId: 'user456', amount: 150 }
+            ]);
+        });
+
+        it('should update expense with percentage splits', async () => {
+            setupUpdateExpenseMock({
+                amount: 200,
+                splitType: SplitTypes.PERCENTAGE,
+                splits: [
+                    { userId: mockUserId, amount: 140, percentage: 70 },
+                    { userId: 'user456', amount: 60, percentage: 30 }
+                ]
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                amount: 200,
+                splitType: SplitTypes.PERCENTAGE,
+                splits: [
+                    { userId: mockUserId, amount: 0, percentage: 70 },
+                    { userId: 'user456', amount: 0, percentage: 30 }
+                ]
+            });
+
+            expect(result.splitType).toBe(SplitTypes.PERCENTAGE);
+            expect(result.splits).toEqual([
+                { userId: mockUserId, amount: 140, percentage: 70 },
+                { userId: 'user456', amount: 60, percentage: 30 }
+            ]);
+        });
+
+        it('should update paidBy and validate member', async () => {
+            setupUpdateExpenseMock({
+                paidBy: 'user456'
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                paidBy: 'user456'
+            });
+
+            expect(result.paidBy).toBe('user456');
+            expect(mockTransaction.update).toHaveBeenCalledWith(
+                mockExpenseDocRef,
+                expect.objectContaining({
+                    paidBy: 'user456'
+                })
+            );
+        });
+
+        it('should throw error when updating paidBy to non-member', async () => {
+            await expect(service.updateExpense(mockExpenseId, mockUserId, {
+                paidBy: 'nonMemberUser'
+            })).rejects.toEqual(new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_PAYER',
+                'Payer must be a member of the group'
+            ));
+        });
+
+        it('should update participants and recalculate splits', async () => {
+            setupUpdateExpenseMock({
+                participants: [mockUserId],
+                splits: [
+                    { userId: mockUserId, amount: 150 }
+                ]
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                participants: [mockUserId]
+            });
+
+            expect(result.participants).toEqual([mockUserId]);
+            expect(result.splits).toEqual([
+                { userId: mockUserId, amount: 150 }
+            ]);
+        });
+
+        it('should throw error when adding non-member as participant', async () => {
+            await expect(service.updateExpense(mockExpenseId, mockUserId, {
+                participants: [mockUserId, 'nonMemberUser']
+            })).rejects.toEqual(new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_PARTICIPANT',
+                'Participant nonMemberUser is not a member of the group'
+            ));
+        });
+
+        it('should handle date update', async () => {
+            const newDate = '2024-03-15T12:00:00.000Z';
+            setupUpdateExpenseMock({
+                date: parseISOToTimestamp(newDate)
+            });
+            const result = await service.updateExpense(mockExpenseId, mockUserId, {
+                date: newDate
+            });
+
+            expect(result.date).toBe(newDate);
+            expect(mockTransaction.update).toHaveBeenCalledWith(
+                mockExpenseDocRef,
+                expect.objectContaining({
+                    date: expect.any(Object)
+                })
+            );
+        });
+
+        it('should detect and reject concurrent updates', async () => {
+            const differentTimestamp = { isEqual: jest.fn(() => false) };
+            
+            mockTransaction.get.mockResolvedValue({
+                exists: true,
+                data: jest.fn(() => ({
+                    ...mockExistingExpense,
+                    updatedAt: differentTimestamp
+                }))
+            });
+
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.CONFLICT,
+                    'CONCURRENT_UPDATE',
+                    'Expense was modified by another user. Please refresh and try again.'
+                ));
+        });
+
+        it('should throw error when user lacks permission to edit expense', async () => {
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.FORBIDDEN,
+                    'NOT_AUTHORIZED',
+                    'You do not have permission to edit this expense'
+                ));
+        });
+
+        it('should throw error when expense not found', async () => {
+            mockExpenseDocRef.get.mockResolvedValue({
+                exists: false
+            });
+
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
+                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+        });
+
+        it('should throw error when expense is soft-deleted', async () => {
+            mockExpenseDocRef.get.mockResolvedValue({
+                exists: true,
+                id: mockExpenseId,
+                data: jest.fn(() => ({
+                    ...mockExistingExpense,
+                    deletedAt: mockTimestamp,
+                    deletedBy: 'someUser'
+                }))
+            });
+
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
+                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+        });
+
+        it('should update multiple fields at once', async () => {
+            const multipleUpdates = {
+                amount: 250,
+                description: 'Updated expense',
+                category: 'Entertainment',
+                paidBy: 'user456'
+            };
+
+            setupUpdateExpenseMock({
+                ...multipleUpdates,
+                splits: [
+                    { userId: mockUserId, amount: 125 },
+                    { userId: 'user456', amount: 125 }
+                ]
+            });
+
+            const result = await service.updateExpense(mockExpenseId, mockUserId, multipleUpdates);
+
+            expect(result).toEqual(expect.objectContaining({
+                amount: 250,
+                description: 'Updated expense',
+                category: 'Entertainment',
+                paidBy: 'user456',
+                splits: [
+                    { userId: mockUserId, amount: 125 },
+                    { userId: 'user456', amount: 125 }
+                ]
+            }));
+
+            expect(mockTransaction.set).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    changeType: 'update',
+                    changes: ['amount', 'description', 'category', 'paidBy']
+                })
+            );
         });
     });
 });

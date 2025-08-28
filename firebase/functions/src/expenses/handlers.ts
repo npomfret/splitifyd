@@ -7,8 +7,8 @@ import { Errors, ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calculateSplits, Expense } from './validation';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group } from '@splitifyd/shared';
+import { validateCreateExpense, validateUpdateExpense, validateExpenseId, Expense } from './validation';
+import { FirestoreCollections, DELETED_AT_FIELD, Group } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
 import { transformGroupDocument } from '../groups/handlers';
@@ -166,182 +166,16 @@ export const getExpense = async (req: AuthenticatedRequest, res: Response): Prom
 
 export const updateExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-
     const expenseId = validateExpenseId(req.query.id);
-
     const updateData = validateUpdateExpense(req.body);
 
-    const { docRef, expense } = await fetchExpense(expenseId, userId);
-
-    // Get group data and check permissions using the new permission system
-    const group = await getGroupForPermissionCheck(expense.groupId);
-    const canEdit = checkPermissionCached(group, userId, 'expenseEditing', expense);
-    
-    if (!canEdit) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
-    }
-
-    // If updating paidBy or participants, validate they are group members
-    if (updateData.paidBy || updateData.participants) {
-        const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
-        const groupData = groupDoc.data();
-        if (!groupData?.data?.members) {
-            throw new Error(`Group ${expense.groupId} not found or missing member data`);
-        }
-        const memberIds = Object.keys(groupData.data.members);
-
-        // Validate paidBy if it's being updated
-        if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
-        }
-
-        // Validate participants if they're being updated
-        if (updateData.participants) {
-            for (const participantId of updateData.participants) {
-                if (!memberIds.includes(participantId)) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
-                }
-            }
-        }
-    }
-
-    // Type note: This is intentionally `any` because we're building a dynamic update object
-    // that gets transformed before being passed to Firestore
-    const updates: any = {
-        ...updateData,
-        updatedAt: createServerTimestamp(),
-    };
-
-    if (updateData.date) {
-        updates.date = parseISOToTimestamp(updateData.date) || createServerTimestamp();
-    }
-
-    if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
-        const amount = updateData.amount !== undefined ? updateData.amount : expense.amount;
-        const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
-        const participants = updateData.participants !== undefined ? updateData.participants : expense.participants;
-
-        // If only amount is updated and splitType is 'exact', we need to recalculate as equal splits
-        // since the old exact splits won't match the new amount
-        let finalSplitType = splitType;
-        let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
-
-        if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
-            if (splitType === SplitTypes.EXACT) {
-                // When only amount changes on exact splits, convert to equal splits
-                finalSplitType = SplitTypes.EQUAL;
-                splits = [];
-            }
-        }
-
-        updates.splits = calculateSplits(amount, finalSplitType, participants, splits);
-    }
-
     try {
-        // Create a snapshot of the current expense state for history
-        const historyEntry = {
-            ...expense,
-            modifiedAt: createServerTimestamp(),
-            modifiedBy: userId,
-            changeType: 'update' as const,
-            changes: Object.keys(updateData),
-        };
-
-        // If date is being updated, we need to update group metadata too
-        if (updateData.date) {
-            await firestoreDb.runTransaction(async (transaction) => {
-                // IMPORTANT: All reads must happen before any writes in Firestore transactions
-
-                // Step 1: Do ALL reads first
-                const expenseDoc = await transaction.get(docRef);
-                if (!expenseDoc.exists) {
-                    throw Errors.NOT_FOUND('Expense');
-                }
-                const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
-
-                const groupDocRef = getGroupsCollection().doc(expense.groupId);
-                const groupDoc = await transaction.get(groupDocRef);
-
-                if (!groupDoc.exists) {
-                    throw new Error(`Group ${expense.groupId} not found`);
-                }
-
-                // Step 2: Check for concurrent updates inline (no additional reads needed)
-                // We already have the document data, just verify the timestamp
-                const currentTimestamp = expenseDoc.data()?.updatedAt;
-                if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                    throw Errors.CONCURRENT_UPDATE();
-                }
-
-                // Step 3: Now do ALL writes
-                const historyRef = docRef.collection('history').doc();
-                transaction.set(historyRef, historyEntry);
-
-                // Update the expense (updateWithTimestamp no longer does reads)
-                await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
-
-                // Note: Group metadata will be updated by the balance aggregation trigger
-            });
-        } else {
-            // No date change, update expense with history in transaction
-            await firestoreDb.runTransaction(async (transaction) => {
-                // IMPORTANT: All reads must happen before any writes in Firestore transactions
-
-                // Step 1: Do ALL reads first
-                const expenseDoc = await transaction.get(docRef);
-                if (!expenseDoc.exists) {
-                    throw Errors.NOT_FOUND('Expense');
-                }
-                const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
-
-                // Step 2: Check for concurrent updates inline (no additional reads needed)
-                // We already have the document data, just verify the timestamp
-                const currentTimestamp = expenseDoc.data()?.updatedAt;
-                if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                    throw Errors.CONCURRENT_UPDATE();
-                }
-
-                // Step 3: Now do ALL writes
-                const historyRef = docRef.collection('history').doc();
-                transaction.set(historyRef, historyEntry);
-
-                // Update the expense (updateWithTimestamp no longer does reads)
-                await updateWithTimestamp(transaction, docRef, updates, originalExpenseTimestamp);
-            });
-        }
-
-        LoggerContext.setBusinessContext({ expenseId });
-        logger.info('expense-updated', { id: expenseId });
-
-        // Fetch the updated expense to return the full object
-        const updatedExpenseDoc = await docRef.get();
-        const updatedExpense = {
-            id: updatedExpenseDoc.id,
-            ...updatedExpenseDoc.data(),
-        } as Expense;
-
-        res.json({
-            id: updatedExpense.id,
-            groupId: updatedExpense.groupId,
-            createdBy: updatedExpense.createdBy,
-            paidBy: updatedExpense.paidBy,
-            amount: updatedExpense.amount,
-            currency: updatedExpense.currency,
-            category: updatedExpense.category,
-            description: updatedExpense.description,
-            date: timestampToISO(updatedExpense.date),
-            splitType: updatedExpense.splitType,
-            participants: updatedExpense.participants,
-            splits: updatedExpense.splits,
-            receiptUrl: updatedExpense.receiptUrl || undefined,
-            createdAt: timestampToISO(updatedExpense.createdAt),
-            updatedAt: timestampToISO(updatedExpense.updatedAt),
-        });
+        const updatedExpense = await expenseService.updateExpense(expenseId, userId, updateData);
+        res.json(updatedExpense);
     } catch (error) {
-        logger.error('Failed to update expense', {
+        logger.error('Failed to update expense', error, {
             expenseId,
             userId,
-            error: error instanceof Error ? error : new Error('Unknown error'),
             updates: Object.keys(updateData),
         });
         throw error;

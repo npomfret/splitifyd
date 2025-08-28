@@ -5,7 +5,7 @@ import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { timestampToISO, createServerTimestamp, parseISOToTimestamp } from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group, CreateExpenseRequest } from '@splitifyd/shared';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group, CreateExpenseRequest, UpdateExpenseRequest } from '@splitifyd/shared';
 import { Expense, calculateSplits } from '../expenses/validation';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PermissionEngine } from '../permissions';
@@ -271,6 +271,151 @@ export class ExpenseService {
 
         // Return the expense in response format
         return this.transformExpenseToResponse(expense);
+    }
+
+    /**
+     * Update an existing expense
+     */
+    async updateExpense(
+        expenseId: string,
+        userId: string,
+        updateData: UpdateExpenseRequest
+    ): Promise<any> {
+        // Fetch the existing expense
+        const { docRef, expense } = await this.fetchExpense(expenseId);
+
+        // Get group data and verify permissions
+        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
+        if (!groupDoc.exists) {
+            throw Errors.NOT_FOUND('Group');
+        }
+
+        const group = this.transformGroupDocument(groupDoc);
+        
+        // Check if user can edit expenses in this group
+        // Convert expense to ExpenseData format for permission check
+        const expenseData = this.transformExpenseToResponse(expense);
+        const canEditExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing', { expense: expenseData });
+        if (!canEditExpense) {
+            throw new ApiError(
+                HTTP_STATUS.FORBIDDEN,
+                'NOT_AUTHORIZED',
+                'You do not have permission to edit this expense'
+            );
+        }
+
+        // If updating paidBy or participants, validate they are group members
+        const memberIds = Object.keys(group.members);
+        
+        if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_PAYER',
+                'Payer must be a member of the group'
+            );
+        }
+
+        if (updateData.participants) {
+            for (const participantId of updateData.participants) {
+                if (!memberIds.includes(participantId)) {
+                    throw new ApiError(
+                        HTTP_STATUS.BAD_REQUEST,
+                        'INVALID_PARTICIPANT',
+                        `Participant ${participantId} is not a member of the group`
+                    );
+                }
+            }
+        }
+
+        // Build update object with Firestore timestamp
+        // Note: We use 'any' here because we need to mix UpdateExpenseRequest fields 
+        // with Firestore-specific fields (timestamps) that have different types
+        const updates: any = {
+            ...updateData,
+            updatedAt: createServerTimestamp(),
+        };
+
+        // Handle date conversion
+        if (updateData.date) {
+            updates.date = parseISOToTimestamp(updateData.date) || createServerTimestamp();
+        }
+
+        // Handle split recalculation if needed
+        if (updateData.splitType || updateData.participants || updateData.splits || updateData.amount) {
+            const amount = updateData.amount !== undefined ? updateData.amount : expense.amount;
+            const splitType = updateData.splitType !== undefined ? updateData.splitType : expense.splitType;
+            const participants = updateData.participants !== undefined ? updateData.participants : expense.participants;
+
+            // If only amount is updated and splitType is 'exact', convert to equal splits
+            let finalSplitType = splitType;
+            let splits = updateData.splits !== undefined ? updateData.splits : expense.splits;
+
+            if (updateData.amount && !updateData.splitType && !updateData.participants && !updateData.splits) {
+                if (splitType === SplitTypes.EXACT) {
+                    // When only amount changes on exact splits, convert to equal splits
+                    finalSplitType = SplitTypes.EQUAL;
+                    splits = [];
+                }
+            }
+
+            updates.splits = calculateSplits(amount, finalSplitType, participants, splits);
+            updates.splitType = finalSplitType;
+        }
+
+        // Use transaction to update expense atomically with optimistic locking
+        await firestoreDb.runTransaction(async (transaction) => {
+            // Re-fetch expense within transaction to check for concurrent updates
+            const expenseDocInTx = await transaction.get(docRef);
+            
+            if (!expenseDocInTx.exists) {
+                throw Errors.NOT_FOUND('Expense');
+            }
+
+            const currentData = expenseDocInTx.data();
+            if (!currentData) {
+                throw Errors.NOT_FOUND('Expense');
+            }
+
+            // Check if expense was updated since we fetched it
+            const originalTimestamp = expense.updatedAt;
+            const currentTimestamp = currentData.updatedAt;
+            
+            if (!currentTimestamp || !originalTimestamp || 
+                !currentTimestamp.isEqual(originalTimestamp)) {
+                throw new ApiError(
+                    HTTP_STATUS.CONFLICT,
+                    'CONCURRENT_UPDATE',
+                    'Expense was modified by another user. Please refresh and try again.'
+                );
+            }
+
+            // Create history entry
+            const historyEntry = {
+                ...expense,
+                modifiedAt: createServerTimestamp(),
+                modifiedBy: userId,
+                changeType: 'update' as const,
+                changes: Object.keys(updateData),
+            };
+
+            // Save history and update expense
+            const historyRef = docRef.collection('history').doc();
+            transaction.set(historyRef, historyEntry);
+            transaction.update(docRef, updates);
+        });
+
+        // Set business context for logging
+        LoggerContext.setBusinessContext({ groupId: expense.groupId, expenseId });
+        logger.info('expense-updated', { id: expenseId, changes: Object.keys(updateData) });
+
+        // Fetch and return the updated expense
+        const updatedDoc = await docRef.get();
+        const updatedExpense = {
+            id: updatedDoc.id,
+            ...updatedDoc.data(),
+        } as Expense;
+
+        return this.transformExpenseToResponse(updatedExpense);
     }
 
     /**

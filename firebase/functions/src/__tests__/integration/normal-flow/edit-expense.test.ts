@@ -214,7 +214,7 @@ describe('Edit Expense Integration Tests', () => {
             expect(new Date(updatedExpense.date).toDateString()).toBe(newDate.toDateString());
         });
 
-        test('should handle concurrent updates gracefully', async () => {
+        test('should handle concurrent updates with optimistic locking', async () => {
             // Create expense
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
@@ -245,8 +245,27 @@ describe('Edit Expense Integration Tests', () => {
                 users[0].token,
             );
 
-            // Both should complete without error
-            await expect(Promise.all([update1, update2])).resolves.not.toThrow();
+            // With optimistic locking, one should succeed and one might fail
+            const results = await Promise.allSettled([update1, update2]);
+            
+            const successes = results.filter(r => r.status === 'fulfilled');
+            const failures = results.filter(r => r.status === 'rejected');
+            // Check for CONCURRENT_UPDATE in error message since the error structure varies
+            const conflicts = results.filter(r => 
+                r.status === 'rejected' && 
+                (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' ||
+                 r.reason?.message?.includes('CONCURRENT_UPDATE') ||
+                 r.reason?.message?.includes('409')));
+            
+            // At least one should succeed
+            expect(successes.length).toBeGreaterThan(0);
+            
+            // Both might succeed due to Firestore's automatic retry
+            // Or one might fail with CONCURRENT_UPDATE
+            // This is acceptable behavior
+            if (failures.length > 0) {
+                expect(conflicts.length).toBe(failures.length);
+            }
 
             // Final state should reflect one of the updates
             const finalExpense = await driver.getExpense(createdExpense.id, users[0].token);
