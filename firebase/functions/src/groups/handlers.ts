@@ -12,7 +12,7 @@ import { calculateGroupBalances } from '../services/balance';
 import { groupService } from '../services/GroupService';
 import { _getGroupMembersData } from './memberHandlers';
 import { _getGroupExpensesData } from '../expenses/handlers';
-import { _getGroupSettlementsData } from '../settlements/handlers';
+import { SettlementService } from '../services/SettlementService';
 import { z } from 'zod';
 
 /**
@@ -267,7 +267,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
             calculateGroupBalances(groupId),
 
             // Get settlements using extracted function with pagination
-            _getGroupSettlementsData(groupId, {
+            new SettlementService()._getGroupSettlementsData(groupId, {
                 limit: settlementLimit,
                 cursor: settlementCursor,
             }),
