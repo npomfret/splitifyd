@@ -327,3 +327,80 @@ export * from '../src/user-colors';`;
 - The current implementation only solved half the problem
 - @splitifyd/shared compilation still adds 5-10 seconds to dev startup
 - Full no-compile mode requires addressing both packages
+
+## 7. Critical Issue Discovered: Jest Tests Break with tsx Wrappers
+
+### The Problem
+After implementing the no-compile mode, all Jest tests that import `@splitifyd/shared` fail with:
+```
+Jest encountered an unexpected token
+SyntaxError: Cannot use import statement outside a module
+  at Object.<anonymous> (../../packages/shared/dist/index.cjs:6:1)
+```
+
+This happens because:
+1. Jest imports `@splitifyd/shared` from `dist/index.cjs`
+2. The wrapper contains `require('tsx')` which loads tsx's ESM code
+3. Jest runs in CommonJS mode and can't handle the ESM imports from tsx
+
+### Root Cause Analysis
+The conditional-build scripts only check for `NODE_ENV === 'production'`:
+- **Development** (NODE_ENV undefined): Creates tsx wrappers ✅
+- **Production** (NODE_ENV=production): Compiles TypeScript ✅
+- **Tests** (NODE_ENV undefined): Creates tsx wrappers ❌ (Jest can't handle this)
+
+### The Solution: Compile for Tests
+Tests need compiled JavaScript, not tsx wrappers. We must modify the conditional build logic to compile when running tests.
+
+#### Updated Conditional Build Logic
+Both `conditional-build.js` scripts need to check for test environment:
+
+**packages/shared/scripts/conditional-build.js:**
+```javascript
+// Compile for production OR tests
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+    console.log('🏗️  Running production build for @splitifyd/shared...');
+    execSync('npx tsup', { stdio: 'inherit' });
+} else {
+    console.log('⚡ Setting up @splitifyd/shared development mode...');
+    // Create wrappers for development
+}
+```
+
+**firebase/functions/scripts/conditional-build.js:**
+```javascript
+// Compile for production OR tests
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
+    console.log('🏗️  Running production build for Firebase Functions...');
+    require('child_process').execSync('npm run build:prod', { stdio: 'inherit' });
+} else {
+    console.log('⚡ Setting up development mode...');
+    // Create wrapper for development
+}
+```
+
+#### Updated Test Scripts
+**firebase/functions/package.json:**
+```json
+{
+  "scripts": {
+    "test": "NODE_ENV=test npm run build && npm run test:unit && npm run test:integration",
+    "test:unit": "NODE_ENV=test npm run build && jest src/__tests__/unit/",
+    "test:integration": "NODE_ENV=test npm run build && FUNCTIONS_EMULATOR=true GCLOUD_PROJECT=splitifyd jest src/__tests__/integration/..."
+  }
+}
+```
+
+### Environment Summary
+After this fix, the build system will work as follows:
+
+| Environment | NODE_ENV | Build Output | Use Case |
+|------------|----------|--------------|----------|
+| Development | undefined | tsx wrappers | Fast dev server startup |
+| Test | test | Compiled JS | Jest can run tests |
+| Production | production | Compiled JS | Deployment |
+
+### Additional Notes
+- The Firebase clean script was updated to rebuild the wrapper after cleaning
+- The ESM wrapper for Vite was simplified to just re-export TypeScript (Vite handles TS natively)
+- Cross-platform compatibility was maintained using Node.js scripts instead of shell scripts
