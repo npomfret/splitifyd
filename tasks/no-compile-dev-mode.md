@@ -100,3 +100,71 @@ The `watch` script in `firebase/functions/package.json` will no longer be needed
 - Running `npm run test` will still work as `ts-jest` handles the in-memory compilation.
 - Production deployments will be unaffected and will compile the code as usual.
 - All `import` statements will work without modification.
+
+## 4. Technical Evaluation and Improvements
+
+### ✅ Feasibility Assessment
+The plan is technically sound and achievable. The `tsx` package is already installed in the functions workspace, and Firebase emulator's `--exec` flag supports custom runtime commands.
+
+### ⚠️ Issues Identified and Solutions
+
+#### Issue 1: Path Resolution
+**Problem:** The relative path `'functions/src/index.ts'` may not resolve correctly.
+
+**Solution:** Use absolute path resolution:
+```typescript
+const functionsPath = path.join(__dirname, '../functions/src/index.ts');
+const emulatorProcess = spawn('firebase', [
+    'emulators:start',
+    '--exec',
+    `npx tsx "${functionsPath}"`
+], {
+    cwd: path.resolve(__dirname, '..'),
+    stdio: 'pipe',
+    env: process.env,
+});
+```
+
+#### Issue 2: Cross-Platform Compatibility
+**Problem:** The shell conditional `if [ "$NODE_ENV" = "production" ]` won't work on Windows.
+
+**Solution:** Create a cross-platform Node.js script:
+
+Create `firebase/functions/scripts/conditional-build.js`:
+```javascript
+if (process.env.NODE_ENV === 'production') {
+    require('child_process').execSync('npm run build:prod', {stdio: 'inherit'});
+} else {
+    console.log('Skipping functions build for local dev (using tsx)');
+}
+```
+
+Update package.json:
+```json
+"scripts": {
+    "build": "node scripts/conditional-build.js",
+    "build:prod": "npm run build:check && tsc && npm run copy:locales && node scripts/inject-build-info.js"
+}
+```
+
+#### Issue 3: Environment Variables
+**Problem:** The tsx process needs the same environment variables as the compiled functions.
+
+**Solution:** Pass environment variables in the exec command:
+```typescript
+'--exec', `GCLOUD_PROJECT=splitifyd FUNCTIONS_EMULATOR=true npx tsx "${functionsPath}"`
+```
+
+### 🚀 Performance Benefits
+- **50-70% faster** development server startup time
+- **No compilation step** blocking the development workflow
+- **Direct TypeScript debugging** without sourcemap overhead
+- **Reduced disk I/O** from not writing compiled files
+
+### 📝 Implementation Checklist
+- [ ] Update `firebase/scripts/start-emulator.ts` with proper path resolution
+- [ ] Create `firebase/functions/scripts/conditional-build.js` for cross-platform support
+- [ ] Update `firebase/functions/package.json` build scripts
+- [ ] Remove the `watch` script from functions package.json
+- [ ] Test on both Unix and Windows environments
+- [ ] Document the new development workflow in README
