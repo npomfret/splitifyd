@@ -7,3 +7,4 @@ export { ExpensesList } from './ExpensesList';
 export { ExpenseItem } from './ExpenseItem';
 export { ShareGroupModal } from './ShareGroupModal';
 export { EditGroupModal } from './EditGroupModal';
+export { LeaveGroupDialog } from './LeaveGroupDialog';

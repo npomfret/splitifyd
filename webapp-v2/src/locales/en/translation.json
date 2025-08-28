@@ -309,7 +309,8 @@
         "addExpense": "Add Expense",
         "settleUp": "Settle Up",
         "inviteOthers": "Invite Others",
-        "groupSettings": "Group Settings"
+        "groupSettings": "Group Settings",
+        "leaveGroup": "Leave Group"
     },
     "membersList": {
         "title": "Members",

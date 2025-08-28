@@ -2,18 +2,20 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { SidebarCard } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { PlusIcon, UserPlusIcon, CreditCardIcon, CogIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, UserPlusIcon, CreditCardIcon, CogIcon, ArrowLeftStartOnRectangleIcon } from '@heroicons/react/24/outline';
 
 interface GroupActionsProps {
     onAddExpense?: () => void;
     onSettleUp?: () => void;
     onShare?: () => void;
     onSettings?: () => void; // New prop for settings button
+    onLeaveGroup?: () => void; // New prop for leave group button
     isGroupOwner?: boolean; // To conditionally show settings button
+    canLeaveGroup?: boolean; // Whether leave group button should be enabled
     variant?: 'horizontal' | 'vertical';
 }
 
-export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, isGroupOwner, variant = 'horizontal' }: GroupActionsProps) {
+export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, onLeaveGroup, isGroupOwner, canLeaveGroup, variant = 'horizontal' }: GroupActionsProps) {
     const { t } = useTranslation();
     const commonButtons = (
         <>
@@ -47,6 +49,21 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
                 </>
             </Button>
         ) : null;
+    
+    const leaveGroupButton = 
+        onLeaveGroup && canLeaveGroup ? (
+            <Button 
+                variant="secondary" 
+                onClick={onLeaveGroup} 
+                className={variant === 'vertical' ? 'w-full' : ''} 
+                data-testid="leave-group-button"
+            >
+                <>
+                    <ArrowLeftStartOnRectangleIcon className="h-4 w-4 mr-2" />
+                    {t('groupActions.leaveGroup')}
+                </>
+            </Button>
+        ) : null;
 
     if (variant === 'vertical') {
         return (
@@ -54,6 +71,7 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
                 <Stack spacing="sm">
                     {commonButtons}
                     {settingsButton}
+                    {leaveGroupButton}
                 </Stack>
             </SidebarCard>
         );
@@ -63,6 +81,7 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, is
         <div className="flex gap-4">
             {commonButtons}
             {settingsButton}
+            {leaveGroupButton}
         </div>
     );
 }

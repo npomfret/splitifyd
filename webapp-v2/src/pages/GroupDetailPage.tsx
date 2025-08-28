@@ -8,7 +8,7 @@ import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
 import { Stack } from '@/components/ui';
-import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal } from '@/components/group';
+import { GroupActions, GroupHeader, MembersListWithManagement, ExpensesList, BalanceSummary, ShareGroupModal, EditGroupModal, LeaveGroupDialog } from '@/components/group';
 import { SettlementForm, SettlementHistory } from '@/components/settlements';
 import { SidebarCard } from '@/components/ui/SidebarCard';
 import { CommentsSection } from '@/components/comments';
@@ -22,6 +22,7 @@ interface GroupDetailPageProps {
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const isInitialized = useSignal(false);
     const showDeletedExpenses = useSignal(false);
+    const showLeaveGroupDialog = useSignal(false);
     
     // Use the modal management hook
     const modals = useGroupModals();
@@ -30,11 +31,32 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const group = useComputed(() => enhancedGroupDetailStore.group);
     const loading = useComputed(() => enhancedGroupDetailStore.loading);
     const error = useComputed(() => enhancedGroupDetailStore.error);
+    const members = useComputed(() => enhancedGroupDetailStore.members);
+    const balances = useComputed(() => enhancedGroupDetailStore.balances);
 
     // Auth store via hook
     const authStore = useAuthRequired();
     const currentUser = useComputed(() => authStore.user);
     const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
+    
+    // Check if user can leave group (not the owner and not the last member)
+    const isLastMember = useComputed(() => members.value.length === 1);
+    const hasOutstandingBalance = useComputed(() => {
+        if (!balances.value?.balancesByCurrency || !currentUser.value) return false;
+        
+        for (const currency in balances.value.balancesByCurrency) {
+            const currencyBalances = balances.value.balancesByCurrency[currency];
+            const userBalance = currencyBalances?.[currentUser.value.uid];
+            
+            if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
+                return true;
+            }
+        }
+        
+        return false;
+    });
+    // Users can leave if they're not the owner and not the only member left
+    const canLeaveGroup = useComputed(() => !isGroupOwner.value && !isLastMember.value);
 
     // Component should only render if user is authenticated (handled by ProtectedRoute)
     if (!currentUser.value) {
@@ -163,6 +185,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Navigate to dashboard after group deletion
         route('/dashboard');
     };
+    
+    const handleLeaveGroup = () => {
+        showLeaveGroupDialog.value = true;
+    };
 
     // Render group detail
     return (
@@ -175,6 +201,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             variant="sidebar"
                             onInviteClick={handleShare}
                             onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                            onLeaveGroupClick={handleLeaveGroup}
                         />
 
                         <GroupActions
@@ -182,7 +209,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             onSettleUp={handleSettleUp}
                             onShare={handleShare}
                             onSettings={handleSettings}
+                            onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
                             isGroupOwner={isGroupOwner.value ?? false}
+                            canLeaveGroup={canLeaveGroup.value}
                             variant="vertical"
                         />
                     </>
@@ -193,7 +222,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">
-                            <GroupActions onAddExpense={handleAddExpense} onSettleUp={handleSettleUp} onShare={handleShare} onSettings={handleSettings} isGroupOwner={isGroupOwner.value ?? false} />
+                            <GroupActions 
+                                onAddExpense={handleAddExpense} 
+                                onSettleUp={handleSettleUp} 
+                                onShare={handleShare} 
+                                onSettings={handleSettings} 
+                                onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
+                                isGroupOwner={isGroupOwner.value ?? false} 
+                                canLeaveGroup={canLeaveGroup.value}
+                            />
                         </div>
 
                         <ExpensesList
@@ -212,6 +249,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                                 groupId={groupId!}
                                 onInviteClick={handleShare}
                                 onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                                onLeaveGroupClick={handleLeaveGroup}
                             />
                         </div>
 
@@ -267,6 +305,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     enhancedGroupDetailStore.fetchBalances();
                     modals.closeSettlementForm();
                 }}
+            />
+            
+            {/* Leave Group Dialog */}
+            <LeaveGroupDialog
+                isOpen={showLeaveGroupDialog.value}
+                onClose={() => (showLeaveGroupDialog.value = false)}
+                groupId={groupId!}
+                hasOutstandingBalance={hasOutstandingBalance.value}
             />
         </BaseLayout>
     );

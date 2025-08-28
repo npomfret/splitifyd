@@ -1331,8 +1331,9 @@ export class GroupDetailPage extends BasePage {
     
     // Member management element accessors
     getLeaveGroupButton(): Locator {
-        // There may be multiple leave buttons (sidebar and mobile views)
-        // Return the first visible one
+        // Leave button is now in the Group Actions panel
+        // There may be multiple (sidebar and mobile views)
+        // Return the first visible one with the test id
         return this.page.getByTestId('leave-group-button').first();
     }
 

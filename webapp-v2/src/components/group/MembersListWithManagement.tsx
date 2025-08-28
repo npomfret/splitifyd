@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { useSignal, useComputed } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { Card } from '../ui/Card';
 import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '@/components/ui';
-import { UserPlusIcon, UserMinusIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { UserPlusIcon, UserMinusIcon } from '@heroicons/react/24/outline';
 import type { User } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
@@ -18,6 +19,12 @@ interface MembersListWithManagementProps {
     variant?: 'default' | 'sidebar';
     onInviteClick?: () => void;
     onMemberChange?: () => void;
+    onLeaveGroupClick?: () => void;
+}
+
+export interface LeaveGroupState {
+    showDialog: boolean;
+    hasBalance: boolean;
 }
 
 export function MembersListWithManagement({
@@ -25,6 +32,7 @@ export function MembersListWithManagement({
     variant = 'default',
     onInviteClick,
     onMemberChange,
+    onLeaveGroupClick,
 }: MembersListWithManagementProps) {
     const { t } = useTranslation();
     const showLeaveConfirm = useSignal(false);
@@ -45,7 +53,6 @@ export function MembersListWithManagement({
     const currentUserId = currentUser.value?.uid || '';
     const createdBy = group.value?.createdBy || '';
     const isOwner = currentUserId === createdBy;
-    const isLastMember = members.value.length === 1;
 
     // Helper function to get user balance from Group.balance structure
     // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
@@ -81,6 +88,14 @@ export function MembersListWithManagement({
     const memberHasOutstandingBalance = (memberId: string): boolean => {
         return getUserBalance(memberId) > 0;
     };
+    
+    // If parent provides handler, let parent control the dialog
+    useEffect(() => {
+        if (onLeaveGroupClick) {
+            // Don't show internal dialog if parent is handling it
+            showLeaveConfirm.value = false;
+        }
+    }, [onLeaveGroupClick]);
 
     const handleLeaveGroup = async () => {
         if (isProcessing.value) return;
@@ -154,19 +169,8 @@ export function MembersListWithManagement({
                             {getMemberRole(member) && <span className="text-xs text-gray-500">{getMemberRole(member)}</span>}
                         </div>
                     </div>
-                    {/* Show actions only for the current user or if current user is owner */}
-                    {member.uid === currentUserId && !isLastMember ? (
-                        <Button 
-                            variant="secondary" 
-                            size="sm" 
-                            onClick={() => (showLeaveConfirm.value = true)}
-                        >
-                            <>
-                                <ArrowRightOnRectangleIcon className="h-4 w-4 mr-1" />
-                                {t('membersList.leaveGroup')}
-                            </>
-                        </Button>
-                    ) : isOwner && member.uid !== currentUserId ? (
+                    {/* Show actions only if current user is owner */}
+                    {isOwner && member.uid !== currentUserId ? (
                         <Button
                             variant="ghost"
                             size="sm"
@@ -174,6 +178,7 @@ export function MembersListWithManagement({
                                 memberToRemove.value = member;
                                 showRemoveConfirm.value = true;
                             }}
+                            disabled={memberHasOutstandingBalance(member.uid)}
                             data-testid="remove-member-button"
                         >
                             <UserMinusIcon className="h-4 w-4" />
@@ -211,19 +216,21 @@ export function MembersListWithManagement({
         <>
             {content}
 
-            {/* Leave Group Confirmation */}
-            <ConfirmDialog
-                isOpen={showLeaveConfirm.value}
-                onCancel={() => (showLeaveConfirm.value = false)}
-                onConfirm={handleLeaveGroup}
-                title={t('membersList.leaveGroupDialog.title')}
-                message={hasOutstandingBalance.value ? t('membersList.leaveGroupDialog.messageWithBalance') : t('membersList.leaveGroupDialog.messageConfirm')}
-                confirmText={hasOutstandingBalance.value ? t('common.understood') : t('membersList.leaveGroupDialog.confirmText')}
-                cancelText={t('membersList.leaveGroupDialog.cancelText')}
-                variant={hasOutstandingBalance.value ? 'info' : 'warning'}
-                loading={isProcessing.value}
-                data-testid="leave-group-dialog"
-            />
+            {/* Leave Group Confirmation - only shown when not controlled by parent */}
+            {!onLeaveGroupClick && (
+                <ConfirmDialog
+                    isOpen={showLeaveConfirm.value}
+                    onCancel={() => (showLeaveConfirm.value = false)}
+                    onConfirm={handleLeaveGroup}
+                    title={t('membersList.leaveGroupDialog.title')}
+                    message={hasOutstandingBalance.value ? t('membersList.leaveGroupDialog.messageWithBalance') : t('membersList.leaveGroupDialog.messageConfirm')}
+                    confirmText={hasOutstandingBalance.value ? t('common.understood') : t('membersList.leaveGroupDialog.confirmText')}
+                    cancelText={t('membersList.leaveGroupDialog.cancelText')}
+                    variant={hasOutstandingBalance.value ? 'info' : 'warning'}
+                    loading={isProcessing.value}
+                    data-testid="leave-group-dialog"
+                />
+            )}
 
             {/* Remove Member Confirmation */}
             <ConfirmDialog
