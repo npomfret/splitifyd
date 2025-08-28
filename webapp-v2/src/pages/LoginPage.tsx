@@ -85,9 +85,13 @@ export function LoginPage() {
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
-                    <a href="/reset-password" class="text-sm text-blue-600 hover:text-blue-500 transition-colors">
+                    <button
+                        type="button"
+                        onClick={() => route(ROUTES.RESET_PASSWORD)}
+                        class="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+                    >
                         {t('loginPage.forgotPassword')}
-                    </a>
+                    </button>
                 </div>
 
                 <SubmitButton loading={isSubmitting} disabled={!isFormValid}>
@@ -97,9 +101,13 @@ export function LoginPage() {
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
                         {t('loginPage.noAccount')}{' '}
-                        <a href="/register" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        <button
+                            type="button"
+                            onClick={() => route(ROUTES.REGISTER)}
+                            class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        >
                             {t('loginPage.signUp')}
-                        </a>
+                        </button>
                     </p>
                 </div>
             </AuthForm>

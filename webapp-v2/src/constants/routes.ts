@@ -16,6 +16,9 @@ export const ROUTES = {
     EXPENSE_DETAIL: '/groups/:groupId/expenses/:expenseId',
     JOIN_GROUP: '/join',
 
+    // User Pages
+    SETTINGS: '/settings',
+
     // Static Pages
     PRICING: '/pricing',
     TERMS_OF_SERVICE: '/terms-of-service',

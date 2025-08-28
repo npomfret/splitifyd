@@ -161,7 +161,7 @@ export class RegisterPage extends BasePage {
     }
 
     getSignInLink() {
-        return this.page.getByRole(ARIA_ROLES.LINK, { name: translation.registerPage.signIn });
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: translation.registerPage.signIn });
     }
 
     // Terms and Cookie Policy specific accessors

@@ -51,17 +51,17 @@ export class LoginPage extends BasePage {
     }
 
     async clickSignUp() {
-        const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink }).first();
-        // Note: Links aren't buttons, but we can still ensure they're enabled
-        await expect(link).toBeEnabled();
-        await link.click();
+        const button = this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signUpLink }).first();
+        // Note: Buttons should be enabled before clicking
+        await expect(button).toBeEnabled();
+        await button.click();
     }
 
     async clickForgotPassword() {
-        const link = this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
-        // Note: Links aren't buttons, but we can still ensure they're enabled
-        await expect(link).toBeEnabled();
-        await link.click();
+        const button = this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.forgotPasswordLink });
+        // Note: Buttons should be enabled before clicking
+        await expect(button).toBeEnabled();
+        await button.click();
     }
 
     // Element accessors for direct interaction in tests
@@ -82,11 +82,11 @@ export class LoginPage extends BasePage {
     }
 
     getSignUpLink() {
-        return this.page.getByRole(ARIA_ROLES.LINK, { name: this.signUpLink });
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signUpLink });
     }
 
     getForgotPasswordLink() {
-        return this.page.getByRole(ARIA_ROLES.LINK, { name: this.forgotPasswordLink });
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.forgotPasswordLink });
     }
 
     // Form element labels and headings

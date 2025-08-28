@@ -1,6 +1,8 @@
 import { useComputed } from '@preact/signals';
+import { route } from 'preact-router';
 import { useAuth } from '../app/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
+import { ROUTES } from '@/constants/routes';
 
 interface NotFoundPageProps {
     path?: string;
@@ -28,13 +30,21 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                 </p>
                 <div className="space-x-4">
                     {isAuthenticated.value ? (
-                        <a href="/dashboard" className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block" data-testid="go-to-dashboard-link">
+                        <button
+                            onClick={() => route(ROUTES.DASHBOARD)}
+                            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block"
+                            data-testid="go-to-dashboard-link"
+                        >
                             {t('notFoundPage.goToDashboard')}
-                        </a>
+                        </button>
                     ) : (
-                        <a href="/" className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block" data-testid="go-home-link">
+                        <button
+                            onClick={() => route(ROUTES.HOME)}
+                            className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block"
+                            data-testid="go-home-link"
+                        >
                             {t('notFoundPage.goHome')}
-                        </a>
+                        </button>
                     )}
                 </div>
             </div>

@@ -77,13 +77,29 @@ export function UserMenu({ user }: UserMenuProps) {
                         <p class="text-xs text-gray-500">{user.email}</p>
                     </div>
 
-                    <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-dashboard-link" role="menuitem">
+                    <button
+                        onClick={() => {
+                            setIsOpen(false);
+                            route(ROUTES.DASHBOARD);
+                        }}
+                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        data-testid="user-menu-dashboard-link"
+                        role="menuitem"
+                    >
                         {t('userMenu.dashboard')}
-                    </a>
+                    </button>
 
-                    <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-settings-link" role="menuitem">
+                    <button
+                        onClick={() => {
+                            setIsOpen(false);
+                            route(ROUTES.SETTINGS);
+                        }}
+                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        data-testid="user-menu-settings-link"
+                        role="menuitem"
+                    >
                         {t('userMenu.settings')}
-                    </a>
+                    </button>
 
                     <hr class="my-1 border-gray-100" />
 

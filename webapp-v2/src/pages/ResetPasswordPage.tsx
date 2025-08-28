@@ -1,5 +1,7 @@
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
+import { route } from 'preact-router';
+import { ROUTES } from '@/constants/routes';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -85,9 +87,13 @@ export function ResetPasswordPage() {
                         </button>
 
                         <div class="text-center">
-                            <a href="/login" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                            <button
+                                type="button"
+                                onClick={() => route(ROUTES.LOGIN)}
+                                class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                            >
                                 ← Back to Sign In
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -109,9 +115,13 @@ export function ResetPasswordPage() {
                 </SubmitButton>
 
                 <div class="text-center">
-                    <a href="/login" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                    <button
+                        type="button"
+                        onClick={() => route(ROUTES.LOGIN)}
+                        class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                    >
                         ← Back to Sign In
-                    </a>
+                    </button>
                 </div>
             </AuthForm>
         </AuthLayout>

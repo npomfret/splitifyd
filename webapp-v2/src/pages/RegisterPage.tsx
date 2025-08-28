@@ -199,9 +199,13 @@ export function RegisterPage() {
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
                         {t('registerPage.hasAccount')}{' '}
-                        <a href="/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        <button
+                            type="button"
+                            onClick={() => route(ROUTES.LOGIN)}
+                            class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        >
                             {t('registerPage.signIn')}
-                        </a>
+                        </button>
                     </p>
                 </div>
             </AuthForm>
