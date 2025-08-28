@@ -26,7 +26,7 @@
         "paginate-users": "tsx scripts/paginate-users.ts emulator",
         "paginate-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/paginate-users.ts production && rm functions/.env",
         "logs": "firebase functions:log",
-        "manage-functions": "tsx scripts/manage-deployed-functions.ts",
+        "manage-functions": "tsx scripts/manage-deployed-functions.ts"
     },
     "author": "",
     "license": "MIT",
