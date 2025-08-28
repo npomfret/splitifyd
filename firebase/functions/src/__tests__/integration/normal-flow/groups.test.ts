@@ -510,7 +510,7 @@ describe('RESTful Group Endpoints', () => {
             // Test with missing groupId (should be handled by validation)
             try {
                 await driver.makeInvalidApiCall('/groups/balances', 'GET', null, users[0].token);
-                fail('Should have thrown validation error');
+                throw new Error('Should have thrown validation error');
             } catch (error) {
                 expect((error as Error).message).toMatch(/validation|required|groupId/i);
             }

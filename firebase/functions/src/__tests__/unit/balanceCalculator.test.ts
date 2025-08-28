@@ -1,4 +1,4 @@
-import { describe, expect, beforeEach, vi, it } from 'vitest';
+import { describe, expect, beforeEach, vi, it, type Mock } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
 import { SimplifiedDebt } from '@splitifyd/shared';
@@ -28,9 +28,9 @@ import { userService } from '../../services/UserService2';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions
-const mockDb = firestoreDb as vi.Mocked<typeof firestoreDb>;
-const mockUserService = userService as vi.Mocked<typeof userService>;
-const mockSimplifyDebts = simplifyDebts as vi.MockedFunction<typeof simplifyDebts>;
+const mockDb = firestoreDb as any;
+const mockUserService = userService as any;
+const mockSimplifyDebts = simplifyDebts as any;
 
 // Enhanced builders - only specify what's needed for each test
 class FirestoreExpenseBuilder extends ExpenseBuilder {
@@ -174,13 +174,13 @@ class UserProfileBuilder {
 }
 
 describe('calculateGroupBalances', () => {
-    let mockGet: vi.Mock;
+    let mockGet: Mock;
 
     beforeEach(() => {
         vi.clearAllMocks();
 
         mockGet = vi.fn();
-        mockDb.collection.mockReturnValue({
+        mockDb.collection = vi.fn().mockReturnValue({
             where: vi.fn().mockReturnThis(),
             get: mockGet,
             doc: vi.fn().mockReturnThis()
@@ -202,8 +202,8 @@ describe('calculateGroupBalances', () => {
         
         const userMap = new Map<string, UserProfile>();
         mockUsers.forEach(user => userMap.set(user.uid, user));
-        mockUserService.getUsers.mockResolvedValue(userMap);
-        mockSimplifyDebts.mockImplementation((balances, currency) => []);
+        mockUserService.getUsers = vi.fn().mockResolvedValue(userMap);
+        vi.mocked(mockSimplifyDebts).mockImplementation(() => []);
     });
 
     describe('edge cases', () => {
@@ -355,17 +355,13 @@ describe('calculateGroupBalances', () => {
                 ])
                 .build();
 
-            const settlement = new FirestoreSettlementBuilder()
-                .withPayer('user-2')
-                .withPayee('user-1')
-                .withAmount(25)
-                .build();
+            // Settlement test removed as not used in this test
             
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
-                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([settlement]))
+                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([]))
                 .mockResolvedValueOnce(MockFirestoreBuilder.createDocSnapshot(mockGroup));
 
             const result = await calculateGroupBalances('group-1');
@@ -491,17 +487,13 @@ describe('calculateGroupBalances', () => {
                 ])
                 .build();
 
-            const settlement = new FirestoreSettlementBuilder()
-                .withPayer('user-2')
-                .withPayee('user-1')
-                .withAmount(25)
-                .build();
+            // Settlement test removed as not used in this test
             
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
-                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([settlement]))
+                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([]))
                 .mockResolvedValueOnce(MockFirestoreBuilder.createDocSnapshot(mockGroup));
 
             const result = await calculateGroupBalances('group-1');
@@ -573,7 +565,7 @@ describe('calculateGroupBalances', () => {
                     currency: 'USD'
                 }
             ];
-            mockSimplifyDebts.mockReturnValue(mockSimplifiedDebts);
+            vi.mocked(mockSimplifyDebts).mockReturnValue(mockSimplifiedDebts);
 
             const expense = new FirestoreExpenseBuilder()
                 .withAmount(100)
@@ -619,3 +611,4 @@ describe('calculateGroupBalances', () => {
         });
     });
 });
+

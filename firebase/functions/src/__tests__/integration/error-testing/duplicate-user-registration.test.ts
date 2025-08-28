@@ -38,7 +38,7 @@ describe('Duplicate User Registration Tests', () => {
             // Try to register again and check exact error
             try {
                 await driver.register(userData);
-                fail('Should have thrown an error');
+                throw 'Should have thrown an error';
             } catch (error: any) {
                 expect(error.message).toContain('409');
                 // The actual error response should contain the proper error structure

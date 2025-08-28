@@ -17,6 +17,11 @@ vi.mock('../../utils/groupHelpers');
 vi.mock('../../groups/handlers');
 vi.mock('../../permissions');
 
+// Type the mocked dependencies
+const mockFirestoreDb = firestoreDb as any;
+const mockGroupHelpers = groupHelpers as any;
+const mockPermissionEngine = PermissionEngine as any;
+
 describe('ExpenseService', () => {
     let service: ExpenseService;
     let mockExpensesCollection: any;
@@ -115,7 +120,7 @@ describe('ExpenseService', () => {
         };
 
         // Mock Firestore database
-        (firestoreDb.collection as vi.Mock).mockImplementation((collection: string) => {
+        mockFirestoreDb.collection.mockImplementation((collection: string) => {
             if (collection === FirestoreCollections.EXPENSES) {
                 return mockExpensesCollection;
             }
@@ -126,7 +131,7 @@ describe('ExpenseService', () => {
         });
 
         // Mock runTransaction
-        (firestoreDb.runTransaction as vi.Mock).mockImplementation(async (callback) => {
+        mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
             return callback(mockTransaction);
         });
 
@@ -320,7 +325,7 @@ describe('ExpenseService', () => {
             mockExpensesCollection.get = mockQuery.get;
 
             // Mock verifyGroupMembership
-            (groupHelpers.verifyGroupMembership as vi.Mock).mockResolvedValue(undefined);
+            mockGroupHelpers.verifyGroupMembership.mockResolvedValue(undefined);
         });
 
         it('should successfully list group expenses', async () => {
@@ -525,7 +530,7 @@ describe('ExpenseService', () => {
             };
 
             // Mock firestoreDb.runTransaction
-            (firestoreDb.runTransaction as vi.Mock).mockImplementation(async (callback) => {
+            mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
@@ -557,10 +562,10 @@ describe('ExpenseService', () => {
             }));
 
             // Mock verifyGroupMembership
-            (groupHelpers.verifyGroupMembership as vi.Mock).mockResolvedValue(undefined);
+            mockGroupHelpers.verifyGroupMembership.mockResolvedValue(undefined);
 
             // Mock PermissionEngine
-            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(true);
+            mockPermissionEngine.checkPermission.mockReturnValue(true);
 
             // Mock createServerTimestamp
             vi.spyOn(dateHelpers, 'createServerTimestamp')
@@ -660,7 +665,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user is not a group member', async () => {
-            (groupHelpers.verifyGroupMembership as vi.Mock).mockRejectedValue(
+            mockGroupHelpers.verifyGroupMembership.mockRejectedValue(
                 new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group')
             );
 
@@ -680,7 +685,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user lacks permission to create expenses', async () => {
-            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(false);
+            mockPermissionEngine.checkPermission.mockReturnValue(false);
 
             await expect(service.createExpense(mockUserId, mockCreateExpenseData))
                 .rejects.toEqual(new ApiError(
@@ -760,7 +765,7 @@ describe('ExpenseService', () => {
             });
 
             // PermissionEngine should throw when permissions are missing
-            (PermissionEngine.checkPermission as vi.Mock).mockImplementation(() => {
+            mockPermissionEngine.checkPermission.mockImplementation(() => {
                 throw new Error('Group group123 is missing permissions configuration');
             });
 
@@ -820,7 +825,7 @@ describe('ExpenseService', () => {
 
         beforeEach(() => {
             // Reset PermissionEngine mock to allow edits by default
-            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(true);
+            mockPermissionEngine.checkPermission.mockReturnValue(true);
 
             // Setup existing expense fetch  
             mockExpenseDocRef.get.mockResolvedValue({
@@ -1042,7 +1047,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user lacks permission to edit expense', async () => {
-            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(false);
+            mockPermissionEngine.checkPermission.mockReturnValue(false);
 
             await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
                 .rejects.toEqual(new ApiError(
@@ -1134,7 +1139,7 @@ describe('ExpenseService', () => {
             // Set up collections
             mockExpensesCollection.doc.mockReturnValue(mockExpenseDocRef);
             mockGroupsCollection.doc.mockReturnValue({
-                get: jest.fn().mockResolvedValue(mockGroupDoc)
+                get: vi.fn().mockResolvedValue(mockGroupDoc)
             });
             
             // Set up Firestore DB mock
@@ -1147,14 +1152,14 @@ describe('ExpenseService', () => {
             });
 
             // Mock PermissionEngine to allow deletion by default
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+            mockPermissionEngine.checkPermission.mockReturnValue(true);
         });
 
         it('should delete an expense successfully when user has permission', async () => {
             // Set up transaction
             const mockTransactionDoc = {
                 exists: true,
-                data: jest.fn().mockReturnValue({
+                data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
                     updatedAt: mockTimestamp
                 })
@@ -1162,7 +1167,7 @@ describe('ExpenseService', () => {
             
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
             
-            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
@@ -1213,7 +1218,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw NOT_AUTHORIZED error when user lacks permission', async () => {
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+            mockPermissionEngine.checkPermission.mockReturnValue(false);
 
             await expect(service.deleteExpense(mockExpenseId, mockUserId))
                 .rejects.toThrow('You do not have permission to delete this expense');
@@ -1233,7 +1238,7 @@ describe('ExpenseService', () => {
             // Set up transaction to detect concurrent update
             const mockTransactionDoc = {
                 exists: true,
-                data: jest.fn()
+                data: vi.fn()
                     .mockReturnValueOnce({
                         ...mockExpenseData,
                         updatedAt: originalTimestamp
@@ -1246,7 +1251,7 @@ describe('ExpenseService', () => {
             
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
             
-            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
@@ -1257,7 +1262,7 @@ describe('ExpenseService', () => {
         it('should handle transaction errors properly', async () => {
             const transactionError = new Error('Transaction failed');
             
-            (firestoreDb.runTransaction as jest.Mock).mockRejectedValue(transactionError);
+            mockFirestoreDb.runTransaction.mockRejectedValue(transactionError);
 
             await expect(service.deleteExpense(mockExpenseId, mockUserId))
                 .rejects.toThrow('Transaction failed');
@@ -1267,12 +1272,12 @@ describe('ExpenseService', () => {
             const memberId = 'user456';
             
             // Set up as member with permission
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+            mockPermissionEngine.checkPermission.mockReturnValue(true);
             
             // Set up transaction
             const mockTransactionDoc = {
                 exists: true,
-                data: jest.fn().mockReturnValue({
+                data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
                     updatedAt: mockTimestamp
                 })
@@ -1280,7 +1285,7 @@ describe('ExpenseService', () => {
             
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
             
-            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
@@ -1310,7 +1315,7 @@ describe('ExpenseService', () => {
             // Set up transaction with expense missing updatedAt
             const mockTransactionDoc = {
                 exists: true,
-                data: jest.fn().mockReturnValue({
+                data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
                     updatedAt: null
                 })
@@ -1318,7 +1323,7 @@ describe('ExpenseService', () => {
             
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
             
-            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
