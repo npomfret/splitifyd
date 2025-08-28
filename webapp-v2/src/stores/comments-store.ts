@@ -81,6 +81,11 @@ class CommentsStoreImpl implements CommentsStore {
      * Subscribe to real-time comments for a target (group or expense)
      */
     subscribeToComments(targetType: CommentTargetType, targetId: string) {
+        // If we are already subscribed to the same target, do nothing.
+        if (unsubscribe && targetTypeSignal.value === targetType && targetIdSignal.value === targetId) {
+            return;
+        }
+
         // Clean up previous subscription
         this.dispose();
 
