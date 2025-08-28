@@ -123,6 +123,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                             <Input
                                 label={t('createGroupModal.groupNameLabel')}
                                 type="text"
+                                name="name"
                                 placeholder={t('createGroupModal.groupNamePlaceholder')}
                                 value={groupNameSignal.value}
                                 onChange={(value) => {
@@ -140,6 +141,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">{t('createGroupModal.groupDescriptionLabel')}</label>
                             <textarea
+                                name="description"
+                                data-testid="group-description-input"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
                                 rows={3}
                                 placeholder={t('createGroupModal.groupDescriptionPlaceholder')}

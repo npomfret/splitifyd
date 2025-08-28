@@ -80,7 +80,7 @@ export function LoginPage() {
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
-                        <input type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting} />
+                        <input type="checkbox" data-testid="remember-me-checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" disabled={isSubmitting} />
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 

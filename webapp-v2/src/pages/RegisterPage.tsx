@@ -157,6 +157,7 @@ export function RegisterPage() {
                     <label class="flex items-start">
                         <input
                             type="checkbox"
+                            data-testid="terms-checkbox"
                             checked={agreeToTermsSignal.value}
                             onChange={(e) => (agreeToTermsSignal.value = (e.target as HTMLInputElement).checked)}
                             class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0"
@@ -174,6 +175,7 @@ export function RegisterPage() {
                     <label class="flex items-start">
                         <input
                             type="checkbox"
+                            data-testid="cookies-checkbox"
                             checked={agreeToCookiesSignal.value}
                             onChange={(e) => (agreeToCookiesSignal.value = (e.target as HTMLInputElement).checked)}
                             class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 flex-shrink-0"

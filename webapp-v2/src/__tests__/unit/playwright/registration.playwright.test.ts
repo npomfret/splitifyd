@@ -32,9 +32,9 @@ test.describe('User Registration Form', () => {
         await expect(page.locator('#password-input')).toBeVisible();
         await expect(page.locator('#confirm-password-input')).toBeVisible();
         
-        // Verify checkboxes are present
-        const checkboxes = page.locator('input[type="checkbox"]');
-        await expect(checkboxes).toHaveCount(2);
+        // Verify checkboxes are present using semantic selectors
+        await expect(page.locator('[data-testid="terms-checkbox"]')).toBeVisible();
+        await expect(page.locator('[data-testid="cookies-checkbox"]')).toBeVisible();
         
         // Verify submit button is present
         await expect(page.locator('button[type="submit"]')).toBeVisible();
@@ -56,9 +56,9 @@ test.describe('User Registration Form', () => {
         await page.fill('#password-input', 'weak');
         await page.fill('#confirm-password-input', 'weak');
         
-        // Accept both checkboxes
-        await page.locator('input[type="checkbox"]').first().check();
-        await page.locator('input[type="checkbox"]').nth(1).check();
+        // Accept both checkboxes using semantic selectors
+        await page.locator('[data-testid="terms-checkbox"]').check();
+        await page.locator('[data-testid="cookies-checkbox"]').check();
         
         const submitButton = page.locator('button[type="submit"]');
         await submitButton.click();
@@ -79,9 +79,9 @@ test.describe('User Registration Form', () => {
         await page.fill('#password-input', 'ValidPassword123');
         await page.fill('#confirm-password-input', 'DifferentPassword123');
         
-        // Accept both checkboxes
-        await page.locator('input[type="checkbox"]').first().check();
-        await page.locator('input[type="checkbox"]').nth(1).check();
+        // Accept both checkboxes using semantic selectors
+        await page.locator('[data-testid="terms-checkbox"]').check();
+        await page.locator('[data-testid="cookies-checkbox"]').check();
         
         const submitButton = page.locator('button[type="submit"]');
         await submitButton.click();
@@ -103,7 +103,7 @@ test.describe('User Registration Form', () => {
         await page.fill('#confirm-password-input', 'ValidPassword123');
         
         // Only check cookie policy, not terms
-        await page.locator('input[type="checkbox"]').nth(1).check();
+        await page.locator('[data-testid="cookies-checkbox"]').check();
         
         const submitButton = page.locator('button[type="submit"]');
         await expect(submitButton).toBeDisabled();
@@ -117,7 +117,7 @@ test.describe('User Registration Form', () => {
         await page.fill('#confirm-password-input', 'ValidPassword123');
         
         // Only check terms, not cookie policy
-        await page.locator('input[type="checkbox"]').first().check();
+        await page.locator('[data-testid="terms-checkbox"]').check();
         
         const submitButton = page.locator('button[type="submit"]');
         await expect(submitButton).toBeDisabled();
