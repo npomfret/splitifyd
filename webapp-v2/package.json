@@ -13,7 +13,7 @@
         "clean": "rm -rf dist",
         "test": "npm run test:unit && npm run test:integration",
         "test:unit": "npm run test:unit:vitest && npm run test:unit:playwright",
-        "test:unit:vitest": "vitest run src/__tests__/unit",
+        "test:unit:vitest": "vitest run src/__tests__/unit/vitest",
         "test:unit:playwright": "playwright test",
         "test:integration": "echo no integration tests",
         "test:playwright": "playwright test",
