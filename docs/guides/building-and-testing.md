@@ -22,7 +22,9 @@ The root `package.json` provides a script to build all sub-projects:
 
 ## Test Directory Structure
 
-All tests are located in a `__tests__` directory within the `src` directory of the project they belong to. Inside the `__tests__` directory, tests are further organized into `unit` and `integration` subdirectories.
+This project follows the convention of **co-locating tests with the source code**. All tests are located in a `__tests__` directory within the `src` directory of the project they belong to. Inside the `__tests__` directory, tests are further organized into `unit` and `integration` subdirectories.
+
+This approach is preferred for this project because it makes it easy to see which components have tests and encourages developers to write tests as a natural part of their workflow.
 
 ```
 src/
