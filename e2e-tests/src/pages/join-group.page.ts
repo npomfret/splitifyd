@@ -103,8 +103,7 @@ export class JoinGroupPage extends BasePage {
             }
 
             // Look for user-specific UI elements that indicate login
-            const userMenuVisible = await this.page
-                .locator('[data-testid="user-menu-button"]')
+            const userMenuVisible = await this.getUserMenuButton()
                 .isVisible({timeout: 1000})
                 .catch(() => false);
 

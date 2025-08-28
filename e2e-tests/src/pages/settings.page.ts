@@ -37,14 +37,6 @@ export class SettingsPage extends BasePage {
         return this.page.locator(SETTINGS_SELECTORS.PROFILE_EMAIL);
     }
 
-    getUserMenuButton(): Locator {
-        return this.page.getByTestId('user-menu-button');
-    }
-
-    getUserDropdownMenu(): Locator {
-        return this.page.getByTestId('user-dropdown-menu');
-    }
-
     getDisplayNameInput(): Locator {
         return this.page.locator(SETTINGS_SELECTORS.DISPLAY_NAME_INPUT);
     }

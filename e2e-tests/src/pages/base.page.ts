@@ -299,6 +299,189 @@ export abstract class BasePage {
     }
 
     /**
+     * Click a dropdown button and ensure it opens properly.
+     * Uses ARIA attributes to verify dropdown state instead of arbitrary timeouts.
+     * @param dropdownButton - The dropdown trigger button
+     * @param options - Configuration options
+     */
+    async clickDropdownButton(
+        dropdownButton: Locator,
+        options?: {
+            buttonName?: string; // Human-readable name for error messages
+            dropdownContent?: Locator; // Optional locator for dropdown content to verify it's visible
+            maxRetries?: number; // Max retries if dropdown doesn't open (default: 2)
+        }
+    ): Promise<void> {
+        const { buttonName = 'dropdown', dropdownContent, maxRetries = 2 } = options || {};
+
+        // Ensure button is visible and enabled
+        await expect(dropdownButton).toBeVisible();
+        await expect(dropdownButton).toBeEnabled();
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            // Click the dropdown button
+            await dropdownButton.click();
+
+            // Check if dropdown opened using aria-expanded attribute
+            const ariaExpanded = await dropdownButton.getAttribute('aria-expanded');
+            
+            if (ariaExpanded === 'true') {
+                // If dropdown content locator provided, verify it's visible
+                if (dropdownContent) {
+                    try {
+                        await expect(dropdownContent).toBeVisible({ timeout: 1000 });
+                    } catch (error) {
+                        if (attempt === maxRetries) {
+                            throw new Error(`Dropdown "${buttonName}" button shows aria-expanded="true" but content is not visible`);
+                        }
+                        continue; // Retry
+                    }
+                }
+                return; // Success!
+            }
+
+            // If aria-expanded not available or false, check for dropdown content visibility
+            if (!ariaExpanded && dropdownContent) {
+                try {
+                    await expect(dropdownContent).toBeVisible({ timeout: 1000 });
+                    return; // Success!
+                } catch (error) {
+                    if (attempt === maxRetries) {
+                        throw new Error(`Dropdown "${buttonName}" did not open after ${maxRetries} attempts`);
+                    }
+                    // Wait for DOM to settle before retry
+                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+                }
+            } else if (attempt === maxRetries) {
+                throw new Error(`Dropdown "${buttonName}" did not open after ${maxRetries} attempts. aria-expanded="${ariaExpanded}"`);
+            }
+        }
+    }
+
+    /**
+     * User Menu Methods - Available on all pages with authenticated users
+     */
+    getUserMenuButton() {
+        return this._page.locator('[data-testid="user-menu-button"]');
+    }
+
+    getUserDropdownMenu() {
+        return this._page.locator('[data-testid="user-dropdown-menu"]');
+    }
+
+    getSignOutButton() {
+        return this._page.locator('[data-testid="sign-out-button"]');
+    }
+
+    getDashboardLink() {
+        return this._page.locator('[data-testid="user-menu-dashboard-link"]');
+    }
+
+    getSettingsLink() {
+        return this._page.locator('[data-testid="user-menu-settings-link"]');
+    }
+
+    /**
+     * Wait for the user menu to be available on the page.
+     * This indicates the user is authenticated and the page has loaded.
+     */
+    async waitForUserMenu(): Promise<void> {
+        await this.waitForDomContentLoaded();
+        await expect(this.getUserMenuButton()).toBeVisible({ timeout: 5000 });
+    }
+
+    /**
+     * Open the user menu dropdown using reliable ARIA-based state detection.
+     */
+    async openUserMenu(): Promise<void> {
+        const userMenuButton = this.getUserMenuButton();
+        const dropdownMenu = this.getUserDropdownMenu();
+        
+        await this.clickDropdownButton(userMenuButton, {
+            buttonName: 'User Menu',
+            dropdownContent: dropdownMenu,
+            maxRetries: 3
+        });
+    }
+
+    /**
+     * Close the user menu dropdown if it's open.
+     */
+    async closeUserMenu(): Promise<void> {
+        const userMenuButton = this.getUserMenuButton();
+        const ariaExpanded = await userMenuButton.getAttribute('aria-expanded');
+        
+        if (ariaExpanded === 'true') {
+            // Click outside to close the menu
+            await this._page.locator('body').click({ position: { x: 0, y: 0 } });
+            
+            // Wait for menu to close
+            await expect(this.getUserDropdownMenu()).not.toBeVisible({ timeout: 1000 });
+        }
+    }
+
+    /**
+     * Navigate to dashboard using the user menu.
+     */
+    async navigateToDashboardViaMenu(): Promise<void> {
+        await this.openUserMenu();
+        await this.getDashboardLink().click();
+        await expect(this._page).toHaveURL(/\/dashboard/);
+    }
+
+    /**
+     * Navigate to settings using the user menu.
+     */
+    async navigateToSettingsViaMenu(): Promise<void> {
+        await this.openUserMenu();
+        await this.getSettingsLink().click();
+        await expect(this._page).toHaveURL(/\/settings/);
+    }
+
+    /**
+     * Logout the user using the user menu dropdown.
+     * This is a common action available on most authenticated pages.
+     */
+    async logout(): Promise<void> {
+        await this.openUserMenu();
+        
+        const signOutButton = this.getSignOutButton();
+        await expect(signOutButton).toBeVisible();
+        await expect(signOutButton).toBeEnabled();
+        
+        await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
+        
+        // Wait for redirect to login page
+        await expect(this._page).toHaveURL(/\/login/, { timeout: 5000 });
+    }
+
+    /**
+     * Get the displayed user name from the user menu button.
+     */
+    async getUserDisplayName(): Promise<string> {
+        const userMenuButton = this.getUserMenuButton();
+        await expect(userMenuButton).toBeVisible();
+        
+        // The user name is displayed in the menu button
+        const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
+        const textContent = await nameElement.textContent();
+        return textContent ?? '';
+    }
+
+    /**
+     * Check if a user is logged in by checking for the user menu.
+     */
+    async isUserLoggedIn(): Promise<boolean> {
+        try {
+            const menuVisible = await this.getUserMenuButton()
+                .isVisible({ timeout: 2000 });
+            return menuVisible;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Expects the page to match a URL pattern
      */
     async expectUrl(pattern: string | RegExp): Promise<void> {

@@ -35,13 +35,7 @@ export class DashboardPage extends BasePage {
         }
     }
 
-    async getUserDisplayName(): Promise<string> {
-        const nameElement = this.page.locator(this.userNameText).first();
-        const textContent = await nameElement.textContent();
-        return textContent ?? '';
-    }
-
-    // Element accessors
+    // Element accessors specific to Dashboard
     getWelcomeMessage() {
         return this.page.getByText(MESSAGES.WELCOME_BACK);
     }
@@ -54,11 +48,13 @@ export class DashboardPage extends BasePage {
         return this.page.getByRole('button', { name: /Create.*Group/i }).first();
     }
 
-    getUserMenuButton() {
-        // Use data-testid for stable selection
-        return this.page.locator('[data-testid="user-menu-button"]');
+    getSignInButton() {
+        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
     }
 
+    /**
+     * Override waitForUserMenu to also check for dashboard-specific elements.
+     */
     async waitForUserMenu(): Promise<void> {
         // Wait for authentication state to be fully loaded first
         await this.waitForDomContentLoaded();
@@ -67,16 +63,8 @@ export class DashboardPage extends BasePage {
         // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
         await expect(this.getGroupsHeading()).toBeVisible();
 
-        // Now wait for the user menu button to be available with fast timeout
-        await expect(this.getUserMenuButton()).toBeVisible();
-    }
-    getSignOutButton() {
-        // Use data-testid for stable selection
-        return this.page.locator('[data-testid="sign-out-button"]');
-    }
-
-    getSignInButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
+        // Call parent implementation to wait for user menu
+        await super.waitForUserMenu();
     }
 
     async openCreateGroupModal() {

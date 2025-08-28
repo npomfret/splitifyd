@@ -1,7 +1,7 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@splitifyd/shared';
 import {generateNewUserDetails, generateShortId} from '../../../packages/test-support/test-helpers.ts';
-import {LoginPage, RegisterPage} from '../pages';
+import {LoginPage, RegisterPage, DashboardPage} from '../pages';
 import { expect } from '@playwright/test';
 
 let staticCount = 1;
@@ -175,44 +175,9 @@ export class UserPool {
             // Wait for redirect to dashboard
             await expect(tempPage).toHaveURL(/\/dashboard/, { timeout: 5000 });// can be slow
 
-            // Logout so the user can be used later
-            // Wait for page to be stable before clicking menu
-            await tempPage.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-            // Wait for user menu button to be ready and clickable
-            const userMenuButton = tempPage.locator('[data-testid="user-menu-button"]');
-            await userMenuButton.waitFor({ state: 'visible', timeout: TIMEOUTS.EXTENDED });
-            
-            // Click and wait for dropdown to open
-            await userMenuButton.click();
-            
-            // Wait a bit for the dropdown state to update
-            await tempPage.waitForTimeout(100);
-            
-            // The dropdown uses inline style display:none/block, so we need to wait for it to be visible
-            // We check for the sign-out button to be visible which indicates the dropdown is open
-            const signOutButton = tempPage.locator('[data-testid="sign-out-button"]');
-            
-            // Try clicking menu again if sign-out button is not visible after first click
-            try {
-                await signOutButton.waitFor({ state: 'visible', timeout: 1000 });
-            } catch {
-                console.log('Dropdown did not open on first click, retrying...');
-                // Click menu button again
-                await userMenuButton.click();
-                await tempPage.waitForTimeout(200);
-                // Wait for sign-out button to be visible
-                await signOutButton.waitFor({ state: 'visible', timeout: TIMEOUTS.EXTENDED });
-            }
-            
-            // Ensure the button is stable and clickable
-            await expect(signOutButton).toBeVisible();
-            
-            // Click sign-out with force option to bypass any potential overlay issues
-            await signOutButton.click({ force: true, timeout: TIMEOUTS.EXTENDED });
-
-            // Wait for logout to complete - should redirect to login page
-            await expect(tempPage).toHaveURL(/\/login/,);
+            // Logout so the user can be used later using DashboardPage helper
+            const dashboardPage = new DashboardPage(tempPage);
+            await dashboardPage.logout();  // This already waits for redirect to login page
 
             // debugging mystery screenshots
             await new LoginPage(tempPage).fillLoginForm(displayName, "", false);
