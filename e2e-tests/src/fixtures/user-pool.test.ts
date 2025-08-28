@@ -36,8 +36,8 @@ describe('UserPool Singleton Pattern', () => {
         expect(() => new UserPool()).not.toThrow();
     });
 
-    it('should maintain singleton across getUserPool() calls', () => {
-        const { getUserPool } = require('./user-pool.fixture');
+    it('should maintain singleton across getUserPool() calls', async () => {
+        const { getUserPool } = await import('./user-pool.fixture');
 
         const pool1 = getUserPool();
         const pool2 = getUserPool();

@@ -4,6 +4,8 @@ import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { FirestoreCollections, SplitTypes, CreateExpenseRequest } from '@splitifyd/shared';
 import { timestampToISO } from '../../utils/dateHelpers';
+import * as dateHelpers from '../../utils/dateHelpers';
+import * as groupHelpers from '../../utils/groupHelpers';
 import { Timestamp } from 'firebase-admin/firestore';
 import { PermissionEngine } from '../../permissions';
 
@@ -296,8 +298,7 @@ describe('ExpenseService', () => {
             mockExpensesCollection.get = mockQuery.get;
 
             // Mock verifyGroupMembership
-            const { verifyGroupMembership } = require('../../utils/groupHelpers');
-            verifyGroupMembership.mockResolvedValue(undefined);
+            (groupHelpers.verifyGroupMembership as jest.Mock).mockResolvedValue(undefined);
         });
 
         it('should successfully list group expenses', async () => {
@@ -534,14 +535,13 @@ describe('ExpenseService', () => {
             }));
 
             // Mock verifyGroupMembership
-            const { verifyGroupMembership } = require('../../utils/groupHelpers');
-            verifyGroupMembership.mockResolvedValue(undefined);
+            (groupHelpers.verifyGroupMembership as jest.Mock).mockResolvedValue(undefined);
 
             // Mock PermissionEngine
             (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
 
             // Mock createServerTimestamp
-            jest.spyOn(require('../../utils/dateHelpers'), 'createServerTimestamp')
+            jest.spyOn(dateHelpers, 'createServerTimestamp')
                 .mockReturnValue(mockTimestamp);
         });
 
@@ -567,7 +567,7 @@ describe('ExpenseService', () => {
             }));
 
             // Verify group membership was checked
-            expect(require('../../utils/groupHelpers').verifyGroupMembership)
+            expect(groupHelpers.verifyGroupMembership)
                 .toHaveBeenCalledWith(mockGroupId, mockUserId);
 
             // Verify permission was checked
@@ -638,8 +638,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user is not a group member', async () => {
-            const { verifyGroupMembership } = require('../../utils/groupHelpers');
-            verifyGroupMembership.mockRejectedValue(
+            (groupHelpers.verifyGroupMembership as jest.Mock).mockRejectedValue(
                 new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group')
             );
 

@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
 import assert from "node:assert";
+import { execSync } from 'child_process';
 
 /**
  * Script to fix broken user accounts by ensuring every Firebase Auth user
@@ -143,7 +144,6 @@ async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
     console.log('🔍 Starting to fetch Firebase Auth users via Firebase CLI...');
     
     try {
-        const { execSync } = require('child_process');
         const tmpFile = '/tmp/firebase-auth-users.json';
         
         console.log('📤 Exporting users with Firebase CLI...');

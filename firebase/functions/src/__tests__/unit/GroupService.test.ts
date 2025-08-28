@@ -127,7 +127,10 @@ import { transformGroupDocument } from '../../groups/handlers';
 import { isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
 import { userService } from '../../services/UserService2';
 import { buildPaginatedQuery, encodeCursor } from '../../utils/pagination';
-import { parseISOToTimestamp, getRelativeTime } from '../../utils/dateHelpers';
+import { parseISOToTimestamp, getRelativeTime, createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } from '../../utils/dateHelpers';
+import { PermissionEngine } from '../../permissions';
+import { logger, LoggerContext } from '../../logger';
+import { getUpdatedAtTimestamp, updateWithTimestamp } from '../../utils/optimistic-locking';
 
 // Test builders to reduce noise and focus tests on what matters
 class GroupBuilder {
@@ -767,12 +770,6 @@ describe('GroupService', () => {
 
         beforeEach(() => {
             // Import mocked functions
-            const { createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } = require('../../utils/dateHelpers');
-            const { PermissionEngine } = require('../../permissions');
-            const { logger, LoggerContext } = require('../../logger');
-            const { transformGroupDocument } = require('../../groups/handlers');
-            const { calculateGroupBalances } = require('../../services/balance');
-            const { calculateExpenseMetadata } = require('../../services/expenseMetadataService');
             
             mockCreateOptimisticTimestamp = createOptimisticTimestamp as jest.Mock;
             mockCreateTrueServerTimestamp = createTrueServerTimestamp as jest.Mock;
@@ -1114,13 +1111,6 @@ describe('GroupService', () => {
 
         beforeEach(() => {
             // Import mocked functions
-            const { createOptimisticTimestamp } = require('../../utils/dateHelpers');
-            const { getUpdatedAtTimestamp, updateWithTimestamp } = require('../../utils/optimistic-locking');
-            const { logger, LoggerContext } = require('../../logger');
-            const { transformGroupDocument } = require('../../groups/handlers');
-            const { isGroupOwner, isGroupMember } = require('../../utils/groupHelpers');
-            const { calculateGroupBalances } = require('../../services/balance');
-            const { calculateExpenseMetadata } = require('../../services/expenseMetadataService');
 
             mockCreateOptimisticTimestamp = createOptimisticTimestamp as jest.Mock;
             mockGetUpdatedAtTimestamp = getUpdatedAtTimestamp as jest.Mock;
@@ -1147,9 +1137,8 @@ describe('GroupService', () => {
                 doc: mockFirestoreDoc,
             }));
 
-            const { firestoreDb } = require('../../firebase');
-            firestoreDb.collection = mockFirestoreCollection;
-            firestoreDb.runTransaction = mockFirestoreRunTransaction;
+            (firestoreDb as any).collection = mockFirestoreCollection;
+            (firestoreDb as any).runTransaction = mockFirestoreRunTransaction;
 
             // Setup default mock returns
             const mockTimestamp = {
@@ -1283,11 +1272,6 @@ describe('GroupService', () => {
 
         beforeEach(() => {
             // Import mocked functions
-            const { logger, LoggerContext } = require('../../logger');
-            const { transformGroupDocument } = require('../../groups/handlers');
-            const { isGroupOwner, isGroupMember } = require('../../utils/groupHelpers');
-            const { calculateGroupBalances } = require('../../services/balance');
-            const { calculateExpenseMetadata } = require('../../services/expenseMetadataService');
 
             mockTransformGroupDocument = transformGroupDocument as jest.Mock;
             mockIsGroupOwner = isGroupOwner as jest.Mock;
@@ -1330,8 +1314,7 @@ describe('GroupService', () => {
                 };
             });
 
-            const { firestoreDb } = require('../../firebase');
-            firestoreDb.collection = mockFirestoreCollection;
+            (firestoreDb as any).collection = mockFirestoreCollection;
 
             // Mock balance calculations
             (calculateGroupBalances as jest.Mock).mockResolvedValue({ balancesByCurrency: {} });
