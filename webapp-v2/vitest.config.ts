@@ -4,16 +4,17 @@ import { resolve } from 'path';
 export default defineConfig({
     test: {
         environment: 'jsdom',
-        setupFiles: process.env.TEST_INTEGRATION ? ['./src/__tests__/setup.integration.ts'] : ['./src/__tests__/setup.ts'],
+        setupFiles: ['./src/__tests__/setup.ts'],
         globals: true,
         css: true,
         exclude: [
             '**/node_modules/**',
             '**/dist/**',
-            '**/e2e/**', // Exclude E2E tests from Vitest
+            '**/*playwright*/**', // Exclude Playwright tests from Vitest
+            '**/*.playwright.test.ts', // Exclude Playwright test files
         ],
         // Longer timeout for integration tests
-        testTimeout: process.env.TEST_INTEGRATION ? 30000 : 5000,
+        testTimeout: 5000,
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],

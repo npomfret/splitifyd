@@ -12,8 +12,13 @@
         "typecheck": "npm run build:check",
         "clean": "rm -rf dist",
         "test": "npm run test:unit && npm run test:integration",
-        "test:unit": "vitest run src/__tests__/unit",
+        "test:unit": "npm run test:unit:vitest && npm run test:unit:playwright",
+        "test:unit:vitest": "vitest run src/__tests__/unit",
+        "test:unit:playwright": "playwright test",
         "test:integration": "echo no integration tests",
+        "test:playwright": "playwright test",
+        "test:playwright:ui": "playwright test --ui",
+        "test:playwright:debug": "PWDEBUG=1 playwright test",
         "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
     },
     "dependencies": {
@@ -32,6 +37,7 @@
         "three": "^0.178.0"
     },
     "devDependencies": {
+        "@playwright/test": "^1.55.0",
         "@preact/preset-vite": "^2.8.1",
         "@splitifyd/test-support": "*",
         "@testing-library/jest-dom": "^6.6.3",
