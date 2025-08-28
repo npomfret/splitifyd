@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Cloud Functions for Firebase",
     "scripts": {
-        "build": "node scripts/conditional-build.js",
+        "build": "npm run build:check && node scripts/conditional-build.js",
         "build:check": "tsc --project tsconfig.build.json --noEmit",
         "build:prod": "npm run build:check && tsc && npm run copy:locales && node scripts/inject-build-info.js",
         "clean": "rm -rf lib coverage",
