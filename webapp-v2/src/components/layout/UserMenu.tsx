@@ -63,49 +63,49 @@ export function UserMenu({ user }: UserMenuProps) {
             </button>
 
             {isOpen && (
-                <div 
+                <div
                     id="user-dropdown-menu"
-                    data-testid="user-dropdown-menu" 
+                    data-testid="user-dropdown-menu"
                     class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
                     role="menu"
                     aria-orientation="vertical"
                     aria-labelledby="user-menu-button"
                 >
-                <div class="px-4 py-2 border-b border-gray-100">
-                    <p class="text-sm font-medium text-gray-900">{userName}</p>
-                    <p class="text-xs text-gray-500">{user.email}</p>
+                    <div class="px-4 py-2 border-b border-gray-100">
+                        <p class="text-sm font-medium text-gray-900">{userName}</p>
+                        <p class="text-xs text-gray-500">{user.email}</p>
+                    </div>
+
+                    <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-dashboard-link" role="menuitem">
+                        {t('userMenu.dashboard')}
+                    </a>
+
+                    <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-settings-link" role="menuitem">
+                        {t('userMenu.settings')}
+                    </a>
+
+                    <hr class="my-1 border-gray-100" />
+
+                    <button
+                        data-testid="sign-out-button"
+                        onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                                await authStore.logout();
+                                // Force immediate redirect to login
+                                route('/login', true);
+                            } catch (error) {
+                                // Error is already handled in authStore
+                                console.error('Logout failed:', error);
+                            }
+                        }}
+                        class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                        disabled={authStore.loading}
+                        role="menuitem"
+                    >
+                        {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
+                    </button>
                 </div>
-
-                <a href="/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-dashboard-link" role="menuitem">
-                    {t('userMenu.dashboard')}
-                </a>
-
-                <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors" data-testid="user-menu-settings-link" role="menuitem">
-                    {t('userMenu.settings')}
-                </a>
-
-                <hr class="my-1 border-gray-100" />
-
-                <button
-                    data-testid="sign-out-button"
-                    onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                            await authStore.logout();
-                            // Force immediate redirect to login
-                            route('/login', true);
-                        } catch (error) {
-                            // Error is already handled in authStore
-                            console.error('Logout failed:', error);
-                        }
-                    }}
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-                    disabled={authStore.loading}
-                    role="menuitem"
-                >
-                    {authStore.loading ? t('userMenu.signingOut') : t('userMenu.signOut')}
-                </button>
-            </div>
             )}
         </div>
     );

@@ -17,7 +17,7 @@ if (process.argv.includes('--help') || process.argv.includes('-h')) {
     console.log('');
     console.log('Available functions:');
     console.log('  - api');
-    console.log('  - userRegistrationTrigger'); 
+    console.log('  - userRegistrationTrigger');
     console.log('  - userUpdateTrigger');
     console.log('  - groupUpdateTrigger');
     console.log('  - scheduledBalanceCalculation');
@@ -26,31 +26,27 @@ if (process.argv.includes('--help') || process.argv.includes('-h')) {
 
 try {
     let command: string;
-    
+
     if (process.argv.includes('--tail')) {
         // Follow logs in real-time
-        command = functionName 
-            ? `firebase functions:log --only functions:${functionName} --follow`
-            : `firebase functions:log --follow`;
-        
+        command = functionName ? `firebase functions:log --only functions:${functionName} --follow` : `firebase functions:log --follow`;
+
         logger.info('📡 Following Firebase Functions logs in real-time (Press Ctrl+C to stop)');
     } else {
         // Show recent logs
-        command = functionName 
-            ? `firebase functions:log --only functions:${functionName} --lines ${lines}`
-            : `firebase functions:log --lines ${lines}`;
-            
+        command = functionName ? `firebase functions:log --only functions:${functionName} --lines ${lines}` : `firebase functions:log --lines ${lines}`;
+
         logger.info(`📋 Showing last ${lines} lines of logs${functionName ? ` for function: ${functionName}` : ' for all functions'}`);
     }
-    
+
     execSync(command, {
         stdio: 'inherit',
         cwd: process.cwd(),
     });
 } catch (error: any) {
-    logger.error('❌ Failed to fetch Firebase Functions logs', { 
+    logger.error('❌ Failed to fetch Firebase Functions logs', {
         error: error.message,
-        note: 'Make sure you are logged in to Firebase CLI and have selected the correct project'
+        note: 'Make sure you are logged in to Firebase CLI and have selected the correct project',
     });
     process.exit(1);
 }

@@ -26,7 +26,7 @@ const db = admin.firestore();
 
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 
 async function deleteCollection(collectionName) {
@@ -71,7 +71,7 @@ function askQuestion(question) {
 
 async function getAllCollections() {
     const collections = await db.listCollections();
-    return collections.map(col => col.id);
+    return collections.map((col) => col.id);
 }
 
 async function getCollectionCount(collectionName) {
@@ -82,9 +82,9 @@ async function getCollectionCount(collectionName) {
 async function deleteAllData() {
     try {
         logger.info('📋 Scanning Firebase collections...');
-        
+
         const allCollections = await getAllCollections();
-        
+
         if (allCollections.length === 0) {
             logger.info('✅ No collections found - database is already empty');
             rl.close();
@@ -93,7 +93,7 @@ async function deleteAllData() {
 
         logger.info('📊 Found collections:');
         const collectionCounts = {};
-        
+
         for (const collectionName of allCollections) {
             try {
                 const count = await getCollectionCount(collectionName);
@@ -108,12 +108,12 @@ async function deleteAllData() {
         const totalDocs = Object.values(collectionCounts).reduce((sum, count) => {
             return sum + (typeof count === 'number' ? count : 0);
         }, 0);
-        
+
         console.log(`\n⚠️  This will delete ALL documents across ${allCollections.length} collections from Firebase project: ${serviceAccount.project_id}`);
         console.log('⚠️  THIS ACTION CANNOT BE UNDONE!');
-        
+
         const confirm1 = await askQuestion('\nDo you want to proceed? (type "yes" to continue): ');
-        
+
         if (confirm1.toLowerCase() !== 'yes') {
             logger.info('❌ Deletion cancelled');
             rl.close();
@@ -121,7 +121,7 @@ async function deleteAllData() {
         }
 
         const confirm2 = await askQuestion('Are you absolutely sure? (type "DELETE ALL DATA" to confirm): ');
-        
+
         if (confirm2 !== 'DELETE ALL DATA') {
             logger.info('❌ Deletion cancelled');
             rl.close();
@@ -143,7 +143,6 @@ async function deleteAllData() {
 
         logger.info(`✅ Successfully deleted ${grandTotal} documents across ${allCollections.length} collections`);
         rl.close();
-        
     } catch (error) {
         logger.error('❌ Error during deletion process', { error });
         rl.close();

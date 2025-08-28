@@ -331,8 +331,7 @@ describe('simplifyDebts', () => {
         });
 
         // The simplified network should have fewer transactions than the original relationships
-        const originalRelationships = Object.values(balances)
-            .reduce((count, user) => count + Object.keys(user.owes).length, 0);
+        const originalRelationships = Object.values(balances).reduce((count, user) => count + Object.keys(user.owes).length, 0);
         expect(result.length).toBeLessThanOrEqual(originalRelationships);
     });
 
@@ -375,9 +374,9 @@ describe('simplifyDebts', () => {
 
         // Net result: center owes $150, is owed $150 = net 0
         // user1 is owed $100, user2 is owed $50
-        // user3 owes $80, user4 owes $70  
+        // user3 owes $80, user4 owes $70
         // Optimal: user3 pays user1 $80, user4 pays user2 $50, user4 pays user1 $20
-        
+
         expect(result.length).toBeGreaterThan(0);
         expect(result.length).toBeLessThanOrEqual(3); // Should be optimized
 
@@ -440,20 +439,20 @@ describe('simplifyDebts', () => {
         // Test USD currency debt simplification
         const usdResult = simplifyDebts(usdBalances, 'USD');
         expect(usdResult.length).toBeGreaterThan(0);
-        usdResult.forEach(transaction => {
+        usdResult.forEach((transaction) => {
             expect(transaction.currency).toBe('USD');
         });
 
-        // Test EUR currency debt simplification  
+        // Test EUR currency debt simplification
         const eurResult = simplifyDebts(eurBalances, 'EUR');
         expect(eurResult.length).toBeGreaterThan(0);
-        eurResult.forEach(transaction => {
+        eurResult.forEach((transaction) => {
             expect(transaction.currency).toBe('EUR');
         });
 
         // Verify currencies don't mix
         const allResults = [...usdResult, ...eurResult];
-        const currencies = new Set(allResults.map(t => t.currency));
+        const currencies = new Set(allResults.map((t) => t.currency));
         expect(currencies.size).toBe(2);
         expect(currencies.has('USD')).toBe(true);
         expect(currencies.has('EUR')).toBe(true);
@@ -500,22 +499,22 @@ describe('simplifyDebts', () => {
         // Only user4 relationships should remain, but the algorithm might produce 4 transactions
         expect(result.length).toBeGreaterThanOrEqual(3);
         expect(result.length).toBeLessThanOrEqual(4);
-        
+
         // Verify all transactions are valid
-        result.forEach(transaction => {
+        result.forEach((transaction) => {
             expect(transaction.amount).toBeGreaterThan(0);
             expect(transaction.from.userId).not.toBe(transaction.to.userId);
         });
 
         // The key test: user4 should receive exactly $100 total (50+30+20)
-        const paymentsToUser4 = result.filter(t => t.to.userId === 'user4');
+        const paymentsToUser4 = result.filter((t) => t.to.userId === 'user4');
         const totalToUser4 = paymentsToUser4.reduce((sum, t) => sum + t.amount, 0);
         expect(totalToUser4).toBe(100); // 50+30+20
 
         // Verify the payments come from user1, user2, user3 in some form
-        const payersToUser4 = new Set(paymentsToUser4.map(t => t.from.userId));
+        const payersToUser4 = new Set(paymentsToUser4.map((t) => t.from.userId));
         expect(payersToUser4.size).toBeGreaterThan(0);
-        payersToUser4.forEach(payer => {
+        payersToUser4.forEach((payer) => {
             expect(['user1', 'user2', 'user3', 'whale']).toContain(payer);
         });
     });

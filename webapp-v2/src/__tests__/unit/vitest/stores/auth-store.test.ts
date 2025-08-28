@@ -96,7 +96,6 @@ describe('AuthStore Factory Pattern', () => {
             // User state will be updated by the auth state listener
         });
 
-
         it('should handle logout', async () => {
             await authStore.logout();
             expect(authStore.error).toBe(null);
@@ -115,6 +114,4 @@ describe('AuthStore Factory Pattern', () => {
             expect(authStore.error).toBe(null);
         });
     });
-
-
 });

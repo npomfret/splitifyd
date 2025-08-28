@@ -292,7 +292,7 @@ function setupRoutes(app: express.Application): void {
     app.delete(`/${FirestoreCollections.GROUPS}/:id`, authenticate, asyncHandler(deleteGroup));
     app.post(`/${FirestoreCollections.GROUPS}/:id/leave`, authenticate, asyncHandler(leaveGroup));
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
-    
+
     // Permission management routes
     app.post(`/${FirestoreCollections.GROUPS}/:id/security/preset`, authenticate, asyncHandler(applySecurityPreset));
     app.put(`/${FirestoreCollections.GROUPS}/:id/permissions`, authenticate, asyncHandler(updateGroupPermissions));

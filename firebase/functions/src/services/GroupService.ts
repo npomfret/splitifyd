@@ -2,7 +2,7 @@ import * as admin from 'firebase-admin';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { Group, GroupWithBalance } from '../types/group-types';
-import {FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD} from '@splitifyd/shared';
+import { FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { calculateGroupBalances, calculateGroupBalancesWithData } from './balance';
 import { calculateExpenseMetadata } from './expenseMetadataService';
 import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
@@ -22,7 +22,6 @@ import { UpdateGroupRequest } from '../types/group-types';
  * Service for managing group operations
  */
 export class GroupService {
-
     /**
      * Get the groups collection reference
      */
@@ -160,13 +159,13 @@ export class GroupService {
     private async batchFetchGroupData(groupIds: string[]): Promise<{
         expensesByGroup: Map<string, any[]>;
         settlementsByGroup: Map<string, any[]>;
-        expenseMetadataByGroup: Map<string, { count: number, lastExpenseTime?: Date }>
+        expenseMetadataByGroup: Map<string, { count: number; lastExpenseTime?: Date }>;
     }> {
         if (groupIds.length === 0) {
             return {
                 expensesByGroup: new Map(),
                 settlementsByGroup: new Map(),
-                expenseMetadataByGroup: new Map()
+                expenseMetadataByGroup: new Map(),
             };
         }
 
@@ -177,27 +176,16 @@ export class GroupService {
         }
 
         // Batch fetch all expenses and settlements for all groups
-        const expenseQueries = chunks.map(chunk =>
-            firestoreDb.collection(FirestoreCollections.EXPENSES)
-                .where('groupId', 'in', chunk)
-                .get()
-        );
+        const expenseQueries = chunks.map((chunk) => firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', 'in', chunk).get());
 
-        const settlementQueries = chunks.map(chunk =>
-            firestoreDb.collection(FirestoreCollections.SETTLEMENTS)
-                .where('groupId', 'in', chunk)
-                .get()
-        );
+        const settlementQueries = chunks.map((chunk) => firestoreDb.collection(FirestoreCollections.SETTLEMENTS).where('groupId', 'in', chunk).get());
 
         // Execute all queries in parallel
-        const [expenseResults, settlementResults] = await Promise.all([
-            Promise.all(expenseQueries),
-            Promise.all(settlementQueries)
-        ]);
+        const [expenseResults, settlementResults] = await Promise.all([Promise.all(expenseQueries), Promise.all(settlementQueries)]);
 
         // Organize expenses by group ID
         const expensesByGroup = new Map<string, any[]>();
-        const expenseMetadataByGroup = new Map<string, { count: number, lastExpenseTime?: Date }>();
+        const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date }>();
 
         for (const snapshot of expenseResults) {
             for (const doc of snapshot.docs) {
@@ -214,7 +202,7 @@ export class GroupService {
 
         // Calculate metadata for each group
         for (const [groupId, expenses] of expensesByGroup.entries()) {
-            const nonDeletedExpenses = expenses.filter(expense => !expense[DELETED_AT_FIELD]);
+            const nonDeletedExpenses = expenses.filter((expense) => !expense[DELETED_AT_FIELD]);
             const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
                 const aTime = a.createdAt?.toMillis() || 0;
                 const bTime = b.createdAt?.toMillis() || 0;
@@ -223,7 +211,7 @@ export class GroupService {
 
             expenseMetadataByGroup.set(groupId, {
                 count: nonDeletedExpenses.length,
-                lastExpenseTime: sortedExpenses.length > 0 ? sortedExpenses[0].createdAt?.toDate() : undefined
+                lastExpenseTime: sortedExpenses.length > 0 ? sortedExpenses[0].createdAt?.toDate() : undefined,
             });
         }
 
@@ -252,7 +240,7 @@ export class GroupService {
         return {
             expensesByGroup,
             settlementsByGroup,
-            expenseMetadataByGroup
+            expenseMetadataByGroup,
         };
     }
 
@@ -278,7 +266,7 @@ export class GroupService {
             cursor?: string;
             order?: 'asc' | 'desc';
             includeMetadata?: boolean;
-        } = {}
+        } = {},
     ): Promise<ListGroupsResponse> {
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
@@ -287,9 +275,7 @@ export class GroupService {
         const includeMetadata = options.includeMetadata === true;
 
         // Build base query - groups where user is a member
-        const baseQuery = this.getGroupsCollection()
-            .where(`data.members.${userId}`, '!=', null)
-            .select('data', 'createdAt', 'updatedAt');
+        const baseQuery = this.getGroupsCollection().where(`data.members.${userId}`, '!=', null).select('data', 'createdAt', 'updatedAt');
 
         // Build paginated query
         const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
@@ -312,7 +298,7 @@ export class GroupService {
 
         const results = await Promise.all(queries);
         const snapshot = results[0] as admin.firestore.QuerySnapshot;
-        const changesSnapshot = includeMetadata ? results[1] as admin.firestore.QuerySnapshot : null;
+        const changesSnapshot = includeMetadata ? (results[1] as admin.firestore.QuerySnapshot) : null;
         const documents = snapshot.docs;
 
         // Determine if there are more results
@@ -320,10 +306,8 @@ export class GroupService {
         const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
         // Transform documents to groups and extract group IDs
-        const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) =>
-            transformGroupDocument(doc)
-        );
-        const groupIds = groups.map(group => group.id);
+        const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) => transformGroupDocument(doc));
+        const groupIds = groups.map((group) => group.id);
 
         // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
         const { expensesByGroup, settlementsByGroup, expenseMetadataByGroup } = await this.batchFetchGroupData(groupIds);
@@ -331,7 +315,7 @@ export class GroupService {
         // Batch fetch user profiles for all members across all groups
         const allMemberIds = new Set<string>();
         for (const group of groups) {
-            Object.keys(group.members).forEach(memberId => allMemberIds.add(memberId));
+            Object.keys(group.members).forEach((memberId) => allMemberIds.add(memberId));
         }
         const allMemberProfiles = await userService.getUsers(Array.from(allMemberIds));
 
@@ -366,10 +350,10 @@ export class GroupService {
                             members: group.members,
                             name: group.name,
                             description: group.description,
-                            createdBy: group.createdBy
-                        }
+                            createdBy: group.createdBy,
+                        },
                     },
-                    memberProfiles
+                    memberProfiles,
                 };
 
                 // Use optimized balance calculation with pre-fetched data
@@ -380,7 +364,7 @@ export class GroupService {
                 groupBalances = {
                     balancesByCurrency: {},
                     userBalances: {},
-                    simplifiedDebts: {}
+                    simplifiedDebts: {},
                 };
             }
 
@@ -459,7 +443,7 @@ export class GroupService {
                 lastChangeTimestamp: lastChange?.data().timestamp?.toMillis() || 0,
                 changeCount: changesSnapshot.size,
                 serverTime: Date.now(),
-                hasRecentChanges: changesSnapshot.size > 0
+                hasRecentChanges: changesSnapshot.size > 0,
             };
         }
 
@@ -470,10 +454,7 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(
-        userId: string,
-        groupData: CreateGroupRequest
-    ): Promise<Group> {
+    async createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
         // Initialize group structure with server timestamps
         const docRef = this.getGroupsCollection().doc();
         const serverTimestamp = createTrueServerTimestamp();
@@ -525,13 +506,13 @@ export class GroupService {
             createdAt: serverTimestamp,
             updatedAt: serverTimestamp,
         };
-        
+
         try {
             GroupDocumentSchema.parse(documentToWrite);
         } catch (error) {
             logger.error('Invalid group document to write', error as Error, {
                 groupId: docRef.id,
-                userId
+                userId,
             });
             throw Errors.INVALID_INPUT();
         }
@@ -548,10 +529,10 @@ export class GroupService {
         // Fetch the created document to get server-side timestamps
         const createdDoc = await docRef.get();
         const group = transformGroupDocument(createdDoc);
-        
+
         // Add computed fields before returning
         const groupWithComputed = await this.addComputedFields(group, userId);
-        
+
         return groupWithComputed;
     }
 
@@ -559,11 +540,7 @@ export class GroupService {
      * Update an existing group
      * Only the owner can update a group
      */
-    async updateGroup(
-        groupId: string,
-        userId: string,
-        updates: UpdateGroupRequest
-    ): Promise<MessageResponse> {
+    async updateGroup(groupId: string, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
         // Fetch group with write access check
         const { docRef, group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
@@ -616,11 +593,7 @@ export class GroupService {
         const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Check if group has expenses
-        const expensesSnapshot = await firestoreDb
-            .collection(FirestoreCollections.EXPENSES)
-            .where('groupId', '==', groupId)
-            .limit(1)
-            .get();
+        const expensesSnapshot = await firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
 
         if (!expensesSnapshot.empty) {
             throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');

@@ -27,8 +27,8 @@ The monorepo uses npm workspace packages for sharing code between frontend and b
 
 - **Purpose**: Share type definitions and utilities across the entire stack with absolute type safety.
 - **Location**: Shared packages are located in `packages/` directory:
-  - `@splitifyd/shared` - Types and utilities shared between frontend and backend
-  - `@splitifyd/test-support` - Test utilities and configurations
+    - `@splitifyd/shared` - Types and utilities shared between frontend and backend
+    - `@splitifyd/test-support` - Test utilities and configurations
 - **Primary Use**: All types intended for use by both client and server are in the `@splitifyd/shared` package.
 - **Rule**: When creating a type that will be sent to or received from the API, it **must** be defined in the shared package and imported using `@splitifyd/shared`.
 

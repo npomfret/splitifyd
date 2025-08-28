@@ -1,4 +1,3 @@
-
 // Tests for duplicate user registration handling
 
 import { beforeAll, describe, expect, test } from 'vitest';
@@ -11,10 +10,8 @@ describe('Duplicate User Registration Tests', () => {
     // vi.setTimeout(4000); // it takes about 2s
 
     beforeAll(async () => {
-
         driver = new ApiDriver();
     });
-
 
     describe('Sequential Registration', () => {
         test('should prevent duplicate email registration', async () => {

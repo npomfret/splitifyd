@@ -21,7 +21,7 @@ export interface EnhancedGroupDetailStore {
     expenseCursor: string | null;
     hasMoreSettlements: boolean;
     settlementsCursor: string | null;
-    
+
     // Readonly signal accessors for reactive components
     readonly groupSignal: ReadonlySignal<Group | null>;
     readonly membersSignal: ReadonlySignal<User[]>;
@@ -73,7 +73,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #expenseCursorSignal = signal<string | null>(null);
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
     readonly #settlementsCursorSignal = signal<string | null>(null);
-    
+
     private expenseChangeListener: (() => void) | null = null;
     private groupChangeListener: (() => void) | null = null;
     private changeDetector = new ChangeDetector();
@@ -125,7 +125,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     get settlementsCursor() {
         return this.#settlementsCursorSignal.value;
     }
-    
+
     // Signal accessors for reactive components - return readonly signals
     get groupSignal(): ReadonlySignal<Group | null> {
         return this.#groupSignal;
@@ -184,10 +184,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             // Update all signals atomically using batch to prevent race conditions
             batch(() => {
-                logInfo('LoadGroup: Updating group signal', { 
+                logInfo('LoadGroup: Updating group signal', {
                     groupId: this.currentGroupId,
                     oldName: this.#groupSignal.value?.name,
-                    newName: fullDetails.group.name
+                    newName: fullDetails.group.name,
                 });
                 this.#groupSignal.value = fullDetails.group;
                 this.#membersSignal.value = fullDetails.members.members;
@@ -390,18 +390,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
-        
+
         logInfo('RefreshAll: Starting complete data refresh', { groupId: this.currentGroupId });
-        
+
         try {
             // Use the consolidated full-details endpoint to ensure atomic data consistency
             // This prevents race conditions where balances might not be calculated yet
             // loadGroup() already calls getGroupFullDetails() which includes ALL data
             await this.loadGroup(this.currentGroupId);
-            
+
             logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
         } catch (error) {
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });

@@ -19,7 +19,7 @@ describe('Group Permissions', () => {
 
         // Make adminUser an admin
         await apiDriver.setMemberRole(group.id, adminUser.token, adminUser.uid, MemberRoles.ADMIN);
-        
+
         // Re-fetch group to get updated member roles
         group = await apiDriver.getGroup(group.id, adminUser.token);
     });
@@ -38,9 +38,7 @@ describe('Group Permissions', () => {
         });
 
         test('Member cannot apply a security preset', async () => {
-            await expect(
-                apiDriver.applySecurityPreset(group.id, memberUser.token, SecurityPresets.OPEN)
-            ).rejects.toThrow('failed with status 403');
+            await expect(apiDriver.applySecurityPreset(group.id, memberUser.token, SecurityPresets.OPEN)).rejects.toThrow('failed with status 403');
         });
     });
 
@@ -56,25 +54,21 @@ describe('Group Permissions', () => {
         });
 
         test('Member cannot change a member role', async () => {
-            await expect(
-                apiDriver.setMemberRole(group.id, memberUser.token, adminUser.uid, MemberRoles.MEMBER)
-            ).rejects.toThrow('failed with status 403');
+            await expect(apiDriver.setMemberRole(group.id, memberUser.token, adminUser.uid, MemberRoles.MEMBER)).rejects.toThrow('failed with status 403');
         });
 
         test('Last admin cannot be demoted', async () => {
             // First, demote the other admin
             await apiDriver.setMemberRole(group.id, adminUser.token, memberUser.uid, MemberRoles.MEMBER);
-            
-            await expect(
-                apiDriver.setMemberRole(group.id, adminUser.token, adminUser.uid, MemberRoles.MEMBER)
-            ).rejects.toThrow('failed with status 400');
+
+            await expect(apiDriver.setMemberRole(group.id, adminUser.token, adminUser.uid, MemberRoles.MEMBER)).rejects.toThrow('failed with status 400');
         });
     });
 
     // NOTE: Pending member approval endpoints are not yet implemented
     // These tests are commented out until the features are built
     // (Tests for features that don't exist yet violate testing guidelines)
-    
+
     // describe('Pending Members', () => {
     //     let pendingUser: User;
 
@@ -103,7 +97,7 @@ describe('Group Permissions', () => {
     //         const updatedGroup = await apiDriver.getGroup(group.id, adminUser.token);
     //         expect(updatedGroup.members[pendingUser.uid].status).toBe(MemberStatuses.ACTIVE);
     //     });
-        
+
     //     test('Admin can reject a pending member', async () => {
     //         const userToReject = await apiDriver.createUser(generateNewUserDetails('reject'));
     //         const shareLink = await apiDriver.generateShareLink(group.id, adminUser.token);

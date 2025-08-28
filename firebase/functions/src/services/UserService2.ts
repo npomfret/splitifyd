@@ -16,30 +16,34 @@ import { z } from 'zod';
  * Zod schema for User document validation
  * All fields are optional since user documents can be created incrementally
  */
-const UserDocumentSchema = z.object({
-    email: z.string().email().optional(), // Email might be in Auth only
-    displayName: z.string().optional(), // Display name might be in Auth only
-    themeColor: z.union([
-        z.string(),
-        z.object({
-            light: z.string(),
-            dark: z.string(),
-            name: z.string(),
-            pattern: z.string(),
-            assignedAt: z.string(),
-            colorIndex: z.number()
-        })
-    ]).optional(), // Can be string or UserThemeColor object
-    preferredLanguage: z.string().optional(),
-    createdAt: z.any().optional(), // Firestore Timestamp
-    updatedAt: z.any().optional(), // Firestore Timestamp
-    role: z.nativeEnum(SystemUserRoles).optional(),
-    acceptedPolicies: z.record(z.string(), z.string()).optional(),
-    termsAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
-    cookiePolicyAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
-    passwordChangedAt: z.any().optional(), // Firestore Timestamp when password was changed
-    photoURL: z.string().nullable().optional(), // Photo URL can be null or undefined
-}).passthrough();
+const UserDocumentSchema = z
+    .object({
+        email: z.string().email().optional(), // Email might be in Auth only
+        displayName: z.string().optional(), // Display name might be in Auth only
+        themeColor: z
+            .union([
+                z.string(),
+                z.object({
+                    light: z.string(),
+                    dark: z.string(),
+                    name: z.string(),
+                    pattern: z.string(),
+                    assignedAt: z.string(),
+                    colorIndex: z.number(),
+                }),
+            ])
+            .optional(), // Can be string or UserThemeColor object
+        preferredLanguage: z.string().optional(),
+        createdAt: z.any().optional(), // Firestore Timestamp
+        updatedAt: z.any().optional(), // Firestore Timestamp
+        role: z.nativeEnum(SystemUserRoles).optional(),
+        acceptedPolicies: z.record(z.string(), z.string()).optional(),
+        termsAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
+        cookiePolicyAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
+        passwordChangedAt: z.any().optional(), // Firestore Timestamp when password was changed
+        photoURL: z.string().nullable().optional(), // Photo URL can be null or undefined
+    })
+    .passthrough();
 
 /**
  * User profile interface for consistent user data across the application
@@ -146,10 +150,10 @@ export class UserService {
                     UserDocumentSchema.parse(userData);
                 } catch (error) {
                     const zodError = error as z.ZodError;
-                    logger.error('User document validation failed', error as Error, { 
+                    logger.error('User document validation failed', error as Error, {
                         userId,
                         userData: JSON.stringify(userData),
-                        validationErrors: zodError.issues
+                        validationErrors: zodError.issues,
                     });
                     throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document structure is invalid');
                 }
@@ -351,10 +355,7 @@ export class UserService {
         try {
             // Check if user has any groups or outstanding balances
             // This is a simplified check - in production you'd want more thorough validation
-            const groupsSnapshot = await firestoreDb
-                .collection(FirestoreCollections.GROUPS)
-                .where(`data.members.${userId}`, '!=', null)
-                .get();
+            const groupsSnapshot = await firestoreDb.collection(FirestoreCollections.GROUPS).where(`data.members.${userId}`, '!=', null).get();
 
             if (!groupsSnapshot.empty) {
                 throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
@@ -392,7 +393,7 @@ export class UserService {
     async registerUser(requestBody: unknown): Promise<RegisterUserResult> {
         // Validate the request body
         const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
-        
+
         let userRecord: admin.auth.UserRecord | null = null;
 
         try {
@@ -429,7 +430,7 @@ export class UserService {
             }
 
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
-            
+
             logger.info('user-registered', { id: userRecord.uid });
 
             return {
@@ -456,11 +457,7 @@ export class UserService {
 
             // Handle specific auth errors
             if (error && typeof error === 'object' && 'code' in error && error.code === AuthErrors.EMAIL_EXISTS) {
-                throw new ApiError(
-                    HTTP_STATUS.CONFLICT,
-                    AuthErrors.EMAIL_EXISTS_CODE,
-                    'An account with this email already exists'
-                );
+                throw new ApiError(HTTP_STATUS.CONFLICT, AuthErrors.EMAIL_EXISTS_CODE, 'An account with this email already exists');
             }
 
             // Re-throw the error for the handler to catch

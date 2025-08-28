@@ -18,7 +18,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     // Initialize with empty strings - will be set when modal opens
     const [groupName, setGroupName] = useState('');
     const [groupDescription, setGroupDescription] = useState('');
-    
+
     // Track initial values when modal opens to properly detect changes
     const [initialName, setInitialName] = useState('');
     const [initialDescription, setInitialDescription] = useState('');

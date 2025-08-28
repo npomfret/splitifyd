@@ -4,10 +4,8 @@ import { parseISOToTimestamp, timestampToISO, createServerTimestamp, isDateInVal
 
 describe('Firebase Date Handling Integration Tests', () => {
     beforeAll(async () => {
-
         // Admin is already initialized in firebase-test-setup
     });
-
 
     describe('Date Utility Functions', () => {
         it('should correctly parse ISO strings to Timestamps', () => {

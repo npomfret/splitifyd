@@ -7,22 +7,13 @@ import { translateJoiError } from '../utils/i18n-validation';
  * Schema for update user profile request
  */
 const updateUserProfileSchema = Joi.object({
-    displayName: Joi.string()
-        .trim()
-        .min(1)
-        .max(100)
-        .optional()
-        .messages({
-            'string.empty': 'Display name cannot be empty',
-            'string.max': 'Display name must be 100 characters or less',
-        }),
-    photoURL: Joi.string()
-        .uri()
-        .allow(null, '')
-        .optional()
-        .messages({
-            'string.uri': 'Invalid photo URL format',
-        }),
+    displayName: Joi.string().trim().min(1).max(100).optional().messages({
+        'string.empty': 'Display name cannot be empty',
+        'string.max': 'Display name must be 100 characters or less',
+    }),
+    photoURL: Joi.string().uri().allow(null, '').optional().messages({
+        'string.uri': 'Invalid photo URL format',
+    }),
     preferredLanguage: Joi.string()
         .trim()
         .valid('en') // Add more languages as they become available
@@ -49,9 +40,9 @@ export interface UpdateUserProfileRequest {
  * Validate update user profile request
  */
 export const validateUpdateUserProfile = (body: unknown, language: string = 'en'): UpdateUserProfileRequest => {
-    const { error, value } = updateUserProfileSchema.validate(body, { 
+    const { error, value } = updateUserProfileSchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -81,13 +72,10 @@ export const validateUpdateUserProfile = (body: unknown, language: string = 'en'
  * Schema for delete user request
  */
 const deleteUserSchema = Joi.object({
-    confirmDelete: Joi.boolean()
-        .valid(true)
-        .required()
-        .messages({
-            'any.only': 'Account deletion must be explicitly confirmed',
-            'any.required': 'Account deletion must be explicitly confirmed',
-        }),
+    confirmDelete: Joi.boolean().valid(true).required().messages({
+        'any.only': 'Account deletion must be explicitly confirmed',
+        'any.required': 'Account deletion must be explicitly confirmed',
+    }),
 }).required();
 
 /**
@@ -101,9 +89,9 @@ export interface DeleteUserRequest {
  * Validate delete user request
  */
 export const validateDeleteUser = (body: unknown): DeleteUserRequest => {
-    const { error, value } = deleteUserSchema.validate(body, { 
+    const { error, value } = deleteUserSchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -118,22 +106,16 @@ export const validateDeleteUser = (body: unknown): DeleteUserRequest => {
  * Schema for change password request
  */
 const changePasswordSchema = Joi.object({
-    currentPassword: Joi.string()
-        .required()
-        .messages({
-            'any.required': 'Current password is required',
-            'string.empty': 'Current password cannot be empty',
-        }),
-    newPassword: Joi.string()
-        .min(6)
-        .max(128)
-        .required()
-        .messages({
-            'any.required': 'New password is required',
-            'string.empty': 'New password cannot be empty',
-            'string.min': 'New password must be at least 6 characters long',
-            'string.max': 'New password must be 128 characters or less',
-        }),
+    currentPassword: Joi.string().required().messages({
+        'any.required': 'Current password is required',
+        'string.empty': 'Current password cannot be empty',
+    }),
+    newPassword: Joi.string().min(6).max(128).required().messages({
+        'any.required': 'New password is required',
+        'string.empty': 'New password cannot be empty',
+        'string.min': 'New password must be at least 6 characters long',
+        'string.max': 'New password must be 128 characters or less',
+    }),
 });
 
 /**
@@ -148,9 +130,9 @@ export interface ChangePasswordRequest {
  * Validate change password request
  */
 export const validateChangePassword = (body: unknown): ChangePasswordRequest => {
-    const { error, value } = changePasswordSchema.validate(body, { 
+    const { error, value } = changePasswordSchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -165,4 +147,3 @@ export const validateChangePassword = (body: unknown): ChangePasswordRequest => 
 
     return value as ChangePasswordRequest;
 };
-

@@ -1,10 +1,10 @@
-import {Browser, BrowserContext, expect, Page, test} from '@playwright/test';
-import {setupMCPDebugOnFailure} from '../../../helpers';
-import {DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage} from '../../../pages';
-import {GroupWorkflow} from '../../../workflows';
-import {DEFAULT_PASSWORD, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
-import {getUserPool} from '../../../fixtures/user-pool.fixture';
-import {User} from "@splitifyd/shared";
+import { Browser, BrowserContext, expect, Page, test } from '@playwright/test';
+import { setupMCPDebugOnFailure } from '../../../helpers';
+import { DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage } from '../../../pages';
+import { GroupWorkflow } from '../../../workflows';
+import { DEFAULT_PASSWORD, generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { getUserPool } from '../../../fixtures/user-pool.fixture';
+import { User } from '@splitifyd/shared';
 
 setupMCPDebugOnFailure();
 
@@ -49,20 +49,19 @@ test.describe('Parallel Group Joining Edge Cases', () => {
 
             await creatorPage.goto('/dashboard');
             const groupWorkflow = new GroupWorkflow(creatorPage);
-            const groupId = await groupWorkflow.createGroupAndNavigate(
-                generateTestGroupName('Parallel'),
-                'Testing parallel join'
-            );
+            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
 
             // Get share link
             const shareLink = await creatorGroupDetailPage.getShareLink();
 
             // Other users join in parallel
-            await Promise.all(otherPages.map(async (page, i) => {
-                const joinGroupPage = new JoinGroupPage(page);
-                // Use the joinGroup method with proper error handling
-                await joinGroupPage.joinGroupUsingShareLink(shareLink)
-            }));
+            await Promise.all(
+                otherPages.map(async (page, i) => {
+                    const joinGroupPage = new JoinGroupPage(page);
+                    // Use the joinGroup method with proper error handling
+                    await joinGroupPage.joinGroupUsingShareLink(shareLink);
+                }),
+            );
 
             // Verify all users see complete member list
 
@@ -80,14 +79,11 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         } finally {
             try {
                 await Promise.all(contexts.map((c) => c.close()));
-            } catch (e) {
-            }
+            } catch (e) {}
 
             try {
                 users.forEach((u) => userPool.releaseUser(u));
-            } catch (e) {
-            }
+            } catch (e) {}
         }
     });
-
 });

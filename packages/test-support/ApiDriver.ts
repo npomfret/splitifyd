@@ -29,9 +29,9 @@ import {
     MemberRole,
 } from '@splitifyd/shared';
 
-import type {DocumentData} from "firebase-admin/firestore";
-import * as admin from "firebase-admin";
-import {getFirebaseEmulatorConfig} from "./firebase-emulator-config";
+import type { DocumentData } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
+import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -54,7 +54,6 @@ interface PollOptions {
 
 // Generic matcher type
 type Matcher<T> = (value: T) => boolean | Promise<boolean>;
-
 
 /**
  * Helper functions for querying change collections in tests
@@ -93,8 +92,7 @@ export interface SettlementChangeDocument extends MinimalChangeDocument {
     groupId: string;
 }
 
-export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {
-}
+export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -110,7 +108,7 @@ export class ApiDriver {
         this.baseUrl = API_BASE_URL;
         this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
         this.firebaseApiKey = FIREBASE_API_KEY;
-        
+
         // Initialize firestoreDb - either use provided one or create new instance
         if (firestoreDb) {
             this.firestoreDb = firestoreDb;
@@ -119,7 +117,7 @@ export class ApiDriver {
             if (!admin.apps || admin.apps.length === 0) {
                 const projectId = process.env.GCLOUD_PROJECT || 'splitifyd';
                 admin.initializeApp({ projectId });
-                
+
                 // Connect to emulator if not in production
                 if (process.env.NODE_ENV !== 'production') {
                     const firestore = admin.firestore();
@@ -159,7 +157,7 @@ export class ApiDriver {
         // Use Firebase Auth REST API to sign in
         const signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 email: userInfo.email,
                 password: userInfo.password,
@@ -266,10 +264,7 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/group?groupId=${groupId}${limitParam}`, 'GET', null, token);
     }
 
-    async getExpenseHistory(
-        expenseId: string,
-        token: string,
-    ): Promise<ExpenseHistoryResponse> {
+    async getExpenseHistory(expenseId: string, token: string): Promise<ExpenseHistoryResponse> {
         return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
     }
 
@@ -278,28 +273,28 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
-        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
+        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
     async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<Group>, options?: PollOptions): Promise<Group> {
-        return this.pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
+        return this.pollUntil(() => this.getGroup(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
-        return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
+        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
-        return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
+        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
     }
 
     async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
-        const groupData = {name, description: `Test group created at ${new Date().toISOString()}`,};
+        const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
 
         const group = await this.createGroup(groupData, creatorToken);
 
@@ -307,7 +302,7 @@ export class ApiDriver {
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         if (otherMembers.length > 0) {
             const shareResponse = await this.generateShareLink(group.id, creatorToken);
-            const {linkId} = shareResponse;
+            const { linkId } = shareResponse;
 
             // Step 3: Have other members join using the share link
             for (const member of otherMembers) {
@@ -318,9 +313,10 @@ export class ApiDriver {
         // Step 4: Fetch the updated group to get all members
         const updatedGroup = await this.getGroup(group.id, creatorToken);
 
-        for (const member of members) {// sanity check
-            if(!(member.uid in updatedGroup.members))
-                throw Error(`member ${JSON.stringify(member)} has been added to group, but does not appear in the members collection: ${JSON.stringify(Object.keys(group.members))}`)
+        for (const member of members) {
+            // sanity check
+            if (!(member.uid in updatedGroup.members))
+                throw Error(`member ${JSON.stringify(member)} has been added to group, but does not appear in the members collection: ${JSON.stringify(Object.keys(group.members))}`);
         }
 
         return updatedGroup;
@@ -338,15 +334,19 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
     }
 
-    async getGroupFullDetails(groupId: string, token: string, options?: {
-        expenseLimit?: number;
-        expenseCursor?: string;
-        settlementLimit?: number;
-        settlementCursor?: string;
-    }): Promise<GroupFullDetails> {
+    async getGroupFullDetails(
+        groupId: string,
+        token: string,
+        options?: {
+            expenseLimit?: number;
+            expenseCursor?: string;
+            settlementLimit?: number;
+            settlementCursor?: string;
+        },
+    ): Promise<GroupFullDetails> {
         let url = `/groups/${groupId}/full-details`;
         const queryParams: string[] = [];
-        
+
         if (options?.expenseLimit) {
             queryParams.push(`expenseLimit=${options.expenseLimit}`);
         }
@@ -359,11 +359,11 @@ export class ApiDriver {
         if (options?.settlementCursor) {
             queryParams.push(`settlementCursor=${encodeURIComponent(options.settlementCursor)}`);
         }
-        
+
         if (queryParams.length > 0) {
             url += `?${queryParams.join('&')}`;
         }
-        
+
         return await this.apiRequest(url, 'GET', null, token);
     }
 
@@ -464,7 +464,7 @@ export class ApiDriver {
     }
 
     private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
-        const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
+        const { timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry } = options;
 
         const startTime = Date.now();
         let lastError: Error | null = null;
@@ -497,7 +497,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && {Authorization: `Bearer ${token}`}),
+                ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
 
@@ -535,7 +535,7 @@ export class ApiDriver {
 
     async mostRecentGroupChangeEvent(group: Group) {
         const changes = await this.getGroupChanges(group.id);
-        return changes[0];// they are most recent first
+        return changes[0]; // they are most recent first
     }
 
     async countGroupChanges(groupId: string) {
@@ -573,18 +573,15 @@ export class ApiDriver {
 
     async waitForExpenseEvent(action: string, groupId: string, expenseId: string, participants: User[], expectedCount: number) {
         await this.waitForExpenseChanges(groupId, (changes) => {
-            const found = changes.filter(doc => {
-                if (doc.type !== 'expense')
-                    throw Error("should not get here");
+            const found = changes.filter((doc) => {
+                if (doc.type !== 'expense') throw Error('should not get here');
 
-                if (doc.id !== expenseId)
-                    return false;
+                if (doc.id !== expenseId) return false;
 
-                if (doc.action !== action)
-                    return false;
+                if (doc.action !== action) return false;
 
                 // Check all participants are in the users array
-                return participants.every(p => doc.users.includes(p.uid));
+                return participants.every((p) => doc.users.includes(p.uid));
             });
 
             return found.length === expectedCount;
@@ -593,15 +590,13 @@ export class ApiDriver {
 
     async waitForBalanceRecalculationEvent(groupId: string, participants: User[], expectedCount = 1) {
         await this.waitForBalanceChanges(groupId, (changes) => {
-            const found = changes.filter(doc => {
-                if (doc.type !== 'balance')
-                    throw Error("should not get here");
+            const found = changes.filter((doc) => {
+                if (doc.type !== 'balance') throw Error('should not get here');
 
-                if (doc.action !== 'recalculated')
-                    return false;
+                if (doc.action !== 'recalculated') return false;
 
                 // Check all participants are in the users array
-                return participants.every(p => doc.users.includes(p.uid));
+                return participants.every((p) => doc.users.includes(p.uid));
             });
 
             return found.length >= expectedCount;
@@ -609,33 +604,34 @@ export class ApiDriver {
     }
 
     async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number, timeout: number = 2000) {
-        await this.waitForGroupChanges(groupId, (changes) => {
-            const found = changes.filter(doc => {
-                if (doc.type !== 'group')
-                    throw Error("should not get here")
+        await this.waitForGroupChanges(
+            groupId,
+            (changes) => {
+                const found = changes.filter((doc) => {
+                    if (doc.type !== 'group') throw Error('should not get here');
 
-                if (doc.action !== action)
-                    return false;
+                    if (doc.action !== action) return false;
 
-                return doc.users.includes(creator.uid);
-            });
+                    return doc.users.includes(creator.uid);
+                });
 
-            return found.length === expectedCount;
-        }, timeout);
+                return found.length === expectedCount;
+            },
+            timeout,
+        );
     }
 
     async waitForGroupChanges(groupId: string, matcher: Matcher<GroupChangeDocument[]>, timeout = 2000) {
         const endTime = Date.now() + timeout;
-        while(Date.now() < endTime) {
+        while (Date.now() < endTime) {
             const changes = await this.getGroupChanges(groupId);
-            if(matcher(changes))
-                return;
+            if (matcher(changes)) return;
         }
 
         const changes = await this.getGroupChanges(groupId);
         console.error(`${changes.length} observed`);
         for (const change of changes) {
-            console.error(` * ${JSON.stringify(change)}`)
+            console.error(` * ${JSON.stringify(change)}`);
         }
 
         throw Error(`timeout waiting for group changes`);
@@ -643,68 +639,55 @@ export class ApiDriver {
 
     async waitForExpenseChanges(groupId: string, matcher: Matcher<ExpenseChangeDocument[]>, timeout = 2000) {
         const endTime = Date.now() + timeout;
-        while(Date.now() < endTime) {
+        while (Date.now() < endTime) {
             const changes = await this.getExpenseChanges(groupId);
-            if(matcher(changes))
-                return;
+            if (matcher(changes)) return;
         }
         throw Error(`timeout waiting for expense changes`);
     }
 
     async waitForSettlementChanges(groupId: string, matcher: Matcher<SettlementChangeDocument[]>, timeout = 2000) {
         const endTime = Date.now() + timeout;
-        while(Date.now() < endTime) {
+        while (Date.now() < endTime) {
             const changes = await this.getSettlementChanges(groupId);
-            if(matcher(changes))
-                return;
+            if (matcher(changes)) return;
         }
         throw Error(`timeout waiting for settlement changes`);
     }
 
     async waitForBalanceChanges(groupId: string, matcher: Matcher<BalanceChangeDocument[]>, timeout = 2000) {
         const endTime = Date.now() + timeout;
-        while(Date.now() < endTime) {
+        while (Date.now() < endTime) {
             const changes = await this.getBalanceChanges(groupId);
-            if(matcher(changes))
-                return;
+            if (matcher(changes)) return;
         }
         throw Error(`timeout waiting for balance changes`);
     }
 
     async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-        return await this.getTransactionChanges(groupId, 'expense') as ExpenseChangeDocument[];
+        return (await this.getTransactionChanges(groupId, 'expense')) as ExpenseChangeDocument[];
     }
 
     async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
-        return await this.getTransactionChanges(groupId, 'settlement') as SettlementChangeDocument[];
+        return (await this.getTransactionChanges(groupId, 'settlement')) as SettlementChangeDocument[];
     }
 
     async getTransactionChanges(groupId: string, type: string) {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES)
-            .where('groupId', '==', groupId)
-            .where('type', '==', type)
-            .orderBy('timestamp', 'desc')
-            .get();
+        const snapshot = await this.firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).where('type', '==', type).orderBy('timestamp', 'desc').get();
 
-        return snapshot.docs.map(doc => doc.data() as MinimalChangeDocument);
+        return snapshot.docs.map((doc) => doc.data() as MinimalChangeDocument);
     }
 
     async getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES)
-            .where('groupId', '==', groupId)
-            .orderBy('timestamp', 'desc')
-            .get();
+        const snapshot = await this.firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').get();
 
-        return snapshot.docs.map(doc => doc.data() as BalanceChangeDocument);
+        return snapshot.docs.map((doc) => doc.data() as BalanceChangeDocument);
     }
 
     async getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.GROUP_CHANGES)
-            .where('id', '==', groupId)
-            .orderBy('timestamp', 'desc')
-            .get();
+        const snapshot = await this.firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).where('id', '==', groupId).orderBy('timestamp', 'desc').get();
 
-        return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
+        return snapshot.docs.map((doc) => doc.data() as GroupChangeDocument);
     }
 
     /**
@@ -716,8 +699,8 @@ export class ApiDriver {
             (group) => group.members.hasOwnProperty(userId),
             {
                 timeout,
-                errorMsg: `User ${userId} did not join group ${groupId}`
-            }
+                errorMsg: `User ${userId} did not join group ${groupId}`,
+            },
         );
     }
 
@@ -730,8 +713,8 @@ export class ApiDriver {
             (changes) => changes.length >= minimumCount,
             {
                 timeout,
-                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`
-            }
+                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`,
+            },
         );
     }
 
@@ -739,12 +722,9 @@ export class ApiDriver {
      * Get group changes filtered by user
      */
     async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection('group-changes')
-            .where('id', '==', groupId)
-            .where('users', 'array-contains', userId)
-            .get();
+        const snapshot = await this.firestoreDb.collection('group-changes').where('id', '==', groupId).where('users', 'array-contains', userId).get();
 
-        return snapshot.docs.map(doc => doc.data() as GroupChangeDocument);
+        return snapshot.docs.map((doc) => doc.data() as GroupChangeDocument);
     }
 
     /**
@@ -772,14 +752,11 @@ export class ApiDriver {
      * Generic method to wait for settlement events
      */
     async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: User[], expectedCount: number) {
-        const participantUids = participants.map(p => p.uid);
-        
+        const participantUids = participants.map((p) => p.uid);
+
         return this.waitForSettlementChanges(groupId, (changes) => {
-            const relevantChanges = changes.filter(change => 
-                change.id === settlementId &&
-                change.action === action &&
-                change.type === 'settlement' &&
-                participantUids.every(uid => change.users.includes(uid))
+            const relevantChanges = changes.filter(
+                (change) => change.id === settlementId && change.action === action && change.type === 'settlement' && participantUids.every((uid) => change.users.includes(uid)),
             );
             return relevantChanges.length >= expectedCount;
         });
@@ -800,5 +777,4 @@ export class ApiDriver {
         const changes = await this.getSettlementChanges(groupId);
         return changes.length > 0 ? changes[0] : null;
     }
-
 }

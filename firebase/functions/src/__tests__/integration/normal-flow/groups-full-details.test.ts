@@ -14,7 +14,7 @@ describe('Groups Full Details API', () => {
 
     beforeAll(async () => {
         apiDriver = new ApiDriver();
-        
+
         // Create user pool with 3 users
         userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4); // Need 4 for the outsider test
         await userPool.initialize();
@@ -28,36 +28,16 @@ describe('Groups Full Details API', () => {
         charlie = users[2];
 
         // Create a fresh group for each test
-        const group = await apiDriver.createGroupWithMembers(
-            'Full Details Test Group',
-            [alice, bob, charlie],
-            alice.token
-        );
+        const group = await apiDriver.createGroupWithMembers('Full Details Test Group', [alice, bob, charlie], alice.token);
         groupId = group.id;
     });
-
 
     describe('GET /groups/:id/full-details', () => {
         it('should return consolidated group data with all components', async () => {
             // Add some test data to make the response more interesting
-            const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(groupId)
-                    .withPaidBy(alice.uid)
-                    .withParticipants([alice.uid, bob.uid, charlie.uid])
-                    .build(),
-                alice.token
-            );
+            const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).build(), alice.token);
 
-            await apiDriver.createSettlement(
-                new SettlementBuilder()
-                    .withGroupId(groupId)
-                    .withPayer(bob.uid)
-                    .withPayee(alice.uid)
-                    .withAmount(20)
-                    .build(),
-                bob.token
-            );
+            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(groupId).withPayer(bob.uid).withPayee(alice.uid).withAmount(20).build(), bob.token);
 
             // Test the consolidated endpoint
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token);
@@ -125,14 +105,12 @@ describe('Groups Full Details API', () => {
             const outsider = users[3];
 
             // Should throw an error when unauthorized user tries to access
-            await expect(
-                apiDriver.getGroupFullDetails(groupId, outsider.token)
-            ).rejects.toThrow(/Group.*not found|not found|Group/i);
+            await expect(apiDriver.getGroupFullDetails(groupId, outsider.token)).rejects.toThrow(/Group.*not found|not found|Group/i);
         });
 
         it('should handle pagination information correctly', async () => {
             // Create many expenses to test pagination
-            const expensePromises = Array.from({length: 25}, (_, i) => 
+            const expensePromises = Array.from({ length: 25 }, (_, i) =>
                 apiDriver.createExpense(
                     new ExpenseBuilder()
                         .withGroupId(groupId)
@@ -140,8 +118,8 @@ describe('Groups Full Details API', () => {
                         .withParticipants([alice.uid, bob.uid])
                         .withDate(new Date(Date.now() - i * 1000).toISOString()) // Different times for pagination
                         .build(),
-                    alice.token
-                )
+                    alice.token,
+                ),
             );
             await Promise.all(expensePromises);
 
@@ -155,7 +133,7 @@ describe('Groups Full Details API', () => {
 
         it('should support pagination parameters for expenses and settlements', async () => {
             // Create multiple expenses and settlements
-            const expensePromises = Array.from({length: 15}, (_, i) => 
+            const expensePromises = Array.from({ length: 15 }, (_, i) =>
                 apiDriver.createExpense(
                     new ExpenseBuilder()
                         .withGroupId(groupId)
@@ -163,12 +141,12 @@ describe('Groups Full Details API', () => {
                         .withParticipants([alice.uid, bob.uid])
                         .withDate(new Date(Date.now() - i * 1000).toISOString())
                         .build(),
-                    alice.token
-                )
+                    alice.token,
+                ),
             );
             await Promise.all(expensePromises);
 
-            const settlementPromises = Array.from({length: 15}, (_, i) => 
+            const settlementPromises = Array.from({ length: 15 }, (_, i) =>
                 apiDriver.createSettlement(
                     new SettlementBuilder()
                         .withGroupId(groupId)
@@ -177,15 +155,15 @@ describe('Groups Full Details API', () => {
                         .withAmount(5)
                         .withDate(new Date(Date.now() - i * 2000).toISOString())
                         .build(),
-                    bob.token
-                )
+                    bob.token,
+                ),
             );
             await Promise.all(settlementPromises);
 
             // Test with custom pagination limits
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token, {
                 expenseLimit: 5,
-                settlementLimit: 3
+                settlementLimit: 3,
             });
 
             // Should respect the custom limits
@@ -200,7 +178,7 @@ describe('Groups Full Details API', () => {
             // Test pagination with cursor
             const nextPage = await apiDriver.getGroupFullDetails(groupId, alice.token, {
                 expenseLimit: 5,
-                expenseCursor: fullDetails.expenses.nextCursor!
+                expenseCursor: fullDetails.expenses.nextCursor!,
             });
 
             // Should return next 5 expenses
@@ -210,14 +188,7 @@ describe('Groups Full Details API', () => {
 
         it('should return consistent data across individual and consolidated endpoints', async () => {
             // Add test data
-            await apiDriver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(groupId)
-                    .withPaidBy(alice.uid)
-                    .withParticipants([alice.uid, bob.uid])
-                    .build(),
-                alice.token
-            );
+            await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).build(), alice.token);
 
             // Get data from both consolidated and individual endpoints
             const [fullDetails, group, members, expenses, balances] = await Promise.all([
@@ -225,7 +196,7 @@ describe('Groups Full Details API', () => {
                 apiDriver.getGroup(groupId, alice.token),
                 apiDriver.getGroupMembers(groupId, alice.token),
                 apiDriver.getGroupExpenses(groupId, alice.token),
-                apiDriver.getGroupBalances(groupId, alice.token)
+                apiDriver.getGroupBalances(groupId, alice.token),
             ]);
 
             // Verify consistency
@@ -237,15 +208,11 @@ describe('Groups Full Details API', () => {
         });
 
         it('should handle invalid group ID', async () => {
-            await expect(
-                apiDriver.getGroupFullDetails('invalid-group-id', alice.token)
-            ).rejects.toThrow(/Group.*not found|not found|Group/i);
+            await expect(apiDriver.getGroupFullDetails('invalid-group-id', alice.token)).rejects.toThrow(/Group.*not found|not found|Group/i);
         });
 
         it('should require authentication', async () => {
-            await expect(
-                apiDriver.getGroupFullDetails(groupId, '')
-            ).rejects.toThrow(/unauthorized|token|auth/i);
+            await expect(apiDriver.getGroupFullDetails(groupId, '')).rejects.toThrow(/unauthorized|token|auth/i);
         });
     });
 });

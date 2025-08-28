@@ -15,7 +15,6 @@ export interface MiddlewareOptions {
  * Apply standard middleware stack to Express app
  */
 export const applyStandardMiddleware = (app: express.Application, options: MiddlewareOptions = {}) => {
-
     // Apply security headers first
     app.use(applySecurityHeaders);
 
@@ -27,15 +26,18 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
         const correlationId = (req.headers['x-correlation-id'] as string) ?? randomUUID();
         req.headers['x-correlation-id'] = correlationId;
         res.setHeader('x-correlation-id', correlationId);
-        
+
         // Initialize logging context for this request
-        LoggerContext.run({
-            correlationId,
-            requestPath: req.path,
-            requestMethod: req.method,
-        }, () => {
-            next();
-        });
+        LoggerContext.run(
+            {
+                correlationId,
+                requestPath: req.path,
+                requestMethod: req.method,
+            },
+            () => {
+                next();
+            },
+        );
     });
 
     // Validate content type for non-GET requests

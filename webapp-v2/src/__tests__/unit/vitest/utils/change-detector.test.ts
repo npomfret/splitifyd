@@ -303,7 +303,6 @@ describe('ChangeDetector', () => {
 
             expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
         });
-
     });
 
     describe('unsubscribe function', () => {
@@ -318,7 +317,6 @@ describe('ChangeDetector', () => {
             // Should work without throwing
             expect(() => unsubscribe()).not.toThrow();
         });
-
     });
 
     describe('error handling', () => {

@@ -5,6 +5,7 @@
 The project has a substantial number of unit tests for both the Firebase backend and the web application. While the coverage is broad, a review has identified several areas where the tests can be improved to better align with the project's own testing guidelines.
 
 The most significant issues are:
+
 - **Over-mocking and testing implementation details**, particularly in the Firebase service tests. This makes them brittle and hard to maintain.
 - **Redundant and low-value tests**, especially in validation and simple helper functions.
 - **Inconsistent and overly complex test setup**, which could be simplified by using the recommended "Builder" pattern.
@@ -15,6 +16,7 @@ This report details the specific issues found and provides recommendations for r
 ## Immediate Action Plan (2025-08-28)
 
 ### Priority 1: Convert Firebase Service Tests
+
 - [x] ~~Convert `UserService.test.ts` to integration tests with Firebase emulator~~
 - [x] ~~Convert `GroupService.test.ts` to integration tests with Firebase emulator~~
 - [x] Removed all `jest.mock('firebase-admin')` patterns
@@ -22,6 +24,7 @@ This report details the specific issues found and provides recommendations for r
 - [x] **Outcome**: Removed 2600+ lines of brittle mocks that provided no confidence
 
 ### Priority 2: Fix Playwright Infrastructure
+
 - [x] Update registration form to use semantic selectors (`name`, `data-testid`)
 - [x] Get example Playwright tests passing
 - [x] Create Playwright tests for critical user flows
@@ -29,13 +32,14 @@ This report details the specific issues found and provides recommendations for r
 - [x] **Expected outcome**: Real user behavior testing, catch UI bugs Jest misses
 - [x] **Outcome**: Created working Playwright tests for registration (9/10 passing), login (7/7 passing), and create group modal (5/5 passing)
 - [x] **Final Result**: All 21 Playwright tests now passing, 1 skipped (flaky test marked as skip)
-- [x] **Key Fixes**: 
-  - Added semantic selectors (`data-testid`) to form elements
-  - Fixed strict mode violations by using more specific selectors  
-  - Replaced complex dashboard tests with focused modal tests
-  - Updated test expectations to match actual application behavior
+- [x] **Key Fixes**:
+    - Added semantic selectors (`data-testid`) to form elements
+    - Fixed strict mode violations by using more specific selectors
+    - Replaced complex dashboard tests with focused modal tests
+    - Updated test expectations to match actual application behavior
 
 ### Priority 3: Clean Up Remaining Tests
+
 - [x] Remove redundant validation tests
 - [x] Consolidate duplicate test scenarios
 - [x] Delete duplicate store test files
@@ -49,22 +53,24 @@ This report details the specific issues found and provides recommendations for r
 ### Priority 3 Completion (2025-08-28):
 
 ✅ **Major Test Cleanup Completed**:
+
 1. **Deleted duplicate files**: Removed `group-detail-store-enhanced-simplified.test.ts` (313 lines saved)
 2. **Consolidated validation tests**: Reduced `validation.test.ts` from 244 to 140 lines by:
-   - Combining 12 separate display name validation tests into 1 boundary test
-   - Merging redundant terms/cookie acceptance tests
-   - Consolidating duplicate password validation scenarios
+    - Combining 12 separate display name validation tests into 1 boundary test
+    - Merging redundant terms/cookie acceptance tests
+    - Consolidating duplicate password validation scenarios
 3. **Streamlined store tests**: Simplified `groups-store-enhanced.test.ts` from 559 to 181 lines by:
-   - Removing excessive mocking and implementation detail testing
-   - Focusing on behavior testing instead of mock verification
-   - Eliminating redundant error handling scenarios
+    - Removing excessive mocking and implementation detail testing
+    - Focusing on behavior testing instead of mock verification
+    - Eliminating redundant error handling scenarios
 4. **Cleaned component tests**: Reduced `CommentInput.test.tsx` from 344 to 126 lines by:
-   - Removing trivial rendering tests and CSS class verification
-   - Consolidating user interaction tests into comprehensive scenarios
-   - Eliminating redundant prop variation tests
+    - Removing trivial rendering tests and CSS class verification
+    - Consolidating user interaction tests into comprehensive scenarios
+    - Eliminating redundant prop variation tests
 5. **Fixed compatibility issues**: Updated Jest syntax to Vitest in ExpenseService tests
 
 ### Results:
+
 - **1,117 total lines removed** (24% reduction in test code)
 - **All tests passing** with improved maintainability
 - **Behavior-focused tests** that won't break on refactoring
@@ -73,23 +79,26 @@ This report details the specific issues found and provides recommendations for r
 ## Progress Update (2025-08-28)
 
 ### Completed Tasks:
+
 1. ✅ **Removed contradictory test file**: Deleted `webapp-v2/src/__tests__/unit/integration/enhanced-stores-ui.test.ts` - this was a hybrid test that provided the worst of both unit and integration testing
 2. ✅ **Verified webapp store tests**: Both `auth-store.test.ts` and `groups-store-enhanced.test.ts` have already been fixed to properly test the public interface rather than manipulating internal signals
 3. ✅ **Identified builder pattern adoption**: Found that `UserService.test.ts` and `validation.test.ts` already implement the builder pattern, though the service tests still over-use mocks
 
 ### Additional Improvements (2025-08-28 continued):
+
 4. ✅ **Simplified validation tests**: Reduced `string-validation.test.ts` from 321 lines to 113 lines by removing redundant tests
 5. ✅ **Revised testing strategy**: Playwright can replace traditional unit tests
-6. ✅ **Aligned with project philosophy**: 
-   - Unit tests = ANY test without emulator (including Playwright with mocks)
-   - Integration tests = tests requiring Firebase emulator
+6. ✅ **Aligned with project philosophy**:
+    - Unit tests = ANY test without emulator (including Playwright with mocks)
+    - Integration tests = tests requiring Firebase emulator
 7. ⚠️ **Started Playwright unit test setup**:
-   - Created `webapp-v2/src/__tests__/unit/playwright-mocked/` directory
-   - Created `webapp-v2/src/__tests__/helpers/` with API mocking utilities
-   - Installed `@playwright/test` in webapp-v2
-   - Created example `registration.playwright.test.ts` (needs completion)
+    - Created `webapp-v2/src/__tests__/unit/playwright-mocked/` directory
+    - Created `webapp-v2/src/__tests__/helpers/` with API mocking utilities
+    - Installed `@playwright/test` in webapp-v2
+    - Created example `registration.playwright.test.ts` (needs completion)
 
 ### Completed (2025-08-28 final update):
+
 - ✅ Created `webapp-v2/playwright.config.ts` with proper configuration
 - ✅ Added npm scripts for Playwright tests (`test:playwright`, `test:playwright:ui`, `test:playwright:debug`)
 - ✅ Created working API mock helpers in `webapp-v2/src/__tests__/helpers/api-mocks/`
@@ -100,7 +109,9 @@ This report details the specific issues found and provides recommendations for r
 ### Implementation Details & Decisions:
 
 #### Playwright Configuration
+
 Created a minimal but complete `playwright.config.ts` that:
+
 - Uses the webapp's dev server (port 5173)
 - Sets fast timeouts (15s test, 1.5s action) to encourage good practices
 - Runs tests in parallel with 4 workers
@@ -108,7 +119,9 @@ Created a minimal but complete `playwright.config.ts` that:
 - Saves results to `playwright-results/` and reports to `playwright-report/`
 
 #### Directory Structure
+
 Organized tests following project conventions:
+
 ```
 webapp-v2/
   src/__tests__/
@@ -121,13 +134,16 @@ webapp-v2/
 ```
 
 #### Key Insight: Playwright Tests ARE Unit Tests
+
 Per the project's philosophy in `docs/guides/building-and-testing.md`:
+
 - **Unit tests** = Any test that doesn't require Firebase emulator
 - **Integration tests** = Tests requiring Firebase emulator
 
 This means Playwright tests with mocked APIs are classified as unit tests, not integration tests. This aligns with the philosophy that test quality matters more than speed.
 
 #### Research Findings:
+
 1. **Playwright can effectively replace mock-heavy Jest tests** by testing actual UI behavior with mocked backend calls
 2. **The `route()` API** enables deterministic testing without a backend
 3. **Test speed trade-off is acceptable**: 500ms Playwright test > 50ms mock test if it tests real behavior
@@ -138,35 +154,41 @@ This means Playwright tests with mocked APIs are classified as unit tests, not i
 #### Firebase Service Tests - Critical Issues Found
 
 **UserService.test.ts Analysis:**
+
 - **Builder Pattern**: ✅ Already implemented (`MockAuthUserBuilder`, `MockFirestoreDataBuilder`, `RegisterDataBuilder`)
 - **Major Problem**: Despite having builders, tests still heavily mock Firebase Admin SDK internals
 - **Specific Anti-patterns**:
-  - Mocks `admin.auth().getUser()`, `admin.auth().createUser()` etc.
-  - Checks calls with `expect(mockGetUser).toHaveBeenCalledWith(userId)`
-  - Mocks Firestore chain: `collection().doc().get()` and `collection().doc().set()`
-  - Tests implementation details rather than behavior
+    - Mocks `admin.auth().getUser()`, `admin.auth().createUser()` etc.
+    - Checks calls with `expect(mockGetUser).toHaveBeenCalledWith(userId)`
+    - Mocks Firestore chain: `collection().doc().get()` and `collection().doc().set()`
+    - Tests implementation details rather than behavior
 - **Lines of brittle test code**: ~600+ lines of mock setup and verification
 
 **GroupService.test.ts Analysis:**
+
 - **Builder Pattern**: ✅ Already implemented (`GroupBuilder`)
 - **Major Problem**: Even worse than UserService - mocks 15+ modules!
 - **Specific Anti-patterns**:
-  - Mocks entire modules: `firebase-admin`, `utils/errors`, `services/balance`, etc.
-  - Mock setup takes 120+ lines before any actual test code
-  - Tests check mock invocations rather than actual outcomes
-  - Complex mock chains that break with any refactoring
+    - Mocks entire modules: `firebase-admin`, `utils/errors`, `services/balance`, etc.
+    - Mock setup takes 120+ lines before any actual test code
+    - Tests check mock invocations rather than actual outcomes
+    - Complex mock chains that break with any refactoring
 - **Lines of brittle test code**: ~800+ lines of mock setup and verification
 
 #### Other Issues:
+
 - Some validation tests remain redundant but are lower priority
 
 ## Final Recommendations - Revised Strategy with Playwright
 
 ### Key Insight: Playwright Can Be Used for Unit Tests
+
 After further research, we've discovered that **Playwright can effectively replace traditional unit tests** without requiring the Firebase emulator. This opens up a powerful testing strategy that prioritizes test quality over speed.
 
 ### Philosophy: Quality Over Speed
+
 **It's OK for tests to be slower if they are:**
+
 - Less brittle and more maintainable
 - Easier to read and understand
 - Better at testing real user behavior
@@ -177,6 +199,7 @@ A 500ms Playwright test that actually tests behavior is far superior to a 50ms J
 ### Testing Strategy Based on Project Philosophy
 
 Per the project's testing philosophy (from `docs/guides/building-and-testing.md`):
+
 - **Unit Tests**: Any test that doesn't require the Firebase emulator
 - **Integration Tests**: Tests that require the Firebase emulator
 
@@ -185,27 +208,32 @@ This means Playwright tests with mocked APIs are **unit tests** in this project.
 #### Test Organization:
 
 **webapp-v2/** (Frontend)
+
 - `src/__tests__/unit/` - ALL tests that don't need emulator:
-  - Traditional Jest/Vitest tests for pure logic
-  - Playwright tests with mocked APIs (in `unit/playwright-mocked/`)
-  - Component tests with `@preact/playwright-ct` (future)
+    - Traditional Jest/Vitest tests for pure logic
+    - Playwright tests with mocked APIs (in `unit/playwright-mocked/`)
+    - Component tests with `@preact/playwright-ct` (future)
 
 **firebase/functions/** (Backend)
+
 - `src/__tests__/unit/` - Tests without emulator
 - `src/__tests__/integration/` - Tests with emulator
 
-**e2e-tests/** 
+**e2e-tests/**
+
 - `src/__tests__/integration/` - Full E2E tests (require emulator)
 
 #### Types of Tests (All Without Emulator = Unit Tests)
 
 ##### 1. Traditional Unit Tests
+
 - **Location**: `webapp-v2/src/__tests__/unit/*.test.ts`
 - Jest/Vitest tests for pure logic
 - ~50ms per test
 - Perfect for: Algorithms, utilities, pure functions
 
 ##### 2. Playwright Mocked Tests (Still Unit Tests!)
+
 - **Location**: `webapp-v2/src/__tests__/unit/playwright-mocked/*.playwright.test.ts`
 - Use Playwright with `route()` API to mock all backend calls
 - Test complete user flows with deterministic data
@@ -214,12 +242,14 @@ This means Playwright tests with mocked APIs are **unit tests** in this project.
 - **Benefit**: Tests actual UI behavior, not implementation details
 
 ##### 3. Component Tests (Future)
+
 - **Location**: `webapp-v2/src/__tests__/unit/components/*.component.test.ts`
 - Use `@preact/playwright-ct` for isolated component testing
 - ~50-200ms per test
 - Perfect for: Individual UI components
 
 #### Integration Tests (With Emulator)
+
 - **Location**: `e2e-tests/src/__tests__/integration/`
 - Current E2E tests with real Firebase emulator
 - 2-5s per test
@@ -229,26 +259,27 @@ This means Playwright tests with mocked APIs are **unit tests** in this project.
 ### Immediate Actions - Revised
 
 1. **Stop Writing Mock-Heavy Unit Tests**
-   - No more `expect(mockFunction).toHaveBeenCalledWith(...)`
-   - No more complex mock setups
-   - If you need to test it, test it with Playwright
+    - No more `expect(mockFunction).toHaveBeenCalledWith(...)`
+    - No more complex mock setups
+    - If you need to test it, test it with Playwright
 
 2. **Convert Service Tests to Mocked Playwright Tests**
-   ```typescript
-   // Instead of mocking Firestore calls
-   // Test the actual UI with mocked API responses
-   await context.route('**/api/auth/register', route => {
-     route.fulfill({ json: mockResponse });
-   });
-   await registrationPage.performRegistration();
-   await expect(page).toHaveURL('/dashboard');
-   ```
+
+    ```typescript
+    // Instead of mocking Firestore calls
+    // Test the actual UI with mocked API responses
+    await context.route('**/api/auth/register', (route) => {
+        route.fulfill({ json: mockResponse });
+    });
+    await registrationPage.performRegistration();
+    await expect(page).toHaveURL('/dashboard');
+    ```
 
 3. **Keep Pure Logic as Traditional Unit Tests**
-   - Balance calculations
-   - Debt simplification algorithms
-   - Date utilities
-   - These don't need a browser
+    - Balance calculations
+    - Debt simplification algorithms
+    - Date utilities
+    - These don't need a browser
 
 ### Why This Approach is Superior
 
@@ -262,71 +293,78 @@ This means Playwright tests with mocked APIs are **unit tests** in this project.
 ### Example Migration
 
 **Before (Brittle Jest Test):**
+
 ```typescript
 it('registers user', async () => {
   mockAuth.createUser.mockResolvedValue({ uid: 'test' });
   mockFirestore.set.mockResolvedValue({});
-  
+
   await userService.registerUser(data);
-  
+
   expect(mockAuth.createUser).toHaveBeenCalledWith(...);
   expect(mockFirestore.set).toHaveBeenCalledTimes(2);
 });
 ```
 
 **After (Robust Playwright Test):**
+
 ```typescript
 test('registers user', async ({ page, context }) => {
-  // Mock the API, not the implementation
-  await context.route('**/api/register', route => {
-    route.fulfill({ json: { user: testUser } });
-  });
-  
-  // Test actual behavior
-  await page.goto('/register');
-  await page.fill('[name="email"]', 'test@example.com');
-  await page.fill('[name="password"]', 'password');
-  await page.click('button[type="submit"]');
-  
-  // Verify outcomes users care about
-  await expect(page).toHaveURL('/dashboard');
-  await expect(page.locator('.welcome')).toContainText('Welcome');
+    // Mock the API, not the implementation
+    await context.route('**/api/register', (route) => {
+        route.fulfill({ json: { user: testUser } });
+    });
+
+    // Test actual behavior
+    await page.goto('/register');
+    await page.fill('[name="email"]', 'test@example.com');
+    await page.fill('[name="password"]', 'password');
+    await page.click('button[type="submit"]');
+
+    // Verify outcomes users care about
+    await expect(page).toHaveURL('/dashboard');
+    await expect(page.locator('.welcome')).toContainText('Welcome');
 });
 ```
 
 ### Metrics Update
+
 - ✅ **Priority 3 COMPLETED**: Reduced validation test by 42% (244 → 140 lines)
-- ✅ Removed 1 contradictory hybrid test + 1 duplicate store test file  
+- ✅ Removed 1 contradictory hybrid test + 1 duplicate store test file
 - ✅ **Achieved**: Major test cleanup with 24% overall reduction (1,117 lines removed)
-- ✅ **Actual Outcome**: 
-  - All tests still passing with improved maintainability
-  - Behavior-focused tests instead of implementation details
-  - Consolidated test logic for easier understanding
-  - Fixed Jest→Vitest compatibility issues
+- ✅ **Actual Outcome**:
+    - All tests still passing with improved maintainability
+    - Behavior-focused tests instead of implementation details
+    - Consolidated test logic for easier understanding
+    - Fixed Jest→Vitest compatibility issues
 - **Future Goal**: Convert remaining mock-heavy unit tests to Playwright
 
 ### The Bottom Line
+
 **Speed is not the primary metric for test quality.** A slower test that gives confidence in real behavior is infinitely more valuable than a fast test that only verifies implementation details. Playwright enables us to write tests that are slightly slower but dramatically better.
 
 ### Value Proposition Summary
+
 - **Current State**: 1400+ lines of brittle mock-heavy tests that break on every refactor
 - **Target State**: 500 lines of robust integration tests that test real behavior
 - **Investment**: ~5 days of conversion effort
-- **ROI**: 
-  - 80% reduction in test maintenance time
-  - 100% confidence that tests catch real bugs
-  - 0% false positives from mock misconfigurations
-  - Ability to refactor code without updating tests
+- **ROI**:
+    - 80% reduction in test maintenance time
+    - 100% confidence that tests catch real bugs
+    - 0% false positives from mock misconfigurations
+    - Ability to refactor code without updating tests
 
 ### Test Execution Results (2025-08-28 Final):
 
 #### ✅ Fixed: Playwright Test Failures
+
 - **Initial Problem**: Tests failed with a blank screen because the application requires a Firebase config to be present on startup, and the tests were not mocking the API endpoint that provides it.
 - **Fix**: Updated the Playwright test setup to intercept the `/api/config` call and return a mock configuration. This allows the app to render and the tests to run.
 - **Secondary Failures**: After fixing the initial crash, several tests failed due to trying to click buttons that were disabled by form validation logic.
 - **Fix**: Corrected the tests to assert that the buttons were `toBeDisabled()` in those states, which is the correct application behavior.
 
 #### ⚠️ Current Status: One Flaky Test Skipped
+
 - **Problem**: A persistent race condition was identified in the `shows medium password strength` test, causing it to fail intermittently by seeing state from other tests.
 - **Action**: After multiple attempts to fix the race condition, the test has been temporarily skipped using `test.skip()` to unblock the CI/CD pipeline.
 - **Next Step**: A bug report should be filed to investigate the root cause of the state leakage between tests.
@@ -339,6 +377,7 @@ test('registers user', async ({ page, context }) => {
 
 **Root Cause**: The webapp requires Firebase emulator to be running, even for "unit" tests
 **Solution**: Need to either:
+
 1. Run Firebase emulator before Playwright tests (`npm run dev` in project root)
 2. OR: Create a mock Firebase config that doesn't require emulator
 3. OR: Update the app to handle missing Firebase gracefully in test mode
@@ -346,73 +385,74 @@ test('registers user', async ({ page, context }) => {
 ### Next Steps for Future Development
 
 1. **Fix Firebase Dependency for Playwright Tests** ✅ (Selectors already fixed):
-   - ✅ Updated tests to use correct `id` selectors (`#email-input`, `#password-input`, etc.)
-   - ⚠️ App requires Firebase emulator even for mocked unit tests
-   - **Options**:
-     a. Run emulator before tests: `npm run dev` then `npm run test:playwright`
-     b. Create mock Firebase initialization for test environment
-     c. Update app to gracefully handle missing Firebase in test mode
+    - ✅ Updated tests to use correct `id` selectors (`#email-input`, `#password-input`, etc.)
+    - ⚠️ App requires Firebase emulator even for mocked unit tests
+    - **Options**:
+      a. Run emulator before tests: `npm run dev` then `npm run test:playwright`
+      b. Create mock Firebase initialization for test environment
+      c. Update app to gracefully handle missing Firebase in test mode
 
 2. **Convert Firebase Service Tests to Integration Tests** (HIGH PRIORITY):
-   - **UserService.test.ts**: Convert to integration tests that use the Firebase emulator
-   - **GroupService.test.ts**: Convert to integration tests with real database operations
-   - **Why**: These services are the core of the application - they deserve real tests
-   - **Approach**:
-     ```typescript
-     // Instead of mocking Firebase Admin SDK:
-     test('creates user with correct data', async () => {
-       // Use real Firebase emulator
-       const result = await userService.registerUser(userData);
-       
-       // Verify by actually fetching the user
-       const user = await admin.auth().getUser(result.uid);
-       expect(user.email).toBe(userData.email);
-       
-       // Verify Firestore data was written
-       const doc = await firestoreDb.collection('users').doc(result.uid).get();
-       expect(doc.data().themeColor).toBeDefined();
-     });
-     ```
+    - **UserService.test.ts**: Convert to integration tests that use the Firebase emulator
+    - **GroupService.test.ts**: Convert to integration tests with real database operations
+    - **Why**: These services are the core of the application - they deserve real tests
+    - **Approach**:
+        ```typescript
+        // Instead of mocking Firebase Admin SDK:
+        test('creates user with correct data', async () => {
+            // Use real Firebase emulator
+            const result = await userService.registerUser(userData);
+
+            // Verify by actually fetching the user
+            const user = await admin.auth().getUser(result.uid);
+            expect(user.email).toBe(userData.email);
+
+            // Verify Firestore data was written
+            const doc = await firestoreDb.collection('users').doc(result.uid).get();
+            expect(doc.data().themeColor).toBeDefined();
+        });
+        ```
 
 3. **Convert High-Value Frontend Tests to Playwright**:
-   - User registration/login flows
-   - Form validation tests
-   - Error handling scenarios
-   - Complex UI interactions
+    - User registration/login flows
+    - Form validation tests
+    - Error handling scenarios
+    - Complex UI interactions
 
 4. **Convert Store Logic Tests to Playwright** (HIGH PRIORITY):
-   - **Files**: `auth-store.test.ts`, `groups-store-enhanced.test.ts`, `comments-store.test.ts`, etc.
-   - **Why**: These tests currently mock API clients and check internal state. They would be much more valuable as Playwright tests that verify the UI's reaction to store actions (e.g., after login, does the dashboard display correctly?).
-   - **Approach**:
-     ```typescript
-     test('login flow updates UI', async ({ page, context }) => {
-       // Mock the login API endpoint
-       await mockLogin(context);
+    - **Files**: `auth-store.test.ts`, `groups-store-enhanced.test.ts`, `comments-store.test.ts`, etc.
+    - **Why**: These tests currently mock API clients and check internal state. They would be much more valuable as Playwright tests that verify the UI's reaction to store actions (e.g., after login, does the dashboard display correctly?).
+    - **Approach**:
 
-       // Trigger the login action (either via UI or store)
-       await page.goto('/login');
-       await page.fill('#email', 'test@example.com');
-       await page.click('button:text("Log In")');
+        ```typescript
+        test('login flow updates UI', async ({ page, context }) => {
+            // Mock the login API endpoint
+            await mockLogin(context);
 
-       // Assert that the UI has updated as expected
-       await expect(page).toHaveURL('/dashboard');
-       await expect(page.locator('h1')).toContainText('Welcome');
-     });
-     ```
+            // Trigger the login action (either via UI or store)
+            await page.goto('/login');
+            await page.fill('#email', 'test@example.com');
+            await page.click('button:text("Log In")');
+
+            // Assert that the UI has updated as expected
+            await expect(page).toHaveURL('/dashboard');
+            await expect(page.locator('h1')).toContainText('Welcome');
+        });
+        ```
 
 5. **Convert Component Tests to Playwright Component Tests**:
     - **Files**: All tests in `webapp-v2/src/__tests__/unit/components`.
     - **Why**: These are likely snapshot or DOM-based tests. Converting them to Playwright component tests (`@playwright/experimental-ct-react`) would allow for testing rendering and interaction in a real browser, providing higher confidence.
 
 6. **Keep Traditional Unit Tests For**:
-   - Pure algorithms (balance calculation, debt simplification)
-   - Utility functions
-   - Data transformations
+    - Pure algorithms (balance calculation, debt simplification)
+    - Utility functions
+    - Data transformations
 
 7. **Gradual Migration**:
-   - Start with Firebase service tests (biggest pain point)
-   - Then convert brittle frontend tests
-   - Measure reduction in test maintenance time
+    - Start with Firebase service tests (biggest pain point)
+    - Then convert brittle frontend tests
+    - Measure reduction in test maintenance time
 
 ---
 
@@ -423,7 +463,7 @@ These issues were observed across multiple test files.
 ### 2.1. Over-reliance on Mocks and Testing Implementation
 
 - **Observation:** Many tests, especially in `UserService.test.ts` and `GroupService.test.ts`, use `jest.spyOn` and `jest.mock` extensively to track whether specific functions were called. Tests frequently assert `expect(mockFunction).toHaveBeenCalledWith(...)`.
-- **Problem:** This tests the *implementation* rather than the *behavior*. These tests are brittle; a valid refactoring of the underlying code that doesn't change the outcome will still break the test. This violates the guideline to "Focus on behaviour, not implementation details."
+- **Problem:** This tests the _implementation_ rather than the _behavior_. These tests are brittle; a valid refactoring of the underlying code that doesn't change the outcome will still break the test. This violates the guideline to "Focus on behaviour, not implementation details."
 - **Recommendation:** Refactor tests to focus on the output and side effects. For example, instead of checking that a Firestore `set` function was called with specific data, create the data and then use a separate `get` call to assert that the data was written correctly.
 
 ### 2.2. Complex and Repetitive Test Setup
@@ -465,7 +505,7 @@ These issues were observed across multiple test files.
 - **Problem:** This is a major anti-pattern. The test is not testing the public interface of the `AuthStore` class; it's testing its (supposedly private) implementation details. It confirms the architectural flaw mentioned in `webapp-code-review.md` where signals are not properly encapsulated. A test should only call the store's public methods (e.g., `authStore.login()`) and assert on the public getters (e.g., `authStore.user`).
 - **Recommendation:** This entire test file needs to be rewritten.
     1. The `auth-store.ts` file must first be refactored to encapsulate its signals as private members.
-    2. The test should then be updated to *only* interact with the public methods and properties of the `AuthStore` instance. It should never import or touch the signals directly.
+    2. The test should then be updated to _only_ interact with the public methods and properties of the `AuthStore` instance. It should never import or touch the signals directly.
 
 ### `webapp-v2/src/__tests__/unit/stores/groups-store-enhanced.test.ts`
 
@@ -479,7 +519,7 @@ These issues were observed across multiple test files.
 - **Recommendation:** This test should be deleted. Its purpose is better served by either:
     1.  Pure unit tests for the stores themselves (testing their logic, not UI).
     2.  True end-to-end tests using Playwright that verify the actual user-facing behavior.
-    This hybrid test provides the worst of both worlds.
-  Pure unit tests for the stores themselves (testing their logic, not UI).
-    2.  True end-to-end tests using Playwright that verify the actual user-facing behavior.
-    This hybrid test provides the worst of both worlds.
+        This hybrid test provides the worst of both worlds.
+        Pure unit tests for the stores themselves (testing their logic, not UI).
+    3.  True end-to-end tests using Playwright that verify the actual user-facing behavior.
+        This hybrid test provides the worst of both worlds.

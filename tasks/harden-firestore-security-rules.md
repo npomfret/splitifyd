@@ -20,21 +20,21 @@ To address this, we must create and enforce a separate, stricter set of rules fo
 ### Action Items
 
 1.  **Create Production Rules File:**
-    -   Create a new file named `firestore.prod.rules`.
-    -   This file should contain strict security rules that mirror the authorization logic currently implemented in the backend handlers. For example:
-        -   Access to a group document should be restricted to its members.
-        -   The ability to edit an expense should be limited based on the group's security settings (e.g., only the creator or an admin can edit).
-        -   Writes to read-only collections (like `group-changes`) should be explicitly denied.
+    - Create a new file named `firestore.prod.rules`.
+    - This file should contain strict security rules that mirror the authorization logic currently implemented in the backend handlers. For example:
+        - Access to a group document should be restricted to its members.
+        - The ability to edit an expense should be limited based on the group's security settings (e.g., only the creator or an admin can edit).
+        - Writes to read-only collections (like `group-changes`) should be explicitly denied.
 
 2.  **Update Deployment Workflow:**
-    -   The CI/CD pipeline for production deployments (e.g., in `.github/workflows/`) must be modified.
-    -   The `firebase deploy` command within the workflow should be updated to specifically target the new rules file:
+    - The CI/CD pipeline for production deployments (e.g., in `.github/workflows/`) must be modified.
+    - The `firebase deploy` command within the workflow should be updated to specifically target the new rules file:
         ```bash
         firebase deploy --only firestore:rules:prod
         ```
 
 3.  **Update `firebase.json` for Production Deployment:**
-    -   To make the deployment explicit, add a dedicated target to the `firestore` configuration in `firebase.json`:
+    - To make the deployment explicit, add a dedicated target to the `firestore` configuration in `firebase.json`:
         ```json
         "firestore": {
           "rules": "firestore.rules", // For emulator
@@ -49,7 +49,7 @@ To address this, we must create and enforce a separate, stricter set of rules fo
 
 ### Benefits of This Approach
 
--   **Defense-in-Depth:** Restores the database as a critical security layer.
--   **Reduced Risk:** A potential bug in the backend logic is less likely to result in a data breach.
--   **Clarity:** It makes the security model for production explicit and auditable.
--   **No Impact on Local Development:** Developers can continue to benefit from the simpler emulator-first rules in `firestore.rules`.
+- **Defense-in-Depth:** Restores the database as a critical security layer.
+- **Reduced Risk:** A potential bug in the backend logic is less likely to result in a data breach.
+- **Clarity:** It makes the security model for production explicit and auditable.
+- **No Impact on Local Development:** Developers can continue to benefit from the simpler emulator-first rules in `firestore.rules`.

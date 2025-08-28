@@ -2,11 +2,11 @@ import { UserService } from '../../services/UserService2';
 
 /**
  * Minimal unit tests for UserService
- * 
+ *
  * Note: Most UserService functionality requires Firebase Auth and Firestore,
  * which cannot be used in unit tests. Full testing of UserService should be
  * done in integration tests with the Firebase emulator running.
- * 
+ *
  * These unit tests only cover the pure logic that can be tested without Firebase.
  */
 describe('UserService - Unit Tests', () => {
@@ -41,7 +41,7 @@ describe('UserService - Unit Tests', () => {
 
     // Most other functionality requires Firebase and should be tested
     // in integration tests with the emulator running.
-    // 
+    //
     // Methods that require integration testing:
     // - getUser() - requires Firebase Auth and Firestore
     // - getUsers() - requires Firebase Auth and Firestore

@@ -5,7 +5,7 @@ import { ApiDriver, User, UserBuilder } from '@splitifyd/test-support';
  * This class helps reduce test execution time by creating users once
  * and reusing them across multiple tests, rather than creating new users
  * for each test case.
- * 
+ *
  * Note: This is specifically for Firebase integration tests, not E2E tests.
  */
 export class FirebaseIntegrationTestUserPool {
@@ -32,7 +32,7 @@ export class FirebaseIntegrationTestUserPool {
         for (let i = 0; i < this.poolSize; i++) {
             userPromises.push(this.driver.createUser(new UserBuilder().build()));
         }
-        
+
         this.pool = await Promise.all(userPromises);
         this.initialized = true;
     }
@@ -46,11 +46,11 @@ export class FirebaseIntegrationTestUserPool {
         if (!this.initialized) {
             throw new Error('User pool not initialized. Call initialize() in beforeAll()');
         }
-        
+
         if (count > this.pool.length) {
             throw new Error(`Requested ${count} users but pool only has ${this.pool.length}. Consider increasing pool size.`);
         }
-        
+
         return this.pool.slice(0, count);
     }
 
@@ -62,11 +62,11 @@ export class FirebaseIntegrationTestUserPool {
         if (!this.initialized) {
             throw new Error('User pool not initialized. Call initialize() in beforeAll()');
         }
-        
+
         if (index >= this.pool.length) {
             throw new Error(`Requested user at index ${index} but pool only has ${this.pool.length} users`);
         }
-        
+
         return this.pool[index];
     }
 

@@ -83,10 +83,7 @@ class ExpenseDataBuilder {
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {
         it('should validate valid register request and normalize data', () => {
-            const request = new RegisterRequestBuilder()
-                .withEmail('TEST@EXAMPLE.COM')
-                .withDisplayName('  Test User  ')
-                .build();
+            const request = new RegisterRequestBuilder().withEmail('TEST@EXAMPLE.COM').withDisplayName('  Test User  ').build();
 
             const result = validateRegisterRequest(request);
 
@@ -97,44 +94,30 @@ describe('Auth Validation', () => {
         });
 
         it('should enforce password requirements', () => {
-            const request = new RegisterRequestBuilder()
-                .withPassword('weak')
-                .build();
+            const request = new RegisterRequestBuilder().withPassword('weak').build();
 
             expect(() => validateRegisterRequest(request)).toThrow(ApiError);
         });
 
         it('should enforce display name boundary conditions', () => {
             // Too short
-            expect(() => validateRegisterRequest(
-                new RegisterRequestBuilder().withDisplayName('A').build()
-            )).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('A').build())).toThrow(ApiError);
 
-            // Too long  
-            expect(() => validateRegisterRequest(
-                new RegisterRequestBuilder().withDisplayName('A'.repeat(51)).build()
-            )).toThrow(ApiError);
+            // Too long
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('A'.repeat(51)).build())).toThrow(ApiError);
 
             // Invalid characters
-            expect(() => validateRegisterRequest(
-                new RegisterRequestBuilder().withDisplayName('Test<script>').build()
-            )).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('Test<script>').build())).toThrow(ApiError);
 
             // Valid boundary case
-            const result = validateRegisterRequest(
-                new RegisterRequestBuilder().withDisplayName('John Doe-Smith_123.Jr').build()
-            );
+            const result = validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('John Doe-Smith_123.Jr').build());
             expect(result.displayName).toBe('John Doe-Smith_123.Jr');
         });
 
         it('should require terms and cookie policy acceptance', () => {
-            expect(() => validateRegisterRequest(
-                new RegisterRequestBuilder().withTermsAccepted(false).build()
-            )).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withTermsAccepted(false).build())).toThrow(ApiError);
 
-            expect(() => validateRegisterRequest(
-                new RegisterRequestBuilder().withCookiePolicyAccepted(false).build()
-            )).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withCookiePolicyAccepted(false).build())).toThrow(ApiError);
         });
     });
 });
@@ -142,10 +125,8 @@ describe('Auth Validation', () => {
 describe('Expense Validation', () => {
     describe('validateCreateExpense and validateUpdateExpense', () => {
         it('should validate complete expense data including optional fields', () => {
-            const validExpenseData = new ExpenseDataBuilder()
-                .withReceiptUrl('https://example.com/receipt.jpg')
-                .build();
-                
+            const validExpenseData = new ExpenseDataBuilder().withReceiptUrl('https://example.com/receipt.jpg').build();
+
             const result = validateCreateExpense(validExpenseData);
 
             expect(result.description).toBe('Dinner at restaurant');

@@ -14,7 +14,7 @@ export interface EnhancedGroupsStore {
     lastRefresh: number;
     updatingGroupIds: Set<string>;
     isCreatingGroup: boolean;
-    
+
     // Readonly signal accessors for reactive components
     readonly groupsSignal: ReadonlySignal<Group[]>;
     readonly loadingSignal: ReadonlySignal<boolean>;
@@ -45,7 +45,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #lastRefreshSignal = signal<number>(0);
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
-    
+
     private changeDetector = new ChangeDetector();
     private changeUnsubscribe: (() => void) | null = null;
 
@@ -74,7 +74,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     get isCreatingGroup() {
         return this.#isCreatingGroupSignal.value;
     }
-    
+
     // Signal accessors for reactive components - return readonly signals
     get groupsSignal(): ReadonlySignal<Group[]> {
         return this.#groupsSignal;

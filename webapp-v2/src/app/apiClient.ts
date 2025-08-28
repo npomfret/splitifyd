@@ -915,7 +915,7 @@ export class ApiClient {
         const query: Record<string, string> = {};
         if (options?.cursor) query.cursor = options.cursor;
         if (options?.limit) query.limit = options.limit.toString();
-        
+
         return this.request({
             endpoint: '/groups/:groupId/comments',
             method: 'GET',
@@ -928,7 +928,7 @@ export class ApiClient {
         const query: Record<string, string> = {};
         if (options?.cursor) query.cursor = options.cursor;
         if (options?.limit) query.limit = options.limit.toString();
-        
+
         return this.request({
             endpoint: '/expenses/:expenseId/comments',
             method: 'GET',

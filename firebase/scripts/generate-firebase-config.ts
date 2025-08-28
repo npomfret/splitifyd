@@ -20,18 +20,12 @@ let configContent: string = fs.readFileSync(templatePath, 'utf8');
 // Determine if this is production mode based on FUNCTIONS_SOURCE
 const isProduction = process.env.FUNCTIONS_SOURCE && process.env.FUNCTIONS_SOURCE !== 'functions';
 
-const requiredVars: readonly string[] = isProduction ? [] : [
-    'EMULATOR_AUTH_PORT',
-    'EMULATOR_FUNCTIONS_PORT',
-    'EMULATOR_FIRESTORE_PORT',
-    'EMULATOR_HOSTING_PORT',
-    'EMULATOR_UI_PORT'
-] as const;
+const requiredVars: readonly string[] = isProduction ? [] : (['EMULATOR_AUTH_PORT', 'EMULATOR_FUNCTIONS_PORT', 'EMULATOR_FIRESTORE_PORT', 'EMULATOR_HOSTING_PORT', 'EMULATOR_UI_PORT'] as const);
 
 // Optional staging variables with defaults
 const optionalVars: Record<string, string> = {
-    'FUNCTIONS_SOURCE': 'functions',
-    'FUNCTIONS_PREDEPLOY': 'npm --prefix \\"$RESOURCE_DIR\\" run build'
+    FUNCTIONS_SOURCE: 'functions',
+    FUNCTIONS_PREDEPLOY: 'npm --prefix \\"$RESOURCE_DIR\\" run build',
 };
 
 const missingVars: string[] = requiredVars.filter((varName) => !process.env[varName]);
@@ -53,11 +47,11 @@ if (!isProduction) {
 } else {
     // For production, replace emulator placeholders with default values (won't be used anyway)
     const defaultPorts = {
-        'EMULATOR_AUTH_PORT': '6002',
-        'EMULATOR_FUNCTIONS_PORT': '6003',
-        'EMULATOR_FIRESTORE_PORT': '6004',
-        'EMULATOR_HOSTING_PORT': '6005',
-        'EMULATOR_UI_PORT': '6001'
+        EMULATOR_AUTH_PORT: '6002',
+        EMULATOR_FUNCTIONS_PORT: '6003',
+        EMULATOR_FIRESTORE_PORT: '6004',
+        EMULATOR_HOSTING_PORT: '6005',
+        EMULATOR_UI_PORT: '6001',
     };
     Object.entries(defaultPorts).forEach(([varName, defaultValue]) => {
         const placeholder: string = `{{${varName}}}`;

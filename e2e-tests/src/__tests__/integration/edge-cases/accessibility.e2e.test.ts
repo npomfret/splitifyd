@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import {waitForApp} from "../../../helpers";
+import { waitForApp } from '../../../helpers';
 import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
 
 // Simplified accessibility test - just basic axe scan

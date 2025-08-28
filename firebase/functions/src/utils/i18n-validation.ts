@@ -22,20 +22,20 @@ const errorTypeToTranslationKey: Record<string, string> = {
  * Map specific field paths to translation key prefixes
  */
 const fieldPathToTranslationPrefix: Record<string, string> = {
-    'name': 'validation.group.name',
-    'description': 'validation.group.description',
-    'currency': 'validation.group.currency',
-    'email': 'validation.email',
-    'displayName': 'validation.user.displayName',
-    'amount': 'validation.expense.amount',
-    'date': 'validation.expense.date',
-    'category': 'validation.expense.category',
-    'participants': 'validation.expense.participants',
-    'splits': 'validation.expense.splits',
-    'paidBy': 'validation.expense.paidBy',
-    'payerId': 'validation.settlement.fromUser',
-    'payeeId': 'validation.settlement.toUser',
-    'note': 'validation.settlement.description',
+    name: 'validation.group.name',
+    description: 'validation.group.description',
+    currency: 'validation.group.currency',
+    email: 'validation.email',
+    displayName: 'validation.user.displayName',
+    amount: 'validation.expense.amount',
+    date: 'validation.expense.date',
+    category: 'validation.expense.category',
+    participants: 'validation.expense.participants',
+    splits: 'validation.expense.splits',
+    paidBy: 'validation.expense.paidBy',
+    payerId: 'validation.settlement.fromUser',
+    payeeId: 'validation.settlement.toUser',
+    note: 'validation.settlement.description',
 };
 
 /**
@@ -43,9 +43,9 @@ const fieldPathToTranslationPrefix: Record<string, string> = {
  */
 function getSpecificTranslationKey(fieldPath: string, errorType: string): string | null {
     const fieldPrefix = fieldPathToTranslationPrefix[fieldPath];
-    
+
     if (!fieldPrefix) return null;
-    
+
     // Map specific error types to field-specific keys
     switch (errorType) {
         case 'string.empty':
@@ -79,7 +79,7 @@ function getSpecificTranslationKey(fieldPath: string, errorType: string): string
 function translateValidationError(error: ValidationError['details'][0], language: string): string {
     const fieldPath = error.path.join('.');
     const errorType = error.type;
-    
+
     // Try to get field-specific translation key first
     const specificKey = getSpecificTranslationKey(fieldPath, errorType);
     if (specificKey) {
@@ -89,7 +89,7 @@ function translateValidationError(error: ValidationError['details'][0], language
             return translated;
         }
     }
-    
+
     // Fall back to generic error type translation
     const genericKey = errorTypeToTranslationKey[errorType];
     if (genericKey) {
@@ -98,7 +98,7 @@ function translateValidationError(error: ValidationError['details'][0], language
             return translated;
         }
     }
-    
+
     // Last resort: use the original message
     return error.message;
 }
@@ -110,7 +110,7 @@ export function translateJoiError(error: ValidationError, language: string = 'en
     if (!error.details || error.details.length === 0) {
         return translate('errors.server.internalError', language);
     }
-    
+
     // Return the first error, translated
     return translateValidationError(error.details[0], language);
 }

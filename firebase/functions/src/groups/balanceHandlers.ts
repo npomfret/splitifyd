@@ -3,7 +3,7 @@ import { calculateGroupBalances } from '../services/balanceCalculator';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { timestampToISO } from '../utils/dateHelpers';
-import {FirestoreCollections, groupSize} from '@splitifyd/shared';
+import { FirestoreCollections, groupSize } from '@splitifyd/shared';
 
 export async function getGroupBalances(req: Request, res: Response): Promise<void> {
     const userId = (req as any).user?.uid;

@@ -101,10 +101,7 @@ class QueryBuilder {
 describe('Comments Validation', () => {
     describe('validateCreateComment', () => {
         it('should validate valid group comment request', () => {
-            const request = new CommentRequestBuilder()
-                .withText('This is a test comment')
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withText('This is a test comment').withGroupTarget('group123').build();
 
             const result = validateCreateComment(request);
 
@@ -115,10 +112,7 @@ describe('Comments Validation', () => {
         });
 
         it('should validate valid expense comment request', () => {
-            const request = new CommentRequestBuilder()
-                .withText('This is an expense comment')
-                .withExpenseTarget('expense123', 'group456')
-                .build();
+            const request = new CommentRequestBuilder().withText('This is an expense comment').withExpenseTarget('expense123', 'group456').build();
 
             const result = validateCreateComment(request);
 
@@ -129,10 +123,7 @@ describe('Comments Validation', () => {
         });
 
         it('should trim and sanitize comment text', () => {
-            const request = new CommentRequestBuilder()
-                .withWhitespaceText('Test comment with spaces')
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withWhitespaceText('Test comment with spaces').withGroupTarget('group123').build();
 
             const result = validateCreateComment(request);
 
@@ -140,74 +131,48 @@ describe('Comments Validation', () => {
         });
 
         it('should throw error for empty comment text', () => {
-            const request = new CommentRequestBuilder()
-                .withEmptyField('text')
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withEmptyField('text').withGroupTarget('group123').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Comment text is required');
         });
 
         it('should throw error for comment text that is too long', () => {
-            const request = new CommentRequestBuilder()
-                .withLongText(501)
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withLongText(501).withGroupTarget('group123').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Comment cannot exceed 500 characters');
         });
 
         it('should throw error for missing text', () => {
-            const request = new CommentRequestBuilder()
-                .withGroupTarget('group123')
-                .withMissingField('text')
-                .build();
+            const request = new CommentRequestBuilder().withGroupTarget('group123').withMissingField('text').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
         });
 
         it('should throw error for invalid target type', () => {
-            const request = new CommentRequestBuilder()
-                .withText('Test comment')
-                .withTargetType('invalid')
-                .withTargetId('group123')
-                .build();
+            const request = new CommentRequestBuilder().withText('Test comment').withTargetType('invalid').withTargetId('group123').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Target type must be either "group" or "expense"');
         });
 
         it('should throw error for missing target ID', () => {
-            const request = new CommentRequestBuilder()
-                .withText('Test comment')
-                .withTargetType(CommentTargetTypes.GROUP)
-                .withMissingField('targetId')
-                .build();
+            const request = new CommentRequestBuilder().withText('Test comment').withTargetType(CommentTargetTypes.GROUP).withMissingField('targetId').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Target ID is required');
         });
 
         it('should throw error for empty target ID', () => {
-            const request = new CommentRequestBuilder()
-                .withText('Test comment')
-                .withTargetType(CommentTargetTypes.GROUP)
-                .withEmptyField('targetId')
-                .build();
+            const request = new CommentRequestBuilder().withText('Test comment').withTargetType(CommentTargetTypes.GROUP).withEmptyField('targetId').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Target ID is required');
         });
 
         it('should require group ID for expense comments', () => {
-            const request = new CommentRequestBuilder()
-                .withText('Test expense comment')
-                .withTargetType(CommentTargetTypes.EXPENSE)
-                .withTargetId('expense123')
-                .withMissingField('groupId')
-                .build();
+            const request = new CommentRequestBuilder().withText('Test expense comment').withTargetType(CommentTargetTypes.EXPENSE).withTargetId('expense123').withMissingField('groupId').build();
 
             expect(() => validateCreateComment(request)).toThrow(ApiError);
             expect(() => validateCreateComment(request)).toThrow('Group ID is required for expense comments');
@@ -252,10 +217,7 @@ describe('Comments Validation', () => {
         });
 
         it('should validate query with cursor and custom limit', () => {
-            const query = new QueryBuilder()
-                .withCursor('comment123')
-                .withLimit('10')
-                .build();
+            const query = new QueryBuilder().withCursor('comment123').withLimit('10').build();
 
             const result = validateListCommentsQuery(query);
 
@@ -280,9 +242,7 @@ describe('Comments Validation', () => {
         });
 
         it('should throw error for invalid limit format', () => {
-            const query = new QueryBuilder()
-                .withInvalidLimit('not-a-number')
-                .build();
+            const query = new QueryBuilder().withInvalidLimit('not-a-number').build();
 
             expect(() => validateListCommentsQuery(query)).toThrow(ApiError);
         });
@@ -352,11 +312,7 @@ describe('Comments Validation', () => {
 
     describe('XSS Protection', () => {
         it('should sanitize potentially harmful input', () => {
-            const request = new CommentRequestBuilder()
-                .withXSSText()
-                .withTargetType(CommentTargetTypes.GROUP)
-                .withXSSTargetId()
-                .build();
+            const request = new CommentRequestBuilder().withXSSText().withTargetType(CommentTargetTypes.GROUP).withXSSTargetId().build();
 
             const result = validateCreateComment(request);
 
@@ -367,17 +323,10 @@ describe('Comments Validation', () => {
         });
 
         it('should handle complex XSS attempts', () => {
-            const maliciousTexts = [
-                '<script>alert("xss")</script>Normal text',
-                '<img src=x onerror=alert(1)>',
-                'data:text/html,<script>alert(1)</script>',
-            ];
+            const maliciousTexts = ['<script>alert("xss")</script>Normal text', '<img src=x onerror=alert(1)>', 'data:text/html,<script>alert(1)</script>'];
 
-            maliciousTexts.forEach(maliciousText => {
-                const request = new CommentRequestBuilder()
-                    .withText(maliciousText)
-                    .withGroupTarget('safe-group-id')
-                    .build();
+            maliciousTexts.forEach((maliciousText) => {
+                const request = new CommentRequestBuilder().withText(maliciousText).withGroupTarget('safe-group-id').build();
 
                 const result = validateCreateComment(request);
 
@@ -393,11 +342,8 @@ describe('Comments Validation', () => {
                 'onload="alert(1)"', // This might be allowed as plain text
             ];
 
-            borderlineCases.forEach(caseText => {
-                const request = new CommentRequestBuilder()
-                    .withText(caseText)
-                    .withGroupTarget('safe-group-id')
-                    .build();
+            borderlineCases.forEach((caseText) => {
+                const request = new CommentRequestBuilder().withText(caseText).withGroupTarget('safe-group-id').build();
 
                 const result = validateCreateComment(request);
 
@@ -411,10 +357,7 @@ describe('Comments Validation', () => {
     describe('Edge Cases', () => {
         it('should handle Unicode characters properly', () => {
             const unicodeText = '👋 Hello 世界 🌟 Émoji tëst';
-            const request = new CommentRequestBuilder()
-                .withText(unicodeText)
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withText(unicodeText).withGroupTarget('group123').build();
 
             const result = validateCreateComment(request);
 
@@ -423,10 +366,7 @@ describe('Comments Validation', () => {
 
         it('should handle maximum allowed text length exactly', () => {
             const maxText = 'x'.repeat(500);
-            const request = new CommentRequestBuilder()
-                .withText(maxText)
-                .withGroupTarget('group123')
-                .build();
+            const request = new CommentRequestBuilder().withText(maxText).withGroupTarget('group123').build();
 
             const result = validateCreateComment(request);
 
@@ -437,11 +377,8 @@ describe('Comments Validation', () => {
         it('should handle whitespace-only text as empty', () => {
             const whitespaceOnlyTexts = ['   ', '\t\t', '\n\n', ' \t \n '];
 
-            whitespaceOnlyTexts.forEach(whitespaceText => {
-                const request = new CommentRequestBuilder()
-                    .withText(whitespaceText)
-                    .withGroupTarget('group123')
-                    .build();
+            whitespaceOnlyTexts.forEach((whitespaceText) => {
+                const request = new CommentRequestBuilder().withText(whitespaceText).withGroupTarget('group123').build();
 
                 expect(() => validateCreateComment(request)).toThrow('Comment text is required');
             });

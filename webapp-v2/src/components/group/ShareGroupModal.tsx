@@ -132,7 +132,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
 
                         {error && (
                             <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                                <p class="text-sm text-red-800" role="alert" data-testid="share-group-error-message">{error}</p>
+                                <p class="text-sm text-red-800" role="alert" data-testid="share-group-error-message">
+                                    {error}
+                                </p>
                             </div>
                         )}
 
@@ -183,7 +185,9 @@ export function ShareGroupModal({ isOpen, onClose, groupId }: ShareGroupModalPro
                                 {/* Link expiration options */}
                                 <div class="flex items-center justify-between text-sm text-gray-500 pt-2 border-t border-gray-100">
                                     <span>{t('shareGroupModal.expiration')}</span>
-                                    <button class="text-purple-600 hover:text-purple-700 font-medium" data-testid="generate-new-link-button">{t('shareGroupModal.generateNew')}</button>
+                                    <button class="text-purple-600 hover:text-purple-700 font-medium" data-testid="generate-new-link-button">
+                                        {t('shareGroupModal.generateNew')}
+                                    </button>
                                 </div>
                             </div>
                         )}

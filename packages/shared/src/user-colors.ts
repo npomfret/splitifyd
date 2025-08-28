@@ -34,4 +34,3 @@ export interface UserColor {
     name: string;
     contrastRatio: number;
 }
-

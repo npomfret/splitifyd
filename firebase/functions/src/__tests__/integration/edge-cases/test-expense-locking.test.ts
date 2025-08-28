@@ -1,4 +1,3 @@
-
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -6,12 +5,10 @@ import { ApiDriver, User } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 
 describe('Expense Locking Debug Test', () => {
-
     let driver: ApiDriver;
     let user: User;
 
     beforeAll(async () => {
-
         driver = new ApiDriver();
 
         // Create one test user
@@ -21,7 +18,6 @@ describe('Expense Locking Debug Test', () => {
             displayName: `TestUser`,
         });
     });
-
 
     test('should handle concurrent expense updates', async () => {
         // Create group
@@ -52,7 +48,7 @@ describe('Expense Locking Debug Test', () => {
         // Created expense
 
         // Try to update the expense twice simultaneously
-        const updatePromises = [await driver.updateExpense(expense.id, {amount: 200}, user.token), await driver.updateExpense(expense.id, {amount: 300}, user.token)];
+        const updatePromises = [await driver.updateExpense(expense.id, { amount: 200 }, user.token), await driver.updateExpense(expense.id, { amount: 300 }, user.token)];
 
         // Starting concurrent updates
         const results = await Promise.allSettled(updatePromises);

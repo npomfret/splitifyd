@@ -1,4 +1,3 @@
-
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
@@ -7,11 +6,11 @@
 // Using native fetch from Node.js 18+
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import {v4 as uuidv4} from 'uuid';
-import {ApiDriver, User} from '@splitifyd/test-support';
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '@splitifyd/test-support';
-import {FirebaseIntegrationTestUserPool} from '../../support/FirebaseIntegrationTestUserPool';
-import {groupSize} from "@splitifyd/shared";
+import { v4 as uuidv4 } from 'uuid';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import { groupSize } from '@splitifyd/shared';
 
 describe('Comprehensive API Test Suite', () => {
     let driver: ApiDriver;
@@ -26,12 +25,11 @@ describe('Comprehensive API Test Suite', () => {
 
     beforeAll(async () => {
         driver = new ApiDriver();
-        
+
         // Create user pool with 6 users (covers all test needs)
         userPool = new FirebaseIntegrationTestUserPool(driver, 6);
         await userPool.initialize();
     });
-
 
     describe('User Authentication', () => {
         test('should allow users to register and log in', () => {
@@ -462,7 +460,13 @@ describe('Comprehensive API Test Suite', () => {
 
         describe('Settlement Creation', () => {
             test('should create a new settlement', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(75.5).withNote('Test settlement payment').build();
+                const settlementData = new SettlementBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayer(settlementUsers[0].uid)
+                    .withPayee(settlementUsers[1].uid)
+                    .withAmount(75.5)
+                    .withNote('Test settlement payment')
+                    .build();
 
                 const createdSettlement = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -510,7 +514,13 @@ describe('Comprehensive API Test Suite', () => {
 
         describe('Settlement Retrieval', () => {
             test('should retrieve a settlement by ID', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(100.0).withNote('Retrieve test').build();
+                const settlementData = new SettlementBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayer(settlementUsers[0].uid)
+                    .withPayee(settlementUsers[1].uid)
+                    .withAmount(100.0)
+                    .withNote('Retrieve test')
+                    .build();
 
                 const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
                 const retrieved = await driver.getSettlement(created.id, settlementUsers[0].token);
@@ -540,7 +550,13 @@ describe('Comprehensive API Test Suite', () => {
 
         describe('Settlement Updates', () => {
             test('should update settlement fields', async () => {
-                const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(50.0).withNote('Original note').build();
+                const settlementData = new SettlementBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayer(settlementUsers[0].uid)
+                    .withPayee(settlementUsers[1].uid)
+                    .withAmount(50.0)
+                    .withNote('Original note')
+                    .build();
 
                 const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
 
@@ -751,9 +767,9 @@ describe('Comprehensive API Test Suite', () => {
                 .build();
             const expense = await driver.createExpense(expenseData, users[0].token);
 
-            // Wait for the expense change to be processed 
+            // Wait for the expense change to be processed
             await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
-                return changes.some(change => change.id === expense.id);
+                return changes.some((change) => change.id === expense.id);
             });
 
             // Check after creating expense
@@ -784,7 +800,7 @@ describe('Comprehensive API Test Suite', () => {
 
             // Wait for the second expense change to be processed
             await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
-                return changes.some(change => change.id === secondExpense.id);
+                return changes.some((change) => change.id === secondExpense.id);
             });
 
             // Check after second expense

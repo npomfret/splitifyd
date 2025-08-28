@@ -2,7 +2,6 @@
 // This file contains all type definitions used by the webapp client
 import type { ColorPattern } from './user-colors';
 
-
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
 // ========================================================================
@@ -14,8 +13,6 @@ export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanos
 // ========================================================================
 // Constants
 // ========================================================================
-
-
 
 export const FirestoreCollections = {
     GROUPS: 'groups',
@@ -31,7 +28,7 @@ export const FirestoreCollections = {
 } as const;
 
 // Type-safe collection names
-export type FirestoreCollectionName = typeof FirestoreCollections[keyof typeof FirestoreCollections];
+export type FirestoreCollectionName = (typeof FirestoreCollections)[keyof typeof FirestoreCollections];
 export type ChangeCollectionName = typeof FirestoreCollections.GROUP_CHANGES | typeof FirestoreCollections.TRANSACTION_CHANGES | typeof FirestoreCollections.BALANCE_CHANGES;
 
 export const SplitTypes = {
@@ -60,11 +57,11 @@ export const DELETED_AT_FIELD = 'deletedAt';
 // System-level roles for the entire application
 // These control admin panel access and system-wide features
 export const SystemUserRoles = {
-    SYSTEM_ADMIN: 'system_admin',  // Can access admin panel, manage all users
-    SYSTEM_USER: 'system_user',     // Regular user, no admin access
+    SYSTEM_ADMIN: 'system_admin', // Can access admin panel, manage all users
+    SYSTEM_USER: 'system_user', // Regular user, no admin access
 } as const;
 
-export type SystemUserRole = typeof SystemUserRoles[keyof typeof SystemUserRoles];
+export type SystemUserRole = (typeof SystemUserRoles)[keyof typeof SystemUserRoles];
 
 // ========================================================================
 // Permission and Security Types (Group-level)
@@ -73,17 +70,13 @@ export type SystemUserRole = typeof SystemUserRoles[keyof typeof SystemUserRoles
 // Group member roles - these are specific to individual groups
 // A user can have different roles in different groups
 
-
-
-
-
 export const SecurityPresets = {
     OPEN: 'open',
     MANAGED: 'managed',
     CUSTOM: 'custom',
 } as const;
 
-export type SecurityPreset = typeof SecurityPresets[keyof typeof SecurityPresets];
+export type SecurityPreset = (typeof SecurityPresets)[keyof typeof SecurityPresets];
 
 export const MemberRoles = {
     ADMIN: 'admin',
@@ -91,7 +84,7 @@ export const MemberRoles = {
     VIEWER: 'viewer',
 } as const;
 
-export type MemberRole = typeof MemberRoles[keyof typeof MemberRoles];
+export type MemberRole = (typeof MemberRoles)[keyof typeof MemberRoles];
 
 export const PermissionLevels = {
     ANYONE: 'anyone',
@@ -99,17 +92,14 @@ export const PermissionLevels = {
     ADMIN_ONLY: 'admin-only',
 } as const;
 
-export type PermissionLevel = typeof PermissionLevels[keyof typeof PermissionLevels];
+export type PermissionLevel = (typeof PermissionLevels)[keyof typeof PermissionLevels];
 
 export const MemberStatuses = {
     ACTIVE: 'active',
     PENDING: 'pending',
 } as const;
 
-export type MemberStatus = typeof MemberStatuses[keyof typeof MemberStatuses];
-
-
-
+export type MemberStatus = (typeof MemberStatuses)[keyof typeof MemberStatuses];
 
 export interface GroupPermissions {
     expenseEditing: PermissionLevel;
@@ -358,20 +348,20 @@ export interface Group {
     createdBy: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
-    
+
     // Security Configuration
     securityPreset: SecurityPreset; // default: 'open'
     presetAppliedAt?: string; // ISO string - Track when preset was last applied
-    
+
     // Individual permission settings (customizable after preset selection)
     permissions: GroupPermissions;
-    
+
     // Permission change history
     permissionHistory?: PermissionChangeLog[];
-    
+
     // Invite link configuration
     inviteLinks?: Record<string, InviteLink>;
-    
+
     // Computed fields (only in API responses)
     balance?: {
         balancesByCurrency: Record<string, CurrencyBalance>;
@@ -577,7 +567,7 @@ export interface ExpenseFullDetails {
 }
 
 // ========================================================================
-// List Response Types  
+// List Response Types
 // ========================================================================
 
 export interface ListExpensesResponse {
@@ -798,7 +788,7 @@ export const CommentTargetTypes = {
     EXPENSE: 'expense',
 } as const;
 
-export type CommentTargetType = typeof CommentTargetTypes[keyof typeof CommentTargetTypes];
+export type CommentTargetType = (typeof CommentTargetTypes)[keyof typeof CommentTargetTypes];
 
 export interface Comment {
     id: string;

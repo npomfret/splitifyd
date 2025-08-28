@@ -6,7 +6,8 @@ export class PermissionCache {
     private cache = new Map<string, { value: boolean; expires: number }>();
     private readonly defaultTtl: number;
 
-    constructor(ttlMs: number = 60000) { // Default 1 minute TTL
+    constructor(ttlMs: number = 60000) {
+        // Default 1 minute TTL
         this.defaultTtl = ttlMs;
     }
 
@@ -16,19 +17,19 @@ export class PermissionCache {
     check(key: string, compute: () => boolean, ttlMs?: number): boolean {
         const cached = this.cache.get(key);
         const now = Date.now();
-        
+
         if (cached && cached.expires > now) {
             return cached.value;
         }
 
         const value = compute();
         const ttl = ttlMs ?? this.defaultTtl;
-        
-        this.cache.set(key, { 
-            value, 
-            expires: now + ttl 
+
+        this.cache.set(key, {
+            value,
+            expires: now + ttl,
         });
-        
+
         return value;
     }
 
@@ -65,12 +66,7 @@ export class PermissionCache {
     /**
      * Generate cache key for permission check
      */
-    static generateKey(
-        groupId: string, 
-        userId: string, 
-        action: string, 
-        resourceId?: string
-    ): string {
+    static generateKey(groupId: string, userId: string, action: string, resourceId?: string): string {
         const parts = ['group', groupId, 'user', userId, 'action', action];
         if (resourceId) {
             parts.push('resource', resourceId);
@@ -91,14 +87,14 @@ export class PermissionCache {
     cleanup(): number {
         const now = Date.now();
         let removed = 0;
-        
+
         for (const [key, entry] of this.cache.entries()) {
             if (entry.expires <= now) {
                 this.cache.delete(key);
                 removed++;
             }
         }
-        
+
         return removed;
     }
 }

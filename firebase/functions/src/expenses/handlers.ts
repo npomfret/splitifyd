@@ -21,8 +21,6 @@ const getGroupsCollection = () => {
     return firestoreDb.collection(FirestoreCollections.GROUPS);
 };
 
-
-
 const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference; expense: Expense }> => {
     const docRef = getExpensesCollection().doc(expenseId);
     const doc = await docRef.get();
@@ -44,15 +42,11 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
         const validatedData = ExpenseDocumentSchema.parse(dataWithId);
         expense = validatedData as Expense;
     } catch (error) {
-        logger.error('Invalid expense document structure', error as Error, { 
-            expenseId, 
-            validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+        logger.error('Invalid expense document structure', error as Error, {
+            expenseId,
+            validationErrors: error instanceof z.ZodError ? error.issues : undefined,
         });
-        throw new ApiError(
-            HTTP_STATUS.INTERNAL_ERROR, 
-            'INVALID_EXPENSE_DATA', 
-            'Expense data is corrupted'
-        );
+        throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted');
     }
 
     // Check if the expense is soft-deleted
@@ -100,7 +94,7 @@ export const getExpense = async (req: AuthenticatedRequest, res: Response): Prom
     const expenseId = validateExpenseId(req.query.id);
 
     const expense = await expenseService.getExpense(expenseId, userId);
-    
+
     res.json(expense);
 };
 
@@ -138,12 +132,12 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
  * Used by both the HTTP handler and consolidated endpoints
  */
 export const _getGroupExpensesData = async (
-    groupId: string, 
+    groupId: string,
     options: {
         limit?: number;
         cursor?: string;
         includeDeleted?: boolean;
-    } = {}
+    } = {},
 ): Promise<{
     expenses: any[];
     count: number;
@@ -257,7 +251,7 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
     const result = await expenseService.listGroupExpenses(groupId, userId, {
         limit,
         cursor,
-        includeDeleted
+        includeDeleted,
     });
 
     res.json(result);
@@ -399,13 +393,13 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
     try {
         // Reuse existing tested functions for each data type
         const { expense } = await fetchExpense(expenseId, userId);
-        
+
         // Get group document for permission check and data
         const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
         if (!groupDoc.exists) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
-        
+
         // Check if user is a participant in this expense or a group member (access control for viewing)
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
@@ -414,12 +408,12 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }
         }
-        
+
         const groupData = groupDoc.data();
         if (!groupData?.data?.name) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
         }
-        
+
         // Transform group data using same pattern as groups handler
         const group = {
             id: groupDoc.id,
@@ -430,7 +424,7 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
             createdAt: groupData.createdAt.toDate().toISOString(),
             updatedAt: groupData.updatedAt.toDate().toISOString(),
         };
-        
+
         // Use extracted internal functions to eliminate duplication
         const membersData = await _getGroupMembersData(expense.groupId, groupData.data.members!);
 

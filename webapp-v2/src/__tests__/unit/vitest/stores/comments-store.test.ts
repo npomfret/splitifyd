@@ -17,8 +17,8 @@ vi.mock('firebase/firestore', () => {
 // Mock Firebase app
 vi.mock('@/app/firebase', () => {
     return {
-        getDb: vi.fn(() => ({ 
-            collection: vi.fn()
+        getDb: vi.fn(() => ({
+            collection: vi.fn(),
         })),
     };
 });
@@ -143,7 +143,7 @@ describe('CommentsStore', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         commentsStore.reset();
-        
+
         // Setup default mocks
         mockCollection.mockReturnValue('mock-collection' as any);
         mockQuery.mockReturnValue('mock-query' as any);
@@ -234,15 +234,13 @@ describe('CommentsStore', () => {
 
             // Subscribe to second target
             commentsStore.subscribeToComments('expense', 'expense-2');
-            
+
             expect(mockUnsubscribe).toHaveBeenCalled();
             expect(mockOnSnapshot).toHaveBeenCalledTimes(2);
         });
 
         it('should set hasMore based on document count', () => {
-            const docs = Array.from({ length: 20 }, (_, i) => 
-                new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc()
-            );
+            const docs = Array.from({ length: 20 }, (_, i) => new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc());
             const mockSnapshot = new FirestoreDocBuilder().buildSnapshot(docs);
 
             mockOnSnapshot.mockImplementation((_query: any, onSuccess: any) => {
@@ -268,9 +266,7 @@ describe('CommentsStore', () => {
         });
 
         it('should add group comment successfully', async () => {
-            mockApiClient.createGroupComment.mockResolvedValue(
-                new CommentBuilder().build() 
-            );
+            mockApiClient.createGroupComment.mockResolvedValue(new CommentBuilder().build());
 
             await commentsStore.addComment('New comment');
 
@@ -289,9 +285,7 @@ describe('CommentsStore', () => {
             });
             commentsStore.subscribeToComments('expense', 'expense-456');
 
-            mockApiClient.createExpenseComment.mockResolvedValue(
-                new CommentBuilder().build() 
-            );
+            mockApiClient.createExpenseComment.mockResolvedValue(new CommentBuilder().build());
 
             await commentsStore.addComment('Expense comment');
 
@@ -303,7 +297,7 @@ describe('CommentsStore', () => {
             mockApiClient.createGroupComment.mockRejectedValue(apiError);
 
             await expect(commentsStore.addComment('Failed comment')).rejects.toThrow('API failed');
-            
+
             expect(commentsStore.submitting).toBe(false);
             expect(commentsStore.error).toBe('API failed');
         });
@@ -319,16 +313,18 @@ describe('CommentsStore', () => {
 
         it('should set submitting state during request', async () => {
             let resolvePromise: (value: any) => void;
-            const promise = new Promise<any>(resolve => { resolvePromise = resolve; });
+            const promise = new Promise<any>((resolve) => {
+                resolvePromise = resolve;
+            });
             mockApiClient.createGroupComment.mockReturnValue(promise);
 
             const addPromise = commentsStore.addComment('Pending comment');
-            
+
             expect(commentsStore.submitting).toBe(true);
-            
+
             resolvePromise!(new CommentBuilder().build());
             await addPromise;
-            
+
             expect(commentsStore.submitting).toBe(false);
         });
     });
@@ -336,18 +332,16 @@ describe('CommentsStore', () => {
     describe('loadMoreComments', () => {
         beforeEach(() => {
             // Setup initial subscription with hasMore = true
-            const docs = Array.from({ length: 20 }, (_, i) => 
-                new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc()
-            );
+            const docs = Array.from({ length: 20 }, (_, i) => new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc());
             const mockSnapshot = new FirestoreDocBuilder().buildSnapshot(docs);
-            
+
             mockOnSnapshot.mockImplementation((_query: any, onSuccess: any) => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
-            
+
             commentsStore.subscribeToComments('group', 'group-123');
-            
+
             // Verify initial state after subscription
             expect(commentsStore.comments.length).toBe(20);
             expect(commentsStore.hasMore).toBe(true);
@@ -359,7 +353,7 @@ describe('CommentsStore', () => {
             expect(commentsStore.loading).toBe(false);
             expect(commentsStore.targetType).toBe('group');
             expect(commentsStore.targetId).toBe('group-123');
-            
+
             // The actual pagination functionality will be tested in E2E tests
             // where real Firestore operations can be properly simulated
         });
@@ -367,9 +361,7 @@ describe('CommentsStore', () => {
         it('should not load more if hasMore is false', async () => {
             // Reset with fewer docs to set hasMore = false
             commentsStore.reset();
-            const docs = Array.from({ length: 5 }, (_, i) => 
-                new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc()
-            );
+            const docs = Array.from({ length: 5 }, (_, i) => new FirestoreDocBuilder().withId(`comment-${i}`).buildDoc());
             const mockSnapshot = new FirestoreDocBuilder().buildSnapshot(docs);
             mockOnSnapshot.mockImplementation((_query: any, onSuccess: any) => {
                 onSuccess(mockSnapshot);
@@ -446,9 +438,7 @@ describe('CommentsStore', () => {
         });
 
         it('should update signals when state changes', () => {
-            const mockSnapshot = new FirestoreDocBuilder()
-                .withId('test-comment')
-                .buildSnapshot();
+            const mockSnapshot = new FirestoreDocBuilder().withId('test-comment').buildSnapshot();
 
             mockOnSnapshot.mockImplementation((_query: any, onSuccess: any) => {
                 onSuccess(mockSnapshot);

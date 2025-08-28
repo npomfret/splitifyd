@@ -1,8 +1,8 @@
 #!/usr/bin/env npx tsx
 
-import {spawn, ChildProcess} from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
-import {logger} from './logger';
+import { logger } from './logger';
 
 interface EmulatorConfig {
     uiPort: string;
@@ -49,7 +49,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     }
 
     if (!emulatorsReady) {
-        logger.error('❌ Firebase emulators failed to start within timeout', {attempts, maxAttempts});
+        logger.error('❌ Firebase emulators failed to start within timeout', { attempts, maxAttempts });
         throw new Error('Emulators failed to start');
     }
 

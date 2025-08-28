@@ -96,21 +96,15 @@ class CommentsStoreImpl implements CommentsStore {
 
         try {
             const db = getDb();
-            const collectionPath = targetType === 'group' 
-                ? `groups/${targetId}/comments`
-                : `expenses/${targetId}/comments`;
+            const collectionPath = targetType === 'group' ? `groups/${targetId}/comments` : `expenses/${targetId}/comments`;
 
-            const commentsQuery = query(
-                collection(db, collectionPath),
-                orderBy('createdAt', 'desc'),
-                limit(20)
-            );
+            const commentsQuery = query(collection(db, collectionPath), orderBy('createdAt', 'desc'), limit(20));
 
             unsubscribe = onSnapshot(
                 commentsQuery,
                 (snapshot) => {
                     const comments: CommentApiResponse[] = [];
-                    
+
                     snapshot.forEach((doc) => {
                         const data = doc.data();
                         comments.push({
@@ -119,19 +113,15 @@ class CommentsStoreImpl implements CommentsStore {
                             authorName: data.authorName,
                             authorAvatar: data.authorAvatar || undefined,
                             text: data.text,
-                            createdAt: data.createdAt instanceof Timestamp 
-                                ? data.createdAt.toDate().toISOString()
-                                : data.createdAt,
-                            updatedAt: data.updatedAt instanceof Timestamp
-                                ? data.updatedAt.toDate().toISOString()
-                                : data.updatedAt,
+                            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+                            updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
                         });
                     });
 
                     // Store last document for pagination
                     lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
                     hasMoreSignal.value = snapshot.docs.length === 20;
-                    
+
                     commentsSignal.value = comments;
                     loadingSignal.value = false;
                 },
@@ -139,7 +129,7 @@ class CommentsStoreImpl implements CommentsStore {
                     logError('Comments subscription error', error);
                     errorSignal.value = 'Failed to load comments. Please try refreshing the page.';
                     loadingSignal.value = false;
-                }
+                },
             );
         } catch (error) {
             logError('Failed to subscribe to comments', error);
@@ -169,7 +159,7 @@ class CommentsStoreImpl implements CommentsStore {
 
             // The real-time subscription will automatically update the list
             // Since we're using desc order, new comments should appear at the top
-            
+
             submittingSignal.value = false;
         } catch (error) {
             logError('Failed to add comment', error);
@@ -195,16 +185,9 @@ class CommentsStoreImpl implements CommentsStore {
 
         try {
             const db = getDb();
-            const collectionPath = targetTypeSignal.value === 'group' 
-                ? `groups/${targetIdSignal.value}/comments`
-                : `expenses/${targetIdSignal.value}/comments`;
+            const collectionPath = targetTypeSignal.value === 'group' ? `groups/${targetIdSignal.value}/comments` : `expenses/${targetIdSignal.value}/comments`;
 
-            const nextQuery = query(
-                collection(db, collectionPath),
-                orderBy('createdAt', 'desc'),
-                startAfter(lastDoc),
-                limit(20)
-            );
+            const nextQuery = query(collection(db, collectionPath), orderBy('createdAt', 'desc'), startAfter(lastDoc), limit(20));
 
             const snapshot = await new Promise<QuerySnapshot<DocumentData>>((resolve, reject) => {
                 const unsubscribeNext = onSnapshot(
@@ -213,12 +196,12 @@ class CommentsStoreImpl implements CommentsStore {
                         unsubscribeNext();
                         resolve(snap);
                     },
-                    reject
+                    reject,
                 );
             });
 
             const moreComments: CommentApiResponse[] = [];
-            
+
             snapshot.forEach((doc) => {
                 const data = doc.data();
                 moreComments.push({
@@ -227,19 +210,15 @@ class CommentsStoreImpl implements CommentsStore {
                     authorName: data.authorName,
                     authorAvatar: data.authorAvatar || undefined,
                     text: data.text,
-                    createdAt: data.createdAt instanceof Timestamp 
-                        ? data.createdAt.toDate().toISOString()
-                        : data.createdAt,
-                    updatedAt: data.updatedAt instanceof Timestamp
-                        ? data.updatedAt.toDate().toISOString()
-                        : data.updatedAt,
+                    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
+                    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
                 });
             });
 
             // Update pagination state
             lastDoc = snapshot.docs[snapshot.docs.length - 1] || lastDoc;
             hasMoreSignal.value = snapshot.docs.length === 20;
-            
+
             // Append to existing comments
             commentsSignal.value = [...commentsSignal.value, ...moreComments];
             loadingSignal.value = false;

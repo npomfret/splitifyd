@@ -259,8 +259,6 @@ describe('EnhancedGroupDetailStore', () => {
         });
     });
 
-
-
     describe('group management', () => {
         it('should leave a group successfully', async () => {
             const mockResponse = { success: true, message: 'Left group successfully' };
@@ -321,5 +319,4 @@ describe('EnhancedGroupDetailStore', () => {
             expect(enhancedGroupDetailStore.error).toBeNull();
         });
     });
-
 });

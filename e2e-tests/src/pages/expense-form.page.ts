@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { FORM_LABELS, SPLIT_TYPES, SPLIT_INSTRUCTIONS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@splitifyd/shared';
-import {groupDetailUrlPattern} from "./group-detail.page.ts";
+import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 // Match the ExpenseData interface from GroupDetailPage
 interface ExpenseData {
@@ -31,7 +31,7 @@ export class ExpenseFormPage extends BasePage {
     async waitForFormReady(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
-        
+
         // Enhanced URL check with better error reporting
         if (!currentUrl.match(expectedUrlPattern)) {
             throw new Error(`Expense form URL validation failed - navigation to expense form likely failed. Expected pattern: /groups/[id]/add-expense, got: ${currentUrl}`);
@@ -39,11 +39,11 @@ export class ExpenseFormPage extends BasePage {
 
         // Step 1: Wait for basic page layout elements to be visible
         // Check for the expense form header
-        const headerTitle = this.page.getByRole('heading', { 
-            name: /Add Expense|Edit Expense|Copy Expense/i 
+        const headerTitle = this.page.getByRole('heading', {
+            name: /Add Expense|Edit Expense|Copy Expense/i,
         });
         await expect(headerTitle).toBeVisible({ timeout: 3000 });
-        
+
         // Check for Cancel button in header (confirms header is fully rendered)
         // Use .first() since there might be multiple Cancel buttons (header and form)
         const cancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
@@ -129,11 +129,11 @@ export class ExpenseFormPage extends BasePage {
     private getSaveExpenseButton(): Locator {
         return this.page.getByRole('button', { name: /save expense/i });
     }
-    
+
     getUpdateExpenseButton(): Locator {
         return this.page.getByRole('button', { name: /update expense/i });
     }
-    
+
     getEditButton(): Locator {
         return this.page.getByRole('button', { name: /edit/i });
     }
@@ -176,16 +176,16 @@ export class ExpenseFormPage extends BasePage {
         const saveButton = this.getSaveExpenseButton();
 
         // Wait for button to be enabled
-        await expect(saveButton).toBeEnabled({timeout: 500});
+        await expect(saveButton).toBeEnabled({ timeout: 500 });
 
         // Click the button
-        await this.clickButton(saveButton, {buttonName: 'Save Expense'});
+        await this.clickButton(saveButton, { buttonName: 'Save Expense' });
 
         // First wait for saving state to begin - button text changes to "Saving..."
-        await expect(this.page.getByRole('button', {name: 'Saving...'})).toBeVisible({timeout: 250});
+        await expect(this.page.getByRole('button', { name: 'Saving...' })).toBeVisible({ timeout: 250 });
 
         // Then wait for saving state to complete - button text changes back to "Save Expense"
-        await expect(this.page.getByRole('button', {name: 'Saving...'})).not.toBeVisible({timeout: 3000});
+        await expect(this.page.getByRole('button', { name: 'Saving...' })).not.toBeVisible({ timeout: 3000 });
     }
 
     /**
@@ -288,12 +288,7 @@ export class ExpenseFormPage extends BasePage {
         await this.clickSaveExpenseButton();
 
         // Check for permission error messages first
-        const permissionErrorMessages = [
-            'You do not have permission to create expenses in this group',
-            'Something went wrong',
-            'Permission denied',
-            'Not authorized'
-        ];
+        const permissionErrorMessages = ['You do not have permission to create expenses in this group', 'Something went wrong', 'Permission denied', 'Not authorized'];
 
         // Wait a moment for any error messages to appear
         await this.page.waitForTimeout(1000);
@@ -324,7 +319,7 @@ export class ExpenseFormPage extends BasePage {
                     throw new Error(`Permission error detected after navigation timeout: "${errorMessage}"`);
                 }
             }
-            
+
             // If still no error message found, re-throw the navigation error
             throw navigationError;
         }
@@ -437,24 +432,24 @@ export class ExpenseFormPage extends BasePage {
     async clickLastNightButton() {
         await this.clickButton(this.getLastNightButton(), { buttonName: 'Last Night' });
     }
-    
+
     // Time-related methods
     getTimeButton() {
         return this.page.getByRole('button', { name: /at \d{1,2}:\d{2} (AM|PM)/i });
     }
-    
+
     getTimeInput() {
         return this.page.getByPlaceholder('Enter time (e.g., 2:30pm)');
     }
-    
+
     getTimeSuggestion(time: string) {
         return this.page.getByRole('button', { name: time });
     }
-    
+
     getExpenseDetailsHeading() {
         return this.page.getByRole('heading', { name: 'Expense Details' });
     }
-    
+
     getExpenseHeadingWithAmount(pattern: RegExp) {
         return this.page.getByRole('heading', { name: pattern });
     }

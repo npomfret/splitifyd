@@ -8,194 +8,173 @@ setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('User Profile Management', () => {
-    authenticatedPageTest(
-        'should allow user to view their profile information',
-        async ({ authenticatedPage }) => {
-            const { page, user } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
+    authenticatedPageTest('should allow user to view their profile information', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
 
-            // Navigate to settings page
-            await settingsPage.navigate();
+        // Navigate to settings page
+        await settingsPage.navigate();
 
-            // Verify profile information is displayed
-            const expectedDisplayName = user.displayName || user.email.split('@')[0];
-            await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
-            
-            // Verify profile form elements are present
-            await expect(settingsPage.getDisplayNameInput()).toBeVisible();
-            await expect(settingsPage.getSaveChangesButton()).toBeVisible();
-        }
-    );
+        // Verify profile information is displayed
+        const expectedDisplayName = user.displayName || user.email.split('@')[0];
+        await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
 
-    authenticatedPageTest(
-        'should allow user to update their display name',
-        async ({ authenticatedPage }) => {
-            const { page, user } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
-            
-            const newDisplayName = `Updated Name ${Date.now()}`;
+        // Verify profile form elements are present
+        await expect(settingsPage.getDisplayNameInput()).toBeVisible();
+        await expect(settingsPage.getSaveChangesButton()).toBeVisible();
+    });
 
-            // Navigate to settings page and wait for ready
-            await settingsPage.navigate();
+    authenticatedPageTest('should allow user to update their display name', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
 
-            // Update display name using POM method
-            await settingsPage.updateDisplayName(newDisplayName);
+        const newDisplayName = `Updated Name ${Date.now()}`;
 
-            // Verify real-time updates - both in settings and navigation (no page reload needed)
-            await settingsPage.verifyRealTimeDisplayNameUpdate(newDisplayName);
+        // Navigate to settings page and wait for ready
+        await settingsPage.navigate();
 
-            // Also verify display name persists when navigating to dashboard
-            await settingsPage.navigateToDashboard();
-            await expect(settingsPage.getUserMenuButton()).toContainText(newDisplayName);
-        }
-    );
+        // Update display name using POM method
+        await settingsPage.updateDisplayName(newDisplayName);
 
-    baseTest(
-        'should allow user to change their password',
-        async ({ page }) => {
-            // Create a fresh user specifically for password testing to avoid affecting other tests
-            const { displayName, email, password } = generateNewUserDetails();
-            
-            // Register the fresh user
-            const registerPage = new RegisterPage(page);
-            await registerPage.navigate();
-            await registerPage.register(displayName, email, password);
-            
-            // Wait for registration to complete and navigate to dashboard
-            const dashboardPage = new DashboardPage(page);
-            await dashboardPage.waitForDashboard();
-            
-            // Navigate to settings page with our fresh user
-            const settingsPage = new SettingsPage(page);
-            await settingsPage.navigate();
+        // Verify real-time updates - both in settings and navigation (no page reload needed)
+        await settingsPage.verifyRealTimeDisplayNameUpdate(newDisplayName);
 
-            // Change password using POM method - use the fresh user's original password
-            await settingsPage.changePassword(password, 'newPassword123');
+        // Also verify display name persists when navigating to dashboard
+        await settingsPage.navigateToDashboard();
+        await expect(settingsPage.getUserMenuButton()).toContainText(newDisplayName);
+    });
 
-            // Verify success message
-            await settingsPage.verifySuccessMessage('Password changed successfully');
+    baseTest('should allow user to change their password', async ({ page }) => {
+        // Create a fresh user specifically for password testing to avoid affecting other tests
+        const { displayName, email, password } = generateNewUserDetails();
 
-            // Verify form is reset/hidden
-            await settingsPage.verifyPasswordFormVisible(false);
-        }
-    );
+        // Register the fresh user
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
+        await registerPage.register(displayName, email, password);
 
-    authenticatedPageTest(
-        'should preserve other profile information when updating display name',
-        async ({ authenticatedPage }) => {
-            const { page, user } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
+        // Wait for registration to complete and navigate to dashboard
+        const dashboardPage = new DashboardPage(page);
+        await dashboardPage.waitForDashboard();
 
-            const newDisplayName = `Test Name ${Date.now()}`;
+        // Navigate to settings page with our fresh user
+        const settingsPage = new SettingsPage(page);
+        await settingsPage.navigate();
 
-            // Navigate to settings page
-            await settingsPage.navigate();
+        // Change password using POM method - use the fresh user's original password
+        await settingsPage.changePassword(password, 'newPassword123');
 
-            // Note original email - should remain unchanged
-            const originalEmail = user.email;
-            await expect(settingsPage.getProfileEmail()).toContainText(originalEmail);
+        // Verify success message
+        await settingsPage.verifySuccessMessage('Password changed successfully');
 
-            // Update only display name using POM method
-            await settingsPage.updateDisplayName(newDisplayName);
+        // Verify form is reset/hidden
+        await settingsPage.verifyPasswordFormVisible(false);
+    });
 
-            // Verify email unchanged and display name updated
-            await expect(settingsPage.getProfileEmail()).toContainText(originalEmail);
-            await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
-        }
-    );
+    authenticatedPageTest('should preserve other profile information when updating display name', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
 
-    authenticatedPageTest(
-        'should show loading states during profile updates',
-        async ({ authenticatedPage }) => {
-            const { page } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
+        const newDisplayName = `Test Name ${Date.now()}`;
 
-            const testDisplayName = `Loading Test ${Date.now()}`;
+        // Navigate to settings page
+        await settingsPage.navigate();
 
-            // Navigate to settings page
-            await settingsPage.navigate();
+        // Note original email - should remain unchanged
+        const originalEmail = user.email;
+        await expect(settingsPage.getProfileEmail()).toContainText(originalEmail);
 
-            // Fill display name but don't use the POM update method (we want to test loading states)
-            await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), testDisplayName);
+        // Update only display name using POM method
+        await settingsPage.updateDisplayName(newDisplayName);
 
-            // Click save and verify loading state
-            const saveButton = settingsPage.getSaveChangesButton();
-            await settingsPage.clickButton(saveButton, { buttonName: 'Save Changes' });
+        // Verify email unchanged and display name updated
+        await expect(settingsPage.getProfileEmail()).toContainText(originalEmail);
+        await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
+    });
 
-            // Verify loading state (button disabled)
-            await settingsPage.verifyLoadingState('save');
+    authenticatedPageTest('should show loading states during profile updates', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
 
-            // Wait for completion and verify real-time update
-            await settingsPage.waitForLoadingComplete('save');
-            // Verify the display name updated in real-time
-            await expect(settingsPage.getProfileDisplayName()).toContainText(testDisplayName);
-        }
-    );
+        const testDisplayName = `Loading Test ${Date.now()}`;
 
-    authenticatedPageTest(
-        'should allow canceling password change',
-        async ({ authenticatedPage }) => {
-            const { page } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
+        // Navigate to settings page
+        await settingsPage.navigate();
 
-            // Navigate to settings page
-            await settingsPage.navigate();
+        // Fill display name but don't use the POM update method (we want to test loading states)
+        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), testDisplayName);
 
-            // Open password change form and fill partially
-            await settingsPage.openPasswordChangeForm();
-            await settingsPage.fillPreactInput(settingsPage.getCurrentPasswordInput(), 'somePassword');
-            await settingsPage.fillPreactInput(settingsPage.getNewPasswordInput(), 'newPassword123');
+        // Click save and verify loading state
+        const saveButton = settingsPage.getSaveChangesButton();
+        await settingsPage.clickButton(saveButton, { buttonName: 'Save Changes' });
 
-            // Cancel password change using POM method
-            await settingsPage.cancelPasswordChange();
+        // Verify loading state (button disabled)
+        await settingsPage.verifyLoadingState('save');
 
-            // Verify form is hidden and change password button is visible again
-            await settingsPage.verifyPasswordFormVisible(false);
-            await expect(settingsPage.getChangePasswordButton()).toBeVisible();
-        }
-    );
+        // Wait for completion and verify real-time update
+        await settingsPage.waitForLoadingComplete('save');
+        // Verify the display name updated in real-time
+        await expect(settingsPage.getProfileDisplayName()).toContainText(testDisplayName);
+    });
 
-    authenticatedPageTest(
-        'should update display name in real-time across all UI components without page reload',
-        async ({ authenticatedPage }) => {
-            const { page, user } = authenticatedPage;
-            const settingsPage = new SettingsPage(page);
+    authenticatedPageTest('should allow canceling password change', async ({ authenticatedPage }) => {
+        const { page } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
 
-            // Navigate to settings page
-            await settingsPage.navigate();
-            
-            // Get the actual current display name from the page
-            const initialDisplayName = (await settingsPage.getProfileDisplayName().textContent())!;
+        // Navigate to settings page
+        await settingsPage.navigate();
 
-            // Verify initial state shows current name (which we just read from the page)
-            await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
-            await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
+        // Open password change form and fill partially
+        await settingsPage.openPasswordChangeForm();
+        await settingsPage.fillPreactInput(settingsPage.getCurrentPasswordInput(), 'somePassword');
+        await settingsPage.fillPreactInput(settingsPage.getNewPasswordInput(), 'newPassword123');
 
-            const realTimeDisplayName = `RealTime ${Date.now()}`;
+        // Cancel password change using POM method
+        await settingsPage.cancelPasswordChange();
 
-            // Update display name
-            await settingsPage.updateDisplayName(realTimeDisplayName);
+        // Verify form is hidden and change password button is visible again
+        await settingsPage.verifyPasswordFormVisible(false);
+        await expect(settingsPage.getChangePasswordButton()).toBeVisible();
+    });
 
-            // Verify real-time updates without any page reload:
-            // 1. Profile display section shows NEW name
-            await expect(settingsPage.getProfileDisplayName()).toContainText(realTimeDisplayName);
-            
-            // 2. Profile display section does NOT show OLD name
-            await expect(settingsPage.getProfileDisplayName()).not.toContainText(initialDisplayName);
-            
-            // 3. User menu shows NEW name
-            await expect(settingsPage.getUserMenuButton()).toContainText(realTimeDisplayName);
-            
-            // 4. User menu does NOT show OLD name
-            await expect(settingsPage.getUserMenuButton()).not.toContainText(initialDisplayName);
-            
-            // 5. Input field shows NEW value
-            await expect(settingsPage.getDisplayNameInput()).toHaveValue(realTimeDisplayName);
-            
-            // 6. Open user dropdown to verify it also shows updated name and not old name
-            await settingsPage.getUserMenuButton().click();
-            await expect(settingsPage.getUserDropdownMenu()).toContainText(realTimeDisplayName);
-            await expect(settingsPage.getUserDropdownMenu()).not.toContainText(initialDisplayName);
-        }
-    );
+    authenticatedPageTest('should update display name in real-time across all UI components without page reload', async ({ authenticatedPage }) => {
+        const { page, user } = authenticatedPage;
+        const settingsPage = new SettingsPage(page);
+
+        // Navigate to settings page
+        await settingsPage.navigate();
+
+        // Get the actual current display name from the page
+        const initialDisplayName = (await settingsPage.getProfileDisplayName().textContent())!;
+
+        // Verify initial state shows current name (which we just read from the page)
+        await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
+        await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
+
+        const realTimeDisplayName = `RealTime ${Date.now()}`;
+
+        // Update display name
+        await settingsPage.updateDisplayName(realTimeDisplayName);
+
+        // Verify real-time updates without any page reload:
+        // 1. Profile display section shows NEW name
+        await expect(settingsPage.getProfileDisplayName()).toContainText(realTimeDisplayName);
+
+        // 2. Profile display section does NOT show OLD name
+        await expect(settingsPage.getProfileDisplayName()).not.toContainText(initialDisplayName);
+
+        // 3. User menu shows NEW name
+        await expect(settingsPage.getUserMenuButton()).toContainText(realTimeDisplayName);
+
+        // 4. User menu does NOT show OLD name
+        await expect(settingsPage.getUserMenuButton()).not.toContainText(initialDisplayName);
+
+        // 5. Input field shows NEW value
+        await expect(settingsPage.getDisplayNameInput()).toHaveValue(realTimeDisplayName);
+
+        // 6. Open user dropdown to verify it also shows updated name and not old name
+        await settingsPage.getUserMenuButton().click();
+        await expect(settingsPage.getUserDropdownMenu()).toContainText(realTimeDisplayName);
+        await expect(settingsPage.getUserDropdownMenu()).not.toContainText(initialDisplayName);
+    });
 });

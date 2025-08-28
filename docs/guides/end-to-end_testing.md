@@ -49,13 +49,13 @@ In general, the end-to-end test suite is quite slow. During development, ONLY ru
 
 Don't ever run tests that require manual debugging.
 
-Don't ever serve the Playwright html report, it takes over the users default browser.  Always use `PLAYWRIGHT_HTML_OPEN=never` or ideally use `e2e-tests/run-until-fail.sh`. 
+Don't ever serve the Playwright html report, it takes over the users default browser. Always use `PLAYWRIGHT_HTML_OPEN=never` or ideally use `e2e-tests/run-until-fail.sh`.
 
 ## Core Principles: The Foundation of a Stable Test Suite
 
 Our E2E tests are the ultimate guarantee of quality. They must be fast, reliable, and deterministic. Adherence to these principles is not optional.
 
-However, they are slow: Do not use them when a simple unit test would be better and faster.  They are for _coarse grained_ testing.
+However, they are slow: Do not use them when a simple unit test would be better and faster. They are for _coarse grained_ testing.
 
 ### 1. Speed and Performance
 
@@ -465,12 +465,12 @@ When an async method fails, the proxy automatically captures:
 - **Method arguments**: Sanitized arguments passed to the method
 - **User information**: If available, the test user's email and display name
 - **Page state**: Including:
-  - Visible buttons and their enabled/disabled state
-  - Visible headings
-  - Visible error messages
-  - Form input states
-  - Dialog presence
-  - Loading indicators
+    - Visible buttons and their enabled/disabled state
+    - Visible headings
+    - Visible error messages
+    - Form input states
+    - Dialog presence
+    - Loading indicators
 - **Stack trace**: Full error stack for debugging
 
 ### What You SHOULD Do
@@ -585,6 +585,7 @@ The proxy is configured in `BasePage` constructor with these options:
 ### Excluded Methods
 
 By default, these method patterns are excluded from proxying:
+
 - Methods starting with `get*`, `is*`, `has*` (typically synchronous getters)
 - Private methods starting with underscore
 - Standard object methods (`constructor`, `toString`, `valueOf`, `toJSON`)
@@ -640,9 +641,9 @@ To exclude a method from automatic error handling, add it to the `excludeMethods
 
 ```typescript
 excludeMethods: [
-    'mySpecialMethod',  // Won't be proxied
-    'anotherMethod',    // Handle errors manually here
-]
+    'mySpecialMethod', // Won't be proxied
+    'anotherMethod', // Handle errors manually here
+];
 ```
 
 ### Benefits
@@ -944,16 +945,15 @@ import translationEn from '../../../webapp-v2/src/locales/en/translation.json' w
 export class CreateGroupModalPage extends BasePage {
     // Use translation keys instead of hardcoded text
     readonly modalTitle = translationEn.createGroupModal.title;
-    
+
     async isOpen(): Promise<boolean> {
         return await this.page.getByRole('heading', { name: this.modalTitle }).isVisible();
     }
-    
+
     async submitForm() {
-        const submitButton = this.page
-            .getByRole('button', { name: translationEn.createGroupModal.submitButton });
-        await this.clickButton(submitButton, { 
-            buttonName: translationEn.createGroupModal.submitButton 
+        const submitButton = this.page.getByRole('button', { name: translationEn.createGroupModal.submitButton });
+        await this.clickButton(submitButton, {
+            buttonName: translationEn.createGroupModal.submitButton,
         });
     }
 }
@@ -973,6 +973,7 @@ When refactoring page objects for i18n compatibility, update these common text-b
 ### Example Refactor Pattern
 
 **Before (brittle to text changes):**
+
 ```typescript
 async createGroup(name: string) {
     await this.page.getByRole('heading', { name: 'Create New Group' }).waitFor();
@@ -982,6 +983,7 @@ async createGroup(name: string) {
 ```
 
 **After (resilient to text changes):**
+
 ```typescript
 async createGroup(name: string) {
     await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor();
@@ -1019,18 +1021,21 @@ When making text changes:
 ### Common Pitfalls to Avoid
 
 ❌ **Don't hardcode text in tests:**
+
 ```typescript
 // Bad - breaks when text changes
 await page.getByText('Create New Group').click();
 ```
 
 ❌ **Don't use regex when exact text is available:**
+
 ```typescript
 // Bad - fragile and ambiguous
 await page.getByText(/Create.*Group/i).click();
 ```
 
 ✅ **Do use translation keys:**
+
 ```typescript
 // Good - resilient to text changes
 await page.getByText(translationEn.createGroupModal.title).click();

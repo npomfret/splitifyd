@@ -1,10 +1,9 @@
-
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
-import {Group, groupSize} from '@splitifyd/shared';
+import { Group, groupSize } from '@splitifyd/shared';
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;
@@ -14,7 +13,6 @@ describe('Error Handling and Recovery Testing', () => {
     // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        
         driver = new ApiDriver();
 
         // Create main test user

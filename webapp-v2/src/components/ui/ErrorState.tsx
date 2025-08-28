@@ -38,10 +38,14 @@ export function ErrorState({ error, title, onRetry, fullPage = false, className 
             </div>
 
             {/* Error Title */}
-            <h3 className="mt-4 text-lg font-medium text-gray-900" data-testid="error-title">{defaultTitle}</h3>
+            <h3 className="mt-4 text-lg font-medium text-gray-900" data-testid="error-title">
+                {defaultTitle}
+            </h3>
 
             {/* Error Message */}
-            <p className="mt-2 text-sm text-gray-600" data-testid="error-message">{errorMessage}</p>
+            <p className="mt-2 text-sm text-gray-600" data-testid="error-message">
+                {errorMessage}
+            </p>
 
             {/* Retry Button */}
             {onRetry && (

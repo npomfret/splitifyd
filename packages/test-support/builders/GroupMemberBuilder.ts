@@ -11,7 +11,7 @@ export class GroupMemberBuilder {
             status: MemberStatuses.ACTIVE,
             theme: {
                 light: '#1f5582',
-                dark: '#4a9eff', 
+                dark: '#4a9eff',
                 name: 'Ocean Blue',
                 pattern: 'solid',
                 assignedAt: new Date().toISOString(),

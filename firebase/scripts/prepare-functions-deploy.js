@@ -45,9 +45,9 @@ pkg.devDependencies = pkg.devDependencies || {};
 // Replace workspace reference with local tarball
 pkg.dependencies['@splitifyd/shared'] = `file:./${filename}`;
 
-// Remove any other @splitifyd workspace packages from devDependencies 
+// Remove any other @splitifyd workspace packages from devDependencies
 // since they won't be available and we're using --omit=dev anyway
-Object.keys(pkg.devDependencies).forEach(dep => {
+Object.keys(pkg.devDependencies).forEach((dep) => {
     if (dep.startsWith('@splitifyd/')) {
         console.log(`Removing devDependency: ${dep}`);
         delete pkg.devDependencies[dep];

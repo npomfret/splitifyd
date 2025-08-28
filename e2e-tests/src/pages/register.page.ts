@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@splitifyd/shared';
-import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: "json" };
+import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class RegisterPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
@@ -47,39 +47,39 @@ export class RegisterPage extends BasePage {
     async register(name: string, email: string, password: string) {
         await this.fillRegistrationForm(name, email, password);
         await this.submitForm();
-        
+
         // Wait for registration to complete
         await this.waitForRegistrationCompletion();
     }
-    
+
     /**
      * Wait for the registration process to complete
      * Handles both instant registration and slower processing with loading spinner
      */
     async waitForRegistrationCompletion() {
         const submitButton = this.getSubmitButton();
-        
+
         // The UI shows a loading spinner in the submit button when processing
         // The button should become disabled when clicked
-        
+
         // Wait for either:
         // 1. Button becomes disabled (indicates processing started)
         // 2. Immediate redirect to dashboard (instant registration)
         await Promise.race([
             // Option 1: Wait for button to become disabled (processing started)
             expect(submitButton).toBeDisabled({ timeout: 2000 }),
-            
+
             // Option 2: Wait for immediate redirect (so fast button never visibly disables)
-            this.page.waitForURL(/\/dashboard/, { timeout: 1000 })
+            this.page.waitForURL(/\/dashboard/, { timeout: 1000 }),
         ]).catch(() => {
             // It's ok if neither happens immediately, we'll still wait for the final redirect
         });
-        
+
         // Now wait for the final redirect to dashboard (registration success)
         // This should happen whether we saw the button disable or not
         await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     }
-    
+
     /**
      * Wait for the loading spinner to appear in the submit button
      */
@@ -87,7 +87,7 @@ export class RegisterPage extends BasePage {
         const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
         await spinner.waitFor({ state: 'visible', timeout: 1000 });
     }
-    
+
     /**
      * Check if the loading spinner is visible
      */
@@ -224,7 +224,6 @@ export class RegisterPage extends BasePage {
         return this.page.locator('[data-testid="password-error"], [data-testid="error-message"]');
     }
 
-
     getResetForm() {
         return this.page.locator('[data-testid="reset-form"], [data-testid="forgot-password-form"]');
     }
@@ -238,7 +237,7 @@ export class RegisterPage extends BasePage {
     }
 
     // Enhanced methods for error testing patterns
-    
+
     /**
      * Enhanced error handling - looks for multiple error patterns
      * Updated to match actual error display structure found via browser debugging
@@ -252,10 +251,7 @@ export class RegisterPage extends BasePage {
      * Wait for and handle API response errors during registration
      */
     async waitForRegistrationResponse(expectedStatus?: number): Promise<void> {
-        const responsePromise = this.page.waitForResponse(response => 
-            response.url().includes('/api/register') && 
-            (expectedStatus ? response.status() === expectedStatus : response.status() >= 400)
-        );
+        const responsePromise = this.page.waitForResponse((response) => response.url().includes('/api/register') && (expectedStatus ? response.status() === expectedStatus : response.status() >= 400));
         return responsePromise.then(() => {});
     }
 
@@ -284,10 +280,14 @@ export class RegisterPage extends BasePage {
      */
     getFormField(fieldType: 'name' | 'email' | 'password' | 'confirmPassword'): Locator {
         switch (fieldType) {
-            case 'name': return this.getFullNameInput();
-            case 'email': return this.getEmailInput();
-            case 'password': return this.getPasswordInput();
-            case 'confirmPassword': return this.getConfirmPasswordInput();
+            case 'name':
+                return this.getFullNameInput();
+            case 'email':
+                return this.getEmailInput();
+            case 'password':
+                return this.getPasswordInput();
+            case 'confirmPassword':
+                return this.getConfirmPasswordInput();
         }
     }
 
@@ -331,14 +331,14 @@ export class RegisterPage extends BasePage {
     async waitForFormReady(userInfo?: { displayName?: string; email?: string }): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/register/;
-        
+
         // Enhanced URL check with better error reporting
         if (!currentUrl.match(expectedUrlPattern)) {
             throw new Error(`Register form URL validation failed - expected /register, got ${currentUrl}`);
         }
 
         await this.waitForDomContentLoaded();
-        
+
         await expect(this.getSubmitButton()).toBeVisible({ timeout: 5000 });
         await expect(this.getFullNameInput()).toBeVisible({ timeout: 5000 });
         await expect(this.getEmailInput()).toBeVisible({ timeout: 5000 });

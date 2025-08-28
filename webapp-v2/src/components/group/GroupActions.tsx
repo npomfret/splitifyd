@@ -49,15 +49,10 @@ export function GroupActions({ onAddExpense, onSettleUp, onShare, onSettings, on
                 </>
             </Button>
         ) : null;
-    
-    const leaveGroupButton = 
+
+    const leaveGroupButton =
         onLeaveGroup && canLeaveGroup ? (
-            <Button 
-                variant="secondary" 
-                onClick={onLeaveGroup} 
-                className={variant === 'vertical' ? 'w-full' : ''} 
-                data-testid="leave-group-button"
-            >
+            <Button variant="secondary" onClick={onLeaveGroup} className={variant === 'vertical' ? 'w-full' : ''} data-testid="leave-group-button">
                 <>
                     <ArrowLeftStartOnRectangleIcon className="h-4 w-4 mr-2" />
                     {t('groupActions.leaveGroup')}

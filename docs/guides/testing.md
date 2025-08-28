@@ -5,24 +5,24 @@ We have just 2 types of test:
 - unit tests - these do not need the emulator to be running
 - integration tests - these DO need the emulator to be running
 
-## Tech choices 
+## Tech choices
 
 We use Vitest as a test runner and Playwright for in-browser testing.
 
 ## Example run commands
 
-Each build file _should_ follow the same patther with its run targets. 
+Each build file _should_ follow the same patther with its run targets.
 
 ```
 npm run test:unit
-npm run test:integration # runs only the integration tests (the emulator is not needed) 
-npm run test # runs all tests (the emulator is not needed) 
+npm run test:integration # runs only the integration tests (the emulator is not needed)
+npm run test # runs all tests (the emulator is not needed)
 ```
 
 To run just one test:
 
 ```shell
-npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --outputFile=test-report.json 
+npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --outputFile=test-report.json
 ```
 
 ## Guidelines for Writing Tests
@@ -60,6 +60,7 @@ assert(res)...
 ```
 
 Instead, use a builder:
+
 ```typescript
 const foo = new FooBuilder()
     .withLocation("the moon")
@@ -81,30 +82,30 @@ The polling pattern repeatedly calls a data source until a matcher function retu
 ```typescript
 // Generic polling method
 async function pollUntil<T>(
-  fetcher: () => Promise<T>,      // Function that retrieves data
-  matcher: (value: T) => boolean, // Function that tests the condition
-  options: {
-    timeout?: number;    // Total timeout in ms (default: 10000)
-    interval?: number;   // Polling interval in ms (default: 500)
-    errorMsg?: string;   // Custom error message
-  } = {}
+    fetcher: () => Promise<T>, // Function that retrieves data
+    matcher: (value: T) => boolean, // Function that tests the condition
+    options: {
+        timeout?: number; // Total timeout in ms (default: 10000)
+        interval?: number; // Polling interval in ms (default: 500)
+        errorMsg?: string; // Custom error message
+    } = {},
 ): Promise<T> {
-  const { timeout = 10000, interval = 500, errorMsg = 'Condition not met' } = options;
-  const startTime = Date.now();
-  
-  while (Date.now() - startTime < timeout) {
-    try {
-      const result = await fetcher();
-      if (await matcher(result)) {
-        return result;
-      }
-    } catch (error) {
-      // Log but continue polling (or fail fast if needed)
+    const { timeout = 10000, interval = 500, errorMsg = 'Condition not met' } = options;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+        try {
+            const result = await fetcher();
+            if (await matcher(result)) {
+                return result;
+            }
+        } catch (error) {
+            // Log but continue polling (or fail fast if needed)
+        }
+        await new Promise((resolve) => setTimeout(resolve, interval));
     }
-    await new Promise(resolve => setTimeout(resolve, interval));
-  }
-  
-  throw new Error(`${errorMsg} after ${timeout}ms`);
+
+    throw new Error(`${errorMsg} after ${timeout}ms`);
 }
 ```
 
@@ -113,9 +114,9 @@ async function pollUntil<T>(
 ```typescript
 // Wait for async operation to complete
 const result = await pollUntil(
-  () => api.getResource(id),                    // How to fetch data
-  (data) => data.status === 'completed',       // What condition to check
-  { timeout: 15000, errorMsg: 'Operation did not complete' }
+    () => api.getResource(id), // How to fetch data
+    (data) => data.status === 'completed', // What condition to check
+    { timeout: 15000, errorMsg: 'Operation did not complete' },
 );
 
 // Test the final state
@@ -131,22 +132,22 @@ When testing Firebase triggers (Firestore document changes, Cloud Functions), av
 ```typescript
 // DON'T: Fixed timeouts with listeners
 const changePromise = new Promise((resolve, reject) => {
-  const timeout = setTimeout(() => {
-    reject(new Error('Timeout after 2 seconds'));
-  }, 2000);  // Arbitrary fixed timeout
-  
-  const listener = db.collection('changes').onSnapshot(snapshot => {
-    // Complex listener logic...
-    clearTimeout(timeout);
-    resolve(data);
-  });
+    const timeout = setTimeout(() => {
+        reject(new Error('Timeout after 2 seconds'));
+    }, 2000); // Arbitrary fixed timeout
+
+    const listener = db.collection('changes').onSnapshot((snapshot) => {
+        // Complex listener logic...
+        clearTimeout(timeout);
+        resolve(data);
+    });
 });
 ```
 
 ```typescript
 // DON'T: Arbitrary sleep delays
-await new Promise(resolve => setTimeout(resolve, 2000));
-const changes = await getChanges();  // Hope trigger fired by now
+await new Promise((resolve) => setTimeout(resolve, 2000));
+const changes = await getChanges(); // Hope trigger fired by now
 ```
 
 ### ✅ Use Condition-Based Polling
@@ -155,13 +156,7 @@ const changes = await getChanges();  // Hope trigger fired by now
 // DO: Use the pollForChange helper
 import { pollForChange } from '../support/changeCollectionHelpers';
 
-const change = await pollForChange(
-  FirestoreCollections.TRANSACTION_CHANGES,
-  (doc) => doc.id === expectedId && 
-           doc.type === 'settlement' &&
-           doc.users.includes(userId),
-  { timeout: 5000, groupId }
-);
+const change = await pollForChange(FirestoreCollections.TRANSACTION_CHANGES, (doc) => doc.id === expectedId && doc.type === 'settlement' && doc.users.includes(userId), { timeout: 5000, groupId });
 ```
 
 ### Key Principles
@@ -171,4 +166,3 @@ const change = await pollForChange(
 3. **Check for exact state** you expect (all required fields/values)
 4. **Set reasonable timeouts** (5-10 seconds for triggers)
 5. **Clean up properly** - remove unused listener variables and callbacks
-

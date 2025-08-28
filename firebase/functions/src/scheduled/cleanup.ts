@@ -49,12 +49,12 @@ export const cleanupChanges = onSchedule(
                 await batch.commit();
 
                 logger.info('cleanup-completed', { collection: collectionName, count: deleteCount });
-                
+
                 // Log metrics for monitoring
                 await logCleanupMetrics({
                     collection: collectionName,
                     deletedCount: deleteCount,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
                 });
             } catch (error) {
                 logger.error(`Failed to cleanup ${collectionName}`, error as Error, { collection: collectionName });
@@ -66,17 +66,13 @@ export const cleanupChanges = onSchedule(
 /**
  * Log cleanup metrics for monitoring and analysis
  */
-async function logCleanupMetrics(metrics: {
-    collection: string;
-    deletedCount: number;
-    timestamp: string;
-}): Promise<void> {
+async function logCleanupMetrics(metrics: { collection: string; deletedCount: number; timestamp: string }): Promise<void> {
     try {
         // Store metrics for monitoring (could be sent to external service)
         await firestoreDb.collection('system-metrics').add({
             type: 'cleanup',
             ...metrics,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
     } catch (error) {
         // Don't fail cleanup if metrics logging fails - silently ignore

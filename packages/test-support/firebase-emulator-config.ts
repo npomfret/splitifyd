@@ -1,8 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-if(!process.env.GCLOUD_PROJECT) {// hack for convenience when running the tests
-    process.env.GCLOUD_PROJECT = "splitifyd";
+if (!process.env.GCLOUD_PROJECT) {
+    // hack for convenience when running the tests
+    process.env.GCLOUD_PROJECT = 'splitifyd';
 }
 
 export interface FirebaseEmulatorConfig {
@@ -21,7 +22,7 @@ export interface FirebaseEmulatorConfig {
  */
 export function getFirebaseEmulatorConfig(): FirebaseEmulatorConfig {
     const projectRoot = findProjectRoot();
-    
+
     // Read emulator configuration from firebase.json
     const firebaseConfigPath = path.join(projectRoot, 'firebase', 'firebase.json');
     const firebaseConfig = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));

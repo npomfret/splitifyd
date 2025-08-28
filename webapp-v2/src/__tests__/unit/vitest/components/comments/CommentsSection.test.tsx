@@ -28,21 +28,22 @@ vi.mock('@/stores/comments-store', () => ({
 
 // Mock child components
 vi.mock('@/components/comments/CommentsList', () => ({
-    CommentsList: ({ comments, loading, hasMore, onLoadMore, maxHeight }: {
-        comments: any[], loading: boolean, hasMore: boolean, onLoadMore: () => void, maxHeight: string
-    }) => (
+    CommentsList: ({ comments, loading, hasMore, onLoadMore, maxHeight }: { comments: any[]; loading: boolean; hasMore: boolean; onLoadMore: () => void; maxHeight: string }) => (
         <div data-testid="comments-list">
             <div data-testid="comments-count">{comments.length}</div>
             <div data-testid="loading-state">{loading ? 'loading' : 'not-loading'}</div>
             <div data-testid="has-more">{hasMore ? 'has-more' : 'no-more'}</div>
             <div data-testid="max-height">{maxHeight}</div>
             {hasMore && (
-                <button data-testid="load-more-button" onClick={() => {
-                    // Properly handle the promise to avoid unhandled rejections
-                    Promise.resolve(onLoadMore()).catch(() => {
-                        // Error is handled by the store
-                    });
-                }}>
+                <button
+                    data-testid="load-more-button"
+                    onClick={() => {
+                        // Properly handle the promise to avoid unhandled rejections
+                        Promise.resolve(onLoadMore()).catch(() => {
+                            // Error is handled by the store
+                        });
+                    }}
+                >
                     Load More
                 </button>
             )}
@@ -51,11 +52,9 @@ vi.mock('@/components/comments/CommentsList', () => ({
 }));
 
 vi.mock('@/components/comments/CommentInput', () => ({
-    CommentInput: ({ onSubmit, disabled, placeholder }: {
-        onSubmit: (text: string) => Promise<void>, disabled?: boolean, placeholder?: string
-    }) => (
+    CommentInput: ({ onSubmit, disabled, placeholder }: { onSubmit: (text: string) => Promise<void>; disabled?: boolean; placeholder?: string }) => (
         <div data-testid="comment-input">
-            <input 
+            <input
                 data-testid="input-field"
                 placeholder={placeholder}
                 disabled={disabled}
@@ -122,7 +121,7 @@ describe('CommentsSection', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         user = userEvent.setup();
-        
+
         // Reset all signals to default state
         mockCommentsStore.commentsSignal.value = [];
         mockCommentsStore.loadingSignal.value = false;
@@ -162,7 +161,7 @@ describe('CommentsSection', () => {
 
         it('should resubscribe when target changes', () => {
             const { rerender } = renderCommentsSection({ targetId: 'group-1' });
-            
+
             expect(mockCommentsStore.subscribeToComments).toHaveBeenCalledWith('group', 'group-1');
 
             // Change target
@@ -184,7 +183,7 @@ describe('CommentsSection', () => {
 
         it('should display error message when error exists', () => {
             mockCommentsStore.errorSignal.value = 'Failed to load comments';
-            
+
             renderCommentsSection();
 
             expect(screen.getByText('Failed to load comments')).toBeInTheDocument();
@@ -193,10 +192,7 @@ describe('CommentsSection', () => {
         });
 
         it('should pass correct props to CommentsList', () => {
-            const comments = [
-                new CommentBuilder().withId('comment-1').build(),
-                new CommentBuilder().withId('comment-2').build(),
-            ];
+            const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
             mockCommentsStore.commentsSignal.value = comments;
             mockCommentsStore.loadingSignal.value = true;
             mockCommentsStore.hasMoreSignal.value = true;
@@ -231,7 +227,7 @@ describe('CommentsSection', () => {
             renderCommentsSection();
 
             const input = screen.getByTestId('input-field');
-            
+
             // Type and submit
             await user.type(input, 'New comment');
             await user.keyboard('{Enter}');
@@ -242,7 +238,7 @@ describe('CommentsSection', () => {
         it('should handle submission errors gracefully', async () => {
             const error = new Error('Submission failed');
             mockCommentsStore.addComment.mockRejectedValue(error);
-            
+
             renderCommentsSection();
 
             const input = screen.getByTestId('input-field');
@@ -260,7 +256,7 @@ describe('CommentsSection', () => {
         it('should call loadMoreComments when load more is triggered', async () => {
             mockCommentsStore.hasMoreSignal.value = true;
             mockCommentsStore.loadMoreComments.mockResolvedValue(undefined);
-            
+
             renderCommentsSection();
 
             const loadMoreButton = screen.getByTestId('load-more-button');
@@ -273,7 +269,7 @@ describe('CommentsSection', () => {
             mockCommentsStore.hasMoreSignal.value = true;
             const error = new Error('Load more failed');
             mockCommentsStore.loadMoreComments.mockRejectedValue(error);
-            
+
             renderCommentsSection();
 
             const loadMoreButton = screen.getByTestId('load-more-button');
@@ -317,11 +313,8 @@ describe('CommentsSection', () => {
             expect(screen.getByTestId('comments-count')).toHaveTextContent('0');
 
             // Add comments via signal
-            const comments = [
-                new CommentBuilder().withId('comment-1').build(),
-                new CommentBuilder().withId('comment-2').build(),
-            ];
-            
+            const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
+
             mockCommentsStore.commentsSignal.value = comments;
 
             await waitFor(() => {

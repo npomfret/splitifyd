@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, User} from '@splitifyd/test-support';
-import {CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder} from '@splitifyd/test-support';
+import { ApiDriver, User } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver: ApiDriver;
@@ -17,37 +17,16 @@ describe('Balance Calculation Integration Test', () => {
 
     beforeEach(async () => {
         // Create fresh test users using builders
-        user1 = await apiDriver.createUser(
-            new UserBuilder()
-                .withEmail('user1.balance@test.com')
-                .withPassword('Password123!')
-                .withDisplayName('User One')
-                .build()
-        );
-        
-        user2 = await apiDriver.createUser(
-            new UserBuilder()
-                .withEmail('user2.balance@test.com')
-                .withPassword('Password123!')
-                .withDisplayName('User Two')
-                .build()
-        );
-        
-        user3 = await apiDriver.createUser(
-            new UserBuilder()
-                .withEmail('user3.balance@test.com')
-                .withPassword('Password123!')
-                .withDisplayName('User Three')
-                .build()
-        );
+        user1 = await apiDriver.createUser(new UserBuilder().withEmail('user1.balance@test.com').withPassword('Password123!').withDisplayName('User One').build());
+
+        user2 = await apiDriver.createUser(new UserBuilder().withEmail('user2.balance@test.com').withPassword('Password123!').withDisplayName('User Two').build());
+
+        user3 = await apiDriver.createUser(new UserBuilder().withEmail('user3.balance@test.com').withPassword('Password123!').withDisplayName('User Three').build());
     });
 
     it('should correctly calculate balances for multi-user expense sharing', async () => {
         // Step 1: User 1 creates a group using builder
-        const groupData = new CreateGroupRequestBuilder()
-            .withName('Test Balance Group')
-            .withDescription('Testing balance calculations')
-            .build();
+        const groupData = new CreateGroupRequestBuilder().withName('Test Balance Group').withDescription('Testing balance calculations').build();
         const createGroupResponse = await apiDriver.createGroup(groupData, user1.token);
         groupId = createGroupResponse.id;
 
@@ -107,7 +86,7 @@ describe('Balance Calculation Integration Test', () => {
                 const user1Balance = balances.userBalances[user1.uid];
                 return user1Balance && user1Balance.netBalance === 20;
             },
-            {timeout: 5000, errorMsg: 'Balance not updated after second expense'}
+            { timeout: 5000, errorMsg: 'Balance not updated after second expense' },
         );
 
         // After two expenses: User 1 paid $100 (gets back $50), User 2 paid $60 (gets back $30)
@@ -145,12 +124,12 @@ describe('Balance Calculation Integration Test', () => {
                 const user3Balance = balances.userBalances[user3.uid];
                 return user3Balance && user3Balance.netBalance === 60;
             },
-            {timeout: 5000, errorMsg: 'Balance not updated after third expense'}
+            { timeout: 5000, errorMsg: 'Balance not updated after third expense' },
         );
 
         // Final balance calculation:
         // User 1: Previous balance +$20, owes $30 to User 3 = -$10
-        // User 2: Previous balance -$20, owes $30 to User 3 = -$50  
+        // User 2: Previous balance -$20, owes $30 to User 3 = -$50
         // User 3: Paid $90, gets $30 from each = +$60
         const user1Final = finalBalances.userBalances[user1.uid];
         const user2Final = finalBalances.userBalances[user2.uid];
@@ -165,10 +144,7 @@ describe('Balance Calculation Integration Test', () => {
         expect(user3Final.netBalance).toBe(60); // User 3 is owed $60
 
         // Verify total balances sum to zero (conservation of money)
-        const totalBalance =
-            user1Final.netBalance +
-            user2Final.netBalance +
-            user3Final.netBalance;
+        const totalBalance = user1Final.netBalance + user2Final.netBalance + user3Final.netBalance;
         expect(totalBalance).toBe(0);
 
         // Additional verification: Check individual debts
@@ -182,9 +158,9 @@ describe('Balance Calculation Integration Test', () => {
         // The full details endpoint returns balances in a different format with balancesByCurrency
         // Check if the structure has balancesByCurrency
         if (fullDetails.balances.balancesByCurrency?.USD) {
-            expect((fullDetails.balances.balancesByCurrency.USD)[user1.uid].netBalance).toBe(-10);
-            expect((fullDetails.balances.balancesByCurrency.USD)[user2.uid].netBalance).toBe(-50);
-            expect((fullDetails.balances.balancesByCurrency.USD)[user3.uid].netBalance).toBe(60);
+            expect(fullDetails.balances.balancesByCurrency.USD[user1.uid].netBalance).toBe(-10);
+            expect(fullDetails.balances.balancesByCurrency.USD[user2.uid].netBalance).toBe(-50);
+            expect(fullDetails.balances.balancesByCurrency.USD[user3.uid].netBalance).toBe(60);
         } else {
             // Fallback to direct userBalances structure
             expect(fullDetails.balances.userBalances[user1.uid].netBalance).toBe(-10);

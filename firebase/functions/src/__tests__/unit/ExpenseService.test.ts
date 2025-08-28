@@ -49,7 +49,7 @@ describe('ExpenseService', () => {
         participants: [mockUserId, 'user456'],
         splits: [
             { userId: mockUserId, amount: 50 },
-            { userId: 'user456', amount: 50 }
+            { userId: 'user456', amount: 50 },
         ],
         receiptUrl: 'https://example.com/receipt.jpg',
         createdAt: mockTimestamp,
@@ -63,9 +63,9 @@ describe('ExpenseService', () => {
             name: 'Test Group',
             members: {
                 [mockUserId]: { role: 'ADMIN', joinedAt: mockTimestamp },
-                'user456': { role: 'MEMBER', joinedAt: mockTimestamp }
-            }
-        }
+                user456: { role: 'MEMBER', joinedAt: mockTimestamp },
+            },
+        },
     };
 
     let mockExpenseDocRef: any;
@@ -91,8 +91,8 @@ describe('ExpenseService', () => {
         mockExpenseDocRef = {
             get: vi.fn().mockResolvedValue(mockDoc),
             collection: vi.fn(() => ({
-                doc: vi.fn(() => ({}))
-            }))
+                doc: vi.fn(() => ({})),
+            })),
         };
 
         // Create mock transaction
@@ -156,7 +156,7 @@ describe('ExpenseService', () => {
                 participants: [mockUserId, 'user456'],
                 splits: [
                     { userId: mockUserId, amount: 50 },
-                    { userId: 'user456', amount: 50 }
+                    { userId: 'user456', amount: 50 },
                 ],
                 receiptUrl: 'https://example.com/receipt.jpg',
                 createdAt: timestampToISO(mockTimestamp),
@@ -171,21 +171,17 @@ describe('ExpenseService', () => {
         it('should deny access to group members who are not participants in the expense', async () => {
             // User is not a participant but is a group member
             const nonParticipantUserId = 'user789';
-            
+
             // This should throw a FORBIDDEN error
-            await expect(service.getExpense(mockExpenseId, nonParticipantUserId))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.FORBIDDEN, 
-                    'NOT_EXPENSE_PARTICIPANT', 
-                    'You are not a participant in this expense'
-                ));
+            await expect(service.getExpense(mockExpenseId, nonParticipantUserId)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense'),
+            );
         });
 
         it('should throw NOT_FOUND error when expense does not exist', async () => {
             mockDoc.exists = false;
 
-            await expect(service.getExpense(mockExpenseId, mockUserId))
-                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+            await expect(service.getExpense(mockExpenseId, mockUserId)).rejects.toEqual(Errors.NOT_FOUND('Expense'));
 
             expect(mockExpensesCollection.doc).toHaveBeenCalledWith(mockExpenseId);
         });
@@ -197,21 +193,16 @@ describe('ExpenseService', () => {
                 deletedBy: 'someUserId',
             });
 
-            await expect(service.getExpense(mockExpenseId, mockUserId))
-                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+            await expect(service.getExpense(mockExpenseId, mockUserId)).rejects.toEqual(Errors.NOT_FOUND('Expense'));
         });
 
         it('should throw FORBIDDEN error when user is neither participant nor group member', async () => {
             const unauthorizedUserId = 'unauthorized123';
 
-            await expect(service.getExpense(mockExpenseId, unauthorizedUserId))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.FORBIDDEN, 
-                    'NOT_EXPENSE_PARTICIPANT', 
-                    'You are not a participant in this expense'
-                ));
+            await expect(service.getExpense(mockExpenseId, unauthorizedUserId)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense'),
+            );
         });
-
 
         it('should handle expense without receiptUrl', async () => {
             mockDoc.data.mockReturnValue({
@@ -231,12 +222,7 @@ describe('ExpenseService', () => {
                 groupId: undefined,
             });
 
-            await expect(service.getExpense(mockExpenseId, mockUserId))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR, 
-                    'INVALID_EXPENSE_DATA', 
-                    'Expense data is corrupted'
-                ));
+            await expect(service.getExpense(mockExpenseId, mockUserId)).rejects.toEqual(new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted'));
         });
 
         it('should handle expense with empty participants array', async () => {
@@ -245,12 +231,7 @@ describe('ExpenseService', () => {
                 participants: [],
             });
 
-            await expect(service.getExpense(mockExpenseId, mockUserId))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR, 
-                    'INVALID_EXPENSE_DATA', 
-                    'Expense data is corrupted'
-                ));
+            await expect(service.getExpense(mockExpenseId, mockUserId)).rejects.toEqual(new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted'));
         });
     });
 
@@ -272,7 +253,7 @@ describe('ExpenseService', () => {
                         participants: [mockUserId, 'user456'],
                         splits: [
                             { userId: mockUserId, amount: 50 },
-                            { userId: 'user456', amount: 50 }
+                            { userId: 'user456', amount: 50 },
                         ],
                         createdAt: mockTimestamp,
                         updatedAt: mockTimestamp,
@@ -295,7 +276,7 @@ describe('ExpenseService', () => {
                         participants: [mockUserId, 'user456'],
                         splits: [
                             { userId: mockUserId, amount: 100 },
-                            { userId: 'user456', amount: 100 }
+                            { userId: 'user456', amount: 100 },
                         ],
                         createdAt: mockTimestamp,
                         updatedAt: mockTimestamp,
@@ -357,11 +338,13 @@ describe('ExpenseService', () => {
         });
 
         it('should handle cursor-based pagination', async () => {
-            const cursor = Buffer.from(JSON.stringify({
-                date: '2024-01-01T00:00:00.000Z',
-                createdAt: '2024-01-01T00:00:00.000Z',
-                id: 'lastExpenseId'
-            })).toString('base64');
+            const cursor = Buffer.from(
+                JSON.stringify({
+                    date: '2024-01-01T00:00:00.000Z',
+                    createdAt: '2024-01-01T00:00:00.000Z',
+                    id: 'lastExpenseId',
+                }),
+            ).toString('base64');
 
             await service.listGroupExpenses(mockGroupId, mockUserId, { cursor });
 
@@ -380,13 +363,13 @@ describe('ExpenseService', () => {
             };
 
             mockExpensesCollection.where = vi.fn().mockReturnValue(mockQuery);
-            
+
             await service.listGroupExpenses(mockGroupId, mockUserId);
 
             // Check that the where method was called with deletedAt filter
             const collectionWhereCalls = mockExpensesCollection.where.mock.calls;
             const queryWhereCalls = mockQuery.where.mock.calls;
-            
+
             // First where should be on collection for groupId
             expect(collectionWhereCalls[0]).toEqual(['groupId', '==', mockGroupId]);
             // Second where should be on query for deletedAt
@@ -402,12 +385,9 @@ describe('ExpenseService', () => {
         it('should throw error for invalid cursor', async () => {
             const invalidCursor = 'invalid-cursor-format';
 
-            await expect(service.listGroupExpenses(mockGroupId, mockUserId, { cursor: invalidCursor }))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'INVALID_CURSOR',
-                    'Invalid cursor format'
-                ));
+            await expect(service.listGroupExpenses(mockGroupId, mockUserId, { cursor: invalidCursor })).rejects.toEqual(
+                new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format'),
+            );
         });
 
         it('should handle empty expense list', async () => {
@@ -453,8 +433,8 @@ describe('ExpenseService', () => {
                             description: 'Expense 3',
                             amount: 300,
                         }),
-                    }
-                ]
+                    },
+                ],
             };
 
             // Mock the query chain to return 3 docs when limit is 3 (service requests limit+1)
@@ -492,7 +472,7 @@ describe('ExpenseService', () => {
             date: '2024-01-01T00:00:00.000Z',
             splitType: SplitTypes.EQUAL,
             participants: [mockUserId, 'user456'],
-            splits: []
+            splits: [],
         };
 
         beforeEach(() => {
@@ -516,15 +496,15 @@ describe('ExpenseService', () => {
                             createdBy: 'creator123',
                             members: {
                                 [mockUserId]: { role: 'ADMIN', status: 'ACTIVE', joinedAt: mockTimestamp },
-                                'user456': { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp }
+                                user456: { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp },
                             },
                             permissions: {
-                                expenseEditing: 'ANYONE'
-                            }
+                                expenseEditing: 'ANYONE',
+                            },
                         },
                         createdAt: mockTimestamp,
-                        updatedAt: mockTimestamp
-                    }))
+                        updatedAt: mockTimestamp,
+                    })),
                 }),
                 set: vi.fn(),
             };
@@ -545,14 +525,14 @@ describe('ExpenseService', () => {
                         createdBy: 'creator123',
                         members: {
                             [mockUserId]: { role: 'ADMIN', status: 'ACTIVE', joinedAt: mockTimestamp },
-                            'user456': { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp }
+                            user456: { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp },
                         },
                         permissions: {
-                            expenseEditing: 'ANYONE'
-                        }
+                            expenseEditing: 'ANYONE',
+                        },
                     },
                     createdAt: mockTimestamp,
-                    updatedAt: mockTimestamp
+                    updatedAt: mockTimestamp,
                 })),
                 get: vi.fn(),
             };
@@ -568,41 +548,37 @@ describe('ExpenseService', () => {
             mockPermissionEngine.checkPermission.mockReturnValue(true);
 
             // Mock createServerTimestamp
-            vi.spyOn(dateHelpers, 'createServerTimestamp')
-                .mockReturnValue(mockTimestamp);
+            vi.spyOn(dateHelpers, 'createServerTimestamp').mockReturnValue(mockTimestamp);
         });
 
         it('should successfully create an expense with equal splits', async () => {
             const result = await service.createExpense(mockUserId, mockCreateExpenseData);
 
             // Verify the result structure
-            expect(result).toEqual(expect.objectContaining({
-                id: mockNewExpenseId,
-                groupId: mockGroupId,
-                createdBy: mockUserId,
-                paidBy: mockUserId,
-                amount: 150,
-                currency: 'USD',
-                description: 'New test expense',
-                category: 'Food',
-                splitType: SplitTypes.EQUAL,
-                participants: [mockUserId, 'user456'],
-                splits: [
-                    { userId: mockUserId, amount: 75 },
-                    { userId: 'user456', amount: 75 }
-                ]
-            }));
+            expect(result).toEqual(
+                expect.objectContaining({
+                    id: mockNewExpenseId,
+                    groupId: mockGroupId,
+                    createdBy: mockUserId,
+                    paidBy: mockUserId,
+                    amount: 150,
+                    currency: 'USD',
+                    description: 'New test expense',
+                    category: 'Food',
+                    splitType: SplitTypes.EQUAL,
+                    participants: [mockUserId, 'user456'],
+                    splits: [
+                        { userId: mockUserId, amount: 75 },
+                        { userId: 'user456', amount: 75 },
+                    ],
+                }),
+            );
 
             // Verify group membership was checked
-            expect(groupHelpers.verifyGroupMembership)
-                .toHaveBeenCalledWith(mockGroupId, mockUserId);
+            expect(groupHelpers.verifyGroupMembership).toHaveBeenCalledWith(mockGroupId, mockUserId);
 
             // Verify permission was checked
-            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(
-                expect.objectContaining({ id: mockGroupId }),
-                mockUserId,
-                'expenseEditing'
-            );
+            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(expect.objectContaining({ id: mockGroupId }), mockUserId, 'expenseEditing');
 
             // Verify transaction was used
             expect(firestoreDb.runTransaction).toHaveBeenCalled();
@@ -612,8 +588,8 @@ describe('ExpenseService', () => {
                     id: mockNewExpenseId,
                     groupId: mockGroupId,
                     createdBy: mockUserId,
-                    amount: 150
-                })
+                    amount: 150,
+                }),
             );
         });
 
@@ -623,15 +599,15 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.EXACT,
                 splits: [
                     { userId: mockUserId, amount: 100 },
-                    { userId: 'user456', amount: 50 }
-                ]
+                    { userId: 'user456', amount: 50 },
+                ],
             };
 
             const result = await service.createExpense(mockUserId, dataWithExactSplits);
 
             expect(result.splits).toEqual([
                 { userId: mockUserId, amount: 100 },
-                { userId: 'user456', amount: 50 }
+                { userId: 'user456', amount: 50 },
             ]);
         });
 
@@ -641,22 +617,22 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.PERCENTAGE,
                 splits: [
                     { userId: mockUserId, amount: 0, percentage: 60 },
-                    { userId: 'user456', amount: 0, percentage: 40 }
-                ]
+                    { userId: 'user456', amount: 0, percentage: 40 },
+                ],
             };
 
             const result = await service.createExpense(mockUserId, dataWithPercentageSplits);
 
             expect(result.splits).toEqual([
                 { userId: mockUserId, amount: 90, percentage: 60 },
-                { userId: 'user456', amount: 60, percentage: 40 }
+                { userId: 'user456', amount: 60, percentage: 40 },
             ]);
         });
 
         it('should include receiptUrl when provided', async () => {
             const dataWithReceipt: CreateExpenseRequest = {
                 ...mockCreateExpenseData,
-                receiptUrl: 'https://example.com/receipt.jpg'
+                receiptUrl: 'https://example.com/receipt.jpg',
             };
 
             const result = await service.createExpense(mockUserId, dataWithReceipt);
@@ -665,89 +641,64 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user is not a group member', async () => {
-            mockGroupHelpers.verifyGroupMembership.mockRejectedValue(
-                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group')
-            );
+            mockGroupHelpers.verifyGroupMembership.mockRejectedValue(new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group'));
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.FORBIDDEN,
-                    'NOT_GROUP_MEMBER',
-                    'User is not a member of this group'
-                ));
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toEqual(new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group'));
         });
 
         it('should throw error when group does not exist', async () => {
             mockGroupDoc.exists = false;
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toEqual(Errors.NOT_FOUND('Group'));
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toEqual(Errors.NOT_FOUND('Group'));
         });
 
         it('should throw error when user lacks permission to create expenses', async () => {
             mockPermissionEngine.checkPermission.mockReturnValue(false);
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.FORBIDDEN,
-                    'NOT_AUTHORIZED',
-                    'You do not have permission to create expenses in this group'
-                ));
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group'),
+            );
         });
 
         it('should throw error when payer is not a group member', async () => {
             const dataWithInvalidPayer: CreateExpenseRequest = {
                 ...mockCreateExpenseData,
-                paidBy: 'notAMember123'
+                paidBy: 'notAMember123',
             };
 
-            await expect(service.createExpense(mockUserId, dataWithInvalidPayer))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'INVALID_PAYER',
-                    'Payer must be a member of the group'
-                ));
+            await expect(service.createExpense(mockUserId, dataWithInvalidPayer)).rejects.toEqual(new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group'));
         });
 
         it('should throw error when participant is not a group member', async () => {
             const dataWithInvalidParticipant: CreateExpenseRequest = {
                 ...mockCreateExpenseData,
-                participants: [mockUserId, 'notAMember456']
+                participants: [mockUserId, 'notAMember456'],
             };
 
-            await expect(service.createExpense(mockUserId, dataWithInvalidParticipant))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'INVALID_PARTICIPANT',
-                    'Participant notAMember456 is not a member of the group'
-                ));
+            await expect(service.createExpense(mockUserId, dataWithInvalidParticipant)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', 'Participant notAMember456 is not a member of the group'),
+            );
         });
 
         it('should throw error when group data is missing in transaction', async () => {
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: vi.fn(() => ({ 
+                data: vi.fn(() => ({
                     // Missing 'data' property
                     createdAt: mockTimestamp,
-                    updatedAt: mockTimestamp
-                }))
+                    updatedAt: mockTimestamp,
+                })),
             });
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.NOT_FOUND,
-                    'INVALID_GROUP',
-                    'Group data is missing'
-                ));
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toEqual(new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing'));
         });
 
         it('should throw error when group does not exist in transaction', async () => {
             mockTransaction.get.mockResolvedValue({
-                exists: false
+                exists: false,
             });
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toEqual(Errors.NOT_FOUND('Group'));
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toEqual(Errors.NOT_FOUND('Group'));
         });
 
         it('should handle missing group permissions structure', async () => {
@@ -756,12 +707,12 @@ describe('ExpenseService', () => {
                     name: 'Test Group',
                     members: {
                         [mockUserId]: { role: 'ADMIN', status: 'ACTIVE' },
-                        'user456': { role: 'MEMBER', status: 'ACTIVE' }
+                        user456: { role: 'MEMBER', status: 'ACTIVE' },
                     },
                     // Missing permissions
                 },
                 createdAt: mockTimestamp,
-                updatedAt: mockTimestamp
+                updatedAt: mockTimestamp,
             });
 
             // PermissionEngine should throw when permissions are missing
@@ -769,8 +720,7 @@ describe('ExpenseService', () => {
                 throw new Error('Group group123 is missing permissions configuration');
             });
 
-            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
-                .rejects.toThrow('Group group123 is missing permissions configuration');
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData)).rejects.toThrow('Group group123 is missing permissions configuration');
         });
     });
 
@@ -778,7 +728,7 @@ describe('ExpenseService', () => {
         const mockExpenseId = 'expense123';
         const mockUpdateData = {
             amount: 200,
-            description: 'Updated dinner'
+            description: 'Updated dinner',
         };
 
         const mockExistingExpense = {
@@ -795,31 +745,31 @@ describe('ExpenseService', () => {
             participants: [mockUserId, 'user456'],
             splits: [
                 { userId: mockUserId, amount: 75 },
-                { userId: 'user456', amount: 75 }
+                { userId: 'user456', amount: 75 },
             ],
             createdAt: mockTimestamp,
             updatedAt: mockTimestamp,
             deletedAt: null,
-            deletedBy: null
+            deletedBy: null,
         };
 
         const setupUpdateExpenseMock = (updatedData: any) => {
             const updatedExpense = {
                 ...mockExistingExpense,
                 ...updatedData,
-                updatedAt: mockTimestamp
+                updatedAt: mockTimestamp,
             };
-            
+
             mockExpenseDocRef.get
                 .mockResolvedValueOnce({
                     exists: true,
                     id: mockExpenseId,
-                    data: vi.fn(() => mockExistingExpense)
+                    data: vi.fn(() => mockExistingExpense),
                 })
                 .mockResolvedValueOnce({
                     exists: true,
                     id: mockExpenseId,
-                    data: vi.fn(() => updatedExpense)
+                    data: vi.fn(() => updatedExpense),
                 });
         };
 
@@ -827,17 +777,17 @@ describe('ExpenseService', () => {
             // Reset PermissionEngine mock to allow edits by default
             mockPermissionEngine.checkPermission.mockReturnValue(true);
 
-            // Setup existing expense fetch  
+            // Setup existing expense fetch
             mockExpenseDocRef.get.mockResolvedValue({
                 exists: true,
                 id: mockExpenseId,
-                data: vi.fn(() => mockExistingExpense)
+                data: vi.fn(() => mockExistingExpense),
             });
 
             // Setup transaction get for optimistic locking
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: vi.fn(() => mockExistingExpense)
+                data: vi.fn(() => mockExistingExpense),
             });
         });
 
@@ -846,23 +796,25 @@ describe('ExpenseService', () => {
                 amount: 200,
                 splits: [
                     { userId: mockUserId, amount: 100 },
-                    { userId: 'user456', amount: 100 }
-                ]
+                    { userId: 'user456', amount: 100 },
+                ],
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
-                amount: 200
+                amount: 200,
             });
 
-            expect(result).toEqual(expect.objectContaining({
-                id: mockExpenseId,
-                amount: 200,
-                description: 'Dinner',
-                splits: [
-                    { userId: mockUserId, amount: 100 },
-                    { userId: 'user456', amount: 100 }
-                ]
-            }));
+            expect(result).toEqual(
+                expect.objectContaining({
+                    id: mockExpenseId,
+                    amount: 200,
+                    description: 'Dinner',
+                    splits: [
+                        { userId: mockUserId, amount: 100 },
+                        { userId: 'user456', amount: 100 },
+                    ],
+                }),
+            );
 
             expect(mockTransaction.update).toHaveBeenCalledWith(
                 mockExpenseDocRef,
@@ -870,9 +822,9 @@ describe('ExpenseService', () => {
                     amount: 200,
                     splits: [
                         { userId: mockUserId, amount: 100 },
-                        { userId: 'user456', amount: 100 }
-                    ]
-                })
+                        { userId: 'user456', amount: 100 },
+                    ],
+                }),
             );
 
             expect(mockTransaction.set).toHaveBeenCalledWith(
@@ -881,8 +833,8 @@ describe('ExpenseService', () => {
                     ...mockExistingExpense,
                     modifiedBy: mockUserId,
                     changeType: 'update',
-                    changes: ['amount']
-                })
+                    changes: ['amount'],
+                }),
             );
         });
 
@@ -892,19 +844,19 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.EXACT,
                 splits: [
                     { userId: mockUserId, amount: 100 },
-                    { userId: 'user456', amount: 50 }
-                ]
+                    { userId: 'user456', amount: 50 },
+                ],
             };
 
             mockExpenseDocRef.get.mockResolvedValue({
                 exists: true,
                 id: mockExpenseId,
-                data: vi.fn(() => expenseWithExactSplits)
+                data: vi.fn(() => expenseWithExactSplits),
             });
 
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: vi.fn(() => expenseWithExactSplits)
+                data: vi.fn(() => expenseWithExactSplits),
             });
 
             setupUpdateExpenseMock({
@@ -912,18 +864,18 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.EQUAL,
                 splits: [
                     { userId: mockUserId, amount: 150 },
-                    { userId: 'user456', amount: 150 }
-                ]
+                    { userId: 'user456', amount: 150 },
+                ],
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
-                amount: 300
+                amount: 300,
             });
 
             expect(result.splitType).toBe(SplitTypes.EQUAL);
             expect(result.splits).toEqual([
                 { userId: mockUserId, amount: 150 },
-                { userId: 'user456', amount: 150 }
+                { userId: 'user456', amount: 150 },
             ]);
         });
 
@@ -933,8 +885,8 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.PERCENTAGE,
                 splits: [
                     { userId: mockUserId, amount: 140, percentage: 70 },
-                    { userId: 'user456', amount: 60, percentage: 30 }
-                ]
+                    { userId: 'user456', amount: 60, percentage: 30 },
+                ],
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
@@ -942,128 +894,113 @@ describe('ExpenseService', () => {
                 splitType: SplitTypes.PERCENTAGE,
                 splits: [
                     { userId: mockUserId, amount: 0, percentage: 70 },
-                    { userId: 'user456', amount: 0, percentage: 30 }
-                ]
+                    { userId: 'user456', amount: 0, percentage: 30 },
+                ],
             });
 
             expect(result.splitType).toBe(SplitTypes.PERCENTAGE);
             expect(result.splits).toEqual([
                 { userId: mockUserId, amount: 140, percentage: 70 },
-                { userId: 'user456', amount: 60, percentage: 30 }
+                { userId: 'user456', amount: 60, percentage: 30 },
             ]);
         });
 
         it('should update paidBy and validate member', async () => {
             setupUpdateExpenseMock({
-                paidBy: 'user456'
+                paidBy: 'user456',
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
-                paidBy: 'user456'
+                paidBy: 'user456',
             });
 
             expect(result.paidBy).toBe('user456');
             expect(mockTransaction.update).toHaveBeenCalledWith(
                 mockExpenseDocRef,
                 expect.objectContaining({
-                    paidBy: 'user456'
-                })
+                    paidBy: 'user456',
+                }),
             );
         });
 
         it('should throw error when updating paidBy to non-member', async () => {
-            await expect(service.updateExpense(mockExpenseId, mockUserId, {
-                paidBy: 'nonMemberUser'
-            })).rejects.toEqual(new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_PAYER',
-                'Payer must be a member of the group'
-            ));
+            await expect(
+                service.updateExpense(mockExpenseId, mockUserId, {
+                    paidBy: 'nonMemberUser',
+                }),
+            ).rejects.toEqual(new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group'));
         });
 
         it('should update participants and recalculate splits', async () => {
             setupUpdateExpenseMock({
                 participants: [mockUserId],
-                splits: [
-                    { userId: mockUserId, amount: 150 }
-                ]
+                splits: [{ userId: mockUserId, amount: 150 }],
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
-                participants: [mockUserId]
+                participants: [mockUserId],
             });
 
             expect(result.participants).toEqual([mockUserId]);
-            expect(result.splits).toEqual([
-                { userId: mockUserId, amount: 150 }
-            ]);
+            expect(result.splits).toEqual([{ userId: mockUserId, amount: 150 }]);
         });
 
         it('should throw error when adding non-member as participant', async () => {
-            await expect(service.updateExpense(mockExpenseId, mockUserId, {
-                participants: [mockUserId, 'nonMemberUser']
-            })).rejects.toEqual(new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_PARTICIPANT',
-                'Participant nonMemberUser is not a member of the group'
-            ));
+            await expect(
+                service.updateExpense(mockExpenseId, mockUserId, {
+                    participants: [mockUserId, 'nonMemberUser'],
+                }),
+            ).rejects.toEqual(new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', 'Participant nonMemberUser is not a member of the group'));
         });
 
         it('should handle date update', async () => {
             const newDate = '2024-03-15T12:00:00.000Z';
             setupUpdateExpenseMock({
-                date: parseISOToTimestamp(newDate)
+                date: parseISOToTimestamp(newDate),
             });
             const result = await service.updateExpense(mockExpenseId, mockUserId, {
-                date: newDate
+                date: newDate,
             });
 
             expect(result.date).toBe(newDate);
             expect(mockTransaction.update).toHaveBeenCalledWith(
                 mockExpenseDocRef,
                 expect.objectContaining({
-                    date: expect.any(Object)
-                })
+                    date: expect.any(Object),
+                }),
             );
         });
 
         it('should detect and reject concurrent updates', async () => {
             const differentTimestamp = { isEqual: vi.fn(() => false) };
-            
+
             mockTransaction.get.mockResolvedValue({
                 exists: true,
                 data: vi.fn(() => ({
                     ...mockExistingExpense,
-                    updatedAt: differentTimestamp
-                }))
+                    updatedAt: differentTimestamp,
+                })),
             });
 
-            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.CONFLICT,
-                    'CONCURRENT_UPDATE',
-                    'Expense was modified by another user. Please refresh and try again.'
-                ));
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.'),
+            );
         });
 
         it('should throw error when user lacks permission to edit expense', async () => {
             mockPermissionEngine.checkPermission.mockReturnValue(false);
 
-            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
-                .rejects.toEqual(new ApiError(
-                    HTTP_STATUS.FORBIDDEN,
-                    'NOT_AUTHORIZED',
-                    'You do not have permission to edit this expense'
-                ));
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData)).rejects.toEqual(
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense'),
+            );
         });
 
         it('should throw error when expense not found', async () => {
             mockExpenseDocRef.get.mockResolvedValue({
-                exists: false
+                exists: false,
             });
 
-            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
-                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData)).rejects.toEqual(Errors.NOT_FOUND('Expense'));
         });
 
         it('should throw error when expense is soft-deleted', async () => {
@@ -1073,12 +1010,11 @@ describe('ExpenseService', () => {
                 data: vi.fn(() => ({
                     ...mockExistingExpense,
                     deletedAt: mockTimestamp,
-                    deletedBy: 'someUser'
-                }))
+                    deletedBy: 'someUser',
+                })),
             });
 
-            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
-                .rejects.toEqual(Errors.NOT_FOUND('Expense'));
+            await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData)).rejects.toEqual(Errors.NOT_FOUND('Expense'));
         });
 
         it('should update multiple fields at once', async () => {
@@ -1086,43 +1022,45 @@ describe('ExpenseService', () => {
                 amount: 250,
                 description: 'Updated expense',
                 category: 'Entertainment',
-                paidBy: 'user456'
+                paidBy: 'user456',
             };
 
             setupUpdateExpenseMock({
                 ...multipleUpdates,
                 splits: [
                     { userId: mockUserId, amount: 125 },
-                    { userId: 'user456', amount: 125 }
-                ]
+                    { userId: 'user456', amount: 125 },
+                ],
             });
 
             const result = await service.updateExpense(mockExpenseId, mockUserId, multipleUpdates);
 
-            expect(result).toEqual(expect.objectContaining({
-                amount: 250,
-                description: 'Updated expense',
-                category: 'Entertainment',
-                paidBy: 'user456',
-                splits: [
-                    { userId: mockUserId, amount: 125 },
-                    { userId: 'user456', amount: 125 }
-                ]
-            }));
+            expect(result).toEqual(
+                expect.objectContaining({
+                    amount: 250,
+                    description: 'Updated expense',
+                    category: 'Entertainment',
+                    paidBy: 'user456',
+                    splits: [
+                        { userId: mockUserId, amount: 125 },
+                        { userId: 'user456', amount: 125 },
+                    ],
+                }),
+            );
 
             expect(mockTransaction.set).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({
                     changeType: 'update',
-                    changes: ['amount', 'description', 'category', 'paidBy']
-                })
+                    changes: ['amount', 'description', 'category', 'paidBy'],
+                }),
             );
         });
     });
 
     describe('deleteExpense', () => {
         const mockExpenseId = 'expense123';
-        
+
         beforeEach(() => {
             // Reset all mocks before each test
             vi.clearAllMocks();
@@ -1131,17 +1069,17 @@ describe('ExpenseService', () => {
             mockDoc.exists = true;
             mockDoc.data.mockReturnValue(mockExpenseData);
             mockExpenseDocRef.get.mockResolvedValue(mockDoc);
-            
+
             // Set up group doc
             mockGroupDoc.exists = true;
             mockGroupDoc.data.mockReturnValue(mockGroupData);
-            
+
             // Set up collections
             mockExpensesCollection.doc.mockReturnValue(mockExpenseDocRef);
             mockGroupsCollection.doc.mockReturnValue({
-                get: vi.fn().mockResolvedValue(mockGroupDoc)
+                get: vi.fn().mockResolvedValue(mockGroupDoc),
             });
-            
+
             // Set up Firestore DB mock
             (firestoreDb as any).collection.mockImplementation((name: string) => {
                 if (name === FirestoreCollections.EXPENSES) {
@@ -1161,12 +1099,12 @@ describe('ExpenseService', () => {
                 exists: true,
                 data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
-                    updatedAt: mockTimestamp
-                })
+                    updatedAt: mockTimestamp,
+                }),
             };
-            
+
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
-            
+
             mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
@@ -1181,9 +1119,9 @@ describe('ExpenseService', () => {
                 expect.objectContaining({ id: mockGroupId }),
                 mockUserId,
                 'expenseDeletion',
-                expect.objectContaining({ expense: expect.any(Object) })
+                expect.objectContaining({ expense: expect.any(Object) }),
             );
-            
+
             // Verify transaction operations
             expect(mockTransaction.get).toHaveBeenCalledTimes(2); // expense doc and group doc
             expect(mockTransaction.update).toHaveBeenCalledWith(
@@ -1191,8 +1129,8 @@ describe('ExpenseService', () => {
                 expect.objectContaining({
                     deletedAt: expect.any(Object),
                     deletedBy: mockUserId,
-                    updatedAt: expect.any(Object)
-                })
+                    updatedAt: expect.any(Object),
+                }),
             );
         });
 
@@ -1200,91 +1138,86 @@ describe('ExpenseService', () => {
             mockDoc.exists = false;
             mockExpenseDocRef.get.mockResolvedValue(mockDoc);
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Expense not found');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Expense not found');
         });
 
         it('should throw NOT_FOUND error when expense is already deleted', async () => {
             const deletedExpenseData = {
                 ...mockExpenseData,
                 deletedAt: mockTimestamp,
-                deletedBy: 'someuser'
+                deletedBy: 'someuser',
             };
             mockDoc.data.mockReturnValue(deletedExpenseData);
             mockExpenseDocRef.get.mockResolvedValue(mockDoc);
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Expense not found');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Expense not found');
         });
 
         it('should throw NOT_AUTHORIZED error when user lacks permission', async () => {
             mockPermissionEngine.checkPermission.mockReturnValue(false);
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('You do not have permission to delete this expense');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('You do not have permission to delete this expense');
         });
 
         it('should throw NOT_FOUND error when group does not exist', async () => {
             mockGroupDoc.exists = false;
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Group not found');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Group not found');
         });
 
         it('should throw CONCURRENT_UPDATE error on concurrent modifications', async () => {
             const originalTimestamp = mockTimestamp;
             const updatedTimestamp = Timestamp.fromDate(new Date('2024-01-02'));
-            
+
             // Set up transaction to detect concurrent update
             const mockTransactionDoc = {
                 exists: true,
-                data: vi.fn()
+                data: vi
+                    .fn()
                     .mockReturnValueOnce({
                         ...mockExpenseData,
-                        updatedAt: originalTimestamp
+                        updatedAt: originalTimestamp,
                     })
                     .mockReturnValueOnce({
                         ...mockExpenseData,
-                        updatedAt: updatedTimestamp // Different timestamp on second read
-                    })
+                        updatedAt: updatedTimestamp, // Different timestamp on second read
+                    }),
             };
-            
+
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
-            
+
             mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Document was modified by another user');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Document was modified by another user');
         });
 
         it('should handle transaction errors properly', async () => {
             const transactionError = new Error('Transaction failed');
-            
+
             mockFirestoreDb.runTransaction.mockRejectedValue(transactionError);
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Transaction failed');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Transaction failed');
         });
 
         it('should delete expense by group member with expenseDeletion permission', async () => {
             const memberId = 'user456';
-            
+
             // Set up as member with permission
             mockPermissionEngine.checkPermission.mockReturnValue(true);
-            
+
             // Set up transaction
             const mockTransactionDoc = {
                 exists: true,
                 data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
-                    updatedAt: mockTimestamp
-                })
+                    updatedAt: mockTimestamp,
+                }),
             };
-            
+
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
-            
+
             mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
@@ -1293,21 +1226,16 @@ describe('ExpenseService', () => {
             await service.deleteExpense(mockExpenseId, memberId);
 
             // Verify permission check was made
-            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(
-                expect.any(Object),
-                memberId,
-                'expenseDeletion',
-                expect.objectContaining({ expense: expect.any(Object) })
-            );
-            
+            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(expect.any(Object), memberId, 'expenseDeletion', expect.objectContaining({ expense: expect.any(Object) }));
+
             // Verify the expense was soft deleted
             expect(mockTransaction.update).toHaveBeenCalledWith(
                 mockExpenseDocRef,
                 expect.objectContaining({
                     deletedAt: expect.any(Object),
                     deletedBy: memberId,
-                    updatedAt: expect.any(Object)
-                })
+                    updatedAt: expect.any(Object),
+                }),
             );
         });
 
@@ -1317,18 +1245,17 @@ describe('ExpenseService', () => {
                 exists: true,
                 data: vi.fn().mockReturnValue({
                     ...mockExpenseData,
-                    updatedAt: null
-                })
+                    updatedAt: null,
+                }),
             };
-            
+
             mockTransaction.get.mockResolvedValue(mockTransactionDoc);
-            
+
             mockFirestoreDb.runTransaction.mockImplementation(async (callback: any) => {
                 return callback(mockTransaction);
             });
 
-            await expect(service.deleteExpense(mockExpenseId, mockUserId))
-                .rejects.toThrow('Expense is missing updatedAt timestamp');
+            await expect(service.deleteExpense(mockExpenseId, mockUserId)).rejects.toThrow('Expense is missing updatedAt timestamp');
         });
     });
 });

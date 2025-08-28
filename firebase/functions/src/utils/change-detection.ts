@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin/firestore';
-import {removeUndefinedFields} from './firestore-helpers';
-import {DocumentData} from "firebase-admin/firestore";
+import { removeUndefinedFields } from './firestore-helpers';
+import { DocumentData } from 'firebase-admin/firestore';
 
 export type ChangeType = 'created' | 'updated' | 'deleted';
 export type ChangePriority = 'high' | 'medium' | 'low';
@@ -10,7 +10,6 @@ export interface ChangeMetadata {
     affectedUsers: string[];
     changedFields?: string[];
 }
-
 
 /**
  * Get list of changed fields between two documents
@@ -28,11 +27,7 @@ export function getChangedFields(before: admin.DocumentSnapshot | undefined, aft
 /**
  * Calculate priority based on changed fields and change type
  */
-export function calculatePriority(
-    changeType: ChangeType,
-    changedFields: string[],
-    documentType: 'group' | 'expense' | 'settlement'
-): ChangePriority {
+export function calculatePriority(changeType: ChangeType, changedFields: string[], documentType: 'group' | 'expense' | 'settlement'): ChangePriority {
     // Deletions and creations are always high priority
     if (changeType === 'created' || changeType === 'deleted') {
         return 'high';
@@ -42,25 +37,25 @@ export function calculatePriority(
     const criticalFields: Record<string, string[]> = {
         group: ['memberIds', 'name', 'deletedAt'],
         expense: ['amount', 'currency', 'paidBy', 'splits', 'participants', 'deletedAt'],
-        settlement: ['amount', 'currency', 'payerId', 'payeeId', 'from', 'to']
+        settlement: ['amount', 'currency', 'payerId', 'payeeId', 'from', 'to'],
     };
 
     const importantFields: Record<string, string[]> = {
         group: ['description'],
         expense: ['description', 'category', 'date'],
-        settlement: ['note', 'date']
+        settlement: ['note', 'date'],
     };
 
     const critical = criticalFields[documentType] || [];
     const important = importantFields[documentType] || [];
 
     // Check for critical field changes
-    if (changedFields.includes('*') || changedFields.some(field => critical.includes(field))) {
+    if (changedFields.includes('*') || changedFields.some((field) => critical.includes(field))) {
         return 'high';
     }
 
     // Check for important field changes
-    if (changedFields.some(field => important.includes(field))) {
+    if (changedFields.some((field) => important.includes(field))) {
         return 'medium';
     }
 
@@ -103,12 +98,7 @@ export function getGroupChangedFields(before: admin.DocumentSnapshot | undefined
 /**
  * Determine if a change should trigger a notification based on user context
  */
-export function shouldNotifyUser(
-    userId: string,
-    changeUserId: string | undefined,
-    changedFields: string[],
-    priority: ChangePriority
-): boolean {
+export function shouldNotifyUser(userId: string, changeUserId: string | undefined, changedFields: string[], priority: ChangePriority): boolean {
     // Always notify for high priority changes
     if (priority === 'high') {
         return true;
@@ -121,7 +111,7 @@ export function shouldNotifyUser(
 
     // For low priority changes, check if it's a field that affects the user
     const nonNotifiableFields = ['lastViewed', 'analytics', 'metadata', 'updatedAt'];
-    const hasNotifiableChange = changedFields.some(field => !nonNotifiableFields.includes(field));
+    const hasNotifiableChange = changedFields.some((field) => !nonNotifiableFields.includes(field));
 
     // Only notify for low priority if:
     // 1. Change was made by another user AND
@@ -137,14 +127,14 @@ export function createChangeDocument(
     entityType: 'group' | 'expense' | 'settlement',
     changeType: ChangeType,
     metadata: ChangeMetadata,
-    additionalData: Record<string, any> = {}
+    additionalData: Record<string, any> = {},
 ): Record<string, any> {
     const baseDoc = {
         [`${entityType}Id`]: entityId,
         changeType,
         timestamp: admin.Timestamp.now(),
         metadata,
-        ...additionalData
+        ...additionalData,
     };
 
     // Add entity-specific fields
@@ -173,19 +163,13 @@ export function createChangeDocument(
  *   groupId?: "group123"    // For expense/settlement changes only
  * }
  */
-export function createMinimalChangeDocument(
-    entityId: string,
-    entityType: 'group' | 'expense' | 'settlement',
-    changeType: ChangeType,
-    affectedUsers: string[],
-    groupId?: string
-): Record<string, any> {
+export function createMinimalChangeDocument(entityId: string, entityType: 'group' | 'expense' | 'settlement', changeType: ChangeType, affectedUsers: string[], groupId?: string): Record<string, any> {
     const baseDoc: Record<string, any> = {
         id: entityId,
         type: entityType,
         action: changeType,
         timestamp: admin.Timestamp.now(),
-        users: affectedUsers
+        users: affectedUsers,
     };
 
     // Add groupId for expense and settlement changes
@@ -212,15 +196,12 @@ export function createMinimalChangeDocument(
  *   users: ["user1", ...]   // Affected users who should refresh
  * }
  */
-export function createMinimalBalanceChangeDocument(
-    groupId: string,
-    affectedUsers: string[]
-): Record<string, any> {
+export function createMinimalBalanceChangeDocument(groupId: string, affectedUsers: string[]): Record<string, any> {
     return removeUndefinedFields({
         groupId,
         type: 'balance',
         action: 'recalculated',
         timestamp: admin.Timestamp.now(),
-        users: affectedUsers
+        users: affectedUsers,
     });
 }

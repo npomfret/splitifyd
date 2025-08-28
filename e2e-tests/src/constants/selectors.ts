@@ -1,4 +1,4 @@
-import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: "json" };
+import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 /**
  * Centralized selector constants to avoid hardcoding in tests
@@ -270,14 +270,14 @@ export const GROUP_MANAGEMENT_SELECTORS = {
     SETTLE_UP_BUTTON: '[data-testid="settle-up-button"]',
     INVITE_OTHERS_BUTTON: '[data-testid="invite-others-button"]',
     GROUP_SETTINGS_BUTTON: '[data-testid="group-settings-button"]',
-    
+
     // Member Management
     MEMBER_ITEM: '[data-testid="member-item"]',
     REMOVE_MEMBER_BUTTON: '[data-testid="remove-member-button"]',
     LEAVE_GROUP_BUTTON: '[data-testid="leave-group-button"]',
     LEAVE_GROUP_DIALOG: '[data-testid="leave-group-dialog"]',
     REMOVE_MEMBER_DIALOG: '[data-testid="remove-member-dialog"]',
-    
+
     // Share Group Modal
     SHARE_LINK_INPUT: '[data-testid="share-link-input"]',
     COPY_LINK_BUTTON: '[data-testid="copy-link-button"]',
@@ -292,7 +292,7 @@ export const GROUP_MANAGEMENT_TEXTS = {
     SETTLE_UP: translation.groupActions.settleUp,
     INVITE_OTHERS: translation.groupActions.inviteOthers,
     GROUP_SETTINGS: translation.groupActions.groupSettings,
-    
+
     // Member Management
     MEMBERS_TITLE: translation.membersList.title,
     ADMIN: translation.membersList.admin,
@@ -303,7 +303,7 @@ export const GROUP_MANAGEMENT_TEXTS = {
     REMOVE_MEMBER_DIALOG_TITLE: translation.membersList.removeMemberDialog.title,
     REMOVE_MEMBER_CONFIRM_TEXT: translation.membersList.removeMemberDialog.confirmText,
     REMOVE_MEMBER_CANCEL_TEXT: translation.membersList.removeMemberDialog.cancelText,
-    
+
     // Edit Group Modal
     EDIT_GROUP_TITLE: translation.editGroupModal.title,
     GROUP_NAME_LABEL: translation.editGroupModal.groupNameLabel,
@@ -316,7 +316,7 @@ export const GROUP_MANAGEMENT_TEXTS = {
     DELETE_CONFIRM_DIALOG_TITLE: translation.editGroupModal.deleteConfirmDialog.title,
     DELETE_CONFIRM_TEXT: translation.editGroupModal.deleteConfirmDialog.confirmText,
     DELETE_CANCEL_TEXT: translation.editGroupModal.deleteConfirmDialog.cancelText,
-    
+
     // Share Group Modal
     SHARE_GROUP_TITLE: translation.shareGroupModal.title,
     SHARE_GROUP_DESCRIPTION: translation.shareGroupModal.description,
@@ -361,11 +361,11 @@ export const ERROR_HANDLING_TEXTS = {
     ERROR_DEFAULT_TITLE: translation.errorState.defaultTitle,
     ERROR_UNEXPECTED: translation.errorState.unexpectedError,
     ERROR_TRY_AGAIN: translation.errorState.tryAgainButton,
-    
+
     // Error Boundary
     ERROR_BOUNDARY_TITLE: translation.errorBoundary.title,
     ERROR_BOUNDARY_UNEXPECTED: translation.errorBoundary.unexpectedError,
-    
+
     // Not Found Page
     NOT_FOUND_TITLE: translation.notFoundPage.title,
     NOT_FOUND_PAGE: translation.notFoundPage.pageNotFound,
@@ -374,7 +374,7 @@ export const ERROR_HANDLING_TEXTS = {
     NOT_FOUND_GROUP_DESC: translation.notFoundPage.groupNotFoundDescription,
     GO_TO_DASHBOARD: translation.notFoundPage.goToDashboard,
     GO_HOME: translation.notFoundPage.goHome,
-    
+
     // Loading State
     LOADING_DEFAULT: translation.loadingState.defaultMessage,
 } as const;

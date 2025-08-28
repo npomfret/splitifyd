@@ -23,7 +23,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const isInitialized = useSignal(false);
     const showDeletedExpenses = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);
-    
+
     // Use the modal management hook
     const modals = useGroupModals();
 
@@ -38,21 +38,21 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const authStore = useAuthRequired();
     const currentUser = useComputed(() => authStore.user);
     const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
-    
+
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
     const hasOutstandingBalance = useComputed(() => {
         if (!balances.value?.balancesByCurrency || !currentUser.value) return false;
-        
+
         for (const currency in balances.value.balancesByCurrency) {
             const currencyBalances = balances.value.balancesByCurrency[currency];
             const userBalance = currencyBalances?.[currentUser.value.uid];
-            
+
             if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
                 return true;
             }
         }
-        
+
         return false;
     });
     // Users can leave if they're not the owner and not the only member left
@@ -185,7 +185,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Navigate to dashboard after group deletion
         route('/dashboard');
     };
-    
+
     const handleLeaveGroup = () => {
         showLeaveGroupDialog.value = true;
     };
@@ -222,13 +222,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only quick actions */}
                         <div className="lg:hidden">
-                            <GroupActions 
-                                onAddExpense={handleAddExpense} 
-                                onSettleUp={handleSettleUp} 
-                                onShare={handleShare} 
-                                onSettings={handleSettings} 
+                            <GroupActions
+                                onAddExpense={handleAddExpense}
+                                onSettleUp={handleSettleUp}
+                                onShare={handleShare}
+                                onSettings={handleSettings}
                                 onLeaveGroup={canLeaveGroup.value ? handleLeaveGroup : undefined}
-                                isGroupOwner={isGroupOwner.value ?? false} 
+                                isGroupOwner={isGroupOwner.value ?? false}
                                 canLeaveGroup={canLeaveGroup.value}
                             />
                         </div>
@@ -265,11 +265,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Comments Section */}
                         <SidebarCard title="Comments" className="flex-1">
-                            <CommentsSection 
-                                targetType="group" 
-                                targetId={groupId!} 
-                                maxHeight="300px"
-                            />
+                            <CommentsSection targetType="group" targetId={groupId!} maxHeight="300px" />
                         </SidebarCard>
 
                         {/* Settlement History Section */}
@@ -306,14 +302,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     modals.closeSettlementForm();
                 }}
             />
-            
+
             {/* Leave Group Dialog */}
-            <LeaveGroupDialog
-                isOpen={showLeaveGroupDialog.value}
-                onClose={() => (showLeaveGroupDialog.value = false)}
-                groupId={groupId!}
-                hasOutstandingBalance={hasOutstandingBalance.value}
-            />
+            <LeaveGroupDialog isOpen={showLeaveGroupDialog.value} onClose={() => (showLeaveGroupDialog.value = false)} groupId={groupId!} hasOutstandingBalance={hasOutstandingBalance.value} />
         </BaseLayout>
     );
 }

@@ -1,4 +1,3 @@
-
 // Security-focused integration tests for API endpoints
 // Tests authentication, authorization, input validation, and XSS prevention
 
@@ -17,12 +16,8 @@ describe('Comprehensive Security Test Suite', () => {
     // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
-        users = await Promise.all([
-            driver.createUser(new UserBuilder().build()),
-            driver.createUser(new UserBuilder().build())
-        ]);
+        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
-
 
     describe('Authentication Security', () => {
         describe('Invalid Token Handling', () => {
@@ -80,11 +75,16 @@ describe('Comprehensive Security Test Suite', () => {
         beforeEach(async () => {
             // Create a fresh test group for each authorization test
             testGroup = await driver.createGroupWithMembers(`Auth Test Group ${uuidv4()}`, users, users[0].token);
-            
+
             // Apply MANAGED preset for proper security testing (users shouldn't modify each other's data)
-            await driver.apiRequest(`/groups/${testGroup.id}/security/preset`, 'POST', {
-                preset: SecurityPresets.MANAGED
-            }, users[0].token);
+            await driver.apiRequest(
+                `/groups/${testGroup.id}/security/preset`,
+                'POST',
+                {
+                    preset: SecurityPresets.MANAGED,
+                },
+                users[0].token,
+            );
         });
 
         describe('Cross-User Data Access', () => {
@@ -217,8 +217,7 @@ describe('Comprehensive Security Test Suite', () => {
                 const xssPayload = '<script>alert("group-xss")</script>ValidGroupName';
 
                 // GOOD: API rejects dangerous content in group names
-                await expect(driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token))
-                    .rejects.toThrow(/400|invalid|dangerous/i);
+                await expect(driver.createGroupWithMembers(xssPayload, [users[0]], users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
             });
         });
 

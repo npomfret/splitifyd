@@ -1,11 +1,11 @@
-import {expect, test} from '@playwright/test';
-import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../../helpers';
-import {multiUserTest} from '../../../fixtures';
-import {singleMixedAuthTest} from '../../../fixtures/mixed-auth-test';
-import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
-import {GroupDetailPage, JoinGroupPage} from '../../../pages';
-import {DEFAULT_PASSWORD, generateNewUserDetails, generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { expect, test } from '@playwright/test';
+import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { multiUserTest } from '../../../fixtures';
+import { singleMixedAuthTest } from '../../../fixtures/mixed-auth-test';
+import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
+import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
 
 setupConsoleErrorReporting();
@@ -80,8 +80,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Create group with authenticated user
             const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(
-                `Login Required Test ${(generateShortId())}`, 'Testing login requirement');
+            const groupId = await groupWorkflow.createGroupAndNavigate(`Login Required Test ${generateShortId()}`, 'Testing login requirement');
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -119,10 +118,10 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Note: returnUrl might not be preserved when navigating to register page
             // This is a known limitation - after registration, user goes to dashboard
-            
+
             // Register new user
-            const {displayName: newUserName, email: newUserEmail, password: newUserPassword} = generateNewUserDetails();
-            
+            const { displayName: newUserName, email: newUserEmail, password: newUserPassword } = generateNewUserDetails();
+
             await registerPage.fillRegistrationForm(newUserName, newUserEmail, newUserPassword);
             await registerPage.submitForm();
 
@@ -132,18 +131,18 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            
+
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
             await joinPage.joinGroupUsingShareLink(shareLink);
-            
+
             // Should be redirected to the group
             await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
-            
+
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
             await groupDetailPage2.waitForMemberCount(2);
-            
+
             // Both users should be visible
             await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
             await expect(groupDetailPage2.getTextElement(newUserName).first()).toBeVisible();
@@ -186,18 +185,18 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Now navigate to the share link to join the group
             await page2.goto(shareLink);
             await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            
+
             // Now we should be on the join page since we're logged in
             const joinPage = new JoinGroupPage(page2);
             await joinPage.joinGroupUsingShareLink(shareLink);
-            
+
             // Should be redirected to the group
             await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
-            
+
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
             await groupDetailPage2.waitForMemberCount(2);
-            
+
             // Both users should be visible
             await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
             await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();

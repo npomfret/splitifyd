@@ -170,7 +170,9 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                         </svg>
                                     </div>
                                     <div class="ml-3">
-                                        <p class="text-sm text-red-800" role="alert" data-testid="create-group-error-message">{enhancedGroupsStore.error}</p>
+                                        <p class="text-sm text-red-800" role="alert" data-testid="create-group-error-message">
+                                            {enhancedGroupsStore.error}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

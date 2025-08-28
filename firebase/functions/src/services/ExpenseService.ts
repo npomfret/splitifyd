@@ -19,25 +19,27 @@ export const ExpenseSplitSchema = z.object({
     percentage: z.number().min(0).max(100).optional(),
 });
 
-export const ExpenseDocumentSchema = z.object({
-    id: z.string().min(1),
-    groupId: z.string().min(1),
-    createdBy: z.string().min(1),
-    paidBy: z.string().min(1),
-    amount: z.number().positive(),
-    currency: z.string().length(3),
-    description: z.string().min(1).max(200),
-    category: z.string().min(1).max(50),
-    date: z.any(), // Firestore Timestamp
-    splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
-    participants: z.array(z.string().min(1)).min(1),
-    splits: z.array(ExpenseSplitSchema),
-    receiptUrl: z.string().url().optional().nullable(),
-    createdAt: z.any(), // Firestore Timestamp
-    updatedAt: z.any(), // Firestore Timestamp
-    deletedAt: z.any().nullable(), // Firestore Timestamp or null
-    deletedBy: z.string().nullable(),
-}).passthrough(); // Allow additional fields that may exist
+export const ExpenseDocumentSchema = z
+    .object({
+        id: z.string().min(1),
+        groupId: z.string().min(1),
+        createdBy: z.string().min(1),
+        paidBy: z.string().min(1),
+        amount: z.number().positive(),
+        currency: z.string().length(3),
+        description: z.string().min(1).max(200),
+        category: z.string().min(1).max(50),
+        date: z.any(), // Firestore Timestamp
+        splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
+        participants: z.array(z.string().min(1)).min(1),
+        splits: z.array(ExpenseSplitSchema),
+        receiptUrl: z.string().url().optional().nullable(),
+        createdAt: z.any(), // Firestore Timestamp
+        updatedAt: z.any(), // Firestore Timestamp
+        deletedAt: z.any().nullable(), // Firestore Timestamp or null
+        deletedBy: z.string().nullable(),
+    })
+    .passthrough(); // Allow additional fields that may exist
 
 /**
  * Service for managing expenses
@@ -70,15 +72,11 @@ export class ExpenseService {
             const validatedData = ExpenseDocumentSchema.parse(dataWithId);
             expense = validatedData as Expense;
         } catch (error) {
-            logger.error('Invalid expense document structure', error as Error, { 
-                expenseId, 
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+            logger.error('Invalid expense document structure', error as Error, {
+                expenseId,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR, 
-                'INVALID_EXPENSE_DATA', 
-                'Expense data is corrupted'
-            );
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted');
         }
 
         // Check if the expense is soft-deleted
@@ -137,7 +135,7 @@ export class ExpenseService {
         if (!data || !data.data) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
-        
+
         return {
             id: doc.id,
             name: data.data.name,
@@ -164,49 +162,32 @@ export class ExpenseService {
         }
 
         const group = this.transformGroupDocument(groupDoc);
-        
+
         // Check if user can create expenses in this group
         const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
         if (!canCreateExpense) {
-            throw new ApiError(
-                HTTP_STATUS.FORBIDDEN, 
-                'NOT_AUTHORIZED', 
-                'You do not have permission to create expenses in this group'
-            );
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
 
         // Validate that paidBy and all participants are group members
         const memberIds = Object.keys(group.members);
-        
+
         if (!memberIds.includes(expenseData.paidBy)) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST, 
-                'INVALID_PAYER', 
-                'Payer must be a member of the group'
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         for (const participantId of expenseData.participants) {
             if (!memberIds.includes(participantId)) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST, 
-                    'INVALID_PARTICIPANT', 
-                    `Participant ${participantId} is not a member of the group`
-                );
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
             }
         }
 
         // Create the expense document
         const now = createServerTimestamp();
         const docRef = this.expensesCollection.doc();
-        
+
         // Calculate splits based on split type
-        const splits = calculateSplits(
-            expenseData.amount, 
-            expenseData.splitType, 
-            expenseData.participants, 
-            expenseData.splits
-        );
+        const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
 
         const expense: Expense = {
             id: docRef.id,
@@ -236,14 +217,10 @@ export class ExpenseService {
         try {
             ExpenseDocumentSchema.parse(expense);
         } catch (error) {
-            logger.error('Invalid expense document to write', error as Error, { 
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+            logger.error('Invalid expense document to write', error as Error, {
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
             });
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_EXPENSE_DATA',
-                'Invalid expense data format'
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
         }
 
         // Use transaction to create expense atomically
@@ -276,11 +253,7 @@ export class ExpenseService {
     /**
      * Update an existing expense
      */
-    async updateExpense(
-        expenseId: string,
-        userId: string,
-        updateData: UpdateExpenseRequest
-    ): Promise<any> {
+    async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
         // Fetch the existing expense
         const { docRef, expense } = await this.fetchExpense(expenseId);
 
@@ -291,44 +264,32 @@ export class ExpenseService {
         }
 
         const group = this.transformGroupDocument(groupDoc);
-        
+
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
         const canEditExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing', { expense: expenseData });
         if (!canEditExpense) {
-            throw new ApiError(
-                HTTP_STATUS.FORBIDDEN,
-                'NOT_AUTHORIZED',
-                'You do not have permission to edit this expense'
-            );
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
 
         // If updating paidBy or participants, validate they are group members
         const memberIds = Object.keys(group.members);
-        
+
         if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_PAYER',
-                'Payer must be a member of the group'
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         if (updateData.participants) {
             for (const participantId of updateData.participants) {
                 if (!memberIds.includes(participantId)) {
-                    throw new ApiError(
-                        HTTP_STATUS.BAD_REQUEST,
-                        'INVALID_PARTICIPANT',
-                        `Participant ${participantId} is not a member of the group`
-                    );
+                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
                 }
             }
         }
 
         // Build update object with Firestore timestamp
-        // Note: We use 'any' here because we need to mix UpdateExpenseRequest fields 
+        // Note: We use 'any' here because we need to mix UpdateExpenseRequest fields
         // with Firestore-specific fields (timestamps) that have different types
         const updates: any = {
             ...updateData,
@@ -366,7 +327,7 @@ export class ExpenseService {
         await firestoreDb.runTransaction(async (transaction) => {
             // Re-fetch expense within transaction to check for concurrent updates
             const expenseDocInTx = await transaction.get(docRef);
-            
+
             if (!expenseDocInTx.exists) {
                 throw Errors.NOT_FOUND('Expense');
             }
@@ -379,14 +340,9 @@ export class ExpenseService {
             // Check if expense was updated since we fetched it
             const originalTimestamp = expense.updatedAt;
             const currentTimestamp = currentData.updatedAt;
-            
-            if (!currentTimestamp || !originalTimestamp || 
-                !currentTimestamp.isEqual(originalTimestamp)) {
-                throw new ApiError(
-                    HTTP_STATUS.CONFLICT,
-                    'CONCURRENT_UPDATE',
-                    'Expense was modified by another user. Please refresh and try again.'
-                );
+
+            if (!currentTimestamp || !originalTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
             }
 
             // Create history entry
@@ -428,7 +384,7 @@ export class ExpenseService {
             limit?: number;
             cursor?: string;
             includeDeleted?: boolean;
-        } = {}
+        } = {},
     ): Promise<{
         expenses: any[];
         count: number;
@@ -442,8 +398,7 @@ export class ExpenseService {
         const cursor = options.cursor;
         const includeDeleted = options.includeDeleted || false;
 
-        let query = this.expensesCollection
-            .where('groupId', '==', groupId);
+        let query = this.expensesCollection.where('groupId', '==', groupId);
 
         // Filter out deleted expenses by default
         if (!includeDeleted) {
@@ -479,10 +434,7 @@ export class ExpenseService {
                 const cursorData = JSON.parse(decodedCursor);
 
                 if (cursorData.date && cursorData.createdAt) {
-                    query = query.startAfter(
-                        parseISOToTimestamp(cursorData.date) || createServerTimestamp(), 
-                        parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp()
-                    );
+                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createServerTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp());
                 }
             } catch (error) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
@@ -496,7 +448,7 @@ export class ExpenseService {
             const data = doc.data() as Expense;
             return {
                 id: doc.id,
-                ...this.transformExpenseToResponse({ ...data, id: doc.id })
+                ...this.transformExpenseToResponse({ ...data, id: doc.id }),
             };
         });
 
@@ -534,24 +486,20 @@ export class ExpenseService {
         }
 
         const group = this.transformGroupDocument(groupDoc);
-        
+
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
         const canDeleteExpense = PermissionEngine.checkPermission(group, userId, 'expenseDeletion', { expense: expenseData });
         if (!canDeleteExpense) {
-            throw new ApiError(
-                HTTP_STATUS.FORBIDDEN,
-                'NOT_AUTHORIZED',
-                'You do not have permission to delete this expense'
-            );
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
 
         try {
             // Use transaction to soft delete expense atomically
             await firestoreDb.runTransaction(async (transaction) => {
                 // IMPORTANT: All reads must happen before any writes in Firestore transactions
-                
+
                 // Step 1: Do ALL reads first
                 const expenseDoc = await transaction.get(docRef);
                 if (!expenseDoc.exists) {
@@ -561,22 +509,14 @@ export class ExpenseService {
                 // Get the current timestamp for optimistic locking
                 const originalTimestamp = expenseDoc.data()?.updatedAt;
                 if (!originalTimestamp) {
-                    throw new ApiError(
-                        HTTP_STATUS.INTERNAL_ERROR,
-                        'INVALID_EXPENSE_DATA',
-                        'Expense is missing updatedAt timestamp'
-                    );
+                    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense is missing updatedAt timestamp');
                 }
 
                 // Get group doc to ensure it exists (though we already checked above)
                 const groupDocRef = this.groupsCollection.doc(expense.groupId);
                 const groupDocInTx = await transaction.get(groupDocRef);
                 if (!groupDocInTx.exists) {
-                    throw new ApiError(
-                        HTTP_STATUS.NOT_FOUND,
-                        'INVALID_GROUP',
-                        'Group not found'
-                    );
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
                 }
 
                 // Step 2: Check for concurrent updates

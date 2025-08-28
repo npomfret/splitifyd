@@ -8,16 +8,7 @@ import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateComment, validateListCommentsQuery } from './validation';
-import { 
-    FirestoreCollections, 
-    CommentTargetTypes, 
-    CommentTargetType,
-    Comment,
-    CommentApiResponse,
-    CreateCommentResponse,
-    ListCommentsResponse,
-    ListCommentsApiResponse
-} from '@splitifyd/shared';
+import { FirestoreCollections, CommentTargetTypes, CommentTargetType, Comment, CommentApiResponse, CreateCommentResponse, ListCommentsResponse, ListCommentsApiResponse } from '@splitifyd/shared';
 import { isGroupMember } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 
@@ -33,15 +24,9 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  */
 const getCommentsCollection = (targetType: CommentTargetType, targetId: string, groupId?: string) => {
     if (targetType === CommentTargetTypes.GROUP) {
-        return firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(targetId)
-            .collection(FirestoreCollections.COMMENTS);
+        return firestoreDb.collection(FirestoreCollections.GROUPS).doc(targetId).collection(FirestoreCollections.COMMENTS);
     } else if (targetType === CommentTargetTypes.EXPENSE) {
-        return firestoreDb
-            .collection(FirestoreCollections.EXPENSES)
-            .doc(targetId)
-            .collection(FirestoreCollections.COMMENTS);
+        return firestoreDb.collection(FirestoreCollections.EXPENSES).doc(targetId).collection(FirestoreCollections.COMMENTS);
     } else {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_TYPE', 'Invalid target type');
     }
@@ -64,12 +49,7 @@ const getExpensesCollection = () => {
 /**
  * Verify user has access to comment on the target entity
  */
-const verifyCommentAccess = async (
-    targetType: CommentTargetType, 
-    targetId: string, 
-    userId: string,
-    groupId?: string
-): Promise<void> => {
+const verifyCommentAccess = async (targetType: CommentTargetType, targetId: string, userId: string, groupId?: string): Promise<void> => {
     if (targetType === CommentTargetTypes.GROUP) {
         // For group comments, verify user is a group member
         const groupDoc = await getGroupsCollection().doc(targetId).get();
@@ -141,11 +121,11 @@ const transformCommentDocument = (doc: admin.firestore.DocumentSnapshot): Commen
 export const createComment = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         validateUserAuth(req);
-        
+
         // Extract target type and ID from route parameters
         const targetType: CommentTargetType = req.path.includes('/groups/') ? CommentTargetTypes.GROUP : CommentTargetTypes.EXPENSE;
         const targetId = targetType === CommentTargetTypes.GROUP ? req.params.groupId : req.params.expenseId;
-        
+
         if (!targetId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
         }
@@ -238,7 +218,7 @@ export const listComments = async (req: AuthenticatedRequest, res: Response): Pr
         // Extract target type and ID from route parameters
         const targetType: CommentTargetType = req.path.includes('/groups/') ? CommentTargetTypes.GROUP : CommentTargetTypes.EXPENSE;
         const targetId = targetType === CommentTargetTypes.GROUP ? req.params.groupId : req.params.expenseId;
-        
+
         if (!targetId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_ID', 'Target ID is required');
         }
@@ -265,9 +245,7 @@ export const listComments = async (req: AuthenticatedRequest, res: Response): Pr
 
         // Build the query
         const commentsCollection = getCommentsCollection(targetType, targetId, groupId);
-        let query: admin.firestore.Query = commentsCollection
-            .orderBy('createdAt', 'desc')
-            .limit(limit + 1); // Fetch one extra to check if there are more
+        let query: admin.firestore.Query = commentsCollection.orderBy('createdAt', 'desc').limit(limit + 1); // Fetch one extra to check if there are more
 
         // Apply cursor-based pagination if provided
         if (cursor) {
@@ -291,7 +269,7 @@ export const listComments = async (req: AuthenticatedRequest, res: Response): Pr
         const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
 
         // Transform documents to Comment API response objects
-        const comments: CommentApiResponse[] = commentsToReturn.map(doc => {
+        const comments: CommentApiResponse[] = commentsToReturn.map((doc) => {
             const comment = transformCommentDocument(doc);
             return {
                 ...comment,

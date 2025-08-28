@@ -1,13 +1,12 @@
 import { Page, expect } from '@playwright/test';
 import { GroupDetailPage, JoinGroupPage } from '../pages';
-import {groupDetailUrlPattern} from "../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../pages/group-detail.page.ts';
 
 /**
  * Multi-user workflow class that handles complex multi-user test scenarios.
  * Encapsulates the creation of multiple users, groups, and collaborative operations.
  */
 export class MultiUserWorkflow {
-
     constructor() {}
 
     /**
@@ -18,7 +17,6 @@ export class MultiUserWorkflow {
         const groupDetailPage = new GroupDetailPage(page);
         return await groupDetailPage.getShareLink();
     }
-
 
     /**
      * Tests share link with user who is already a member.

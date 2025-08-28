@@ -1,7 +1,7 @@
 import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
-import {DEFAULT_PASSWORD, generateTestEmail, generateTestUserName} from '../../../../../packages/test-support/test-helpers';
+import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
 import { DashboardPage } from '../../../pages';
 
 setupMCPDebugOnFailure();
@@ -92,13 +92,11 @@ test.describe('Duplicate User Registration E2E', () => {
         await dashboardPage.logout();
 
         // Wait for navigation after logout using page object
-        await expect(page).toHaveURL(
-            (url) => {
-                const urlStr = url.toString();
-                const path = new URL(urlStr).pathname;
-                return path === '/' || path === '/login' || path === '/home';
-            },
-        );
+        await expect(page).toHaveURL((url) => {
+            const urlStr = url.toString();
+            const path = new URL(urlStr).pathname;
+            return path === '/' || path === '/login' || path === '/home';
+        });
 
         // Second attempt - navigate to register page using page object
         await registerPage.navigate();
@@ -121,7 +119,7 @@ test.describe('Duplicate User Registration E2E', () => {
         const nameInput = registerPage.getFormField('name');
         const emailInput = registerPage.getFormField('email');
         const passwordInput = registerPage.getFormField('password');
-        
+
         await expect(nameInput).toHaveValue(displayName);
         await expect(emailInput).toHaveValue(email);
         // Password might be cleared for security - check if it has value
@@ -152,13 +150,11 @@ test.describe('Duplicate User Registration E2E', () => {
         await dashboardPage.logout();
 
         // Wait for navigation after logout
-        await expect(page).toHaveURL(
-            (url) => {
-                const urlStr = url.toString();
-                const path = new URL(urlStr).pathname;
-                return path === '/' || path === '/login' || path === '/home';
-            }
-        );
+        await expect(page).toHaveURL((url) => {
+            const urlStr = url.toString();
+            const path = new URL(urlStr).pathname;
+            return path === '/' || path === '/login' || path === '/home';
+        });
 
         // Try duplicate (should fail) using page object methods
         await registerPage.navigate();

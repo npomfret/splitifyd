@@ -11,37 +11,29 @@ describe('Trigger Debug Tests', () => {
 
     beforeAll(async () => {
         apiDriver = new ApiDriver();
-        
-        user1 = await apiDriver.createUser(
-            new UserBuilder().build()
-        );
+
+        user1 = await apiDriver.createUser(new UserBuilder().build());
     });
 
-    beforeEach(async () => {
-    });
+    beforeEach(async () => {});
 
     it('should fire group trigger when creating a group', async () => {
         // Starting simple trigger test
-        
+
         // Create a group using builder with minimal data
-        const group = await apiDriver.createGroup(
-            new CreateGroupRequestBuilder().build(),
-            user1.token
-        );
+        const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
         groupId = group.id;
 
         // Created group
-        
+
         // Wait for trigger to fire using proper polling
         await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
-        
+
         // Check if any change documents were created
         const groupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).get();
-        
+
         // Check for our specific group
-        const ourGroupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES)
-            .where('groupId', '==', groupId)
-            .get();
+        const ourGroupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).where('groupId', '==', groupId).get();
 
         // Verify change documents exist
         expect(groupChanges.size).toBeGreaterThanOrEqual(0);
@@ -50,42 +42,30 @@ describe('Trigger Debug Tests', () => {
 
     it('should fire expense trigger when creating an expense', async () => {
         // Starting expense trigger test
-        
+
         // First create a group
         if (!groupId) {
-            const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().build(),
-                user1.token
-            );
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
             groupId = group.id;
             // Created group for expense test
-            
+
             // Wait for group trigger to complete
             await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
         }
-        
+
         // Create an expense using builder
-        const expense = await apiDriver.createExpense(
-            new ExpenseBuilder()
-                .withGroupId(groupId)
-                .withPaidBy(user1.uid)
-                .withParticipants([user1.uid])
-                .build(),
-            user1.token
-        );
-        
+        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(user1.uid).withParticipants([user1.uid]).build(), user1.token);
+
         // Created expense
         expect(expense).toBeDefined();
         expect(expense.id).toBeDefined();
-        
+
         // Wait for trigger to fire using proper polling
-        await apiDriver.waitForExpenseChanges(groupId, (changes) => 
-            changes.some(c => c.id === expense.id)
-        );
-        
+        await apiDriver.waitForExpenseChanges(groupId, (changes) => changes.some((c) => c.id === expense.id));
+
         // Check transaction-changes collection for expense changes
         const expenseChanges = await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).get();
-        
+
         // Check balance-changes collection
         const balanceChanges = await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).get();
 
@@ -96,7 +76,7 @@ describe('Trigger Debug Tests', () => {
 
     it('should check if triggers are even registered', async () => {
         // Checking trigger registration
-        
+
         // Try to access Firebase emulator info
         try {
             // This is a simple test to see if we can query collections

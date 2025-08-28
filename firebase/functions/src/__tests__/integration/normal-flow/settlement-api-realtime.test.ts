@@ -1,4 +1,3 @@
-
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
@@ -8,7 +7,7 @@ import { ApiDriver, User } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { FirestoreCollections } from '@splitifyd/shared';
-import {firestoreDb} from "../../../firebase";
+import { firestoreDb } from '../../../firebase';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -21,7 +20,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
 
     beforeAll(async () => {
         driver = new ApiDriver();
-        
+
         // Create user pool with 2 users
         userPool = new FirebaseIntegrationTestUserPool(driver, 2);
         await userPool.initialize();
@@ -48,18 +47,13 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         }
     });
 
-
     it('should generate transaction-change notification when settlement is created via API', async () => {
         // Create a group with both users as members using ApiDriver
         const testGroup = await driver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
         groupId = testGroup.id;
 
         // Create a settlement via API (not direct Firestore)
-        const settlementData = new SettlementBuilder()
-            .withGroupId(groupId)
-            .withPayer(user2.uid)
-            .withPayee(user1.uid)
-            .build();
+        const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(user2.uid).withPayee(user1.uid).build();
 
         const createdSettlement = await driver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();
@@ -67,7 +61,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
 
         // Wait for settlement creation event
         await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
-        
+
         // Verify the change by getting the most recent settlement change event
         const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
         expect(changeNotification).toBeTruthy();

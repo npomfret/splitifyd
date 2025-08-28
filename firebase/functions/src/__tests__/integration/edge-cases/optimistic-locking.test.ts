@@ -1,11 +1,10 @@
-
 // Tests for optimistic locking implementation to prevent race conditions
 
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
-import {groupSize} from '@splitifyd/shared';
+import { groupSize } from '@splitifyd/shared';
 import { ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
 
 describe('Optimistic Locking Integration Tests', () => {
@@ -23,32 +22,22 @@ describe('Optimistic Locking Integration Tests', () => {
                 new UserBuilder()
                     .withEmail(`optimisticlock${uuidv4().substring(0, 6)}@test.com`)
                     .withDisplayName(`OptimisticUser${i}`)
-                    .build()
+                    .build(),
             );
             users.push(user);
         }
     });
 
-
     describe('Group Optimistic Locking', () => {
         test('should detect concurrent updates when two users join group simultaneously', async () => {
             // User 1 creates a group
-            const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Concurrent Join Test Group')
-                    .withDescription('Testing concurrent joins')
-                    .build(),
-                users[0].token,
-            );
+            const group = await driver.createGroup(new CreateGroupRequestBuilder().withName('Concurrent Join Test Group').withDescription('Testing concurrent joins').build(), users[0].token);
 
             // Generate share link
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
 
             // Both User 2 and User 3 try to join at the same time
-            const joinPromises = [
-                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), 
-                driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)
-            ];
+            const joinPromises = [driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), driver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -84,13 +73,7 @@ describe('Optimistic Locking Integration Tests', () => {
 
         test('should prevent concurrent group updates', async () => {
             // User 1 creates a group
-            const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Concurrent Update Test Group')
-                    .withDescription('Testing concurrent updates')
-                    .build(),
-                users[0].token,
-            );
+            const group = await driver.createGroup(new CreateGroupRequestBuilder().withName('Concurrent Update Test Group').withDescription('Testing concurrent updates').build(), users[0].token);
 
             // Share with User 2
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
@@ -98,8 +81,8 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Same user tries to update the group simultaneously (testing optimistic locking)
             const updatePromises = [
-                driver.updateGroup(group.id, new GroupUpdateBuilder().withName('First Update').build(), users[0].token), 
-                driver.updateGroup(group.id, new GroupUpdateBuilder().withName('Second Update').build(), users[0].token)
+                driver.updateGroup(group.id, new GroupUpdateBuilder().withName('First Update').build(), users[0].token),
+                driver.updateGroup(group.id, new GroupUpdateBuilder().withName('Second Update').build(), users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -132,10 +115,7 @@ describe('Optimistic Locking Integration Tests', () => {
         test('should prevent concurrent expense updates', async () => {
             // Create group and add both users
             const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Expense Locking Test Group')
-                    .withDescription('Testing expense concurrent updates')
-                    .build(),
+                new CreateGroupRequestBuilder().withName('Expense Locking Test Group').withDescription('Testing expense concurrent updates').build(),
                 users[0].token,
             );
 
@@ -144,20 +124,14 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create an expense
             const expense = await driver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Test Expense')
-                    .withAmount(100)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .build(),
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
                 users[0].token,
             );
 
             // Same user tries to update the expense simultaneously (testing optimistic locking)
             const updatePromises = [
-                driver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), users[0].token), 
-                driver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(300).build(), users[0].token)
+                driver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), users[0].token),
+                driver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(300).build(), users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -166,12 +140,12 @@ describe('Optimistic Locking Integration Tests', () => {
             const successes = results.filter((r) => r.status === 'fulfilled');
             const failures = results.filter((r) => r.status === 'rejected');
             // Check for CONCURRENT_UPDATE in error message since the error structure varies
-            const conflicts = results.filter((r) => 
-                r.status === 'rejected' && 
-                (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' ||
-                 r.reason?.message?.includes('CONCURRENT_UPDATE') ||
-                 r.reason?.message?.includes('409')));
-            
+            const conflicts = results.filter(
+                (r) =>
+                    r.status === 'rejected' &&
+                    (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' || r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
+            );
+
             // At least one should succeed
             expect(successes.length).toBeGreaterThan(0);
 
@@ -189,10 +163,7 @@ describe('Optimistic Locking Integration Tests', () => {
         test('should prevent concurrent expense deletion', async () => {
             // Create group and add both users
             const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Expense Delete Locking Test')
-                    .withDescription('Testing expense concurrent deletion')
-                    .build(),
+                new CreateGroupRequestBuilder().withName('Expense Delete Locking Test').withDescription('Testing expense concurrent deletion').build(),
                 users[0].token,
             );
 
@@ -201,31 +172,16 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create multiple expenses
             const expense1 = await driver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Test Expense for Deletion')
-                    .withAmount(50)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .build(),
-                users[0].token
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense for Deletion').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                users[0].token,
             );
             await driver.createExpense(
-                new ExpenseBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Another expense')
-                    .withAmount(50)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .build(),
-                users[0].token
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Another expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                users[0].token,
             );
 
             // Try to delete and update the same expense simultaneously
-            const promises = [
-                driver.deleteExpense(expense1.id, users[0].token), 
-                driver.updateExpense(expense1.id, new ExpenseUpdateBuilder().withAmount(75).build(), users[0].token)
-            ];
+            const promises = [driver.deleteExpense(expense1.id, users[0].token), driver.updateExpense(expense1.id, new ExpenseUpdateBuilder().withAmount(75).build(), users[0].token)];
 
             const results = await Promise.allSettled(promises);
 
@@ -261,10 +217,7 @@ describe('Optimistic Locking Integration Tests', () => {
         test('should prevent concurrent settlement updates', async () => {
             // Create group with all users
             const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Settlement Locking Test Group')
-                    .withDescription('Testing settlement concurrent updates')
-                    .build(),
+                new CreateGroupRequestBuilder().withName('Settlement Locking Test Group').withDescription('Testing settlement concurrent updates').build(),
                 users[0].token,
             );
 
@@ -273,20 +226,14 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create a settlement
             const settlement = await driver.createSettlement(
-                new SettlementBuilder()
-                    .withGroupId(group.id)
-                    .withPayer(users[0].uid)
-                    .withPayee(users[1].uid)
-                    .withAmount(50)
-                    .withNote('Test settlement')
-                    .build(),
+                new SettlementBuilder().withGroupId(group.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(50).withNote('Test settlement').build(),
                 users[0].token,
             );
 
             // Try to update the settlement concurrently with same user
             const updatePromises = [
-                driver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(75).build(), users[0].token), 
-                driver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(100).build(), users[0].token)
+                driver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(75).build(), users[0].token),
+                driver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(100).build(), users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -312,20 +259,14 @@ describe('Optimistic Locking Integration Tests', () => {
     describe('Cross-Entity Race Conditions', () => {
         test('should handle user joining while expense is being created', async () => {
             // User 1 creates a group
-            const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Cross-Entity Race Test')
-                    .withDescription('Testing cross-entity race conditions')
-                    .build(),
-                users[0].token,
-            );
+            const group = await driver.createGroup(new CreateGroupRequestBuilder().withName('Cross-Entity Race Test').withDescription('Testing cross-entity race conditions').build(), users[0].token);
 
             // Generate share link
             const shareLink = await driver.generateShareLink(group.id, users[0].token);
 
             // User 2 joins while User 1 creates expense simultaneously
             const promises = [
-                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token), 
+                driver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
                 driver.createExpense(
                     new ExpenseBuilder()
                         .withGroupId(group.id)
@@ -334,8 +275,8 @@ describe('Optimistic Locking Integration Tests', () => {
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid]) // Only original user initially
                         .build(),
-                    users[0].token
-                )
+                    users[0].token,
+                ),
             ];
 
             const results = await Promise.allSettled(promises);
@@ -357,10 +298,7 @@ describe('Optimistic Locking Integration Tests', () => {
         test('should handle concurrent group updates from same user', async () => {
             // Create a group
             const group = await driver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Concurrent Updates Test')
-                    .withDescription('Testing concurrent updates from same user')
-                    .build(),
+                new CreateGroupRequestBuilder().withName('Concurrent Updates Test').withDescription('Testing concurrent updates from same user').build(),
                 users[0].token,
             );
 
@@ -392,8 +330,7 @@ describe('Optimistic Locking Integration Tests', () => {
             const finalGroup = await driver.getGroup(group.id, users[0].token);
 
             // Group should have been updated by at least one operation
-            expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || 
-                   finalGroup.description === 'Updated description').toBeTruthy();
+            expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || finalGroup.description === 'Updated description').toBeTruthy();
         });
     });
 });

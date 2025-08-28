@@ -1,10 +1,6 @@
 import { signal, computed } from '@preact/signals';
 import { onSnapshot, doc } from 'firebase/firestore';
-import { 
-    Group, 
-    MemberRole,
-    GroupPermissions
-} from '@splitifyd/shared';
+import { Group, MemberRole, GroupPermissions } from '@splitifyd/shared';
 import { getDb } from '../app/firebase';
 
 /**
@@ -17,7 +13,7 @@ class PermissionCache {
     check(key: string, compute: () => boolean): boolean {
         const cached = this.cache.get(key);
         const now = Date.now();
-        
+
         if (cached && cached.expires > now) {
             return cached.value;
         }
@@ -54,12 +50,7 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(
-        group: Group,
-        userId: string,
-        action: keyof GroupPermissions | 'viewGroup',
-        options: { expense?: any } = {}
-    ): boolean {
+    static checkPermission(group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
         const member = group.members[userId];
         if (!member) {
             return false;
@@ -76,8 +67,7 @@ class ClientPermissionEngine {
         }
 
         // Viewer role can only read
-        if (member.role === 'viewer' && 
-            ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action as string)) {
+        if (member.role === 'viewer' && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action as string)) {
             return false;
         }
 
@@ -85,30 +75,25 @@ class ClientPermissionEngine {
         return this.evaluatePermission(permission, member.role, userId, options);
     }
 
-    private static evaluatePermission(
-        permission: string,
-        userRole: MemberRole,
-        userId: string,
-        options: { expense?: any }
-    ): boolean {
+    private static evaluatePermission(permission: string, userRole: MemberRole, userId: string, options: { expense?: any }): boolean {
         switch (permission) {
             case 'anyone':
                 return userRole !== 'viewer';
-            
+
             case 'owner-and-admin':
                 if (userRole === 'admin') return true;
                 if (options.expense && options.expense.createdBy === userId) return true;
                 return false;
-            
+
             case 'admin-only':
                 return userRole === 'admin';
-            
+
             case 'automatic':
                 return true;
-            
+
             case 'admin-required':
                 return userRole === 'admin';
-            
+
             default:
                 return false;
         }
@@ -170,46 +155,33 @@ export class PermissionsStore {
                     const group = snapshot.data() as Group;
                     this.groupSignal.value = group;
                     this.currentGroup = group;
-                    
+
                     // Invalidate cache for this group
                     this.cache.invalidate(groupId);
-                    
+
                     // Update computed permissions
                     this.updatePermissions();
-                    
+
                     // Notify UI if user's permissions changed
                     this.notifyPermissionChanges();
                 }
             },
             (error) => {
                 console.error('Error subscribing to group permissions:', error);
-            }
+            },
         );
     }
 
     // Check specific permission with caching
-    checkPermission(
-        action: keyof GroupPermissions | 'viewGroup',
-        options: { expense?: any } = {}
-    ): boolean {
+    checkPermission(action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
         if (!this.currentGroup || !this.currentUserId) {
             return false;
         }
 
-        const cacheKey = this.cache.generateKey(
-            this.currentGroup.id, 
-            this.currentUserId, 
-            action as string, 
-            options.expense?.id
-        );
+        const cacheKey = this.cache.generateKey(this.currentGroup.id, this.currentUserId, action as string, options.expense?.id);
 
         return this.cache.check(cacheKey, () => {
-            return ClientPermissionEngine.checkPermission(
-                this.currentGroup!,
-                this.currentUserId!,
-                action,
-                options
-            );
+            return ClientPermissionEngine.checkPermission(this.currentGroup!, this.currentUserId!, action, options);
         });
     }
 
@@ -220,10 +192,7 @@ export class PermissionsStore {
             return;
         }
 
-        const permissions = ClientPermissionEngine.getUserPermissions(
-            this.currentGroup,
-            this.currentUserId
-        );
+        const permissions = ClientPermissionEngine.getUserPermissions(this.currentGroup, this.currentUserId);
 
         this.permissionsSignal.value = permissions;
     }
@@ -234,7 +203,7 @@ export class PermissionsStore {
         // This could be expanded to show specific messages
         if (typeof window !== 'undefined' && window.dispatchEvent) {
             const event = new CustomEvent('permissions-updated', {
-                detail: { permissions: this.permissionsSignal.value }
+                detail: { permissions: this.permissionsSignal.value },
             });
             window.dispatchEvent(event);
         }

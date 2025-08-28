@@ -1,4 +1,4 @@
-import { generateNewUserDetails} from "../test-helpers";
+import { generateNewUserDetails } from '../test-helpers';
 
 export interface TestUser {
     email: string;

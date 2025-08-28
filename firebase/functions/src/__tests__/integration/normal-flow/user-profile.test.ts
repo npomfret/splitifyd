@@ -13,7 +13,6 @@ describe('User Profile Management API Tests', () => {
         driver = new ApiDriver();
     });
 
-
     beforeEach(async () => {
         testUser = await driver.createUser(new UserBuilder().build());
         secondUser = await driver.createUser(new UserBuilder().build());
@@ -194,12 +193,7 @@ describe('User Profile Management API Tests', () => {
         it('should reject missing passwords', async () => {
             try {
                 // This test specifically needs to send incomplete data to test validation
-                await driver['apiRequest'](
-                    '/user/change-password',
-                    'POST',
-                    { currentPassword: 'password123' },
-                    testUser.token
-                );
+                await driver['apiRequest']('/user/change-password', 'POST', { currentPassword: 'password123' }, testUser.token);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('required');
@@ -215,7 +209,6 @@ describe('User Profile Management API Tests', () => {
             }
         });
     });
-
 
     describe('DELETE /user/account', () => {
         it('should delete account when user has no groups', async () => {
@@ -253,10 +246,7 @@ describe('User Profile Management API Tests', () => {
         it('should prevent deletion when user is member of groups', async () => {
             // Create a group with the test user - use unique name to avoid conflicts
             const uniqueGroupName = `Delete-Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new CreateGroupRequestBuilder()
-                .withName(uniqueGroupName)
-                .withMembers([testUser])
-                .build();
+            const group = new CreateGroupRequestBuilder().withName(uniqueGroupName).withMembers([testUser]).build();
 
             await driver.createGroup(group, testUser.token);
 
@@ -282,10 +272,7 @@ describe('User Profile Management API Tests', () => {
         it('should reflect display name changes in group members', async () => {
             // Use unique group name to avoid conflicts
             const uniqueGroupName = `Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new CreateGroupRequestBuilder()
-                .withName(uniqueGroupName)
-                .withMembers([testUser, secondUser])
-                .build();
+            const group = new CreateGroupRequestBuilder().withName(uniqueGroupName).withMembers([testUser, secondUser]).build();
 
             const groupResponse = await driver.createGroup(group, testUser.token);
             const groupId = groupResponse.id;
@@ -293,7 +280,7 @@ describe('User Profile Management API Tests', () => {
             // Update display name with unique value
             const newDisplayName = `Updated-Display-${Date.now()}-${Math.random().toString(36).substring(7)}`;
             const updateResponse = await driver.updateUserProfile(testUser.token, { displayName: newDisplayName });
-            
+
             // Verify the update was successful
             expect(updateResponse.displayName).toBe(newDisplayName);
 
@@ -306,7 +293,7 @@ describe('User Profile Management API Tests', () => {
             const members = membersResponse.members || [];
             const updatedMember = members.find((m: any) => m.uid === testUser.uid);
             expect(updatedMember).toBeDefined();
-            
+
             // In the Firebase emulator, Auth updates may not immediately propagate
             // We should at least verify the member exists
             if (updatedMember && updatedMember.displayName !== newDisplayName) {
@@ -326,14 +313,14 @@ describe('User Profile Management API Tests', () => {
             const response = await driver['apiRequest'](
                 '/user/profile',
                 'PUT',
-                { 
+                {
                     displayName: 'Valid Name',
                     unknownField: 'should be stripped',
-                    anotherUnknown: 123
+                    anotherUnknown: 123,
                 },
-                testUser.token
+                testUser.token,
             );
-            
+
             expect(response.displayName).toBe('Valid Name');
             expect(response).not.toHaveProperty('unknownField');
             expect(response).not.toHaveProperty('anotherUnknown');
@@ -341,19 +328,14 @@ describe('User Profile Management API Tests', () => {
 
         it('should sanitize display name', async () => {
             const response = await driver.updateUserProfile(testUser.token, { displayName: '  Trimmed Name  ' });
-            
+
             expect(response.displayName).toBe('Trimmed Name');
         });
 
         it('should reject non-string display name', async () => {
             try {
                 // This test specifically needs to send invalid data type to test validation
-                await driver['apiRequest'](
-                    '/user/profile',
-                    'PUT',
-                    { displayName: 123 },
-                    testUser.token
-                );
+                await driver['apiRequest']('/user/profile', 'PUT', { displayName: 123 }, testUser.token);
                 throw new Error('Should have thrown an error');
             } catch (error: any) {
                 expect(error.message).toContain('must be a string');
@@ -362,7 +344,7 @@ describe('User Profile Management API Tests', () => {
 
         it('should accept empty string photoURL', async () => {
             const response = await driver.updateUserProfile(testUser.token, { photoURL: '' });
-            
+
             // Empty string is treated as removing the photo
             expect(response.photoURL).toBeFalsy();
         });
@@ -391,17 +373,17 @@ describe('User Profile Management API Tests', () => {
             // This test would need actual delete, which we don't want to do
             // Just verify the validation would work by checking a non-member user
             const userWithoutGroups = await driver.createUser(new UserBuilder().build());
-            
+
             try {
                 // This test specifically needs to send extra fields to test Joi stripping
                 await driver['apiRequest'](
                     '/user/account',
                     'DELETE',
-                    { 
+                    {
                         confirmDelete: true,
-                        extraField: 'should be ignored'
+                        extraField: 'should be ignored',
                     },
-                    userWithoutGroups.token
+                    userWithoutGroups.token,
                 );
                 // If we get here, the validation passed (actual deletion would occur)
             } catch (error: any) {
@@ -417,9 +399,9 @@ describe('User Profile Management API Tests', () => {
             // Perform multiple concurrent updates with unique names to track
             const uniquePrefix = `Concurrent-${Date.now()}-${Math.random().toString(36).substring(7)}`;
             const updates = [
-                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-1`}),
-                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-2`}),
-                await driver.updateUserProfile(testUser.token, {displayName: `${uniquePrefix}-Name-3`}),
+                await driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-1` }),
+                await driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-2` }),
+                await driver.updateUserProfile(testUser.token, { displayName: `${uniquePrefix}-Name-3` }),
             ];
 
             const responses = await Promise.all(updates);

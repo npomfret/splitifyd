@@ -87,9 +87,9 @@ const setupApiBaseUrl = () => {
     if (!getApiBaseUrl) {
         throw new Error('getApiBaseUrl function is not available - check post-build.js');
     }
-    
+
     const apiBaseUrl = getApiBaseUrl();
-    console.log({apiBaseUrl})
+    console.log({ apiBaseUrl });
     firebaseConfigManager.setApiBaseUrl(apiBaseUrl);
 };
 

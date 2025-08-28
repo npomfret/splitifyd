@@ -1,14 +1,14 @@
 #!/usr/bin/env npx tsx
 
-assert(process.env.GCLOUD_PROJECT, "GCLOUD_PROJECT must be set");
-assert(process.env.NODE_ENV === undefined);// todo
+assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
+assert(process.env.NODE_ENV === undefined); // todo
 
 import * as path from 'path';
 import * as fs from 'fs';
 import * as dotenv from 'dotenv';
 import { ChildProcess } from 'child_process';
 import { logger } from './logger';
-import assert from "node:assert";
+import assert from 'node:assert';
 import { startEmulator } from './start-emulator';
 import { seedPolicies } from './seed-policies';
 import { generateTestData } from './generate-test-data';
@@ -126,7 +126,6 @@ const main = async () => {
         logger.info('✨ EMULATOR IS READY FOR USE ✨');
         logger.info('═══════════════════════════════════════════════════════');
         logger.info('');
-
     } catch (error) {
         logger.error('❌ An unexpected error occurred during startup', { error });
         process.exit(1);

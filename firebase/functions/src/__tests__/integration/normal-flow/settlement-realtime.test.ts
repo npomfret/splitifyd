@@ -1,4 +1,3 @@
-
 // Test to verify that settlements generate realtime update notifications
 // This test documents a bug where the frontend doesn't refresh settlements
 
@@ -9,11 +8,11 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
 import { randomUUID } from 'crypto';
-import {firestoreDb} from "../../../firebase";
+import { firestoreDb } from '../../../firebase';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     let driver: ApiDriver;
-    
+
     beforeAll(async () => {
         driver = new ApiDriver();
     });
@@ -43,15 +42,10 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         }
     });
 
-
     it('should generate transaction-change notification when settlement is created directly in Firestore', async () => {
         // Create a settlement directly in Firestore (simulating what the API does)
         const settlementData = {
-            ...new SettlementBuilder()
-                .withGroupId(groupId)
-                .withPayer(userId2)
-                .withPayee(userId1)
-                .build(),
+            ...new SettlementBuilder().withGroupId(groupId).withPayer(userId2).withPayee(userId1).build(),
             createdAt: admin.firestore.Timestamp.now(),
             createdBy: userId2,
         };
@@ -59,19 +53,19 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         const settlementRef = await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for settlement change notification using ApiDriver
-        await driver.waitForSettlementChanges(groupId, (changes) => {
-            return changes.some(change => 
-                change.id === settlementRef.id &&
-                change.action === 'created' &&
-                change.type === 'settlement' &&
-                change.users.includes(userId1) &&
-                change.users.includes(userId2)
-            );
-        }, 5000);
-        
+        await driver.waitForSettlementChanges(
+            groupId,
+            (changes) => {
+                return changes.some(
+                    (change) => change.id === settlementRef.id && change.action === 'created' && change.type === 'settlement' && change.users.includes(userId1) && change.users.includes(userId2),
+                );
+            },
+            5000,
+        );
+
         // Get the change notification for verification
         const allChanges = await driver.getSettlementChanges(groupId);
-        const changeNotification = allChanges.find(change => change.id === settlementRef.id);
+        const changeNotification = allChanges.find((change) => change.id === settlementRef.id);
 
         // Verify the change notification was created
         expect(changeNotification).toBeTruthy();
@@ -81,16 +75,12 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification!.action).toBe('created');
         expect(changeNotification!.users).toContain(userId1);
         expect(changeNotification!.users).toContain(userId2);
-    }, 10000);  // Test timeout
+    }, 10000); // Test timeout
 
     it('should generate balance-change notification when settlement is created', async () => {
         // Create a settlement
         const settlementData = {
-            ...new SettlementBuilder()
-                .withGroupId(groupId)
-                .withPayer(userId2)
-                .withPayee(userId1)
-                .build(),
+            ...new SettlementBuilder().withGroupId(groupId).withPayer(userId2).withPayee(userId1).build(),
             createdAt: admin.firestore.Timestamp.now(),
             createdBy: userId2,
         };
@@ -98,21 +88,19 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for balance change notification using ApiDriver
-        await driver.waitForBalanceChanges(groupId, (changes) => {
-            return changes.some(change => 
-                change.groupId === groupId &&
-                change.action === 'recalculated' &&
-                change.type === 'balance' &&
-                change.users.includes(userId1) &&
-                change.users.includes(userId2)
-            );
-        }, 5000);
-        
+        await driver.waitForBalanceChanges(
+            groupId,
+            (changes) => {
+                return changes.some(
+                    (change) => change.groupId === groupId && change.action === 'recalculated' && change.type === 'balance' && change.users.includes(userId1) && change.users.includes(userId2),
+                );
+            },
+            5000,
+        );
+
         // Get the change notification for verification
         const allChanges = await driver.getBalanceChanges(groupId);
-        const changeNotification = allChanges.find(change => 
-            change.users.includes(userId1) && change.users.includes(userId2)
-        );
+        const changeNotification = allChanges.find((change) => change.users.includes(userId1) && change.users.includes(userId2));
 
         // Verify the balance change notification was created
         expect(changeNotification).toBeTruthy();
@@ -121,7 +109,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification!.action).toBe('recalculated');
         expect(changeNotification!.users).toContain(userId1);
         expect(changeNotification!.users).toContain(userId2);
-    }, 10000);  // Test timeout
+    }, 10000); // Test timeout
 
     it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
         /**

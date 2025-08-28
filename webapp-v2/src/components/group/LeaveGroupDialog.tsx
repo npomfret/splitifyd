@@ -12,12 +12,7 @@ interface LeaveGroupDialogProps {
     hasOutstandingBalance: boolean;
 }
 
-export function LeaveGroupDialog({
-    isOpen,
-    onClose,
-    groupId,
-    hasOutstandingBalance,
-}: LeaveGroupDialogProps) {
+export function LeaveGroupDialog({ isOpen, onClose, groupId, hasOutstandingBalance }: LeaveGroupDialogProps) {
     const { t } = useTranslation();
     const isProcessing = useSignal(false);
 
@@ -47,16 +42,8 @@ export function LeaveGroupDialog({
             onCancel={onClose}
             onConfirm={handleConfirm}
             title={t('membersList.leaveGroupDialog.title')}
-            message={
-                hasOutstandingBalance 
-                    ? t('membersList.leaveGroupDialog.messageWithBalance')
-                    : t('membersList.leaveGroupDialog.messageConfirm')
-            }
-            confirmText={
-                hasOutstandingBalance 
-                    ? t('common.understood')
-                    : t('membersList.leaveGroupDialog.confirmText')
-            }
+            message={hasOutstandingBalance ? t('membersList.leaveGroupDialog.messageWithBalance') : t('membersList.leaveGroupDialog.messageConfirm')}
+            confirmText={hasOutstandingBalance ? t('common.understood') : t('membersList.leaveGroupDialog.confirmText')}
             cancelText={t('membersList.leaveGroupDialog.cancelText')}
             variant={hasOutstandingBalance ? 'info' : 'warning'}
             loading={isProcessing.value}

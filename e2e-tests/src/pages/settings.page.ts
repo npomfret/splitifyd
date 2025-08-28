@@ -89,18 +89,18 @@ export class SettingsPage extends BasePage {
     // Profile Information Actions
     async updateDisplayName(newDisplayName: string): Promise<void> {
         const displayNameInput = this.getDisplayNameInput();
-        
+
         // Clear and fill the display name
         await this.fillPreactInput(displayNameInput, '');
         await this.fillPreactInput(displayNameInput, newDisplayName);
-        
+
         // Click save button
         const saveButton = this.getSaveChangesButton();
         await this.clickButton(saveButton, { buttonName: this.saveChangesButtonText });
-        
+
         // Wait for loading to complete (button becomes disabled after successful save)
         await this.waitForLoadingComplete('save');
-        
+
         // Real-time updates: verify the display name updated in both places
         // 1. In the profile display section
         await expect(this.getProfileDisplayName()).toContainText(newDisplayName);
@@ -116,7 +116,7 @@ export class SettingsPage extends BasePage {
     async verifyRealTimeDisplayNameUpdate(expectedName: string): Promise<void> {
         // Verify the display name updates in real-time in the profile section
         await expect(this.getProfileDisplayName()).toContainText(expectedName);
-        
+
         // Verify the user menu in navigation also updates automatically
         await expect(this.getUserMenuButton()).toContainText(expectedName);
     }
@@ -134,7 +134,7 @@ export class SettingsPage extends BasePage {
     async openPasswordChangeForm(): Promise<void> {
         const changePasswordButton = this.getChangePasswordButton();
         await this.clickButton(changePasswordButton, { buttonName: this.changePasswordButtonText });
-        
+
         // Wait for form to appear
         await expect(this.getCurrentPasswordInput()).toBeVisible();
         await expect(this.getNewPasswordInput()).toBeVisible();
@@ -143,7 +143,7 @@ export class SettingsPage extends BasePage {
 
     async fillPasswordChangeForm(currentPassword: string, newPassword: string, confirmPassword?: string): Promise<void> {
         const confirmPass = confirmPassword || newPassword;
-        
+
         await this.fillPreactInput(this.getCurrentPasswordInput(), currentPassword);
         await this.fillPreactInput(this.getNewPasswordInput(), newPassword);
         await this.fillPreactInput(this.getConfirmPasswordInput(), confirmPass);
@@ -152,7 +152,7 @@ export class SettingsPage extends BasePage {
     async submitPasswordChange(): Promise<void> {
         const updateButton = this.getUpdatePasswordButton();
         await this.clickButton(updateButton, { buttonName: this.updatePasswordButtonText });
-        
+
         await this.waitForDomContentLoaded();
     }
 
@@ -165,7 +165,7 @@ export class SettingsPage extends BasePage {
     async cancelPasswordChange(): Promise<void> {
         const cancelButton = this.getCancelButton();
         await this.clickButton(cancelButton, { buttonName: this.cancelButtonText });
-        
+
         // Verify form is hidden
         await expect(this.getCurrentPasswordInput()).not.toBeVisible();
         await expect(this.getChangePasswordButton()).toBeVisible();

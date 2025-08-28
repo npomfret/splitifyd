@@ -1,10 +1,10 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {ExpenseFormPage} from './expense-form.page';
-import {ExpenseDetailPage} from './expense-detail.page';
-import {SettlementFormPage} from './settlement-form.page';
-import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
-import type {User as BaseUser} from '@splitifyd/shared';
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { ExpenseFormPage } from './expense-form.page';
+import { ExpenseDetailPage } from './expense-detail.page';
+import { SettlementFormPage } from './settlement-form.page';
+import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 interface ExpenseData {
     description: string;
@@ -50,14 +50,14 @@ export class GroupDetailPage extends BasePage {
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        
+
         // Assert button is visible and enabled before clicking
         const settleButton = this.getSettleUpButton();
         await expect(settleButton).toBeVisible();
         await expect(settleButton).toBeEnabled();
-        
+
         await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
-        
+
         // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page);
         await expect(settlementFormPage.getModal()).toBeVisible();
@@ -75,10 +75,10 @@ export class GroupDetailPage extends BasePage {
      */
     async waitForAddExpenseButton(timeout = 5000): Promise<void> {
         const addButton = this.getAddExpenseButton();
-        
+
         // Wait for button to be visible
         await expect(addButton).toBeVisible({ timeout });
-        
+
         // Wait for button to be enabled
         await expect(addButton).toBeEnabled({ timeout });
     }
@@ -86,38 +86,38 @@ export class GroupDetailPage extends BasePage {
     async clickAddExpenseButton(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
         // Wait for button to be ready first
         await this.waitForAddExpenseButton();
-        
+
         // Now attempt navigation - will throw if it fails
         return await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
     }
 
-    async waitForGroupTitle(text: string ) {
+    async waitForGroupTitle(text: string) {
         await this.waitForDomContentLoaded();
-        
+
         // Use polling pattern to handle async updates (since no real-time websockets yet)
         await expect(async () => {
             const title = await this.getGroupTitle().textContent();
             if (title !== text) {
                 throw new Error(`Title is still "${title}", waiting for "${text}"`);
             }
-        }).toPass({ 
-            timeout: 5000, 
-            intervals: [500, 1000, 1500, 2000]  // Retry at these intervals
+        }).toPass({
+            timeout: 5000,
+            intervals: [500, 1000, 1500, 2000], // Retry at these intervals
         });
     }
 
-    async waitForGroupDescription(text: string ) {
+    async waitForGroupDescription(text: string) {
         await this.waitForDomContentLoaded();
-        
+
         // Use polling pattern to handle async updates (since no real-time websockets yet)
         await expect(async () => {
             const description = await this.getGroupDescription().textContent();
             if (description !== text) {
                 throw new Error(`Description is still "${description}", waiting for "${text}"`);
             }
-        }).toPass({ 
-            timeout: 5000, 
-            intervals: [500, 1000, 1500, 2000]  // Retry at these intervals
+        }).toPass({
+            timeout: 5000,
+            intervals: [500, 1000, 1500, 2000], // Retry at these intervals
         });
     }
 
@@ -293,53 +293,54 @@ export class GroupDetailPage extends BasePage {
                         return {
                             name: name || 'Unknown',
                             id: id || 'no-id',
-                            text: innerText.replace(/\n/g, ' ')
+                            text: innerText.replace(/\n/g, ' '),
                         };
-                    })
+                    }),
                 );
-                
-                const memberCount = await this.page.locator('[data-testid="member-count"]').textContent().catch(() => 'count-not-found');
+
+                const memberCount = await this.page
+                    .locator('[data-testid="member-count"]')
+                    .textContent()
+                    .catch(() => 'count-not-found');
                 const pageUrl = this.page.url();
-                
+
                 // Get browser context info
                 const browserUser = this.userInfo?.displayName || this.userInfo?.email || 'Unknown User';
                 const browserUserId = this.userInfo?.uid || 'unknown-id';
-                
+
                 const expected = {
                     users: allUserNames,
                     userCount: totalUsers,
-                    operation: 'waitForUserSynchronization'
+                    operation: 'waitForUserSynchronization',
                 };
-                
+
                 const actual = {
-                    visibleMembers: visibleMembers.map(m => m.name),
+                    visibleMembers: visibleMembers.map((m) => m.name),
                     memberCount,
-                    missingUser: userName
+                    missingUser: userName,
                 };
-                
+
                 const context = {
                     browserContext: {
                         user: browserUser,
                         userId: browserUserId,
                         pageUrl,
-                        viewingAs: `Browser of: ${browserUser} (${browserUserId})`
+                        viewingAs: `Browser of: ${browserUser} (${browserUserId})`,
                     },
                     synchronizationState: {
                         missingUser: userName,
                         expectedUsers: allUserNames,
-                        visibleMembers: visibleMembers.map(m => m.name),
-                        duplicates: visibleMembers.filter((m, i, arr) => 
-                            arr.findIndex(x => x.id === m.id) !== i
-                        ).map(m => m.name)
+                        visibleMembers: visibleMembers.map((m) => m.name),
+                        duplicates: visibleMembers.filter((m, i, arr) => arr.findIndex((x) => x.id === m.id) !== i).map((m) => m.name),
                     },
                     memberDetails: visibleMembers.map((m, i) => ({
                         index: i,
                         name: m.name,
                         id: m.id,
-                        displayText: m.text
+                        displayText: m.text,
                     })),
                     memberCount,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
                 };
             }
         }
@@ -868,7 +869,7 @@ export class GroupDetailPage extends BasePage {
                 const nameInput = modal.locator('input[type="text"]').first();
                 // Use Preact-aware input filling
                 await this.fillPreactInput(nameInput, name);
-                
+
                 // Defensive check: verify the value persisted (catches real-time update bug)
                 // Brief wait to allow any potential real-time updates to arrive
                 await this._page.waitForTimeout(100);
@@ -888,7 +889,7 @@ export class GroupDetailPage extends BasePage {
                 const descriptionTextarea = modal.locator('textarea').first();
                 // Use fillPreactInput for proper Preact signal updates
                 await this.fillPreactInput(descriptionTextarea, description);
-                
+
                 // Defensive check: verify the value persisted
                 await this._page.waitForTimeout(100);
                 const currentValue = await descriptionTextarea.inputValue();
@@ -902,28 +903,30 @@ export class GroupDetailPage extends BasePage {
                 const descTextarea = modal.locator('textarea').first();
                 const finalName = await nameInput.inputValue();
                 const finalDesc = await descTextarea.inputValue();
-                
+
                 // Validate the form state
                 if (!finalName || finalName.trim().length < 2) {
                     throw new Error(`Invalid form state before save: name="${finalName}" (minimum 2 characters required). The form may have been reset by a real-time update.`);
                 }
-                
+
                 // Wait for button to stabilize in enabled state
                 await expect(saveButton).toBeEnabled({ timeout: 2000 });
-                
+
                 // Brief stability check - if button becomes disabled, we caught a race condition
                 await this._page.waitForTimeout(50);
                 const isStillEnabled = await saveButton.isEnabled();
                 if (!isStillEnabled) {
-                    throw new Error(`Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`);
+                    throw new Error(
+                        `Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`,
+                    );
                 }
-                
+
                 await saveButton.click();
                 // Wait for the modal to close after saving
                 // Use a longer timeout as the save operation might take time
                 await expect(modal).not.toBeVisible({ timeout: 2000 });
                 await this.waitForDomContentLoaded();
-                
+
                 // Wait for the data refresh to complete (since no real-time websockets yet)
                 // Look for any loading indicators that appear during refresh
                 const spinner = this.page.locator('.animate-spin');
@@ -932,7 +935,7 @@ export class GroupDetailPage extends BasePage {
                     // Wait for any spinners to disappear
                     await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
                 }
-                
+
                 // Small stability pause to ensure data has propagated
                 await this.page.waitForTimeout(300);
             },
@@ -943,7 +946,7 @@ export class GroupDetailPage extends BasePage {
             deleteGroup: async () => {
                 const deleteButton = modal.getByRole('button', { name: 'Delete Group' });
                 await deleteButton.click();
-            }
+            },
         };
     }
 
@@ -1026,7 +1029,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByRole('button', { name: /edit/i });
     }
 
-
     /**
      * Get amount input field
      */
@@ -1062,20 +1064,14 @@ export class GroupDetailPage extends BasePage {
      * Get edit button for a specific settlement by identifying the settlement container
      */
     getSettlementEditButton(settlementNote: string): Locator {
-        return this.page
-            .locator('.p-4.bg-white.border.border-gray-200.rounded-lg')
-            .filter({ hasText: settlementNote })
-            .getByRole('button', { name: 'Edit payment' });
+        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: settlementNote }).getByRole('button', { name: 'Edit payment' });
     }
 
     /**
      * Get delete button for a specific settlement by identifying the settlement container
      */
     getSettlementDeleteButton(settlementNote: string): Locator {
-        return this.page
-            .locator('.p-4.bg-white.border.border-gray-200.rounded-lg')
-            .filter({ hasText: settlementNote })
-            .getByRole('button', { name: 'Delete payment' });
+        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: settlementNote }).getByRole('button', { name: 'Delete payment' });
     }
 
     /**
@@ -1084,20 +1080,20 @@ export class GroupDetailPage extends BasePage {
     async clickEditSettlement(settlementNote: string): Promise<void> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        
+
         await this.openSettlementHistoryIfNeeded();
-        
+
         // Assert the edit button exists and is enabled
         const editButton = this.getSettlementEditButton(settlementNote);
         await expect(editButton).toBeVisible({ timeout: 2000 });
         await expect(editButton).toBeEnabled();
-        
+
         await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
-        
+
         // Wait for settlement form modal to open in edit mode
         const modal = this.page.getByRole('dialog');
         await expect(modal).toBeVisible({ timeout: 3000 });
-        
+
         // Verify we're in edit mode by checking for "Update Payment" title
         await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
     }
@@ -1108,33 +1104,33 @@ export class GroupDetailPage extends BasePage {
     async clickDeleteSettlement(settlementNote: string, confirm: boolean = true): Promise<void> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        
+
         await this.openSettlementHistoryIfNeeded();
-        
+
         // Assert the delete button exists and is enabled
         const deleteButton = this.getSettlementDeleteButton(settlementNote);
         await expect(deleteButton).toBeVisible({ timeout: 2000 });
         await expect(deleteButton).toBeEnabled();
-        
+
         await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
-        
+
         // Wait for confirmation dialog - it uses data-testid, not role="dialog"
         const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
         await expect(confirmDialog).toBeVisible({ timeout: 3000 });
-        
+
         // Verify it's the correct dialog
         await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
-        
+
         if (confirm) {
             const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
             await this.clickButton(deleteButton, { buttonName: 'Delete' });
-            
+
             // Wait for dialog to close
             await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
         } else {
             const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
             await this.clickButton(cancelButton, { buttonName: 'Cancel' });
-            
+
             // Wait for dialog to close
             await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
         }
@@ -1145,7 +1141,7 @@ export class GroupDetailPage extends BasePage {
      */
     async verifySettlementNotInHistory(settlementNote: string): Promise<void> {
         await this.openSettlementHistoryIfNeeded();
-        
+
         // Wait for real-time updates to complete by ensuring settlement is not visible
         const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
         await expect(settlementEntry).not.toBeVisible({ timeout: 2000 });
@@ -1175,18 +1171,18 @@ export class GroupDetailPage extends BasePage {
     async openHistoryIfClosed(): Promise<void> {
         // Assert we're on the group detail page
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        
+
         const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
         const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
-        
+
         // Check if history is already open
         const isHistoryOpen = await hideHistoryButton.isVisible();
-        
+
         if (!isHistoryOpen) {
             // History is closed, open it
             await expect(showHistoryButton).toBeVisible();
             await showHistoryButton.click();
-            
+
             // Wait for history section to be visible
             await expect(hideHistoryButton).toBeVisible();
             // More specific: wait for settlement list container
@@ -1200,30 +1196,24 @@ export class GroupDetailPage extends BasePage {
     async closeHistoryModal(): Promise<void> {
         const closeButton = this.page.locator('button[aria-label="Close modal"]');
         const isVisible = await closeButton.isVisible();
-        
+
         if (isVisible) {
             await closeButton.click();
             await expect(closeButton).not.toBeVisible();
         }
     }
 
-
     /**
      * Verify settlement details in history
      */
-    async verifySettlementDetails(details: {
-        note: string;
-        amount: string;
-        payerName: string;
-        payeeName: string;
-    }): Promise<void> {
+    async verifySettlementDetails(details: { note: string; amount: string; payerName: string; payeeName: string }): Promise<void> {
         // Assert we're in the right state
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        
+
         // The Payment History is in a SidebarCard within the page, not in a modal with role="region"
         // Look for the settlement card directly within the page
         const settlementCard = this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: details.note });
-        
+
         // Use first() to resolve ambiguity when multiple matches
         await expect(settlementCard.first()).toBeVisible();
         await expect(settlementCard.first().locator(`text=${details.amount}`)).toBeVisible();
@@ -1287,11 +1277,11 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         const balancesSection = this.getBalancesSectionByContext();
-        
+
         // Get actual content for better error reporting
         const actualContent = await balancesSection.textContent().catch(() => 'Unable to get content');
         const expectedText = `${debtorName} → ${creditorName}`;
-        
+
         // Get current page URL and user identifier from the page object
         const currentUrl = this.page.url();
 
@@ -1328,7 +1318,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     // ========== Member Management Methods ==========
-    
+
     // Member management element accessors
     getLeaveGroupButton(): Locator {
         // Leave button is now in the Group Actions panel
@@ -1356,7 +1346,6 @@ export class GroupDetailPage extends BasePage {
     getMembersSection(): Locator {
         return this.page.getByText('Members').first();
     }
-
 
     // Member management actions
     async clickLeaveGroup(): Promise<void> {
@@ -1389,7 +1378,7 @@ export class GroupDetailPage extends BasePage {
                     const text = await item.innerText();
                     const dataName = await item.getAttribute('data-member-name');
                     return `${text.replace(/\n/g, ' ')} [data-member-name="${dataName}"]`;
-                })
+                }),
             );
             throw new Error(`Failed to find visible member "${memberName}". Visible members:\n${visibleMembers.map((m, i) => `  ${i + 1}. ${m}`).join('\n')}`);
         }
@@ -1403,7 +1392,6 @@ export class GroupDetailPage extends BasePage {
         await expect(confirmButton).toBeVisible({ timeout: 2000 });
         await this.clickButton(confirmButton, { buttonName: 'Confirm Remove' });
     }
-
 
     async verifyMemberNotVisible(memberName: string): Promise<void> {
         await expect(this.page.getByText(memberName)).not.toBeVisible();
@@ -1517,7 +1505,7 @@ export class GroupDetailPage extends BasePage {
     async verifyCommentsSection(): Promise<void> {
         // Check that comments section exists
         await expect(this.getCommentsSection()).toBeVisible();
-        
+
         // Check that input exists and has correct placeholder
         const input = this.getCommentInput();
         await expect(input).toBeVisible();
@@ -1526,7 +1514,7 @@ export class GroupDetailPage extends BasePage {
         // Check that send button exists
         const sendButton = this.getSendCommentButton();
         await expect(sendButton).toBeVisible();
-        
+
         // Send button should be disabled when input is empty
         await expect(sendButton).toBeDisabled();
     }
@@ -1544,7 +1532,7 @@ export class GroupDetailPage extends BasePage {
     async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
         // Wait for any loading spinners to disappear
         const loadingSpinner = this.getCommentsSection().locator('.animate-spin');
-        if (await loadingSpinner.count() > 0) {
+        if ((await loadingSpinner.count()) > 0) {
             await expect(loadingSpinner).toHaveCount(0, { timeout });
         }
     }
@@ -1553,11 +1541,7 @@ export class GroupDetailPage extends BasePage {
      * Verify real-time comment updates work between multiple users
      * This method should be used in multi-user tests
      */
-    async verifyRealtimeCommentSync(
-        pages: Array<{ page: any; groupDetailPage: GroupDetailPage; userName?: string }>,
-        commentText: string,
-        authorUserIndex: number = 0
-    ): Promise<void> {
+    async verifyRealtimeCommentSync(pages: Array<{ page: any; groupDetailPage: GroupDetailPage; userName?: string }>, commentText: string, authorUserIndex: number = 0): Promise<void> {
         const authorPage = pages[authorUserIndex];
         const otherPages = pages.filter((_, index) => index !== authorUserIndex);
 

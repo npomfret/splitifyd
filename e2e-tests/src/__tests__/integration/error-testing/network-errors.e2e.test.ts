@@ -3,7 +3,7 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../../config/timeouts';
 import { SELECTORS } from '../../../constants/selectors';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();

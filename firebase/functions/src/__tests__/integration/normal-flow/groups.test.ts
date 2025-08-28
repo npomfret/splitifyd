@@ -1,4 +1,3 @@
-
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
@@ -20,7 +19,6 @@ describe('RESTful Group Endpoints', () => {
         driver = new ApiDriver();
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
-
 
     describe('POST /groups - Create Group', () => {
         test('should create a new group with minimal data', async () => {
@@ -119,13 +117,7 @@ describe('RESTful Group Endpoints', () => {
 
         test('should include balance information', async () => {
             // Create an expense to generate balance
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDescription('Test expense')
-                .withAmount(100)
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
             await driver.createExpense(expenseData, users[0].token);
 
             // Poll until the balance is updated
@@ -183,10 +175,7 @@ describe('RESTful Group Endpoints', () => {
         });
 
         test('should update multiple fields', async () => {
-            const updates = new GroupUpdateBuilder()
-                .withName('New Name')
-                .withDescription('New description')
-                .build();
+            const updates = new GroupUpdateBuilder().withName('New Name').withDescription('New description').build();
 
             await driver.updateGroup(testGroup.id, updates, users[0].token);
 
@@ -232,13 +221,7 @@ describe('RESTful Group Endpoints', () => {
             const testGroup = await driver.createGroup(groupData, users[0].token);
 
             // Add an expense
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDescription('Test expense')
-                .withAmount(50)
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
             await driver.createExpense(expenseData, users[0].token);
 
             // Try to delete - should fail
@@ -344,14 +327,14 @@ describe('RESTful Group Endpoints', () => {
 
         test('should handle includeMetadata parameter correctly', async () => {
             // Test without metadata
-            const responseWithoutMeta = await driver.listGroups(users[0].token, { 
-                includeMetadata: false 
+            const responseWithoutMeta = await driver.listGroups(users[0].token, {
+                includeMetadata: false,
             });
             expect(responseWithoutMeta.metadata).toBeUndefined();
 
             // Test with metadata (note: may be undefined if no recent changes)
-            const responseWithMeta = await driver.listGroups(users[0].token, { 
-                includeMetadata: true 
+            const responseWithMeta = await driver.listGroups(users[0].token, {
+                includeMetadata: true,
             });
             // Metadata might not exist if no recent changes, but structure should be correct if present
             if (responseWithMeta.metadata) {
@@ -364,10 +347,7 @@ describe('RESTful Group Endpoints', () => {
 
         test('should handle groups with expenses and settlements correctly', async () => {
             // Create a group with expenses - using user objects that are already created
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Integration Test Group ${uuidv4()}`)
-                .withMembers([users[0], users[1]])
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName(`Integration Test Group ${uuidv4()}`).withMembers([users[0], users[1]]).build();
             const testGroup = await driver.createGroup(groupData, users[0].token);
 
             // Add an expense
@@ -383,7 +363,7 @@ describe('RESTful Group Endpoints', () => {
             // List groups and verify the test group has balance data
             const response = await driver.listGroups(users[0].token);
             const groupInList = response.groups.find((g: any) => g.id === testGroup.id);
-            
+
             expect(groupInList).toBeDefined();
             if (groupInList) {
                 expect(groupInList.balance).toBeDefined();
@@ -467,7 +447,7 @@ describe('RESTful Group Endpoints', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
-            
+
             const expenseData2 = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Coffee')
@@ -552,7 +532,7 @@ describe('RESTful Group Endpoints', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                 .build();
-            
+
             const expenseData2 = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('User 1 pays for User 0 and 2')
@@ -583,7 +563,7 @@ describe('RESTful Group Endpoints', () => {
             }
         });
     });
-    
+
     describe('Invite Tracking', () => {
         let testGroup: any;
 
@@ -597,14 +577,14 @@ describe('RESTful Group Endpoints', () => {
             const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
             expect(shareLink).toHaveProperty('linkId');
             expect(shareLink).toHaveProperty('shareablePath');
-            
+
             // User 1 joins using the share link
             const joinResponse = await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
             expect(joinResponse.success).toBe(true);
-            
+
             // Get the updated group to verify invite tracking
             const updatedGroup = await driver.getGroup(testGroup.id, users[0].token);
-            
+
             // Verify that user 1 has invitedBy field set to user 0
             expect(updatedGroup.members).toHaveProperty(users[1].uid);
             expect(updatedGroup.members[users[1].uid]).toHaveProperty('invitedBy', users[0].uid);
@@ -617,14 +597,14 @@ describe('RESTful Group Endpoints', () => {
             // User 0 creates a share link and invites user 1
             const shareLink1 = await driver.generateShareLink(testGroup.id, users[0].token);
             await driver.joinGroupViaShareLink(shareLink1.linkId, users[1].token);
-            
+
             // User 1 creates a different share link and invites user 2
             const shareLink2 = await driver.generateShareLink(testGroup.id, users[1].token);
             await driver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
-            
+
             // Get the updated group
             const updatedGroup = await driver.getGroup(testGroup.id, users[0].token);
-            
+
             // Verify different invite attributions
             expect(updatedGroup.members[users[1].uid]).toHaveProperty('invitedBy', users[0].uid);
             expect(updatedGroup.members[users[2].uid]).toHaveProperty('invitedBy', users[1].uid);
@@ -633,11 +613,11 @@ describe('RESTful Group Endpoints', () => {
         test('should track invite attribution when joining groups', async () => {
             // Generate a share link
             const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
-            
+
             // Test joining via the link
             const joinResponse = await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
             expect(joinResponse.success).toBe(true);
-            
+
             // Verify the user was added with proper invite attribution
             const updatedGroup = await driver.getGroup(testGroup.id, users[0].token);
             expect(updatedGroup.members).toHaveProperty(users[1].uid);
@@ -649,17 +629,17 @@ describe('RESTful Group Endpoints', () => {
             // User 1 joins first
             const shareLink1 = await driver.generateShareLink(testGroup.id, users[0].token);
             await driver.joinGroupViaShareLink(shareLink1.linkId, users[1].token);
-            
+
             // Both user 0 and user 1 create share links
             const shareLink0 = await driver.generateShareLink(testGroup.id, users[0].token);
             const shareLink1_new = await driver.generateShareLink(testGroup.id, users[1].token);
-            
+
             // Verify links are different
             expect(shareLink0.linkId).not.toBe(shareLink1_new.linkId);
-            
+
             // User 2 joins using user 1's link
             await driver.joinGroupViaShareLink(shareLink1_new.linkId, users[2].token);
-            
+
             // Verify invite attribution
             const updatedGroup = await driver.getGroup(testGroup.id, users[0].token);
             expect(updatedGroup.members[users[2].uid]).toHaveProperty('invitedBy', users[1].uid);

@@ -74,7 +74,6 @@ export class ExpenseDetailPage extends BasePage {
         return this.page.getByRole('heading', { name: pattern });
     }
 
-
     /**
      * Verify expense amount is visible
      */
@@ -147,7 +146,7 @@ export class ExpenseDetailPage extends BasePage {
 
         // Wait for comment to be sent (button should become disabled briefly while submitting)
         await expect(sendButton).toBeDisabled({ timeout: 2000 });
-        
+
         // After successful submission, input should be cleared and button should be disabled
         await expect(input).toHaveValue('');
         await expect(sendButton).toBeDisabled();
@@ -177,7 +176,7 @@ export class ExpenseDetailPage extends BasePage {
     async verifyCommentsSection(): Promise<void> {
         // Check that discussion section exists
         await expect(this.getDiscussionSection()).toBeVisible();
-        
+
         // Check that input exists and has correct placeholder
         const input = this.getCommentInput();
         await expect(input).toBeVisible();
@@ -186,7 +185,7 @@ export class ExpenseDetailPage extends BasePage {
         // Check that send button exists
         const sendButton = this.getSendCommentButton();
         await expect(sendButton).toBeVisible();
-        
+
         // Send button should be disabled when input is empty
         await expect(sendButton).toBeDisabled();
     }
@@ -204,7 +203,7 @@ export class ExpenseDetailPage extends BasePage {
     async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
         // Wait for any loading spinners to disappear
         const loadingSpinner = this.getDiscussionSection().locator('.animate-spin');
-        if (await loadingSpinner.count() > 0) {
+        if ((await loadingSpinner.count()) > 0) {
             await expect(loadingSpinner).toHaveCount(0, { timeout });
         }
     }

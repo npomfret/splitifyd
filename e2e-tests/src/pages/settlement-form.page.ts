@@ -198,7 +198,7 @@ export class SettlementFormPage extends BasePage {
         // Fill amount and note
         await this.fillPreactInput(amountInput, settlement.amount);
         await this.fillPreactInput(noteInput, settlement.note);
-        
+
         // Defensive check: verify the values persisted (catches real-time update bug)
         // Brief wait to allow any potential real-time updates to arrive
         await this.page.waitForTimeout(100);
@@ -206,7 +206,7 @@ export class SettlementFormPage extends BasePage {
         const currentNote = await noteInput.inputValue();
         const currentPayer = await payerSelect.inputValue();
         const currentPayee = await payeeSelect.inputValue();
-        
+
         if (currentAmount !== settlement.amount) {
             throw new Error(`Form field was reset! Expected amount "${settlement.amount}" but got "${currentAmount}". This indicates a real-time update bug where the modal resets user input.`);
         }
@@ -266,7 +266,7 @@ export class SettlementFormPage extends BasePage {
     async verifyFormValues(expected: { amount: string; note: string }): Promise<void> {
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
-        
+
         await expect(amountInput).toHaveValue(expected.amount);
         await expect(noteInput).toHaveValue(expected.note);
     }
@@ -279,16 +279,16 @@ export class SettlementFormPage extends BasePage {
         const modal = this.getModal();
         await expect(modal).toBeVisible();
         await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
-        
+
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
-        
+
         // Update amount
         await this.fillPreactInput(amountInput, data.amount);
-        
+
         // Update note
         await this.fillPreactInput(noteInput, data.note);
-        
+
         // Submit update
         const updateButton = this.getUpdatePaymentButton();
         await expect(updateButton).toBeEnabled();
@@ -334,7 +334,7 @@ export class SettlementFormPage extends BasePage {
     async closeModal(): Promise<void> {
         const closeButton = this.getCloseButton();
         const cancelButton = this.getCancelButton();
-        
+
         // Try close button first, then cancel
         if (await closeButton.isVisible()) {
             await closeButton.click();

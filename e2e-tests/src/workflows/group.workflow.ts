@@ -1,6 +1,6 @@
 import { Page, expect } from '@playwright/test';
 import { DashboardPage, CreateGroupModalPage, GroupDetailPage } from '../pages';
-import {groupDetailUrlPattern} from "../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../pages/group-detail.page.ts';
 
 /**
  * Group workflow class that handles group creation and management flows.

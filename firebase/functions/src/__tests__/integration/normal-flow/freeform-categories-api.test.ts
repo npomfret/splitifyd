@@ -1,4 +1,3 @@
-
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -17,7 +16,6 @@ describe('Freeform Categories API Integration', () => {
         driver = new ApiDriver();
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
-
 
     beforeEach(async () => {
         const groupData = new CreateGroupRequestBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();
@@ -233,8 +231,7 @@ describe('Freeform Categories API Integration', () => {
         });
 
         test('should still accept predefined categories', async () => {
-            const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map((cat) => cat.name)
-                .slice(0, 3);// just try some of them
+            const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map((cat) => cat.name).slice(0, 3); // just try some of them
 
             for (const category of predefinedCategories) {
                 const expenseData = new ExpenseBuilder()
@@ -252,7 +249,6 @@ describe('Freeform Categories API Integration', () => {
                 expect(response.description).toBe(`Test ${category}`);
             }
         });
-
     });
 
     describe('Category Security and Sanitization', () => {
@@ -268,8 +264,7 @@ describe('Freeform Categories API Integration', () => {
                 .build();
 
             // XSS content should be rejected entirely
-            await expect(driver.createExpense(expenseData, users[0].token))
-                .rejects.toThrow(/400|invalid|dangerous/i);
+            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
         });
 
         test('should handle categories with special SQL-like characters', async () => {

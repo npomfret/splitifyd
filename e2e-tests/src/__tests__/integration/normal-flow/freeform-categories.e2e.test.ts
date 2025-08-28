@@ -2,7 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../../fixtures/authent
 import { GroupWorkflow, setupMCPDebugOnFailure } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 setupMCPDebugOnFailure();
 

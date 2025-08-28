@@ -2,10 +2,10 @@ import { GroupService } from '../../services/GroupService';
 
 /**
  * Minimal unit tests for GroupService
- * 
+ *
  * Note: GroupService functionality is entirely dependent on Firebase Firestore
  * and other services. There is no meaningful pure logic to unit test.
- * 
+ *
  * Full testing of GroupService should be done in integration tests with
  * the Firebase emulator running.
  */
@@ -24,10 +24,10 @@ describe('GroupService - Unit Tests', () => {
 
     // All GroupService methods require Firebase and should be tested
     // in integration tests with the emulator running:
-    // 
+    //
     // - getGroup() - requires Firestore and balance calculations
     // - getGroups() - requires Firestore and UserService
-    // - createGroup() - requires Firestore and user validation  
+    // - createGroup() - requires Firestore and user validation
     // - updateGroup() - requires Firestore and permissions
     // - deleteGroup() - requires Firestore and cascade deletion
     // - updateMember() - requires Firestore and member management

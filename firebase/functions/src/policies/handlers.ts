@@ -169,7 +169,7 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
  */
 export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { id } = req.params;
-    
+
     // Validate request body using Joi
     const { text, publish = false } = validateUpdatePolicy(req.body);
 
@@ -301,7 +301,7 @@ export const publishPolicyInternal = async (id: string, versionHash: string): Pr
  */
 export const publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { id } = req.params;
-    
+
     // Validate request body using Joi
     const { versionHash } = validatePublishPolicy(req.body);
 

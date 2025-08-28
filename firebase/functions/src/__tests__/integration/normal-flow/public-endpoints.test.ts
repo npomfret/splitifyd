@@ -1,4 +1,3 @@
-
 // Tests for public endpoints that don't require authentication
 
 import { beforeAll, describe, expect, test } from 'vitest';
@@ -9,10 +8,8 @@ describe('Public Endpoints Tests', () => {
     let driver: ApiDriver;
 
     beforeAll(async () => {
-
         driver = new ApiDriver();
     });
-
 
     describe('Health Check Endpoint', () => {
         test('should return health status without authentication', async () => {

@@ -13,11 +13,11 @@ interface BalanceSummaryProps {
 
 export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
     const { t } = useTranslation();
-    
+
     // Fetch data directly from the store
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const members = useComputed(() => enhancedGroupDetailStore.members);
-    
+
     // Helper to get user display name
     const getUserName = (userId: string) => {
         const member = members.value.find((m) => m.uid === userId);
@@ -82,7 +82,9 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
                                         {t('balanceSummary.debtArrow')}
                                         {getUserName(debt.to.userId)}
                                     </span>
-                                    <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'} data-financial-amount="debt">{formatCurrency(debt.amount, debt.currency)}</span>
+                                    <span className={variant === 'sidebar' ? 'text-sm font-bold text-red-600' : 'text-lg font-bold text-red-600'} data-financial-amount="debt">
+                                        {formatCurrency(debt.amount, debt.currency)}
+                                    </span>
                                 </div>
                             </div>
                         ))}

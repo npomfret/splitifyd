@@ -143,7 +143,9 @@ export function SettingsPage() {
             <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h1 class="text-xl font-semibold text-gray-900" data-testid="account-settings-header">{t('settingsPage.accountSettingsHeader')}</h1>
+                        <h1 class="text-xl font-semibold text-gray-900" data-testid="account-settings-header">
+                            {t('settingsPage.accountSettingsHeader')}
+                        </h1>
                         <p class="text-sm text-gray-600">{t('settingsPage.accountSettingsSubheader')}</p>
                     </div>
 

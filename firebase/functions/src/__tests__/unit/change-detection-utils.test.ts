@@ -1,15 +1,8 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import * as admin from 'firebase-admin/firestore';
-import {
-    getChangedFields,
-    getGroupChangedFields,
-    calculatePriority,
-    createChangeDocument,
-    shouldNotifyUser,
-} from '../../utils/change-detection';
+import { getChangedFields, getGroupChangedFields, calculatePriority, createChangeDocument, shouldNotifyUser } from '../../utils/change-detection';
 
 describe('Change Detection Utilities', () => {
-
     describe('getChangedFields', () => {
         it('should return ["*"] for new document', () => {
             const before = undefined;
@@ -17,7 +10,7 @@ describe('Change Detection Utilities', () => {
                 exists: true,
                 data: () => ({ field1: 'value1', field2: 'value2' }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getChangedFields(before, after);
             expect(result).toEqual(['*']);
         });
@@ -31,7 +24,7 @@ describe('Change Detection Utilities', () => {
                 exists: false,
                 data: () => undefined,
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getChangedFields(before, after);
             expect(result).toEqual(['*']);
         });
@@ -39,21 +32,21 @@ describe('Change Detection Utilities', () => {
         it('should detect changed fields', () => {
             const before = {
                 exists: true,
-                data: () => ({ 
-                    field1: 'value1', 
+                data: () => ({
+                    field1: 'value1',
                     field2: 'value2',
-                    field3: { nested: 'old' }
+                    field3: { nested: 'old' },
                 }),
             } as unknown as admin.DocumentSnapshot;
             const after = {
                 exists: true,
-                data: () => ({ 
-                    field1: 'changed', 
+                data: () => ({
+                    field1: 'changed',
                     field2: 'value2',
-                    field3: { nested: 'new' }
+                    field3: { nested: 'new' },
                 }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getChangedFields(before, after);
             expect(result).toContain('field1');
             expect(result).toContain('field3');
@@ -69,7 +62,7 @@ describe('Change Detection Utilities', () => {
                 exists: true,
                 data: () => ({ field1: 'value1' }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getChangedFields(before, after);
             expect(result).toContain('field2');
             expect(result).not.toContain('field1');
@@ -84,7 +77,7 @@ describe('Change Detection Utilities', () => {
                 exists: true,
                 data: () => ({ field1: 'value1', field2: 'value2' }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getChangedFields(before, after);
             expect(result).toContain('field2');
             expect(result).not.toContain('field1');
@@ -95,23 +88,23 @@ describe('Change Detection Utilities', () => {
         it('should handle nested group structure', () => {
             const before = {
                 exists: true,
-                data: () => ({ 
+                data: () => ({
                     data: {
                         name: 'Old Name',
-                        description: 'Same'
-                    }
+                        description: 'Same',
+                    },
                 }),
             } as unknown as admin.DocumentSnapshot;
             const after = {
                 exists: true,
-                data: () => ({ 
+                data: () => ({
                     data: {
                         name: 'New Name',
-                        description: 'Same'
-                    }
+                        description: 'Same',
+                    },
                 }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getGroupChangedFields(before, after);
             expect(result).toContain('name');
             expect(result).not.toContain('description');
@@ -123,7 +116,7 @@ describe('Change Detection Utilities', () => {
                 exists: true,
                 data: () => ({ data: { name: 'Group' } }),
             } as unknown as admin.DocumentSnapshot;
-            
+
             const result = getGroupChangedFields(before, after);
             expect(result).toEqual(['*']);
         });
@@ -226,17 +219,12 @@ describe('Change Detection Utilities', () => {
         });
 
         it('should create a basic change document', () => {
-            const result = createChangeDocument(
-                'entity123',
-                'group',
-                'updated',
-                {
-                    priority: 'high',
-                    affectedUsers: ['user1', 'user2'],
-                    changedFields: ['name']
-                }
-            );
-            
+            const result = createChangeDocument('entity123', 'group', 'updated', {
+                priority: 'high',
+                affectedUsers: ['user1', 'user2'],
+                changedFields: ['name'],
+            });
+
             expect(result).toEqual({
                 groupId: 'entity123',
                 changeType: 'updated',
@@ -244,8 +232,8 @@ describe('Change Detection Utilities', () => {
                 metadata: {
                     priority: 'high',
                     affectedUsers: ['user1', 'user2'],
-                    changedFields: ['name']
-                }
+                    changedFields: ['name'],
+                },
             });
         });
 
@@ -260,10 +248,10 @@ describe('Change Detection Utilities', () => {
                 },
                 {
                     groupId: 'group456',
-                    changeUserId: 'user789'
-                }
+                    changeUserId: 'user789',
+                },
             );
-            
+
             expect(result).toEqual({
                 expenseId: 'expense123',
                 changeType: 'created',
@@ -273,35 +261,25 @@ describe('Change Detection Utilities', () => {
                     affectedUsers: ['user1'],
                 },
                 groupId: 'group456',
-                changeUserId: 'user789'
+                changeUserId: 'user789',
             });
         });
 
         it('should throw error for expense without groupId', () => {
             expect(() => {
-                createChangeDocument(
-                    'expense123',
-                    'expense',
-                    'created',
-                    {
-                        priority: 'high',
-                        affectedUsers: [],
-                    }
-                );
+                createChangeDocument('expense123', 'expense', 'created', {
+                    priority: 'high',
+                    affectedUsers: [],
+                });
             }).toThrow('expense change document must include groupId');
         });
 
         it('should throw error for settlement without groupId', () => {
             expect(() => {
-                createChangeDocument(
-                    'settlement123',
-                    'settlement',
-                    'created',
-                    {
-                        priority: 'high',
-                        affectedUsers: [],
-                    }
-                );
+                createChangeDocument('settlement123', 'settlement', 'created', {
+                    priority: 'high',
+                    affectedUsers: [],
+                });
             }).toThrow('settlement change document must include groupId');
         });
     });

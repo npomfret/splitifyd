@@ -11,14 +11,7 @@ interface CommentsListProps {
     className?: string;
 }
 
-export function CommentsList({ 
-    comments, 
-    loading = false, 
-    hasMore = false, 
-    onLoadMore,
-    maxHeight = '400px',
-    className = '' 
-}: CommentsListProps) {
+export function CommentsList({ comments, loading = false, hasMore = false, onLoadMore, maxHeight = '400px', className = '' }: CommentsListProps) {
     if (loading && comments.length === 0) {
         return (
             <div className="flex items-center justify-center py-8">
@@ -41,20 +34,13 @@ export function CommentsList({
     }
 
     return (
-        <div 
-            className={`overflow-y-auto ${className}`}
-            style={{ maxHeight }}
-        >
+        <div className={`overflow-y-auto ${className}`} style={{ maxHeight }}>
             <div className="space-y-4 px-1">
                 {comments.map((comment) => (
-                    <CommentItem 
-                        key={comment.id} 
-                        comment={comment}
-                        className="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0"
-                    />
+                    <CommentItem key={comment.id} comment={comment} className="pb-4 border-b border-gray-100 dark:border-gray-800 last:border-0" />
                 ))}
             </div>
-            
+
             {hasMore && (
                 <div className="mt-4 flex justify-center">
                     <button

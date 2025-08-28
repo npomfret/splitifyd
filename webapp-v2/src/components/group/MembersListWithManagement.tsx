@@ -27,29 +27,23 @@ export interface LeaveGroupState {
     hasBalance: boolean;
 }
 
-export function MembersListWithManagement({
-    groupId,
-    variant = 'default',
-    onInviteClick,
-    onMemberChange,
-    onLeaveGroupClick,
-}: MembersListWithManagementProps) {
+export function MembersListWithManagement({ groupId, variant = 'default', onInviteClick, onMemberChange, onLeaveGroupClick }: MembersListWithManagementProps) {
     const { t } = useTranslation();
     const showLeaveConfirm = useSignal(false);
     const showRemoveConfirm = useSignal(false);
     const memberToRemove = useSignal<User | null>(null);
     const isProcessing = useSignal(false);
-    
+
     // Auth store via hook
     const authStore = useAuthRequired();
-    
+
     // Fetch data directly from stores
     const members = useComputed(() => enhancedGroupDetailStore.members);
     const group = useComputed(() => enhancedGroupDetailStore.group);
     const balances = useComputed(() => enhancedGroupDetailStore.balances);
     const loading = useComputed(() => enhancedGroupDetailStore.loadingMembers);
     const currentUser = useComputed(() => authStore.user);
-    
+
     const currentUserId = currentUser.value?.uid || '';
     const createdBy = group.value?.createdBy || '';
     const isOwner = currentUserId === createdBy;
@@ -88,7 +82,7 @@ export function MembersListWithManagement({
     const memberHasOutstandingBalance = (memberId: string): boolean => {
         return getUserBalance(memberId) > 0;
     };
-    
+
     // If parent provides handler, let parent control the dialog
     useEffect(() => {
         if (onLeaveGroupClick) {
@@ -197,20 +191,21 @@ export function MembersListWithManagement({
         </div>
     );
 
-    const content = variant === 'sidebar' ? (
-        <div className="border rounded-lg bg-white p-4 space-y-4">
-            <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-gray-900">{t('membersList.title')}</h3>
-                <span className="text-sm text-gray-500">{members.value.length}</span>
+    const content =
+        variant === 'sidebar' ? (
+            <div className="border rounded-lg bg-white p-4 space-y-4">
+                <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-gray-900">{t('membersList.title')}</h3>
+                    <span className="text-sm text-gray-500">{members.value.length}</span>
+                </div>
+                {membersList}
             </div>
-            {membersList}
-        </div>
-    ) : (
-        <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">{t('membersList.title')}</h2>
-            {membersList}
-        </Card>
-    );
+        ) : (
+            <Card className="p-6">
+                <h2 className="text-lg font-semibold mb-4">{t('membersList.title')}</h2>
+                {membersList}
+            </Card>
+        );
 
     return (
         <>

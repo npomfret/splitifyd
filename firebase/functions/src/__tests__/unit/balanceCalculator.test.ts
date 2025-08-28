@@ -36,7 +36,7 @@ const mockSimplifyDebts = simplifyDebts as any;
 class FirestoreExpenseBuilder extends ExpenseBuilder {
     private firestoreFields: any = {
         id: 'expense-1',
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
     };
     private excludeCurrency = false;
 
@@ -55,7 +55,7 @@ class FirestoreExpenseBuilder extends ExpenseBuilder {
         const baseExpense = super.build();
         const result = {
             ...this.firestoreFields,
-            ...baseExpense
+            ...baseExpense,
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {
@@ -68,7 +68,7 @@ class FirestoreExpenseBuilder extends ExpenseBuilder {
 class FirestoreSettlementBuilder extends SettlementBuilder {
     private firestoreFields: any = {
         id: 'settlement-1',
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
     };
     private excludeCurrency = false;
 
@@ -87,7 +87,7 @@ class FirestoreSettlementBuilder extends SettlementBuilder {
         const baseSettlement = super.build();
         const result = {
             ...this.firestoreFields,
-            ...baseSettlement
+            ...baseSettlement,
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {
@@ -101,11 +101,11 @@ class FirestoreSettlementBuilder extends SettlementBuilder {
 class MockFirestoreBuilder {
     static createQuerySnapshot(docs: any[]) {
         return {
-            docs: docs.map(doc => ({
+            docs: docs.map((doc) => ({
                 id: doc.id || 'default-id',
-                data: () => doc
+                data: () => doc,
             })),
-            empty: docs.length === 0
+            empty: docs.length === 0,
         };
     }
 
@@ -113,7 +113,7 @@ class MockFirestoreBuilder {
         return {
             exists: true,
             id: doc.id || 'default-id',
-            data: () => doc.data || doc
+            data: () => doc.data || doc,
         };
     }
 }
@@ -127,10 +127,10 @@ class MockGroupBuilder {
                 name: 'Test Group',
                 members: {
                     'user-1': { role: 'owner' },
-                    'user-2': { role: 'member' }
-                }
-            }
-        }
+                    'user-2': { role: 'member' },
+                },
+            },
+        },
     };
 
     withMembers(members: Record<string, any>): MockGroupBuilder {
@@ -150,7 +150,7 @@ class UserProfileBuilder {
         displayName: 'Test User',
         email: 'test@example.com',
         photoURL: null,
-        emailVerified: true
+        emailVerified: true,
     };
 
     withUid(uid: string): UserProfileBuilder {
@@ -183,25 +183,17 @@ describe('calculateGroupBalances', () => {
         mockDb.collection = vi.fn().mockReturnValue({
             where: vi.fn().mockReturnThis(),
             get: mockGet,
-            doc: vi.fn().mockReturnThis()
+            doc: vi.fn().mockReturnThis(),
         } as any);
 
         // Setup default user profiles
         const mockUsers = [
-            new UserProfileBuilder()
-                .withUid('user-1')
-                .withDisplayName('User One')
-                .withEmail('user1@test.com')
-                .build(),
-            new UserProfileBuilder()
-                .withUid('user-2')
-                .withDisplayName('User Two')
-                .withEmail('user2@test.com')
-                .build()
+            new UserProfileBuilder().withUid('user-1').withDisplayName('User One').withEmail('user1@test.com').build(),
+            new UserProfileBuilder().withUid('user-2').withDisplayName('User Two').withEmail('user2@test.com').build(),
         ];
-        
+
         const userMap = new Map<string, UserProfile>();
-        mockUsers.forEach(user => userMap.set(user.uid, user));
+        mockUsers.forEach((user) => userMap.set(user.uid, user));
         mockUserService.getUsers = vi.fn().mockResolvedValue(userMap);
         vi.mocked(mockSimplifyDebts).mockImplementation(() => []);
     });
@@ -209,7 +201,7 @@ describe('calculateGroupBalances', () => {
     describe('edge cases', () => {
         it('should return empty balances for group with no expenses or settlements', async () => {
             const mockGroup = new MockGroupBuilder().build();
-            
+
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([])) // expenses
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([])) // settlements
@@ -222,15 +214,13 @@ describe('calculateGroupBalances', () => {
                 userBalances: {},
                 simplifiedDebts: [],
                 lastUpdated: expect.any(Timestamp),
-                balancesByCurrency: {}
+                balancesByCurrency: {},
             });
         });
 
         it('should throw error when expense is missing currency', async () => {
-            const expenseWithoutCurrency = new FirestoreExpenseBuilder()
-                .withoutCurrency()
-                .build();
-            
+            const expenseWithoutCurrency = new FirestoreExpenseBuilder().withoutCurrency().build();
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -242,10 +232,8 @@ describe('calculateGroupBalances', () => {
         });
 
         it('should throw error when settlement is missing currency', async () => {
-            const settlementWithoutCurrency = new FirestoreSettlementBuilder()
-                .withoutCurrency()
-                .build();
-            
+            const settlementWithoutCurrency = new FirestoreSettlementBuilder().withoutCurrency().build();
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -265,10 +253,10 @@ describe('calculateGroupBalances', () => {
                 .withParticipants(['user-1', 'user-2'])
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -280,7 +268,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 50 }),
-                'user-2': expect.objectContaining({ netBalance: -50 })
+                'user-2': expect.objectContaining({ netBalance: -50 }),
             });
         });
 
@@ -290,7 +278,7 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
 
@@ -300,10 +288,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-2')
                 .withSplits([
                     { userId: 'user-1', amount: 30 },
-                    { userId: 'user-2', amount: 30 }
+                    { userId: 'user-2', amount: 30 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -315,7 +303,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 20 }),
-                'user-2': expect.objectContaining({ netBalance: -20 })
+                'user-2': expect.objectContaining({ netBalance: -20 }),
             });
         });
 
@@ -326,10 +314,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 60 },
-                    { userId: 'user-2', amount: 90 }
+                    { userId: 'user-2', amount: 90 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -341,7 +329,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 90 }),
-                'user-2': expect.objectContaining({ netBalance: -90 })
+                'user-2': expect.objectContaining({ netBalance: -90 }),
             });
         });
 
@@ -351,12 +339,12 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
 
             // Settlement test removed as not used in this test
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -368,7 +356,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 25 }),
-                'user-2': expect.objectContaining({ netBalance: -25 })
+                'user-2': expect.objectContaining({ netBalance: -25 }),
             });
         });
     });
@@ -381,7 +369,7 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
 
@@ -392,10 +380,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-2')
                 .withSplits([
                     { userId: 'user-1', amount: 40 },
-                    { userId: 'user-2', amount: 40 }
+                    { userId: 'user-2', amount: 40 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -406,14 +394,14 @@ describe('calculateGroupBalances', () => {
             const result = await calculateGroupBalances('group-1');
 
             expect(result.balancesByCurrency).toEqual({
-                'USD': {
+                USD: {
                     'user-1': expect.objectContaining({ netBalance: 50 }),
-                    'user-2': expect.objectContaining({ netBalance: -50 })
+                    'user-2': expect.objectContaining({ netBalance: -50 }),
                 },
-                'EUR': {
+                EUR: {
                     'user-1': expect.objectContaining({ netBalance: -40 }),
-                    'user-2': expect.objectContaining({ netBalance: 40 })
-                }
+                    'user-2': expect.objectContaining({ netBalance: 40 }),
+                },
             });
         });
 
@@ -424,10 +412,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -439,7 +427,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 50 }),
-                'user-2': expect.objectContaining({ netBalance: -50 })
+                'user-2': expect.objectContaining({ netBalance: -50 }),
             });
             expect(result.balancesByCurrency['EUR']).toBeDefined();
         });
@@ -452,16 +440,12 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
 
-            const settlement = new FirestoreSettlementBuilder()
-                .withPayer('user-2')
-                .withPayee('user-1')
-                .withAmount(50)
-                .build();
-            
+            const settlement = new FirestoreSettlementBuilder().withPayer('user-2').withPayee('user-1').withAmount(50).build();
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -473,7 +457,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 0 }),
-                'user-2': expect.objectContaining({ netBalance: 0 })
+                'user-2': expect.objectContaining({ netBalance: 0 }),
             });
         });
 
@@ -483,12 +467,12 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
 
             // Settlement test removed as not used in this test
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -500,7 +484,7 @@ describe('calculateGroupBalances', () => {
 
             expect(result.userBalances).toEqual({
                 'user-1': expect.objectContaining({ netBalance: 25 }),
-                'user-2': expect.objectContaining({ netBalance: -25 })
+                'user-2': expect.objectContaining({ netBalance: -25 }),
             });
         });
     });
@@ -511,10 +495,10 @@ describe('calculateGroupBalances', () => {
                 .withAmount(100)
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -537,10 +521,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -562,8 +546,8 @@ describe('calculateGroupBalances', () => {
                     from: { userId: 'user-2' },
                     to: { userId: 'user-1' },
                     amount: 50,
-                    currency: 'USD'
-                }
+                    currency: 'USD',
+                },
             ];
             vi.mocked(mockSimplifyDebts).mockReturnValue(mockSimplifiedDebts);
 
@@ -572,10 +556,10 @@ describe('calculateGroupBalances', () => {
                 .withPaidBy('user-1')
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -594,10 +578,10 @@ describe('calculateGroupBalances', () => {
                 .withAmount(100)
                 .withSplits([
                     { userId: 'user-1', amount: 50 },
-                    { userId: 'user-2', amount: 50 }
+                    { userId: 'user-2', amount: 50 },
                 ])
                 .build();
-            
+
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
@@ -611,4 +595,3 @@ describe('calculateGroupBalances', () => {
         });
     });
 });
-

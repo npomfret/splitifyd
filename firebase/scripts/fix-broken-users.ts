@@ -2,7 +2,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
-import assert from "node:assert";
+import assert from 'node:assert';
 import { execSync } from 'child_process';
 
 /**
@@ -38,20 +38,20 @@ console.log(`🎯 Running user fixing for ${environment}`);
 // Initialize Firebase Admin for production BEFORE any other imports
 if (!isEmulator && require.main === module) {
     console.log('   Using Production Firebase');
-    
+
     const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
-    
+
     if (!fs.existsSync(serviceAccountPath)) {
         console.error('❌ Service account key not found at firebase/service-account-key.json');
         console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
         process.exit(1);
     }
-    
+
     if (admin.apps.length === 0) {
         console.log('🔑 Initializing Firebase Admin with service account...');
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccountPath),
-            projectId: 'splitifyd'  // Explicit project ID like seed-policies.ts
+            projectId: 'splitifyd', // Explicit project ID like seed-policies.ts
         });
     }
 } else if (isEmulator) {
@@ -98,23 +98,23 @@ let assignThemeColor: any;
  */
 async function initializeFirebase() {
     console.log('🔧 Initializing Firebase database connection...');
-    
+
     if (!isEmulator && require.main === module) {
         // Production mode - use the admin instance we already initialized
         console.log('🔗 Getting Firestore instance for production...');
         try {
             firestoreDb = admin.firestore();
             console.log('✅ Firestore instance obtained successfully');
-            
+
             // Import handlers that will use our initialized admin instance
             const dateHelpers = await import('../functions/src/utils/dateHelpers');
             const policyHelpers = await import('../functions/src/auth/policy-helpers');
             const themeHelpers = await import('../functions/src/user-management/assign-theme-color');
-            
+
             createServerTimestamp = dateHelpers.createServerTimestamp;
             getCurrentPolicyVersions = policyHelpers.getCurrentPolicyVersions;
             assignThemeColor = themeHelpers.assignThemeColor;
-            
+
             console.log('✅ Production handlers imported successfully');
         } catch (error) {
             console.error('❌ Failed to get Firestore instance or import handlers:', error);
@@ -127,12 +127,12 @@ async function initializeFirebase() {
         const dateHelpers = await import('../functions/src/utils/dateHelpers');
         const policyHelpers = await import('../functions/src/auth/policy-helpers');
         const themeHelpers = await import('../functions/src/user-management/assign-theme-color');
-        
+
         firestoreDb = firebaseModule.firestoreDb;
         createServerTimestamp = dateHelpers.createServerTimestamp;
         getCurrentPolicyVersions = policyHelpers.getCurrentPolicyVersions;
         assignThemeColor = themeHelpers.assignThemeColor;
-        
+
         console.log('✅ Emulator Firestore instance and handlers obtained');
     }
 }
@@ -142,19 +142,19 @@ async function initializeFirebase() {
  */
 async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
     console.log('🔍 Starting to fetch Firebase Auth users via Firebase CLI...');
-    
+
     try {
         const tmpFile = '/tmp/firebase-auth-users.json';
-        
+
         console.log('📤 Exporting users with Firebase CLI...');
-        execSync(`firebase auth:export ${tmpFile} --format json`, { 
+        execSync(`firebase auth:export ${tmpFile} --format json`, {
             stdio: ['inherit', 'inherit', 'inherit'],
-            cwd: __dirname 
+            cwd: __dirname,
         });
-        
+
         console.log('📥 Reading exported user data...');
         const usersData = JSON.parse(fs.readFileSync(tmpFile, 'utf8'));
-        
+
         // Convert CLI export format to UserRecord format
         const users: admin.auth.UserRecord[] = usersData.users.map((user: any) => ({
             uid: user.localId,
@@ -165,15 +165,15 @@ async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
             disabled: user.disabled || false,
             metadata: {
                 creationTime: user.createdAt,
-                lastSignInTime: user.lastLoginAt
+                lastSignInTime: user.lastLoginAt,
             },
             customClaims: user.customAttributes ? JSON.parse(user.customAttributes) : undefined,
-            providerData: user.providerUserInfo || []
+            providerData: user.providerUserInfo || [],
         }));
-        
+
         // Clean up temp file
         fs.unlinkSync(tmpFile);
-        
+
         console.log(`✅ Successfully fetched ${users.length} auth users via Firebase CLI`);
         return users;
     } catch (error) {
@@ -188,11 +188,11 @@ async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
 async function getExistingFirestoreUsers(): Promise<Set<string>> {
     const snapshot = await firestoreDb.collection(FirestoreCollections.USERS).get();
     const userIds = new Set<string>();
-    
-    snapshot.docs.forEach(doc => {
+
+    snapshot.docs.forEach((doc) => {
         userIds.add(doc.id);
     });
-    
+
     return userIds;
 }
 
@@ -203,11 +203,11 @@ function validateAuthUser(user: admin.auth.UserRecord): { valid: boolean; reason
     if (!user.email) {
         return { valid: false, reason: 'missing email' };
     }
-    
+
     if (!user.displayName) {
         return { valid: false, reason: 'missing displayName' };
     }
-    
+
     return { valid: true };
 }
 
@@ -218,10 +218,10 @@ async function createUserDocument(authUser: admin.auth.UserRecord): Promise<void
     try {
         // Get current policy versions
         const currentPolicyVersions = await getCurrentPolicyVersions();
-        
+
         // Assign theme color
         const themeColor = await assignThemeColor(authUser.uid);
-        
+
         // Create user document
         const userDoc: FirestoreUserDocument = {
             email: authUser.email!,
@@ -234,7 +234,7 @@ async function createUserDocument(authUser: admin.auth.UserRecord): Promise<void
         };
 
         await firestoreDb.collection(FirestoreCollections.USERS).doc(authUser.uid).set(userDoc);
-        
+
         console.log(`✅ Created user document for ${authUser.email} (${authUser.uid})`);
     } catch (error) {
         console.error(`❌ Failed to create user document for ${authUser.email} (${authUser.uid})`, { error });
@@ -283,7 +283,7 @@ async function fixBrokenUsers(): Promise<void> {
 
         for (const authUser of authUsers) {
             const validation = validateAuthUser(authUser);
-            
+
             if (!validation.valid) {
                 invalidUsers.push(authUser);
                 console.log(`⚠️ Invalid auth user ${authUser.uid}: ${validation.reason}`);
@@ -318,7 +318,7 @@ async function fixBrokenUsers(): Promise<void> {
         // Fix broken users
         for (let i = 0; i < brokenUsers.length; i++) {
             const authUser = brokenUsers[i];
-            
+
             try {
                 console.log(`[${i + 1}/${brokenUsers.length}] Fixing ${authUser.email} (${authUser.uid})`);
                 await createUserDocument(authUser);
@@ -342,7 +342,6 @@ async function fixBrokenUsers(): Promise<void> {
         if (stats.failedUsers > 0) {
             console.log('⚠️ Some users could not be fixed - check logs above for details');
         }
-
     } catch (error) {
         console.error('❌ Error during user fixing process', { error });
         throw error;

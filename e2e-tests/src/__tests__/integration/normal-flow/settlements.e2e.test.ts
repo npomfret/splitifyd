@@ -14,7 +14,7 @@ test.describe('Settlements - Complete Functionality', () => {
 
             // Create group and add second user
             await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SettlementHistory'), 'Testing settlement history');
-            
+
             // Share and join
             await groupDetailPage.shareGroupAndWaitForJoin(secondUser.page);
 
@@ -26,24 +26,24 @@ test.describe('Settlements - Complete Functionality', () => {
                 payerName: authenticatedPage.user.displayName,
                 payeeName: secondUser.user.displayName,
                 amount: '100.50',
-                note: 'Test payment for history'
+                note: 'Test payment for history',
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            
+
             // Wait for settlement to propagate
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Open history and verify settlement appears
             await groupDetailPage.openHistoryIfClosed();
             await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
-            
+
             // Verify amount and participants are displayed correctly
             await groupDetailPage.verifySettlementDetails({
                 note: settlementData.note,
                 amount: settlementData.amount,
                 payerName: settlementData.payerName,
-                payeeName: settlementData.payeeName
+                payeeName: settlementData.payeeName,
             });
         });
 
@@ -54,7 +54,7 @@ test.describe('Settlements - Complete Functionality', () => {
 
             // Create group and add second user
             await groupWorkflow.createGroupAndNavigate(generateTestGroupName('PayeeCreator'), 'Testing payee as creator');
-            
+
             // Share and join
             await groupDetailPage.shareGroupAndWaitForJoin(secondUser.page);
 
@@ -63,21 +63,21 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData = {
-                payerName: secondUser.user.displayName,  // Second user pays
-                payeeName: authenticatedPage.user.displayName,  // Creator receives
+                payerName: secondUser.user.displayName, // Second user pays
+                payeeName: authenticatedPage.user.displayName, // Creator receives
                 amount: '75.00',
-                note: 'Creator receives payment'
+                note: 'Creator receives payment',
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            
+
             // Wait for settlement to propagate
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
             // Verify settlement appears correctly
             await groupDetailPage.openHistoryIfClosed();
             await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
-            
+
             // Verify creator can still edit/delete even when they're the payee
             await groupDetailPage.verifySettlementHasEditButton(settlementData.note);
             await groupDetailPage.verifySettlementHasDeleteButton(settlementData.note);
@@ -102,7 +102,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 payerName: authenticatedPage.user.displayName,
                 payeeName: secondUser.user.displayName,
                 amount: '100.50',
-                note: 'Initial test payment'
+                note: 'Initial test payment',
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
@@ -114,19 +114,19 @@ test.describe('Settlements - Complete Functionality', () => {
 
             // Verify update form is shown
             await settlementForm.verifyUpdateMode();
-            
+
             // Verify current values are populated
             await settlementForm.verifyFormValues({
                 amount: initialData.amount,
-                note: initialData.note
+                note: initialData.note,
             });
 
             // Update the settlement
             const updatedData = {
                 amount: '150.75',
-                note: 'Updated test payment'
+                note: 'Updated test payment',
             };
-            
+
             await settlementForm.updateSettlement(updatedData);
 
             // Wait for modal to close and update to propagate
@@ -139,7 +139,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 note: updatedData.note,
                 amount: updatedData.amount,
                 payerName: initialData.payerName,
-                payeeName: initialData.payeeName
+                payeeName: initialData.payeeName,
             });
         });
 
@@ -159,7 +159,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 payerName: authenticatedPage.user.displayName,
                 payeeName: secondUser.user.displayName,
                 amount: '50.00',
-                note: 'Validation test payment'
+                note: 'Validation test payment',
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
@@ -191,7 +191,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 note: initialData.note,
                 amount: initialData.amount,
                 payerName: initialData.payerName,
-                payeeName: initialData.payeeName
+                payeeName: initialData.payeeName,
             });
         });
     });
@@ -213,7 +213,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 payerName: authenticatedPage.user.displayName,
                 payeeName: secondUser.user.displayName,
                 amount: '100.00',
-                note: 'Payment to be deleted'
+                note: 'Payment to be deleted',
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
@@ -250,7 +250,7 @@ test.describe('Settlements - Complete Functionality', () => {
                 payerName: authenticatedPage.user.displayName,
                 payeeName: secondUser.user.displayName,
                 amount: '75.00',
-                note: 'Payment to keep'
+                note: 'Payment to keep',
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
@@ -265,5 +265,4 @@ test.describe('Settlements - Complete Functionality', () => {
             await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
         });
     });
-
 });

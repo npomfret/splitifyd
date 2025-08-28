@@ -6,11 +6,11 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '.env.test') });
 
 beforeAll(() => {
-  // Global test setup
-  process.env.FUNCTIONS_EMULATOR = 'true';
-  process.env.GCLOUD_PROJECT = 'splitifyd';
+    // Global test setup
+    process.env.FUNCTIONS_EMULATOR = 'true';
+    process.env.GCLOUD_PROJECT = 'splitifyd';
 });
 
 afterAll(() => {
-  // Global cleanup
+    // Global cleanup
 });

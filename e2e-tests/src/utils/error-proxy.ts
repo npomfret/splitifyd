@@ -3,10 +3,10 @@
  * Wraps all async methods to automatically capture context on errors.
  */
 
-import {Page} from '@playwright/test';
-import {ProxiedMethodError} from '../errors/test-errors';
-import {collectPageState} from './page-state-collector';
-import type {User as BaseUser} from '@splitifyd/shared';
+import { Page } from '@playwright/test';
+import { ProxiedMethodError } from '../errors/test-errors';
+import { collectPageState } from './page-state-collector';
+import type { User as BaseUser } from '@splitifyd/shared';
 
 /**
  * Configuration for the error handling proxy
@@ -59,15 +59,15 @@ function shouldExcludeMethod(methodName: string, excludePatterns: string[]): boo
  */
 function extractArgumentContext(args: any[]): Record<string, any> {
     const context: Record<string, any> = {};
-    
+
     if (args.length === 0) return context;
-    
+
     // Extract meaningful values from arguments
     args.forEach((arg, index) => {
         if (arg === null || arg === undefined) {
             return;
         }
-        
+
         // Handle different argument types
         if (typeof arg === 'string') {
             context[`arg${index}`] = arg.length > 100 ? arg.substring(0, 100) + '...' : arg;
@@ -86,13 +86,13 @@ function extractArgumentContext(args: any[]): Record<string, any> {
             }
         }
     });
-    
+
     return context;
 }
 
 /**
  * Create a proxy wrapper for a Page Object Model instance
- * 
+ *
  * @param instance - The page object instance to wrap
  * @param className - The name of the page object class
  * @param page - The Playwright Page instance
@@ -100,45 +100,35 @@ function extractArgumentContext(args: any[]): Record<string, any> {
  * @param config - Optional proxy configuration
  * @returns Proxied instance with automatic error handling
  */
-export function createErrorHandlingProxy<T extends object>(
-    instance: T,
-    className: string,
-    page: Page,
-    userInfo?: BaseUser,
-    config: ProxyConfig = {}
-): T {
-    const {
-        excludeMethods = DEFAULT_EXCLUDED_METHODS,
-        captureScreenshot = false,
-        collectState = true,
-    } = config;
-    
+export function createErrorHandlingProxy<T extends object>(instance: T, className: string, page: Page, userInfo?: BaseUser, config: ProxyConfig = {}): T {
+    const { excludeMethods = DEFAULT_EXCLUDED_METHODS, captureScreenshot = false, collectState = true } = config;
+
     return new Proxy(instance, {
         get(target: any, prop: string | symbol, receiver: any) {
             const value = Reflect.get(target, prop, receiver);
-            
+
             // Only proxy methods, not properties
             if (typeof value !== 'function') {
                 return value;
             }
-            
+
             // Check if method should be excluded
             if (typeof prop === 'string' && shouldExcludeMethod(prop, excludeMethods)) {
                 return value;
             }
-            
+
             // Return wrapped function
-            return function(this: any, ...args: any[]) {
+            return function (this: any, ...args: any[]) {
                 const methodName = String(prop);
-                
+
                 // Call the original method
                 const result = value.apply(this, args);
-                
+
                 // If it doesn't return a promise, return it as-is
                 if (!(result instanceof Promise)) {
                     return result;
                 }
-                
+
                 // It's a promise, so wrap with error handling
                 return result.then(
                     (value) => value,
@@ -147,11 +137,11 @@ export function createErrorHandlingProxy<T extends object>(
                         if (originalError instanceof ProxiedMethodError) {
                             throw originalError;
                         }
-                        
+
                         // Collect context for the error
                         const currentUrl = page.url();
                         const argumentContext = extractArgumentContext(args);
-                        
+
                         // Build error context
                         const errorContext: Record<string, any> = {
                             className,
@@ -160,7 +150,7 @@ export function createErrorHandlingProxy<T extends object>(
                             ...argumentContext,
                             timestamp: new Date().toISOString(),
                         };
-                        
+
                         // Add user info if available
                         if (userInfo) {
                             errorContext.userInfo = {
@@ -168,7 +158,7 @@ export function createErrorHandlingProxy<T extends object>(
                                 email: userInfo.email,
                             };
                         }
-                        
+
                         // Collect page state if configured
                         if (collectState) {
                             try {
@@ -178,7 +168,7 @@ export function createErrorHandlingProxy<T extends object>(
                                 errorContext.stateCollectionError = String(stateError);
                             }
                         }
-                        
+
                         // Capture screenshot if configured
                         if (captureScreenshot) {
                             try {
@@ -190,17 +180,12 @@ export function createErrorHandlingProxy<T extends object>(
                                 errorContext.screenshotError = String(screenshotError);
                             }
                         }
-                        
+
                         // Create and throw enriched error
-                        throw new ProxiedMethodError(
-                            originalError.message || 'Unknown error',
-                            `${className}.${methodName}`,
-                            errorContext,
-                            originalError
-                        );
-                    }
+                        throw new ProxiedMethodError(originalError.message || 'Unknown error', `${className}.${methodName}`, errorContext, originalError);
+                    },
                 );
             };
-        }
+        },
     });
 }

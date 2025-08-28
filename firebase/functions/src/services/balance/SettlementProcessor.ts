@@ -30,7 +30,7 @@ export class SettlementProcessor {
                 userId: payerId,
                 owes: {},
                 owedBy: {},
-                netBalance: 0
+                netBalance: 0,
             };
         }
 
@@ -39,7 +39,7 @@ export class SettlementProcessor {
                 userId: payeeId,
                 owes: {},
                 owedBy: {},
-                netBalance: 0
+                netBalance: 0,
             };
         }
 
@@ -52,11 +52,7 @@ export class SettlementProcessor {
         this.recalculateNetBalance(userBalances[payeeId]);
     }
 
-    private processSettlementBetweenUsers(
-        payerBalance: UserBalance,
-        payeeBalance: UserBalance,
-        settlementAmount: number
-    ): void {
+    private processSettlementBetweenUsers(payerBalance: UserBalance, payeeBalance: UserBalance, settlementAmount: number): void {
         const payerId = payerBalance.userId;
         const payeeId = payeeBalance.userId;
 

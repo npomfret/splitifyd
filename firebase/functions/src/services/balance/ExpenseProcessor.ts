@@ -13,14 +13,14 @@ export class ExpenseProcessor {
             // Initialize currency balance if not exists
             if (!balancesByCurrency[expense.currency]) {
                 balancesByCurrency[expense.currency] = {};
-                
+
                 // Initialize all members for this currency
                 for (const memberId of memberIds) {
                     balancesByCurrency[expense.currency][memberId] = {
                         userId: memberId,
                         owes: {},
                         owedBy: {},
-                        netBalance: 0
+                        netBalance: 0,
                     };
                 }
             }
@@ -33,7 +33,7 @@ export class ExpenseProcessor {
 
     private processExpenseForCurrency(expense: Expense, userBalances: Record<string, UserBalance>): void {
         const payerId = expense.paidBy;
-        
+
         // Process each split in the expense
         for (const split of expense.splits) {
             const splitUserId = split.userId;
@@ -45,7 +45,7 @@ export class ExpenseProcessor {
                     userId: splitUserId,
                     owes: {},
                     owedBy: {},
-                    netBalance: 0
+                    netBalance: 0,
                 };
             }
 
@@ -54,7 +54,7 @@ export class ExpenseProcessor {
                     userId: payerId,
                     owes: {},
                     owedBy: {},
-                    netBalance: 0
+                    netBalance: 0,
                 };
             }
 
@@ -74,12 +74,7 @@ export class ExpenseProcessor {
         }
     }
 
-    private updateUserBalance(
-        userBalance: UserBalance, 
-        otherUserId: string, 
-        amount: number, 
-        type: 'owes' | 'owedBy'
-    ): void {
+    private updateUserBalance(userBalance: UserBalance, otherUserId: string, amount: number, type: 'owes' | 'owedBy'): void {
         const balanceMap = userBalance[type];
         balanceMap[otherUserId] = (balanceMap[otherUserId] || 0) + amount;
     }

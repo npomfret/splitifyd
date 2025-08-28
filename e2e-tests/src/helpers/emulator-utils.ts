@@ -1,5 +1,5 @@
-import type {Page} from '@playwright/test';
-import {getFirebaseEmulatorConfig} from '@splitifyd/test-support';
+import type { Page } from '@playwright/test';
+import { getFirebaseEmulatorConfig } from '@splitifyd/test-support';
 
 const config = getFirebaseEmulatorConfig();
 

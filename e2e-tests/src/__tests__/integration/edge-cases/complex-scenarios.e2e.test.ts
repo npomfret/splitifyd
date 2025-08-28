@@ -3,7 +3,7 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupDetailPage } from '../../../pages';
 import { JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();

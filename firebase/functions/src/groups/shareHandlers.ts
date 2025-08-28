@@ -5,7 +5,7 @@ import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import {FirestoreCollections, ShareLink, MemberRoles, MemberStatuses} from '@splitifyd/shared';
+import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 
@@ -15,28 +15,23 @@ const generateShareToken = (): string => {
     return base64url.substring(0, 16);
 };
 
-
 /**
  * Find ShareLink by token in the shareLinks subcollection
  */
 const findShareLinkByToken = async (token: string): Promise<{ groupId: string; shareLink: ShareLink }> => {
-    const groupsSnapshot = await firestoreDb.collectionGroup('shareLinks')
-        .where('token', '==', token)
-        .where('isActive', '==', true)
-        .limit(1)
-        .get();
-    
+    const groupsSnapshot = await firestoreDb.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
+
     if (groupsSnapshot.empty) {
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
     }
-    
+
     const shareLinkDoc = groupsSnapshot.docs[0];
     const groupId = shareLinkDoc.ref.parent.parent!.id;
     const shareLink: ShareLink = {
         id: shareLinkDoc.id,
-        ...shareLinkDoc.data() as Omit<ShareLink, 'id'>
+        ...(shareLinkDoc.data() as Omit<ShareLink, 'id'>),
     };
-    
+
     return { groupId, shareLink };
 };
 
@@ -86,7 +81,7 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
         const groupData = groupDoc.data()!;
 
         const group = { id: groupId, ...groupData.data };
-        
+
         if (!checkIsGroupOwner(group, userId) && !isGroupMember(group, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
@@ -103,14 +98,14 @@ export async function generateShareableLink(req: AuthenticatedRequest, res: Resp
             // Create ShareLink document in subcollection
             const shareLinksRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
             const shareLinkDoc = shareLinksRef.doc();
-            
+
             const shareLinkData: Omit<ShareLink, 'id'> = {
                 token: shareToken,
                 createdBy: userId,
                 createdAt: new Date().toISOString(),
                 isActive: true,
             };
-            
+
             transaction.set(shareLinkDoc, shareLinkData);
         });
 
@@ -151,12 +146,12 @@ export async function previewGroupByLink(req: AuthenticatedRequest, res: Respons
 
     try {
         const { groupId } = await findShareLinkByToken(linkId);
-        
+
         const groupDoc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).get();
         if (!groupDoc.exists) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
-        
+
         const groupData = groupDoc.data()!;
 
         if (!groupData.data) {
@@ -220,16 +215,16 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
             if (userId in groupData.data.members) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
             }
-            
-            // Check if user is the group owner  
+
+            // Check if user is the group owner
             const group = { id: groupId, ...groupData.data };
             if (checkIsGroupOwner(group, userId)) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
             }
-            
+
             // Calculate next theme index based on current member count
             const memberIndex = Object.keys(groupData.data.members).length;
-            
+
             // Create new member with theme assignment and invite attribution
             const newMember = {
                 role: MemberRoles.MEMBER,
@@ -238,7 +233,7 @@ export async function joinGroupByLink(req: AuthenticatedRequest, res: Response):
                 joinedAt: new Date().toISOString(),
                 invitedBy: shareLink.createdBy,
             };
-            
+
             // Add new member to members map
             const updatedMembers = {
                 ...groupData.data.members,

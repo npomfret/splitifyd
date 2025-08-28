@@ -1,11 +1,10 @@
-
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import {Group} from "@splitifyd/shared";
+import { Group } from '@splitifyd/shared';
 
 describe('API Validation Smoke Tests', () => {
     let driver: ApiDriver;
@@ -14,12 +13,8 @@ describe('API Validation Smoke Tests', () => {
 
     beforeAll(async () => {
         driver = new ApiDriver();
-        users = await Promise.all([
-            driver.createUser(new UserBuilder().build()),
-            driver.createUser(new UserBuilder().build())
-        ]);
+        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
-
 
     beforeEach(async () => {
         testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
@@ -39,12 +34,7 @@ describe('API Validation Smoke Tests', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDate(futureDate.toISOString())
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -53,12 +43,7 @@ describe('API Validation Smoke Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDate(validDate.toISOString())
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await driver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -67,12 +52,7 @@ describe('API Validation Smoke Tests', () => {
 
     describe('Category Validation - Smoke Tests', () => {
         test('should accept valid category', async () => {
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withCategory('food')
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await driver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -99,12 +79,7 @@ describe('API Validation Smoke Tests', () => {
 
     describe('String Length & Security Validation - Smoke Tests', () => {
         test('should accept valid description within limits', async () => {
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDescription('Valid description')
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Valid description').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await driver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -112,12 +87,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject description exceeding length limit', async () => {
             const longDescription = 'A'.repeat(201); // Over 200 char limit
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDescription(longDescription)
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(longDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -136,12 +106,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject XSS attempts', async () => {
             const xssDescription = '<script>alert("xss")</script>Valid content';
-            const expenseData = new ExpenseBuilder()
-                .withGroupId(testGroup.id)
-                .withDescription(xssDescription)
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid])
-                .build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(xssDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             // API should reject dangerous content rather than sanitize it
             await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);

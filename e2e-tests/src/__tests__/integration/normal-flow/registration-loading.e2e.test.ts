@@ -16,24 +16,24 @@ test.describe('Registration Loading State', () => {
 
         // Fill the registration form
         await registerPage.fillRegistrationForm(displayName, email, password);
-        
+
         // Submit the form
         await registerPage.submitForm();
-        
+
         // Check if we can see the loading spinner (might be very quick)
         // Note: This might not always be visible if registration is instant
         const spinnerVisible = await registerPage.isLoadingSpinnerVisible();
-        
+
         // Whether we saw the spinner or not, we should end up on dashboard
         await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
-        
+
         // Log whether we saw the spinner for debugging
-        test.info().annotations.push({ 
-            type: 'loading-spinner', 
-            description: spinnerVisible ? 'Spinner was visible' : 'Registration was instant (no spinner)' 
+        test.info().annotations.push({
+            type: 'loading-spinner',
+            description: spinnerVisible ? 'Spinner was visible' : 'Registration was instant (no spinner)',
         });
     });
-    
+
     test('should handle both instant and delayed registration', async ({ page, registerPage }) => {
         const email = generateTestEmail('instant-test');
         const password = DEFAULT_PASSWORD;
@@ -45,14 +45,14 @@ test.describe('Registration Loading State', () => {
 
         // Use the main register method which handles both scenarios
         await registerPage.register(displayName, email, password);
-        
+
         // Should be on dashboard
         await expect(page).toHaveURL(/\/dashboard/);
-        
+
         // Verify we're actually logged in by checking for dashboard elements
         await expect(page.getByRole('heading', { name: /welcome|your groups/i }).first()).toBeVisible({ timeout: 5000 });
     });
-    
+
     test('should disable submit button while processing', async ({ page, registerPage }) => {
         const email = generateTestEmail('disabled-test');
         const password = DEFAULT_PASSWORD;
@@ -64,25 +64,22 @@ test.describe('Registration Loading State', () => {
 
         // Fill the registration form
         await registerPage.fillRegistrationForm(displayName, email, password);
-        
+
         // Get the submit button
         const submitButton = registerPage.getSubmitButton();
-        
+
         // Verify it's enabled before submission
         await expect(submitButton).toBeEnabled();
-        
+
         // Submit the form
         await registerPage.submitForm();
-        
+
         // The button should become disabled during processing
         // This might happen very quickly, so we use a race condition
-        await Promise.race([
-            expect(submitButton).toBeDisabled({ timeout: 1000 }),
-            page.waitForURL(/\/dashboard/, { timeout: 1000 })
-        ]).catch(() => {
+        await Promise.race([expect(submitButton).toBeDisabled({ timeout: 1000 }), page.waitForURL(/\/dashboard/, { timeout: 1000 })]).catch(() => {
             // It's ok if we miss the disabled state due to instant registration
         });
-        
+
         // Eventually should redirect to dashboard
         await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     });

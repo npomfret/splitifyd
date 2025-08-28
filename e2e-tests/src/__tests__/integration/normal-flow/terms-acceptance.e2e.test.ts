@@ -1,6 +1,6 @@
 import { pageTest, expect } from '../../../fixtures';
 import { RegisterPage } from '../../../pages';
-import {DEFAULT_PASSWORD, generateTestEmail} from "../../../../../packages/test-support/test-helpers.ts";
+import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
 
 pageTest.describe('Terms and Cookie Policy Acceptance', () => {
     pageTest.beforeEach(async ({ page }) => {

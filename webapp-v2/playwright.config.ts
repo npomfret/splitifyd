@@ -13,11 +13,8 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : 4,
-    reporter: [
-        ['html', { outputFolder: 'playwright/report', open: 'never' }],
-        ['list' ]
-    ],
-    
+    reporter: [['html', { outputFolder: 'playwright/report', open: 'never' }], ['list']],
+
     use: {
         actionTimeout: 500, // 0.5 seconds for actions
         baseURL: process.env.VITE_APP_URL || 'http://localhost:5173',

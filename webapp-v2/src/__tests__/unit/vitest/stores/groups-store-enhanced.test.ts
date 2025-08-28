@@ -12,7 +12,11 @@ vi.mock('@/app/apiClient', () => ({
         removeGroupMember: vi.fn(),
     },
     ApiError: class ApiError extends Error {
-        constructor(message: string, public statusCode?: number, public code?: string) {
+        constructor(
+            message: string,
+            public statusCode?: number,
+            public code?: string,
+        ) {
             super(message);
             this.name = 'ApiError';
         }
@@ -93,10 +97,7 @@ describe('EnhancedGroupsStore - Core Functionality', () => {
 
     describe('Basic Operations', () => {
         it('should fetch and store groups', async () => {
-            const testGroups = [
-                createTestGroup({ id: 'group-1', name: 'Group 1' }),
-                createTestGroup({ id: 'group-2', name: 'Group 2' }),
-            ];
+            const testGroups = [createTestGroup({ id: 'group-1', name: 'Group 1' }), createTestGroup({ id: 'group-2', name: 'Group 2' })];
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(createTestResponse(testGroups));
 
             await enhancedGroupsStore.fetchGroups();
@@ -110,19 +111,19 @@ describe('EnhancedGroupsStore - Core Functionality', () => {
         it('should create new group and add to list', async () => {
             const existingGroups = [createTestGroup({ id: 'existing-1' })];
             const newGroup = createTestGroup({ id: 'new-group', name: 'New Group' });
-            
+
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(createTestResponse(existingGroups));
             vi.mocked(apiClient.createGroup).mockResolvedValueOnce(newGroup);
             // Mock the fetchGroups call after creation
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(createTestResponse([newGroup, ...existingGroups]));
 
             await enhancedGroupsStore.fetchGroups();
-            
+
             const createRequest: CreateGroupRequest = {
                 name: 'New Group',
                 description: 'Test description',
             };
-            
+
             const result = await enhancedGroupsStore.createGroup(createRequest);
 
             expect(result.id).toBe('new-group');
@@ -144,23 +145,21 @@ describe('EnhancedGroupsStore - Core Functionality', () => {
 
     describe('State Management', () => {
         it('should manage loading state during operations', async () => {
-            vi.mocked(apiClient.getGroups).mockImplementation(() => 
-                new Promise(resolve => setTimeout(() => resolve(createTestResponse([])), 100))
-            );
+            vi.mocked(apiClient.getGroups).mockImplementation(() => new Promise((resolve) => setTimeout(() => resolve(createTestResponse([])), 100)));
 
             const fetchPromise = enhancedGroupsStore.fetchGroups();
-            
+
             expect(enhancedGroupsStore.loading).toBe(true);
-            
+
             await fetchPromise;
-            
+
             expect(enhancedGroupsStore.loading).toBe(false);
         });
 
         it('should reset state completely', async () => {
             const testGroups = [createTestGroup()];
             vi.mocked(apiClient.getGroups).mockResolvedValueOnce(createTestResponse(testGroups));
-            
+
             await enhancedGroupsStore.fetchGroups();
 
             expect(enhancedGroupsStore.groups).toHaveLength(1);

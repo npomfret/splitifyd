@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@splitifyd/shared';
-import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: "json" };
+import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class LoginPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {
@@ -143,8 +143,10 @@ export class LoginPage extends BasePage {
      */
     getFormField(fieldType: 'email' | 'password'): Locator {
         switch (fieldType) {
-            case 'email': return this.getEmailInput();
-            case 'password': return this.getPasswordInput();
+            case 'email':
+                return this.getEmailInput();
+            case 'password':
+                return this.getPasswordInput();
         }
     }
 

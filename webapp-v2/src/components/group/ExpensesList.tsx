@@ -15,17 +15,12 @@ interface ExpensesListProps {
     onShowDeletedChange?: (show: boolean) => void;
 }
 
-export function ExpensesList({
-    onExpenseClick,
-    onExpenseCopy,
-    showDeletedExpenses = false,
-    onShowDeletedChange,
-}: ExpensesListProps) {
+export function ExpensesList({ onExpenseClick, onExpenseCopy, showDeletedExpenses = false, onShowDeletedChange }: ExpensesListProps) {
     const { t } = useTranslation();
-    
+
     // Auth store via hook
     const authStore = useAuthRequired();
-    
+
     // Fetch data directly from stores
     const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
     const members = useComputed(() => enhancedGroupDetailStore.members);
@@ -33,15 +28,13 @@ export function ExpensesList({
     const loading = useComputed(() => enhancedGroupDetailStore.loadingExpenses);
     const group = useComputed(() => enhancedGroupDetailStore.group);
     const currentUser = useComputed(() => authStore.user);
-    
-    const isGroupOwner = useComputed(() => 
-        currentUser.value && group.value && group.value.createdBy === currentUser.value.uid
-    );
-    
+
+    const isGroupOwner = useComputed(() => currentUser.value && group.value && group.value.createdBy === currentUser.value.uid);
+
     const handleLoadMore = () => {
         enhancedGroupDetailStore.loadMoreExpenses();
     };
-    
+
     return (
         <Card className="p-6">
             <div className="flex justify-between items-center mb-4">

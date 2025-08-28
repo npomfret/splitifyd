@@ -6,10 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../utils/errors';
 import { createServerTimestamp } from '../utils/dateHelpers';
-import { 
-    validateAcceptPolicy, 
-    validateAcceptMultiplePolicies
-} from './validation';
+import { validateAcceptPolicy, validateAcceptMultiplePolicies } from './validation';
 
 interface PolicyAcceptanceStatus {
     policyId: string;
@@ -139,9 +136,9 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
         batch.update(userDocRef, updateData);
         await batch.commit();
 
-        logger.info('policies-accepted', { 
-            ids: acceptances.map((a) => a.policyId).join(','), 
-            userId 
+        logger.info('policies-accepted', {
+            ids: acceptances.map((a) => a.policyId).join(','),
+            userId,
         });
 
         res.status(HTTP_STATUS.OK).json({

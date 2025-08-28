@@ -449,146 +449,131 @@ class PermissionSync {
 ## Implementation Plan
 
 ### Phase 1: Core Permission Framework (Week 1-2) ✅ COMPLETED
+
 **Goal**: Establish foundation with Open Collaboration preset
 
 **Backend Tasks**:
+
 1. **Database Schema Migration** (`firebase/functions/src/migrations/`) ✅ COMPLETED
-   - ✅ Create migration script for existing groups → Open Collaboration preset
-   - ✅ Add new fields to Group interface in `shared/shared-types.ts`
-   - Update group validation schemas in `groups/validation.ts` (pending)
+    - ✅ Create migration script for existing groups → Open Collaboration preset
+    - ✅ Add new fields to Group interface in `shared/shared-types.ts`
+    - Update group validation schemas in `groups/validation.ts` (pending)
 
 2. **Permission System Core** (`firebase/functions/src/permissions/`) ✅ COMPLETED
-   - ✅ Create `PermissionEngine` class with role/permission checking logic
-   - ✅ Implement `checkPermission()` function for expense operations
-   - ✅ Add `PermissionCache` class with TTL-based caching
-   - ✅ Create permission constants and types
+    - ✅ Create `PermissionEngine` class with role/permission checking logic
+    - ✅ Implement `checkPermission()` function for expense operations
+    - ✅ Add `PermissionCache` class with TTL-based caching
+    - ✅ Create permission constants and types
 
 3. **Update Expense Handlers** (`firebase/functions/src/expenses/handlers.ts`) ✅ COMPLETED
-   - ✅ Integrate permission checks in `updateExpense` (lines ~243-248)
-   - ✅ Integrate permission checks in `deleteExpense` (lines ~424-430)
-   - ✅ Add permission validation to `createExpense`
+    - ✅ Integrate permission checks in `updateExpense` (lines ~243-248)
+    - ✅ Integrate permission checks in `deleteExpense` (lines ~424-430)
+    - ✅ Add permission validation to `createExpense`
 
-**Frontend Tasks**:
-4. **Shared Types** (`firebase/functions/src/shared/shared-types.ts`) ✅ COMPLETED
-   - ✅ Add Group security interfaces
-   - ✅ Add Permission enums and types
-   - ✅ Export for frontend consumption via `@shared`
+**Frontend Tasks**: 4. **Shared Types** (`firebase/functions/src/shared/shared-types.ts`) ✅ COMPLETED
+
+- ✅ Add Group security interfaces
+- ✅ Add Permission enums and types
+- ✅ Export for frontend consumption via `@shared`
 
 5. **Permission Store** (`webapp-v2/src/stores/permissions-store.ts`) ✅ COMPLETED
-   - ✅ Create reactive store for user permissions
-   - ✅ Implement real-time permission sync
-   - ✅ Cache permissions with invalidation
+    - ✅ Create reactive store for user permissions
+    - ✅ Implement real-time permission sync
+    - ✅ Cache permissions with invalidation
 
-**Testing**:
-6. **Unit Tests** (`firebase/functions/src/__tests__/unit/`) ✅ COMPLETED
-   - ✅ Permission engine logic tests
-   - ✅ Cache behavior tests
-   - Migration script tests (pending)
+**Testing**: 6. **Unit Tests** (`firebase/functions/src/__tests__/unit/`) ✅ COMPLETED
+
+- ✅ Permission engine logic tests
+- ✅ Cache behavior tests
+- Migration script tests (pending)
 
 7. **Integration Tests** (`firebase/functions/src/__tests__/integration/`)
-   - Expense CRUD with permission checks (pending)
-   - Group creation with default permissions (pending)
-   - Permission inheritance tests (pending)
+    - Expense CRUD with permission checks (pending)
+    - Group creation with default permissions (pending)
+    - Permission inheritance tests (pending)
 
-**Remaining Tasks**:
-8. **Fix TypeScript Compilation Errors** ✅ COMPLETED
-   - ✅ Update existing test builders to use new MemberRole types
-   - ✅ Fix type mismatches between legacy "owner"/"member" and new role system
-   - ✅ Update group helpers to use new permission system
-   - ✅ Resolve balance calculation type conflicts
+**Remaining Tasks**: 8. **Fix TypeScript Compilation Errors** ✅ COMPLETED
+
+- ✅ Update existing test builders to use new MemberRole types
+- ✅ Fix type mismatches between legacy "owner"/"member" and new role system
+- ✅ Update group helpers to use new permission system
+- ✅ Resolve balance calculation type conflicts
 
 ### Phase 2: Managed Group Preset (Week 3-4) ⚠️ PARTIALLY COMPLETE
+
 **Goal**: Add role-based permissions and admin approval
 
-**Backend Tasks**:
-8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`) ⚠️ UNCLEAR STATUS
-   - ⚠️ `applySecurityPreset(groupId, preset)` endpoint - **ApiDriver method exists, backend implementation status unclear**
-   - ⚠️ `setMemberRole(groupId, targetUserId, role)` with last admin protection - **ApiDriver method exists, tests pass**
-   - ❌ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)` - **ApiDriver methods exist, endpoints return 404**
-   - ❌ `getPendingMembers(groupId)` endpoint - **ApiDriver method exists, endpoint returns 404**
+**Backend Tasks**: 8. **Group Management Handlers** (`firebase/functions/src/groups/handlers.ts`) ⚠️ UNCLEAR STATUS
+
+- ⚠️ `applySecurityPreset(groupId, preset)` endpoint - **ApiDriver method exists, backend implementation status unclear**
+- ⚠️ `setMemberRole(groupId, targetUserId, role)` with last admin protection - **ApiDriver method exists, tests pass**
+- ❌ `approveMember(groupId, userId)` and `rejectMember(groupId, userId)` - **ApiDriver methods exist, endpoints return 404**
+- ❌ `getPendingMembers(groupId)` endpoint - **ApiDriver method exists, endpoint returns 404**
 
 9. **Invite System** (`firebase/functions/src/invites/`) ❌ NOT STARTED
-   - `createInviteLink(groupId, options)` with expiry/usage limits
-   - Update join flow to handle pending status
-   - Auto-cleanup of expired pending members (7-day job)
+    - `createInviteLink(groupId, options)` with expiry/usage limits
+    - Update join flow to handle pending status
+    - Auto-cleanup of expired pending members (7-day job)
 
-**Frontend Tasks**:
-10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`) ❌ NOT STARTED
-    - Preset selection buttons with descriptions
-    - Custom permission toggles
-    - Member role management interface
-    - Pending members approval interface
+**Frontend Tasks**: 10. **Security Settings UI** (`webapp-v2/src/components/group/SecuritySettings.tsx`) ❌ NOT STARTED - Preset selection buttons with descriptions - Custom permission toggles - Member role management interface - Pending members approval interface
 
 11. **Permission-Aware Components** ❌ NOT STARTED
     - Update expense list/forms to show/hide edit/delete based on permissions
     - Add permission tooltips explaining restrictions
     - Update member invitation flow for managed groups
 
-**Testing**:
-12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED
-    - ✅ Admin vs member permission boundaries - **4 tests passing for security presets and role changes**
-    - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted**
-    - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)**
-    - ❌ Invite link expiry and usage limits - **Not tested**
+**Testing**: 12. **Role-based Permission Tests** ✅ PARTIALLY IMPLEMENTED - ✅ Admin vs member permission boundaries - **4 tests passing for security presets and role changes** - ✅ Last admin protection scenarios - **Test verifies last admin cannot be demoted** - ⚠️ Pending member approval workflow - **Tests written but commented out (endpoints don't exist)** - ❌ Invite link expiry and usage limits - **Not tested**
 
 **Current Changeset Analysis (2025-08-27):**
 
 **✅ Completed in this changeset:**
+
 1. **System Role Renaming**: Changed `UserRoles.ADMIN/USER` → `SystemUserRoles.SYSTEM_ADMIN/SYSTEM_USER`
-2. **Type System Improvements**: 
-   - Fixed User interface to use `SystemUserRole` instead of incorrectly using `MemberRole`
-   - Added backward compatibility alias `UserRoles = SystemUserRoles`
-   - Clear separation between system-level roles (app admin) and group-level roles (group admin/member/viewer)
+2. **Type System Improvements**:
+    - Fixed User interface to use `SystemUserRole` instead of incorrectly using `MemberRole`
+    - Added backward compatibility alias `UserRoles = SystemUserRoles`
+    - Clear separation between system-level roles (app admin) and group-level roles (group admin/member/viewer)
 3. **Test Infrastructure**:
-   - Added 6 new ApiDriver methods for security management
-   - Created integration tests verifying security preset application and role management
-   - Tests confirm permission boundaries work (admins can change settings, members cannot)
+    - Added 6 new ApiDriver methods for security management
+    - Created integration tests verifying security preset application and role management
+    - Tests confirm permission boundaries work (admins can change settings, members cannot)
 
 **⚠️ Key Findings:**
+
 1. **Security preset tests PASS** - Admin can apply presets, members get 403
 2. **Member role tests PASS** - Admin can change roles, members get 403, last admin protected
 3. **Pending member tests FAIL** - Endpoints return 404 (not implemented)
 4. **Type confusion fixed** - User.role now correctly typed as SystemUserRole
 
 **Next Steps Required:**
+
 1. Verify backend handler implementations for security preset and role management
 2. Implement pending member approval endpoints (currently missing)
 3. Build frontend UI components for security management
 4. Implement invite system with expiry/usage limits
 
 ### Phase 3: Advanced Features (Week 5-6)
+
 **Goal**: Complete the full feature set
 
-**Backend Tasks**:
-13. **Audit System** (`firebase/functions/src/audit/`)
-    - `getPermissionHistory(groupId)` endpoint
-    - Permission change logging middleware
-    - Audit log retention policies (90 days)
+**Backend Tasks**: 13. **Audit System** (`firebase/functions/src/audit/`) - `getPermissionHistory(groupId)` endpoint - Permission change logging middleware - Audit log retention policies (90 days)
 
 14. **Rate Limiting** (`firebase/functions/src/middleware/`)
     - Permission change rate limiting (10/minute per group)
     - Optimistic locking for concurrent changes
 
-**Frontend Tasks**:
-15. **Advanced UI Features**
-    - Permission history viewer
-    - Permission simulator showing role capabilities  
-    - Batch member role changes
-    - Real-time permission change notifications
+**Frontend Tasks**: 15. **Advanced UI Features** - Permission history viewer - Permission simulator showing role capabilities  
+ - Batch member role changes - Real-time permission change notifications
 
 16. **UX Enhancements**
     - Confirmation dialogs for permission downgrades
     - Visual indicators when permissions deviate from preset
     - Progressive disclosure of advanced options
 
-**Testing**:
-17. **E2E Tests** (`e2e-tests/src/tests/`)
-    - Complete user journeys for both presets
-    - Multi-user permission scenarios
-    - Real-time permission updates across sessions
-    - Edge cases and error conditions
+**Testing**: 17. **E2E Tests** (`e2e-tests/src/tests/`) - Complete user journeys for both presets - Multi-user permission scenarios - Real-time permission updates across sessions - Edge cases and error conditions
 
 ### Phase 4: Production Readiness (Week 7)
+
 **Goal**: Deploy-ready with monitoring and documentation
 
 18. **Feature Flags** (`firebase/functions/src/config/`)

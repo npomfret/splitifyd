@@ -1,14 +1,14 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2020",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "types": ["node"],
-        "moduleResolution": "node"
-    },
-    "include": ["*.ts"]
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "moduleResolution": "node"
+  },
+  "include": ["*.ts"]
 }

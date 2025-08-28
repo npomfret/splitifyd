@@ -5,12 +5,7 @@ import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group } from '../types/group-types';
-import {
-    GroupFullDetails,
-    SecurityPresets,
-    MemberRoles,
-    MemberStatuses,
-} from '@splitifyd/shared';
+import { GroupFullDetails, SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { PermissionEngine } from '../permissions';
 import { calculateGroupBalances } from '../services/balance';
@@ -23,45 +18,54 @@ import { z } from 'zod';
 /**
  * Zod schemas for group document validation
  */
-const GroupMemberSchema = z.object({
-    role: z.nativeEnum(MemberRoles),
-    status: z.nativeEnum(MemberStatuses),
-    joinedAt: z.any(), // Firestore Timestamp
-    invitedBy: z.string().optional(),
-    invitedAt: z.any().optional(), // Firestore Timestamp
-    color: z.object({
-        light: z.string(),
-        dark: z.string(),
-        name: z.string(),
-        pattern: z.string(),
-        assignedAt: z.string(),
-        colorIndex: z.number(),
-    }).optional(),
-}).passthrough();
+const GroupMemberSchema = z
+    .object({
+        role: z.nativeEnum(MemberRoles),
+        status: z.nativeEnum(MemberStatuses),
+        joinedAt: z.any(), // Firestore Timestamp
+        invitedBy: z.string().optional(),
+        invitedAt: z.any().optional(), // Firestore Timestamp
+        color: z
+            .object({
+                light: z.string(),
+                dark: z.string(),
+                name: z.string(),
+                pattern: z.string(),
+                assignedAt: z.string(),
+                colorIndex: z.number(),
+            })
+            .optional(),
+    })
+    .passthrough();
 
-const GroupDataSchema = z.object({
-    name: z.string().min(1),
-    description: z.string().optional(),
-    createdBy: z.string().min(1),
-    members: z.record(z.string(), GroupMemberSchema),
-    securityPreset: z.nativeEnum(SecurityPresets).optional(),
-    permissions: z.object({
-        expenseEditing: z.string(),
-        expenseDeletion: z.string(),
-        memberInvitation: z.string(),
-        memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
-        settingsManagement: z.string(),
-    }).passthrough().optional(), // Allow extra fields like settlementCreation, memberManagement, groupManagement
-    presetAppliedAt: z.any().optional(), // Firestore Timestamp
-}).passthrough();
+const GroupDataSchema = z
+    .object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        createdBy: z.string().min(1),
+        members: z.record(z.string(), GroupMemberSchema),
+        securityPreset: z.nativeEnum(SecurityPresets).optional(),
+        permissions: z
+            .object({
+                expenseEditing: z.string(),
+                expenseDeletion: z.string(),
+                memberInvitation: z.string(),
+                memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
+                settingsManagement: z.string(),
+            })
+            .passthrough()
+            .optional(), // Allow extra fields like settlementCreation, memberManagement, groupManagement
+        presetAppliedAt: z.any().optional(), // Firestore Timestamp
+    })
+    .passthrough();
 
-export const GroupDocumentSchema = z.object({
-    data: GroupDataSchema,
-    createdAt: z.any(), // Firestore Timestamp
-    updatedAt: z.any(), // Firestore Timestamp
-}).passthrough();
-
-
+export const GroupDocumentSchema = z
+    .object({
+        data: GroupDataSchema,
+        createdAt: z.any(), // Firestore Timestamp
+        updatedAt: z.any(), // Firestore Timestamp
+    })
+    .passthrough();
 
 /**
  * Transform Firestore document to Group format
@@ -77,9 +81,9 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
     try {
         data = GroupDocumentSchema.parse(rawData);
     } catch (error) {
-        logger.error('Invalid group document structure', error as Error, { 
-            groupId: doc.id, 
-            validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+        logger.error('Invalid group document structure', error as Error, {
+            groupId: doc.id,
+            validationErrors: error instanceof z.ZodError ? error.issues : undefined,
         });
         throw new Error('Group data is corrupted');
     }
@@ -91,7 +95,7 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
     for (const [userId, member] of Object.entries(groupData.members)) {
         const memberData = member as any;
         transformedMembers[userId] = {
-            ...memberData
+            ...memberData,
         };
     }
 
@@ -111,11 +115,9 @@ export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): G
         // Permission system fields - guaranteed to be present
         securityPreset,
         permissions: permissions as any, // Cast to any since extra fields are allowed and will be handled by permission engine
-        presetAppliedAt: groupData.presetAppliedAt
+        presetAppliedAt: groupData.presetAppliedAt,
     };
 };
-
-
 
 /**
  * Create a new group
@@ -170,7 +172,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
     // Use GroupService to update the group
     const response = await groupService.updateGroup(groupId, userId, sanitizedUpdates);
-    
+
     res.json(response);
 };
 
@@ -186,10 +188,9 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
 
     // Use GroupService to delete the group
     const response = await groupService.deleteGroup(groupId, userId);
-    
+
     res.json(response);
 };
-
 
 /**
  * List all groups for the authenticated user
@@ -259,7 +260,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
             // Get expenses using extracted function with pagination
             _getGroupExpensesData(groupId, {
                 limit: expenseLimit,
-                cursor: expenseCursor
+                cursor: expenseCursor,
             }),
 
             // Get balances using existing calculator
@@ -268,8 +269,8 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
             // Get settlements using extracted function with pagination
             _getGroupSettlementsData(groupId, {
                 limit: settlementLimit,
-                cursor: settlementCursor
-            })
+                cursor: settlementCursor,
+            }),
         ]);
 
         // Construct response using existing patterns
@@ -278,7 +279,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
             members: membersData,
             expenses: expensesData,
             balances: balancesData as any, // Type conversion - GroupBalance from models matches GroupBalances structure
-            settlements: settlementsData
+            settlements: settlementsData,
         };
 
         res.json(response);

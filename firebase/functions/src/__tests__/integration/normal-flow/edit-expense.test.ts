@@ -1,4 +1,3 @@
-
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
@@ -26,7 +25,6 @@ describe('Edit Expense Integration Tests', () => {
         const groupName = `Edit Expense Test ${uuidv4()}`;
         testGroup = await driver.createGroupWithMembers(groupName, users, users[0].token);
     });
-
 
     describe('Expense Editing', () => {
         test('should allow expense creator to edit their expense', async () => {
@@ -93,10 +91,15 @@ describe('Edit Expense Integration Tests', () => {
 
         test('should prevent non-creator/non-owner from editing expense', async () => {
             // Switch group to MANAGED preset to enforce strict permissions
-            await driver.apiRequest(`/groups/${testGroup.id}/security/preset`, 'POST', {
-                preset: 'managed'
-            }, users[0].token);
-            
+            await driver.apiRequest(
+                `/groups/${testGroup.id}/security/preset`,
+                'POST',
+                {
+                    preset: 'managed',
+                },
+                users[0].token,
+            );
+
             // Create expense by user 0
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
@@ -109,13 +112,7 @@ describe('Edit Expense Integration Tests', () => {
             const createdExpense = await driver.createExpense(expenseData, users[0].token);
 
             // User 1 (not creator, not owner) should not be able to edit
-            await expect(
-                driver.updateExpense(
-                    createdExpense.id, 
-                    new ExpenseUpdateBuilder().withAmount(200).build(), 
-                    users[1].token
-                )
-            ).rejects.toThrow(/failed with status 403/);
+            await expect(driver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(200).build(), users[1].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('should track edit history when expense is updated', async () => {
@@ -244,19 +241,19 @@ describe('Edit Expense Integration Tests', () => {
 
             // With optimistic locking, one should succeed and one might fail
             const results = await Promise.allSettled([update1, update2]);
-            
-            const successes = results.filter(r => r.status === 'fulfilled');
-            const failures = results.filter(r => r.status === 'rejected');
+
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
             // Check for CONCURRENT_UPDATE in error message since the error structure varies
-            const conflicts = results.filter(r => 
-                r.status === 'rejected' && 
-                (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' ||
-                 r.reason?.message?.includes('CONCURRENT_UPDATE') ||
-                 r.reason?.message?.includes('409')));
-            
+            const conflicts = results.filter(
+                (r) =>
+                    r.status === 'rejected' &&
+                    (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' || r.reason?.message?.includes('CONCURRENT_UPDATE') || r.reason?.message?.includes('409')),
+            );
+
             // At least one should succeed
             expect(successes.length).toBeGreaterThan(0);
-            
+
             // Both might succeed due to Firestore's automatic retry
             // Or one might fail with CONCURRENT_UPDATE
             // This is acceptable behavior
@@ -283,31 +280,13 @@ describe('Edit Expense Integration Tests', () => {
             const createdExpense = await driver.createExpense(expenseData, users[0].token);
 
             // Test invalid amount
-            await expect(
-                driver.updateExpense(
-                    createdExpense.id, 
-                    new ExpenseUpdateBuilder().withAmount(-50).build(), 
-                    users[0].token
-                )
-            ).rejects.toThrow();
+            await expect(driver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(-50).build(), users[0].token)).rejects.toThrow();
 
             // Test invalid date
-            await expect(
-                driver.updateExpense(
-                    createdExpense.id, 
-                    new ExpenseUpdateBuilder().withDate('invalid-date').build(), 
-                    users[0].token
-                )
-            ).rejects.toThrow();
+            await expect(driver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDate('invalid-date').build(), users[0].token)).rejects.toThrow();
 
             // Test empty description
-            await expect(
-                driver.updateExpense(
-                    createdExpense.id, 
-                    new ExpenseUpdateBuilder().withDescription('').build(), 
-                    users[0].token
-                )
-            ).rejects.toThrow();
+            await expect(driver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDescription('').build(), users[0].token)).rejects.toThrow();
         });
 
         test('should handle partial updates correctly', async () => {

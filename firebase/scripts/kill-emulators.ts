@@ -45,10 +45,10 @@ ports.forEach((port) => {
         if (result.trim()) {
             const pids = result.trim().split('\n');
             execSync(`kill -9 ${result.trim()}`, { stdio: 'ignore' });
-            
+
             // Wait a moment for the process to die
             execSync('sleep 0.5', { stdio: 'ignore' });
-            
+
             // Verify the port is now free
             try {
                 const checkResult: string = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' }) as string;
@@ -102,12 +102,12 @@ if (allPortsFree) {
 } else {
     logger.error(`❌ Failed to free ports: ${stillInUse.join(', ')}`);
     logger.error('You may need to manually kill these processes or use sudo');
-    
+
     // Try to provide helpful info about the stubborn processes
     stillInUse.forEach((port) => {
         try {
             const pids = execSync(`lsof -ti:${port}`, { stdio: 'pipe', encoding: 'utf8' }).toString().trim();
-            pids.split('\n').forEach(pid => {
+            pids.split('\n').forEach((pid) => {
                 try {
                     const processInfo = execSync(`ps -p ${pid} -o comm=`, { stdio: 'pipe', encoding: 'utf8' }).toString().trim();
                     logger.error(`  Port ${port}: PID ${pid} (${processInfo})`);
@@ -115,6 +115,6 @@ if (allPortsFree) {
             });
         } catch {}
     });
-    
+
     process.exit(1);
 }

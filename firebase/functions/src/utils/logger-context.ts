@@ -9,21 +9,21 @@ export interface LogContext {
     requestId?: string;
     requestPath?: string;
     requestMethod?: string;
-    
-    // User context  
+
+    // User context
     userId?: string;
     userEmail?: string;
     userRole?: string;
-    
+
     // Business context
     groupId?: string;
     expenseId?: string;
     settlementId?: string;
-    
+
     // Operation context
     operation?: string;
     service?: string;
-    
+
     // Custom fields
     [key: string]: any;
 }
@@ -46,7 +46,7 @@ export class LoggerContext {
     static run<T>(context: LogContext, fn: () => T): T {
         return asyncLocalStorage.run(context, fn);
     }
-    
+
     /**
      * Get the current logging context
      * Returns empty object if no context is set
@@ -54,7 +54,7 @@ export class LoggerContext {
     static get(): LogContext {
         return asyncLocalStorage.getStore() || {};
     }
-    
+
     /**
      * Update the current logging context with new fields
      * Merges with existing context
@@ -66,7 +66,7 @@ export class LoggerContext {
             Object.assign(store, updates);
         }
     }
-    
+
     /**
      * Add user context to the current logging context
      * Typically called after authentication
@@ -78,18 +78,14 @@ export class LoggerContext {
             userRole: role,
         });
     }
-    
+
     /**
      * Add business entity context
      */
-    static setBusinessContext(context: {
-        groupId?: string;
-        expenseId?: string;
-        settlementId?: string;
-    }): void {
+    static setBusinessContext(context: { groupId?: string; expenseId?: string; settlementId?: string }): void {
         this.update(context);
     }
-    
+
     /**
      * Create a child context with additional fields
      * Useful for services that want to add their own context
@@ -98,19 +94,19 @@ export class LoggerContext {
         const current = this.get();
         return { ...current, ...additionalContext };
     }
-    
+
     /**
      * Clear specific fields from the context
      */
     static clear(...fields: (keyof LogContext)[]): void {
         const store = asyncLocalStorage.getStore();
         if (store) {
-            fields.forEach(field => {
+            fields.forEach((field) => {
                 delete store[field];
             });
         }
     }
-    
+
     /**
      * Check if we're running within a context
      */

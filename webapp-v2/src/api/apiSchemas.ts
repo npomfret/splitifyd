@@ -95,13 +95,15 @@ export const GroupSchema = z.object({
 
     // Security configuration for permission system
     securityPreset: z.enum(['open', 'managed']).optional(),
-    permissions: z.object({
-        expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
-        expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
-        memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
-        memberApproval: z.enum(['automatic', 'admin-required']).optional(),
-        settingsManagement: z.enum(['anyone', 'admin-only']).optional(),
-    }).optional(),
+    permissions: z
+        .object({
+            expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            expenseDeletion: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),
+            memberInvitation: z.enum(['anyone', 'admin-only']).optional(),
+            memberApproval: z.enum(['automatic', 'admin-required']).optional(),
+            settingsManagement: z.enum(['anyone', 'admin-only']).optional(),
+        })
+        .optional(),
 
     // Optional fields for detail view
     createdBy: z.string().optional(),

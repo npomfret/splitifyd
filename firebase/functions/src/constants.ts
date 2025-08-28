@@ -32,7 +32,6 @@ export const VALIDATION_LIMITS = {
     MAX_GROUP_MEMBERS: 50,
 } as const;
 
-
 // Document Configuration
 export const DOCUMENT_CONFIG = {
     LIST_LIMIT: 100,

@@ -1,13 +1,5 @@
 import { PermissionEngine } from '../../permissions/permission-engine';
-import { 
-    Group, 
-    GroupMember, 
-    ExpenseData, 
-    SecurityPresets, 
-    MemberRoles, 
-    MemberStatuses,
-    PermissionLevels 
-} from '@splitifyd/shared';
+import { Group, GroupMember, ExpenseData, SecurityPresets, MemberRoles, MemberStatuses, PermissionLevels } from '@splitifyd/shared';
 
 describe('PermissionEngine', () => {
     // Test data builders
@@ -22,8 +14,8 @@ describe('PermissionEngine', () => {
         presetAppliedAt: '2023-01-01T00:00:00.000Z',
         permissions: {
             ...PermissionEngine.getDefaultPermissions(preset),
-            ...customPermissions
-        }
+            ...customPermissions,
+        },
     });
 
     const createMember = (role: any = MemberRoles.MEMBER, status: any = MemberStatuses.ACTIVE): GroupMember => ({
@@ -55,7 +47,7 @@ describe('PermissionEngine', () => {
     describe('getDefaultPermissions', () => {
         it('should return open collaboration permissions', () => {
             const permissions = PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN);
-            
+
             expect(permissions).toEqual({
                 expenseEditing: PermissionLevels.ANYONE,
                 expenseDeletion: PermissionLevels.ANYONE,
@@ -67,7 +59,7 @@ describe('PermissionEngine', () => {
 
         it('should return managed group permissions', () => {
             const permissions = PermissionEngine.getDefaultPermissions(SecurityPresets.MANAGED);
-            
+
             expect(permissions).toEqual({
                 expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
                 expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
@@ -149,10 +141,10 @@ describe('PermissionEngine', () => {
 
         it('should only allow admins to edit any expense', () => {
             const expense = createExpense('user-1');
-            
+
             const memberCanEdit = PermissionEngine.checkPermission(group, 'user-1', 'expenseEditing', { expense });
             const adminCanEdit = PermissionEngine.checkPermission(group, 'user-admin', 'expenseEditing', { expense });
-            
+
             expect(memberCanEdit).toBe(true); // Owner can edit their own expense
             expect(adminCanEdit).toBe(true);
         });
@@ -172,7 +164,7 @@ describe('PermissionEngine', () => {
         it('should only allow admins to invite members', () => {
             const memberCanInvite = PermissionEngine.checkPermission(group, 'user-1', 'memberInvitation');
             const adminCanInvite = PermissionEngine.checkPermission(group, 'user-admin', 'memberInvitation');
-            
+
             expect(memberCanInvite).toBe(false);
             expect(adminCanInvite).toBe(true);
         });
@@ -180,7 +172,7 @@ describe('PermissionEngine', () => {
         it('should only allow admins to manage settings', () => {
             const memberCanManage = PermissionEngine.checkPermission(group, 'user-1', 'settingsManagement');
             const adminCanManage = PermissionEngine.checkPermission(group, 'user-admin', 'settingsManagement');
-            
+
             expect(memberCanManage).toBe(false);
             expect(adminCanManage).toBe(true);
         });
@@ -263,7 +255,7 @@ describe('PermissionEngine', () => {
 
             expect(permissions).toEqual({
                 canEditAnyExpense: true, // Members can create and edit their own expenses
-                canDeleteAnyExpense: true, // Members can create and delete their own expenses  
+                canDeleteAnyExpense: true, // Members can create and delete their own expenses
                 canInviteMembers: false,
                 canManageSettings: false,
                 canApproveMembers: false,
@@ -273,7 +265,7 @@ describe('PermissionEngine', () => {
 
         it('should return no permissions for non-member', () => {
             const group = createGroup(SecurityPresets.OPEN);
-            
+
             const permissions = PermissionEngine.getUserPermissions(group, 'non-member');
 
             expect(permissions).toEqual({

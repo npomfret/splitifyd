@@ -77,14 +77,7 @@ function buildConfig(): ClientConfig {
 
     // Validate required production variables
     if (isProduction) {
-        const requiredVars = [
-            'GCLOUD_PROJECT',
-            'CLIENT_API_KEY',
-            'CLIENT_AUTH_DOMAIN',
-            'CLIENT_STORAGE_BUCKET',
-            'CLIENT_MESSAGING_SENDER_ID',
-            'CLIENT_APP_ID'
-        ];
+        const requiredVars = ['GCLOUD_PROJECT', 'CLIENT_API_KEY', 'CLIENT_AUTH_DOMAIN', 'CLIENT_STORAGE_BUCKET', 'CLIENT_MESSAGING_SENDER_ID', 'CLIENT_APP_ID'];
 
         const missing = requiredVars.filter((key) => !env[key as keyof typeof env]);
         if (missing.length > 0) {
@@ -179,7 +172,8 @@ function buildAppConfiguration(): AppConfiguration {
         measurementId: '',
     };
 
-    const firebase: FirebaseConfig = config.isProduction ? {
+    const firebase: FirebaseConfig = config.isProduction
+        ? {
               apiKey: env.CLIENT_API_KEY!,
               authDomain: env.CLIENT_AUTH_DOMAIN!,
               projectId,
@@ -187,7 +181,8 @@ function buildAppConfiguration(): AppConfiguration {
               messagingSenderId: env.CLIENT_MESSAGING_SENDER_ID!,
               appId: env.CLIENT_APP_ID!,
               measurementId: env.CLIENT_MEASUREMENT_ID,
-          } : MINIMAL_EMULATOR_CLIENT_CONFIG;
+          }
+        : MINIMAL_EMULATOR_CLIENT_CONFIG;
 
     // Validate required fields in production
     if (config.isProduction && (!firebase.apiKey || !firebase.authDomain || !firebase.storageBucket || !firebase.messagingSenderId || !firebase.appId)) {

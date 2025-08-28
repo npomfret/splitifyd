@@ -2,7 +2,7 @@
 
 /**
  * Conditional build script for Firebase Functions
- * 
+ *
  * This script runs the production build only when NODE_ENV=production.
  * During local development, it creates a wrapper that uses tsx to run TypeScript directly.
  */
@@ -15,13 +15,13 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
     require('child_process').execSync('npm run build:prod', { stdio: 'inherit' });
 } else {
     console.log('⚡ Setting up development mode (using tsx for direct TypeScript execution)');
-    
+
     // Ensure lib directory exists
     const libDir = path.join(__dirname, '..', 'lib');
     if (!fs.existsSync(libDir)) {
         fs.mkdirSync(libDir, { recursive: true });
     }
-    
+
     // Create the wrapper file
     const wrapperContent = `#!/usr/bin/env node
 
@@ -37,7 +37,7 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
 require('tsx');
 module.exports = require('../src/index.ts');
 `;
-    
+
     fs.writeFileSync(path.join(libDir, 'index.js'), wrapperContent);
     console.log('✅ Created lib/index.js wrapper for tsx execution');
 }

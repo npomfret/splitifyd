@@ -7,22 +7,14 @@ import { sanitizeString } from '../utils/security';
  * Schema for accept single policy request
  */
 const acceptPolicySchema = Joi.object({
-    policyId: Joi.string()
-        .trim()
-        .min(1)
-        .required()
-        .messages({
-            'string.empty': 'Policy ID is required',
-            'any.required': 'Policy ID is required',
-        }),
-    versionHash: Joi.string()
-        .trim()
-        .min(1)
-        .required()
-        .messages({
-            'string.empty': 'Version hash is required',
-            'any.required': 'Version hash is required',
-        }),
+    policyId: Joi.string().trim().min(1).required().messages({
+        'string.empty': 'Policy ID is required',
+        'any.required': 'Policy ID is required',
+    }),
+    versionHash: Joi.string().trim().min(1).required().messages({
+        'string.empty': 'Version hash is required',
+        'any.required': 'Version hash is required',
+    }),
 }).required();
 
 /**
@@ -37,14 +29,10 @@ const policyAcceptanceItemSchema = Joi.object({
  * Schema for accept multiple policies request
  */
 const acceptMultiplePoliciesSchema = Joi.object({
-    acceptances: Joi.array()
-        .items(policyAcceptanceItemSchema)
-        .min(1)
-        .required()
-        .messages({
-            'array.min': 'At least one policy acceptance is required',
-            'any.required': 'Acceptances array is required',
-        }),
+    acceptances: Joi.array().items(policyAcceptanceItemSchema).min(1).required().messages({
+        'array.min': 'At least one policy acceptance is required',
+        'any.required': 'Acceptances array is required',
+    }),
 }).required();
 
 /**
@@ -66,9 +54,9 @@ export interface AcceptMultiplePoliciesRequest {
  * Validate accept single policy request
  */
 export const validateAcceptPolicy = (body: unknown): AcceptPolicyRequest => {
-    const { error, value } = acceptPolicySchema.validate(body, { 
+    const { error, value } = acceptPolicySchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -95,9 +83,9 @@ export const validateAcceptPolicy = (body: unknown): AcceptPolicyRequest => {
  * Validate accept multiple policies request
  */
 export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePoliciesRequest => {
-    const { error, value } = acceptMultiplePoliciesSchema.validate(body, { 
+    const { error, value } = acceptMultiplePoliciesSchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -127,56 +115,37 @@ export const validateAcceptMultiplePolicies = (body: unknown): AcceptMultiplePol
  * Schema for create policy request
  */
 const createPolicySchema = Joi.object({
-    policyName: Joi.string()
-        .trim()
-        .min(1)
-        .max(100)
-        .required()
-        .messages({
-            'string.empty': 'Policy name is required',
-            'any.required': 'Policy name is required',
-            'string.max': 'Policy name must be 100 characters or less',
-        }),
-    text: Joi.string()
-        .min(1)
-        .required()
-        .messages({
-            'string.empty': 'Policy text is required',
-            'any.required': 'Policy text is required',
-        }),
-    publish: Joi.boolean()
-        .optional()
-        .default(false),
+    policyName: Joi.string().trim().min(1).max(100).required().messages({
+        'string.empty': 'Policy name is required',
+        'any.required': 'Policy name is required',
+        'string.max': 'Policy name must be 100 characters or less',
+    }),
+    text: Joi.string().min(1).required().messages({
+        'string.empty': 'Policy text is required',
+        'any.required': 'Policy text is required',
+    }),
+    publish: Joi.boolean().optional().default(false),
 }).required();
 
 /**
  * Schema for update policy request
  */
 const updatePolicySchema = Joi.object({
-    text: Joi.string()
-        .min(1)
-        .required()
-        .messages({
-            'string.empty': 'Policy text is required',
-            'any.required': 'Policy text is required',
-        }),
-    publish: Joi.boolean()
-        .optional()
-        .default(false),
+    text: Joi.string().min(1).required().messages({
+        'string.empty': 'Policy text is required',
+        'any.required': 'Policy text is required',
+    }),
+    publish: Joi.boolean().optional().default(false),
 }).required();
 
 /**
  * Schema for publish policy request
  */
 const publishPolicySchema = Joi.object({
-    versionHash: Joi.string()
-        .trim()
-        .min(1)
-        .required()
-        .messages({
-            'string.empty': 'Version hash is required',
-            'any.required': 'Version hash is required',
-        }),
+    versionHash: Joi.string().trim().min(1).required().messages({
+        'string.empty': 'Version hash is required',
+        'any.required': 'Version hash is required',
+    }),
 }).required();
 
 /**
@@ -207,9 +176,9 @@ export interface PublishPolicyRequest {
  * Validate create policy request
  */
 export const validateCreatePolicy = (body: unknown): CreatePolicyRequest => {
-    const { error, value } = createPolicySchema.validate(body, { 
+    const { error, value } = createPolicySchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -228,9 +197,9 @@ export const validateCreatePolicy = (body: unknown): CreatePolicyRequest => {
  * Validate update policy request
  */
 export const validateUpdatePolicy = (body: unknown): UpdatePolicyRequest => {
-    const { error, value } = updatePolicySchema.validate(body, { 
+    const { error, value } = updatePolicySchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {
@@ -248,9 +217,9 @@ export const validateUpdatePolicy = (body: unknown): UpdatePolicyRequest => {
  * Validate publish policy request
  */
 export const validatePublishPolicy = (body: unknown): PublishPolicyRequest => {
-    const { error, value } = publishPolicySchema.validate(body, { 
+    const { error, value } = publishPolicySchema.validate(body, {
         abortEarly: false,
-        stripUnknown: true 
+        stripUnknown: true,
     });
 
     if (error) {

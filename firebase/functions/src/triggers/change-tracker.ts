@@ -1,18 +1,11 @@
-import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
+import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
-import { 
-    getChangedFields, 
-    getGroupChangedFields, 
-    calculatePriority, 
-    createMinimalChangeDocument,
-    createMinimalBalanceChangeDocument,
-    ChangeType 
-} from '../utils/change-detection';
+import { getChangedFields, getGroupChangedFields, calculatePriority, createMinimalChangeDocument, createMinimalBalanceChangeDocument, ChangeType } from '../utils/change-detection';
 import { FirestoreCollections } from '@splitifyd/shared';
-import {firestore} from "firebase-admin";
+import { firestore } from 'firebase-admin';
 import DocumentSnapshot = firestore.DocumentSnapshot;
-import {ParamsOf} from "firebase-functions";
+import { ParamsOf } from 'firebase-functions';
 import { z } from 'zod';
 
 /**
@@ -53,13 +46,11 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const {before, after, changeType} = extractDataChange(event);
-
+        const { before, after, changeType } = extractDataChange(event);
 
         try {
             // Get changed fields (groups have nested structure)
             const changedFields = getGroupChangedFields(before, after);
-
 
             // Calculate priority (not currently used)
             calculatePriority(changeType, changedFields, 'group');
@@ -67,27 +58,17 @@ export const trackGroupChanges = onDocumentWritten(
             // Get affected users from the group (nested in data field)
             const afterData = after?.data();
             const beforeData = before?.data();
-            
+
             // Members are stored as a map, not an array of IDs
             const afterMembers = afterData?.data?.members || {};
             const beforeMembers = beforeData?.data?.members || {};
-            
+
             // Combine all member IDs from both before and after states
-            const allMemberIds = new Set([
-                ...Object.keys(afterMembers),
-                ...Object.keys(beforeMembers)
-            ]);
+            const allMemberIds = new Set([...Object.keys(afterMembers), ...Object.keys(beforeMembers)]);
             const affectedUsers = Array.from(allMemberIds);
 
-
-
             // Create minimal change document for client notifications
-            const changeDoc = createMinimalChangeDocument(
-                groupId,
-                'group',
-                changeType,
-                affectedUsers
-            );
+            const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
 
             // Validate before writing to prevent corrupted documents
             const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
@@ -112,7 +93,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const {before, after, changeType} = extractDataChange(event);
+        const { before, after, changeType } = extractDataChange(event);
 
         // Process expense changes immediately
         try {
@@ -146,15 +127,8 @@ export const trackExpenseChanges = onDocumentWritten(
                 participants.forEach((userId: string) => affectedUsers.add(userId));
             }
 
-
             // Create minimal change document for expense
-            const changeDoc = createMinimalChangeDocument(
-                expenseId,
-                'expense',
-                changeType,
-                Array.from(affectedUsers),
-                groupId
-            );
+            const changeDoc = createMinimalChangeDocument(expenseId, 'expense', changeType, Array.from(affectedUsers), groupId);
 
             // Validate before writing to prevent corrupted documents
             const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
@@ -163,10 +137,7 @@ export const trackExpenseChanges = onDocumentWritten(
             await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
 
             // Also create a minimal balance change document since expenses affect balances
-            const balanceChangeDoc = createMinimalBalanceChangeDocument(
-                groupId,
-                Array.from(affectedUsers)
-            );
+            const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
 
             // Validate balance change document
             const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
@@ -190,7 +161,7 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const {before, after, changeType} = extractDataChange(event);
+        const { before, after, changeType } = extractDataChange(event);
 
         // Process settlement changes immediately
         try {
@@ -228,15 +199,8 @@ export const trackSettlementChanges = onDocumentWritten(
                 if (payee) affectedUsers.add(payee);
             }
 
-
             // Create minimal change document for settlement
-            const changeDoc = createMinimalChangeDocument(
-                settlementId,
-                'settlement',
-                changeType,
-                Array.from(affectedUsers),
-                groupId
-            );
+            const changeDoc = createMinimalChangeDocument(settlementId, 'settlement', changeType, Array.from(affectedUsers), groupId);
 
             // Validate before writing to prevent corrupted documents
             const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
@@ -245,10 +209,7 @@ export const trackSettlementChanges = onDocumentWritten(
             await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
 
             // Also create a minimal balance change document since settlements affect balances
-            const balanceChangeDoc = createMinimalBalanceChangeDocument(
-                groupId,
-                Array.from(affectedUsers)
-            );
+            const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
 
             // Validate balance change document
             const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
@@ -278,5 +239,5 @@ function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | unde
         changeType = 'updated';
     }
 
-    return {before, after, changeType};
+    return { before, after, changeType };
 }

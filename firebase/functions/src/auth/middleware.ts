@@ -67,7 +67,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
             displayName: userRecord.displayName,
             role: userRole,
         };
-        
+
         // Add user context to logging context
         LoggerContext.setUser(userRecord.uid, userRecord.email, userRole);
 

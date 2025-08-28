@@ -25,7 +25,7 @@ export interface ExpenseFormStore {
     saving: boolean;
     error: string | null;
     validationErrors: Record<string, string>;
-    
+
     // Readonly signal accessors for reactive components
     readonly descriptionSignal: ReadonlySignal<string>;
     readonly amountSignal: ReadonlySignal<string | number>;
@@ -213,13 +213,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
     readonly #participantsSignal = signal<string[]>([]);
     readonly #splitsSignal = signal<ExpenseSplit[]>([]);
-    
+
     // UI state signals
     readonly #loadingSignal = signal<boolean>(false);
     readonly #savingSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
     readonly #validationErrorsSignal = signal<Record<string, string>>({});
-    
+
     // State getters - readonly values for external consumers
     get description() {
         return this.#descriptionSignal.value;
@@ -263,7 +263,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get validationErrors() {
         return this.#validationErrorsSignal.value;
     }
-    
+
     // Signal accessors for reactive components - return readonly signals
     get descriptionSignal(): ReadonlySignal<string> {
         return this.#descriptionSignal;

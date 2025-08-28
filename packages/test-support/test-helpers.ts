@@ -17,7 +17,7 @@ export function generateTestGroupName(prefix: string = 'Group'): string {
  * Generates a unique test email using short ID
  */
 export function generateTestEmail(prefix: string = 'test'): string {
-    return generateNewUserDetails(prefix).email
+    return generateNewUserDetails(prefix).email;
 }
 
 /**
@@ -29,11 +29,11 @@ export function generateTestUserName(prefix: string = 'User'): string {
 
 export const DEFAULT_PASSWORD = 'rrRR44$$';
 
-export function generateNewUserDetails(prefix= "u") {
+export function generateNewUserDetails(prefix = 'u') {
     const id = generateShortId();
     return {
         displayName: `${prefix} ${id}`,
         email: `${prefix}-${id}@example.com`,
-        password: DEFAULT_PASSWORD
+        password: DEFAULT_PASSWORD,
     };
 }

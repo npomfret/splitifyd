@@ -12,12 +12,7 @@ interface CommentsSectionProps {
     className?: string;
 }
 
-export function CommentsSection({ 
-    targetType, 
-    targetId, 
-    maxHeight = '400px', 
-    className = '' 
-}: CommentsSectionProps) {
+export function CommentsSection({ targetType, targetId, maxHeight = '400px', className = '' }: CommentsSectionProps) {
     // Use signals for reactive state
     const comments = useComputed(() => commentsStore.commentsSignal.value);
     const loading = useComputed(() => commentsStore.loadingSignal.value);
@@ -28,7 +23,7 @@ export function CommentsSection({
     // Subscribe to comments when component mounts or target changes
     useEffect(() => {
         commentsStore.subscribeToComments(targetType, targetId);
-        
+
         // Cleanup on unmount
         return () => {
             commentsStore.dispose();
@@ -48,26 +43,18 @@ export function CommentsSection({
             {/* Error message */}
             {error.value && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <p className="text-sm text-red-700 dark:text-red-400" role="alert" data-testid="comments-error-message">{error.value}</p>
+                    <p className="text-sm text-red-700 dark:text-red-400" role="alert" data-testid="comments-error-message">
+                        {error.value}
+                    </p>
                 </div>
             )}
 
             {/* Comments list */}
-            <CommentsList
-                comments={comments.value}
-                loading={loading.value}
-                hasMore={hasMore.value}
-                onLoadMore={handleLoadMore}
-                maxHeight={maxHeight}
-            />
+            <CommentsList comments={comments.value} loading={loading.value} hasMore={hasMore.value} onLoadMore={handleLoadMore} maxHeight={maxHeight} />
 
             {/* Comment input */}
             <div className="border-t pt-4 dark:border-gray-700">
-                <CommentInput
-                    onSubmit={handleSubmit}
-                    disabled={submitting.value}
-                    placeholder={targetType === 'group' ? 'Add a comment to this group...' : 'Add a comment to this expense...'}
-                />
+                <CommentInput onSubmit={handleSubmit} disabled={submitting.value} placeholder={targetType === 'group' ? 'Add a comment to this group...' : 'Add a comment to this expense...'} />
             </div>
         </div>
     );

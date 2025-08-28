@@ -46,7 +46,11 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                         placeholder={t('expenseBasicFields.descriptionPlaceholder')}
                         required
                     />
-                    {validationErrors.description && <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="validation-error-description">{validationErrors.description}</p>}
+                    {validationErrors.description && (
+                        <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="validation-error-description">
+                            {validationErrors.description}
+                        </p>
+                    )}
                 </div>
 
                 {/* Amount with Currency and Category */}
@@ -120,7 +124,11 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                             }`}
                             required
                         />
-                        {validationErrors.date && <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="validation-error-date">{validationErrors.date}</p>}
+                        {validationErrors.date && (
+                            <p className="text-sm text-red-600 dark:text-red-400 mt-1" role="alert" data-testid="validation-error-date">
+                                {validationErrors.date}
+                            </p>
+                        )}
 
                         {/* Convenience Date Buttons */}
                         <div className="mt-2 flex flex-wrap gap-1">

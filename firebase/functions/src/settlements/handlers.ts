@@ -8,12 +8,12 @@ import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { createSettlementSchema, updateSettlementSchema, settlementIdSchema, listSettlementsQuerySchema } from './validation';
-import { 
-    Settlement, 
-    CreateSettlementRequest, 
-    UpdateSettlementRequest, 
-    SettlementListItem, 
-    User, 
+import {
+    Settlement,
+    CreateSettlementRequest,
+    UpdateSettlementRequest,
+    SettlementListItem,
+    User,
     FirestoreCollections,
     CreateSettlementResponse,
     UpdateSettlementResponse,
@@ -29,11 +29,13 @@ import { z } from 'zod';
 /**
  * Zod schema for User document - ensures critical fields are present
  */
-const UserDataSchema = z.object({
-    email: z.string().email(),
-    displayName: z.string().min(1),
-    // Other fields are optional for this basic validation
-}).passthrough(); // Allow additional fields to pass through
+const UserDataSchema = z
+    .object({
+        email: z.string().email(),
+        displayName: z.string().min(1),
+        // Other fields are optional for this basic validation
+    })
+    .passthrough(); // Allow additional fields to pass through
 
 /**
  * Zod schema for Settlement document - validates before writing to Firestore
@@ -64,7 +66,6 @@ const getUsersCollection = () => {
     return firestoreDb.collection(FirestoreCollections.USERS);
 };
 
-
 const verifyUsersInGroup = async (groupId: string, userIds: string[]): Promise<void> => {
     const groupDoc = await getGroupsCollection().doc(groupId).get();
 
@@ -89,19 +90,15 @@ const fetchUserData = async (userId: string): Promise<User> => {
 
     if (!userDoc.exists) {
         // Users are never deleted, so missing user doc indicates invalid data
-        throw new ApiError(
-            404,
-            'USER_NOT_FOUND',
-            `User ${userId} not found`
-        );
+        throw new ApiError(404, 'USER_NOT_FOUND', `User ${userId} not found`);
     }
 
     const rawData = userDoc.data();
-    
+
     // Validate user data with Zod instead of manual field checking
     try {
         const validatedData = UserDataSchema.parse(rawData);
-        
+
         return {
             uid: userId,
             email: validatedData.email,
@@ -110,11 +107,7 @@ const fetchUserData = async (userId: string): Promise<User> => {
     } catch (error) {
         // Zod validation failed - user document is corrupted
         logger.error('User document validation failed', error, { userId });
-        throw new ApiError(
-            500,
-            'INVALID_USER_DATA',
-            `User ${userId} has invalid data structure`
-        );
+        throw new ApiError(500, 'INVALID_USER_DATA', `User ${userId} has invalid data structure`);
     }
 };
 
@@ -177,9 +170,9 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
         };
         res.status(HTTP_STATUS.CREATED).json(response);
     } catch (error) {
-        logger.error('Error creating settlement', error, { 
-            userId: req.user?.uid, 
-            groupId: req.body?.groupId 
+        logger.error('Error creating settlement', error, {
+            userId: req.user?.uid,
+            groupId: req.body?.groupId,
         });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
@@ -272,10 +265,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         const updatedSettlement = updatedDoc.data();
 
         // Fetch user data for payer and payee to return complete response
-        const [payerData, payeeData] = await Promise.all([
-            fetchUserData(updatedSettlement!.payerId),
-            fetchUserData(updatedSettlement!.payeeId)
-        ]);
+        const [payerData, payeeData] = await Promise.all([fetchUserData(updatedSettlement!.payerId), fetchUserData(updatedSettlement!.payeeId)]);
 
         const responseData: SettlementListItem = {
             id: settlementId,
@@ -298,9 +288,9 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
         };
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-        logger.error('Error updating settlement', error, { 
-            settlementId: req.params?.id, 
-            userId: req.user?.uid 
+        logger.error('Error updating settlement', error, {
+            settlementId: req.params?.id,
+            userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
@@ -376,9 +366,9 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         };
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-        logger.error('Error deleting settlement', error, { 
-            settlementId: req.params?.id, 
-            userId: req.user?.uid 
+        logger.error('Error deleting settlement', error, {
+            settlementId: req.params?.id,
+            userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
@@ -421,15 +411,11 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
         try {
             SettlementDocumentSchema.parse({ ...settlement, id: settlementId });
         } catch (error) {
-            logger.error('Settlement document validation failed', error as Error, { 
+            logger.error('Settlement document validation failed', error as Error, {
                 settlementId,
-                userId
+                userId,
             });
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'INVALID_SETTLEMENT_DATA',
-                'Settlement document structure is invalid'
-            );
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
         }
 
         await verifyGroupMembership(settlement.groupId, userId);
@@ -454,9 +440,9 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
         };
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-        logger.error('Error fetching settlement', error, { 
-            settlementId: req.params?.id, 
-            userId: req.user?.uid 
+        logger.error('Error fetching settlement', error, {
+            settlementId: req.params?.id,
+            userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({
@@ -490,7 +476,7 @@ export const _getGroupSettlementsData = async (
         userId?: string;
         startDate?: string;
         endDate?: string;
-    } = {}
+    } = {},
 ): Promise<{
     settlements: SettlementListItem[];
     count: number;
@@ -503,16 +489,10 @@ export const _getGroupSettlementsData = async (
     const startDate = options.startDate;
     const endDate = options.endDate;
 
-    let query: admin.firestore.Query = getSettlementsCollection()
-        .where('groupId', '==', groupId)
-        .orderBy('date', 'desc')
-        .limit(limit);
+    let query: admin.firestore.Query = getSettlementsCollection().where('groupId', '==', groupId).orderBy('date', 'desc').limit(limit);
 
     if (filterUserId) {
-        query = query.where(admin.firestore.Filter.or(
-            admin.firestore.Filter.where('payerId', '==', filterUserId),
-            admin.firestore.Filter.where('payeeId', '==', filterUserId)
-        ));
+        query = query.where(admin.firestore.Filter.or(admin.firestore.Filter.where('payerId', '==', filterUserId), admin.firestore.Filter.where('payeeId', '==', filterUserId)));
     }
 
     if (startDate) {
@@ -535,10 +515,7 @@ export const _getGroupSettlementsData = async (
     const settlements: SettlementListItem[] = await Promise.all(
         snapshot.docs.map(async (doc) => {
             const data = doc.data();
-            const [payerData, payeeData] = await Promise.all([
-                fetchUserData(data.payerId),
-                fetchUserData(data.payeeId)
-            ]);
+            const [payerData, payeeData] = await Promise.all([fetchUserData(data.payerId), fetchUserData(data.payeeId)]);
 
             return {
                 id: doc.id,
@@ -584,7 +561,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
             cursor,
             userId: filterUserId,
             startDate,
-            endDate
+            endDate,
         });
 
         const response: ListSettlementsApiResponse = {
@@ -593,9 +570,9 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
         };
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
-        logger.error('Error listing settlements', error, { 
-            groupId: req.params?.groupId, 
-            userId: req.user?.uid 
+        logger.error('Error listing settlements', error, {
+            groupId: req.params?.groupId,
+            userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
             res.status(error.statusCode).json({

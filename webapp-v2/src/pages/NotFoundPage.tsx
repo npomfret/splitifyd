@@ -17,8 +17,12 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
             <div className="text-center">
-                <h1 className="text-6xl font-bold text-gray-900 mb-4" data-testid="not-found-title">{t('notFoundPage.title')}</h1>
-                <p className="text-xl text-gray-600 mb-4" data-testid="not-found-subtitle">{isGroupPath ? t('notFoundPage.groupNotFound') : t('notFoundPage.pageNotFound')}</p>
+                <h1 className="text-6xl font-bold text-gray-900 mb-4" data-testid="not-found-title">
+                    {t('notFoundPage.title')}
+                </h1>
+                <p className="text-xl text-gray-600 mb-4" data-testid="not-found-subtitle">
+                    {isGroupPath ? t('notFoundPage.groupNotFound') : t('notFoundPage.pageNotFound')}
+                </p>
                 <p className="text-sm text-gray-500 mb-8" data-testid="not-found-description">
                     {isGroupPath ? t('notFoundPage.groupNotFoundDescription') : t('notFoundPage.pageNotFoundDescription')}
                 </p>

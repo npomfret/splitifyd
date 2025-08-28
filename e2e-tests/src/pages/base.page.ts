@@ -5,34 +5,31 @@ import { createErrorHandlingProxy } from '../utils/error-proxy';
 
 export abstract class BasePage {
     protected userInfo?: BaseUser;
-    
-    constructor(protected _page: Page, userInfo?: BaseUser) {
+
+    constructor(
+        protected _page: Page,
+        userInfo?: BaseUser,
+    ) {
         this.userInfo = userInfo;
-        
+
         // Apply automatic error handling proxy to all derived classes
         // This wraps all async methods to automatically capture context on errors
         const className = this.constructor.name;
-        return createErrorHandlingProxy(
-            this,
-            className,
-            _page,
-            userInfo,
-            {
-                // Configuration options
-                captureScreenshot: false, // Can be enabled for debugging
-                collectState: true, // Always collect page state on errors
-                excludeMethods: [
-                    // Specific non-async methods
-                    'page', // Getter for page property
-                    // Private methods that shouldn't be proxied
-                    'waitForFocus',
-                    'getFieldIdentifier',
-                    'validateInputValue',
-                    'waitForMembersInExpenseForm',
-                    // Note: get*, is*, has*, constructor, toString, etc. are handled by DEFAULT_EXCLUDED_METHODS
-                ]
-            }
-        ) as this;
+        return createErrorHandlingProxy(this, className, _page, userInfo, {
+            // Configuration options
+            captureScreenshot: false, // Can be enabled for debugging
+            collectState: true, // Always collect page state on errors
+            excludeMethods: [
+                // Specific non-async methods
+                'page', // Getter for page property
+                // Private methods that shouldn't be proxied
+                'waitForFocus',
+                'getFieldIdentifier',
+                'validateInputValue',
+                'waitForMembersInExpenseForm',
+                // Note: get*, is*, has*, constructor, toString, etc. are handled by DEFAULT_EXCLUDED_METHODS
+            ],
+        }) as this;
     }
 
     /**
@@ -41,28 +38,28 @@ export abstract class BasePage {
     get page(): Page {
         return this._page;
     }
-    
+
     // Common element accessors
     getHeading(name: string | RegExp) {
         return this._page.getByRole('heading', { name });
     }
-    
+
     getHeadingByLevel(level: number) {
         return this._page.getByRole('heading', { level });
     }
-    
+
     getLink(name: string | RegExp) {
         return this._page.getByRole('link', { name });
     }
-    
+
     getButton(name: string | RegExp) {
         return this._page.getByRole('button', { name });
     }
-    
+
     getDialog() {
         return this._page.getByRole('dialog');
     }
-    
+
     getTextbox() {
         return this._page.getByRole('textbox');
     }
@@ -79,9 +76,9 @@ export abstract class BasePage {
      * Helper method to get field identifier for error reporting.
      */
     private async getFieldIdentifier(input: Locator): Promise<string> {
-        const fieldName = await input.getAttribute('name') || null;
-        const fieldId = await input.getAttribute('id') || null;
-        const placeholder = await input.getAttribute('placeholder') || null;
+        const fieldName = (await input.getAttribute('name')) || null;
+        const fieldId = (await input.getAttribute('id')) || null;
+        const placeholder = (await input.getAttribute('placeholder')) || null;
 
         return fieldName || fieldId || placeholder || 'unknown field';
     }
@@ -255,7 +252,7 @@ export abstract class BasePage {
         // Get button text for error messages if not provided
         const buttonText = buttonName || (await button.textContent()) || 'button';
 
-        await button.waitFor({state: 'attached', timeout });
+        await button.waitFor({ state: 'attached', timeout });
 
         const exists = (await button.count()) > 0;
         if (!exists) {
@@ -311,7 +308,7 @@ export abstract class BasePage {
             buttonName?: string; // Human-readable name for error messages
             dropdownContent?: Locator; // Optional locator for dropdown content to verify it's visible
             maxRetries?: number; // Max retries if dropdown doesn't open (default: 2)
-        }
+        },
     ): Promise<void> {
         const { buttonName = 'dropdown', dropdownContent, maxRetries = 2 } = options || {};
 
@@ -325,7 +322,7 @@ export abstract class BasePage {
 
             // Check if dropdown opened using aria-expanded attribute
             const ariaExpanded = await dropdownButton.getAttribute('aria-expanded');
-            
+
             if (ariaExpanded === 'true') {
                 // If dropdown content locator provided, verify it's visible
                 if (dropdownContent) {
@@ -397,11 +394,11 @@ export abstract class BasePage {
     async openUserMenu(): Promise<void> {
         const userMenuButton = this.getUserMenuButton();
         const dropdownMenu = this.getUserDropdownMenu();
-        
+
         await this.clickDropdownButton(userMenuButton, {
             buttonName: 'User Menu',
             dropdownContent: dropdownMenu,
-            maxRetries: 3
+            maxRetries: 3,
         });
     }
 
@@ -411,11 +408,11 @@ export abstract class BasePage {
     async closeUserMenu(): Promise<void> {
         const userMenuButton = this.getUserMenuButton();
         const ariaExpanded = await userMenuButton.getAttribute('aria-expanded');
-        
+
         if (ariaExpanded === 'true') {
             // Click outside to close the menu
             await this._page.locator('body').click({ position: { x: 0, y: 0 } });
-            
+
             // Wait for menu to close
             await expect(this.getUserDropdownMenu()).not.toBeVisible({ timeout: 1000 });
         }
@@ -445,16 +442,16 @@ export abstract class BasePage {
      */
     async logout(): Promise<void> {
         await this.openUserMenu();
-        
+
         const signOutButton = this.getSignOutButton();
-        
+
         // Click the sign-out button - clickButton handles visibility and enabled state
         // Note: dropdown items may be briefly disabled during animation, so we use a longer timeout
-        await this.clickButton(signOutButton, { 
+        await this.clickButton(signOutButton, {
             buttonName: 'Sign Out',
-            timeout: 3000  // Longer timeout for dropdown items that may animate in
+            timeout: 3000, // Longer timeout for dropdown items that may animate in
         });
-        
+
         // Wait for redirect to login page
         await expect(this._page).toHaveURL(/\/login/, { timeout: 5000 });
     }
@@ -465,7 +462,7 @@ export abstract class BasePage {
     async getUserDisplayName(): Promise<string> {
         const userMenuButton = this.getUserMenuButton();
         await expect(userMenuButton).toBeVisible();
-        
+
         // The user name is displayed in the menu button
         const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
         const textContent = await nameElement.textContent();
@@ -477,8 +474,7 @@ export abstract class BasePage {
      */
     async isUserLoggedIn(): Promise<boolean> {
         try {
-            const menuVisible = await this.getUserMenuButton()
-                .isVisible({ timeout: 2000 });
+            const menuVisible = await this.getUserMenuButton().isVisible({ timeout: 2000 });
             return menuVisible;
         } catch {
             return false;

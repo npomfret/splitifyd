@@ -1,7 +1,7 @@
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@splitifyd/shared';
-import {generateNewUserDetails, generateShortId} from '../../../packages/test-support/test-helpers.ts';
-import {LoginPage, RegisterPage, DashboardPage} from '../pages';
+import { generateNewUserDetails, generateShortId } from '../../../packages/test-support/test-helpers.ts';
+import { LoginPage, RegisterPage, DashboardPage } from '../pages';
 import { expect } from '@playwright/test';
 
 let staticCount = 1;
@@ -37,13 +37,13 @@ export class UserPool {
 
         // Each worker starts with an empty pool and creates users on-demand
         console.log('🔧 User pool initialized (on-demand mode)');
-        
+
         // Register cleanup on process exit to ensure contexts are closed
         process.on('exit', () => this.cleanup());
         process.on('SIGINT', () => this.cleanup());
         process.on('SIGTERM', () => this.cleanup());
     }
-    
+
     /**
      * Cleanup all active contexts
      */
@@ -121,12 +121,12 @@ export class UserPool {
     private async createUser(browser: any): Promise<BaseUser> {
         // Use the same ID for both display name and email so they match
         const uniqueId = generateShortId();
-        const {displayName, email, password} = generateNewUserDetails(`u${staticCount++}`);
+        const { displayName, email, password } = generateNewUserDetails(`u${staticCount++}`);
 
         // Create a temporary context and page for user registration
         let tempContext: any = null;
         let tempPage: any = null;
-        
+
         try {
             tempContext = await browser.newContext();
             // Track this context for cleanup
@@ -172,7 +172,7 @@ export class UserPool {
 
             // Logout so the user can be used later using DashboardPage helper
             const dashboardPage = new DashboardPage(tempPage, tempUser);
-            await dashboardPage.logout();  // This already waits for redirect to login page
+            await dashboardPage.logout(); // This already waits for redirect to login page
         } finally {
             // Always close the page and context to avoid resource leaks
             // Close in reverse order of creation to prevent issues

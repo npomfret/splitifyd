@@ -6,12 +6,7 @@ import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { 
-    FirestoreCollections,
-    SecurityPresets,
-    MemberRoles,
-    PermissionChangeLog
-} from '@splitifyd/shared';
+import { FirestoreCollections, SecurityPresets, MemberRoles, PermissionChangeLog } from '@splitifyd/shared';
 import { PermissionEngine, permissionCache } from '../permissions';
 import { transformGroupDocument } from './handlers';
 import { createServerTimestamp } from '../utils/dateHelpers';
@@ -43,7 +38,7 @@ export const applySecurityPreset = async (req: AuthenticatedRequest, res: Respon
     }
 
     const group = transformGroupDocument(groupDoc);
-    
+
     // Security preset changes should always require admin role, regardless of current group permissions
     const member = group.members[userId];
     if (!member || member.role !== MemberRoles.ADMIN) {
@@ -65,7 +60,7 @@ export const applySecurityPreset = async (req: AuthenticatedRequest, res: Respon
         timestamp: now,
         changedBy: userId,
         changeType: 'preset',
-        changes: { preset, permissions: newPermissions }
+        changes: { preset, permissions: newPermissions },
     };
 
     updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
@@ -77,10 +72,10 @@ export const applySecurityPreset = async (req: AuthenticatedRequest, res: Respon
 
     logger.info('Security preset applied', { groupId, preset, userId });
 
-    res.json({ 
+    res.json({
         message: 'Security preset applied successfully',
         preset,
-        permissions: newPermissions
+        permissions: newPermissions,
     });
 };
 
@@ -107,7 +102,7 @@ export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Res
     }
 
     const group = transformGroupDocument(groupDoc);
-    
+
     // Check if user can manage settings
     if (!PermissionEngine.checkPermission(group, userId, 'settingsManagement')) {
         throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
@@ -127,7 +122,7 @@ export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Res
         timestamp: now,
         changedBy: userId,
         changeType: 'custom',
-        changes: { permissions }
+        changes: { permissions },
     };
 
     updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
@@ -139,9 +134,9 @@ export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Res
 
     logger.info('Group permissions updated', { groupId, permissions, userId });
 
-    res.json({ 
+    res.json({
         message: 'Permissions updated successfully',
-        permissions: updatedPermissions
+        permissions: updatedPermissions,
     });
 };
 
@@ -169,7 +164,7 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
     }
 
     const group = transformGroupDocument(groupDoc);
-    
+
     // Check if target member exists
     if (!group.members[targetUserId]) {
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
@@ -198,7 +193,7 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
         timestamp: now,
         changedBy: userId,
         changeType: 'role',
-        changes: { userId: targetUserId, oldRole, newRole: role }
+        changes: { userId: targetUserId, oldRole, newRole: role },
     };
 
     updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
@@ -211,11 +206,11 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
 
     logger.info('Member role changed', { groupId, targetUserId, oldRole, newRole: role, changedBy: userId });
 
-    res.json({ 
+    res.json({
         message: 'Member role updated successfully',
         userId: targetUserId,
         oldRole,
-        newRole: role
+        newRole: role,
     });
 };
 
@@ -237,7 +232,7 @@ export const getUserPermissions = async (req: AuthenticatedRequest, res: Respons
     }
 
     const group = transformGroupDocument(groupDoc);
-    
+
     // Check if user is a member
     if (!group.members[userId]) {
         throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
@@ -250,6 +245,6 @@ export const getUserPermissions = async (req: AuthenticatedRequest, res: Respons
         userId,
         role: userRole,
         permissions,
-        groupSecurityPreset: group.securityPreset
+        groupSecurityPreset: group.securityPreset,
     });
 };

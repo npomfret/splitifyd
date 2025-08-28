@@ -2,7 +2,7 @@ import { authenticatedPageTest as test } from '../../../fixtures/authenticated-p
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 setupMCPDebugOnFailure();
 
@@ -51,7 +51,7 @@ test.describe('Expense Editing Error Testing', () => {
 
         // Wait for the expense detail page to be ready with updated content
         await expenseDetailPage.waitForPageReady();
-        
+
         // Verify the change was applied
         await expenseDetailPage.verifyExpenseHeading(/Amount Edit Test.*\$75\.50/);
     });

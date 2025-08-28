@@ -361,7 +361,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
 
         // Verify initial debt (User 2 owes User 1 $100) - check both screens BEFORE settlement
         // This helps identify if the issue is with initial balance display or only after settlement
-        
+
         // User 1's screen - verify they see User 2 owes them $100
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage.verifyDebtRelationship(user2.displayName, user1.displayName, '$100.00');
@@ -399,7 +399,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
         // This is necessary because balance recalculation after settlement is async
         const balancesSectionAfterSettlement = groupDetailPage.getBalancesSection();
         await expect(balancesSectionAfterSettlement.getByText('All settled up!')).toBeHidden({ timeout: 5000 });
-        
+
         // Additional wait to ensure the new balance is rendered
         await expect(balancesSectionAfterSettlement.getByText(`${user2.displayName} → ${user1.displayName}`)).toBeVisible({ timeout: 5000 });
 

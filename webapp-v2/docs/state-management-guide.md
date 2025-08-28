@@ -51,11 +51,11 @@ class SomeStoreImpl implements SomeStore {
     get data(): ReadonlySignal<SomeData[]> {
         return this.#dataSignal;
     }
-    
+
     get loading(): ReadonlySignal<boolean> {
         return this.#loadingSignal;
     }
-    
+
     get error(): ReadonlySignal<string | null> {
         return this.#errorSignal;
     }
@@ -64,7 +64,7 @@ class SomeStoreImpl implements SomeStore {
     async fetchData(): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
-        
+
         try {
             const data = await api.getData();
             this.#dataSignal.value = data;
@@ -92,12 +92,12 @@ Never declare signals at the module level outside the class:
 
 ```typescript
 // ❌ WRONG: Module-level signals break encapsulation
-const dataSignal = signal<SomeData[]>([]);  // DON'T DO THIS!
-const loadingSignal = signal<boolean>(false);  // DON'T DO THIS!
+const dataSignal = signal<SomeData[]>([]); // DON'T DO THIS!
+const loadingSignal = signal<boolean>(false); // DON'T DO THIS!
 
 class SomeStoreImpl {
     get data() {
-        return dataSignal.value;  // This exposes mutable global state!
+        return dataSignal.value; // This exposes mutable global state!
     }
 }
 ```
@@ -161,10 +161,10 @@ function MyComponent() {
 
 ```typescript
 // ❌ This won't work anymore (and that's good!)
-groupsStore.groups.value = [];  // TypeError: Cannot set property value of #<ReadonlySignal>
+groupsStore.groups.value = []; // TypeError: Cannot set property value of #<ReadonlySignal>
 
 // ✅ Use store actions instead
-await groupsStore.clearGroups();  // Proper way to mutate state
+await groupsStore.clearGroups(); // Proper way to mutate state
 ```
 
 ### Local Component State
@@ -332,7 +332,7 @@ Use the new `ErrorState` component for consistent error UI:
 import { ErrorState } from '../components/ui';
 
 function MyComponent() {
-  // Access the ReadonlySignal directly  
+  // Access the ReadonlySignal directly
   const error = groupsStore.error;
 
   if (error.value) {

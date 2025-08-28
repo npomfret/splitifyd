@@ -44,7 +44,6 @@ pageTest.describe('Policy Pages E2E', () => {
             .waitFor();
     });
 
-
     pageTest('should display policy content and not show loading states indefinitely', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/terms');
         await waitForApp(page);

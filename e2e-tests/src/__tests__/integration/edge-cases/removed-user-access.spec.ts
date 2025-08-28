@@ -2,7 +2,7 @@ import { multiUserTest, expect } from '../../../fixtures';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { JoinGroupPage } from '../../../pages';
 
 setupConsoleErrorReporting();
@@ -27,7 +27,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
         // User 2 joins via share link using proper workflow
         const multiUserWorkflow = new MultiUserWorkflow();
         const shareLink = await multiUserWorkflow.getShareLink(user1Page);
-        
+
         // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
         const joinGroupPage = new JoinGroupPage(user2Page);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);

@@ -1,8 +1,8 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {TIMEOUT_CONTEXTS} from '../config/timeouts';
-import type {User as BaseUser} from '@splitifyd/shared';
-import {groupDetailUrlPattern} from "./group-detail.page.ts";
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { TIMEOUT_CONTEXTS } from '../config/timeouts';
+import type { User as BaseUser } from '@splitifyd/shared';
+import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 /**
  * Page object for join group functionality via share links.
@@ -15,11 +15,11 @@ export class JoinGroupPage extends BasePage {
 
     // Core selectors with retry logic
     getJoinGroupHeading(): Locator {
-        return this.page.getByRole('heading', {name: /join group/i});
+        return this.page.getByRole('heading', { name: /join group/i });
     }
 
     getJoinGroupButton(): Locator {
-        return this.page.getByRole('button', {name: /join group/i});
+        return this.page.getByRole('button', { name: /join group/i });
     }
 
     getAlreadyMemberMessage(): Locator {
@@ -31,11 +31,11 @@ export class JoinGroupPage extends BasePage {
     }
 
     getLoginButton(): Locator {
-        return this.page.getByRole('button', {name: /login|sign in/i});
+        return this.page.getByRole('button', { name: /login|sign in/i });
     }
 
     getRegisterButton(): Locator {
-        return this.page.getByRole('button', {name: /register|sign up/i});
+        return this.page.getByRole('button', { name: /register|sign up/i });
     }
 
     getErrorMessage(): Locator {
@@ -47,7 +47,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     getBackToDashboardButton(): Locator {
-        return this.page.getByRole('button', {name: /back to dashboard/i});
+        return this.page.getByRole('button', { name: /back to dashboard/i });
     }
 
     // Authentication state detection
@@ -62,7 +62,7 @@ export class JoinGroupPage extends BasePage {
             // Second check: Look for authentication loading states
             const checkingAuth = await this.page
                 .getByText('Checking authentication...')
-                .isVisible({timeout: 500})
+                .isVisible({ timeout: 500 })
                 .catch(() => false);
             if (checkingAuth) {
                 // Wait for auth check to complete
@@ -75,14 +75,14 @@ export class JoinGroupPage extends BasePage {
 
             // FIRST: Special case for join group page - if we can see join elements, user is authenticated
             const joinButtonVisible = await this.getJoinGroupButton()
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
             const joinGroupHeadingVisible = await this.getJoinGroupHeading()
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
             const groupInviteMessage = await this.page
                 .getByText(/you've been invited|invited to join/i)
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
 
             if (joinButtonVisible || joinGroupHeadingVisible || groupInviteMessage) {
@@ -91,10 +91,10 @@ export class JoinGroupPage extends BasePage {
 
             // Then check: Look for login/register UI elements (reliable indicator for other pages)
             const loginVisible = await this.getLoginButton()
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
             const registerVisible = await this.getRegisterButton()
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
 
             // If we see login/register buttons, user is definitely not logged in
@@ -104,7 +104,7 @@ export class JoinGroupPage extends BasePage {
 
             // Look for user-specific UI elements that indicate login
             const userMenuVisible = await this.getUserMenuButton()
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
 
             // If we see user menu, definitely logged in
@@ -115,7 +115,7 @@ export class JoinGroupPage extends BasePage {
             // Final check: Look for other authenticated UI patterns
             const dashboardContent = await this.page
                 .getByText(/create group|your groups|my groups/i)
-                .isVisible({timeout: 1000})
+                .isVisible({ timeout: 1000 })
                 .catch(() => false);
 
             if (dashboardContent) {
@@ -132,7 +132,7 @@ export class JoinGroupPage extends BasePage {
 
     async isUserAlreadyMember(): Promise<boolean> {
         try {
-            return await this.getAlreadyMemberMessage().isVisible({timeout: 2000});
+            return await this.getAlreadyMemberMessage().isVisible({ timeout: 2000 });
         } catch {
             return false;
         }
@@ -140,7 +140,7 @@ export class JoinGroupPage extends BasePage {
 
     async isJoinPageVisible(): Promise<boolean> {
         try {
-            await this.getJoinGroupHeading().waitFor({timeout: 3000});
+            await this.getJoinGroupHeading().waitFor({ timeout: 3000 });
             return true;
         } catch {
             return false;
@@ -149,7 +149,7 @@ export class JoinGroupPage extends BasePage {
 
     async isErrorPage(): Promise<boolean> {
         try {
-            return await this.getErrorMessage().isVisible({timeout: 2000});
+            return await this.getErrorMessage().isVisible({ timeout: 2000 });
         } catch {
             return false;
         }
@@ -168,20 +168,20 @@ export class JoinGroupPage extends BasePage {
      */
     private async clickJoinGroup(): Promise<void> {
         const joinButton = this.getJoinGroupButton();
-        
+
         // Make sure button is enabled
         if (!(await joinButton.isEnabled())) {
             throw new Error('Join Group button is disabled');
         }
-        
+
         // Check if button is already in joining state
         const dataJoining = await joinButton.getAttribute('data-joining');
         if (dataJoining === 'true') {
             throw new Error('Join Group button is already in joining state');
         }
-        
+
         // Click the button
-        await this.clickButton(joinButton, {buttonName: 'Join Group'});
+        await this.clickButton(joinButton, { buttonName: 'Join Group' });
     }
 
     /**
@@ -222,9 +222,8 @@ export class JoinGroupPage extends BasePage {
         // Wait for the join to complete - several possible outcomes:
         const joinSuccessIndicator = this.page.locator('[data-join-success="true"]');
         // More specific error selectors to avoid false positives from group descriptions
-        const errorMessage = this.page.locator('.error-message, [role="alert"], [data-error="true"]')
-            .or(this.page.getByText(/join failed|try again|something went wrong|unable to join/i));
-        
+        const errorMessage = this.page.locator('.error-message, [role="alert"], [data-error="true"]').or(this.page.getByText(/join failed|try again|something went wrong|unable to join/i));
+
         // Wait for one of the expected outcomes
         await Promise.race([
             // Success: Welcome screen appears then navigates
@@ -232,17 +231,17 @@ export class JoinGroupPage extends BasePage {
                 await expect(joinSuccessIndicator).toBeVisible({ timeout: 10000 });
                 await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 2000 });
             })(),
-            
+
             // Success: Direct navigation to group (fast join)
             expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 10000 }),
-            
+
             // Failure: Error message appears
             (async () => {
                 await expect(errorMessage).toBeVisible({ timeout: 10000 });
                 const errorText = await errorMessage.textContent();
                 throw new Error(`Join failed: ${errorText}`);
             })(),
-            
+
             // Timeout: Button stuck in joining state
             (async () => {
                 await this.page.waitForTimeout(10000);
@@ -252,8 +251,8 @@ export class JoinGroupPage extends BasePage {
                     throw new Error('Join operation timed out - button stuck in joining state');
                 }
                 throw new Error('Join operation timed out - unknown state');
-            })()
-        ]).catch(error => {
+            })(),
+        ]).catch((error) => {
             // If we got here due to success conditions, check if we're actually on the group page
             const currentUrl = this.page.url();
             if (currentUrl.match(groupDetailUrlPattern())) {

@@ -5,7 +5,7 @@ describe('Date Validation Unit Tests', () => {
     const baseValidExpenseData = {
         groupId: 'test-group-id',
         paidBy: 'test-user-id',
-        amount: 50.00,
+        amount: 50.0,
         currency: 'USD',
         description: 'Test expense',
         category: 'Food',
@@ -23,10 +23,8 @@ describe('Date Validation Unit Tests', () => {
                 date: futureDate.toISOString(),
             };
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(/Date cannot be in the future/);
+            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
+            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be in the future/);
         });
 
         test('should accept expenses with dates up to 24 hours in the future (timezone buffer)', () => {
@@ -51,8 +49,7 @@ describe('Date Validation Unit Tests', () => {
                 date: futureDate.toISOString(),
             };
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(/Date cannot be in the future/);
+            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be in the future/);
         });
     });
 
@@ -79,10 +76,8 @@ describe('Date Validation Unit Tests', () => {
                 date: veryOldDate.toISOString(),
             };
 
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(ApiError);
-            expect(() => validateCreateExpense(expenseData))
-                .toThrow(/Date cannot be more than 10 years in the past/);
+            expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
+            expect(() => validateCreateExpense(expenseData)).toThrow(/Date cannot be more than 10 years in the past/);
         });
 
         test('should accept expenses at the 10-year boundary', () => {
@@ -113,26 +108,20 @@ describe('Date Validation Unit Tests', () => {
                 '2023-12-25T10:30:00.000', // Missing Z
             ];
 
-            invalidDates.forEach(invalidDate => {
+            invalidDates.forEach((invalidDate) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     date: invalidDate,
                 };
 
-                expect(() => validateCreateExpense(expenseData))
-                    .toThrow(ApiError);
+                expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
         });
 
         test('should accept valid UTC ISO date formats', () => {
-            const validDates = [
-                '2023-12-25T10:30:00.000Z',
-                '2023-12-25T10:30:00Z',
-                '2023-01-01T00:00:00.000Z',
-                '2023-12-31T23:59:59.999Z',
-            ];
+            const validDates = ['2023-12-25T10:30:00.000Z', '2023-12-25T10:30:00Z', '2023-01-01T00:00:00.000Z', '2023-12-31T23:59:59.999Z'];
 
-            validDates.forEach(validDate => {
+            validDates.forEach((validDate) => {
                 // Adjust date to be within valid range
                 const dateObj = new Date(validDate);
                 const currentYear = new Date().getFullYear();
@@ -155,14 +144,13 @@ describe('Date Validation Unit Tests', () => {
                 '2023-12-25T10:30:00+00:30', // Half-hour offset
             ];
 
-            nonUtcDates.forEach(nonUtcDate => {
+            nonUtcDates.forEach((nonUtcDate) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     date: nonUtcDate,
                 };
 
-                expect(() => validateCreateExpense(expenseData))
-                    .toThrow(/Date must be in UTC format/);
+                expect(() => validateCreateExpense(expenseData)).toThrow(/Date must be in UTC format/);
             });
         });
 
@@ -177,14 +165,13 @@ describe('Date Validation Unit Tests', () => {
                 [],
             ];
 
-            nonStringDates.forEach(nonStringDate => {
+            nonStringDates.forEach((nonStringDate) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     date: nonStringDate,
                 };
 
-                expect(() => validateCreateExpense(expenseData))
-                    .toThrow(ApiError);
+                expect(() => validateCreateExpense(expenseData)).toThrow(ApiError);
             });
         });
     });
@@ -198,8 +185,7 @@ describe('Date Validation Unit Tests', () => {
                 date: futureDate.toISOString(),
             };
 
-            expect(() => validateUpdateExpense(updateData))
-                .toThrow(/Date cannot be in the future/);
+            expect(() => validateUpdateExpense(updateData)).toThrow(/Date cannot be in the future/);
         });
 
         test('should accept valid date updates', () => {

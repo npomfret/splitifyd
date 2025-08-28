@@ -32,14 +32,14 @@ test.describe('Share Link - Error Scenarios', () => {
         for (const link of emptyLinkCases) {
             await page.goto(link);
             await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-            
+
             // Should stay on /join page and show error message
             expect(page.url()).toContain('/join');
-            
+
             // Check for error message
             await expect(page.getByText('Invalid Link')).toBeVisible();
             await expect(page.getByText(/No group invitation link was provided/)).toBeVisible();
-            
+
             // Should have a button to go back to dashboard
             const backButton = page.getByRole('button', { name: /Back to Dashboard/i });
             await expect(backButton).toBeVisible();

@@ -3,27 +3,20 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../hel
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import {groupDetailUrlPattern} from "../../../pages/group-detail.page.ts";
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable error reporting and debugging
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
 
 test.describe('Real-time Comments E2E', () => {
-    test('should support real-time group comments across multiple users', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
-    }) => {
+    test('should support real-time group comments across multiple users', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page: alicePage, user: alice } = authenticatedPage;
         const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
 
         // Alice creates a group
         const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(
-            generateTestGroupName('Comments'), 
-            'Testing real-time comments'
-        );
+        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Comments'), 'Testing real-time comments');
 
         // Verify Alice is on the group page
         await expect(alicePage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -51,7 +44,7 @@ test.describe('Real-time Comments E2E', () => {
 
         // Test 1: Alice adds a comment, Bob should see it in real-time
         const aliceComment = `Hello from ${alice.displayName}! Time: ${Date.now()}`;
-        
+
         await groupDetailPage.addComment(aliceComment);
 
         // Bob should see Alice's comment appear in real-time (no page refresh!)
@@ -59,7 +52,7 @@ test.describe('Real-time Comments E2E', () => {
 
         // Test 2: Bob adds a comment, Alice should see it in real-time
         const bobComment = `Hello from ${bob.displayName}! Time: ${Date.now()}`;
-        
+
         await bobGroupDetailPage.addComment(bobComment);
 
         // Alice should see Bob's comment appear in real-time
@@ -74,11 +67,7 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
 
         // Test 4: Multiple rapid comments to test real-time reliability
-        const rapidComments = [
-            `Rapid comment 1 from ${alice.displayName}`,
-            `Rapid comment 2 from ${bob.displayName}`,
-            `Rapid comment 3 from ${alice.displayName}`,
-        ];
+        const rapidComments = [`Rapid comment 1 from ${alice.displayName}`, `Rapid comment 2 from ${bob.displayName}`, `Rapid comment 3 from ${alice.displayName}`];
 
         // Alice adds first rapid comment
         await groupDetailPage.addComment(rapidComments[0]);
@@ -103,20 +92,13 @@ test.describe('Real-time Comments E2E', () => {
         }
     });
 
-    test('should support real-time expense comments across multiple users', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
-    }) => {
+    test('should support real-time expense comments across multiple users', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page: alicePage, user: alice } = authenticatedPage;
         const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
 
         // Alice creates a group and adds an expense
         const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(
-            generateTestGroupName('ExpenseComments'), 
-            'Testing expense comments'
-        );
+        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('ExpenseComments'), 'Testing expense comments');
 
         // Bob joins the group
         const shareLink = await groupDetailPage.getShareLink();
@@ -134,24 +116,24 @@ test.describe('Real-time Comments E2E', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
         await expenseFormPage.submitExpense({
             description: 'Test Expense for Comments',
-            amount: 50.00,
+            amount: 50.0,
             currency: 'USD',
             paidBy: alice.displayName,
             splitType: 'equal',
         });
-        
+
         // After submission, we should be back on the group page
         await alicePage.waitForURL(new RegExp(`/groups/${groupId}$`), { timeout: 3000 });
-        
+
         // Click on the newly created expense to navigate to expense detail page
         await alicePage.getByText('Test Expense for Comments').click();
-        
+
         // Wait for navigation to expense detail page
         await alicePage.waitForURL(new RegExp(`/groups/${groupId}/expenses/[a-zA-Z0-9]+$`), { timeout: 3000 });
-        
+
         // Create the expense detail page object
         const expenseDetailPage = new ExpenseDetailPage(alicePage, alice);
-        
+
         // Verify we're on the expense detail page
         await expenseDetailPage.waitForPageReady();
 
@@ -176,7 +158,7 @@ test.describe('Real-time Comments E2E', () => {
 
         // Test real-time expense comments
         const aliceExpenseComment = `Alice's expense comment! Time: ${Date.now()}`;
-        
+
         // Alice adds comment to expense
         await expenseDetailPage.addComment(aliceExpenseComment);
 
@@ -201,20 +183,13 @@ test.describe('Real-time Comments E2E', () => {
         await expect(bobExpenseDetailPage.getCommentByText(bobExpenseComment)).toBeVisible();
     });
 
-    test('should handle comment errors gracefully without breaking real-time updates', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
-    }) => {
+    test('should handle comment errors gracefully without breaking real-time updates', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page: alicePage, user: alice } = authenticatedPage;
         const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
 
         // Setup group with both users
         const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(
-            generateTestGroupName('invalid comments'),
-            'testing invalid comment submissions'
-        );
+        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('invalid comments'), 'testing invalid comment submissions');
 
         const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(bobPage);
@@ -240,7 +215,7 @@ test.describe('Real-time Comments E2E', () => {
         // Test 2: Try very long comment (should be prevented by character limit)
         const longComment = 'a'.repeat(600); // Exceeds 500 char limit
         await input.fill(longComment);
-        
+
         // The input should enforce the limit or show error
         // Send button should be disabled for over-limit text
         await expect(sendButton).toBeDisabled();
@@ -262,20 +237,13 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
     });
 
-    test('should maintain comment order and author information in real-time', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
-    }) => {
+    test('should maintain comment order and author information in real-time', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page: alicePage, user: alice } = authenticatedPage;
         const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
 
         // Setup group
         const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(
-            generateTestGroupName('OrderTest'), 
-            'Testing comment order and authorship'
-        );
+        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('OrderTest'), 'Testing comment order and authorship');
 
         const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(bobPage);

@@ -105,7 +105,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                         </div>
                     ) : (
                         // Single currency
-                        <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`} data-financial-amount="balance">{balanceDisplays[0].text}</div>
+                        <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`} data-financial-amount="balance">
+                            {balanceDisplays[0].text}
+                        </div>
                     )}
                 </div>
 

@@ -1,39 +1,39 @@
 {
-    "name": "bill-splitter-monorepo",
-    "private": true,
-    "workspaces": [
-        "firebase/functions",
-        "webapp-v2",
-        "e2e-tests",
-        "packages/*"
-    ],
-    "scripts": {
-        "clean": "npm run clean -ws --if-present",
-        "clean:logs": "rm -f firebase/*.log || true",
-        "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
-        "dev:prep": "npm run clean:logs && cd firebase && npm run clean",
-        "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
-        "build": "npm run build -w @splitifyd/shared && npm run build -ws --if-present",
-        "build:prod": "NODE_ENV=production npm run build",
-        "webapp-v2:build": "cd webapp-v2 && npm run build",
-        "build:all": "npm run build -w webapp-v2",
-        "watch": "npm run watch -ws --if-present",
-        "test": "npm run test:unit && npm run test:integration",
-        "test:unit": "npm run test:unit -ws --if-present",
-        "test:integration": "npm run test:integration -ws --if-present",
-        "report": "repo-statter . -o reports",
-        "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
-        "postinstall": "cd e2e-tests && npx playwright install chromium",
-        "prepare": "npm run build -w @splitifyd/shared || true",
-        "format": "prettier --write ."
-    },
-    "devDependencies": {
-        "@types/node": "^24.0.14",
-        "concurrently": "^9.2.0",
-        "esbuild": "^0.25.6",
-        "firebase-tools": "^14.11.0",
-        "nodemon": "^3.1.10",
-        "prettier": "^3.6.2",
-        "typescript": "^5.8.3"
-    }
+  "name": "bill-splitter-monorepo",
+  "private": true,
+  "workspaces": [
+    "firebase/functions",
+    "webapp-v2",
+    "e2e-tests",
+    "packages/*"
+  ],
+  "scripts": {
+    "clean": "npm run clean -ws --if-present",
+    "clean:logs": "rm -f firebase/*.log || true",
+    "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
+    "dev:prep": "npm run clean:logs && cd firebase && npm run clean",
+    "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
+    "build": "npm run build -w @splitifyd/shared && npm run build -ws --if-present",
+    "build:prod": "NODE_ENV=production npm run build",
+    "webapp-v2:build": "cd webapp-v2 && npm run build",
+    "build:all": "npm run build -w webapp-v2",
+    "watch": "npm run watch -ws --if-present",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "npm run test:unit -ws --if-present",
+    "test:integration": "npm run test:integration -ws --if-present",
+    "report": "repo-statter . -o reports",
+    "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
+    "postinstall": "cd e2e-tests && npx playwright install chromium",
+    "prepare": "npm run build -w @splitifyd/shared || true",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.14",
+    "concurrently": "^9.2.0",
+    "esbuild": "^0.25.6",
+    "firebase-tools": "^14.11.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3"
+  }
 }

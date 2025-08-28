@@ -1,14 +1,4 @@
-import { 
-    Group, 
-    MemberRole, 
-    PermissionLevel, 
-    GroupPermissions, 
-    SecurityPreset,
-    SecurityPresets,
-    MemberRoles,
-    PermissionLevels,
-    MemberStatuses
-} from '@splitifyd/shared';
+import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
 
 export interface PermissionCheckOptions {
@@ -20,12 +10,7 @@ export class PermissionEngine {
     /**
      * Check if a user has permission to perform an action in a group
      */
-    static checkPermission(
-        group: Group,
-        userId: string,
-        action: keyof GroupPermissions | 'viewGroup',
-        options: PermissionCheckOptions = {}
-    ): boolean {
+    static checkPermission(group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): boolean {
         // Validate group has required permission structure
         if (!group.permissions) {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
@@ -48,8 +33,7 @@ export class PermissionEngine {
         }
 
         // Viewer role can only read, never modify
-        if (member.role === MemberRoles.VIEWER && 
-            ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action)) {
+        if (member.role === MemberRoles.VIEWER && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action)) {
             return false;
         }
 
@@ -64,16 +48,11 @@ export class PermissionEngine {
     /**
      * Evaluate a specific permission level against user's role and context
      */
-    private static evaluatePermission(
-        permission: PermissionLevel | string,
-        userRole: MemberRole,
-        userId: string,
-        options: PermissionCheckOptions
-    ): boolean {
+    private static evaluatePermission(permission: PermissionLevel | string, userRole: MemberRole, userId: string, options: PermissionCheckOptions): boolean {
         switch (permission) {
             case PermissionLevels.ANYONE:
                 return userRole !== MemberRoles.VIEWER;
-            
+
             case PermissionLevels.OWNER_AND_ADMIN:
                 if (userRole === MemberRoles.ADMIN) {
                     return true;
@@ -87,16 +66,16 @@ export class PermissionEngine {
                     return true;
                 }
                 return false;
-            
+
             case PermissionLevels.ADMIN_ONLY:
                 return userRole === MemberRoles.ADMIN;
-            
+
             case 'automatic':
                 return true;
-            
+
             case 'admin-required':
                 return userRole === MemberRoles.ADMIN;
-            
+
             default:
                 return false;
         }
@@ -115,7 +94,7 @@ export class PermissionEngine {
                     memberApproval: 'automatic',
                     settingsManagement: PermissionLevels.ANYONE,
                 };
-            
+
             case SecurityPresets.MANAGED:
                 return {
                     expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
@@ -124,7 +103,7 @@ export class PermissionEngine {
                     memberApproval: 'admin-required',
                     settingsManagement: PermissionLevels.ADMIN_ONLY,
                 };
-            
+
             case SecurityPresets.CUSTOM:
             default:
                 // Return open permissions as default fallback
@@ -135,12 +114,7 @@ export class PermissionEngine {
     /**
      * Check if user can change another user's role
      */
-    static canChangeRole(
-        group: Group,
-        actorUserId: string,
-        targetUserId: string,
-        newRole: MemberRole
-    ): { allowed: boolean; reason?: string } {
+    static canChangeRole(group: Group, actorUserId: string, targetUserId: string, newRole: MemberRole): { allowed: boolean; reason?: string } {
         const actorMember = group.members[actorUserId];
         const targetMember = group.members[targetUserId];
 
@@ -154,27 +128,22 @@ export class PermissionEngine {
         }
 
         // Prevent last admin from demoting themselves
-        if (actorUserId === targetUserId && 
-            actorMember.role === MemberRoles.ADMIN && 
-            newRole !== MemberRoles.ADMIN) {
-            
-            const adminCount = Object.values(group.members)
-                .filter(m => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE)
-                .length;
-            
+        if (actorUserId === targetUserId && actorMember.role === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
+            const adminCount = Object.values(group.members).filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
+
             if (adminCount === 1) {
-                return { 
-                    allowed: false, 
-                    reason: 'Cannot remove last admin. Promote another member first.' 
+                return {
+                    allowed: false,
+                    reason: 'Cannot remove last admin. Promote another member first.',
                 };
             }
         }
 
         // Prevent changing group creator to viewer without explicit confirmation
         if (targetUserId === group.createdBy && newRole === MemberRoles.VIEWER) {
-            return { 
-                allowed: false, 
-                reason: 'Changing creator permissions requires explicit confirmation' 
+            return {
+                allowed: false,
+                reason: 'Changing creator permissions requires explicit confirmation',
             };
         }
 

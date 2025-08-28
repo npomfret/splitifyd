@@ -1,4 +1,3 @@
-
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
@@ -13,17 +12,15 @@ describe('Business Logic Edge Cases', () => {
     let testGroup: any;
 
     beforeAll(async () => {
-
         driver = new ApiDriver();
-        
+
         // Create user pool with 4 users (3 for main tests + 1 for isolated test)
         userPool = new FirebaseIntegrationTestUserPool(driver, 4);
         await userPool.initialize();
-        
+
         // Set the first 3 users for main tests
         users = userPool.getUsers(3);
     });
-
 
     beforeEach(async () => {
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();

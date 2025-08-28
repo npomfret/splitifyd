@@ -16,37 +16,35 @@ export async function initializeI18n(): Promise<void> {
     }
 
     try {
-        await i18next
-            .use(Backend)
-            .init({
-                // Default language
-                lng: 'en',
-                fallbackLng: 'en',
-                
-                // Language detection will be handled by middleware
-                detection: {
-                    order: ['header', 'query'],
-                    caches: false
-                },
+        await i18next.use(Backend).init({
+            // Default language
+            lng: 'en',
+            fallbackLng: 'en',
 
-                backend: {
-                    loadPath: path.join(__dirname, '../locales/{{lng}}/{{ns}}.json'),
-                },
+            // Language detection will be handled by middleware
+            detection: {
+                order: ['header', 'query'],
+                caches: false,
+            },
 
-                // Namespace configuration
-                ns: ['translation'],
-                defaultNS: 'translation',
+            backend: {
+                loadPath: path.join(__dirname, '../locales/{{lng}}/{{ns}}.json'),
+            },
 
-                interpolation: {
-                    escapeValue: false, // Not needed for server-side
-                },
+            // Namespace configuration
+            ns: ['translation'],
+            defaultNS: 'translation',
 
-                // Preload languages
-                preload: ['en'],
+            interpolation: {
+                escapeValue: false, // Not needed for server-side
+            },
 
-                // Debugging disabled - too verbose for development
-                debug: false,
-            });
+            // Preload languages
+            preload: ['en'],
+
+            // Debugging disabled - too verbose for development
+            debug: false,
+        });
 
         isInitialized = true;
         console.log('Backend i18n initialized successfully');
@@ -74,18 +72,18 @@ export function detectLanguageFromHeader(acceptLanguage?: string): string {
     // Parse Accept-Language header (e.g., "en-US,en;q=0.9,es;q=0.8")
     const languages = acceptLanguage
         .split(',')
-        .map(lang => {
+        .map((lang) => {
             const [code, q] = lang.trim().split(';q=');
             return {
                 code: code.split('-')[0].toLowerCase(), // Extract primary language code
-                quality: q ? parseFloat(q) : 1.0
+                quality: q ? parseFloat(q) : 1.0,
             };
         })
         .sort((a, b) => b.quality - a.quality); // Sort by quality (preference)
 
     // Find first supported language
     const supportedLanguages = ['en']; // Add more languages as they become available
-    
+
     for (const lang of languages) {
         if (supportedLanguages.includes(lang.code)) {
             return lang.code;
@@ -100,11 +98,11 @@ export function detectLanguageFromHeader(acceptLanguage?: string): string {
  */
 async function getUserPreferredLanguage(userId?: string): Promise<string | null> {
     if (!userId) return null;
-    
+
     try {
         const { firestoreDb } = await import('../firebase');
         const userDoc = await firestoreDb.collection('users').doc(userId).get();
-        
+
         if (userDoc.exists) {
             const userData = userDoc.data();
             return userData?.preferredLanguage || null;
@@ -112,7 +110,7 @@ async function getUserPreferredLanguage(userId?: string): Promise<string | null>
     } catch (error) {
         console.error('Error fetching user preferred language:', error);
     }
-    
+
     return null;
 }
 
@@ -129,9 +127,9 @@ export function i18nMiddleware() {
             // 1. User profile preference (if authenticated)
             // 2. Accept-Language header
             // 3. Default to English
-            
+
             let selectedLanguage = 'en';
-            
+
             // Try to get user's preferred language if authenticated
             const userId = (req as any).user?.uid;
             if (userId) {
@@ -146,7 +144,7 @@ export function i18nMiddleware() {
                 // For non-authenticated requests, use Accept-Language header
                 selectedLanguage = detectLanguageFromHeader(req.get('Accept-Language'));
             }
-            
+
             req.language = selectedLanguage;
 
             // Add translation function to request
@@ -166,11 +164,7 @@ export function i18nMiddleware() {
 /**
  * Translate a key with optional interpolation values
  */
-export function translate(
-    key: string, 
-    language: string = 'en', 
-    interpolation?: Record<string, any>
-): string {
+export function translate(key: string, language: string = 'en', interpolation?: Record<string, any>): string {
     const t = getTranslationFunction(language);
     return t(key, interpolation);
 }

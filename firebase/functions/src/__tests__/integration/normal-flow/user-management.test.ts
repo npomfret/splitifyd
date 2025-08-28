@@ -1,10 +1,9 @@
-
 // Tests for user management endpoints
 
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, generateTestEmail, User} from '@splitifyd/test-support';
+import { ApiDriver, generateTestEmail, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
@@ -16,7 +15,6 @@ describe('User Management Tests', () => {
         driver = new ApiDriver();
         testUser = await driver.createUser(new UserBuilder().build());
     });
-
 
     describe('User Registration', () => {
         test('should register a new user successfully', async () => {
@@ -271,7 +269,6 @@ describe('User Management Tests', () => {
         // let userExpenses: any[] = []; // Not used currently
 
         beforeAll(async () => {
-
             // Create a test group and some expenses for the user
             const secondUser = await driver.createUser(new UserBuilder().build());
 

@@ -3,14 +3,14 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { FirestoreCollections, PolicyIds } from '@splitifyd/shared';
 import * as crypto from 'crypto';
 import { ApiDriver } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
+import { firestoreDb } from '../../../firebase';
 
 describe('Policies API Integration Tests', () => {
     let apiDriver: ApiDriver;
 
     beforeAll(async () => {
         apiDriver = new ApiDriver();
-        
+
         // Clean up any existing data first
         const firestore = firestoreDb;
         try {
@@ -31,7 +31,7 @@ describe('Policies API Integration Tests', () => {
             .doc(PolicyIds.TERMS_OF_SERVICE)
             .set({
                 id: PolicyIds.TERMS_OF_SERVICE,
-                policyName: 'Terms and Conditions',  // Match what seed script uses
+                policyName: 'Terms and Conditions', // Match what seed script uses
                 currentVersionHash: testPolicyHash,
                 versions: {
                     [testPolicyHash]: {
@@ -72,7 +72,6 @@ describe('Policies API Integration Tests', () => {
                 updatedAt: now,
             });
     });
-
 
     describe('GET /policies/current', () => {
         it('should return all current policy versions', async () => {

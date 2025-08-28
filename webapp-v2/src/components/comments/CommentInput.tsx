@@ -9,19 +9,14 @@ interface CommentInputProps {
     className?: string;
 }
 
-export function CommentInput({ 
-    onSubmit, 
-    disabled = false, 
-    placeholder = 'Add a comment...', 
-    className = '' 
-}: CommentInputProps) {
+export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a comment...', className = '' }: CommentInputProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const isEditing = useSignal(false);
     const text = useSignal('');
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    
+
     const remainingChars = 500 - text.value.length;
     const isOverLimit = remainingChars < 0;
 
@@ -36,9 +31,9 @@ export function CommentInput({
 
     const handleSubmit = async (e?: Event) => {
         e?.preventDefault();
-        
+
         const trimmedText = text.value.trim();
-        
+
         if (!trimmedText) {
             return;
         }
@@ -55,12 +50,12 @@ export function CommentInput({
             await onSubmit(trimmedText);
             text.value = '';
             setError(null);
-            
+
             // Reset textarea height
             if (textareaRef.current) {
                 textareaRef.current.style.height = 'auto';
             }
-            
+
             // Delay clearing editing state to prevent race condition with disabled prop
             setTimeout(() => {
                 isEditing.value = false;
@@ -128,35 +123,32 @@ export function CommentInput({
                         absolute right-2 bottom-2
                         p-1.5 rounded-lg
                         transition-colors
-                        ${text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
-                            ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
-                            : 'text-gray-400 cursor-not-allowed'
+                        ${
+                            text.value.trim() && !isOverLimit && !(disabled && !isEditing.value) && !isSubmitting
+                                ? 'text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20'
+                                : 'text-gray-400 cursor-not-allowed'
                         }
                     `}
                     aria-label="Send comment"
                 >
-                    {isSubmitting ? (
-                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                        <PaperAirplaneIcon className="w-4 h-4" />
-                    )}
+                    {isSubmitting ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <PaperAirplaneIcon className="w-4 h-4" />}
                 </button>
             </div>
-            
+
             <div className="flex items-center justify-between text-xs">
                 <div className="text-gray-500 dark:text-gray-400">
                     {error ? (
                         <span className="text-red-500 dark:text-red-400">{error}</span>
                     ) : (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
-                            Press Enter to send, Shift+Enter for new line
-                        </span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">Press Enter to send, Shift+Enter for new line</span>
                     )}
                 </div>
                 {text.value.length > 0 && (
-                    <span className={`
+                    <span
+                        className={`
                         ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500 dark:text-gray-400'}
-                    `}>
+                    `}
+                    >
                         {remainingChars}
                     </span>
                 )}

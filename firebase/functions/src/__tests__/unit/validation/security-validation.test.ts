@@ -7,7 +7,7 @@ describe('Security Validation Unit Tests', () => {
     const baseValidExpenseData = {
         groupId: 'test-group-id',
         paidBy: 'test-user-id',
-        amount: 50.00,
+        amount: 50.0,
         currency: 'USD',
         description: 'Test expense',
         category: 'Food',
@@ -31,7 +31,7 @@ describe('Security Validation Unit Tests', () => {
                 'Emoji: 🍕🍺🎉', // Emoji
             ];
 
-            unicodeDescriptions.forEach(description => {
+            unicodeDescriptions.forEach((description) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     description,
@@ -50,15 +50,9 @@ describe('Security Validation Unit Tests', () => {
         });
 
         test('should handle Unicode characters in group names', () => {
-            const unicodeNames = [
-                'Français Group',
-                '中文小組',
-                'العربية مجموعة',
-                'русская группа',
-                '🏠 Family Group',
-            ];
+            const unicodeNames = ['Français Group', '中文小組', 'العربية مجموعة', 'русская группа', '🏠 Family Group'];
 
-            unicodeNames.forEach(name => {
+            unicodeNames.forEach((name) => {
                 const groupData = {
                     ...baseValidGroupData,
                     name,
@@ -86,7 +80,7 @@ describe('Security Validation Unit Tests', () => {
                 "' OR 1=1#",
             ];
 
-            sqlInjectionAttempts.forEach(injectionAttempt => {
+            sqlInjectionAttempts.forEach((injectionAttempt) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     description: injectionAttempt,
@@ -95,7 +89,7 @@ describe('Security Validation Unit Tests', () => {
                 // Validation accepts SQL-like strings (no prevention at validation level)
                 // This documents current behavior - SQL injection prevention happens at database level
                 const result = validateCreateExpense(expenseData);
-                
+
                 // The input is preserved (validation doesn't filter SQL patterns)
                 expect(result.description).toBe(injectionAttempt);
             });
@@ -114,14 +108,14 @@ describe('Security Validation Unit Tests', () => {
                 '<style>body{background:url("javascript:alert(1)")}</style>',
             ];
 
-            xssAttempts.forEach(xssAttempt => {
+            xssAttempts.forEach((xssAttempt) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     description: xssAttempt,
                 };
 
                 const result = validateCreateExpense(expenseData);
-                
+
                 // XSS filter removes HTML tags but preserves some content
                 expect(result.description).not.toContain('<script>');
                 expect(result.description).not.toContain('onerror=');
@@ -129,7 +123,7 @@ describe('Security Validation Unit Tests', () => {
                 expect(result.description).not.toContain('<iframe');
                 expect(result.description).not.toContain('<svg');
                 expect(result.description).not.toContain('<style>');
-                
+
                 // Some plain text XSS patterns may still be present (like 'javascript:')
                 // but without HTML context they're harmless
                 if (xssAttempt === 'javascript:alert(1)') {
@@ -150,18 +144,18 @@ describe('Security Validation Unit Tests', () => {
                 '<em>Emphasized text</em>',
             ];
 
-            htmlInputs.forEach(htmlInput => {
+            htmlInputs.forEach((htmlInput) => {
                 const expenseData = {
                     ...baseValidExpenseData,
                     description: htmlInput,
                 };
 
                 const result = validateCreateExpense(expenseData);
-                
+
                 // HTML tags should be stripped, leaving only text content
                 expect(result.description).not.toContain('<');
                 expect(result.description).not.toContain('>');
-                
+
                 // Text content should remain
                 if (htmlInput.includes('Bold text')) {
                     expect(result.description).toContain('Bold text');
@@ -172,35 +166,17 @@ describe('Security Validation Unit Tests', () => {
 
     describe('Dangerous Pattern Detection', () => {
         test('should detect dangerous JavaScript patterns', () => {
-            const dangerousPatterns = [
-                '__proto__',
-                'constructor',
-                'prototype',
-                'eval(',
-                'Function(',
-                'setTimeout(',
-                'setInterval(',
-                'document.',
-                'window.',
-                'XMLHttpRequest',
-                'fetch(',
-            ];
+            const dangerousPatterns = ['__proto__', 'constructor', 'prototype', 'eval(', 'Function(', 'setTimeout(', 'setInterval(', 'document.', 'window.', 'XMLHttpRequest', 'fetch('];
 
-            dangerousPatterns.forEach(pattern => {
+            dangerousPatterns.forEach((pattern) => {
                 expect(checkForDangerousPatterns(pattern)).toBe(true);
             });
         });
 
         test('should not flag safe content as dangerous', () => {
-            const safeContent = [
-                'Normal expense description',
-                'Meeting at the office',
-                'Lunch with team',
-                'Travel expenses',
-                'Coffee shop visit',
-            ];
+            const safeContent = ['Normal expense description', 'Meeting at the office', 'Lunch with team', 'Travel expenses', 'Coffee shop visit'];
 
-            safeContent.forEach(content => {
+            safeContent.forEach((content) => {
                 expect(checkForDangerousPatterns(content)).toBe(false);
             });
         });
@@ -228,28 +204,21 @@ describe('Security Validation Unit Tests', () => {
 
             testCases.forEach(({ input, shouldContain, shouldNotContain }) => {
                 const sanitized = sanitizeString(input);
-                
-                shouldNotContain.forEach(badContent => {
+
+                shouldNotContain.forEach((badContent) => {
                     expect(sanitized).not.toContain(badContent);
                 });
-                
-                shouldContain.forEach(goodContent => {
+
+                shouldContain.forEach((goodContent) => {
                     expect(sanitized).toContain(goodContent);
                 });
             });
         });
 
         test('should handle non-string inputs safely', () => {
-            const nonStringInputs = [
-                123,
-                true,
-                null,
-                undefined,
-                {},
-                [],
-            ];
+            const nonStringInputs = [123, true, null, undefined, {}, []];
 
-            nonStringInputs.forEach(input => {
+            nonStringInputs.forEach((input) => {
                 const result = sanitizeString(input as any);
                 expect(typeof result).toBe('string');
             });
@@ -265,11 +234,11 @@ describe('Security Validation Unit Tests', () => {
             };
 
             const result = validateCreateExpense(expenseData);
-            
+
             // Script tags should be removed
             expect(result.description).not.toContain('<script>');
             expect(result.description).toContain('Normal text');
-            
+
             // HTML in category should be sanitized
             expect(result.category).not.toContain('<b>');
             expect(result.category).toContain('Food');
@@ -285,7 +254,7 @@ describe('Security Validation Unit Tests', () => {
             };
 
             const result = validateCreateGroup(groupData);
-            
+
             expect(result.name).toBe('Group Name');
             expect(result.description).toBe('Clean description');
         });
@@ -293,13 +262,9 @@ describe('Security Validation Unit Tests', () => {
 
     describe('Prototype Pollution Prevention', () => {
         test('should handle __proto__ attempts safely', () => {
-            const prototypePollutionAttempts = [
-                '__proto__',
-                'constructor',
-                'prototype',
-            ];
+            const prototypePollutionAttempts = ['__proto__', 'constructor', 'prototype'];
 
-            prototypePollutionAttempts.forEach(attempt => {
+            prototypePollutionAttempts.forEach((attempt) => {
                 expect(checkForDangerousPatterns(attempt)).toBe(true);
             });
         });

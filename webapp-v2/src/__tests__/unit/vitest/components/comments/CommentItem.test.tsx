@@ -19,7 +19,7 @@ vi.mock('@/utils/avatar', () => ({
     getInitials: vi.fn((name: string) => {
         return name
             .split(' ')
-            .map(n => n[0])
+            .map((n) => n[0])
             .join('')
             .toUpperCase();
     }),
@@ -83,10 +83,7 @@ describe('CommentItem', () => {
 
     describe('Basic Rendering', () => {
         it('should render comment with author name and text', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'Jane Smith')
-                .withText('Hello world!')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'Jane Smith').withText('Hello world!').build();
 
             renderCommentItem(comment);
 
@@ -113,9 +110,7 @@ describe('CommentItem', () => {
 
     describe('Avatar Display', () => {
         it('should show avatar by default', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'John Doe')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').build();
 
             renderCommentItem(comment);
 
@@ -124,10 +119,7 @@ describe('CommentItem', () => {
         });
 
         it('should show image avatar when authorAvatar is provided', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'Jane Smith')
-                .withAvatar('https://example.com/avatar.jpg')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'Jane Smith').withAvatar('https://example.com/avatar.jpg').build();
 
             renderCommentItem(comment);
 
@@ -138,9 +130,7 @@ describe('CommentItem', () => {
         });
 
         it('should show initials avatar when no authorAvatar provided', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'Bob Johnson')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'Bob Johnson').build();
 
             renderCommentItem(comment);
 
@@ -150,9 +140,7 @@ describe('CommentItem', () => {
         });
 
         it('should hide avatar when showAvatar is false', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'John Doe')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').build();
 
             renderCommentItem(comment, { showAvatar: false });
 
@@ -161,12 +149,8 @@ describe('CommentItem', () => {
         });
 
         it('should generate consistent colors for same authorId', () => {
-            const comment1 = new CommentBuilder()
-                .withAuthor('user-123', 'User One')
-                .build();
-            const comment2 = new CommentBuilder()
-                .withAuthor('user-123', 'User Two')
-                .build();
+            const comment1 = new CommentBuilder().withAuthor('user-123', 'User One').build();
+            const comment2 = new CommentBuilder().withAuthor('user-123', 'User Two').build();
 
             const { container: container1 } = renderCommentItem(comment1);
             const { container: container2 } = renderCommentItem(comment2);
@@ -175,20 +159,16 @@ describe('CommentItem', () => {
             const avatar1 = container1.querySelector('[class*="bg-"]');
             const avatar2 = container2.querySelector('[class*="bg-"]');
 
-            const colorClass1 = Array.from(avatar1!.classList).find(cls => cls.startsWith('bg-') && cls !== 'bg-blue-500');
-            const colorClass2 = Array.from(avatar2!.classList).find(cls => cls.startsWith('bg-') && cls !== 'bg-blue-500');
+            const colorClass1 = Array.from(avatar1!.classList).find((cls) => cls.startsWith('bg-') && cls !== 'bg-blue-500');
+            const colorClass2 = Array.from(avatar2!.classList).find((cls) => cls.startsWith('bg-') && cls !== 'bg-blue-500');
 
             // Since authorId is same, color should be same
             expect(colorClass1).toBe(colorClass2);
         });
 
         it('should generate different colors for different authorIds', () => {
-            const comment1 = new CommentBuilder()
-                .withAuthor('user-1', 'User One')
-                .build();
-            const comment2 = new CommentBuilder()
-                .withAuthor('user-999', 'User Two')
-                .build();
+            const comment1 = new CommentBuilder().withAuthor('user-1', 'User One').build();
+            const comment2 = new CommentBuilder().withAuthor('user-999', 'User Two').build();
 
             const { container: container1 } = renderCommentItem(comment1);
             const { container: container2 } = renderCommentItem(comment2);
@@ -204,9 +184,7 @@ describe('CommentItem', () => {
 
     describe('Timestamp Formatting', () => {
         it('should format recent timestamp as "just now"', () => {
-            const comment = new CommentBuilder()
-                .withCreatedAt(new Date())
-                .build();
+            const comment = new CommentBuilder().withCreatedAt(new Date()).build();
 
             renderCommentItem(comment);
 
@@ -215,9 +193,7 @@ describe('CommentItem', () => {
 
         it('should format older timestamp with relative time', () => {
             const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-            const comment = new CommentBuilder()
-                .withCreatedAt(fiveMinutesAgo)
-                .build();
+            const comment = new CommentBuilder().withCreatedAt(fiveMinutesAgo).build();
 
             renderCommentItem(comment);
 
@@ -225,9 +201,7 @@ describe('CommentItem', () => {
         });
 
         it('should handle invalid date gracefully', () => {
-            const comment = new CommentBuilder()
-                .withInvalidDate()
-                .build();
+            const comment = new CommentBuilder().withInvalidDate().build();
 
             renderCommentItem(comment);
 
@@ -247,9 +221,7 @@ describe('CommentItem', () => {
     describe('Text Content', () => {
         it('should preserve line breaks in comment text', () => {
             const multilineText = 'Line 1\nLine 2\n\nLine 4';
-            const comment = new CommentBuilder()
-                .withText(multilineText)
-                .build();
+            const comment = new CommentBuilder().withText(multilineText).build();
 
             renderCommentItem(comment);
 
@@ -260,9 +232,7 @@ describe('CommentItem', () => {
 
         it('should handle long text with word breaking', () => {
             const longText = 'This is a very long comment that should break properly at word boundaries and not overflow the container';
-            const comment = new CommentBuilder()
-                .withText(longText)
-                .build();
+            const comment = new CommentBuilder().withText(longText).build();
 
             renderCommentItem(comment);
 
@@ -271,9 +241,7 @@ describe('CommentItem', () => {
         });
 
         it('should handle empty text', () => {
-            const comment = new CommentBuilder()
-                .withText('')
-                .build();
+            const comment = new CommentBuilder().withText('').build();
 
             renderCommentItem(comment);
 
@@ -286,9 +254,7 @@ describe('CommentItem', () => {
 
         it('should handle special characters and emojis', () => {
             const specialText = 'Hello 👋 & welcome to <script>alert("test")</script> our app! 🎉';
-            const comment = new CommentBuilder()
-                .withText(specialText)
-                .build();
+            const comment = new CommentBuilder().withText(specialText).build();
 
             renderCommentItem(comment);
 
@@ -296,9 +262,7 @@ describe('CommentItem', () => {
         });
 
         it('should have proper text styling', () => {
-            const comment = new CommentBuilder()
-                .withText('Test comment')
-                .build();
+            const comment = new CommentBuilder().withText('Test comment').build();
 
             renderCommentItem(comment);
 
@@ -309,9 +273,7 @@ describe('CommentItem', () => {
 
     describe('Author Name Display', () => {
         it('should display author name with proper styling', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'Sarah Connor')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'Sarah Connor').build();
 
             renderCommentItem(comment);
 
@@ -321,9 +283,7 @@ describe('CommentItem', () => {
 
         it('should handle long author names', () => {
             const longName = 'Christopher Alexander Montgomery Maximilian von Habsburg-Lothringen';
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', longName)
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', longName).build();
 
             renderCommentItem(comment);
 
@@ -332,9 +292,7 @@ describe('CommentItem', () => {
 
         it('should handle special characters in author names', () => {
             const specialName = 'José María Aznar-López Jr. (CEO)';
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', specialName)
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', specialName).build();
 
             renderCommentItem(comment);
 
@@ -375,10 +333,7 @@ describe('CommentItem', () => {
 
     describe('Accessibility', () => {
         it('should have proper alt text for image avatars', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'John Doe')
-                .withAvatar('https://example.com/avatar.jpg')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').withAvatar('https://example.com/avatar.jpg').build();
 
             renderCommentItem(comment);
 
@@ -387,10 +342,7 @@ describe('CommentItem', () => {
         });
 
         it('should be readable by screen readers', () => {
-            const comment = new CommentBuilder()
-                .withAuthor('user-1', 'Jane Doe')
-                .withText('Important message')
-                .build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'Jane Doe').withText('Important message').build();
 
             renderCommentItem(comment);
 

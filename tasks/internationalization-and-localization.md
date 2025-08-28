@@ -51,26 +51,26 @@ This plan will bridge the identified gaps and deliver a complete i18n system.
     - Create the directory `firebase/functions/src/locales/en`.
     - Create a `translation.json` file inside with relevant backend error messages. Start with the validation messages from `utils/i18n-validation.ts`.
     - **Example `firebase/functions/src/locales/en/translation.json`:**
-      ```json
-      {
-        "errors": {
-          "server": {
-            "internalError": "An unexpected server error occurred."
-          },
-          "validation": {
-            "string": {
-              "base": "This field must be text.",
-              "min": "This field must be at least {{limit}} characters long.",
-              "max": "This field must be no more than {{limit}} characters long.",
-              "email": "A valid email address is required."
-            },
-            "any": {
-              "required": "This field is required."
+        ```json
+        {
+            "errors": {
+                "server": {
+                    "internalError": "An unexpected server error occurred."
+                },
+                "validation": {
+                    "string": {
+                        "base": "This field must be text.",
+                        "min": "This field must be at least {{limit}} characters long.",
+                        "max": "This field must be no more than {{limit}} characters long.",
+                        "email": "A valid email address is required."
+                    },
+                    "any": {
+                        "required": "This field is required."
+                    }
+                }
             }
-          }
         }
-      }
-      ```
+        ```
 
 3.  **Update Backend `i18nMiddleware`:**
     - Modify the middleware to fetch the logged-in user's profile, read their `language` preference, and set it for the duration of the request.
@@ -83,40 +83,40 @@ This plan will bridge the identified gaps and deliver a complete i18n system.
     - This component will be a simple dropdown menu displaying the list of supported languages.
     - Place this component in a logical location, such as the `SettingsPage.tsx` or within the `UserMenu`.
     - When a user selects a new language, the component will:
-        a. Call a new method in the `AuthStore` (e.g., `updateLanguagePreference(lang)`) to update the `language` field in their Firestore user document.
-        b. Call `i18n.changeLanguage(lang)` to change the frontend's language in real-time.
+      a. Call a new method in the `AuthStore` (e.g., `updateLanguagePreference(lang)`) to update the `language` field in their Firestore user document.
+      b. Call `i18n.changeLanguage(lang)` to change the frontend's language in real-time.
 
 2.  **Refactor Frontend `i18n.ts` for Dynamic Loading:**
     - Update `webapp-v2/src/i18n.ts` to use `i18next-http-backend` and `i18next-browser-languagedetector`.
     - This will stop bundling all translations and instead load them from the `/locales` directory on demand. It will also auto-detect the user's language on their first visit.
     - **Example `webapp-v2/src/i18n.ts`:**
-      ```typescript
-      import i18n from 'i18next';
-      import { initReactI18next } from 'react-i18next';
-      import HttpApi from 'i18next-http-backend';
-      import LanguageDetector from 'i18next-browser-languagedetector';
 
-      i18n
-        .use(HttpApi)
-        .use(LanguageDetector)
-        .use(initReactI18next)
-        .init({
-          supportedLngs: ['en', 'es'], // Add new languages here
-          fallbackLng: 'en',
-          debug: process.env.NODE_ENV === 'development',
-          interpolation: {
-            escapeValue: false, // React already escapes
-          },
-          backend: {
-            loadPath: '/locales/{{lng}}/translation.json',
-          },
-          react: {
-            useSuspense: true, // Recommended for lazy loading
-          },
-        });
+        ```typescript
+        import i18n from 'i18next';
+        import { initReactI18next } from 'react-i18next';
+        import HttpApi from 'i18next-http-backend';
+        import LanguageDetector from 'i18next-browser-languagedetector';
 
-      export default i18n;
-      ```
+        i18n.use(HttpApi)
+            .use(LanguageDetector)
+            .use(initReactI18next)
+            .init({
+                supportedLngs: ['en', 'es'], // Add new languages here
+                fallbackLng: 'en',
+                debug: process.env.NODE_ENV === 'development',
+                interpolation: {
+                    escapeValue: false, // React already escapes
+                },
+                backend: {
+                    loadPath: '/locales/{{lng}}/translation.json',
+                },
+                react: {
+                    useSuspense: true, // Recommended for lazy loading
+                },
+            });
+
+        export default i18n;
+        ```
 
 ### Phase 3: Add a New Language (Spanish)
 

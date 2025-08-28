@@ -1,373 +1,373 @@
 {
-    "createGroupModal": {
-        "title": "Create a new group",
-        "groupNameLabel": "Group Name",
-        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
-        "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
-        "groupDescriptionLabel": "Description (optional)",
-        "groupDescriptionPlaceholder": "Add any details about this group...",
-        "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
-        "cancelButton": "Cancel",
-        "submitButton": "Create Group",
-        "validation": {
-            "nameRequired": "Group name is required.",
-            "nameTooShort": "Group name must be at least 2 characters long.",
-            "nameTooLong": "Group name must be less than 50 characters."
-        }
-    },
-    "loginPage": {
-        "title": "Sign In",
-        "description": "Sign in to your Splitifyd account to manage your shared expenses",
-        "rememberMe": "Remember me",
-        "forgotPassword": "Forgot your password?",
-        "submitButton": "Sign In",
-        "noAccount": "Don't have an account?",
-        "signUp": "Sign up",
-        "validation": {
-            "emailRequired": "Email is required",
-            "passwordRequired": "Password is required"
-        }
-    },
-    "registerPage": {
-        "title": "Create Account",
-        "description": "Create your Splitifyd account to start managing shared expenses",
-        "fullNameLabel": "Full Name",
-        "fullNamePlaceholder": "Enter your full name",
-        "passwordLabel": "Password",
-        "passwordPlaceholder": "Create a strong password",
-        "confirmPasswordLabel": "Confirm Password",
-        "confirmPasswordPlaceholder": "Confirm your password",
-        "acceptTerms": "I accept the",
-        "termsOfService": "Terms of Service",
-        "cookiePolicy": "Cookie Policy",
-        "submitButton": "Create Account",
-        "hasAccount": "Already have an account?",
-        "signIn": "Sign in",
-        "validation": {
-            "nameRequired": "Name is required",
-            "emailRequired": "Email is required",
-            "passwordRequired": "Password is required",
-            "passwordTooShort": "Password must be at least 6 characters",
-            "passwordsNoMatch": "Passwords do not match",
-            "termsRequired": "You must accept the Terms of Service",
-            "cookiesRequired": "You must accept the Cookie Policy"
-        }
-    },
-    "expenseForm": {
-        "description": "Description",
-        "amount": "Amount*",
-        "whoPaid": "Who paid?",
-        "splitBetween": "Split between",
-        "exactAmounts": "Exact amounts",
-        "percentage": "Percentage",
-        "equal": "Equal",
-        "exactAmountsInstruction": "Enter exact amounts for each person:",
-        "percentageInstruction": "Enter percentage for each person:",
-        "selectAll": "Select all",
-        "saveExpense": "Save Expense",
-        "updateExpense": "Update Expense",
-        "cancel": "Cancel"
-    },
-    "settlementForm": {
-        "updatePayment": "Update Payment",
-        "recordPayment": "Record Payment",
-        "closeModal": "Close modal",
-        "whoPaidLabel": "Who paid?",
-        "whoReceivedPaymentLabel": "Who received the payment?",
-        "amountLabel": "Amount",
-        "dateLabel": "Date",
-        "noteLabel": "Note (optional)",
-        "selectPersonPlaceholder": "Select person",
-        "amountPlaceholder": "0.00",
-        "notePlaceholder": "e.g., Venmo, cash, bank transfer",
-        "youSuffix": " (You)",
-        "cancelButton": "Cancel",
-        "updatingButton": "Updating...",
-        "recordingButton": "Recording...",
-        "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
-        "validation": {
-            "selectPayer": "Please select who paid",
-            "selectPayee": "Please select who received the payment",
-            "samePersonError": "Payer and recipient cannot be the same person",
-            "validAmountRequired": "Please enter a valid amount greater than 0",
-            "amountTooLarge": "Amount cannot exceed 999,999.99",
-            "validCurrencyRequired": "Please select a valid currency",
-            "dateRequired": "Please select a date",
-            "dateInFuture": "Date cannot be in the future",
-            "recordPaymentFailed": "Failed to record payment"
-        }
-    },
-    "settlementHistory": {
-        "noPaymentsYet": "No payments recorded yet",
-        "today": "Today",
-        "yesterday": "Yesterday",
-        "editPaymentTooltip": "Edit payment",
-        "deletePaymentTooltip": "Delete payment",
-        "loadMore": "Load more",
-        "deletePaymentTitle": "Delete Payment",
-        "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
-        "deleteButton": "Delete",
-        "cancelButton": "Cancel"
-    },
-    "balanceSummary": {
-        "title": "Balances",
-        "loadingBalances": "Loading balances...",
-        "allSettledUp": "All settled up!",
-        "debtArrow": " → "
-    },
-    "common": {
-        "loading": "Loading...",
-        "loadingExpenseForm": "Loading expense form...",
-        "loadingBalances": "Loading balances...",
-        "allSettledUp": "All settled up!",
-        "members": "Members",
-        "checkingAuth": "Checking authentication...",
-        "invalidLink": "Invalid Link",
-        "settleUp": "Settle Up",
-        "addExpense": "Add Expense",
-        "share": "Share",
-        "edit": "Edit",
-        "settings": "Settings",
-        "showHistory": "Show History",
-        "joinGroup": "Join Group"
-    },
-    "errors": {
-        "displayNameEmpty": "Display name cannot be empty",
-        "displayNameTooLong": "Display name must be 100 characters or less",
-        "passwordTooShort": "New password must be at least 6 characters long",
-        "passwordsNoMatch": "Passwords do not match",
-        "passwordSameAsCurrent": "New password must be different from current password",
-        "passwordAndNewRequired": "Current password and new password are required"
-    },
-    "dashboard": {
-        "title": "Dashboard - Splitifyd",
-        "description": "Manage your groups and expenses with Splitifyd",
-        "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
-        "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
-        "yourGroups": "Your Groups",
-        "createGroup": "Create Group"
-    },
-    "emptyGroupsState": {
-        "title": "No groups yet",
-        "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
-        "createFirstGroup": "Create Your First Group",
-        "gettingStartedTitle": "Getting started with Splitifyd:",
-        "step1Title": "1. Create a group",
-        "step1Description": "Add friends, roommates, or travel companions",
-        "step2Title": "2. Add expenses",
-        "step2Description": "Track who paid and how to split costs",
-        "step3Title": "3. Settle up",
-        "step3Description": "See who owes what and settle balances"
-    },
-    "groupCard": {
-        "settledUp": "Settled up",
-        "youreOwed": "You're owed {{amount}}",
-        "youOwe": "You owe {{amount}}",
-        "addExpenseTooltip": "Add expense to {{groupName}}",
-        "inviteTooltip": "Invite to {{groupName}}",
-        "member": "member",
-        "members": "members",
-        "noRecentActivity": "No recent activity"
-    },
-    "dashboardStats": {
-        "title": "Statistics",
-        "totalGroups": "Total Groups",
-        "activeGroups": "Active Groups",
-        "totalMembers": "Total Members",
-        "avgMembersPerGroup": "Avg. Members/Group"
-    },
-    "quickActions": {
-        "title": "Quick Actions",
-        "createNewGroup": "Create New Group",
-        "viewAllExpenses": "View All Expenses"
-    },
-    "expenseFormHeader": {
-        "addExpense": "Add Expense",
-        "editExpense": "Edit Expense",
-        "copyExpense": "Copy Expense",
-        "cancel": "Cancel"
-    },
-    "expenseBasicFields": {
-        "title": "Expense Details",
-        "descriptionLabel": "Description",
-        "descriptionPlaceholder": "What was this expense for?",
-        "amountLabel": "Amount",
-        "categoryLabel": "Category",
-        "categoryPlaceholder": "Enter or select a category...",
-        "dateLabel": "Date",
-        "timeLabel": "Time",
-        "recentAmounts": "Recent amounts:",
-        "today": "Today",
-        "yesterday": "Yesterday",
-        "thisMorning": "This Morning",
-        "lastNight": "Last Night",
-        "addSpecificTime": "Add specific time"
-    },
-    "expensesList": {
-        "title": "Expenses",
-        "showDeletedExpenses": "Show deleted expenses",
-        "noExpensesYet": "No expenses yet. Add one to get started!",
-        "loadMore": "Load More"
-    },
-    "expenseItem": {
-        "paidBy": "Paid by",
-        "deleted": "Deleted",
-        "deletedBy": "Deleted by",
-        "copyExpense": "Copy expense"
-    },
-    "header": {
-        "logoAlt": "Splitifyd",
-        "login": "Login",
-        "signUp": "Sign Up"
-    },
-    "userMenu": {
-        "dashboard": "Dashboard",
-        "settings": "Settings",
-        "signOut": "Sign out",
-        "signingOut": "Signing out..."
-    },
-    "footer": {
-        "companyName": "Splitifyd",
-        "companyDescription": "Split bills easily with friends and family.",
-        "productSection": "Product",
-        "pricing": "Pricing",
-        "legalSection": "Legal",
-        "termsOfService": "Terms of Service",
-        "privacyPolicy": "Privacy Policy",
-        "cookiePolicy": "Cookie Policy",
-        "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
-    },
-    "groupHeader": {
-        "membersCount": "{{count}} members",
-        "membersCount_one": "{{count}} member",
-        "membersCount_other": "{{count}} members",
-        "recent": "Recent",
-        "expenses": "expenses",
-        "createdPrefix": "Created",
-        "groupSettingsAriaLabel": "Group Settings"
-    },
-    "settingsPage": {
-        "title": "Settings - Splitifyd",
-        "description": "Manage your account settings",
-        "accountSettingsHeader": "Account Settings",
-        "accountSettingsSubheader": "Manage your profile information and password",
-        "profileInformationHeader": "Profile Information",
-        "currentDisplayName": "Current display name:",
-        "email": "Email:",
-        "displayNameLabel": "Display Name",
-        "displayNamePlaceholder": "Enter your display name",
-        "saveChangesButton": "Save Changes",
-        "passwordHeader": "Password",
-        "changePasswordButton": "Change Password",
-        "currentPasswordLabel": "Current Password",
-        "newPasswordLabel": "New Password",
-        "confirmNewPasswordLabel": "Confirm New Password",
-        "updatePasswordButton": "Update Password",
-        "cancelButton": "Cancel",
-        "successMessages": {
-            "profileUpdated": "Profile updated successfully",
-            "passwordChanged": "Password changed successfully"
-        },
-        "errorMessages": {
-            "profileUpdateFailed": "Failed to update profile. Please try again.",
-            "passwordAndNewRequired": "Current password and new password are required",
-            "passwordTooShort": "New password must be at least 6 characters long",
-            "passwordsNoMatch": "Passwords do not match",
-            "passwordSameAsCurrent": "New password must be different from current password",
-            "currentPasswordIncorrect": "Current password is incorrect",
-            "passwordChangeFailed": "Failed to change password. Please try again.",
-            "displayNameEmpty": "Display name cannot be empty",
-            "displayNameTooLong": "Display name must be 100 characters or less"
-        }
-    },
-    "editGroupModal": {
-        "title": "Edit Group",
-        "groupNameLabel": "Group Name",
-        "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
-        "descriptionLabel": "Description (optional)",
-        "descriptionPlaceholder": "Add any details about this group...",
-        "cancelButton": "Cancel",
-        "saveChangesButton": "Save Changes",
-        "deleteGroupButton": "Delete Group",
-        "validation": {
-            "nameRequired": "Group name is required.",
-            "nameTooShort": "Group name must be at least 2 characters long.",
-            "nameTooLong": "Group name must be less than 50 characters.",
-            "updateFailed": "Failed to update group"
-        },
-        "deleteConfirmDialog": {
-            "title": "Delete Group",
-            "message": "Are you sure you want to delete \"{{groupName}}\"? This action cannot be undone.",
-            "messageWithExpenses": "Cannot delete group with expenses. Delete all expenses first.",
-            "confirmText": "Delete",
-            "cancelText": "Cancel",
-            "deleteFailed": "Failed to delete group"
-        }
-    },
-    "groupActions": {
-        "title": "Group Actions",
-        "addExpense": "Add Expense",
-        "settleUp": "Settle Up",
-        "inviteOthers": "Invite Others",
-        "groupSettings": "Group Settings",
-        "leaveGroup": "Leave Group"
-    },
-    "membersList": {
-        "title": "Members",
-        "admin": "Admin", 
-        "member": "member",
-        "thisMember": "This member",
-        "leaveGroup": "Leave Group",
-        "inviteOthers": "Invite Others",
-        "inviteOthersAriaLabel": "Invite Others",
-        "leaveGroupAriaLabel": "Leave Group",
-        "removeMemberAriaLabel": "Remove {{name}}",
-        "leaveGroupDialog": {
-            "title": "Leave Group?",
-            "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
-            "messageConfirm": "Are you sure you want to leave this group? You'll need an invitation to rejoin.",
-            "confirmText": "Leave Group",
-            "cancelText": "Cancel"
-        },
-        "removeMemberDialog": {
-            "title": "Remove Member?",
-            "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
-            "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
-            "confirmText": "Remove",
-            "cancelText": "Cancel"
-        }
-    },
-    "shareGroupModal": {
-        "title": "Invite Others",
-        "description": "Share this link with anyone you want to join this group.",
-        "copyLinkTitle": "Copy link",
-        "qrCodeDescription": "Or scan this code",
-        "expiration": "Expiration: 1 day",
-        "generateNew": "Generate New",
-        "linkCopied": "Link copied to clipboard",
-        "errors": {
-            "generateLinkFailed": "Failed to generate share link. Please try again."
-        }
-    },
-    "errorState": {
-        "defaultTitle": "Something went wrong",
-        "unexpectedError": "An unexpected error occurred",
-        "tryAgainButton": "Try Again"
-    },
-    "errorBoundary": {
-        "title": "Something went wrong",
-        "unexpectedError": "An unexpected error occurred"
-    },
-    "notFoundPage": {
-        "title": "404",
-        "pageNotFound": "Page not found",
-        "pageNotFoundDescription": "The page you're looking for doesn't exist.",
-        "groupNotFound": "Group not found or you don't have access",
-        "groupNotFoundDescription": "The group you're looking for doesn't exist or you need to be invited to access it.",
-        "goToDashboard": "Go to Dashboard",
-        "goHome": "Go Home"
-    },
-    "loadingState": {
-        "defaultMessage": "Loading..."
+  "createGroupModal": {
+    "title": "Create a new group",
+    "groupNameLabel": "Group Name",
+    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+    "groupNameHelpText": "Choose a name that describes what you'll be splitting expenses for.",
+    "groupDescriptionLabel": "Description (optional)",
+    "groupDescriptionPlaceholder": "Add any details about this group...",
+    "groupDescriptionHelpText": "Optional description to help members understand the group's purpose.",
+    "cancelButton": "Cancel",
+    "submitButton": "Create Group",
+    "validation": {
+      "nameRequired": "Group name is required.",
+      "nameTooShort": "Group name must be at least 2 characters long.",
+      "nameTooLong": "Group name must be less than 50 characters."
     }
+  },
+  "loginPage": {
+    "title": "Sign In",
+    "description": "Sign in to your Splitifyd account to manage your shared expenses",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot your password?",
+    "submitButton": "Sign In",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "validation": {
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required"
+    }
+  },
+  "registerPage": {
+    "title": "Create Account",
+    "description": "Create your Splitifyd account to start managing shared expenses",
+    "fullNameLabel": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a strong password",
+    "confirmPasswordLabel": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "acceptTerms": "I accept the",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "submitButton": "Create Account",
+    "hasAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordsNoMatch": "Passwords do not match",
+      "termsRequired": "You must accept the Terms of Service",
+      "cookiesRequired": "You must accept the Cookie Policy"
+    }
+  },
+  "expenseForm": {
+    "description": "Description",
+    "amount": "Amount*",
+    "whoPaid": "Who paid?",
+    "splitBetween": "Split between",
+    "exactAmounts": "Exact amounts",
+    "percentage": "Percentage",
+    "equal": "Equal",
+    "exactAmountsInstruction": "Enter exact amounts for each person:",
+    "percentageInstruction": "Enter percentage for each person:",
+    "selectAll": "Select all",
+    "saveExpense": "Save Expense",
+    "updateExpense": "Update Expense",
+    "cancel": "Cancel"
+  },
+  "settlementForm": {
+    "updatePayment": "Update Payment",
+    "recordPayment": "Record Payment",
+    "closeModal": "Close modal",
+    "whoPaidLabel": "Who paid?",
+    "whoReceivedPaymentLabel": "Who received the payment?",
+    "amountLabel": "Amount",
+    "dateLabel": "Date",
+    "noteLabel": "Note (optional)",
+    "selectPersonPlaceholder": "Select person",
+    "amountPlaceholder": "0.00",
+    "notePlaceholder": "e.g., Venmo, cash, bank transfer",
+    "youSuffix": " (You)",
+    "cancelButton": "Cancel",
+    "updatingButton": "Updating...",
+    "recordingButton": "Recording...",
+    "paymentSummary": "{{payer}} paid {{payee}} {{amount}}",
+    "validation": {
+      "selectPayer": "Please select who paid",
+      "selectPayee": "Please select who received the payment",
+      "samePersonError": "Payer and recipient cannot be the same person",
+      "validAmountRequired": "Please enter a valid amount greater than 0",
+      "amountTooLarge": "Amount cannot exceed 999,999.99",
+      "validCurrencyRequired": "Please select a valid currency",
+      "dateRequired": "Please select a date",
+      "dateInFuture": "Date cannot be in the future",
+      "recordPaymentFailed": "Failed to record payment"
+    }
+  },
+  "settlementHistory": {
+    "noPaymentsYet": "No payments recorded yet",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "editPaymentTooltip": "Edit payment",
+    "deletePaymentTooltip": "Delete payment",
+    "loadMore": "Load more",
+    "deletePaymentTitle": "Delete Payment",
+    "deletePaymentMessage": "Are you sure you want to delete this payment of {{amount}} from {{payer}} to {{payee}}? This action cannot be undone.",
+    "deleteButton": "Delete",
+    "cancelButton": "Cancel"
+  },
+  "balanceSummary": {
+    "title": "Balances",
+    "loadingBalances": "Loading balances...",
+    "allSettledUp": "All settled up!",
+    "debtArrow": " → "
+  },
+  "common": {
+    "loading": "Loading...",
+    "loadingExpenseForm": "Loading expense form...",
+    "loadingBalances": "Loading balances...",
+    "allSettledUp": "All settled up!",
+    "members": "Members",
+    "checkingAuth": "Checking authentication...",
+    "invalidLink": "Invalid Link",
+    "settleUp": "Settle Up",
+    "addExpense": "Add Expense",
+    "share": "Share",
+    "edit": "Edit",
+    "settings": "Settings",
+    "showHistory": "Show History",
+    "joinGroup": "Join Group"
+  },
+  "errors": {
+    "displayNameEmpty": "Display name cannot be empty",
+    "displayNameTooLong": "Display name must be 100 characters or less",
+    "passwordTooShort": "New password must be at least 6 characters long",
+    "passwordsNoMatch": "Passwords do not match",
+    "passwordSameAsCurrent": "New password must be different from current password",
+    "passwordAndNewRequired": "Current password and new password are required"
+  },
+  "dashboard": {
+    "title": "Dashboard - Splitifyd",
+    "description": "Manage your groups and expenses with Splitifyd",
+    "welcomeMessage": "Welcome to Splitifyd, {{name}}!",
+    "welcomeDescription": "Get started by creating your first group to track and split expenses with friends.",
+    "yourGroups": "Your Groups",
+    "createGroup": "Create Group"
+  },
+  "emptyGroupsState": {
+    "title": "No groups yet",
+    "description": "Create your first group to start splitting expenses with friends, family, or roommates.",
+    "createFirstGroup": "Create Your First Group",
+    "gettingStartedTitle": "Getting started with Splitifyd:",
+    "step1Title": "1. Create a group",
+    "step1Description": "Add friends, roommates, or travel companions",
+    "step2Title": "2. Add expenses",
+    "step2Description": "Track who paid and how to split costs",
+    "step3Title": "3. Settle up",
+    "step3Description": "See who owes what and settle balances"
+  },
+  "groupCard": {
+    "settledUp": "Settled up",
+    "youreOwed": "You're owed {{amount}}",
+    "youOwe": "You owe {{amount}}",
+    "addExpenseTooltip": "Add expense to {{groupName}}",
+    "inviteTooltip": "Invite to {{groupName}}",
+    "member": "member",
+    "members": "members",
+    "noRecentActivity": "No recent activity"
+  },
+  "dashboardStats": {
+    "title": "Statistics",
+    "totalGroups": "Total Groups",
+    "activeGroups": "Active Groups",
+    "totalMembers": "Total Members",
+    "avgMembersPerGroup": "Avg. Members/Group"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "createNewGroup": "Create New Group",
+    "viewAllExpenses": "View All Expenses"
+  },
+  "expenseFormHeader": {
+    "addExpense": "Add Expense",
+    "editExpense": "Edit Expense",
+    "copyExpense": "Copy Expense",
+    "cancel": "Cancel"
+  },
+  "expenseBasicFields": {
+    "title": "Expense Details",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What was this expense for?",
+    "amountLabel": "Amount",
+    "categoryLabel": "Category",
+    "categoryPlaceholder": "Enter or select a category...",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "recentAmounts": "Recent amounts:",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisMorning": "This Morning",
+    "lastNight": "Last Night",
+    "addSpecificTime": "Add specific time"
+  },
+  "expensesList": {
+    "title": "Expenses",
+    "showDeletedExpenses": "Show deleted expenses",
+    "noExpensesYet": "No expenses yet. Add one to get started!",
+    "loadMore": "Load More"
+  },
+  "expenseItem": {
+    "paidBy": "Paid by",
+    "deleted": "Deleted",
+    "deletedBy": "Deleted by",
+    "copyExpense": "Copy expense"
+  },
+  "header": {
+    "logoAlt": "Splitifyd",
+    "login": "Login",
+    "signUp": "Sign Up"
+  },
+  "userMenu": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "signingOut": "Signing out..."
+  },
+  "footer": {
+    "companyName": "Splitifyd",
+    "companyDescription": "Split bills easily with friends and family.",
+    "productSection": "Product",
+    "pricing": "Pricing",
+    "legalSection": "Legal",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy",
+    "copyright": "© 2025 Pomo Corp ltd. All rights reserved."
+  },
+  "groupHeader": {
+    "membersCount": "{{count}} members",
+    "membersCount_one": "{{count}} member",
+    "membersCount_other": "{{count}} members",
+    "recent": "Recent",
+    "expenses": "expenses",
+    "createdPrefix": "Created",
+    "groupSettingsAriaLabel": "Group Settings"
+  },
+  "settingsPage": {
+    "title": "Settings - Splitifyd",
+    "description": "Manage your account settings",
+    "accountSettingsHeader": "Account Settings",
+    "accountSettingsSubheader": "Manage your profile information and password",
+    "profileInformationHeader": "Profile Information",
+    "currentDisplayName": "Current display name:",
+    "email": "Email:",
+    "displayNameLabel": "Display Name",
+    "displayNamePlaceholder": "Enter your display name",
+    "saveChangesButton": "Save Changes",
+    "passwordHeader": "Password",
+    "changePasswordButton": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "newPasswordLabel": "New Password",
+    "confirmNewPasswordLabel": "Confirm New Password",
+    "updatePasswordButton": "Update Password",
+    "cancelButton": "Cancel",
+    "successMessages": {
+      "profileUpdated": "Profile updated successfully",
+      "passwordChanged": "Password changed successfully"
+    },
+    "errorMessages": {
+      "profileUpdateFailed": "Failed to update profile. Please try again.",
+      "passwordAndNewRequired": "Current password and new password are required",
+      "passwordTooShort": "New password must be at least 6 characters long",
+      "passwordsNoMatch": "Passwords do not match",
+      "passwordSameAsCurrent": "New password must be different from current password",
+      "currentPasswordIncorrect": "Current password is incorrect",
+      "passwordChangeFailed": "Failed to change password. Please try again.",
+      "displayNameEmpty": "Display name cannot be empty",
+      "displayNameTooLong": "Display name must be 100 characters or less"
+    }
+  },
+  "editGroupModal": {
+    "title": "Edit Group",
+    "groupNameLabel": "Group Name",
+    "groupNamePlaceholder": "e.g., Apartment Expenses, Trip to Paris",
+    "descriptionLabel": "Description (optional)",
+    "descriptionPlaceholder": "Add any details about this group...",
+    "cancelButton": "Cancel",
+    "saveChangesButton": "Save Changes",
+    "deleteGroupButton": "Delete Group",
+    "validation": {
+      "nameRequired": "Group name is required.",
+      "nameTooShort": "Group name must be at least 2 characters long.",
+      "nameTooLong": "Group name must be less than 50 characters.",
+      "updateFailed": "Failed to update group"
+    },
+    "deleteConfirmDialog": {
+      "title": "Delete Group",
+      "message": "Are you sure you want to delete \"{{groupName}}\"? This action cannot be undone.",
+      "messageWithExpenses": "Cannot delete group with expenses. Delete all expenses first.",
+      "confirmText": "Delete",
+      "cancelText": "Cancel",
+      "deleteFailed": "Failed to delete group"
+    }
+  },
+  "groupActions": {
+    "title": "Group Actions",
+    "addExpense": "Add Expense",
+    "settleUp": "Settle Up",
+    "inviteOthers": "Invite Others",
+    "groupSettings": "Group Settings",
+    "leaveGroup": "Leave Group"
+  },
+  "membersList": {
+    "title": "Members",
+    "admin": "Admin",
+    "member": "member",
+    "thisMember": "This member",
+    "leaveGroup": "Leave Group",
+    "inviteOthers": "Invite Others",
+    "inviteOthersAriaLabel": "Invite Others",
+    "leaveGroupAriaLabel": "Leave Group",
+    "removeMemberAriaLabel": "Remove {{name}}",
+    "leaveGroupDialog": {
+      "title": "Leave Group?",
+      "messageWithBalance": "You have an outstanding balance in this group. Please settle up before leaving.",
+      "messageConfirm": "Are you sure you want to leave this group? You'll need an invitation to rejoin.",
+      "confirmText": "Leave Group",
+      "cancelText": "Cancel"
+    },
+    "removeMemberDialog": {
+      "title": "Remove Member?",
+      "messageWithBalance": "{{name}} has an outstanding balance in this group. Please settle up before removing.",
+      "messageConfirm": "Are you sure you want to remove {{name}} from the group?",
+      "confirmText": "Remove",
+      "cancelText": "Cancel"
+    }
+  },
+  "shareGroupModal": {
+    "title": "Invite Others",
+    "description": "Share this link with anyone you want to join this group.",
+    "copyLinkTitle": "Copy link",
+    "qrCodeDescription": "Or scan this code",
+    "expiration": "Expiration: 1 day",
+    "generateNew": "Generate New",
+    "linkCopied": "Link copied to clipboard",
+    "errors": {
+      "generateLinkFailed": "Failed to generate share link. Please try again."
+    }
+  },
+  "errorState": {
+    "defaultTitle": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
+    "tryAgainButton": "Try Again"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred"
+  },
+  "notFoundPage": {
+    "title": "404",
+    "pageNotFound": "Page not found",
+    "pageNotFoundDescription": "The page you're looking for doesn't exist.",
+    "groupNotFound": "Group not found or you don't have access",
+    "groupNotFoundDescription": "The group you're looking for doesn't exist or you need to be invited to access it.",
+    "goToDashboard": "Go to Dashboard",
+    "goHome": "Go Home"
+  },
+  "loadingState": {
+    "defaultMessage": "Loading..."
+  }
 }
