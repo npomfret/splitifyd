@@ -343,13 +343,13 @@ describe('calculateGroupBalances', () => {
                 ])
                 .build();
 
-            // Settlement test removed as not used in this test
+            const settlement = new FirestoreSettlementBuilder().withPayer('user-2').withPayee('user-1').withAmount(25).build();
 
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
-                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([]))
+                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([settlement]))
                 .mockResolvedValueOnce(MockFirestoreBuilder.createDocSnapshot(mockGroup));
 
             const result = await calculateGroupBalances('group-1');
@@ -471,13 +471,13 @@ describe('calculateGroupBalances', () => {
                 ])
                 .build();
 
-            // Settlement test removed as not used in this test
+            const settlement = new FirestoreSettlementBuilder().withPayer('user-2').withPayee('user-1').withAmount(25).build();
 
             const mockGroup = new MockGroupBuilder().build();
 
             mockGet
                 .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([expense]))
-                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([]))
+                .mockResolvedValueOnce(MockFirestoreBuilder.createQuerySnapshot([settlement]))
                 .mockResolvedValueOnce(MockFirestoreBuilder.createDocSnapshot(mockGroup));
 
             const result = await calculateGroupBalances('group-1');
