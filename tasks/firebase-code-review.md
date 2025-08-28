@@ -170,4 +170,18 @@
         - All integration tests passing
     
 3.  **Task 4.3: Create `SettlementService`**:
-    *   Follow the same pattern for the `SettlementService`.
+    *   **Step 1: Read Operations**
+        - Create `src/services/SettlementService.ts`
+        - Implement `getSettlement` method (fetch single settlement with user data)
+        - Implement `listSettlements` method (pagination, filtering, user data enrichment)
+        - Move `_getGroupSettlementsData` internal helper to service
+        - Write comprehensive unit tests for both methods
+        - Refactor handlers to use service methods
+        - Update integration tests as needed
+    *   **Step 2: Write Operations**
+        - Implement `createSettlement` method (validation, permission checks)
+        - Implement `updateSettlement` method (optimistic locking, creator-only)
+        - Implement `deleteSettlement` method (optimistic locking, creator-only)
+        - Write comprehensive unit tests for all three methods
+        - Refactor handlers to use service methods
+        - Ensure all 3 settlement integration test files pass
