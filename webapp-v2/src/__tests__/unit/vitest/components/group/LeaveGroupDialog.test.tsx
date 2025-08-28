@@ -23,9 +23,9 @@ const mockT = vi.fn((key: string) => {
         'common.understood': 'Understood'
     };
     return translations[key] || key;
-});
+}) as any;
 
-const mockRoute = route as MockedFunction<typeof route>;
+const mockRoute = vi.mocked(route);
 const mockApiClient = apiClient as any;
 const mockLogError = logError as MockedFunction<typeof logError>;
 
@@ -43,7 +43,7 @@ describe('LeaveGroupDialog', () => {
             t: mockT,
             i18n: {} as any,
             ready: true,
-        });
+        } as any);
         mockApiClient.leaveGroup = vi.fn();
     });
 
