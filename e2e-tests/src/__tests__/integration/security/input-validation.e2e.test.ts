@@ -94,7 +94,7 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         
         // Check that we're still on the legitimate site, not redirected to evil.com
         // This is the key security test - script shouldn't have executed
-        expect(page.url()).toContain('localhost:8005');
+        expect(page.url()).toContain('/dashboard');
         expect(page.url()).not.toContain('evil.com');
         
         // Also check that script didn't execute by looking for any javascript: protocol
