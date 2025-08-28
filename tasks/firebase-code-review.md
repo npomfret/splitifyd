@@ -140,7 +140,7 @@
         - Handler code reduced significantly
     *   **All 317 unit tests passing (4 unrelated GroupService tests failing)**
 
-2.  **Task 4.2: Move write operations to `ExpenseService`**: 🚧 **IN PROGRESS** (2025-08-28)
+2.  **Task 4.2: Move write operations to `ExpenseService`**: ✅ **COMPLETED** (2025-08-28)
     *   ✅ **Step 1: createExpense** - **COMPLETED**
         - Implemented `createExpense` method in ExpenseService
         - Added comprehensive unit tests (12 test cases)
@@ -157,7 +157,17 @@
         - Added comprehensive unit tests (14 test cases)
         - Refactored handler to use service (reduced from ~180 lines to 10 lines)
         - All 339 unit tests passing
-    *   🔄 **Step 3: deleteExpense** - To be implemented next
+    *   ✅ **Step 3: deleteExpense** - **COMPLETED**
+        - Implemented `deleteExpense` method in ExpenseService with:
+          * Soft deletion using deletedAt and deletedBy fields  
+          * Permission checking using PermissionEngine
+          * Optimistic locking for concurrent update prevention
+          * Transaction support for atomic operations
+          * Proper error handling (404 for not found, 403 for unauthorized)
+        - Added comprehensive unit tests (9 test cases)
+        - Refactored handler to use service (reduced from ~50 lines to 8 lines)
+        - All 348 unit tests passing
+        - All integration tests passing
     
 3.  **Task 4.3: Create `SettlementService`**:
     *   Follow the same pattern for the `SettlementService`.

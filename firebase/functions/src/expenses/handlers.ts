@@ -5,14 +5,11 @@ import { firestoreDb } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { Errors, ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { logger, LoggerContext } from '../logger';
+import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId, Expense } from './validation';
-import { FirestoreCollections, DELETED_AT_FIELD, Group } from '@splitifyd/shared';
-import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { _getGroupMembersData } from '../groups/memberHandlers';
-import { transformGroupDocument } from '../groups/handlers';
-import { PermissionEngine, permissionCache, PermissionCache } from '../permissions';
 import { expenseService, ExpenseDocumentSchema } from '../services/ExpenseService';
 import { z } from 'zod';
 
@@ -24,63 +21,6 @@ const getGroupsCollection = () => {
     return firestoreDb.collection(FirestoreCollections.GROUPS);
 };
 
-
-/**
- * Get group data for permission checking
- */
-const getGroupForPermissionCheck = async (groupId: string): Promise<Group> => {
-    const groupDoc = await getGroupsCollection().doc(groupId).get();
-    if (!groupDoc.exists) {
-        throw Errors.NOT_FOUND('Group');
-    }
-    
-    return transformGroupDocument(groupDoc);
-};
-
-/**
- * Check if user has permission to perform an action with caching
- */
-const checkPermissionCached = (
-    group: Group,
-    userId: string,
-    action: 'expenseEditing' | 'expenseDeletion',
-    expense?: Expense
-): boolean => {
-    const cacheKey = PermissionCache.generateKey(group.id, userId, action, expense?.id);
-    
-    return permissionCache.check(cacheKey, () => {
-        // Convert Expense to ExpenseData-like object for permission checking
-        const expenseData = expense ? {
-            ...expense,
-            date: typeof expense.date === 'string' 
-                ? expense.date 
-                : expense.date instanceof Date 
-                    ? expense.date.toISOString() 
-                    : (expense.date as any).toDate().toISOString(),
-            createdAt: typeof expense.createdAt === 'string'
-                ? expense.createdAt
-                : expense.createdAt instanceof Date
-                    ? expense.createdAt.toISOString()
-                    : (expense.createdAt as any)?.toDate().toISOString() || new Date().toISOString(),
-            updatedAt: typeof expense.updatedAt === 'string'
-                ? expense.updatedAt
-                : expense.updatedAt instanceof Date
-                    ? expense.updatedAt.toISOString()
-                    : (expense.updatedAt as any)?.toDate().toISOString() || new Date().toISOString(),
-            deletedAt: expense.deletedAt === null || expense.deletedAt === undefined
-                ? null
-                : typeof expense.deletedAt === 'string'
-                    ? expense.deletedAt
-                    : expense.deletedAt instanceof Date
-                        ? expense.deletedAt.toISOString()
-                        : (expense.deletedAt as any).toDate().toISOString(),
-            createdBy: expense.createdBy,
-            id: expense.id
-        } : undefined;
-        
-        return PermissionEngine.checkPermission(group, userId, action, { expense: expenseData });
-    });
-};
 
 
 const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: admin.firestore.DocumentReference; expense: Expense }> => {
@@ -184,77 +124,13 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
 
 export const deleteExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-
     const expenseId = validateExpenseId(req.query.id);
 
-    const { docRef, expense } = await fetchExpense(expenseId, userId);
+    await expenseService.deleteExpense(expenseId, userId);
 
-    // Get group data and check permissions using the new permission system
-    const group = await getGroupForPermissionCheck(expense.groupId);
-    const canDelete = checkPermissionCached(group, userId, 'expenseDeletion', expense);
-    
-    if (!canDelete) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
-    }
-
-    try {
-        // Use transaction to delete expense and update group metadata atomically
-        await firestoreDb.runTransaction(async (transaction) => {
-            // IMPORTANT: All reads must happen before any writes in Firestore transactions
-
-            // Step 1: Do ALL reads first
-            const expenseDoc = await transaction.get(docRef);
-            if (!expenseDoc.exists) {
-                throw Errors.NOT_FOUND('Expense');
-            }
-            const originalExpenseTimestamp = getUpdatedAtTimestamp(expenseDoc.data());
-
-            const groupDocRef = getGroupsCollection().doc(expense.groupId);
-            const groupDoc = await transaction.get(groupDocRef);
-
-            if (!groupDoc.exists) {
-                throw new Error(`Group ${expense.groupId} not found`);
-            }
-
-            // Step 2: Check for concurrent updates inline (no additional reads needed)
-            const currentTimestamp = expenseDoc.data()?.updatedAt;
-            if (!currentTimestamp || !currentTimestamp.isEqual(originalExpenseTimestamp)) {
-                throw Errors.CONCURRENT_UPDATE();
-            }
-
-            // Step 3: Now do ALL writes
-            // Soft delete the expense (updateWithTimestamp no longer does reads)
-            await updateWithTimestamp(
-                transaction,
-                docRef,
-                {
-                    [DELETED_AT_FIELD]: createServerTimestamp(),
-                    deletedBy: userId,
-                },
-                originalExpenseTimestamp,
-            );
-
-            const groupData = groupDoc.data();
-            if (!groupData?.data) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
-            }
-
-            // Note: Group metadata will be updated by the balance aggregation trigger
-        });
-
-        LoggerContext.setBusinessContext({ expenseId });
-        logger.info('expense-deleted', { id: expenseId });
-
-        res.json({
-            message: 'Expense deleted successfully',
-        });
-    } catch (error) {
-        logger.error('Failed to delete expense', error, {
-            expenseId,
-            userId,
-        });
-        throw error;
-    }
+    res.json({
+        message: 'Expense deleted successfully',
+    });
 };
 
 /**

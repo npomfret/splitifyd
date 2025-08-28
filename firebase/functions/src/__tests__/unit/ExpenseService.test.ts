@@ -1113,4 +1113,216 @@ describe('ExpenseService', () => {
             );
         });
     });
+
+    describe('deleteExpense', () => {
+        const mockExpenseId = 'expense123';
+        
+        beforeEach(() => {
+            // Reset all mocks before each test
+            jest.clearAllMocks();
+
+            // Set up default successful fetch
+            mockDoc.exists = true;
+            mockDoc.data.mockReturnValue(mockExpenseData);
+            mockExpenseDocRef.get.mockResolvedValue(mockDoc);
+            
+            // Set up group doc
+            mockGroupDoc.exists = true;
+            mockGroupDoc.data.mockReturnValue(mockGroupData);
+            
+            // Set up collections
+            mockExpensesCollection.doc.mockReturnValue(mockExpenseDocRef);
+            mockGroupsCollection.doc.mockReturnValue({
+                get: jest.fn().mockResolvedValue(mockGroupDoc)
+            });
+            
+            // Set up Firestore DB mock
+            (firestoreDb as any).collection.mockImplementation((name: string) => {
+                if (name === FirestoreCollections.EXPENSES) {
+                    return mockExpensesCollection;
+                } else if (name === FirestoreCollections.GROUPS) {
+                    return mockGroupsCollection;
+                }
+            });
+
+            // Mock PermissionEngine to allow deletion by default
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+        });
+
+        it('should delete an expense successfully when user has permission', async () => {
+            // Set up transaction
+            const mockTransactionDoc = {
+                exists: true,
+                data: jest.fn().mockReturnValue({
+                    ...mockExpenseData,
+                    updatedAt: mockTimestamp
+                })
+            };
+            
+            mockTransaction.get.mockResolvedValue(mockTransactionDoc);
+            
+            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+                return callback(mockTransaction);
+            });
+
+            // Execute
+            await service.deleteExpense(mockExpenseId, mockUserId);
+
+            // Verify
+            expect(mockExpensesCollection.doc).toHaveBeenCalledWith(mockExpenseId);
+            expect(mockGroupsCollection.doc).toHaveBeenCalledWith(mockGroupId);
+            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(
+                expect.objectContaining({ id: mockGroupId }),
+                mockUserId,
+                'expenseDeletion',
+                expect.objectContaining({ expense: expect.any(Object) })
+            );
+            
+            // Verify transaction operations
+            expect(mockTransaction.get).toHaveBeenCalledTimes(2); // expense doc and group doc
+            expect(mockTransaction.update).toHaveBeenCalledWith(
+                mockExpenseDocRef,
+                expect.objectContaining({
+                    deletedAt: expect.any(Object),
+                    deletedBy: mockUserId,
+                    updatedAt: expect.any(Object)
+                })
+            );
+        });
+
+        it('should throw NOT_FOUND error when expense does not exist', async () => {
+            mockDoc.exists = false;
+            mockExpenseDocRef.get.mockResolvedValue(mockDoc);
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Expense not found');
+        });
+
+        it('should throw NOT_FOUND error when expense is already deleted', async () => {
+            const deletedExpenseData = {
+                ...mockExpenseData,
+                deletedAt: mockTimestamp,
+                deletedBy: 'someuser'
+            };
+            mockDoc.data.mockReturnValue(deletedExpenseData);
+            mockExpenseDocRef.get.mockResolvedValue(mockDoc);
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Expense not found');
+        });
+
+        it('should throw NOT_AUTHORIZED error when user lacks permission', async () => {
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('You do not have permission to delete this expense');
+        });
+
+        it('should throw NOT_FOUND error when group does not exist', async () => {
+            mockGroupDoc.exists = false;
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Group not found');
+        });
+
+        it('should throw CONCURRENT_UPDATE error on concurrent modifications', async () => {
+            const originalTimestamp = mockTimestamp;
+            const updatedTimestamp = Timestamp.fromDate(new Date('2024-01-02'));
+            
+            // Set up transaction to detect concurrent update
+            const mockTransactionDoc = {
+                exists: true,
+                data: jest.fn()
+                    .mockReturnValueOnce({
+                        ...mockExpenseData,
+                        updatedAt: originalTimestamp
+                    })
+                    .mockReturnValueOnce({
+                        ...mockExpenseData,
+                        updatedAt: updatedTimestamp // Different timestamp on second read
+                    })
+            };
+            
+            mockTransaction.get.mockResolvedValue(mockTransactionDoc);
+            
+            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+                return callback(mockTransaction);
+            });
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Document was modified by another user');
+        });
+
+        it('should handle transaction errors properly', async () => {
+            const transactionError = new Error('Transaction failed');
+            
+            (firestoreDb.runTransaction as jest.Mock).mockRejectedValue(transactionError);
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Transaction failed');
+        });
+
+        it('should delete expense by group member with expenseDeletion permission', async () => {
+            const memberId = 'user456';
+            
+            // Set up as member with permission
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+            
+            // Set up transaction
+            const mockTransactionDoc = {
+                exists: true,
+                data: jest.fn().mockReturnValue({
+                    ...mockExpenseData,
+                    updatedAt: mockTimestamp
+                })
+            };
+            
+            mockTransaction.get.mockResolvedValue(mockTransactionDoc);
+            
+            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+                return callback(mockTransaction);
+            });
+
+            // Execute
+            await service.deleteExpense(mockExpenseId, memberId);
+
+            // Verify permission check was made
+            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(
+                expect.any(Object),
+                memberId,
+                'expenseDeletion',
+                expect.objectContaining({ expense: expect.any(Object) })
+            );
+            
+            // Verify the expense was soft deleted
+            expect(mockTransaction.update).toHaveBeenCalledWith(
+                mockExpenseDocRef,
+                expect.objectContaining({
+                    deletedAt: expect.any(Object),
+                    deletedBy: memberId,
+                    updatedAt: expect.any(Object)
+                })
+            );
+        });
+
+        it('should throw error when expense is missing updatedAt timestamp', async () => {
+            // Set up transaction with expense missing updatedAt
+            const mockTransactionDoc = {
+                exists: true,
+                data: jest.fn().mockReturnValue({
+                    ...mockExpenseData,
+                    updatedAt: null
+                })
+            };
+            
+            mockTransaction.get.mockResolvedValue(mockTransactionDoc);
+            
+            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+                return callback(mockTransaction);
+            });
+
+            await expect(service.deleteExpense(mockExpenseId, mockUserId))
+                .rejects.toThrow('Expense is missing updatedAt timestamp');
+        });
+    });
 });

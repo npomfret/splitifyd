@@ -519,6 +519,92 @@ export class ExpenseService {
             nextCursor,
         };
     }
+
+    /**
+     * Delete an expense (soft delete)
+     */
+    async deleteExpense(expenseId: string, userId: string): Promise<void> {
+        // Fetch the existing expense
+        const { docRef, expense } = await this.fetchExpense(expenseId);
+
+        // Get group data and verify permissions
+        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
+        if (!groupDoc.exists) {
+            throw Errors.NOT_FOUND('Group');
+        }
+
+        const group = this.transformGroupDocument(groupDoc);
+        
+        // Check if user can delete expenses in this group
+        // Convert expense to ExpenseData format for permission check
+        const expenseData = this.transformExpenseToResponse(expense);
+        const canDeleteExpense = PermissionEngine.checkPermission(group, userId, 'expenseDeletion', { expense: expenseData });
+        if (!canDeleteExpense) {
+            throw new ApiError(
+                HTTP_STATUS.FORBIDDEN,
+                'NOT_AUTHORIZED',
+                'You do not have permission to delete this expense'
+            );
+        }
+
+        try {
+            // Use transaction to soft delete expense atomically
+            await firestoreDb.runTransaction(async (transaction) => {
+                // IMPORTANT: All reads must happen before any writes in Firestore transactions
+                
+                // Step 1: Do ALL reads first
+                const expenseDoc = await transaction.get(docRef);
+                if (!expenseDoc.exists) {
+                    throw Errors.NOT_FOUND('Expense');
+                }
+
+                // Get the current timestamp for optimistic locking
+                const originalTimestamp = expenseDoc.data()?.updatedAt;
+                if (!originalTimestamp) {
+                    throw new ApiError(
+                        HTTP_STATUS.INTERNAL_ERROR,
+                        'INVALID_EXPENSE_DATA',
+                        'Expense is missing updatedAt timestamp'
+                    );
+                }
+
+                // Get group doc to ensure it exists (though we already checked above)
+                const groupDocRef = this.groupsCollection.doc(expense.groupId);
+                const groupDocInTx = await transaction.get(groupDocRef);
+                if (!groupDocInTx.exists) {
+                    throw new ApiError(
+                        HTTP_STATUS.NOT_FOUND,
+                        'INVALID_GROUP',
+                        'Group not found'
+                    );
+                }
+
+                // Step 2: Check for concurrent updates
+                const currentTimestamp = expenseDoc.data()?.updatedAt;
+                if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                    throw Errors.CONCURRENT_UPDATE();
+                }
+
+                // Step 3: Now do ALL writes - soft delete the expense
+                transaction.update(docRef, {
+                    [DELETED_AT_FIELD]: createServerTimestamp(),
+                    deletedBy: userId,
+                    updatedAt: createServerTimestamp(), // Update the timestamp for optimistic locking
+                });
+
+                // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
+            });
+
+            LoggerContext.setBusinessContext({ expenseId });
+            logger.info('expense-deleted', { id: expenseId });
+        } catch (error) {
+            logger.error('Failed to delete expense', error as Error, {
+                expenseId,
+                userId,
+            });
+            throw error;
+        }
+    }
 }
 
 // Export singleton instance
