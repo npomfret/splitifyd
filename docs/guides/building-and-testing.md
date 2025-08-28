@@ -80,7 +80,7 @@ This project contains the backend Firebase Functions.
 
 This project contains the frontend Preact application and uses both Vitest for traditional unit tests and Playwright for browser-based unit tests.
 
-- **Running a single Vitest test file**: `cd webapp-v2 && npx vitest run src/__tests__/unit/your-vitest-file.test.ts`
+- **Running a single Vitest test file**: `cd webapp-v2 && npx vitest run src/__tests__/unit/vitest/your-vitest-file.test.ts`
 - **Running a single Playwright test file**: `cd webapp-v2 && npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.ts`
 
 ### `e2e-tests`
