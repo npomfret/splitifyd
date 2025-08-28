@@ -322,3 +322,33 @@ E2E tests will fail if:
 - **Financial red text** = `data-financial-amount="type"`
 
 This ensures precise e2e error detection with zero false positives from financial displays.
+
+---
+
+## Webapp Development Best Practices
+
+This section outlines best practices for building robust, testable, and maintainable web applications, with a focus on handling real-time data from Firebase.
+
+### 1. Testability Best Practices
+
+To ensure pages and components are easy to test, follow these guidelines:
+
+*   **Decouple Data Logic from UI:** Separate data fetching, state management, and business logic into dedicated stores (e.g., using `@preact/signals`), custom hooks, or service modules. UI components should primarily focus on rendering and consuming data from these decoupled layers.
+*   **Mockable Dependencies:** Design modules and functions so that their dependencies (e.g., Firebase instances, API clients, external services) can be easily mocked or injected during testing. Avoid direct global access to unmockable resources.
+*   **Clear State Transitions:** Components should react to well-defined state transitions (e.g., `loading`, `data`, `error`). This simplifies testing of different UI states and user interactions.
+*   **Avoid Direct DOM Manipulation:** Adhere to the declarative nature of React/Preact. Direct DOM manipulation makes testing difficult and can lead to unpredictable behavior.
+*   **Utilize Test IDs:** Continue to use `data-testid` attributes for reliable element selection in unit, component, and end-to-end tests.
+
+### 2. Firebase Realtime Updates & Race Conditions
+
+Firebase's real-time capabilities are powerful but require careful handling to prevent race conditions and ensure data consistency.
+
+*   **Centralized Subscription Management:** Encapsulate `onSnapshot` listeners within dedicated stores or custom hooks (e.g., `commentsStore`). This centralizes the logic for subscribing, unsubscribing, and processing real-time data.
+*   **Robust Unsubscription:** Always ensure that `onSnapshot` listeners are properly unsubscribed when they are no longer needed. This is crucial to prevent memory leaks, stale data, and unintended side effects. Implement cleanup functions in `useEffect` hooks or `dispose` methods in stores.
+*   **Optimistic Updates with Reconciliation:** When performing write operations that are immediately reflected in the UI (optimistic updates), understand that the `onSnapshot` listener will eventually reconcile the local state with the server's state.
+    *   **Simplicity First:** For most cases, let the `onSnapshot` listener drive the UI updates after a write operation. This is the safest approach to avoid complex client-side state management for optimistic updates.
+    *   **Server Timestamps:** Rely on server-generated timestamps (e.g., `FieldValue.serverTimestamp()`) for ordering and consistency, especially in real-time collections.
+*   **Idempotent Write Operations:** Design write operations to be idempotent where possible. This means that performing the same write operation multiple times will have the same result as performing it once, which helps in handling network retries or concurrent writes.
+*   **Firebase Transactions for Atomicity:** For operations that involve reading data, modifying it, and then writing it back (e.g., updating a counter, managing unique IDs), use Firebase Transactions. Transactions ensure that a set of operations is completed atomically, preventing race conditions where multiple clients try to modify the same data concurrently.
+*   **Error Handling in Listeners:** Implement comprehensive error handling within `onSnapshot` callbacks. Gracefully manage network disconnections, permission denied errors, and other potential issues to provide a stable user experience.
+*   **Avoid Direct Component-Level Listeners:** While possible, avoid setting up `onSnapshot` listeners directly within deeply nested components. Instead, lift the subscription logic to a higher-level store or hook that can manage the data and provide it to consuming components.
