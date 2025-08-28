@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { SystemUserRoles, SplitTypes } from '@splitifyd/shared';
+import { SplitTypes } from '@splitifyd/shared';
 
 // Base schemas
 export const UserThemeColorSchema = z.object({
@@ -194,7 +194,7 @@ export const GroupMembersResponseSchema = z.object({
             uid: z.string().min(1),
             email: z.string().email(),
             displayName: z.string().min(1),
-            role: z.enum([SystemUserRoles.SYSTEM_ADMIN, SystemUserRoles.SYSTEM_USER]).optional(),
+            role: z.enum(['system-admin', 'system-user']).optional(),
             termsAcceptedAt: z.any().optional(),
             cookiePolicyAcceptedAt: z.any().optional(),
             acceptedPolicies: z.record(z.string(), z.string()).optional(),

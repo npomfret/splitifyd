@@ -1,4 +1,4 @@
-import { signal } from '@preact/signals';
+import { signal, ReadonlySignal } from '@preact/signals';
 import { CreateExpenseRequest, ExpenseData, ExpenseSplit, SplitTypes } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { enhancedGroupDetailStore } from './group-detail-store-enhanced';
@@ -25,6 +25,22 @@ export interface ExpenseFormStore {
     saving: boolean;
     error: string | null;
     validationErrors: Record<string, string>;
+    
+    // Readonly signal accessors for reactive components
+    readonly descriptionSignal: ReadonlySignal<string>;
+    readonly amountSignal: ReadonlySignal<string | number>;
+    readonly currencySignal: ReadonlySignal<string>;
+    readonly dateSignal: ReadonlySignal<string>;
+    readonly timeSignal: ReadonlySignal<string>;
+    readonly paidBySignal: ReadonlySignal<string>;
+    readonly categorySignal: ReadonlySignal<string>;
+    readonly splitTypeSignal: ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>;
+    readonly participantsSignal: ReadonlySignal<string[]>;
+    readonly splitsSignal: ReadonlySignal<ExpenseSplit[]>;
+    readonly loadingSignal: ReadonlySignal<boolean>;
+    readonly savingSignal: ReadonlySignal<boolean>;
+    readonly errorSignal: ReadonlySignal<string | null>;
+    readonly validationErrorsSignal: ReadonlySignal<Record<string, string>>;
 
     // Actions
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void;
@@ -69,23 +85,7 @@ const getTodayDate = (): string => {
     return `${year}-${month}-${day}`;
 };
 
-// Signals for form state
-const descriptionSignal = signal<string>('');
-const amountSignal = signal<string | number>(''); // Store as string to preserve user input
-const currencySignal = signal<string>('USD'); // Default to USD since UI doesn't expose currency selection yet
-const dateSignal = signal<string>(getTodayDate());
-const timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
-const paidBySignal = signal<string>('');
-const categorySignal = signal<string>('food');
-const splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
-const participantsSignal = signal<string[]>([]);
-const splitsSignal = signal<ExpenseSplit[]>([]);
-
-// UI state signals
-const loadingSignal = signal<boolean>(false);
-const savingSignal = signal<boolean>(false);
-const errorSignal = signal<string | null>(null);
-const validationErrorsSignal = signal<Record<string, string>>({});
+// Note: Signals are now encapsulated within the ExpenseFormStoreImpl class below
 
 // Categories are now imported from shared types
 
@@ -202,61 +202,123 @@ export function getRecentAmounts(): number[] {
 }
 
 class ExpenseFormStoreImpl implements ExpenseFormStore {
-    // State getters
+    // Private signals - encapsulated within the class
+    readonly #descriptionSignal = signal<string>('');
+    readonly #amountSignal = signal<string | number>(''); // Store as string to preserve user input
+    readonly #currencySignal = signal<string>('USD'); // Default to USD since UI doesn't expose currency selection yet
+    readonly #dateSignal = signal<string>(getTodayDate());
+    readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
+    readonly #paidBySignal = signal<string>('');
+    readonly #categorySignal = signal<string>('food');
+    readonly #splitTypeSignal = signal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE>(SplitTypes.EQUAL);
+    readonly #participantsSignal = signal<string[]>([]);
+    readonly #splitsSignal = signal<ExpenseSplit[]>([]);
+    
+    // UI state signals
+    readonly #loadingSignal = signal<boolean>(false);
+    readonly #savingSignal = signal<boolean>(false);
+    readonly #errorSignal = signal<string | null>(null);
+    readonly #validationErrorsSignal = signal<Record<string, string>>({});
+    
+    // State getters - readonly values for external consumers
     get description() {
-        return descriptionSignal.value;
+        return this.#descriptionSignal.value;
     }
     get amount() {
-        return amountSignal.value;
+        return this.#amountSignal.value;
     }
     get currency() {
-        return currencySignal.value;
+        return this.#currencySignal.value;
     }
     get date() {
-        return dateSignal.value;
+        return this.#dateSignal.value;
     }
     get time() {
-        return timeSignal.value;
+        return this.#timeSignal.value;
     }
     get paidBy() {
-        return paidBySignal.value;
+        return this.#paidBySignal.value;
     }
     get category() {
-        return categorySignal.value;
+        return this.#categorySignal.value;
     }
     get splitType() {
-        return splitTypeSignal.value;
+        return this.#splitTypeSignal.value;
     }
     get participants() {
-        return participantsSignal.value;
+        return this.#participantsSignal.value;
     }
     get splits() {
-        return splitsSignal.value;
+        return this.#splitsSignal.value;
     }
     get loading() {
-        return loadingSignal.value;
+        return this.#loadingSignal.value;
     }
     get saving() {
-        return savingSignal.value;
+        return this.#savingSignal.value;
     }
     get error() {
-        return errorSignal.value;
+        return this.#errorSignal.value;
     }
     get validationErrors() {
-        return validationErrorsSignal.value;
+        return this.#validationErrorsSignal.value;
+    }
+    
+    // Signal accessors for reactive components - return readonly signals
+    get descriptionSignal(): ReadonlySignal<string> {
+        return this.#descriptionSignal;
+    }
+    get amountSignal(): ReadonlySignal<string | number> {
+        return this.#amountSignal;
+    }
+    get currencySignal(): ReadonlySignal<string> {
+        return this.#currencySignal;
+    }
+    get dateSignal(): ReadonlySignal<string> {
+        return this.#dateSignal;
+    }
+    get timeSignal(): ReadonlySignal<string> {
+        return this.#timeSignal;
+    }
+    get paidBySignal(): ReadonlySignal<string> {
+        return this.#paidBySignal;
+    }
+    get categorySignal(): ReadonlySignal<string> {
+        return this.#categorySignal;
+    }
+    get splitTypeSignal(): ReadonlySignal<typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE> {
+        return this.#splitTypeSignal;
+    }
+    get participantsSignal(): ReadonlySignal<string[]> {
+        return this.#participantsSignal;
+    }
+    get splitsSignal(): ReadonlySignal<ExpenseSplit[]> {
+        return this.#splitsSignal;
+    }
+    get loadingSignal(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
+    }
+    get savingSignal(): ReadonlySignal<boolean> {
+        return this.#savingSignal;
+    }
+    get errorSignal(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+    get validationErrorsSignal(): ReadonlySignal<Record<string, string>> {
+        return this.#validationErrorsSignal;
     }
 
     // Computed property to check if required fields are filled (for button enabling)
     get hasRequiredFields(): boolean {
         // Check basic required fields are filled (not empty)
-        if (!descriptionSignal.value?.trim()) return false;
-        if (!amountSignal.value) return false; // Just check if filled, not if valid
-        if (!dateSignal.value) return false;
-        if (!paidBySignal.value) return false;
-        if (participantsSignal.value.length === 0) return false;
+        if (!this.#descriptionSignal.value?.trim()) return false;
+        if (!this.#amountSignal.value) return false; // Just check if filled, not if valid
+        if (!this.#dateSignal.value) return false;
+        if (!this.#paidBySignal.value) return false;
+        if (this.#participantsSignal.value.length === 0) return false;
 
         // For exact and percentage splits, also check if splits are properly configured
-        if (splitTypeSignal.value === SplitTypes.EXACT || splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+        if (this.#splitTypeSignal.value === SplitTypes.EXACT || this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
             const splitsError = this.validateField('splits');
             if (splitsError) return false;
         }
@@ -270,7 +332,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         if (!this.hasRequiredFields) return false;
 
         // Then check if values are valid
-        if (parseFloat(amountSignal.value.toString()) <= 0) return false;
+        if (parseFloat(this.#amountSignal.value.toString()) <= 0) return false;
 
         // Validate each field
         const descError = this.validateField('description');
@@ -292,62 +354,62 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         if (splitsError) return false;
 
         // Check if there are any existing validation errors
-        return Object.keys(validationErrorsSignal.value).length === 0;
+        return Object.keys(this.#validationErrorsSignal.value).length === 0;
     }
 
     updateField<K extends keyof ExpenseFormData>(field: K, value: ExpenseFormData[K]): void {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
 
         // Update the field value first
         switch (field) {
             case 'description':
-                descriptionSignal.value = value as string;
+                this.#descriptionSignal.value = value as string;
                 break;
             case 'amount':
-                amountSignal.value = value as string | number;
+                this.#amountSignal.value = value as string | number;
                 // Convert to number for calculations
                 const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : (value as number);
                 // Recalculate splits based on current type
-                if (splitTypeSignal.value === SplitTypes.EQUAL) {
+                if (this.#splitTypeSignal.value === SplitTypes.EQUAL) {
                     this.calculateEqualSplits();
-                } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+                } else if (this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
                     // Recalculate amounts for percentage splits
-                    const currentSplits = [...splitsSignal.value];
+                    const currentSplits = [...this.#splitsSignal.value];
                     currentSplits.forEach((split) => {
                         if (split.percentage !== undefined) {
                             split.amount = (numericAmount * split.percentage) / 100;
                         }
                     });
-                    splitsSignal.value = currentSplits;
+                    this.#splitsSignal.value = currentSplits;
                 }
                 break;
             case 'currency':
-                currencySignal.value = value as string;
+                this.#currencySignal.value = value as string;
                 break;
             case 'date':
-                dateSignal.value = value as string;
+                this.#dateSignal.value = value as string;
                 break;
             case 'time':
-                timeSignal.value = value as string;
+                this.#timeSignal.value = value as string;
                 break;
             case 'paidBy':
-                paidBySignal.value = value as string;
+                this.#paidBySignal.value = value as string;
                 // Auto-add payer to participants if not already included
-                if (!participantsSignal.value.includes(value as string)) {
-                    participantsSignal.value = [...participantsSignal.value, value as string];
+                if (!this.#participantsSignal.value.includes(value as string)) {
+                    this.#participantsSignal.value = [...this.#participantsSignal.value, value as string];
                 }
                 break;
             case 'category':
-                categorySignal.value = value as string;
+                this.#categorySignal.value = value as string;
                 break;
             case 'splitType':
-                splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
+                this.#splitTypeSignal.value = value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
                 this.handleSplitTypeChange(value as typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE);
                 break;
         }
 
         // Perform real-time validation for the field
-        const errors = { ...validationErrorsSignal.value };
+        const errors = { ...this.#validationErrorsSignal.value };
         const fieldError = this.validateField(field, value);
 
         if (fieldError) {
@@ -365,54 +427,54 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             }
         }
 
-        validationErrorsSignal.value = errors;
+        this.#validationErrorsSignal.value = errors;
     }
 
     setParticipants(participants: string[]): void {
-        participantsSignal.value = participants;
+        this.#participantsSignal.value = participants;
         // Always include payer in participants
-        if (paidBySignal.value && !participants.includes(paidBySignal.value)) {
-            participantsSignal.value = [...participants, paidBySignal.value];
+        if (this.#paidBySignal.value && !participants.includes(this.#paidBySignal.value)) {
+            this.#participantsSignal.value = [...participants, this.#paidBySignal.value];
         }
         // Recalculate splits based on current type
-        this.handleSplitTypeChange(splitTypeSignal.value);
+        this.handleSplitTypeChange(this.#splitTypeSignal.value);
 
         // Validate participants
-        const errors = { ...validationErrorsSignal.value };
+        const errors = { ...this.#validationErrorsSignal.value };
         const participantsError = this.validateField('participants');
         if (participantsError) {
             errors.participants = participantsError;
         } else {
             delete errors.participants;
         }
-        validationErrorsSignal.value = errors;
+        this.#validationErrorsSignal.value = errors;
     }
 
     toggleParticipant(userId: string): void {
-        const current = participantsSignal.value;
+        const current = this.#participantsSignal.value;
         const isIncluded = current.includes(userId);
 
         // Don't allow removing the payer
-        if (userId === paidBySignal.value && isIncluded) {
+        if (userId === this.#paidBySignal.value && isIncluded) {
             return;
         }
 
         if (isIncluded) {
-            participantsSignal.value = current.filter((id) => id !== userId);
+            this.#participantsSignal.value = current.filter((id) => id !== userId);
         } else {
-            participantsSignal.value = [...current, userId];
+            this.#participantsSignal.value = [...current, userId];
         }
 
         // Recalculate splits based on current type
-        this.handleSplitTypeChange(splitTypeSignal.value);
+        this.handleSplitTypeChange(this.#splitTypeSignal.value);
     }
 
     calculateEqualSplits(): void {
-        const participants = participantsSignal.value;
-        const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+        const participants = this.#participantsSignal.value;
+        const amount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
 
         if (participants.length === 0 || amount <= 0) {
-            splitsSignal.value = [];
+            this.#splitsSignal.value = [];
             return;
         }
 
@@ -426,11 +488,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             amount: index === 0 ? splitAmount + remainder : splitAmount,
         }));
 
-        splitsSignal.value = splits;
+        this.#splitsSignal.value = splits;
     }
 
     updateSplitAmount(userId: string, amount: number): void {
-        const currentSplits = [...splitsSignal.value];
+        const currentSplits = [...this.#splitsSignal.value];
         const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
 
         if (splitIndex >= 0) {
@@ -439,32 +501,32 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             currentSplits.push({ userId, amount });
         }
 
-        splitsSignal.value = currentSplits;
+        this.#splitsSignal.value = currentSplits;
 
         // Validate splits
-        const errors = { ...validationErrorsSignal.value };
+        const errors = { ...this.#validationErrorsSignal.value };
         const splitsError = this.validateField('splits');
         if (splitsError) {
             errors.splits = splitsError;
         } else {
             delete errors.splits;
         }
-        validationErrorsSignal.value = errors;
+        this.#validationErrorsSignal.value = errors;
     }
 
     updateSplitPercentage(userId: string, percentage: number): void {
-        const currentSplits = [...splitsSignal.value];
+        const currentSplits = [...this.#splitsSignal.value];
         const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
 
         if (splitIndex >= 0) {
-            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
             currentSplits[splitIndex] = {
                 ...currentSplits[splitIndex],
                 percentage,
                 amount: (numericAmount * percentage) / 100,
             };
         } else {
-            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
             currentSplits.push({
                 userId,
                 percentage,
@@ -472,25 +534,25 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             });
         }
 
-        splitsSignal.value = currentSplits;
+        this.#splitsSignal.value = currentSplits;
 
         // Validate splits
-        const errors = { ...validationErrorsSignal.value };
+        const errors = { ...this.#validationErrorsSignal.value };
         const splitsError = this.validateField('splits');
         if (splitsError) {
             errors.splits = splitsError;
         } else {
             delete errors.splits;
         }
-        validationErrorsSignal.value = errors;
+        this.#validationErrorsSignal.value = errors;
     }
 
     private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
-        const participants = participantsSignal.value;
-        const amount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+        const participants = this.#participantsSignal.value;
+        const amount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
 
         if (participants.length === 0 || amount <= 0) {
-            splitsSignal.value = [];
+            this.#splitsSignal.value = [];
             return;
         }
 
@@ -502,7 +564,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             case SplitTypes.EXACT:
                 // Initialize with equal amounts as a starting point
                 const exactAmount = amount / participants.length;
-                splitsSignal.value = participants.map((userId) => ({
+                this.#splitsSignal.value = participants.map((userId) => ({
                     userId,
                     amount: exactAmount,
                 }));
@@ -511,7 +573,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             case SplitTypes.PERCENTAGE:
                 // Initialize with equal percentages
                 const equalPercentage = 100 / participants.length;
-                splitsSignal.value = participants.map((userId) => ({
+                this.#splitsSignal.value = participants.map((userId) => ({
                     userId,
                     percentage: equalPercentage,
                     amount: (amount * equalPercentage) / 100,
@@ -523,7 +585,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     private validateField(field: string, value?: any): string | null {
         switch (field) {
             case 'description':
-                const desc = value ?? descriptionSignal.value;
+                const desc = value ?? this.#descriptionSignal.value;
                 if (!desc.trim()) {
                     return 'Description is required';
                 } else if (desc.length > 100) {
@@ -532,7 +594,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 break;
 
             case 'amount':
-                const amt = value ?? amountSignal.value;
+                const amt = value ?? this.#amountSignal.value;
                 const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
                 if (numericAmt <= 0) {
                     return 'Amount must be greater than 0';
@@ -542,7 +604,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 break;
 
             case 'currency':
-                const curr = value ?? currencySignal.value;
+                const curr = value ?? this.#currencySignal.value;
                 if (!curr || curr.trim() === '') {
                     return 'Currency is required';
                 }
@@ -552,7 +614,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 break;
 
             case 'date':
-                const dt = value ?? dateSignal.value;
+                const dt = value ?? this.#dateSignal.value;
                 if (!dt) {
                     return 'Date is required';
                 }
@@ -563,14 +625,14 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 break;
 
             case 'paidBy':
-                const pb = value ?? paidBySignal.value;
+                const pb = value ?? this.#paidBySignal.value;
                 if (!pb) {
                     return 'Please select who paid';
                 }
                 break;
 
             case 'participants':
-                const parts = value ?? participantsSignal.value;
+                const parts = value ?? this.#participantsSignal.value;
                 if (parts.length === 0) {
                     return 'At least one participant is required';
                 }
@@ -578,14 +640,14 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             case 'splits':
                 // Validate splits based on split type
-                if (splitTypeSignal.value === SplitTypes.EXACT) {
-                    const totalSplit = splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-                    const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+                if (this.#splitTypeSignal.value === SplitTypes.EXACT) {
+                    const totalSplit = this.#splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
+                    const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
                     if (Math.abs(totalSplit - numericAmount) > 0.01) {
                         return `Split amounts must equal the total expense amount`;
                     }
-                } else if (splitTypeSignal.value === SplitTypes.PERCENTAGE) {
-                    const totalPercentage = splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
+                } else if (this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
+                    const totalPercentage = this.#splitsSignal.value.reduce((sum, split) => sum + (split.percentage || 0), 0);
                     if (Math.abs(totalPercentage - 100) > 0.01) {
                         return 'Percentages must add up to 100%';
                     }
@@ -620,7 +682,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         const splitsError = this.validateField('splits');
         if (splitsError) errors.splits = splitsError;
 
-        validationErrorsSignal.value = errors;
+        this.#validationErrorsSignal.value = errors;
         const isValid = Object.keys(errors).length === 0;
 
         // Log validation failures using browser logger
@@ -633,36 +695,36 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     async saveExpense(groupId: string): Promise<ExpenseData> {
         if (!this.validateForm()) {
-            const errors = validationErrorsSignal.value;
+            const errors = this.#validationErrorsSignal.value;
             logWarning('[ExpenseForm] Cannot submit form due to validation errors', { errors });
             throw new Error('Please fix validation errors');
         }
 
-        savingSignal.value = true;
-        errorSignal.value = null;
+        this.#savingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             // Convert date and time to UTC timestamp
-            const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
+            const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
-            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
             const request: CreateExpenseRequest = {
                 groupId,
-                description: descriptionSignal.value.trim(),
+                description: this.#descriptionSignal.value.trim(),
                 amount: numericAmount,
-                currency: currencySignal.value,
-                paidBy: paidBySignal.value,
-                category: categorySignal.value,
+                currency: this.#currencySignal.value,
+                paidBy: this.#paidBySignal.value,
+                category: this.#categorySignal.value,
                 date: utcDateTime,
-                splitType: splitTypeSignal.value,
-                participants: participantsSignal.value,
-                splits: splitsSignal.value,
+                splitType: this.#splitTypeSignal.value,
+                participants: this.#participantsSignal.value,
+                splits: this.#splitsSignal.value,
             };
 
             const expense = await apiClient.createExpense(request);
 
             // Track recent category and amount
-            storageManager.addRecentCategory(categorySignal.value);
+            storageManager.addRecentCategory(this.#categorySignal.value);
             storageManager.addRecentAmount(numericAmount);
 
             // Refresh group data to show the new expense immediately
@@ -679,10 +741,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             return expense;
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
-            savingSignal.value = false;
+            this.#savingSignal.value = false;
         }
     }
 
@@ -691,31 +753,31 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             throw new Error('Please fix validation errors');
         }
 
-        savingSignal.value = true;
-        errorSignal.value = null;
+        this.#savingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             // Convert date and time to UTC timestamp
-            const utcDateTime = getUTCDateTime(dateSignal.value, timeSignal.value);
+            const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
             // For updates, only include fields that can be changed
             // Backend doesn't allow changing: groupId, paidBy
-            const numericAmount = typeof amountSignal.value === 'string' ? parseFloat(amountSignal.value) || 0 : amountSignal.value;
+            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
             const updateRequest = {
-                description: descriptionSignal.value.trim(),
+                description: this.#descriptionSignal.value.trim(),
                 amount: numericAmount,
-                currency: currencySignal.value,
-                category: categorySignal.value,
+                currency: this.#currencySignal.value,
+                category: this.#categorySignal.value,
                 date: utcDateTime,
-                splitType: splitTypeSignal.value,
-                participants: participantsSignal.value,
-                splits: splitsSignal.value,
+                splitType: this.#splitTypeSignal.value,
+                participants: this.#participantsSignal.value,
+                splits: this.#splitsSignal.value,
             };
 
             const expense = await apiClient.updateExpense(expenseId, updateRequest as CreateExpenseRequest);
 
             // Track recent category and amount
-            storageManager.addRecentCategory(categorySignal.value);
+            storageManager.addRecentCategory(this.#categorySignal.value);
             storageManager.addRecentAmount(numericAmount);
 
             // Refresh group data to show the updated expense immediately
@@ -731,45 +793,45 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             return expense;
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
-            savingSignal.value = false;
+            this.#savingSignal.value = false;
         }
     }
 
     clearError(): void {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
     }
 
     reset(): void {
-        descriptionSignal.value = '';
-        amountSignal.value = ''; // Reset to empty string
-        currencySignal.value = 'USD'; // Default to USD
-        dateSignal.value = getTodayDate();
-        timeSignal.value = '12:00'; // Default to noon
-        paidBySignal.value = '';
-        categorySignal.value = 'food';
-        splitTypeSignal.value = SplitTypes.EQUAL;
-        participantsSignal.value = [];
-        splitsSignal.value = [];
-        errorSignal.value = null;
-        validationErrorsSignal.value = {};
+        this.#descriptionSignal.value = '';
+        this.#amountSignal.value = ''; // Reset to empty string
+        this.#currencySignal.value = 'USD'; // Default to USD
+        this.#dateSignal.value = getTodayDate();
+        this.#timeSignal.value = '12:00'; // Default to noon
+        this.#paidBySignal.value = '';
+        this.#categorySignal.value = 'food';
+        this.#splitTypeSignal.value = SplitTypes.EQUAL;
+        this.#participantsSignal.value = [];
+        this.#splitsSignal.value = [];
+        this.#errorSignal.value = null;
+        this.#validationErrorsSignal.value = {};
     }
 
     hasUnsavedChanges(): boolean {
         // Check if any field has been modified from initial state
-        const hasAmount = typeof amountSignal.value === 'string' ? amountSignal.value.trim() !== '' : amountSignal.value > 0;
+        const hasAmount = typeof this.#amountSignal.value === 'string' ? this.#amountSignal.value.trim() !== '' : this.#amountSignal.value > 0;
         return (
-            descriptionSignal.value.trim() !== '' ||
+            this.#descriptionSignal.value.trim() !== '' ||
             hasAmount ||
-            currencySignal.value !== 'USD' ||
-            dateSignal.value !== getTodayDate() ||
-            paidBySignal.value !== '' ||
-            categorySignal.value !== 'food' ||
-            splitTypeSignal.value !== SplitTypes.EQUAL ||
-            participantsSignal.value.length > 0 ||
-            splitsSignal.value.length > 0
+            this.#currencySignal.value !== 'USD' ||
+            this.#dateSignal.value !== getTodayDate() ||
+            this.#paidBySignal.value !== '' ||
+            this.#categorySignal.value !== 'food' ||
+            this.#splitTypeSignal.value !== SplitTypes.EQUAL ||
+            this.#participantsSignal.value.length > 0 ||
+            this.#splitsSignal.value.length > 0
         );
     }
 
@@ -783,16 +845,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     saveDraft(groupId: string): void {
         const draftData = {
-            description: descriptionSignal.value,
-            amount: amountSignal.value,
-            currency: currencySignal.value,
-            date: dateSignal.value,
-            time: timeSignal.value,
-            paidBy: paidBySignal.value,
-            category: categorySignal.value,
-            splitType: splitTypeSignal.value,
-            participants: participantsSignal.value,
-            splits: splitsSignal.value,
+            description: this.#descriptionSignal.value,
+            amount: this.#amountSignal.value,
+            currency: this.#currencySignal.value,
+            date: this.#dateSignal.value,
+            time: this.#timeSignal.value,
+            paidBy: this.#paidBySignal.value,
+            category: this.#categorySignal.value,
+            splitType: this.#splitTypeSignal.value,
+            participants: this.#participantsSignal.value,
+            splits: this.#splitsSignal.value,
             timestamp: Date.now(),
         };
 
@@ -815,16 +877,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             }
 
             // Restore form data
-            descriptionSignal.value = draftData.description || '';
-            amountSignal.value = draftData.amount || 0;
-            currencySignal.value = draftData.currency || 'USD'; // Default to USD
-            dateSignal.value = draftData.date || getTodayDate();
-            timeSignal.value = draftData.time || '12:00'; // Default to noon
-            paidBySignal.value = draftData.paidBy || '';
-            categorySignal.value = draftData.category || 'food';
-            splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
-            participantsSignal.value = draftData.participants || [];
-            splitsSignal.value = draftData.splits || [];
+            this.#descriptionSignal.value = draftData.description || '';
+            this.#amountSignal.value = draftData.amount || 0;
+            this.#currencySignal.value = draftData.currency || 'USD'; // Default to USD
+            this.#dateSignal.value = draftData.date || getTodayDate();
+            this.#timeSignal.value = draftData.time || '12:00'; // Default to noon
+            this.#paidBySignal.value = draftData.paidBy || '';
+            this.#categorySignal.value = draftData.category || 'food';
+            this.#splitTypeSignal.value = draftData.splitType || SplitTypes.EQUAL;
+            this.#participantsSignal.value = draftData.participants || [];
+            this.#splitsSignal.value = draftData.splits || [];
 
             return true;
         } catch (error) {

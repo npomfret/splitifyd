@@ -1,4 +1,4 @@
-import { signal } from '@preact/signals';
+import { signal, ReadonlySignal } from '@preact/signals';
 import type { AuthStore, User } from '@/types/auth.ts';
 import { mapFirebaseUser } from '@/types/auth.ts';
 import { firebaseService } from '../firebase';
@@ -13,46 +13,46 @@ import { createUserScopedStorage } from '@/utils/userScopedStorage.ts';
 import { CurrencyService } from '../services/currencyService';
 import { expenseFormStore } from './expense-form-store';
 
-// Signals for auth state
-const userSignal = signal<User | null>(null);
-const loadingSignal = signal<boolean>(true);
-const errorSignal = signal<string | null>(null);
-const initializedSignal = signal<boolean>(false);
-const isUpdatingProfileSignal = signal<boolean>(false);
-
 class AuthStoreImpl implements AuthStore {
-    // State getters
+    // Private signals - encapsulated within the class
+    readonly #userSignal = signal<User | null>(null);
+    readonly #loadingSignal = signal<boolean>(true);
+    readonly #errorSignal = signal<string | null>(null);
+    readonly #initializedSignal = signal<boolean>(false);
+    readonly #isUpdatingProfileSignal = signal<boolean>(false);
+
+    // State getters - readonly values for external consumers
     get user() {
-        return userSignal.value;
+        return this.#userSignal.value;
     }
     get loading() {
-        return loadingSignal.value;
+        return this.#loadingSignal.value;
     }
     get error() {
-        return errorSignal.value;
+        return this.#errorSignal.value;
     }
     get initialized() {
-        return initializedSignal.value;
+        return this.#initializedSignal.value;
     }
     get isUpdatingProfile() {
-        return isUpdatingProfileSignal.value;
+        return this.#isUpdatingProfileSignal.value;
     }
 
-    // Signal accessors for reactive components
-    get userSignal() {
-        return userSignal;
+    // Signal accessors for reactive components - return readonly signals
+    get userSignal(): ReadonlySignal<User | null> {
+        return this.#userSignal;
     }
-    get loadingSignal() {
-        return loadingSignal;
+    get loadingSignal(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
     }
-    get errorSignal() {
-        return errorSignal;
+    get errorSignal(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
     }
-    get initializedSignal() {
-        return initializedSignal;
+    get initializedSignal(): ReadonlySignal<boolean> {
+        return this.#initializedSignal;
     }
-    get isUpdatingProfileSignal() {
-        return isUpdatingProfileSignal;
+    get isUpdatingProfileSignal(): ReadonlySignal<boolean> {
+        return this.#isUpdatingProfileSignal;
     }
 
     // Token refresh management
@@ -60,7 +60,7 @@ class AuthStoreImpl implements AuthStore {
     private refreshTimer: NodeJS.Timeout | null = null;
 
     // User-scoped storage for preferences and auth data
-    private userStorage = createUserScopedStorage(() => userSignal.value?.uid || null);
+    private userStorage = createUserScopedStorage(() => this.#userSignal.value?.uid || null);
 
     private constructor() {
         // Private constructor - use static create() method instead
@@ -88,7 +88,7 @@ class AuthStoreImpl implements AuthStore {
             firebaseService.onAuthStateChanged(async (firebaseUser) => {
                 if (firebaseUser) {
                     const user = mapFirebaseUser(firebaseUser);
-                    userSignal.value = user;
+                    this.#userSignal.value = user;
 
                     // Apply user's theme colors
                     themeStore.updateCurrentUserTheme(user);
@@ -109,7 +109,7 @@ class AuthStoreImpl implements AuthStore {
                         logError('Failed to get ID token', error);
                     }
                 } else {
-                    userSignal.value = null;
+                    this.#userSignal.value = null;
                     apiClient.setAuthToken(null);
                     localStorage.removeItem(USER_ID_KEY);
 
@@ -125,19 +125,19 @@ class AuthStoreImpl implements AuthStore {
                     // Clean up token refresh
                     this.cleanup();
                 }
-                loadingSignal.value = false;
-                initializedSignal.value = true;
+                this.#loadingSignal.value = false;
+                this.#initializedSignal.value = true;
             });
         } catch (error) {
-            errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
-            loadingSignal.value = false;
-            initializedSignal.value = true;
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Auth initialization failed';
+            this.#loadingSignal.value = false;
+            this.#initializedSignal.value = true;
         }
     }
 
     async login(email: string, password: string): Promise<void> {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             const userCredential = await firebaseService.signInWithEmailAndPassword(email, password);
@@ -152,16 +152,16 @@ class AuthStoreImpl implements AuthStore {
 
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
-            errorSignal.value = this.getAuthErrorMessage(error);
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         } finally {
-            loadingSignal.value = false;
+            this.#loadingSignal.value = false;
         }
     }
 
     async register(email: string, password: string, displayName: string, termsAccepted: boolean = true, cookiePolicyAccepted: boolean = true): Promise<void> {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             // Use server-side registration which creates both Firebase Auth user and Firestore document
@@ -172,16 +172,16 @@ class AuthStoreImpl implements AuthStore {
 
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
-            errorSignal.value = this.getAuthErrorMessage(error);
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         } finally {
-            loadingSignal.value = false;
+            this.#loadingSignal.value = false;
         }
     }
 
     async logout(): Promise<void> {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             // Clear user-scoped storage before signing out
@@ -201,37 +201,37 @@ class AuthStoreImpl implements AuthStore {
 
             // User state will be updated by onAuthStateChanged listener
         } catch (error: any) {
-            errorSignal.value = this.getAuthErrorMessage(error);
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         } finally {
-            loadingSignal.value = false;
+            this.#loadingSignal.value = false;
         }
     }
 
     async resetPassword(email: string): Promise<void> {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
 
         try {
             await firebaseService.sendPasswordResetEmail(email);
         } catch (error: any) {
-            errorSignal.value = this.getAuthErrorMessage(error);
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         }
     }
 
     async updateUserProfile(updates: { displayName?: string }): Promise<void> {
-        errorSignal.value = null;
-        isUpdatingProfileSignal.value = true;
+        this.#errorSignal.value = null;
+        this.#isUpdatingProfileSignal.value = true;
 
         try {
             // Call API to update user profile
             const updatedUser = await apiClient.updateUserProfile(updates);
 
             // Update the user signal with the new data from server
-            if (userSignal.value) {
-                userSignal.value = {
-                    ...userSignal.value,
-                    displayName: updatedUser.displayName || userSignal.value.displayName,
+            if (this.#userSignal.value) {
+                this.#userSignal.value = {
+                    ...this.#userSignal.value,
+                    displayName: updatedUser.displayName || this.#userSignal.value.displayName,
                 };
             }
 
@@ -242,15 +242,15 @@ class AuthStoreImpl implements AuthStore {
                 await currentUser.reload();
             }
         } catch (error: any) {
-            errorSignal.value = this.getAuthErrorMessage(error);
+            this.#errorSignal.value = this.getAuthErrorMessage(error);
             throw error;
         } finally {
-            isUpdatingProfileSignal.value = false;
+            this.#isUpdatingProfileSignal.value = false;
         }
     }
 
     clearError(): void {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { signal, batch } from '@preact/signals';
+import { signal, batch, ReadonlySignal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning } from '@/utils/browser-logger.ts';
@@ -14,6 +14,16 @@ export interface EnhancedGroupsStore {
     lastRefresh: number;
     updatingGroupIds: Set<string>;
     isCreatingGroup: boolean;
+    
+    // Readonly signal accessors for reactive components
+    readonly groupsSignal: ReadonlySignal<Group[]>;
+    readonly loadingSignal: ReadonlySignal<boolean>;
+    readonly errorSignal: ReadonlySignal<string | null>;
+    readonly initializedSignal: ReadonlySignal<boolean>;
+    readonly isRefreshingSignal: ReadonlySignal<boolean>;
+    readonly lastRefreshSignal: ReadonlySignal<number>;
+    readonly updatingGroupIdsSignal: ReadonlySignal<Set<string>>;
+    readonly isCreatingGroupSignal: ReadonlySignal<boolean>;
 
     fetchGroups(): Promise<void>;
     createGroup(data: CreateGroupRequest): Promise<Group>;
@@ -25,49 +35,75 @@ export interface EnhancedGroupsStore {
     dispose(): void;
 }
 
-// Signals for groups state
-const groupsSignal = signal<Group[]>([]);
-const loadingSignal = signal<boolean>(false);
-const errorSignal = signal<string | null>(null);
-const initializedSignal = signal<boolean>(false);
-const isRefreshingSignal = signal<boolean>(false);
-const lastRefreshSignal = signal<number>(0);
-const updatingGroupIdsSignal = signal<Set<string>>(new Set());
-const isCreatingGroupSignal = signal<boolean>(false);
-
 class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
+    // Private signals - encapsulated within the class
+    readonly #groupsSignal = signal<Group[]>([]);
+    readonly #loadingSignal = signal<boolean>(false);
+    readonly #errorSignal = signal<string | null>(null);
+    readonly #initializedSignal = signal<boolean>(false);
+    readonly #isRefreshingSignal = signal<boolean>(false);
+    readonly #lastRefreshSignal = signal<number>(0);
+    readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
+    readonly #isCreatingGroupSignal = signal<boolean>(false);
+    
     private changeDetector = new ChangeDetector();
     private changeUnsubscribe: (() => void) | null = null;
 
-    // State getters
+    // State getters - readonly values for external consumers
     get groups() {
-        return groupsSignal.value;
+        return this.#groupsSignal.value;
     }
     get loading() {
-        return loadingSignal.value;
+        return this.#loadingSignal.value;
     }
     get error() {
-        return errorSignal.value;
+        return this.#errorSignal.value;
     }
     get initialized() {
-        return initializedSignal.value;
+        return this.#initializedSignal.value;
     }
     get isRefreshing() {
-        return isRefreshingSignal.value;
+        return this.#isRefreshingSignal.value;
     }
     get lastRefresh() {
-        return lastRefreshSignal.value;
+        return this.#lastRefreshSignal.value;
     }
     get updatingGroupIds() {
-        return updatingGroupIdsSignal.value;
+        return this.#updatingGroupIdsSignal.value;
     }
     get isCreatingGroup() {
-        return isCreatingGroupSignal.value;
+        return this.#isCreatingGroupSignal.value;
+    }
+    
+    // Signal accessors for reactive components - return readonly signals
+    get groupsSignal(): ReadonlySignal<Group[]> {
+        return this.#groupsSignal;
+    }
+    get loadingSignal(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
+    }
+    get errorSignal(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+    get initializedSignal(): ReadonlySignal<boolean> {
+        return this.#initializedSignal;
+    }
+    get isRefreshingSignal(): ReadonlySignal<boolean> {
+        return this.#isRefreshingSignal;
+    }
+    get lastRefreshSignal(): ReadonlySignal<number> {
+        return this.#lastRefreshSignal;
+    }
+    get updatingGroupIdsSignal(): ReadonlySignal<Set<string>> {
+        return this.#updatingGroupIdsSignal;
+    }
+    get isCreatingGroupSignal(): ReadonlySignal<boolean> {
+        return this.#isCreatingGroupSignal;
     }
 
     async fetchGroups(): Promise<void> {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
 
         const startTime = Date.now();
 
@@ -81,15 +117,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
             // Use metadata if available to check for newer data
             if (response.metadata) {
-                const hasNewerData = response.metadata.lastChangeTimestamp > lastRefreshSignal.value;
-                if (!hasNewerData && groupsSignal.value.length > 0) {
+                const hasNewerData = response.metadata.lastChangeTimestamp > this.#lastRefreshSignal.value;
+                if (!hasNewerData && this.#groupsSignal.value.length > 0) {
                     // No new changes, skip update
-                    initializedSignal.value = true;
+                    this.#initializedSignal.value = true;
                     return;
                 }
             } else {
                 // Fallback to timestamp check if no metadata
-                const currentGroups = groupsSignal.value;
+                const currentGroups = this.#groupsSignal.value;
                 const hasNewerData = response.groups.some((newGroup: Group) => {
                     const existing = currentGroups.find((g) => g.id === newGroup.id);
                     if (!existing) return true;
@@ -98,25 +134,25 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 });
 
                 if (!hasNewerData && currentGroups.length > 0) {
-                    initializedSignal.value = true;
+                    this.#initializedSignal.value = true;
                     return;
                 }
             }
 
-            groupsSignal.value = response.groups;
-            lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
-            initializedSignal.value = true;
+            this.#groupsSignal.value = response.groups;
+            this.#lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
+            this.#initializedSignal.value = true;
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
-            loadingSignal.value = false;
+            this.#loadingSignal.value = false;
         }
     }
 
     async createGroup(data: CreateGroupRequest): Promise<Group> {
-        isCreatingGroupSignal.value = true;
-        errorSignal.value = null;
+        this.#isCreatingGroupSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             const newGroup = await apiClient.createGroup(data);
@@ -126,24 +162,24 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
             return newGroup;
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
-            isCreatingGroupSignal.value = false;
+            this.#isCreatingGroupSignal.value = false;
         }
     }
 
     async updateGroup(id: string, updates: Partial<Group>): Promise<void> {
-        const groupIndex = groupsSignal.value.findIndex((g) => g.id === id);
+        const groupIndex = this.#groupsSignal.value.findIndex((g) => g.id === id);
 
         if (groupIndex === -1) {
             throw new Error(`Group with id ${id} not found`);
         }
 
         // Mark this group as updating
-        const newUpdatingIds = new Set(updatingGroupIdsSignal.value);
+        const newUpdatingIds = new Set(this.#updatingGroupIdsSignal.value);
         newUpdatingIds.add(id);
-        updatingGroupIdsSignal.value = newUpdatingIds;
+        this.#updatingGroupIdsSignal.value = newUpdatingIds;
 
         try {
             // Send update to server (only name and description are supported by API)
@@ -159,23 +195,23 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             // This also ensures we get any server-side computed fields
             await this.fetchGroups();
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error;
         } finally {
             // Remove from updating set
-            const newUpdatingIds = new Set(updatingGroupIdsSignal.value);
+            const newUpdatingIds = new Set(this.#updatingGroupIdsSignal.value);
             newUpdatingIds.delete(id);
-            updatingGroupIdsSignal.value = newUpdatingIds;
+            this.#updatingGroupIdsSignal.value = newUpdatingIds;
         }
     }
 
     async refreshGroups(): Promise<void> {
-        isRefreshingSignal.value = true;
+        this.#isRefreshingSignal.value = true;
 
         try {
             await this.fetchGroups();
         } finally {
-            isRefreshingSignal.value = false;
+            this.#isRefreshingSignal.value = false;
         }
     }
 
@@ -207,19 +243,19 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     clearError(): void {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
     }
 
     reset(): void {
         batch(() => {
-            groupsSignal.value = [];
-            loadingSignal.value = false;
-            errorSignal.value = null;
-            initializedSignal.value = false;
-            isRefreshingSignal.value = false;
-            lastRefreshSignal.value = 0;
-            updatingGroupIdsSignal.value = new Set();
-            isCreatingGroupSignal.value = false;
+            this.#groupsSignal.value = [];
+            this.#loadingSignal.value = false;
+            this.#errorSignal.value = null;
+            this.#initializedSignal.value = false;
+            this.#isRefreshingSignal.value = false;
+            this.#lastRefreshSignal.value = 0;
+            this.#updatingGroupIdsSignal.value = new Set();
+            this.#isCreatingGroupSignal.value = false;
         });
 
         this.dispose();

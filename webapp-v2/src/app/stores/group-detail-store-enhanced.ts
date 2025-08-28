@@ -1,4 +1,4 @@
-import { signal, batch } from '@preact/signals';
+import { signal, batch, ReadonlySignal } from '@preact/signals';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
 import type { ExpenseData, Group, GroupBalances, User, SettlementListItem } from '@splitifyd/shared';
@@ -21,6 +21,23 @@ export interface EnhancedGroupDetailStore {
     expenseCursor: string | null;
     hasMoreSettlements: boolean;
     settlementsCursor: string | null;
+    
+    // Readonly signal accessors for reactive components
+    readonly groupSignal: ReadonlySignal<Group | null>;
+    readonly membersSignal: ReadonlySignal<User[]>;
+    readonly expensesSignal: ReadonlySignal<ExpenseData[]>;
+    readonly balancesSignal: ReadonlySignal<GroupBalances | null>;
+    readonly settlementsSignal: ReadonlySignal<SettlementListItem[]>;
+    readonly loadingSignal: ReadonlySignal<boolean>;
+    readonly loadingMembersSignal: ReadonlySignal<boolean>;
+    readonly loadingExpensesSignal: ReadonlySignal<boolean>;
+    readonly loadingBalancesSignal: ReadonlySignal<boolean>;
+    readonly loadingSettlementsSignal: ReadonlySignal<boolean>;
+    readonly errorSignal: ReadonlySignal<string | null>;
+    readonly hasMoreExpensesSignal: ReadonlySignal<boolean>;
+    readonly expenseCursorSignal: ReadonlySignal<string | null>;
+    readonly hasMoreSettlementsSignal: ReadonlySignal<boolean>;
+    readonly settlementsCursorSignal: ReadonlySignal<string | null>;
 
     // Methods
     loadGroup(id: string): Promise<void>;
@@ -39,79 +56,126 @@ export interface EnhancedGroupDetailStore {
     fetchGroup(id: string): Promise<void>;
 }
 
-// State signals
-const groupSignal = signal<Group | null>(null);
-const membersSignal = signal<User[]>([]);
-const expensesSignal = signal<ExpenseData[]>([]);
-const balancesSignal = signal<GroupBalances | null>(null);
-const settlementsSignal = signal<SettlementListItem[]>([]);
-const loadingSignal = signal<boolean>(false);
-const loadingMembersSignal = signal<boolean>(false);
-const loadingExpensesSignal = signal<boolean>(false);
-const loadingBalancesSignal = signal<boolean>(false);
-const loadingSettlementsSignal = signal<boolean>(false);
-const errorSignal = signal<string | null>(null);
-const hasMoreExpensesSignal = signal<boolean>(true);
-const expenseCursorSignal = signal<string | null>(null);
-const hasMoreSettlementsSignal = signal<boolean>(false);
-const settlementsCursorSignal = signal<string | null>(null);
-
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
+    // Private signals - encapsulated within the class
+    readonly #groupSignal = signal<Group | null>(null);
+    readonly #membersSignal = signal<User[]>([]);
+    readonly #expensesSignal = signal<ExpenseData[]>([]);
+    readonly #balancesSignal = signal<GroupBalances | null>(null);
+    readonly #settlementsSignal = signal<SettlementListItem[]>([]);
+    readonly #loadingSignal = signal<boolean>(false);
+    readonly #loadingMembersSignal = signal<boolean>(false);
+    readonly #loadingExpensesSignal = signal<boolean>(false);
+    readonly #loadingBalancesSignal = signal<boolean>(false);
+    readonly #loadingSettlementsSignal = signal<boolean>(false);
+    readonly #errorSignal = signal<string | null>(null);
+    readonly #hasMoreExpensesSignal = signal<boolean>(true);
+    readonly #expenseCursorSignal = signal<string | null>(null);
+    readonly #hasMoreSettlementsSignal = signal<boolean>(false);
+    readonly #settlementsCursorSignal = signal<string | null>(null);
+    
     private expenseChangeListener: (() => void) | null = null;
     private groupChangeListener: (() => void) | null = null;
     private changeDetector = new ChangeDetector();
     private currentGroupId: string | null = null;
 
-    // State getters
+    // State getters - readonly values for external consumers
     get group() {
-        return groupSignal.value;
+        return this.#groupSignal.value;
     }
     get members() {
-        return membersSignal.value;
+        return this.#membersSignal.value;
     }
     get expenses() {
-        return expensesSignal.value;
+        return this.#expensesSignal.value;
     }
     get balances() {
-        return balancesSignal.value;
+        return this.#balancesSignal.value;
     }
     get loading() {
-        return loadingSignal.value;
+        return this.#loadingSignal.value;
     }
     get loadingMembers() {
-        return loadingMembersSignal.value;
+        return this.#loadingMembersSignal.value;
     }
     get loadingExpenses() {
-        return loadingExpensesSignal.value;
+        return this.#loadingExpensesSignal.value;
     }
     get loadingBalances() {
-        return loadingBalancesSignal.value;
+        return this.#loadingBalancesSignal.value;
     }
     get error() {
-        return errorSignal.value;
+        return this.#errorSignal.value;
     }
     get hasMoreExpenses() {
-        return hasMoreExpensesSignal.value;
+        return this.#hasMoreExpensesSignal.value;
     }
     get expenseCursor() {
-        return expenseCursorSignal.value;
+        return this.#expenseCursorSignal.value;
     }
     get settlements() {
-        return settlementsSignal.value;
+        return this.#settlementsSignal.value;
     }
     get loadingSettlements() {
-        return loadingSettlementsSignal.value;
+        return this.#loadingSettlementsSignal.value;
     }
     get hasMoreSettlements() {
-        return hasMoreSettlementsSignal.value;
+        return this.#hasMoreSettlementsSignal.value;
     }
     get settlementsCursor() {
-        return settlementsCursorSignal.value;
+        return this.#settlementsCursorSignal.value;
+    }
+    
+    // Signal accessors for reactive components - return readonly signals
+    get groupSignal(): ReadonlySignal<Group | null> {
+        return this.#groupSignal;
+    }
+    get membersSignal(): ReadonlySignal<User[]> {
+        return this.#membersSignal;
+    }
+    get expensesSignal(): ReadonlySignal<ExpenseData[]> {
+        return this.#expensesSignal;
+    }
+    get balancesSignal(): ReadonlySignal<GroupBalances | null> {
+        return this.#balancesSignal;
+    }
+    get settlementsSignal(): ReadonlySignal<SettlementListItem[]> {
+        return this.#settlementsSignal;
+    }
+    get loadingSignal(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
+    }
+    get loadingMembersSignal(): ReadonlySignal<boolean> {
+        return this.#loadingMembersSignal;
+    }
+    get loadingExpensesSignal(): ReadonlySignal<boolean> {
+        return this.#loadingExpensesSignal;
+    }
+    get loadingBalancesSignal(): ReadonlySignal<boolean> {
+        return this.#loadingBalancesSignal;
+    }
+    get loadingSettlementsSignal(): ReadonlySignal<boolean> {
+        return this.#loadingSettlementsSignal;
+    }
+    get errorSignal(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+    get hasMoreExpensesSignal(): ReadonlySignal<boolean> {
+        return this.#hasMoreExpensesSignal;
+    }
+    get expenseCursorSignal(): ReadonlySignal<string | null> {
+        return this.#expenseCursorSignal;
+    }
+    get hasMoreSettlementsSignal(): ReadonlySignal<boolean> {
+        return this.#hasMoreSettlementsSignal;
+    }
+    get settlementsCursorSignal(): ReadonlySignal<string | null> {
+        return this.#settlementsCursorSignal;
     }
 
     async loadGroup(groupId: string): Promise<void> {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
         this.currentGroupId = groupId;
 
         try {
@@ -122,27 +186,27 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             batch(() => {
                 logInfo('LoadGroup: Updating group signal', { 
                     groupId: this.currentGroupId,
-                    oldName: groupSignal.value?.name,
+                    oldName: this.#groupSignal.value?.name,
                     newName: fullDetails.group.name
                 });
-                groupSignal.value = fullDetails.group;
-                membersSignal.value = fullDetails.members.members;
-                expensesSignal.value = fullDetails.expenses.expenses;
-                balancesSignal.value = fullDetails.balances;
-                settlementsSignal.value = fullDetails.settlements.settlements;
+                this.#groupSignal.value = fullDetails.group;
+                this.#membersSignal.value = fullDetails.members.members;
+                this.#expensesSignal.value = fullDetails.expenses.expenses;
+                this.#balancesSignal.value = fullDetails.balances;
+                this.#settlementsSignal.value = fullDetails.settlements.settlements;
 
                 // Update pagination state
-                hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
-                hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
+                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                this.#expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
+                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                this.#settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
 
                 // CRITICAL: Only set loading to false AFTER all data is populated
-                loadingSignal.value = false;
+                this.#loadingSignal.value = false;
             });
         } catch (error) {
-            errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
-            loadingSignal.value = false;
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
+            this.#loadingSignal.value = false;
             throw error;
         }
     }
@@ -198,131 +262,131 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async fetchMembers(): Promise<void> {
         if (!this.currentGroupId) return;
 
-        loadingMembersSignal.value = true;
+        this.#loadingMembersSignal.value = true;
         try {
             const memberData = await apiClient.getGroupMembers(this.currentGroupId);
             if (memberData.members.length === 0) {
                 logError('group has no members', { groupId: this.currentGroupId });
             }
-            membersSignal.value = memberData.members;
+            this.#membersSignal.value = memberData.members;
         } catch (error) {
             logWarning('Failed to fetch members', { error });
         } finally {
-            loadingMembersSignal.value = false;
+            this.#loadingMembersSignal.value = false;
         }
     }
 
     async fetchExpenses(cursor?: string, includeDeleted: boolean = false): Promise<void> {
         if (!this.currentGroupId) return;
 
-        loadingExpensesSignal.value = true;
+        this.#loadingExpensesSignal.value = true;
         try {
             const response = await apiClient.getExpenses(this.currentGroupId, undefined, cursor, includeDeleted);
 
             if (cursor) {
                 // Append to existing expenses
-                expensesSignal.value = [...expensesSignal.value, ...response.expenses];
+                this.#expensesSignal.value = [...this.#expensesSignal.value, ...response.expenses];
             } else {
                 // Replace expenses
-                expensesSignal.value = response.expenses;
+                this.#expensesSignal.value = response.expenses;
             }
 
-            hasMoreExpensesSignal.value = response.hasMore;
-            expenseCursorSignal.value = response.nextCursor || null;
+            this.#hasMoreExpensesSignal.value = response.hasMore;
+            this.#expenseCursorSignal.value = response.nextCursor || null;
         } catch (error) {
             logWarning('Failed to fetch expenses', { error });
         } finally {
-            loadingExpensesSignal.value = false;
+            this.#loadingExpensesSignal.value = false;
         }
     }
 
     async fetchBalances(): Promise<void> {
         if (!this.currentGroupId) return;
 
-        loadingBalancesSignal.value = true;
+        this.#loadingBalancesSignal.value = true;
         try {
             const balanceData = await apiClient.getGroupBalances(this.currentGroupId);
-            balancesSignal.value = balanceData;
+            this.#balancesSignal.value = balanceData;
         } catch (error) {
             logWarning('Failed to fetch balances', { error });
         } finally {
-            loadingBalancesSignal.value = false;
+            this.#loadingBalancesSignal.value = false;
         }
     }
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
         if (!this.currentGroupId) return;
 
-        loadingSettlementsSignal.value = true;
+        this.#loadingSettlementsSignal.value = true;
         try {
             const response = await apiClient.listSettlements(this.currentGroupId, 20, cursor, userId);
 
             if (cursor) {
                 // Append to existing settlements
-                settlementsSignal.value = [...settlementsSignal.value, ...response.settlements];
+                this.#settlementsSignal.value = [...this.#settlementsSignal.value, ...response.settlements];
             } else {
                 // Replace settlements
-                settlementsSignal.value = response.settlements;
+                this.#settlementsSignal.value = response.settlements;
             }
 
-            hasMoreSettlementsSignal.value = response.hasMore;
-            settlementsCursorSignal.value = response.nextCursor || null;
+            this.#hasMoreSettlementsSignal.value = response.hasMore;
+            this.#settlementsCursorSignal.value = response.nextCursor || null;
         } catch (error) {
             logWarning('Failed to fetch settlements', { error });
         } finally {
-            loadingSettlementsSignal.value = false;
+            this.#loadingSettlementsSignal.value = false;
         }
     }
 
     async loadMoreExpenses(): Promise<void> {
-        if (!hasMoreExpensesSignal.value || !expenseCursorSignal.value || !this.currentGroupId) return;
+        if (!this.#hasMoreExpensesSignal.value || !this.#expenseCursorSignal.value || !this.currentGroupId) return;
 
         // Use consolidated endpoint for progressive loading to maintain consistency
-        loadingExpensesSignal.value = true;
+        this.#loadingExpensesSignal.value = true;
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
-                expenseCursor: expenseCursorSignal.value,
+                expenseCursor: this.#expenseCursorSignal.value,
                 expenseLimit: 20,
             });
 
             batch(() => {
                 // Append new expenses to existing ones
-                expensesSignal.value = [...expensesSignal.value, ...fullDetails.expenses.expenses];
+                this.#expensesSignal.value = [...this.#expensesSignal.value, ...fullDetails.expenses.expenses];
 
                 // Update pagination state
-                hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
+                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
+                this.#expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
             });
         } catch (error) {
             logWarning('Failed to load more expenses', { error });
         } finally {
-            loadingExpensesSignal.value = false;
+            this.#loadingExpensesSignal.value = false;
         }
     }
 
     async loadMoreSettlements(): Promise<void> {
-        if (!hasMoreSettlementsSignal.value || !settlementsCursorSignal.value || !this.currentGroupId) return;
+        if (!this.#hasMoreSettlementsSignal.value || !this.#settlementsCursorSignal.value || !this.currentGroupId) return;
 
         // Use consolidated endpoint for progressive loading to maintain consistency
-        loadingSettlementsSignal.value = true;
+        this.#loadingSettlementsSignal.value = true;
         try {
             const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
-                settlementCursor: settlementsCursorSignal.value,
+                settlementCursor: this.#settlementsCursorSignal.value,
                 settlementLimit: 20,
             });
 
             batch(() => {
                 // Append new settlements to existing ones
-                settlementsSignal.value = [...settlementsSignal.value, ...fullDetails.settlements.settlements];
+                this.#settlementsSignal.value = [...this.#settlementsSignal.value, ...fullDetails.settlements.settlements];
 
                 // Update pagination state
-                hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
+                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
+                this.#settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
             });
         } catch (error) {
             logWarning('Failed to load more settlements', { error });
         } finally {
-            loadingSettlementsSignal.value = false;
+            this.#loadingSettlementsSignal.value = false;
         }
     }
 
@@ -364,21 +428,21 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         // Reset all signals
         batch(() => {
-            groupSignal.value = null;
-            membersSignal.value = [];
-            expensesSignal.value = [];
-            balancesSignal.value = null;
-            settlementsSignal.value = [];
-            loadingSignal.value = false;
-            loadingMembersSignal.value = false;
-            loadingExpensesSignal.value = false;
-            loadingBalancesSignal.value = false;
-            loadingSettlementsSignal.value = false;
-            errorSignal.value = null;
-            hasMoreExpensesSignal.value = true;
-            expenseCursorSignal.value = null;
-            hasMoreSettlementsSignal.value = false;
-            settlementsCursorSignal.value = null;
+            this.#groupSignal.value = null;
+            this.#membersSignal.value = [];
+            this.#expensesSignal.value = [];
+            this.#balancesSignal.value = null;
+            this.#settlementsSignal.value = [];
+            this.#loadingSignal.value = false;
+            this.#loadingMembersSignal.value = false;
+            this.#loadingExpensesSignal.value = false;
+            this.#loadingBalancesSignal.value = false;
+            this.#loadingSettlementsSignal.value = false;
+            this.#errorSignal.value = null;
+            this.#hasMoreExpensesSignal.value = true;
+            this.#expenseCursorSignal.value = null;
+            this.#hasMoreSettlementsSignal.value = false;
+            this.#settlementsCursorSignal.value = null;
         });
 
         this.currentGroupId = null;
@@ -389,7 +453,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             const response = await apiClient.leaveGroup(groupId);
             return response;
         } catch (error) {
-            errorSignal.value = error instanceof Error ? error.message : 'Failed to leave group';
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to leave group';
             throw error;
         }
     }
@@ -403,7 +467,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             }
             return response;
         } catch (error) {
-            errorSignal.value = error instanceof Error ? error.message : 'Failed to remove member';
+            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to remove member';
             throw error;
         }
     }
