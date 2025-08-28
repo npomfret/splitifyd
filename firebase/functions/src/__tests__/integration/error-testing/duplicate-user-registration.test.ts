@@ -1,7 +1,7 @@
 
 // Tests for duplicate user registration handling
 
-import { beforeAll, describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
 

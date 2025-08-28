@@ -1,3 +1,4 @@
+import { describe, expect, beforeEach, afterEach, vi, it } from 'vitest';
 import { PermissionCache } from '../../permissions/permission-cache';
 
 describe('PermissionCache', () => {

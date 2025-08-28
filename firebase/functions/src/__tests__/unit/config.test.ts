@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { getEnhancedConfigResponse } from '../../utils/config-response';
 import { validateAppConfiguration } from '../../middleware/config-validation';
 

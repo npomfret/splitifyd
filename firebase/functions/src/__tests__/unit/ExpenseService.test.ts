@@ -1,3 +1,4 @@
+import { describe, expect, beforeEach, vi, it } from 'vitest';
 import { ExpenseService } from '../../services/ExpenseService';
 import { firestoreDb } from '../../firebase';
 import { ApiError, Errors } from '../../utils/errors';

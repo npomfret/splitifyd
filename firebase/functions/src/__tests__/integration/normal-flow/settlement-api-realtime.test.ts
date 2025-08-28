@@ -2,7 +2,7 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';

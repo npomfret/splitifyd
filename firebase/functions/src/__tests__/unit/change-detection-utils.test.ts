@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import * as admin from 'firebase-admin/firestore';
 import {
     getChangedFields,

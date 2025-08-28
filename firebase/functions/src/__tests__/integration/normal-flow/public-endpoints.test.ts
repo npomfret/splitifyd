@@ -1,7 +1,7 @@
 
 // Tests for public endpoints that don't require authentication
 
-import { beforeAll, describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver } from '@splitifyd/test-support';
 

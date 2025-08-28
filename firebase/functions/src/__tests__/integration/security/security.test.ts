@@ -2,7 +2,7 @@
 // Security-focused integration tests for API endpoints
 // Tests authentication, authorization, input validation, and XSS prevention
 
-import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';

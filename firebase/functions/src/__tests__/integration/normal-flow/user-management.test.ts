@@ -1,7 +1,7 @@
 
 // Tests for user management endpoints
 
-import { beforeAll, describe, expect, test, vi } from 'vitest';
+import { beforeAll, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, generateTestEmail, User} from '@splitifyd/test-support';

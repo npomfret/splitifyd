@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import { decodeCursor, encodeCursor, buildPaginatedQuery, CursorData } from '../../utils/pagination';
 import { Errors } from '../../utils/errors';
 
