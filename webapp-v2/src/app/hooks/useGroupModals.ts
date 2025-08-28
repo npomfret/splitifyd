@@ -47,14 +47,14 @@ export function useGroupModals() {
     };
 
     return {
-        // Modal visibility states
-        showShareModal: showShareModal.value,
-        showSettlementForm: showSettlementForm.value,
-        showSettlementHistory: showSettlementHistory.value,
-        showEditModal: showEditModal.value,
+        // Modal visibility states (reactive signals)
+        showShareModal,
+        showSettlementForm,
+        showSettlementHistory,
+        showEditModal,
 
-        // Modal data
-        settlementToEdit: settlementToEdit.value,
+        // Modal data (reactive signal)
+        settlementToEdit,
 
         // Modal actions
         openShareModal,

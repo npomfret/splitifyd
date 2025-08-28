@@ -272,9 +272,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         <SidebarCard title="Payment History">
                             <div className="space-y-3">
                                 <Button variant="secondary" size="sm" className="w-full" onClick={() => modals.toggleSettlementHistory()}>
-                                    {modals.showSettlementHistory ? 'Hide History' : 'Show History'}
+                                    {modals.showSettlementHistory.value ? 'Hide History' : 'Show History'}
                                 </Button>
-                                {modals.showSettlementHistory && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
+                                {modals.showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
                             </div>
                         </SidebarCard>
                     </>
@@ -282,20 +282,20 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             />
 
             {/* Share Modal */}
-            <ShareGroupModal isOpen={modals.showShareModal} onClose={() => modals.closeShareModal()} groupId={groupId!} groupName={group.value!.name} />
+            <ShareGroupModal isOpen={modals.showShareModal.value} onClose={() => modals.closeShareModal()} groupId={groupId!} groupName={group.value!.name} />
 
             {/* Edit Group Modal */}
             {isGroupOwner.value && (
-                <EditGroupModal isOpen={modals.showEditModal} group={group.value!} onClose={() => modals.closeEditModal()} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
+                <EditGroupModal isOpen={modals.showEditModal.value} group={group.value!} onClose={() => modals.closeEditModal()} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
             )}
 
             {/* Settlement Form Modal */}
             <SettlementForm
-                isOpen={modals.showSettlementForm}
+                isOpen={modals.showSettlementForm.value}
                 onClose={() => modals.closeSettlementForm()}
                 groupId={groupId!}
-                editMode={!!modals.settlementToEdit}
-                settlementToEdit={modals.settlementToEdit || undefined}
+                editMode={!!modals.settlementToEdit.value}
+                settlementToEdit={modals.settlementToEdit.value || undefined}
                 onSuccess={() => {
                     // Refresh balances after successful settlement
                     enhancedGroupDetailStore.fetchBalances();

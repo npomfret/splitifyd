@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState, useEffect, useMemo } from 'preact/hooks';
-import { getCurrenciesAsync, getCurrency, type Currency } from '@/utils/currency';
-import { useDebounce } from '@/utils/debounce.ts';
+import { useCallback, useRef, useMemo } from 'preact/hooks';
+import { CurrencyService, type Currency } from '@/app/services/currencyService';
+import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 
 interface CurrencyAmountInputProps {
     amount: number | string;
@@ -29,134 +29,39 @@ export function CurrencyAmountInput({
     className = '',
     recentCurrencies = [],
 }: CurrencyAmountInputProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currencies, setCurrencies] = useState<Currency[]>([]);
-    const [isLoadingCurrencies, setIsLoadingCurrencies] = useState(false);
-    const [highlightedIndex, setHighlightedIndex] = useState(-1);
-
-    const dropdownRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
-    const currencyButtonRef = useRef<HTMLButtonElement>(null);
-    const searchInputRef = useRef<HTMLInputElement>(null);
-
-    const selectedCurrency = useMemo(() => getCurrency(currency), [currency]);
-    const debouncedSearchTerm = useDebounce(searchTerm, 200);
-
-    // Calculate min and step values based on currency decimal digits
-    const { minValue, stepValue } = useMemo(() => {
-        const decimalDigits = selectedCurrency?.decimal_digits ?? 2; // Default to 2 if unknown
-        const step = Math.pow(10, -decimalDigits); // 0.01 for 2 digits, 1 for 0 digits, 0.001 for 3 digits
-        const min = step; // Use the step as minimum (1 for JPY, 0.01 for USD, 0.001 for KWD)
-
-        return {
-            minValue: min.toString(),
-            stepValue: step.toString(),
-        };
-    }, [selectedCurrency]);
-
-    // Load currencies when dropdown opens
-    useEffect(() => {
-        if (isOpen && currencies.length === 0 && !isLoadingCurrencies) {
-            setIsLoadingCurrencies(true);
-            getCurrenciesAsync().then((loadedCurrencies) => {
-                setCurrencies(loadedCurrencies);
-                setIsLoadingCurrencies(false);
-            });
-        }
-    }, [isOpen, currencies.length, isLoadingCurrencies]);
-
-    // Filter currencies based on search
-    const filteredCurrencies = useMemo(() => {
-        if (!debouncedSearchTerm.trim()) return currencies;
-
-        const searchLower = debouncedSearchTerm.toLowerCase();
-        return currencies.filter(
-            (curr) =>
-                curr.symbol.toLowerCase().includes(searchLower) ||
-                curr.acronym.toLowerCase().includes(searchLower) ||
-                curr.name.toLowerCase().includes(searchLower) ||
-                curr.countries.some((country) => country.toLowerCase().includes(searchLower)),
-        );
-    }, [debouncedSearchTerm, currencies]);
-
-    // Group currencies for display
-    const groupedCurrencies = useMemo(() => {
-        const recent = recentCurrencies.map((code) => filteredCurrencies.find((c) => c.acronym === code)).filter((c): c is Currency => !!c);
-
-        const common = ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD']
-            .map((code) => filteredCurrencies.find((c) => c.acronym === code))
-            .filter((c): c is Currency => !!c && !recent.some((r) => r.acronym === c.acronym));
-
-        const others = filteredCurrencies.filter((c) => !recent.some((r) => r.acronym === c.acronym) && !common.some((cm) => cm.acronym === c.acronym));
-
-        return { recent, common, others };
-    }, [filteredCurrencies, recentCurrencies]);
-
-    // Handle click outside
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && !currencyButtonRef.current?.contains(event.target as Node)) {
-                setIsOpen(false);
-                setSearchTerm('');
-                setHighlightedIndex(-1);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    // Focus search input when dropdown opens
-    useEffect(() => {
-        if (isOpen && searchInputRef.current) {
-            searchInputRef.current.focus();
-        }
-    }, [isOpen]);
-
-    // Handle keyboard navigation
-    const handleKeyDown = useCallback(
-        (e: KeyboardEvent) => {
-            if (!isOpen) return;
-
-            const allCurrencies = [...groupedCurrencies.recent, ...groupedCurrencies.common, ...groupedCurrencies.others];
-
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    setHighlightedIndex((prev) => (prev < allCurrencies.length - 1 ? prev + 1 : prev));
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    if (highlightedIndex >= 0 && highlightedIndex < allCurrencies.length) {
-                        handleCurrencySelect(allCurrencies[highlightedIndex]);
-                    }
-                    break;
-                case 'Escape':
-                    e.preventDefault();
-                    setIsOpen(false);
-                    setSearchTerm('');
-                    setHighlightedIndex(-1);
-                    break;
-            }
-        },
-        [isOpen, highlightedIndex, groupedCurrencies],
-    );
-
-    const handleCurrencySelect = useCallback(
-        (curr: Currency) => {
-            onCurrencyChange(curr.acronym);
-            setIsOpen(false);
-            setSearchTerm('');
-            setHighlightedIndex(-1);
+    const currencyService = CurrencyService.getInstance();
+    
+    // Use the currency selector hook for all dropdown logic
+    const {
+        isOpen,
+        searchTerm,
+        isLoadingCurrencies,
+        highlightedIndex,
+        filteredCurrencies,
+        groupedCurrencies,
+        dropdownRef,
+        searchInputRef,
+        currencyButtonRef,
+        handleCurrencySelect,
+        handleCurrencyClick,
+        handleSearchChange,
+        handleKeyDown,
+        setHighlightedIndex,
+    } = useCurrencySelector({
+        onCurrencyChange: (selectedCurrency) => {
+            onCurrencyChange(selectedCurrency);
             inputRef.current?.focus();
         },
-        [onCurrencyChange],
-    );
+        recentCurrencies,
+    });
+
+    const selectedCurrency = useMemo(() => currencyService.getCurrencyByCode(currency), [currency, currencyService]);
+
+    // Calculate min and step values based on currency decimal digits using service
+    const { minValue, stepValue } = useMemo(() => {
+        return currencyService.getCurrencyInputConfig(currency);
+    }, [currency, currencyService]);
 
     const handleAmountChange = useCallback(
         (e: Event) => {
@@ -166,17 +71,11 @@ export function CurrencyAmountInput({
         [onAmountChange],
     );
 
-    const handleCurrencyClick = useCallback(() => {
+    const handleCurrencyClickWrapper = useCallback(() => {
         if (!disabled) {
-            setIsOpen(!isOpen);
+            handleCurrencyClick();
         }
-    }, [disabled, isOpen]);
-
-    const handleSearchChange = useCallback((e: Event) => {
-        const target = e.target as HTMLInputElement;
-        setSearchTerm(target.value);
-        setHighlightedIndex(-1);
-    }, []);
+    }, [disabled, handleCurrencyClick]);
 
     const renderCurrencyGroup = (title: string, currencies: Currency[], startIndex: number) => {
         if (currencies.length === 0) return null;
@@ -230,7 +129,7 @@ export function CurrencyAmountInput({
                     <button
                         ref={currencyButtonRef}
                         type="button"
-                        onClick={handleCurrencyClick}
+                        onClick={handleCurrencyClickWrapper}
                         disabled={disabled}
                         className={`
               flex items-center justify-center px-3 

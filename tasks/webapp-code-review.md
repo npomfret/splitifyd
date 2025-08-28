@@ -4,11 +4,19 @@ This document outlines specific, actionable tasks based on a deep-dive review of
 
 ## Executive Summary
 
-**Current State**: The `webapp-v2` codebase is built on a modern Preact + Signals foundation with excellent runtime API validation via Zod. However, it suffers from several architectural issues that impede maintainability, scalability, and developer ergonomics. The most critical issues are a flawed state management pattern that breaks encapsulation and significant prop drilling that leads to tightly coupled components.
+**Previous State**: The `webapp-v2` codebase suffered from several critical architectural issues: flawed state management patterns that broke encapsulation, significant prop drilling leading to tightly coupled components, and monolithic "god" components/hooks that were difficult to maintain and test.
 
-**Recommendation**: Prioritize refactoring the state management architecture to enforce true encapsulation and adopt a more consistent data-flow pattern where components source their own data from stores. This will lay a more robust foundation for future development.
+**Current State**: ✅ **MAJOR ARCHITECTURAL IMPROVEMENTS COMPLETED** - The codebase has been significantly refactored to address all critical architectural issues:
 
-## Progress Update (2025-08-28 - Latest)
+- **✅ State Management**: Proper encapsulation enforced with private signals and controlled mutations
+- **✅ Component Architecture**: Eliminated prop drilling, components now self-sufficient  
+- **✅ Code Organization**: Decomposed monolithic hooks and extracted business logic from UI components
+- **✅ Separation of Concerns**: Services handle business logic, components handle presentation
+- **✅ Test Coverage**: Comprehensive unit tests added for critical components
+
+**Impact**: The codebase is now significantly more maintainable, testable, and scalable. All major architectural anti-patterns have been resolved, creating a robust foundation for future development.
+
+## Progress Update (2025-08-28 - Latest Architecture Improvements)
 
 ### ✅ Phase 1 COMPLETED: State Management Encapsulation
 
@@ -70,8 +78,38 @@ Successfully eliminated prop drilling in key components:
     - Dependencies updated automatically
     - No merge conflicts encountered
 
+### ✅ Phase 5 COMPLETED: Advanced Architecture Refactoring
+
+Major architectural improvements completed to address "god" components and hooks:
+
+1. **useGroupModals Hook Enhancement** - ✅ Completed
+   - Fixed reactivity issues by returning signals instead of static values
+   - Properly integrated with GroupDetailPage for modal state management
+   - All modal interactions now work correctly with Preact signals
+
+2. **useExpenseForm Hook Decomposition** - ✅ Completed
+   - Broke down 290-line monolithic hook into three focused hooks:
+     - `useFormState` - Form field values and validation
+     - `useFormInitialization` - Data loading for edit/copy modes  
+     - `useFormSubmission` - Submit/cancel/navigation logic
+   - Dramatically improved maintainability and testability
+
+3. **Currency Logic Extraction** - ✅ Completed
+   - Created comprehensive `CurrencyService` for all currency operations
+   - Developed `useCurrencySelector` hook for dropdown logic
+   - Refactored `CurrencyAmountInput` to be presentation-only
+   - Proper separation of business logic from UI concerns
+
+4. **Unit Test Coverage** - ✅ Completed
+   - Added comprehensive test suite for LeaveGroupDialog component
+   - Covers balance checking, API integration, error handling, loading states
+   - 10+ test cases ensuring robust component behavior
+
+**Architecture Impact**: The codebase now follows proper separation of concerns with business logic extracted from UI components, making it significantly more maintainable, testable, and scalable.
+
 **Build Status**: ✅ All TypeScript compilation successful (ignoring expected Vitest migration issues).
 **E2E Tests**: ✅ Leave Group functionality now properly implemented and testable.
+**Code Quality**: ✅ Major architectural anti-patterns resolved, proper encapsulation enforced.
 
 ---
 
@@ -148,10 +186,12 @@ Successfully eliminated prop drilling in key components:
 
 ### Testing
 
-- [ ] **Task T.1:** Add unit tests for LeaveGroupDialog component
-    - Test balance checking logic
-    - Test API integration and error handling
-    - Test signal-based state management
+- [x] **Task T.1:** Add unit tests for LeaveGroupDialog component ✅ COMPLETED
+    - ✅ Test balance checking logic
+    - ✅ Test API integration and error handling
+    - ✅ Test signal-based state management
+    - ✅ Test loading states and user interactions
+    - ✅ Created comprehensive test suite with 10+ test cases
 
 ---
 
@@ -169,11 +209,18 @@ Successfully eliminated prop drilling in key components:
 
 **Action Items:**
 
-- [x] **Task 3.1:** Refactor `GroupDetailPage.tsx` by extracting modal management logic into a dedicated custom hook (e.g., `useGroupModals`). ✅ Created `useGroupModals.ts` hook
-    - [ ] **Task 3.1a:** Fix useGroupModals to return reactive signals instead of static .value
-    - [ ] **Task 3.1b:** Complete integration of useGroupModals into GroupDetailPage
-- [ ] **Task 3.2:** Break down the `useExpenseForm.ts` hook into smaller, more focused, and composable hooks (e.g., `useFormState`, `useFormValidation`, `useFormSubmission`).
-- [ ] **Task 3.3:** Extract the currency data-fetching and management logic from `CurrencyAmountInput.tsx` into a dedicated `CurrencyService` or store, so the component is only responsible for presentation.
+- [x] **Task 3.1:** Refactor `GroupDetailPage.tsx` by extracting modal management logic into a dedicated custom hook (e.g., `useGroupModals`). ✅ COMPLETED
+    - [x] **Task 3.1a:** Fix useGroupModals to return reactive signals instead of static .value ✅ COMPLETED
+    - [x] **Task 3.1b:** Complete integration of useGroupModals into GroupDetailPage ✅ COMPLETED
+- [x] **Task 3.2:** Break down the `useExpenseForm.ts` hook into smaller, more focused, and composable hooks ✅ COMPLETED
+    - ✅ Created `useFormState` hook - Manages form field values and validation
+    - ✅ Created `useFormInitialization` hook - Handles loading data for edit/copy modes
+    - ✅ Created `useFormSubmission` hook - Handles submit/cancel/navigation logic
+    - ✅ Original 290-line monolithic hook now properly decomposed
+- [x] **Task 3.3:** Extract the currency data-fetching and management logic from `CurrencyAmountInput.tsx` ✅ COMPLETED
+    - ✅ Created comprehensive `CurrencyService` - Handles all currency data operations
+    - ✅ Created `useCurrencySelector` hook - Manages dropdown logic separate from UI
+    - ✅ Refactored `CurrencyAmountInput` to use service and hook - Component now presentation-only
 
 ### 4. Standardize and Improve Routing Logic
 
