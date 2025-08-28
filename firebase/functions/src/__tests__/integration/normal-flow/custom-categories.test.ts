@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -11,8 +10,6 @@ describe('Custom Categories Feature Tests', () => {
     let driver: ApiDriver;
     let users: User[] = [];
     let testGroup: any;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
 

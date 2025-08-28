@@ -1,9 +1,8 @@
-/**
- * @jest-environment node
- */
 
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
+
+import { afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
@@ -18,7 +17,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     let user2: User;
     let groupId: string;
 
-    jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
+    // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
         driver = new ApiDriver();

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
     createServerTimestamp,
@@ -16,10 +16,16 @@ import {
 
 // Mock Timestamp.now() for predictable testing
 const mockNow = new Date('2024-01-15T12:00:00.000Z');
-const firestore = jest.requireActual('firebase-admin/firestore') as typeof import('firebase-admin/firestore');
 
-jest.spyOn(firestore.Timestamp, 'now').mockImplementation(() => {
-    return firestore.Timestamp.fromDate(mockNow);
+vi.mock('firebase-admin/firestore', async () => {
+    const actual = await vi.importActual<typeof import('firebase-admin/firestore')>('firebase-admin/firestore');
+    return {
+        ...actual,
+        Timestamp: {
+            ...actual.Timestamp,
+            now: () => actual.Timestamp.fromDate(mockNow),
+        },
+    };
 });
 
 describe('Date Helpers', () => {
@@ -98,7 +104,7 @@ describe('Date Helpers', () => {
     describe('isDateInValidRange', () => {
         beforeEach(() => {
             // Reset Date mocking for each test
-            jest.clearAllMocks();
+            vi.clearAllMocks();
         });
 
         it('should accept dates within valid range', () => {

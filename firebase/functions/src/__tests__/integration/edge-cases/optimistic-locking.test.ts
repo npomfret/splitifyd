@@ -1,8 +1,7 @@
-/**
- * @jest-environment node
- */
 
 // Tests for optimistic locking implementation to prevent race conditions
+
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -10,7 +9,7 @@ import {groupSize} from '@splitifyd/shared';
 import { ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
 
 describe('Optimistic Locking Integration Tests', () => {
-    jest.setTimeout(25000); // it takes about 18s
+    // vi.setTimeout(25000); // it takes about 18s
 
     let driver: ApiDriver;
     let users: User[] = [];

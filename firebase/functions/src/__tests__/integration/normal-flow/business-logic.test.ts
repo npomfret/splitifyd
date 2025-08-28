@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -12,8 +11,6 @@ describe('Business Logic Edge Cases', () => {
     let userPool: FirebaseIntegrationTestUserPool;
     let users: User[] = [];
     let testGroup: any;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
 

@@ -21,7 +21,6 @@
         "test": "npm run test:unit && npm run test:integration",
         "test:unit": "npm run test:unit -ws --if-present",
         "test:integration": "npm run test:integration -ws --if-present",
-        "test:single": "jest --testNamePattern=\"$TEST_NAME\" --runTestsByPath $TEST_PATH",
         "report": "repo-statter . -o reports",
         "get-webapp-url": "node -e \"const config = require('./firebase/firebase.json'); console.log('http://localhost:' + config.emulators.hosting.port)\"",
         "postinstall": "cd e2e-tests && npx playwright install chromium",
@@ -29,15 +28,12 @@
         "format": "prettier --write ."
     },
     "devDependencies": {
-        "@types/jest": "^30.0.0",
         "@types/node": "^24.0.14",
         "concurrently": "^9.2.0",
         "esbuild": "^0.25.6",
         "firebase-tools": "^14.11.0",
-        "jest": "^30.0.4",
         "nodemon": "^3.1.10",
         "prettier": "^3.6.2",
-        "ts-jest": "^29.4.0",
         "typescript": "^5.8.3"
     }
 }

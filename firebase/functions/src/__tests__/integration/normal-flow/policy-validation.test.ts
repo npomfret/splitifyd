@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder } from '@splitifyd/test-support';

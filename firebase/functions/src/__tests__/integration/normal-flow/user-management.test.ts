@@ -1,8 +1,7 @@
-/**
- * @jest-environment node
- */
 
 // Tests for user management endpoints
+
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, generateTestEmail, User} from '@splitifyd/test-support';
@@ -12,8 +11,6 @@ import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 describe('User Management Tests', () => {
     let driver: ApiDriver;
     let testUser: User;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

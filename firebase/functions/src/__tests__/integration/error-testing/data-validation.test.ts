@@ -1,11 +1,5 @@
-/**
- * @jest-environment node
- * 
- * Integration Smoke Tests for Data Validation
- * 
- * These tests verify that validation middleware is properly wired up for API endpoints.
- * Detailed validation logic is tested in unit tests under src/__tests__/unit/validation/
- */
+
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -17,8 +11,6 @@ describe('API Validation Smoke Tests', () => {
     let driver: ApiDriver;
     let users: User[] = [];
     let testGroup: Group;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

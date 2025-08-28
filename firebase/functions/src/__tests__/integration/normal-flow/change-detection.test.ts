@@ -1,4 +1,4 @@
-import {beforeAll, describe, expect, it} from '@jest/globals';
+import {beforeAll, describe, expect, it} from 'vitest';
 import {ApiDriver, generateNewUserDetails, User, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder} from '@splitifyd/test-support';
 
 describe('Change Detection Integration Tests', () => {

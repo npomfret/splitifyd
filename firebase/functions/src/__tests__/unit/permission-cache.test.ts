@@ -5,17 +5,17 @@ describe('PermissionCache', () => {
 
     beforeEach(() => {
         cache = new PermissionCache(1000); // 1 second TTL for testing
-        jest.clearAllTimers();
-        jest.useFakeTimers();
+        vi.clearAllTimers();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
-        jest.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe('check', () => {
         it('should compute and cache value on first call', () => {
-            const computeFn = jest.fn(() => true);
+            const computeFn = vi.fn(() => true);
             
             const result = cache.check('test-key', computeFn);
             
@@ -24,7 +24,7 @@ describe('PermissionCache', () => {
         });
 
         it('should return cached value on subsequent calls', () => {
-            const computeFn = jest.fn(() => true);
+            const computeFn = vi.fn(() => true);
             
             cache.check('test-key', computeFn);
             const result = cache.check('test-key', computeFn);
@@ -34,7 +34,7 @@ describe('PermissionCache', () => {
         });
 
         it('should recompute after TTL expires', () => {
-            const computeFn = jest.fn()
+            const computeFn = vi.fn()
                 .mockReturnValueOnce(true)
                 .mockReturnValueOnce(false);
             
@@ -43,7 +43,7 @@ describe('PermissionCache', () => {
             expect(result1).toBe(true);
             
             // Advance time past TTL
-            jest.advanceTimersByTime(1001);
+            vi.advanceTimersByTime(1001);
             
             // Second call should recompute
             const result2 = cache.check('test-key', computeFn);
@@ -52,18 +52,18 @@ describe('PermissionCache', () => {
         });
 
         it('should use custom TTL when provided', () => {
-            const computeFn = jest.fn(() => true);
+            const computeFn = vi.fn(() => true);
             
             cache.check('test-key', computeFn, 2000); // 2 second TTL
             
             // Advance time by 1.5 seconds (still within custom TTL)
-            jest.advanceTimersByTime(1500);
+            vi.advanceTimersByTime(1500);
             
             cache.check('test-key', computeFn);
             expect(computeFn).toHaveBeenCalledTimes(1); // Should still be cached
             
             // Advance past custom TTL
-            jest.advanceTimersByTime(600);
+            vi.advanceTimersByTime(600);
             cache.check('test-key', computeFn);
             expect(computeFn).toHaveBeenCalledTimes(2); // Should recompute
         });
@@ -92,7 +92,7 @@ describe('PermissionCache', () => {
             expect(cache.size()).toBe(2);
             
             // Verify the remaining entries
-            const computeFn = jest.fn(() => true);
+            const computeFn = vi.fn(() => true);
             cache.check('group:2:action:edit', computeFn);
             cache.check('user:1:profile', computeFn);
             expect(computeFn).toHaveBeenCalledTimes(0); // Should be cached
@@ -151,15 +151,15 @@ describe('PermissionCache', () => {
 
     describe('cleanup', () => {
         it('should remove expired entries', () => {
-            const computeFn = jest.fn(() => true);
+            const computeFn = vi.fn(() => true);
             
             // Add entries at different times
             cache.check('key1', computeFn);
             
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
             cache.check('key2', computeFn);
             
-            jest.advanceTimersByTime(600); // key1 should be expired, key2 still valid
+            vi.advanceTimersByTime(600); // key1 should be expired, key2 still valid
             
             const removed = cache.cleanup();
             
@@ -173,7 +173,7 @@ describe('PermissionCache', () => {
             cache.check('key3', () => true);
             
             // Advance time to expire all entries
-            jest.advanceTimersByTime(1001);
+            vi.advanceTimersByTime(1001);
             
             const removed = cache.cleanup();
             expect(removed).toBe(3);
@@ -184,7 +184,7 @@ describe('PermissionCache', () => {
             cache.check('key1', () => true);
             
             // Advance time but not past TTL
-            jest.advanceTimersByTime(500);
+            vi.advanceTimersByTime(500);
             
             const removed = cache.cleanup();
             expect(removed).toBe(0);

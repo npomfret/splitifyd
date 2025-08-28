@@ -1,15 +1,14 @@
-/**
- * @jest-environment node
- */
 
 // Tests for duplicate user registration handling
+
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
 
 describe('Duplicate User Registration Tests', () => {
     let driver: ApiDriver;
 
-    jest.setTimeout(4000); // it takes about 2s
+    // vi.setTimeout(4000); // it takes about 2s
 
     beforeAll(async () => {
 

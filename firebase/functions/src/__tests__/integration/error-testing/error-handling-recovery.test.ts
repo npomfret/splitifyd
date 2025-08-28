@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -12,7 +11,7 @@ describe('Error Handling and Recovery Testing', () => {
     let mainUser: User;
     let testGroup: Group;
 
-    jest.setTimeout(10000); // Reduced from 20s to meet guideline maximum
+    // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
         

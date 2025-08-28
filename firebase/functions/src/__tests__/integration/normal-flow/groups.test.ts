@@ -1,11 +1,10 @@
-/**
- * @jest-environment node
- */
 
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
 // Run the emulator with: `firebase emulators:start`
+
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -16,7 +15,6 @@ describe('RESTful Group Endpoints', () => {
     let users: User[] = [];
 
     // Set a longer timeout for these integration tests
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

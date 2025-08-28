@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { validateCreateExpense } from '../../expenses/validation';
 import { createSettlementSchema } from '../../settlements/validation';
 import { isUTCFormat, parseUTCOnly, validateUTCDate } from '../../utils/dateHelpers';

@@ -1,4 +1,4 @@
-import { describe, expect, it, jest, beforeEach, afterEach } from '@jest/globals';
+import { describe, expect, it, jest, beforeEach, afterEach } from 'vitest';
 import * as admin from 'firebase-admin/firestore';
 import {
     getChangedFields,
@@ -212,10 +212,10 @@ describe('Change Detection Utilities', () => {
     });
 
     describe('createChangeDocument', () => {
-        let mockTimestamp: ReturnType<typeof jest.spyOn>;
+        let mockTimestamp: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-            mockTimestamp = jest.spyOn(admin.Timestamp, 'now').mockReturnValue({
+            mockTimestamp = vi.spyOn(admin.Timestamp, 'now').mockReturnValue({
                 seconds: 1234567890,
                 nanoseconds: 0,
             } as admin.Timestamp);

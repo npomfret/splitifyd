@@ -54,9 +54,9 @@ describe('Pagination Utilities', () => {
 
         beforeEach(() => {
             mockQuery = {
-                orderBy: jest.fn().mockReturnThis(),
-                limit: jest.fn().mockReturnThis(),
-                startAfter: jest.fn().mockReturnThis(),
+                orderBy: vi.fn().mockReturnThis(),
+                limit: vi.fn().mockReturnThis(),
+                startAfter: vi.fn().mockReturnThis(),
             };
         });
 

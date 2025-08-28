@@ -5,20 +5,20 @@ import { UserProfile } from '../../services/UserService2';
 import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 // Mock dependencies
-jest.mock('../../firebase', () => ({
+vi.mock('../../firebase', () => ({
     firestoreDb: {
-        collection: jest.fn(),
+        collection: vi.fn(),
     },
 }));
 
-jest.mock('../../services/UserService2', () => ({
+vi.mock('../../services/UserService2', () => ({
     userService: {
-        getUsers: jest.fn(),
+        getUsers: vi.fn(),
     },
 }));
 
-jest.mock('../../utils/debtSimplifier', () => ({
-    simplifyDebts: jest.fn(),
+vi.mock('../../utils/debtSimplifier', () => ({
+    simplifyDebts: vi.fn(),
 }));
 
 // Import mocked dependencies
@@ -27,9 +27,9 @@ import { userService } from '../../services/UserService2';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions
-const mockDb = firestoreDb as jest.Mocked<typeof firestoreDb>;
-const mockUserService = userService as jest.Mocked<typeof userService>;
-const mockSimplifyDebts = simplifyDebts as jest.MockedFunction<typeof simplifyDebts>;
+const mockDb = firestoreDb as vi.Mocked<typeof firestoreDb>;
+const mockUserService = userService as vi.Mocked<typeof userService>;
+const mockSimplifyDebts = simplifyDebts as vi.MockedFunction<typeof simplifyDebts>;
 
 // Enhanced builders - only specify what's needed for each test
 class FirestoreExpenseBuilder extends ExpenseBuilder {
@@ -173,16 +173,16 @@ class UserProfileBuilder {
 }
 
 describe('calculateGroupBalances', () => {
-    let mockGet: jest.Mock;
+    let mockGet: vi.Mock;
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
 
-        mockGet = jest.fn();
+        mockGet = vi.fn();
         mockDb.collection.mockReturnValue({
-            where: jest.fn().mockReturnThis(),
+            where: vi.fn().mockReturnThis(),
             get: mockGet,
-            doc: jest.fn().mockReturnThis()
+            doc: vi.fn().mockReturnThis()
         } as any);
 
         // Setup default user profiles

@@ -1,11 +1,10 @@
-/**
- * @jest-environment node
- */
 
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
 // Run the emulator with: `firebase emulators:start`
+
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -19,8 +18,6 @@ import {
 describe('Permission System Edge Cases', () => {
     let driver: ApiDriver;
     let users: User[] = [];
-
-    jest.setTimeout(15000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

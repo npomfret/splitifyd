@@ -23,13 +23,13 @@ Our testing philosophy is guided by the following principles:
 The build system uses conditional logic based on the `NODE_ENV` environment variable:
 
 - **Development** (`NODE_ENV` undefined): Creates lightweight wrapper files that use `tsx` to execute TypeScript directly. No compilation occurs, resulting in instant startup.
-- **Testing** (`NODE_ENV=test`): Compiles TypeScript to JavaScript because Jest cannot handle tsx wrappers.
+- **Testing**: Tests run directly on TypeScript files using Vitest without requiring compilation.
 - **Production** (`NODE_ENV=production`): Full TypeScript compilation for optimized deployment.
 
 #### Impact on Development
 
 - `npm run dev`: Starts instantly without compilation
-- `npm run test`: Compiles code first (required for Jest)
+- `npm run test`: Runs tests directly on TypeScript files (no build required)
 - `npm run build`: Creates development wrappers (unless `NODE_ENV=production`)
 - `npm run build:prod` or `NODE_ENV=production npm run build`: Full production compilation
 
@@ -77,17 +77,23 @@ npm run test:integration  # Runs only the integration tests across all workspace
 
 ### `firebase/functions`
 
-This project contains the backend Firebase Functions.
+This project contains the backend Firebase Functions and uses Vitest for testing.
 
 ```bash
 # Navigate to the firebase/functions directory first
 cd firebase/functions
 
 # Running a single unit test file
-npx jest src/__tests__/unit/your-test-file.test.ts
+npx vitest run src/__tests__/unit/your-test-file.test.ts
 
 # Running a single integration test file
-npx jest src/__tests__/integration/your-test-file.test.ts
+npx vitest run src/__tests__/integration/your-test-file.test.ts
+
+# Running tests in watch mode
+npx vitest watch
+
+# Running tests with coverage
+npx vitest run --coverage
 ```
 
 ### `webapp-v2`

@@ -1,6 +1,3 @@
-/**
- * @jest-environment node
- */
 
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
@@ -8,6 +5,8 @@
 // Run the emulator with: `firebase emulators:start`
 
 // Using native fetch from Node.js 18+
+import { beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest';
+
 import {v4 as uuidv4} from 'uuid';
 import {ApiDriver, User} from '@splitifyd/test-support';
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder} from '@splitifyd/test-support';
@@ -24,7 +23,6 @@ describe('Comprehensive API Test Suite', () => {
     };
 
     // Reduced timeout to meet guideline maximum
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

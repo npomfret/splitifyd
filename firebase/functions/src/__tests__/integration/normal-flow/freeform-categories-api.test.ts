@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -12,7 +11,7 @@ describe('Freeform Categories API Integration', () => {
     let users: User[] = [];
     let testGroup: any;
 
-    jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
+    // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
         driver = new ApiDriver();

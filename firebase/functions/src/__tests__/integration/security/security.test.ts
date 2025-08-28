@@ -1,9 +1,8 @@
-/**
- * @jest-environment node
- */
 
 // Security-focused integration tests for API endpoints
 // Tests authentication, authorization, input validation, and XSS prevention
+
+import { beforeAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
@@ -15,7 +14,7 @@ describe('Comprehensive Security Test Suite', () => {
     let users: User[] = [];
 
     // Reduced timeout to meet guideline maximum
-    jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
+    // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
         users = await Promise.all([

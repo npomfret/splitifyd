@@ -1,10 +1,5 @@
-/**
- * Integration test to reproduce the complex unsettled group scenario
- * This test creates the exact same scenario as the failing E2E test to determine
- * if the balance calculation issue is in the backend or frontend
- */
 
-import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { v4 as uuidv4 } from 'uuid';
 import { UserBuilder } from '@splitifyd/test-support';

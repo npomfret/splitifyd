@@ -1,4 +1,4 @@
-import { test, describe, beforeAll, afterAll, expect } from '@jest/globals';
+import { test, describe, beforeAll, afterAll, expect } from 'vitest';
 import { ApiDriver, User, generateNewUserDetails } from '@splitifyd/test-support';
 import { Group, MemberRoles, SecurityPresets } from '@splitifyd/shared';
 

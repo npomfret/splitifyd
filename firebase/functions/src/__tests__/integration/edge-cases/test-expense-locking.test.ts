@@ -1,13 +1,11 @@
-/**
- * @jest-environment node
- */
+
+import { beforeAll, describe, expect, test, vi } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 
 describe('Expense Locking Debug Test', () => {
-    jest.setTimeout(10000);
 
     let driver: ApiDriver;
     let user: User;

@@ -1,6 +1,3 @@
-/**
- * @jest-environment node
- */
 
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
@@ -8,6 +5,8 @@
 // Run the emulator with: `firebase emulators:start`
 
 // Using native fetch from Node.js 18+
+import { beforeAll, describe, expect, it, test, vi } from 'vitest';
+
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, ExpenseUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
@@ -16,8 +15,6 @@ describe('Edit Expense Integration Tests', () => {
     let driver: ApiDriver;
     let users: User[] = [];
     let testGroup: any;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

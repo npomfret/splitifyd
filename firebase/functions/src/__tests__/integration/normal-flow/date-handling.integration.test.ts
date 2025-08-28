@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from '@jest/globals';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { parseISOToTimestamp, timestampToISO, createServerTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
 

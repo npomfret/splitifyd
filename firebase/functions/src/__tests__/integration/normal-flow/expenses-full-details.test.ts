@@ -1,3 +1,5 @@
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { ExpenseBuilder } from '@splitifyd/test-support';
@@ -10,8 +12,6 @@ describe('Expenses Full Details API', () => {
     let charlie: User;
     let groupId: string;
     let expenseId: string;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         apiDriver = new ApiDriver();

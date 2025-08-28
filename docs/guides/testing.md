@@ -7,7 +7,7 @@ We have just 2 types of test:
 
 ## Tech choices 
 
-We use Jest as a test runner and Playwright for in-browser testing.
+We use Vitest as a test runner and Playwright for in-browser testing.
 
 ## Example run commands
 
@@ -22,7 +22,7 @@ npm run test # runs all tests (the emulator is not needed)
 To run just one test:
 
 ```shell
-npx jest src/<...path...>.test.ts --verbose --json --outputFile test-report.json 
+npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --outputFile=test-report.json 
 ```
 
 ## Guidelines for Writing Tests

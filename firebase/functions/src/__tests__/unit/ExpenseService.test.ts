@@ -10,11 +10,11 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { PermissionEngine } from '../../permissions';
 
 // Mock dependencies
-jest.mock('../../firebase');
-jest.mock('../../logger');
-jest.mock('../../utils/groupHelpers');
-jest.mock('../../groups/handlers');
-jest.mock('../../permissions');
+vi.mock('../../firebase');
+vi.mock('../../logger');
+vi.mock('../../utils/groupHelpers');
+vi.mock('../../groups/handlers');
+vi.mock('../../permissions');
 
 describe('ExpenseService', () => {
     let service: ExpenseService;
@@ -70,51 +70,51 @@ describe('ExpenseService', () => {
         mockDoc = {
             exists: true,
             id: mockExpenseId,
-            data: jest.fn(() => mockExpenseData),
-            get: jest.fn(),
+            data: vi.fn(() => mockExpenseData),
+            get: vi.fn(),
         };
 
         mockGroupDoc = {
             exists: true,
             id: mockGroupId,
-            data: jest.fn(() => mockGroupData),
-            get: jest.fn(),
+            data: vi.fn(() => mockGroupData),
+            get: vi.fn(),
         };
 
         // Create mock expense document reference
         mockExpenseDocRef = {
-            get: jest.fn().mockResolvedValue(mockDoc),
-            collection: jest.fn(() => ({
-                doc: jest.fn(() => ({}))
+            get: vi.fn().mockResolvedValue(mockDoc),
+            collection: vi.fn(() => ({
+                doc: vi.fn(() => ({}))
             }))
         };
 
         // Create mock transaction
         mockTransaction = {
-            get: jest.fn().mockResolvedValue(mockDoc),
-            set: jest.fn(),
-            update: jest.fn(),
+            get: vi.fn().mockResolvedValue(mockDoc),
+            set: vi.fn(),
+            update: vi.fn(),
         };
 
         // Create mock collections
         mockExpensesCollection = {
-            doc: jest.fn(() => mockExpenseDocRef),
-            where: jest.fn(),
-            select: jest.fn(),
-            orderBy: jest.fn(),
-            limit: jest.fn(),
-            startAfter: jest.fn(),
-            get: jest.fn(),
+            doc: vi.fn(() => mockExpenseDocRef),
+            where: vi.fn(),
+            select: vi.fn(),
+            orderBy: vi.fn(),
+            limit: vi.fn(),
+            startAfter: vi.fn(),
+            get: vi.fn(),
         };
 
         mockGroupsCollection = {
-            doc: jest.fn(() => ({
-                get: jest.fn().mockResolvedValue(mockGroupDoc),
+            doc: vi.fn(() => ({
+                get: vi.fn().mockResolvedValue(mockGroupDoc),
             })),
         };
 
         // Mock Firestore database
-        (firestoreDb.collection as jest.Mock).mockImplementation((collection: string) => {
+        (firestoreDb.collection as vi.Mock).mockImplementation((collection: string) => {
             if (collection === FirestoreCollections.EXPENSES) {
                 return mockExpensesCollection;
             }
@@ -125,7 +125,7 @@ describe('ExpenseService', () => {
         });
 
         // Mock runTransaction
-        (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+        (firestoreDb.runTransaction as vi.Mock).mockImplementation(async (callback) => {
             return callback(mockTransaction);
         });
 
@@ -303,12 +303,12 @@ describe('ExpenseService', () => {
         beforeEach(() => {
             // Mock the query chain
             const mockQuery = {
-                where: jest.fn().mockReturnThis(),
-                select: jest.fn().mockReturnThis(),
-                orderBy: jest.fn().mockReturnThis(),
-                limit: jest.fn().mockReturnThis(),
-                startAfter: jest.fn().mockReturnThis(),
-                get: jest.fn().mockResolvedValue(mockQuerySnapshot),
+                where: vi.fn().mockReturnThis(),
+                select: vi.fn().mockReturnThis(),
+                orderBy: vi.fn().mockReturnThis(),
+                limit: vi.fn().mockReturnThis(),
+                startAfter: vi.fn().mockReturnThis(),
+                get: vi.fn().mockResolvedValue(mockQuerySnapshot),
             };
 
             mockExpensesCollection.where.mockReturnValue(mockQuery);
@@ -319,7 +319,7 @@ describe('ExpenseService', () => {
             mockExpensesCollection.get = mockQuery.get;
 
             // Mock verifyGroupMembership
-            (groupHelpers.verifyGroupMembership as jest.Mock).mockResolvedValue(undefined);
+            (groupHelpers.verifyGroupMembership as vi.Mock).mockResolvedValue(undefined);
         });
 
         it('should successfully list group expenses', async () => {
@@ -365,15 +365,15 @@ describe('ExpenseService', () => {
         it('should filter out deleted expenses by default', async () => {
             // Reset the mock to track calls properly
             const mockQuery = {
-                where: jest.fn().mockReturnThis(),
-                select: jest.fn().mockReturnThis(),
-                orderBy: jest.fn().mockReturnThis(),
-                limit: jest.fn().mockReturnThis(),
-                startAfter: jest.fn().mockReturnThis(),
-                get: jest.fn().mockResolvedValue(mockQuerySnapshot),
+                where: vi.fn().mockReturnThis(),
+                select: vi.fn().mockReturnThis(),
+                orderBy: vi.fn().mockReturnThis(),
+                limit: vi.fn().mockReturnThis(),
+                startAfter: vi.fn().mockReturnThis(),
+                get: vi.fn().mockResolvedValue(mockQuerySnapshot),
             };
 
-            mockExpensesCollection.where = jest.fn().mockReturnValue(mockQuery);
+            mockExpensesCollection.where = vi.fn().mockReturnValue(mockQuery);
             
             await service.listGroupExpenses(mockGroupId, mockUserId);
 
@@ -453,15 +453,15 @@ describe('ExpenseService', () => {
 
             // Mock the query chain to return 3 docs when limit is 3 (service requests limit+1)
             const mockQuery: any = {
-                where: jest.fn().mockReturnThis(),
-                select: jest.fn().mockReturnThis(),
-                orderBy: jest.fn().mockReturnThis(),
-                limit: jest.fn().mockReturnThis(),
-                startAfter: jest.fn().mockReturnThis(),
-                get: jest.fn().mockResolvedValue(mockQueryWithThreeDocs),
+                where: vi.fn().mockReturnThis(),
+                select: vi.fn().mockReturnThis(),
+                orderBy: vi.fn().mockReturnThis(),
+                limit: vi.fn().mockReturnThis(),
+                startAfter: vi.fn().mockReturnThis(),
+                get: vi.fn().mockResolvedValue(mockQueryWithThreeDocs),
             };
 
-            mockExpensesCollection.where = jest.fn().mockReturnValue(mockQuery);
+            mockExpensesCollection.where = vi.fn().mockReturnValue(mockQuery);
 
             const result = await service.listGroupExpenses(mockGroupId, mockUserId, { limit: 2 });
 
@@ -493,17 +493,17 @@ describe('ExpenseService', () => {
             // Mock document reference for new expense
             mockNewDocRef = {
                 id: mockNewExpenseId,
-                set: jest.fn(),
+                set: vi.fn(),
             };
 
             // Mock expenses collection doc() for new document
-            mockExpensesCollection.doc = jest.fn(() => mockNewDocRef);
+            mockExpensesCollection.doc = vi.fn(() => mockNewDocRef);
 
             // Mock transaction
             mockTransaction = {
-                get: jest.fn().mockResolvedValue({
+                get: vi.fn().mockResolvedValue({
                     exists: true,
-                    data: jest.fn(() => ({
+                    data: vi.fn(() => ({
                         data: {
                             name: 'Test Group',
                             description: 'Test Description',
@@ -520,11 +520,11 @@ describe('ExpenseService', () => {
                         updatedAt: mockTimestamp
                     }))
                 }),
-                set: jest.fn(),
+                set: vi.fn(),
             };
 
             // Mock firestoreDb.runTransaction
-            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+            (firestoreDb.runTransaction as vi.Mock).mockImplementation(async (callback) => {
                 return callback(mockTransaction);
             });
 
@@ -532,7 +532,7 @@ describe('ExpenseService', () => {
             mockGroupDoc = {
                 exists: true,
                 id: mockGroupId,
-                data: jest.fn(() => ({
+                data: vi.fn(() => ({
                     data: {
                         name: 'Test Group',
                         description: 'Test Description',
@@ -548,21 +548,21 @@ describe('ExpenseService', () => {
                     createdAt: mockTimestamp,
                     updatedAt: mockTimestamp
                 })),
-                get: jest.fn(),
+                get: vi.fn(),
             };
 
-            mockGroupsCollection.doc = jest.fn(() => ({
-                get: jest.fn().mockResolvedValue(mockGroupDoc),
+            mockGroupsCollection.doc = vi.fn(() => ({
+                get: vi.fn().mockResolvedValue(mockGroupDoc),
             }));
 
             // Mock verifyGroupMembership
-            (groupHelpers.verifyGroupMembership as jest.Mock).mockResolvedValue(undefined);
+            (groupHelpers.verifyGroupMembership as vi.Mock).mockResolvedValue(undefined);
 
             // Mock PermissionEngine
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(true);
 
             // Mock createServerTimestamp
-            jest.spyOn(dateHelpers, 'createServerTimestamp')
+            vi.spyOn(dateHelpers, 'createServerTimestamp')
                 .mockReturnValue(mockTimestamp);
         });
 
@@ -659,7 +659,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user is not a group member', async () => {
-            (groupHelpers.verifyGroupMembership as jest.Mock).mockRejectedValue(
+            (groupHelpers.verifyGroupMembership as vi.Mock).mockRejectedValue(
                 new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group')
             );
 
@@ -679,7 +679,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user lacks permission to create expenses', async () => {
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(false);
 
             await expect(service.createExpense(mockUserId, mockCreateExpenseData))
                 .rejects.toEqual(new ApiError(
@@ -720,7 +720,7 @@ describe('ExpenseService', () => {
         it('should throw error when group data is missing in transaction', async () => {
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: jest.fn(() => ({ 
+                data: vi.fn(() => ({ 
                     // Missing 'data' property
                     createdAt: mockTimestamp,
                     updatedAt: mockTimestamp
@@ -759,7 +759,7 @@ describe('ExpenseService', () => {
             });
 
             // PermissionEngine should throw when permissions are missing
-            (PermissionEngine.checkPermission as jest.Mock).mockImplementation(() => {
+            (PermissionEngine.checkPermission as vi.Mock).mockImplementation(() => {
                 throw new Error('Group group123 is missing permissions configuration');
             });
 
@@ -808,30 +808,30 @@ describe('ExpenseService', () => {
                 .mockResolvedValueOnce({
                     exists: true,
                     id: mockExpenseId,
-                    data: jest.fn(() => mockExistingExpense)
+                    data: vi.fn(() => mockExistingExpense)
                 })
                 .mockResolvedValueOnce({
                     exists: true,
                     id: mockExpenseId,
-                    data: jest.fn(() => updatedExpense)
+                    data: vi.fn(() => updatedExpense)
                 });
         };
 
         beforeEach(() => {
             // Reset PermissionEngine mock to allow edits by default
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(true);
 
             // Setup existing expense fetch  
             mockExpenseDocRef.get.mockResolvedValue({
                 exists: true,
                 id: mockExpenseId,
-                data: jest.fn(() => mockExistingExpense)
+                data: vi.fn(() => mockExistingExpense)
             });
 
             // Setup transaction get for optimistic locking
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: jest.fn(() => mockExistingExpense)
+                data: vi.fn(() => mockExistingExpense)
             });
         });
 
@@ -893,12 +893,12 @@ describe('ExpenseService', () => {
             mockExpenseDocRef.get.mockResolvedValue({
                 exists: true,
                 id: mockExpenseId,
-                data: jest.fn(() => expenseWithExactSplits)
+                data: vi.fn(() => expenseWithExactSplits)
             });
 
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: jest.fn(() => expenseWithExactSplits)
+                data: vi.fn(() => expenseWithExactSplits)
             });
 
             setupUpdateExpenseMock({
@@ -1022,11 +1022,11 @@ describe('ExpenseService', () => {
         });
 
         it('should detect and reject concurrent updates', async () => {
-            const differentTimestamp = { isEqual: jest.fn(() => false) };
+            const differentTimestamp = { isEqual: vi.fn(() => false) };
             
             mockTransaction.get.mockResolvedValue({
                 exists: true,
-                data: jest.fn(() => ({
+                data: vi.fn(() => ({
                     ...mockExistingExpense,
                     updatedAt: differentTimestamp
                 }))
@@ -1041,7 +1041,7 @@ describe('ExpenseService', () => {
         });
 
         it('should throw error when user lacks permission to edit expense', async () => {
-            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+            (PermissionEngine.checkPermission as vi.Mock).mockReturnValue(false);
 
             await expect(service.updateExpense(mockExpenseId, mockUserId, mockUpdateData))
                 .rejects.toEqual(new ApiError(
@@ -1064,7 +1064,7 @@ describe('ExpenseService', () => {
             mockExpenseDocRef.get.mockResolvedValue({
                 exists: true,
                 id: mockExpenseId,
-                data: jest.fn(() => ({
+                data: vi.fn(() => ({
                     ...mockExistingExpense,
                     deletedAt: mockTimestamp,
                     deletedBy: 'someUser'

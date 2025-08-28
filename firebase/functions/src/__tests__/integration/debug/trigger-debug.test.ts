@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, beforeEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';

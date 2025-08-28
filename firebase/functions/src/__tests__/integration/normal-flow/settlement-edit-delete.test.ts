@@ -1,8 +1,7 @@
-/**
- * @jest-environment node
- */
 
 // Integration tests for settlement editing and deletion functionality
+
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
@@ -15,8 +14,6 @@ describe('Settlement Edit and Delete Operations', () => {
     let user2: User;
     let user3: User;
     let groupId: string;
-
-    jest.setTimeout(10000);
 
     beforeAll(async () => {
         driver = new ApiDriver();

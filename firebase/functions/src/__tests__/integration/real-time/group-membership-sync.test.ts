@@ -1,16 +1,13 @@
-/**
- * @jest-environment node
- */
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { beforeAll } from '@jest/globals';
+import { beforeAll } from 'vitest';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 
-jest.setTimeout(10000); // Reduced from 15s to meet guideline maximum
+// vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
 describe('Group Membership Real-Time Sync Tests', () => {
     const driver = new ApiDriver();

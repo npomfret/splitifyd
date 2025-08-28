@@ -2,7 +2,7 @@ import { getEnhancedConfigResponse } from '../../utils/config-response';
 import { validateAppConfiguration } from '../../middleware/config-validation';
 
 // Mock the getConfig and getAppConfig functions
-jest.mock('../../client-config', () => ({
+vi.mock('../../client-config', () => ({
     getConfig: () => ({
         isDevelopment: false,
         isProduction: true,
@@ -52,11 +52,11 @@ jest.mock('../../client-config', () => ({
 }));
 
 // Mock logger
-jest.mock('../../logger', () => ({
+vi.mock('../../logger', () => ({
     logger: {
-        error: jest.fn(),
-        info: jest.fn(),
-        warn: jest.fn(),
+        error: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
     },
 }));
 

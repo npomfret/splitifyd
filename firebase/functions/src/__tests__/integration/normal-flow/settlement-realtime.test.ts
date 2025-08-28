@@ -1,9 +1,8 @@
-/**
- * @jest-environment node
- */
 
 // Test to verify that settlements generate realtime update notifications
 // This test documents a bug where the frontend doesn't refresh settlements
+
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import * as admin from 'firebase-admin';
 import { FirestoreCollections } from '@splitifyd/shared';
