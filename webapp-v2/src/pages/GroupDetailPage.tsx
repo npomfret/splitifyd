@@ -3,6 +3,7 @@ import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
+import { useGroupModals } from '../app/hooks/useGroupModals';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { GroupDetailGrid } from '../components/layout/GroupDetailGrid';
 import { LoadingSpinner, Card, Button } from '@/components/ui';
@@ -20,20 +21,14 @@ interface GroupDetailPageProps {
 
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     const isInitialized = useSignal(false);
-    const showShareModal = useSignal(false);
-    const showSettlementForm = useSignal(false);
-    const showSettlementHistory = useSignal(false);
     const showDeletedExpenses = useSignal(false);
-    const showEditModal = useSignal(false);
-    const settlementToEdit = useSignal<SettlementListItem | null>(null);
+    
+    // Use the modal management hook
+    const modals = useGroupModals();
 
-    // Computed values from store
+    // Computed values from store - only what's needed by this component
     const group = useComputed(() => enhancedGroupDetailStore.group);
-    const expenses = useComputed(() => enhancedGroupDetailStore.expenses);
-    const balances = useComputed(() => enhancedGroupDetailStore.balances);
-    const members = useComputed(() => enhancedGroupDetailStore.members);
     const loading = useComputed(() => enhancedGroupDetailStore.loading);
-    const loadingMembers = useComputed(() => enhancedGroupDetailStore.loadingMembers);
     const error = useComputed(() => enhancedGroupDetailStore.error);
 
     // Auth store via hook
@@ -142,21 +137,19 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     };
 
     const handleSettleUp = () => {
-        settlementToEdit.value = null;
-        showSettlementForm.value = true;
+        modals.openSettlementForm();
     };
 
     const handleEditSettlement = (settlement: SettlementListItem) => {
-        settlementToEdit.value = settlement;
-        showSettlementForm.value = true;
+        modals.openSettlementForm(settlement);
     };
 
     const handleShare = () => {
-        showShareModal.value = true;
+        modals.openShareModal();
     };
 
     const handleSettings = () => {
-        showEditModal.value = true;
+        modals.openEditModal();
     };
 
     const handleGroupUpdateSuccess = async () => {
@@ -178,12 +171,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 leftSidebar={
                     <>
                         <MembersListWithManagement
-                            members={members.value}
-                            createdBy={group.value!.createdBy || ''}
-                            currentUserId={currentUser.value.uid}
                             groupId={groupId!}
-                            balances={balances.value}
-                            loading={loadingMembers.value}
                             variant="sidebar"
                             onInviteClick={handleShare}
                             onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
@@ -209,14 +197,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         </div>
 
                         <ExpensesList
-                            expenses={expenses.value}
-                            members={members.value}
-                            hasMore={enhancedGroupDetailStore.hasMoreExpenses}
-                            loading={enhancedGroupDetailStore.loadingExpenses}
-                            onLoadMore={() => enhancedGroupDetailStore.loadMoreExpenses()}
                             onExpenseClick={handleExpenseClick}
                             onExpenseCopy={handleExpenseCopy}
-                            isGroupOwner={isGroupOwner.value ?? false}
                             showDeletedExpenses={showDeletedExpenses.value}
                             onShowDeletedChange={(show) => {
                                 showDeletedExpenses.value = show;
@@ -227,12 +209,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         {/* Mobile-only members list */}
                         <div className="lg:hidden">
                             <MembersListWithManagement
-                                members={members.value}
-                                createdBy={group.value!.createdBy || ''}
-                                currentUserId={currentUser.value.uid}
                                 groupId={groupId!}
-                                balances={balances.value}
-                                loading={loadingMembers.value}
                                 onInviteClick={handleShare}
                                 onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
                             />
@@ -240,13 +217,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
                         {/* Mobile-only balance summary */}
                         <div className="lg:hidden">
-                            <BalanceSummary balances={balances.value} members={members.value} />
+                            <BalanceSummary />
                         </div>
                     </Stack>
                 }
                 rightSidebar={
                     <>
-                        <BalanceSummary balances={balances.value} members={members.value} variant="sidebar" />
+                        <BalanceSummary variant="sidebar" />
 
                         {/* Comments Section */}
                         <SidebarCard title="Comments" className="flex-1">
@@ -260,10 +237,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         {/* Settlement History Section */}
                         <SidebarCard title="Payment History">
                             <div className="space-y-3">
-                                <Button variant="secondary" size="sm" className="w-full" onClick={() => (showSettlementHistory.value = !showSettlementHistory.value)}>
-                                    {showSettlementHistory.value ? 'Hide History' : 'Show History'}
+                                <Button variant="secondary" size="sm" className="w-full" onClick={() => modals.toggleSettlementHistory()}>
+                                    {modals.showSettlementHistory ? 'Hide History' : 'Show History'}
                                 </Button>
-                                {showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
+                                {modals.showSettlementHistory && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
                             </div>
                         </SidebarCard>
                     </>
@@ -271,27 +248,24 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             />
 
             {/* Share Modal */}
-            <ShareGroupModal isOpen={showShareModal.value} onClose={() => (showShareModal.value = false)} groupId={groupId!} groupName={group.value!.name} />
+            <ShareGroupModal isOpen={modals.showShareModal} onClose={() => modals.closeShareModal()} groupId={groupId!} groupName={group.value!.name} />
 
             {/* Edit Group Modal */}
             {isGroupOwner.value && (
-                <EditGroupModal isOpen={showEditModal.value} group={group.value!} onClose={() => (showEditModal.value = false)} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
+                <EditGroupModal isOpen={modals.showEditModal} group={group.value!} onClose={() => modals.closeEditModal()} onSuccess={handleGroupUpdateSuccess} onDelete={handleGroupDelete} />
             )}
 
             {/* Settlement Form Modal */}
             <SettlementForm
-                isOpen={showSettlementForm.value}
-                onClose={() => {
-                    showSettlementForm.value = false;
-                    settlementToEdit.value = null;
-                }}
+                isOpen={modals.showSettlementForm}
+                onClose={() => modals.closeSettlementForm()}
                 groupId={groupId!}
-                editMode={!!settlementToEdit.value}
-                settlementToEdit={settlementToEdit.value || undefined}
+                editMode={!!modals.settlementToEdit}
+                settlementToEdit={modals.settlementToEdit || undefined}
                 onSuccess={() => {
                     // Refresh balances after successful settlement
                     enhancedGroupDetailStore.fetchBalances();
-                    settlementToEdit.value = null;
+                    modals.closeSettlementForm();
                 }}
             />
         </BaseLayout>

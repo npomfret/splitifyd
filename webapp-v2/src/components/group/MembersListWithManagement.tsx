@@ -7,29 +7,21 @@ import { Avatar } from '../ui/Avatar';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '@/components/ui';
 import { UserPlusIcon, UserMinusIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
-import type { User, GroupBalances } from '@splitifyd/shared';
+import type { User } from '@splitifyd/shared';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
+import { useAuthRequired } from '@/app/hooks/useAuthRequired';
 
 interface MembersListWithManagementProps {
-    members: User[];
-    createdBy: string;
-    currentUserId: string;
     groupId: string;
-    balances?: GroupBalances | null;
-    loading?: boolean;
     variant?: 'default' | 'sidebar';
     onInviteClick?: () => void;
     onMemberChange?: () => void;
 }
 
 export function MembersListWithManagement({
-    members,
-    createdBy,
-    currentUserId,
     groupId,
-    balances,
-    loading = false,
     variant = 'default',
     onInviteClick,
     onMemberChange,
@@ -39,20 +31,32 @@ export function MembersListWithManagement({
     const showRemoveConfirm = useSignal(false);
     const memberToRemove = useSignal<User | null>(null);
     const isProcessing = useSignal(false);
-
+    
+    // Auth store via hook
+    const authStore = useAuthRequired();
+    
+    // Fetch data directly from stores
+    const members = useComputed(() => enhancedGroupDetailStore.members);
+    const group = useComputed(() => enhancedGroupDetailStore.group);
+    const balances = useComputed(() => enhancedGroupDetailStore.balances);
+    const loading = useComputed(() => enhancedGroupDetailStore.loadingMembers);
+    const currentUser = useComputed(() => authStore.user);
+    
+    const currentUserId = currentUser.value?.uid || '';
+    const createdBy = group.value?.createdBy || '';
     const isOwner = currentUserId === createdBy;
-    const isLastMember = members.length === 1;
+    const isLastMember = members.value.length === 1;
 
     // Helper function to get user balance from Group.balance structure
     // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
     const getUserBalance = (userId: string): number => {
-        if (!balances?.balancesByCurrency) {
+        if (!balances.value?.balancesByCurrency) {
             return 0;
         }
 
         // Check each currency for this user's balance
-        for (const currency in balances.balancesByCurrency) {
-            const currencyBalances = balances.balancesByCurrency[currency];
+        for (const currency in balances.value.balancesByCurrency) {
+            const currencyBalances = balances.value.balancesByCurrency[currency];
             const userBalance = currencyBalances?.[userId];
 
             if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
@@ -67,7 +71,7 @@ export function MembersListWithManagement({
     // Important: This must be reactive to both currentUserId and balances changes
     const hasOutstandingBalance = useComputed(() => {
         // Force reactivity by accessing balances directly
-        const currentBalances = balances;
+        const currentBalances = balances.value;
         if (!currentBalances) return false;
 
         return getUserBalance(currentUserId) > 0;
@@ -114,12 +118,7 @@ export function MembersListWithManagement({
         try {
             isProcessing.value = true;
             await apiClient.removeGroupMember(groupId, memberToRemove.value.uid);
-            // Member removed successfully
-
-            // Trigger refresh of members list
-            if (onMemberChange) {
-                onMemberChange();
-            }
+            onMemberChange?.();
         } catch (error: any) {
             logError('Failed to remove member', error);
         } finally {
@@ -129,208 +128,120 @@ export function MembersListWithManagement({
         }
     };
 
-    const confirmRemoveMember = (member: User) => {
-        memberToRemove.value = member;
-        showRemoveConfirm.value = true;
+    const getMemberRole = (member: User): string => {
+        return member.uid === createdBy ? t('membersList.admin') : '';
     };
 
-    const content = loading ? (
-        <div className="flex justify-center py-8">
-            <LoadingSpinner size="md" />
-        </div>
-    ) : variant === 'sidebar' ? (
-        <div className="space-y-3">
-            {members.map((member) => (
-                <div
-                    key={member.uid}
-                    className="flex items-center gap-3 group"
-                    data-testid="member-item"
-                    data-member-id={member.uid}
-                    data-member-name={member.displayName || member.email || 'Unknown User'}
-                >
-                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="sm" themeColor={member.themeColor} />
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
-                    </div>
-                    {isOwner && member.uid !== currentUserId && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => confirmRemoveMember(member)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            ariaLabel={t('membersList.removeMemberAriaLabel', { name: member.displayName || t('membersList.member') })}
-                            disabled={memberHasOutstandingBalance(member.uid)}
-                            data-testid="remove-member-button"
-                        >
-                            <UserMinusIcon className="h-4 w-4 text-red-500" />
-                        </Button>
-                    )}
-                </div>
-            ))}
-        </div>
-    ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {members.map((member) => (
-                <div
-                    key={member.uid}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 group"
-                    data-testid="member-item"
-                    data-member-id={member.uid}
-                    data-member-name={member.displayName || member.email || 'Unknown User'}
-                >
-                    <Avatar displayName={member.displayName || member.email || 'Unknown User'} userId={member.uid} size="md" themeColor={member.themeColor} />
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">{member.displayName || member.email || 'Unknown User'}</p>
-                        {member.uid === createdBy && <p className="text-xs text-gray-500">{t('membersList.admin')}</p>}
-                    </div>
-                    {isOwner && member.uid !== currentUserId && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => confirmRemoveMember(member)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                            ariaLabel={t('membersList.removeMemberAriaLabel', { name: member.displayName || t('membersList.member') })}
-                            disabled={memberHasOutstandingBalance(member.uid)}
-                            data-testid="remove-member-button"
-                        >
-                            <UserMinusIcon className="h-4 w-4 text-red-500" />
-                        </Button>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-
-    if (variant === 'sidebar') {
+    if (loading.value) {
         return (
-            <>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-base font-semibold text-gray-900">{t('membersList.title')}</h3>
-                        <div className="flex items-center gap-1">
-                            {onInviteClick && (
-                                <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-1 h-auto" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
-                                    <UserPlusIcon className="h-4 w-4" />
-                                </Button>
-                            )}
-                            {!isOwner && !isLastMember && (
-                                <Button variant="ghost" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="p-1 h-auto" ariaLabel={t('membersList.leaveGroupAriaLabel')} data-testid="leave-group-button">
-                                    <ArrowRightOnRectangleIcon className="h-4 w-4 text-gray-500" />
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                    {content}
-                </div>
-
-                {/* Confirmation Dialogs */}
-                <ConfirmDialog
-                    isOpen={showLeaveConfirm.value}
-                    title={t('membersList.leaveGroupDialog.title')}
-                    message={
-                        getUserBalance(currentUserId) > 0
-                            ? t('membersList.leaveGroupDialog.messageWithBalance')
-                            : t('membersList.leaveGroupDialog.messageConfirm')
-                    }
-                    confirmText={t('membersList.leaveGroupDialog.confirmText')}
-                    cancelText={t('membersList.leaveGroupDialog.cancelText')}
-                    variant="warning"
-                    onConfirm={handleLeaveGroup}
-                    onCancel={() => (showLeaveConfirm.value = false)}
-                    loading={isProcessing.value}
-                    data-testid="leave-group-dialog"
-                />
-
-                <ConfirmDialog
-                    isOpen={showRemoveConfirm.value}
-                    title={t('membersList.removeMemberDialog.title')}
-                    message={
-                        memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                            ? t('membersList.removeMemberDialog.messageWithBalance', { 
-                                name: memberToRemove.value.displayName || t('membersList.thisMember') 
-                              })
-                            : t('membersList.removeMemberDialog.messageConfirm', { 
-                                name: memberToRemove.value?.displayName || t('membersList.thisMember') 
-                              })
-                    }
-                    confirmText={t('membersList.removeMemberDialog.confirmText')}
-                    cancelText={t('membersList.removeMemberDialog.cancelText')}
-                    variant="danger"
-                    onConfirm={handleRemoveMember}
-                    onCancel={() => {
-                        showRemoveConfirm.value = false;
-                        memberToRemove.value = null;
-                    }}
-                    loading={isProcessing.value}
-                    data-testid="remove-member-dialog"
-                />
-            </>
+            <Card className="p-6">
+                <LoadingSpinner />
+            </Card>
         );
     }
 
+    const membersList = (
+        <div className="space-y-3">
+            {members.value.map((member) => (
+                <div key={member.uid} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50" data-testid="member-item" data-member-name={member.displayName}>
+                    <div className="flex items-center gap-3">
+                        <Avatar displayName={member.displayName || 'User'} userId={member.uid} size="sm" />
+                        <div className="flex flex-col">
+                            <span className="font-medium text-gray-900 text-sm">
+                                {member.displayName}
+                                {member.uid === currentUserId && <span className="text-gray-500 ml-1">({t('common.you')})</span>}
+                            </span>
+                            {getMemberRole(member) && <span className="text-xs text-gray-500">{getMemberRole(member)}</span>}
+                        </div>
+                    </div>
+                    {/* Show actions only for the current user or if current user is owner */}
+                    {member.uid === currentUserId && !isLastMember ? (
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            onClick={() => (showLeaveConfirm.value = true)}
+                        >
+                            <>
+                                <ArrowRightOnRectangleIcon className="h-4 w-4 mr-1" />
+                                {t('membersList.leaveGroup')}
+                            </>
+                        </Button>
+                    ) : isOwner && member.uid !== currentUserId ? (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                                memberToRemove.value = member;
+                                showRemoveConfirm.value = true;
+                            }}
+                            data-testid="remove-member-button"
+                        >
+                            <UserMinusIcon className="h-4 w-4" />
+                        </Button>
+                    ) : null}
+                </div>
+            ))}
+            {onInviteClick && (
+                <Button variant="secondary" size="sm" onClick={onInviteClick} className="w-full">
+                    <>
+                        <UserPlusIcon className="h-4 w-4 mr-1" />
+                        {t('membersList.inviteOthers')}
+                    </>
+                </Button>
+            )}
+        </div>
+    );
+
+    const content = variant === 'sidebar' ? (
+        <div className="border rounded-lg bg-white p-4 space-y-4">
+            <div className="flex justify-between items-center">
+                <h3 className="font-semibold text-gray-900">{t('membersList.title')}</h3>
+                <span className="text-sm text-gray-500">{members.value.length}</span>
+            </div>
+            {membersList}
+        </div>
+    ) : (
+        <Card className="p-6">
+            <h2 className="text-lg font-semibold mb-4">{t('membersList.title')}</h2>
+            {membersList}
+        </Card>
+    );
+
     return (
         <>
-            <Card className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">{t('membersList.title')}</h2>
-                    <div className="flex items-center gap-2">
-                        {onInviteClick && (
-                            <Button variant="ghost" size="sm" onClick={onInviteClick} className="p-2" ariaLabel={t('membersList.inviteOthersAriaLabel')} data-testid="invite-others-button">
-                                <UserPlusIcon className="h-5 w-5" />
-                            </Button>
-                        )}
-                        {!isOwner && !isLastMember && (
-                            <Button variant="secondary" size="sm" onClick={() => (showLeaveConfirm.value = true)} className="flex items-center gap-2" data-testid="leave-group-button">
-                                <>
-                                    <ArrowRightOnRectangleIcon className="h-4 w-4" />
-                                    {t('membersList.leaveGroup')}
-                                </>
-                            </Button>
-                        )}
-                    </div>
-                </div>
-                {content}
-            </Card>
+            {content}
 
-            {/* Confirmation Dialogs */}
+            {/* Leave Group Confirmation */}
             <ConfirmDialog
                 isOpen={showLeaveConfirm.value}
-                title={t('membersList.leaveGroupDialog.title')}
-                message={
-                    getUserBalance(currentUserId) > 0
-                        ? t('membersList.leaveGroupDialog.messageWithBalance')
-                        : t('membersList.leaveGroupDialog.messageConfirm')
-                }
-                confirmText={t('membersList.leaveGroupDialog.confirmText')}
-                cancelText={t('membersList.leaveGroupDialog.cancelText')}
-                variant="warning"
-                onConfirm={handleLeaveGroup}
                 onCancel={() => (showLeaveConfirm.value = false)}
+                onConfirm={handleLeaveGroup}
+                title={t('membersList.leaveGroupDialog.title')}
+                message={hasOutstandingBalance.value ? t('membersList.leaveGroupDialog.messageWithBalance') : t('membersList.leaveGroupDialog.messageConfirm')}
+                confirmText={hasOutstandingBalance.value ? t('common.understood') : t('membersList.leaveGroupDialog.confirmText')}
+                cancelText={t('membersList.leaveGroupDialog.cancelText')}
+                variant={hasOutstandingBalance.value ? 'info' : 'warning'}
                 loading={isProcessing.value}
                 data-testid="leave-group-dialog"
             />
 
+            {/* Remove Member Confirmation */}
             <ConfirmDialog
                 isOpen={showRemoveConfirm.value}
-                title={t('membersList.removeMemberDialog.title')}
-                message={
-                    memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
-                        ? t('membersList.removeMemberDialog.messageWithBalance', { 
-                            name: memberToRemove.value.displayName || t('membersList.thisMember') 
-                          })
-                        : t('membersList.removeMemberDialog.messageConfirm', { 
-                            name: memberToRemove.value?.displayName || t('membersList.thisMember') 
-                          })
-                }
-                confirmText={t('membersList.removeMemberDialog.confirmText')}
-                cancelText={t('membersList.removeMemberDialog.cancelText')}
-                variant="danger"
-                onConfirm={handleRemoveMember}
                 onCancel={() => {
                     showRemoveConfirm.value = false;
                     memberToRemove.value = null;
                 }}
+                onConfirm={handleRemoveMember}
+                title={t('membersList.removeMemberDialog.title')}
+                message={
+                    memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid)
+                        ? t('membersList.removeMemberDialog.messageWithBalance', { name: memberToRemove.value.displayName || t('membersList.thisMember') })
+                        : t('membersList.removeMemberDialog.messageConfirm', { name: memberToRemove.value?.displayName || t('membersList.thisMember') })
+                }
+                confirmText={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? t('common.understood') : t('membersList.removeMemberDialog.confirmText')}
+                cancelText={t('membersList.leaveGroupDialog.cancelText')}
+                variant={memberToRemove.value && memberHasOutstandingBalance(memberToRemove.value.uid) ? 'info' : 'warning'}
                 loading={isProcessing.value}
                 data-testid="remove-member-dialog"
             />

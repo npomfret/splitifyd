@@ -1,29 +1,34 @@
 import { useMemo } from 'preact/hooks';
+import { useComputed } from '@preact/signals';
 import { Card } from '../ui/Card';
 import { SidebarCard } from '@/components/ui';
 import { formatCurrency } from '@/utils/currency';
-import type { GroupBalances, User, SimplifiedDebt } from '@splitifyd/shared';
+import type { SimplifiedDebt } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced';
 
 interface BalanceSummaryProps {
-    balances: GroupBalances | null;
-    members?: User[];
     variant?: 'default' | 'sidebar';
 }
 
-export function BalanceSummary({ balances, members = [], variant = 'default' }: BalanceSummaryProps) {
+export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
     const { t } = useTranslation();
+    
+    // Fetch data directly from the store
+    const balances = useComputed(() => enhancedGroupDetailStore.balances);
+    const members = useComputed(() => enhancedGroupDetailStore.members);
+    
     // Helper to get user display name
     const getUserName = (userId: string) => {
-        const member = members.find((m) => m.uid === userId);
+        const member = members.value.find((m) => m.uid === userId);
         return member?.displayName || 'Unknown';
     };
 
     // Group debts by currency for proper display - memoized to avoid recalculation
     const groupedDebts = useMemo(() => {
-        if (!balances?.simplifiedDebts) return [];
+        if (!balances.value?.simplifiedDebts) return [];
 
-        const grouped = balances.simplifiedDebts.reduce(
+        const grouped = balances.value.simplifiedDebts.reduce(
             (acc, debt) => {
                 const currency = debt.currency;
                 if (!acc[currency]) {
@@ -46,11 +51,11 @@ export function BalanceSummary({ balances, members = [], variant = 'default' }: 
             currency,
             debts: grouped[currency],
         }));
-    }, [balances?.simplifiedDebts]);
+    }, [balances.value?.simplifiedDebts]);
 
-    const content = !balances ? (
+    const content = !balances.value ? (
         <p className="text-gray-600 text-sm">{t('balanceSummary.loadingBalances')}</p>
-    ) : balances.simplifiedDebts.length === 0 ? (
+    ) : balances.value.simplifiedDebts.length === 0 ? (
         <p className="text-gray-600 text-sm">{t('balanceSummary.allSettledUp')}</p>
     ) : (
         <div className={variant === 'sidebar' ? 'space-y-4' : 'space-y-6'}>

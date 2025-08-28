@@ -317,6 +317,7 @@
         "member": "member",
         "thisMember": "This member",
         "leaveGroup": "Leave Group",
+        "inviteOthers": "Invite Others",
         "inviteOthersAriaLabel": "Invite Others",
         "leaveGroupAriaLabel": "Leave Group",
         "removeMemberAriaLabel": "Remove {{name}}",

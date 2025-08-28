@@ -10,50 +10,99 @@ The application uses **Preact Signals** (`@preact/signals`) as its core reactivi
 - Automatic dependency tracking
 - Synchronous updates
 - TypeScript support
+- **Proper encapsulation** through private class fields
 
 ## Architecture
 
 ### 1. Store Pattern
 
-Global state is organized into feature-based "stores" that encapsulate related signals, computed values, and actions.
+Global state is organized into feature-based "stores" that encapsulate related signals, computed values, and actions. **All signals must be private class fields to enforce proper encapsulation.**
 
 ```typescript
 // Example Store Structure
 interface SomeStore {
-    // State properties (read-only)
-    data: SomeData[];
-    loading: boolean;
-    error: string | null;
+    // State properties (read-only to consumers)
+    readonly data: ReadonlySignal<SomeData[]>;
+    readonly loading: ReadonlySignal<boolean>;
+    readonly error: ReadonlySignal<string | null>;
 
-    // Actions
+    // Actions (the only way to mutate state)
     fetchData(): Promise<void>;
     updateData(item: SomeData): Promise<void>;
     clearError(): void;
 }
 ```
 
-### 2. Signal Declaration
+### 2. Signal Declaration - PROPER ENCAPSULATION
 
-Signals are declared at the module level, outside the store class:
+Signals must be declared as **private class fields** using the `#` syntax to ensure true encapsulation:
 
 ```typescript
-// ✅ CORRECT: Module-level signals
-const dataSignal = signal<SomeData[]>([]);
-const loadingSignal = signal<boolean>(false);
-const errorSignal = signal<string | null>(null);
+// ✅ CORRECT: Private class field signals with proper encapsulation
+import { signal, ReadonlySignal } from '@preact/signals';
 
 class SomeStoreImpl implements SomeStore {
-    get data() {
-        return dataSignal.value;
+    // Private signals - cannot be accessed or mutated from outside
+    #dataSignal = signal<SomeData[]>([]);
+    #loadingSignal = signal<boolean>(false);
+    #errorSignal = signal<string | null>(null);
+
+    // Expose read-only access to components
+    get data(): ReadonlySignal<SomeData[]> {
+        return this.#dataSignal;
     }
-    get loading() {
-        return loadingSignal.value;
+    
+    get loading(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
     }
-    get error() {
-        return errorSignal.value;
+    
+    get error(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+
+    // Actions are the ONLY way to mutate state
+    async fetchData(): Promise<void> {
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
+        
+        try {
+            const data = await api.getData();
+            this.#dataSignal.value = data;
+        } catch (error) {
+            this.#errorSignal.value = this.getErrorMessage(error);
+            throw error;
+        } finally {
+            this.#loadingSignal.value = false;
+        }
+    }
+
+    updateData(item: SomeData): void {
+        this.#dataSignal.value = [...this.#dataSignal.value, item];
+    }
+
+    clearError(): void {
+        this.#errorSignal.value = null;
     }
 }
 ```
+
+### ❌ ANTI-PATTERN TO AVOID
+
+Never declare signals at the module level outside the class:
+
+```typescript
+// ❌ WRONG: Module-level signals break encapsulation
+const dataSignal = signal<SomeData[]>([]);  // DON'T DO THIS!
+const loadingSignal = signal<boolean>(false);  // DON'T DO THIS!
+
+class SomeStoreImpl {
+    get data() {
+        return dataSignal.value;  // This exposes mutable global state!
+    }
+}
+```
+
+**Why this is dangerous:** Module-level signals become global variables that any code can directly mutate via `someSignal.value = ...`, completely bypassing the store's control and making state changes unpredictable and untraceable.
 
 ### 3. Store Singleton Pattern
 
@@ -73,14 +122,18 @@ export const groupsStore = new GroupsStoreImpl();
 
 ### Reading Store State
 
-**Pattern 1: Direct Store Access (Simple Cases)**
+With properly encapsulated stores, components access state through ReadonlySignals:
+
+**Pattern 1: Direct Signal Access (Simple Cases)**
 
 ```typescript
 // For simple, direct access in components
 import { groupsStore } from '../stores/groups-store';
 
 function MyComponent() {
-  return <div>{groupsStore.groups.length} groups</div>;
+  // groupsStore.groups is a ReadonlySignal<Group[]>
+  // Use .value to access the current value
+  return <div>{groupsStore.groups.value.length} groups</div>;
 }
 ```
 
@@ -93,15 +146,25 @@ import { groupsStore } from '../stores/groups-store';
 
 function MyComponent() {
   const activeGroups = useComputed(() =>
-    groupsStore.groups.filter(g => g.active)
+    groupsStore.groups.value.filter(g => g.active)
   );
 
   const hasError = useComputed(() =>
-    groupsStore.error !== null
+    groupsStore.error.value !== null
   );
 
   return <div>{activeGroups.value.length} active groups</div>;
 }
+```
+
+**Important:** Components can only read state, never mutate it directly:
+
+```typescript
+// ❌ This won't work anymore (and that's good!)
+groupsStore.groups.value = [];  // TypeError: Cannot set property value of #<ReadonlySignal>
+
+// ✅ Use store actions instead
+await groupsStore.clearGroups();  // Proper way to mutate state
 ```
 
 ### Local Component State
@@ -209,22 +272,34 @@ await groupsStore.fetchGroups();
 
 ### 2. Error Handling
 
-Always handle errors at the store level and expose them as signals:
+Always handle errors at the store level and expose them as ReadonlySignals:
 
 ```typescript
 class StoreImpl {
+    #loadingSignal = signal<boolean>(false);
+    #errorSignal = signal<string | null>(null);
+    #dataSignal = signal<SomeData[]>([]);
+
+    get loading(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
+    }
+
+    get error(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+
     async fetchData() {
-        loadingSignal.value = true;
-        errorSignal.value = null;
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             const data = await api.getData();
-            dataSignal.value = data;
+            this.#dataSignal.value = data;
         } catch (error) {
-            errorSignal.value = this.getErrorMessage(error);
+            this.#errorSignal.value = this.getErrorMessage(error);
             throw error; // Re-throw for component-level handling if needed
         } finally {
-            loadingSignal.value = false;
+            this.#loadingSignal.value = false;
         }
     }
 }
@@ -238,7 +313,8 @@ Use the new `LoadingState` component for consistent loading UI:
 import { LoadingState } from '../components/ui';
 
 function MyComponent() {
-  const loading = useComputed(() => groupsStore.loading);
+  // Access the ReadonlySignal directly
+  const loading = groupsStore.loading;
 
   if (loading.value) {
     return <LoadingState message="Loading groups..." />;
@@ -256,7 +332,8 @@ Use the new `ErrorState` component for consistent error UI:
 import { ErrorState } from '../components/ui';
 
 function MyComponent() {
-  const error = useComputed(() => groupsStore.error);
+  // Access the ReadonlySignal directly  
+  const error = groupsStore.error;
 
   if (error.value) {
     return (
