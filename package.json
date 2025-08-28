@@ -10,7 +10,7 @@
     "scripts": {
         "clean": "npm run clean -ws --if-present",
         "clean:logs": "rm -f firebase/*.log || true",
-        "super-clean": "cd firebase && npm run clean && cd .. && rm -rf node_modules && rm -rf */node_modules && rm -rf */*/node_modules && npm run clean -ws --if-present",
+        "super-clean": "npm run super-clean -ws --if-present && rm -rf node_modules",
         "dev:prep": "npm run clean:logs && cd firebase && npm run clean",
         "dev": "npm run dev:prep && concurrently \"cd webapp-v2 && npm run watch\" \"cd firebase && npm run link-webapp && npm run start-emulators\"",
         "build": "npm run build -w @splitifyd/shared && npm run build -ws --if-present",

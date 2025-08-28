@@ -7,6 +7,7 @@
         "build:check": "tsc --project tsconfig.build.json --noEmit",
         "build:prod": "npm run build:check && tsc && npm run copy:locales && node scripts/inject-build-info.js",
         "clean": "rm -rf lib coverage",
+        "super-clean": "npm run clean && rm -rf node_modules",
         "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",
         "test": "NODE_ENV=test npm run build && npm run test:unit && npm run test:integration",
         "test:unit": "NODE_ENV=test npm run build && jest src/__tests__/unit/",

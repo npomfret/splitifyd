@@ -11,6 +11,7 @@
         "preview": "vite preview",
         "typecheck": "npm run build:check",
         "clean": "rm -rf dist",
+        "super-clean": "npm run clean && rm -rf node_modules",
         "test": "npm run test:unit && npm run test:integration",
         "test:unit": "npm run test:unit:vitest && npm run test:unit:playwright",
         "test:unit:vitest": "vitest run src/__tests__/unit/vitest",

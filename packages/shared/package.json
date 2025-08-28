@@ -19,6 +19,7 @@
     "build:prod": "tsup",
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
+    "super-clean": "npm run clean && rm -rf node_modules",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "echo 'No unit tests for shared package'",
     "test:integration": "echo 'No integration tests for shared package'"

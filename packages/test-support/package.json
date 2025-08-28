@@ -7,6 +7,8 @@
     "types": "index.ts",
     "scripts": {
         "build": "npx tsc --noEmit",
+        "clean": "echo 'No clean needed'",
+        "super-clean": "rm -rf node_modules",
         "test": "npm run test:unit && npm run test:integration",
         "test:unit": "npm run build && echo 'There are no unit tests in test-support'",
         "test:integration": "npm run build && echo 'There are no integration tests in test-support'"
