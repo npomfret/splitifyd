@@ -150,37 +150,22 @@ export class UserPool {
             const registerPage = new RegisterPage(tempPage);
             await registerPage.navigateToRegister();
 
-            // Check for errors before waiting for form
+            // Check for errors before proceeding
             if (consoleErrors.length > 0 || pageErrors.length > 0) {
                 const errorMessage = `Registration page has errors:\n${consoleErrors.join('\n')}\n${pageErrors.join('\n')}`;
                 throw new Error(errorMessage);
             }
 
-            // Wait for form to be visible
-            await tempPage.waitForSelector('input[placeholder="Enter your full name"]');
-
-            // Fill registration form using fillPreactInput to handle form defaults
-            await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', displayName);
-            await registerPage.fillPreactInput('input[placeholder="Enter your email"]', email);
-            await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', password);
-            await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', password);
-
-            // Check both terms and cookie policy checkboxes (first and last)
-            await tempPage.locator('input[type="checkbox"]').first().check();
-            await tempPage.locator('input[type="checkbox"]').last().check();
-
-            // Submit form
-            await tempPage.click('button:has-text("Create Account")');
-
-            // Wait for redirect to dashboard
-            await expect(tempPage).toHaveURL(/\/dashboard/, { timeout: 5000 });// can be slow
+            // Use the RegisterPage's encapsulated register method which handles everything:
+            // - Filling all form fields
+            // - Checking both required checkboxes
+            // - Submitting the form
+            // - Waiting for redirect to dashboard
+            await registerPage.register(displayName, email, password);
 
             // Logout so the user can be used later using DashboardPage helper
             const dashboardPage = new DashboardPage(tempPage);
             await dashboardPage.logout();  // This already waits for redirect to login page
-
-            // debugging mystery screenshots
-            await new LoginPage(tempPage).fillLoginForm(displayName, "", false);
         } finally {
             // Always close the page and context to avoid resource leaks
             // Close in reverse order of creation to prevent issues
