@@ -11,40 +11,10 @@ import { validateCreateExpense, validateUpdateExpense, validateExpenseId, calcul
 import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { _getGroupMembersData } from '../groups/memberHandlers';
-import { verifyGroupMembership } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 import { PermissionEngine, permissionCache, PermissionCache } from '../permissions';
+import { expenseService, ExpenseDocumentSchema } from '../services/ExpenseService';
 import { z } from 'zod';
-import { expenseService } from '../services/ExpenseService';
-
-/**
- * Zod schemas for expense document validation
- */
-const ExpenseSplitSchema = z.object({
-    userId: z.string().min(1),
-    amount: z.number().positive(),
-    percentage: z.number().min(0).max(100).optional(),
-});
-
-const ExpenseDocumentSchema = z.object({
-    id: z.string().min(1),
-    groupId: z.string().min(1),
-    createdBy: z.string().min(1),
-    paidBy: z.string().min(1),
-    amount: z.number().positive(),
-    currency: z.string().length(3),
-    description: z.string().min(1).max(200),
-    category: z.string().min(1).max(50),
-    date: z.any(), // Firestore Timestamp
-    splitType: z.enum([SplitTypes.EQUAL, SplitTypes.EXACT, SplitTypes.PERCENTAGE]),
-    participants: z.array(z.string().min(1)).min(1),
-    splits: z.array(ExpenseSplitSchema),
-    receiptUrl: z.string().url().optional().nullable(),
-    createdAt: z.any(), // Firestore Timestamp
-    updatedAt: z.any(), // Firestore Timestamp
-    deletedAt: z.any().nullable(), // Firestore Timestamp or null
-    deletedBy: z.string().nullable(),
-}).passthrough(); // Allow additional fields that may exist
 
 const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
@@ -171,113 +141,11 @@ const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef
 
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-
     const expenseData = validateCreateExpense(req.body);
 
-    await verifyGroupMembership(expenseData.groupId, userId);
-
-    // Get group data and verify user can create expenses
-    const group = await getGroupForPermissionCheck(expenseData.groupId);
-    const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
-    
-    if (!canCreateExpense) {
-        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
-    }
-
-    const groupDoc = await getGroupsCollection().doc(expenseData.groupId).get();
-    const groupData = groupDoc.data();
-    if (!groupData?.data?.members) {
-        throw new Error(`Group ${expenseData.groupId} not found or missing member data`);
-    }
-    const memberIds = Object.keys(groupData.data.members);
-
-    // Validate that paidBy is a group member
-    if (!memberIds.includes(expenseData.paidBy)) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
-    }
-
-    // Validate that all participants are group members
-    for (const participantId of expenseData.participants) {
-        if (!memberIds.includes(participantId)) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
-        }
-    }
-
-    const now = createServerTimestamp();
-    const docRef = getExpensesCollection().doc();
-
-    const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
-
-    const expense: Expense = {
-        id: docRef.id,
-        groupId: expenseData.groupId,
-        createdBy: userId,
-        paidBy: expenseData.paidBy,
-        amount: expenseData.amount,
-        currency: expenseData.currency,
-        description: expenseData.description,
-        category: expenseData.category,
-        date: parseISOToTimestamp(expenseData.date) || createServerTimestamp(),
-        splitType: expenseData.splitType,
-        participants: expenseData.participants,
-        splits,
-        createdAt: now,
-        updatedAt: now,
-        deletedAt: null,
-        deletedBy: null,
-    };
-
-    // Only add receiptUrl if it's defined
-    if (expenseData.receiptUrl !== undefined) {
-        expense.receiptUrl = expenseData.receiptUrl;
-    }
-
     try {
-        // Validate the expense document before writing
-        try {
-            ExpenseDocumentSchema.parse(expense);
-        } catch (error) {
-            logger.error('Invalid expense document to write', error as Error, { 
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined 
-            });
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_EXPENSE_DATA',
-                'Invalid expense data format'
-            );
-        }
-
-        // Use transaction to create expense and update group metadata atomically
-        await firestoreDb.runTransaction(async (transaction) => {
-            const groupDocRef = getGroupsCollection().doc(expenseData.groupId);
-            const groupDoc = await transaction.get(groupDocRef);
-
-            if (!groupDoc.exists) {
-                throw new Error(`Group ${expenseData.groupId} not found`);
-            }
-
-            const groupData = groupDoc.data();
-            if (!groupData?.data) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
-            }
-
-            // Create the expense
-            transaction.set(docRef, expense);
-        });
-
-        // Set business context
-        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
-        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
-
-        // Convert Firestore Timestamps to ISO strings for the response
-        const responseExpense = {
-            ...expense,
-            date: timestampToISO(expense.date),
-            createdAt: timestampToISO(expense.createdAt),
-            updatedAt: timestampToISO(expense.updatedAt),
-        };
-
-        res.status(HTTP_STATUS.CREATED).json(responseExpense);
+        const expense = await expenseService.createExpense(userId, expenseData);
+        res.status(HTTP_STATUS.CREATED).json(expense);
     } catch (error) {
         logger.error('Failed to create expense', error, {
             userId,

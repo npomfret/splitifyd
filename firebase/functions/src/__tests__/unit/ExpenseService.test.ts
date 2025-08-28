@@ -2,9 +2,10 @@ import { ExpenseService } from '../../services/ExpenseService';
 import { firestoreDb } from '../../firebase';
 import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
-import { FirestoreCollections, SplitTypes } from '@splitifyd/shared';
+import { FirestoreCollections, SplitTypes, CreateExpenseRequest } from '@splitifyd/shared';
 import { timestampToISO } from '../../utils/dateHelpers';
 import { Timestamp } from 'firebase-admin/firestore';
+import { PermissionEngine } from '../../permissions';
 
 // Mock dependencies
 jest.mock('../../firebase');
@@ -445,6 +446,305 @@ describe('ExpenseService', () => {
             expect(result.expenses.length).toBe(2);
             expect(result.hasMore).toBe(true);
             expect(result.nextCursor).toBeDefined();
+        });
+    });
+
+    describe('createExpense', () => {
+        let mockTransaction: any;
+        let mockNewDocRef: any;
+        const mockNewExpenseId = 'newExpense123';
+
+        const mockCreateExpenseData: CreateExpenseRequest = {
+            groupId: mockGroupId,
+            paidBy: mockUserId,
+            amount: 150,
+            currency: 'USD',
+            description: 'New test expense',
+            category: 'Food',
+            date: '2024-01-01T00:00:00.000Z',
+            splitType: SplitTypes.EQUAL,
+            participants: [mockUserId, 'user456'],
+            splits: []
+        };
+
+        beforeEach(() => {
+            // Mock document reference for new expense
+            mockNewDocRef = {
+                id: mockNewExpenseId,
+                set: jest.fn(),
+            };
+
+            // Mock expenses collection doc() for new document
+            mockExpensesCollection.doc = jest.fn(() => mockNewDocRef);
+
+            // Mock transaction
+            mockTransaction = {
+                get: jest.fn().mockResolvedValue({
+                    exists: true,
+                    data: jest.fn(() => ({
+                        data: {
+                            name: 'Test Group',
+                            description: 'Test Description',
+                            createdBy: 'creator123',
+                            members: {
+                                [mockUserId]: { role: 'ADMIN', status: 'ACTIVE', joinedAt: mockTimestamp },
+                                'user456': { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp }
+                            },
+                            permissions: {
+                                expenseEditing: 'ANYONE'
+                            }
+                        },
+                        createdAt: mockTimestamp,
+                        updatedAt: mockTimestamp
+                    }))
+                }),
+                set: jest.fn(),
+            };
+
+            // Mock firestoreDb.runTransaction
+            (firestoreDb.runTransaction as jest.Mock).mockImplementation(async (callback) => {
+                return callback(mockTransaction);
+            });
+
+            // Mock group document
+            mockGroupDoc = {
+                exists: true,
+                id: mockGroupId,
+                data: jest.fn(() => ({
+                    data: {
+                        name: 'Test Group',
+                        description: 'Test Description',
+                        createdBy: 'creator123',
+                        members: {
+                            [mockUserId]: { role: 'ADMIN', status: 'ACTIVE', joinedAt: mockTimestamp },
+                            'user456': { role: 'MEMBER', status: 'ACTIVE', joinedAt: mockTimestamp }
+                        },
+                        permissions: {
+                            expenseEditing: 'ANYONE'
+                        }
+                    },
+                    createdAt: mockTimestamp,
+                    updatedAt: mockTimestamp
+                })),
+                get: jest.fn(),
+            };
+
+            mockGroupsCollection.doc = jest.fn(() => ({
+                get: jest.fn().mockResolvedValue(mockGroupDoc),
+            }));
+
+            // Mock verifyGroupMembership
+            const { verifyGroupMembership } = require('../../utils/groupHelpers');
+            verifyGroupMembership.mockResolvedValue(undefined);
+
+            // Mock PermissionEngine
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(true);
+
+            // Mock createServerTimestamp
+            jest.spyOn(require('../../utils/dateHelpers'), 'createServerTimestamp')
+                .mockReturnValue(mockTimestamp);
+        });
+
+        it('should successfully create an expense with equal splits', async () => {
+            const result = await service.createExpense(mockUserId, mockCreateExpenseData);
+
+            // Verify the result structure
+            expect(result).toEqual(expect.objectContaining({
+                id: mockNewExpenseId,
+                groupId: mockGroupId,
+                createdBy: mockUserId,
+                paidBy: mockUserId,
+                amount: 150,
+                currency: 'USD',
+                description: 'New test expense',
+                category: 'Food',
+                splitType: SplitTypes.EQUAL,
+                participants: [mockUserId, 'user456'],
+                splits: [
+                    { userId: mockUserId, amount: 75 },
+                    { userId: 'user456', amount: 75 }
+                ]
+            }));
+
+            // Verify group membership was checked
+            expect(require('../../utils/groupHelpers').verifyGroupMembership)
+                .toHaveBeenCalledWith(mockGroupId, mockUserId);
+
+            // Verify permission was checked
+            expect(PermissionEngine.checkPermission).toHaveBeenCalledWith(
+                expect.objectContaining({ id: mockGroupId }),
+                mockUserId,
+                'expenseEditing'
+            );
+
+            // Verify transaction was used
+            expect(firestoreDb.runTransaction).toHaveBeenCalled();
+            expect(mockTransaction.set).toHaveBeenCalledWith(
+                mockNewDocRef,
+                expect.objectContaining({
+                    id: mockNewExpenseId,
+                    groupId: mockGroupId,
+                    createdBy: mockUserId,
+                    amount: 150
+                })
+            );
+        });
+
+        it('should successfully create expense with exact splits', async () => {
+            const dataWithExactSplits: CreateExpenseRequest = {
+                ...mockCreateExpenseData,
+                splitType: SplitTypes.EXACT,
+                splits: [
+                    { userId: mockUserId, amount: 100 },
+                    { userId: 'user456', amount: 50 }
+                ]
+            };
+
+            const result = await service.createExpense(mockUserId, dataWithExactSplits);
+
+            expect(result.splits).toEqual([
+                { userId: mockUserId, amount: 100 },
+                { userId: 'user456', amount: 50 }
+            ]);
+        });
+
+        it('should successfully create expense with percentage splits', async () => {
+            const dataWithPercentageSplits: CreateExpenseRequest = {
+                ...mockCreateExpenseData,
+                splitType: SplitTypes.PERCENTAGE,
+                splits: [
+                    { userId: mockUserId, amount: 0, percentage: 60 },
+                    { userId: 'user456', amount: 0, percentage: 40 }
+                ]
+            };
+
+            const result = await service.createExpense(mockUserId, dataWithPercentageSplits);
+
+            expect(result.splits).toEqual([
+                { userId: mockUserId, amount: 90, percentage: 60 },
+                { userId: 'user456', amount: 60, percentage: 40 }
+            ]);
+        });
+
+        it('should include receiptUrl when provided', async () => {
+            const dataWithReceipt: CreateExpenseRequest = {
+                ...mockCreateExpenseData,
+                receiptUrl: 'https://example.com/receipt.jpg'
+            };
+
+            const result = await service.createExpense(mockUserId, dataWithReceipt);
+
+            expect(result.receiptUrl).toBe('https://example.com/receipt.jpg');
+        });
+
+        it('should throw error when user is not a group member', async () => {
+            const { verifyGroupMembership } = require('../../utils/groupHelpers');
+            verifyGroupMembership.mockRejectedValue(
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'User is not a member of this group')
+            );
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.FORBIDDEN,
+                    'NOT_GROUP_MEMBER',
+                    'User is not a member of this group'
+                ));
+        });
+
+        it('should throw error when group does not exist', async () => {
+            mockGroupDoc.exists = false;
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toEqual(Errors.NOT_FOUND('Group'));
+        });
+
+        it('should throw error when user lacks permission to create expenses', async () => {
+            (PermissionEngine.checkPermission as jest.Mock).mockReturnValue(false);
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.FORBIDDEN,
+                    'NOT_AUTHORIZED',
+                    'You do not have permission to create expenses in this group'
+                ));
+        });
+
+        it('should throw error when payer is not a group member', async () => {
+            const dataWithInvalidPayer: CreateExpenseRequest = {
+                ...mockCreateExpenseData,
+                paidBy: 'notAMember123'
+            };
+
+            await expect(service.createExpense(mockUserId, dataWithInvalidPayer))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'INVALID_PAYER',
+                    'Payer must be a member of the group'
+                ));
+        });
+
+        it('should throw error when participant is not a group member', async () => {
+            const dataWithInvalidParticipant: CreateExpenseRequest = {
+                ...mockCreateExpenseData,
+                participants: [mockUserId, 'notAMember456']
+            };
+
+            await expect(service.createExpense(mockUserId, dataWithInvalidParticipant))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.BAD_REQUEST,
+                    'INVALID_PARTICIPANT',
+                    'Participant notAMember456 is not a member of the group'
+                ));
+        });
+
+        it('should throw error when group data is missing in transaction', async () => {
+            mockTransaction.get.mockResolvedValue({
+                exists: true,
+                data: jest.fn(() => ({ 
+                    // Missing 'data' property
+                    createdAt: mockTimestamp,
+                    updatedAt: mockTimestamp
+                }))
+            });
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toEqual(new ApiError(
+                    HTTP_STATUS.NOT_FOUND,
+                    'INVALID_GROUP',
+                    'Group data is missing'
+                ));
+        });
+
+        it('should throw error when group does not exist in transaction', async () => {
+            mockTransaction.get.mockResolvedValue({
+                exists: false
+            });
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toEqual(Errors.NOT_FOUND('Group'));
+        });
+
+        it('should handle missing group permissions structure', async () => {
+            mockGroupDoc.data.mockReturnValue({
+                data: {
+                    name: 'Test Group',
+                    members: {
+                        [mockUserId]: { role: 'ADMIN', status: 'ACTIVE' },
+                        'user456': { role: 'MEMBER', status: 'ACTIVE' }
+                    },
+                    // Missing permissions
+                },
+                createdAt: mockTimestamp,
+                updatedAt: mockTimestamp
+            });
+
+            // PermissionEngine should throw when permissions are missing
+            (PermissionEngine.checkPermission as jest.Mock).mockImplementation(() => {
+                throw new Error('Group group123 is missing permissions configuration');
+            });
+
+            await expect(service.createExpense(mockUserId, mockCreateExpenseData))
+                .rejects.toThrow('Group group123 is missing permissions configuration');
         });
     });
 });

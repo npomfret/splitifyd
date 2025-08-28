@@ -4,21 +4,22 @@ import { firestoreDb } from '../firebase';
 import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { timestampToISO, createServerTimestamp, parseISOToTimestamp } from '../utils/dateHelpers';
-import { logger } from '../logger';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes } from '@splitifyd/shared';
-import { Expense } from '../expenses/validation';
+import { logger, LoggerContext } from '../logger';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group, CreateExpenseRequest } from '@splitifyd/shared';
+import { Expense, calculateSplits } from '../expenses/validation';
 import { verifyGroupMembership } from '../utils/groupHelpers';
+import { PermissionEngine } from '../permissions';
 
 /**
  * Zod schemas for expense document validation
  */
-const ExpenseSplitSchema = z.object({
+export const ExpenseSplitSchema = z.object({
     userId: z.string().min(1),
     amount: z.number().positive(),
     percentage: z.number().min(0).max(100).optional(),
 });
 
-const ExpenseDocumentSchema = z.object({
+export const ExpenseDocumentSchema = z.object({
     id: z.string().min(1),
     groupId: z.string().min(1),
     createdBy: z.string().min(1),
@@ -43,6 +44,7 @@ const ExpenseDocumentSchema = z.object({
  */
 export class ExpenseService {
     private expensesCollection = firestoreDb.collection(FirestoreCollections.EXPENSES);
+    private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
 
     /**
      * Fetch and validate an expense document
@@ -124,6 +126,150 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense');
         }
 
+        return this.transformExpenseToResponse(expense);
+    }
+
+    /**
+     * Transform group document to Group object
+     */
+    private transformGroupDocument(doc: admin.firestore.DocumentSnapshot): Group {
+        const data = doc.data();
+        if (!data || !data.data) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+        
+        return {
+            id: doc.id,
+            name: data.data.name,
+            description: data.data.description || '',
+            createdBy: data.data.createdBy,
+            members: data.data.members || {},
+            permissions: data.data.permissions,
+            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
+        } as Group;
+    }
+
+    /**
+     * Create a new expense
+     */
+    async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+        // Verify user is a member of the group
+        await verifyGroupMembership(expenseData.groupId, userId);
+
+        // Get group data and verify permissions
+        const groupDoc = await this.groupsCollection.doc(expenseData.groupId).get();
+        if (!groupDoc.exists) {
+            throw Errors.NOT_FOUND('Group');
+        }
+
+        const group = this.transformGroupDocument(groupDoc);
+        
+        // Check if user can create expenses in this group
+        const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
+        if (!canCreateExpense) {
+            throw new ApiError(
+                HTTP_STATUS.FORBIDDEN, 
+                'NOT_AUTHORIZED', 
+                'You do not have permission to create expenses in this group'
+            );
+        }
+
+        // Validate that paidBy and all participants are group members
+        const memberIds = Object.keys(group.members);
+        
+        if (!memberIds.includes(expenseData.paidBy)) {
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST, 
+                'INVALID_PAYER', 
+                'Payer must be a member of the group'
+            );
+        }
+
+        for (const participantId of expenseData.participants) {
+            if (!memberIds.includes(participantId)) {
+                throw new ApiError(
+                    HTTP_STATUS.BAD_REQUEST, 
+                    'INVALID_PARTICIPANT', 
+                    `Participant ${participantId} is not a member of the group`
+                );
+            }
+        }
+
+        // Create the expense document
+        const now = createServerTimestamp();
+        const docRef = this.expensesCollection.doc();
+        
+        // Calculate splits based on split type
+        const splits = calculateSplits(
+            expenseData.amount, 
+            expenseData.splitType, 
+            expenseData.participants, 
+            expenseData.splits
+        );
+
+        const expense: Expense = {
+            id: docRef.id,
+            groupId: expenseData.groupId,
+            createdBy: userId,
+            paidBy: expenseData.paidBy,
+            amount: expenseData.amount,
+            currency: expenseData.currency,
+            description: expenseData.description,
+            category: expenseData.category,
+            date: parseISOToTimestamp(expenseData.date) || createServerTimestamp(),
+            splitType: expenseData.splitType,
+            participants: expenseData.participants,
+            splits,
+            createdAt: now,
+            updatedAt: now,
+            deletedAt: null,
+            deletedBy: null,
+        };
+
+        // Only add receiptUrl if it's defined
+        if (expenseData.receiptUrl !== undefined) {
+            expense.receiptUrl = expenseData.receiptUrl;
+        }
+
+        // Validate the expense document before writing
+        try {
+            ExpenseDocumentSchema.parse(expense);
+        } catch (error) {
+            logger.error('Invalid expense document to write', error as Error, { 
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined 
+            });
+            throw new ApiError(
+                HTTP_STATUS.BAD_REQUEST,
+                'INVALID_EXPENSE_DATA',
+                'Invalid expense data format'
+            );
+        }
+
+        // Use transaction to create expense atomically
+        await firestoreDb.runTransaction(async (transaction) => {
+            // Re-verify group exists within transaction
+            const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
+            const groupDocInTx = await transaction.get(groupDocRef);
+
+            if (!groupDocInTx.exists) {
+                throw Errors.NOT_FOUND('Group');
+            }
+
+            const groupDataInTx = groupDocInTx.data();
+            if (!groupDataInTx?.data) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+            }
+
+            // Create the expense
+            transaction.set(docRef, expense);
+        });
+
+        // Set business context for logging
+        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
+        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
+
+        // Return the expense in response format
         return this.transformExpenseToResponse(expense);
     }
 
