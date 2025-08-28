@@ -4,6 +4,12 @@
     "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
     "scripts": {
         "build": "cd functions && npm run build",
+        "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",
+        "kill-emulators": "tsx scripts/kill-emulators.ts",
+        "switch-instance": "tsx scripts/switch-instance.ts",
+        "test": "cd functions && npm test",
+        "test:unit": "cd functions && npm run test:unit",
+        "test:integration": "cd functions && npm run test:integration",
         "link-webapp": "rm -rf public && ln -sf ../webapp-v2/dist public",
         "start-emulators": "npm run kill-emulators && tsx scripts/generate-firebase-config.ts && export GCLOUD_PROJECT=splitifyd && tsx scripts/start-with-data.ts",
         "generate-test-data": "cd functions && tsx scripts/generate-test-data.ts",
@@ -21,9 +27,6 @@
         "paginate-users:prod": "tsx scripts/switch-instance.ts prod && tsx scripts/paginate-users.ts production && rm functions/.env",
         "logs": "firebase functions:log",
         "manage-functions": "tsx scripts/manage-deployed-functions.ts",
-        "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",
-        "kill-emulators": "tsx scripts/kill-emulators.ts",
-        "switch-instance": "tsx scripts/switch-instance.ts"
     },
     "author": "",
     "license": "MIT",
