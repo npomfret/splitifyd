@@ -19,15 +19,7 @@ const createCommentSchema = Joi.object({
         'string.empty': 'Target ID is required',
         'any.required': 'Target ID is required',
     }),
-    groupId: Joi.string()
-        .trim()
-        .when('targetType', {
-            is: CommentTargetTypes.EXPENSE,
-            then: Joi.required().messages({
-                'any.required': 'Group ID is required for expense comments',
-            }),
-            otherwise: Joi.optional(),
-        }),
+    groupId: Joi.string().trim().optional(),
 });
 
 // Joi validation schema for listing comments query parameters

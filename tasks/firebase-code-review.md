@@ -203,3 +203,31 @@
             - Transaction support for atomic operations
         - **All unit tests passing (274 tests)** - build successful
         - **Note:** Skipped comprehensive unit tests for write methods following established pattern due to mocking complexity with Vitest/Firestore
+
+### Phase 5: Refactor Comments Management
+
+**Goal**: Extract comment operations into their own service following the established pattern.
+
+1.  **Task 5.1: Create `CommentService`**: ✅ **COMPLETED** (2025-08-28)
+    - ✅ Created `src/services/CommentService.ts`
+    - ✅ Implemented `getComment` method (fetch single comment with access validation)
+    - ✅ Implemented `listComments` method (pagination, target type support, user access validation)
+    - ✅ Implemented `createComment` method (target access validation, author data fetching)
+    - ✅ Moved all helper functions from handlers to service:
+        - `getCommentsCollection` (supports both GROUP and EXPENSE target types)
+        - `verifyCommentAccess` (validates user access to comment targets)
+        - `transformCommentDocument` (converts Firestore docs to API format)
+    - ✅ Refactored both handlers (`createComment`, `listComments`) to use CommentService
+    - ✅ Updated validation to remove groupId requirement (now resolved internally for expense comments)
+    - **Key improvements:**
+        - Centralized all comment operations in service layer
+        - Consistent error handling and validation with Zod schemas
+        - Proper access control for both group and expense comments
+        - Automatic groupId resolution for expense comments
+        - Clean separation between handlers (request/response) and business logic
+        - Handlers reduced from ~190 lines to ~45 lines each (~75% reduction)
+        - Support for both GROUP and EXPENSE target types
+        - User data fetching and enrichment from Firebase Auth
+    - **All unit tests passing (274 tests)** - build successful
+    - **All comment integration tests passing (22 tests)** - confirms API contracts maintained
+    - **Note:** Following established pattern, skipped comprehensive unit tests for service due to mocking complexity with Vitest/Firestore

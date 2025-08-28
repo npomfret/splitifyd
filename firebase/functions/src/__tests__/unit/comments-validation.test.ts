@@ -171,11 +171,15 @@ describe('Comments Validation', () => {
             expect(() => validateCreateComment(request)).toThrow('Target ID is required');
         });
 
-        it('should require group ID for expense comments', () => {
+        it('should not require group ID for expense comments (resolved internally)', () => {
             const request = new CommentRequestBuilder().withText('Test expense comment').withTargetType(CommentTargetTypes.EXPENSE).withTargetId('expense123').withMissingField('groupId').build();
 
-            expect(() => validateCreateComment(request)).toThrow(ApiError);
-            expect(() => validateCreateComment(request)).toThrow('Group ID is required for expense comments');
+            const result = validateCreateComment(request);
+
+            expect(result.text).toBe('Test expense comment');
+            expect(result.targetType).toBe(CommentTargetTypes.EXPENSE);
+            expect(result.targetId).toBe('expense123');
+            expect(result.groupId).toBeUndefined();
         });
 
         it('should not require group ID for group comments', () => {
