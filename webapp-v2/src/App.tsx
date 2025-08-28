@@ -1,12 +1,11 @@
-import Router, { Route, route } from 'preact-router';
+import Router, { Route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
-import { useEffect } from 'preact/hooks';
-import { routes } from '@/constants/routes';
 import { LoadingState, WarningBanner } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
 import { usePolicyAcceptance } from './hooks/usePolicyAcceptance';
 import { useAuth } from './app/hooks/useAuth';
+import { navigationService } from './services/navigation.service';
 
 // Lazy-loaded page components for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then((m) => ({ default: m.LandingPage })));
@@ -48,17 +47,11 @@ function ProtectedRoute({ component: Component, ...props }: any) {
         return <LoadingState fullPage message="Loading..." />;
     }
 
-    // Redirect to login if not authenticated
-    useEffect(() => {
-        if (authStore.initialized && !authStore.user) {
-            // Store current URL for redirect after login
-            const currentUrl = window.location.pathname + window.location.search;
-            route(routes.loginWithReturnUrl(currentUrl), true);
-        }
-    }, [authStore.initialized, authStore.user]);
-
-    // Don't render protected content if not authenticated
-    if (!authStore.user) {
+    // Redirect to login if not authenticated (declarative approach)
+    if (authStore.initialized && !authStore.user) {
+        // Store current URL for redirect after login
+        const currentUrl = window.location.pathname + window.location.search;
+        navigationService.goToLogin(currentUrl);
         return null;
     }
 

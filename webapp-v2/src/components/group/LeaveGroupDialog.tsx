@@ -1,10 +1,9 @@
 import { useSignal } from '@preact/signals';
 import { useTranslation } from 'react-i18next';
-import { route } from 'preact-router';
-import { ROUTES } from '@/constants/routes';
 import { ConfirmDialog } from '@/components/ui';
 import { apiClient } from '@/app/apiClient';
 import { logError } from '@/utils/browser-logger';
+import { useNavigation } from '@/hooks/useNavigation';
 
 interface LeaveGroupDialogProps {
     isOpen: boolean;
@@ -15,6 +14,7 @@ interface LeaveGroupDialogProps {
 
 export function LeaveGroupDialog({ isOpen, onClose, groupId, hasOutstandingBalance }: LeaveGroupDialogProps) {
     const { t } = useTranslation();
+    const navigation = useNavigation();
     const isProcessing = useSignal(false);
 
     const handleConfirm = async () => {
@@ -28,7 +28,7 @@ export function LeaveGroupDialog({ isOpen, onClose, groupId, hasOutstandingBalan
             isProcessing.value = true;
             await apiClient.leaveGroup(groupId);
             // Successfully left - navigation will handle the redirect
-            route(ROUTES.DASHBOARD);
+            navigation.goToDashboard();
         } catch (error: any) {
             logError('Failed to leave group', error);
         } finally {

@@ -60,22 +60,8 @@ document.addEventListener(
     true,
 ); // Use capture phase to catch all clicks
 
-// Track page navigation
-let previousPath = window.location.pathname;
-const checkNavigation = () => {
-    const currentPath = window.location.pathname;
-    if (currentPath !== previousPath) {
-        logUserAction('Navigation', {
-            from: previousPath,
-            to: currentPath,
-            type: 'spa-navigation',
-        });
-        previousPath = currentPath;
-    }
-};
-
-// Check for navigation changes periodically (for SPA routing)
-setInterval(checkNavigation, 100);
+// Navigation tracking is now handled by NavigationService
+// This replaces the inefficient setInterval polling approach
 
 render(
     <AuthProvider>

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'preact/hooks';
+import { useNavigation } from '@/hooks/useNavigation';
 
 export function CTASection() {
+    const navigation = useNavigation();
     const h2Ref = useRef<HTMLHeadingElement>(null);
 
     useEffect(() => {
@@ -37,9 +39,12 @@ export function CTASection() {
                 </h2>
                 <p class="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">Join thousands who are already making group payments stress-free and transparent. Get started today!</p>
 
-                <a href="/register" class="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors transform hover:scale-105 duration-200">
+                <button 
+                    onClick={() => navigation.goToRegister()}
+                    class="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors transform hover:scale-105 duration-200"
+                >
                     Sign Up for Free
-                </a>
+                </button>
             </div>
         </section>
     );

@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@/hooks/useNavigation';
 
 export function Footer() {
     const { t } = useTranslation();
+    const navigation = useNavigation();
     return (
         <footer class="bg-gray-100 border-t border-gray-200">
             <div class="max-w-7xl mx-auto px-4 py-8">
@@ -17,9 +19,13 @@ export function Footer() {
                         <h3 class="font-semibold text-gray-900 mb-3">{t('footer.productSection')}</h3>
                         <ul class="space-y-2">
                             <li>
-                                <a href="/pricing" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-pricing-link">
+                                <button 
+                                    onClick={() => navigation.goToPricing()}
+                                    class="text-sm text-gray-600 hover:text-purple-600 transition-colors" 
+                                    data-testid="footer-pricing-link"
+                                >
                                     {t('footer.pricing')}
-                                </a>
+                                </button>
                             </li>
                         </ul>
                     </div>
@@ -29,19 +35,31 @@ export function Footer() {
                         <h3 class="font-semibold text-gray-900 mb-3">{t('footer.legalSection')}</h3>
                         <ul class="space-y-2">
                             <li>
-                                <a href="/terms" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-terms-link">
+                                <button 
+                                    onClick={() => navigation.goToTerms()}
+                                    class="text-sm text-gray-600 hover:text-purple-600 transition-colors" 
+                                    data-testid="footer-terms-link"
+                                >
                                     {t('footer.termsOfService')}
-                                </a>
+                                </button>
                             </li>
                             <li>
-                                <a href="/privacy" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-privacy-link">
+                                <button 
+                                    onClick={() => navigation.goToPrivacyPolicy()}
+                                    class="text-sm text-gray-600 hover:text-purple-600 transition-colors" 
+                                    data-testid="footer-privacy-link"
+                                >
                                     {t('footer.privacyPolicy')}
-                                </a>
+                                </button>
                             </li>
                             <li>
-                                <a href="/cookies" class="text-sm text-gray-600 hover:text-purple-600 transition-colors" data-testid="footer-cookies-link">
+                                <button 
+                                    onClick={() => navigation.goToCookiePolicy()}
+                                    class="text-sm text-gray-600 hover:text-purple-600 transition-colors" 
+                                    data-testid="footer-cookies-link"
+                                >
                                     {t('footer.cookiePolicy')}
-                                </a>
+                                </button>
                             </li>
                         </ul>
                     </div>
