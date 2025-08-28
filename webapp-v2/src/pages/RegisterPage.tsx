@@ -2,6 +2,7 @@ import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useTranslation } from 'react-i18next';
+import { ROUTES } from '@/constants/routes';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -56,7 +57,7 @@ export function RegisterPage() {
     // Redirect if already logged in
     useEffect(() => {
         if (authStore.user) {
-            route('/dashboard', true);
+            route(ROUTES.DASHBOARD, true);
         }
     }, [authStore.user]);
 

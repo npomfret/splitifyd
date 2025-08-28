@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useComputed } from '@preact/signals';
+import { routes } from '@/constants/routes';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { logError } from '@/utils/browser-logger.ts';
 
@@ -69,11 +70,11 @@ export function useFormSubmission({
             if (isEditMode && expenseId) {
                 await expenseFormStore.updateExpense(groupId, expenseId);
                 // Navigate back to expense detail after successful update
-                route(`/groups/${groupId}/expenses/${expenseId}`);
+                route(routes.expenseDetail(groupId, expenseId));
             } else {
                 await expenseFormStore.saveExpense(groupId);
                 // Navigate back to group detail after creating new expense (including copy mode)
-                route(`/groups/${groupId}`);
+                route(routes.groupDetail(groupId));
             }
         } catch (error) {
             logError('Failed to save expense', error);
@@ -90,10 +91,10 @@ export function useFormSubmission({
 
         if (isEditMode && expenseId) {
             // Navigate back to expense detail when canceling edit
-            route(`/groups/${groupId}/expenses/${expenseId}`);
+            route(routes.expenseDetail(groupId, expenseId));
         } else {
             // Navigate back to group detail when canceling create
-            route(`/groups/${groupId}`);
+            route(routes.groupDetail(groupId));
         }
     };
 

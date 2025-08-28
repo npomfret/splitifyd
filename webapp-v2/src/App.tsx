@@ -1,6 +1,7 @@
 import Router, { Route, route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
 import { useEffect } from 'preact/hooks';
+import { routes } from '@/constants/routes';
 import { LoadingState, WarningBanner } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
@@ -52,8 +53,7 @@ function ProtectedRoute({ component: Component, ...props }: any) {
         if (authStore.initialized && !authStore.user) {
             // Store current URL for redirect after login
             const currentUrl = window.location.pathname + window.location.search;
-            const redirectUrl = encodeURIComponent(currentUrl);
-            route(`/login?returnUrl=${redirectUrl}`, true);
+            route(routes.loginWithReturnUrl(currentUrl), true);
         }
     }, [authStore.initialized, authStore.user]);
 

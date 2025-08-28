@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { ROUTES } from '@/constants/routes';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { useTranslation } from 'react-i18next';
 
@@ -93,7 +94,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             try {
                                 await authStore.logout();
                                 // Force immediate redirect to login
-                                route('/login', true);
+                                route(ROUTES.LOGIN, true);
                             } catch (error) {
                                 // Error is already handled in authStore
                                 console.error('Logout failed:', error);

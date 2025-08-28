@@ -31,7 +31,9 @@ export const routes = {
     groupDetail: (id: string) => `/groups/${id}`,
     addExpense: (groupId: string) => `/groups/${groupId}/add-expense`,
     expenseDetail: (groupId: string, expenseId: string) => `/groups/${groupId}/expenses/${expenseId}`,
-    editExpense: (groupId: string, expenseId: string) => `/groups/${groupId}/add-expense?edit=${expenseId}`,
+    editExpense: (groupId: string, expenseId: string) => `/groups/${groupId}/add-expense?id=${expenseId}&edit=true`,
+    copyExpense: (groupId: string, sourceId: string) => `/groups/${groupId}/add-expense?copy=true&sourceId=${sourceId}`,
+    loginWithReturnUrl: (returnUrl: string) => `/login?returnUrl=${encodeURIComponent(returnUrl)}`,
 } as const;
 
 // Type for all route values

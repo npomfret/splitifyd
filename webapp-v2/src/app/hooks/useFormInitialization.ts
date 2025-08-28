@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
+import { ROUTES } from '@/constants/routes';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
@@ -124,7 +125,7 @@ export function useFormInitialization({
     useEffect(() => {
         if (!groupId) {
             initError.value = 'No group ID provided';
-            route('/dashboard');
+            route(ROUTES.DASHBOARD);
             return;
         }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useSignal, useComputed, batch } from '@preact/signals';
+import { routes } from '@/constants/routes';
 import { apiClient } from '../app/apiClient';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
@@ -88,15 +89,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     }, [groupId, expenseId]);
 
     const handleEdit = () => {
-        route(`/groups/${groupId}/add-expense?id=${expenseId}&edit=true`);
+        route(routes.editExpense(groupId!, expenseId!));
     };
 
     const handleCopy = () => {
-        route(`/groups/${groupId}/add-expense?copy=true&sourceId=${expenseId}`);
+        route(routes.copyExpense(groupId!, expenseId!));
     };
 
     const handleBack = () => {
-        route(`/groups/${groupId}`);
+        route(routes.groupDetail(groupId!));
     };
 
     const handleDelete = async () => {
@@ -105,7 +106,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         try {
             await apiClient.deleteExpense(expenseId);
             // Navigate back to group after successful deletion
-            route(`/groups/${groupId}`);
+            route(routes.groupDetail(groupId!));
         } catch (error) {
             logError('Failed to delete expense', error);
             // Error is handled by ExpenseActions component

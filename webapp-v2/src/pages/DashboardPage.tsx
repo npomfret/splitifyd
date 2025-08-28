@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { route } from 'preact-router';
 import { useTranslation } from 'react-i18next';
+import { routes } from '@/constants/routes';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { enhancedGroupsStore } from '../app/stores/groups-store-enhanced';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -56,7 +57,7 @@ export function DashboardPage() {
     };
 
     const handleAddExpense = (groupId: string) => {
-        route(`/groups/${groupId}/add-expense`);
+        route(routes.addExpense(groupId));
     };
 
     return (
@@ -111,7 +112,7 @@ export function DashboardPage() {
                 onClose={() => setIsCreateModalOpen(false)}
                 onSuccess={(groupId) => {
                     setIsCreateModalOpen(false);
-                    route(`/groups/${groupId}`);
+                    route(routes.groupDetail(groupId));
                 }}
             />
 

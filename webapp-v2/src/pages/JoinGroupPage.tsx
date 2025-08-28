@@ -6,6 +6,7 @@
 
 import { useEffect } from 'preact/hooks';
 import { route } from 'preact-router';
+import { ROUTES, routes } from '@/constants/routes';
 import { joinGroupStore } from '../app/stores/join-group-store';
 // import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -50,7 +51,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
         if (joinSuccess && group) {
             // Navigate to the group detail page
             setTimeout(() => {
-                route(`/groups/${group.id}`);
+                route(routes.groupDetail(group.id));
             }, 500); // Small delay to show success message
         }
     }, [joinSuccess, group]);
@@ -74,7 +75,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className="text-red-500 text-4xl mb-4">⚠️</div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Link</h2>
                             <p className="text-gray-600 mb-6">No group invitation link was provided. Please use a valid invitation link to join a group.</p>
-                            <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
+                            <Button variant="secondary" onClick={() => route(ROUTES.DASHBOARD)} className="w-full">
                                 Back to Dashboard
                             </Button>
                         </div>
@@ -110,7 +111,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <div className="text-red-500 text-4xl mb-4">⚠️</div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to Join Group</h2>
                             <p className="text-gray-600 mb-6">{error}</p>
-                            <Button variant="secondary" onClick={() => route('/dashboard')} className="w-full">
+                            <Button variant="secondary" onClick={() => route(ROUTES.DASHBOARD)} className="w-full">
                                 Back to Dashboard
                             </Button>
                         </div>
@@ -171,7 +172,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                             <Stack spacing="md">
                                 <JoinButton onJoin={handleJoinGroup} loading={joining} />
 
-                                <Button variant="secondary" onClick={() => route('/dashboard')} fullWidth>
+                                <Button variant="secondary" onClick={() => route(ROUTES.DASHBOARD)} fullWidth>
                                     Cancel
                                 </Button>
                             </Stack>

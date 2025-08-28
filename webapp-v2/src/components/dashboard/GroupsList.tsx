@@ -1,4 +1,5 @@
 import { route } from 'preact-router';
+import { routes } from '@/constants/routes';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { LoadingSpinner } from '../ui';
 import { GroupCard } from './GroupCard';
@@ -70,7 +71,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                     <GroupCard
                         group={group}
                         onClick={() => {
-                            route(`/groups/${group.id}`);
+                            route(routes.groupDetail(group.id));
                         }}
                         onInvite={onInvite}
                         onAddExpense={onAddExpense}
