@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
@@ -9,6 +10,25 @@ import {
     PolicyDocument,
     PolicyVersion,
 } from '@splitifyd/shared';
+
+/**
+ * Zod schema for Policy document validation
+ */
+const PolicyVersionSchema = z.object({
+    text: z.string(),
+    createdAt: z.any(), // Firestore Timestamp
+    publishedBy: z.string().optional(),
+});
+
+const PolicyDocumentSchema = z
+    .object({
+        policyName: z.string().min(1),
+        currentVersionHash: z.string().min(1),
+        versions: z.record(z.string(), PolicyVersionSchema),
+        createdAt: z.any().optional(), // Firestore Timestamp
+        updatedAt: z.any().optional(), // Firestore Timestamp
+    })
+    .passthrough();
 
 /**
  * Service for managing policy operations
@@ -406,6 +426,111 @@ export class PolicyService {
             }
             logger.error('Failed to delete policy version', error as Error, { policyId: id, versionHash: hash });
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_DELETE_FAILED', 'Failed to delete policy version');
+        }
+    }
+
+    /**
+     * Get all current policy versions (public endpoint)
+     */
+    async getCurrentPolicies(): Promise<{
+        policies: Record<string, { policyName: string; currentVersionHash: string }>;
+        count: number;
+    }> {
+        try {
+            const policiesSnapshot = await this.policiesCollection.get();
+            const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
+
+            policiesSnapshot.forEach((doc) => {
+                const data = doc.data() as PolicyDocument;
+
+                // Validate policy data structure
+                try {
+                    PolicyDocumentSchema.parse(data);
+                } catch (error) {
+                    logger.error('Policy document validation failed', error as Error, {
+                        policyId: doc.id,
+                    });
+                    return;
+                }
+
+                if (!data.policyName || !data.currentVersionHash) {
+                    return;
+                }
+
+                currentPolicies[doc.id] = {
+                    policyName: data.policyName,
+                    currentVersionHash: data.currentVersionHash,
+                };
+            });
+
+            logger.info('policies-retrieved', { count: Object.keys(currentPolicies).length });
+
+            return {
+                policies: currentPolicies,
+                count: Object.keys(currentPolicies).length,
+            };
+        } catch (error) {
+            logger.error('Failed to get current policies', error as Error);
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICIES_GET_FAILED', 'Failed to retrieve current policies');
+        }
+    }
+
+    /**
+     * Get current version of a specific policy (public endpoint)
+     */
+    async getCurrentPolicy(id: string): Promise<{
+        id: string;
+        policyName: string;
+        currentVersionHash: string;
+        text: string;
+        createdAt: any;
+    }> {
+        try {
+            const policyDoc = await this.policiesCollection.doc(id).get();
+
+            if (!policyDoc.exists) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
+            }
+
+            const data = policyDoc.data() as PolicyDocument;
+            if (!data) {
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
+            }
+
+            // Validate policy data structure
+            try {
+                PolicyDocumentSchema.parse(data);
+            } catch (error) {
+                logger.error('Policy document validation failed', error as Error, {
+                    policyId: id,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Policy document structure is invalid');
+            }
+
+            if (!data.currentVersionHash || !data.versions || !data.policyName) {
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing required fields');
+            }
+
+            const currentVersion = data.versions[data.currentVersionHash];
+            if (!currentVersion) {
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_NOT_FOUND', 'Current policy version not found in versions map');
+            }
+
+            logger.info('policy-retrieved', { id });
+
+            return {
+                id,
+                policyName: data.policyName,
+                currentVersionHash: data.currentVersionHash,
+                text: currentVersion.text,
+                createdAt: currentVersion.createdAt,
+            };
+        } catch (error) {
+            if (error instanceof ApiError) {
+                throw error;
+            }
+            logger.error('Failed to get current policy', error as Error, { policyId: id });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_GET_FAILED', 'Failed to retrieve current policy');
         }
     }
 }

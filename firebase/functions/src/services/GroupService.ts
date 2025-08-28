@@ -3,7 +3,7 @@ import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { Group, GroupWithBalance } from '../types/group-types';
 import { FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD } from '@splitifyd/shared';
-import { calculateGroupBalances, calculateGroupBalancesWithData } from './balance';
+import { calculateGroupBalances } from './balanceCalculator';
 import { calculateExpenseMetadata } from './expenseMetadataService';
 import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
 import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
@@ -127,7 +127,12 @@ export class GroupService {
         }
 
         // Get user's balance from first available currency
-        let userBalance: any = null;
+        let userBalance: any = {
+            netBalance: 0,
+            totalOwed: 0,
+            totalOwing: 0,
+        };
+        
         if (groupBalances.balancesByCurrency) {
             const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
 
@@ -310,7 +315,7 @@ export class GroupService {
         const groupIds = groups.map((group) => group.id);
 
         // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
-        const { expensesByGroup, settlementsByGroup, expenseMetadataByGroup } = await this.batchFetchGroupData(groupIds);
+        const { expenseMetadataByGroup } = await this.batchFetchGroupData(groupIds);
 
         // Batch fetch user profiles for all members across all groups
         const allMemberIds = new Set<string>();
@@ -319,11 +324,32 @@ export class GroupService {
         }
         const allMemberProfiles = await userService.getUsers(Array.from(allMemberIds));
 
+        // Calculate balances for groups that have expenses
+        const groupsWithExpenses = groups.filter(group => {
+            const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
+            return expenseMetadata.count > 0;
+        });
+
+        const balancePromises = groupsWithExpenses.map(group => 
+            calculateGroupBalances(group.id).catch(error => {
+                logger.error('Error calculating balances', error, { groupId: group.id });
+                return {
+                    balancesByCurrency: {},
+                    userBalances: {},
+                    simplifiedDebts: {},
+                };
+            })
+        );
+
+        const balanceResults = await Promise.all(balancePromises);
+        const balanceMap = new Map<string, any>();
+        groupsWithExpenses.forEach((group, index) => {
+            balanceMap.set(group.id, balanceResults[index]);
+        });
+
         // Process each group using batched data - no more database calls!
         const groupsWithBalances: Group[] = groups.map((group) => {
             // Get pre-fetched data for this group (no database calls)
-            const expenses = expensesByGroup.get(group.id) || [];
-            const settlements = settlementsByGroup.get(group.id) || [];
             const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
             // Get member profiles for this group
@@ -336,43 +362,18 @@ export class GroupService {
                 }
             }
 
-            // 🚀 OPTIMIZED: Use pre-fetched data instead of making database calls
-            let groupBalances;
-            try {
-                // Create the input structure expected by the balance service
-                const balanceInput = {
-                    groupId: group.id,
-                    expenses,
-                    settlements,
-                    groupData: {
-                        id: group.id,
-                        data: {
-                            members: group.members,
-                            name: group.name,
-                            description: group.description,
-                            createdBy: group.createdBy,
-                        },
-                    },
-                    memberProfiles,
-                };
-
-                // Use optimized balance calculation with pre-fetched data
-                groupBalances = calculateGroupBalancesWithData(balanceInput);
-            } catch (error) {
-                logger.error('Error calculating balances', error, { groupId: group.id });
-                // Provide fallback empty balances
-                groupBalances = {
-                    balancesByCurrency: {},
-                    userBalances: {},
-                    simplifiedDebts: {},
-                };
-            }
+            // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
+            const groupBalances = balanceMap.get(group.id) || {
+                balancesByCurrency: {},
+                userBalances: {},
+                simplifiedDebts: {},
+            };
 
             // Calculate currency-specific balances
             const balancesByCurrency: Record<string, any> = {};
             if (groupBalances.balancesByCurrency) {
                 for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
-                    const currencyUserBalance = currencyBalances[userId];
+                    const currencyUserBalance = (currencyBalances as any)[userId];
                     if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
                         balancesByCurrency[currency] = {
                             currency,
@@ -389,9 +390,14 @@ export class GroupService {
             const lastActivity = this.formatRelativeTime(lastActivityDate.toISOString());
 
             // Get user's balance from first available currency
-            let userBalance: any = null;
+            let userBalance: any = {
+                netBalance: 0,
+                totalOwed: 0,
+                totalOwing: 0,
+            };
+            
             if (groupBalances.balancesByCurrency) {
-                const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
+                const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0] as any;
 
                 if (currencyBalances && currencyBalances[userId]) {
                     const balance = currencyBalances[userId];
@@ -609,6 +615,53 @@ export class GroupService {
         logger.info('group-deleted', { id: groupId });
 
         return { message: 'Group deleted successfully' };
+    }
+
+    /**
+     * Get group balances for a user
+     * Returns simplified debts and balance information
+     */
+    async getGroupBalances(groupId: string, userId: string): Promise<{
+        groupId: string;
+        userBalances: any;
+        simplifiedDebts: any;
+        lastUpdated: string;
+        balancesByCurrency: Record<string, any>;
+    }> {
+        if (!userId) {
+            throw Errors.UNAUTHORIZED();
+        }
+
+        if (!groupId) {
+            throw Errors.MISSING_FIELD('groupId');
+        }
+
+        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
+
+        if (!groupDoc.exists) {
+            throw Errors.NOT_FOUND('Group');
+        }
+
+        const groupData = groupDoc.data()!;
+
+        if (!groupData.data || !groupData.data.members || Object.keys(groupData.data.members).length === 0) {
+            throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
+        }
+
+        if (!(userId in groupData.data.members)) {
+            throw Errors.FORBIDDEN();
+        }
+
+        // Always calculate balances on-demand for accurate data
+        const balances = await calculateGroupBalances(groupId);
+
+        return {
+            groupId: balances.groupId,
+            userBalances: balances.userBalances,
+            simplifiedDebts: balances.simplifiedDebts,
+            lastUpdated: timestampToISO(balances.lastUpdated),
+            balancesByCurrency: balances.balancesByCurrency || {},
+        };
     }
 }
 
