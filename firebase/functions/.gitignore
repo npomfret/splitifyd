@@ -63,3 +63,4 @@ lerna-debug.log*
 serviceAccountKey.json
 
 test-integration-results.json
+.lsmcp/

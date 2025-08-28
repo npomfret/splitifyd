@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { vi } from 'vitest';
+import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { EmptyGroupsState } from '@/components/dashboard/EmptyGroupsState.tsx';
 
 // Mock react-i18next

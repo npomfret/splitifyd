@@ -48,6 +48,20 @@ This report details the specific issues found and provides recommendations for r
 - [x] **Actual effort**: 1 day
 - [x] **Achieved outcome**: 24% reduction in test code (1,117 lines removed), faster execution, improved maintainability
 
+### Priority 4: Convert ExpenseService Tests (2025-08-28)
+
+- [x] **Deleted mock-heavy ExpenseService.test.ts**: Removed 1,262 lines of brittle mock setup and verification
+- [x] **Created minimal ExpenseService.unit.test.ts**: 40-line acknowledgment that service needs Firebase emulator
+- [x] **Created comprehensive ExpenseService.integration.test.ts**: 400+ lines of robust integration tests
+- [x] **Total Impact**: Removed 1,262 lines of brittle tests, added 440 lines of reliable tests
+- [x] **Key Benefits**:
+    - Tests real Firebase behavior with emulator
+    - Validates actual permission enforcement
+    - Tests balance calculations and split logic
+    - Verifies transaction handling and optimistic locking
+    - Tests participant validation and group membership
+    - No more mock-heavy anti-patterns
+
 ## Progress Update (2025-08-28)
 
 ### Priority 3 Completion (2025-08-28):
@@ -174,6 +188,19 @@ This means Playwright tests with mocked APIs are classified as unit tests, not i
     - Tests check mock invocations rather than actual outcomes
     - Complex mock chains that break with any refactoring
 - **Lines of brittle test code**: ~800+ lines of mock setup and verification
+
+#### ExpenseService.test.ts Analysis (COMPLETED):
+
+- **Builder Pattern**: ❌ Not implemented, used manual mock setup 
+- **Major Problem**: ✅ RESOLVED - 1,262 lines of mock-heavy tests deleted
+- **Previous Anti-patterns**:
+    - Mocked entire Firebase Admin SDK and 5+ other modules
+    - 139+ lines of mock setup before any test logic
+    - Tested implementation details through mock verification
+    - Mock chains that broke with every service refactoring
+- **New Approach**: ✅ Created comprehensive integration tests that verify real behavior
+- **Lines of brittle test code removed**: 1,262 lines
+- **Lines of reliable test code added**: 440 lines
 
 #### Other Issues:
 
@@ -332,8 +359,13 @@ test('registers user', async ({ page, context }) => {
 - ✅ **Priority 3 COMPLETED**: Reduced validation test by 42% (244 → 140 lines)
 - ✅ Removed 1 contradictory hybrid test + 1 duplicate store test file
 - ✅ **Achieved**: Major test cleanup with 24% overall reduction (1,117 lines removed)
-- ✅ **Actual Outcome**:
-    - All tests still passing with improved maintainability
+- ✅ **Priority 4 COMPLETED**: ExpenseService test conversion
+    - Removed: 1,262 lines of brittle mock-heavy tests  
+    - Added: 440 lines of robust integration tests
+    - Net reduction: 822 lines of better tests
+- ✅ **Total Achievement**:
+    - Combined reduction: 1,939 lines of problematic test code removed
+    - All remaining tests pass with improved maintainability
     - Behavior-focused tests instead of implementation details
     - Consolidated test logic for easier understanding
     - Fixed Jest→Vitest compatibility issues
