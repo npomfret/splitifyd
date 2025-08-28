@@ -146,8 +146,15 @@ export class UserPool {
             tempPage.on('pageerror', (error: Error) => {
                 pageErrors.push(`PAGE ERROR: ${error.message}`);
             });
+            // Create a temporary user object for better error reporting
+            const tempUser: BaseUser = {
+                uid: uniqueId,
+                email,
+                displayName,
+            };
+
             // Use RegisterPage to properly navigate and fill form
-            const registerPage = new RegisterPage(tempPage);
+            const registerPage = new RegisterPage(tempPage, tempUser);
             await registerPage.navigateToRegister();
 
             // Check for errors before proceeding
@@ -164,7 +171,7 @@ export class UserPool {
             await registerPage.register(displayName, email, password);
 
             // Logout so the user can be used later using DashboardPage helper
-            const dashboardPage = new DashboardPage(tempPage);
+            const dashboardPage = new DashboardPage(tempPage, tempUser);
             await dashboardPage.logout();  // This already waits for redirect to login page
         } finally {
             // Always close the page and context to avoid resource leaks

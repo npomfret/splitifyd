@@ -113,22 +113,8 @@ export class DashboardPage extends BasePage {
         // Dashboard is now ready - we don't check for specific content since users may have existing groups
     }
 
-    async signOut() {
-        // Ensure we're logged in first
-        await this.waitForUserMenu();
-
-        // Click user menu button to open dropdown
-        const userMenuButton = this.getUserMenuButton();
-        await this.clickButton(userMenuButton, { buttonName: 'User Menu' });
-
-        // Wait for dropdown to appear and click sign out
-        const signOutButton = this.getSignOutButton();
-        await expect(signOutButton).toBeVisible();
-        await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
-
-        // Wait for redirect to login page after sign out
-        await expect(this.page).toHaveURL(/\/login/);
-    }
+    // Note: Use the inherited logout() method from BasePage for signing out
+    // It provides more robust handling of dropdown states and button enabling
 
     // Security testing methods
     getDashboardTestId() {

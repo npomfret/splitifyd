@@ -159,7 +159,7 @@ authenticatedPageTest.describe('Group Management', () => {
             
             // Sign out current user
             const dashboard = new DashboardPage(page);
-            await dashboard.signOut();
+            await dashboard.logout();
             
             // Wait for redirect to login page
             await expect(page).toHaveURL(/\/login/);

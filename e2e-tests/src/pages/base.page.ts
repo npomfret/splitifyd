@@ -250,12 +250,12 @@ export abstract class BasePage {
             timeout?: number; // Custom timeout for visibility check
         },
     ): Promise<void> {
-        const { buttonName, skipEnabledCheck = false, timeout = 5000 } = options || {};
+        const { buttonName, skipEnabledCheck = false, timeout = 2000 } = options || {};
 
         // Get button text for error messages if not provided
         const buttonText = buttonName || (await button.textContent()) || 'button';
 
-        await button.waitFor({state: 'attached', timeout: 1000});
+        await button.waitFor({state: 'attached', timeout });
 
         const exists = (await button.count()) > 0;
         if (!exists) {
@@ -278,7 +278,8 @@ export abstract class BasePage {
         // Check if enabled (unless explicitly skipped)
         if (!skipEnabledCheck) {
             try {
-                await expect(button).toBeEnabled({ timeout: 1000 });
+                // Use the same timeout for enabled check as we used for visibility
+                await expect(button).toBeEnabled({ timeout });
             } catch (error) {
                 // Use our detailed error reporting for disabled buttons
                 await this.expectButtonEnabled(button, buttonText);
@@ -446,10 +447,13 @@ export abstract class BasePage {
         await this.openUserMenu();
         
         const signOutButton = this.getSignOutButton();
-        await expect(signOutButton).toBeVisible();
-        await expect(signOutButton).toBeEnabled();
         
-        await this.clickButton(signOutButton, { buttonName: 'Sign Out' });
+        // Click the sign-out button - clickButton handles visibility and enabled state
+        // Note: dropdown items may be briefly disabled during animation, so we use a longer timeout
+        await this.clickButton(signOutButton, { 
+            buttonName: 'Sign Out',
+            timeout: 3000  // Longer timeout for dropdown items that may animate in
+        });
         
         // Wait for redirect to login page
         await expect(this._page).toHaveURL(/\/login/, { timeout: 5000 });

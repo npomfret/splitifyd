@@ -39,7 +39,7 @@ authenticatedPageTest.describe('Authentication Security', () => {
         // Navigate back to dashboard and log out properly
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
-        await dashboardPage.signOut();
+        await dashboardPage.logout();
         
         // Try to access the group page directly while logged out
         await page.goto(`/groups/${groupId}`);

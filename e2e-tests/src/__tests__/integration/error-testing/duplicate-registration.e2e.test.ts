@@ -26,7 +26,7 @@ test.describe('Duplicate User Registration E2E', () => {
 
         // Log out to attempt second registration using page object
         const dashboardPage = new DashboardPage(page);
-        await dashboardPage.signOut();
+        await dashboardPage.logout();
 
         // Navigate to register page using page object
         await registerPage.navigate();
@@ -89,7 +89,7 @@ test.describe('Duplicate User Registration E2E', () => {
 
         // Log out using page object
         const dashboardPage = new DashboardPage(page);
-        await dashboardPage.signOut();
+        await dashboardPage.logout();
 
         // Wait for navigation after logout using page object
         await expect(page).toHaveURL(
@@ -149,7 +149,7 @@ test.describe('Duplicate User Registration E2E', () => {
 
         // Log out using page object
         const dashboardPage = new DashboardPage(page);
-        await dashboardPage.signOut();
+        await dashboardPage.logout();
 
         // Wait for navigation after logout
         await expect(page).toHaveURL(
