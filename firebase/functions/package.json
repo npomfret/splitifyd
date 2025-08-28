@@ -9,9 +9,10 @@
         "clean": "rm -rf lib coverage",
         "super-clean": "npm run clean && rm -rf node_modules",
         "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",
-        "test": "NODE_ENV=test npm run build && npm run test:unit && npm run test:integration",
-        "test:unit": "NODE_ENV=test npm run build && jest src/__tests__/unit/",
-        "test:integration": "NODE_ENV=test npm run build && FUNCTIONS_EMULATOR=true GCLOUD_PROJECT=splitifyd jest src/__tests__/integration/ --maxWorkers=1 --json --outputFile=test-integration-results.json --reporters=default --detectOpenHandles",
+        "test": "NODE_ENV=test npm run build:shared && NODE_ENV=test npm run build && npm run test:unit && npm run test:integration",
+        "test:unit": "NODE_ENV=test npm run build:shared && NODE_ENV=test npm run build && jest src/__tests__/unit/",
+        "test:integration": "NODE_ENV=test npm run build:shared && NODE_ENV=test npm run build && FUNCTIONS_EMULATOR=true GCLOUD_PROJECT=splitifyd jest src/__tests__/integration/ --maxWorkers=1 --json --outputFile=test-integration-results.json --reporters=default --detectOpenHandles",
+        "build:shared": "cd ../../packages/shared && NODE_ENV=test npm run build",
         "validate-cors": "node scripts/validate-cors.js",
         "seed:policies": "tsx src/scripts/seed-policies.ts"
     },
