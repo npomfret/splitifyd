@@ -37,10 +37,13 @@ The build system uses conditional logic based on the `NODE_ENV` environment vari
 
 Before any tests are run, the entire project must "compile". We use TypeScript's `tsc` compiler with the `--noEmit` flag to perform type-checking without generating JavaScript files. This ensures that all code, including test files, adheres to our type-safety standards.
 
-The root `package.json` provides a script to build all sub-projects:
+The root `package.json` provides scripts to build all sub-projects. Run these from the monorepo root directory:
 
-- `npm run build`: Builds all workspaces (development mode by default).
-- `npm run build:prod`: Builds all workspaces for production.
+```bash
+# From the monorepo root directory
+npm run build       # Builds all workspaces (development mode by default)
+npm run build:prod  # Builds all workspaces for production
+```
 
 ## Test Directory Structure
 
@@ -59,11 +62,14 @@ src/
 
 ## Monorepo Root
 
-The root `package.json` provides scripts to run tests across all sub-projects:
+The root `package.json` provides scripts to run tests across all sub-projects. Run these from the monorepo root directory:
 
-- `npm run test`: Runs all unit and integration tests across all workspaces.
-- `npm run test:unit`: Runs only the unit tests across all workspaces.
-- `npm run test:integration`: Runs only the integration tests across all workspaces.
+```bash
+# From the monorepo root directory
+npm run test           # Runs all unit and integration tests across all workspaces
+npm run test:unit      # Runs only the unit tests across all workspaces
+npm run test:integration  # Runs only the integration tests across all workspaces
+```
 
 **Important**: Integration tests require the Firebase emulator to be running. The emulator is typically started with `npm run dev`. If you suspect the emulator is not running, you **must stop** and ask for it to be started.
 
@@ -73,24 +79,50 @@ The root `package.json` provides scripts to run tests across all sub-projects:
 
 This project contains the backend Firebase Functions.
 
-- **Running a single unit test file**: `cd firebase/functions && npx jest src/__tests__/unit/your-test-file.test.ts`
-- **Running a single integration test file**: `cd firebase/functions && npx jest src/__tests__/integration/your-test-file.test.ts`
+```bash
+# Navigate to the firebase/functions directory first
+cd firebase/functions
+
+# Running a single unit test file
+npx jest src/__tests__/unit/your-test-file.test.ts
+
+# Running a single integration test file
+npx jest src/__tests__/integration/your-test-file.test.ts
+```
 
 ### `webapp-v2`
 
 This project contains the frontend Preact application and uses both Vitest for traditional unit tests and Playwright for browser-based unit tests.
 
-- **Running a single Vitest test file**: `cd webapp-v2 && npx vitest run src/__tests__/unit/vitest/your-vitest-file.test.ts`
-- **Running a single Playwright test file**: `cd webapp-v2 && npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.ts`
+```bash
+# Navigate to the webapp-v2 directory first
+cd webapp-v2
+
+# Running a single Vitest test file
+npx vitest run src/__tests__/unit/vitest/your-vitest-file.test.ts
+
+# Running a single Playwright test file
+npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.ts
+
+# Running all Playwright tests
+npx playwright test
+```
 
 ### `e2e-tests`
 
 This project contains the end-to-end tests that run against the entire application.
 
-- **Running a single integration test file**: `cd e2e-tests && npx playwright test src/__tests__/integration/your-test-suite/your-test-file.e2e.test.ts`
-- **Debugging Flaky Tests**:
-    - For debugging flaky or unreliable tests, the `run-until-fail.sh` script is invaluable. It runs a specific test file repeatedly until it fails, which helps to reproduce and diagnose intermittent issues.
-    - To use it, edit the `TEST_FILE` and `TEST_FILTER` variables in the script to target the test you want to run, then execute it: `./e2e-tests/run-until-fail.sh`
+```bash
+# Navigate to the e2e-tests directory first
+cd e2e-tests
+
+# Running a single integration test file
+npx playwright test src/__tests__/integration/your-test-suite/your-test-file.e2e.test.ts
+
+# For debugging flaky or unreliable e2e-tests, use the `run-until-fail.sh` script:
+# > edit the TEST_FILE and TEST_FILTER variables in the script before running it
+./run-until-fail.sh
+```
 
 ### Other Packages
 
