@@ -342,12 +342,36 @@ test('registers user', async ({ page, context }) => {
    - Error handling scenarios
    - Complex UI interactions
 
-4. **Keep Traditional Unit Tests For**:
+4. **Convert Store Logic Tests to Playwright** (HIGH PRIORITY):
+   - **Files**: `auth-store.test.ts`, `groups-store-enhanced.test.ts`, `comments-store.test.ts`, etc.
+   - **Why**: These tests currently mock API clients and check internal state. They would be much more valuable as Playwright tests that verify the UI's reaction to store actions (e.g., after login, does the dashboard display correctly?).
+   - **Approach**:
+     ```typescript
+     test('login flow updates UI', async ({ page, context }) => {
+       // Mock the login API endpoint
+       await mockLogin(context);
+
+       // Trigger the login action (either via UI or store)
+       await page.goto('/login');
+       await page.fill('#email', 'test@example.com');
+       await page.click('button:text("Log In")');
+
+       // Assert that the UI has updated as expected
+       await expect(page).toHaveURL('/dashboard');
+       await expect(page.locator('h1')).toContainText('Welcome');
+     });
+     ```
+
+5. **Convert Component Tests to Playwright Component Tests**:
+    - **Files**: All tests in `webapp-v2/src/__tests__/unit/components`.
+    - **Why**: These are likely snapshot or DOM-based tests. Converting them to Playwright component tests (`@playwright/experimental-ct-react`) would allow for testing rendering and interaction in a real browser, providing higher confidence.
+
+6. **Keep Traditional Unit Tests For**:
    - Pure algorithms (balance calculation, debt simplification)
    - Utility functions
    - Data transformations
 
-5. **Gradual Migration**:
+7. **Gradual Migration**:
    - Start with Firebase service tests (biggest pain point)
    - Then convert brittle frontend tests
    - Measure reduction in test maintenance time
