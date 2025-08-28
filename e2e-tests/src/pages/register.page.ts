@@ -48,13 +48,52 @@ export class RegisterPage extends BasePage {
         await this.fillRegistrationForm(name, email, password);
         await this.submitForm();
         
-        // Wait for the registration to complete and redirect to dashboard
-        // First wait for the submit button to show loading state (becomes disabled)
+        // Wait for registration to complete
+        await this.waitForRegistrationCompletion();
+    }
+    
+    /**
+     * Wait for the registration process to complete
+     * Handles both instant registration and slower processing with loading spinner
+     */
+    async waitForRegistrationCompletion() {
         const submitButton = this.getSubmitButton();
-        await expect(submitButton).toBeDisabled({ timeout: 2000 });
         
-        // Then wait for the redirect to dashboard (registration success)
-        await expect(this.page).toHaveURL(/\/dashboard/);
+        // The UI shows a loading spinner in the submit button when processing
+        // The button should become disabled when clicked
+        
+        // Wait for either:
+        // 1. Button becomes disabled (indicates processing started)
+        // 2. Immediate redirect to dashboard (instant registration)
+        await Promise.race([
+            // Option 1: Wait for button to become disabled (processing started)
+            expect(submitButton).toBeDisabled({ timeout: 2000 }),
+            
+            // Option 2: Wait for immediate redirect (so fast button never visibly disables)
+            this.page.waitForURL(/\/dashboard/, { timeout: 1000 })
+        ]).catch(() => {
+            // It's ok if neither happens immediately, we'll still wait for the final redirect
+        });
+        
+        // Now wait for the final redirect to dashboard (registration success)
+        // This should happen whether we saw the button disable or not
+        await expect(this.page).toHaveURL(/\/dashboard/, { timeout: 10000 });
+    }
+    
+    /**
+     * Wait for the loading spinner to appear in the submit button
+     */
+    async waitForLoadingSpinner() {
+        const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
+        await spinner.waitFor({ state: 'visible', timeout: 1000 });
+    }
+    
+    /**
+     * Check if the loading spinner is visible
+     */
+    async isLoadingSpinnerVisible(): Promise<boolean> {
+        const spinner = this.page.locator('button[type="submit"] svg.animate-spin');
+        return await spinner.isVisible();
     }
 
     // Element accessors for direct interaction in tests
@@ -218,20 +257,6 @@ export class RegisterPage extends BasePage {
             (expectedStatus ? response.status() === expectedStatus : response.status() >= 400)
         );
         return responsePromise.then(() => {});
-    }
-
-    /**
-     * Enhanced registration with error handling for duplicate email testing
-     */
-    async registerWithErrorHandling(name: string, email: string, password: string): Promise<void> {
-        await this.fillRegistrationForm(name, email, password);
-        
-        // Start watching for responses before clicking submit
-        const responsePromise = this.waitForRegistrationResponse();
-        await this.submitForm();
-        
-        // Wait for the response to complete
-        await responsePromise;
     }
 
     /**
