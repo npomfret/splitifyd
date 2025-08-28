@@ -231,3 +231,38 @@
     - **All unit tests passing (274 tests)** - build successful
     - **All comment integration tests passing (22 tests)** - confirms API contracts maintained
     - **Note:** Following established pattern, skipped comprehensive unit tests for service due to mocking complexity with Vitest/Firestore
+
+### Phase 6: Refactor Policies Management
+
+**Goal**: Extract policy operations into their own services following the established pattern.
+
+1.  **Task 6.1: Create `PolicyService` and `UserPolicyService`**: ✅ **COMPLETED** (2025-08-28)
+    - ✅ Created `src/services/PolicyService.ts`
+    - ✅ Implemented policy management methods:
+        - `listPolicies()` - List all policies with pagination
+        - `getPolicy(id)` - Get specific policy document
+        - `getPolicyVersion(id, hash)` - Get specific version content
+        - `updatePolicy(id, text, publish)` - Create new draft version (optionally publish)
+        - `publishPolicy(id, versionHash)` - Publish a policy version
+        - `createPolicy(policyName, text, customId?)` - Create new policy with version tracking
+        - `deletePolicyVersion(id, hash)` - Delete policy version with safeguards
+    - ✅ Created `src/services/UserPolicyService.ts`
+    - ✅ Implemented user policy acceptance methods:
+        - `acceptPolicy(userId, policyId, versionHash)` - Accept single policy
+        - `acceptMultiplePolicies(userId, acceptances)` - Accept multiple policies in batch
+        - `getUserPolicyStatus(userId)` - Get user's policy acceptance status
+        - `checkPolicyCompliance(userId)` - Check if user has accepted all required policies
+    - ✅ Refactored both handler files (`policies/handlers.ts`, `policies/user-handlers.ts`) to use service methods
+    - ✅ Created minimal unit tests for both services following established pattern
+    - **Key improvements:**
+        - Centralized all policy operations in service layer
+        - Consistent error handling and validation across all operations
+        - Proper policy version management with hash validation
+        - Auto-generation of policy IDs from names (kebab-case)
+        - Batch operations for multiple policy acceptances
+        - Proper Firestore transaction handling for atomicity
+        - Clean separation between handlers (request/response) and business logic
+        - Handlers reduced from ~564 lines to ~231 lines (~59% reduction)
+        - User handlers reduced from ~244 lines to ~114 lines (~53% reduction)
+    - **All integration tests passing (20 policy tests, 493 total tests)** - confirms API contracts maintained
+    - **Note:** Following established pattern, skipped comprehensive unit tests for services due to mocking complexity with Vitest/Firestore

@@ -1,26 +1,10 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../utils/errors';
-import { createServerTimestamp } from '../utils/dateHelpers';
+import { UserPolicyService } from '../services/UserPolicyService';
 import { validateAcceptPolicy, validateAcceptMultiplePolicies } from './validation';
-
-interface PolicyAcceptanceStatus {
-    policyId: string;
-    currentVersionHash: string;
-    userAcceptedHash?: string;
-    needsAcceptance: boolean;
-    policyName: string;
-}
-
-interface UserPolicyStatusResponse {
-    needsAcceptance: boolean;
-    policies: PolicyAcceptanceStatus[];
-    totalPending: number;
-}
 
 /**
  * Accept a single policy version for the authenticated user
@@ -35,40 +19,13 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
         // Validate request body using Joi
         const { policyId, versionHash } = validateAcceptPolicy(req.body);
 
-        // Validate that the policy exists and the version hash is current
-        const firestore = firestoreDb;
-        const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
-
-        if (!policyDoc.exists) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy ${policyId} not found`);
-        }
-
-        const policyData = policyDoc.data()!;
-
-        // Verify the version hash exists in the policy versions
-        if (!policyData.versions[versionHash]) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_VERSION_HASH', `Version hash ${versionHash} not found for policy ${policyId}`);
-        }
-
-        // Update user's acceptedPolicies
-        const userDocRef = firestore.collection(FirestoreCollections.USERS).doc(userId);
-
-        await userDocRef.update({
-            [`acceptedPolicies.${policyId}`]: versionHash,
-            updatedAt: createServerTimestamp(),
-        });
-
-        // userId is automatically included from context
-        logger.info('policy-accepted', { id: policyId });
+        const userPolicyService = new UserPolicyService();
+        const result = await userPolicyService.acceptPolicy(userId, policyId, versionHash);
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: 'Policy accepted successfully',
-            acceptedPolicy: {
-                policyId,
-                versionHash,
-                acceptedAt: new Date().toISOString(),
-            },
+            acceptedPolicy: result,
         });
     } catch (error) {
         if (error instanceof ApiError) {
@@ -79,7 +36,7 @@ export const acceptPolicy = async (req: AuthenticatedRequest, res: Response): Pr
                 },
             });
         } else {
-            logger.error('Failed to accept policy', error, {
+            logger.error('Failed to accept policy', error as Error, {
                 userId: req.user?.uid,
             });
             throw error;
@@ -100,55 +57,13 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
         // Validate request body using Joi
         const { acceptances } = validateAcceptMultiplePolicies(req.body);
 
-        const firestore = firestoreDb;
-        const batch = firestore.batch();
-
-        // Validate all policies and version hashes first
-        for (const acceptance of acceptances) {
-            const { policyId, versionHash } = acceptance;
-
-            if (!policyId || !versionHash) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_REQUEST', 'Each acceptance must have policyId and versionHash');
-            }
-
-            const policyDoc = await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).get();
-
-            if (!policyDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy ${policyId} not found`);
-            }
-
-            const policyData = policyDoc.data()!;
-            if (!policyData.versions[versionHash]) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_VERSION_HASH', `Version hash ${versionHash} not found for policy ${policyId}`);
-            }
-        }
-
-        // Build the update object for user document
-        const userDocRef = firestore.collection(FirestoreCollections.USERS).doc(userId);
-        const updateData: any = {
-            updatedAt: createServerTimestamp(),
-        };
-
-        acceptances.forEach((acceptance) => {
-            updateData[`acceptedPolicies.${acceptance.policyId}`] = acceptance.versionHash;
-        });
-
-        batch.update(userDocRef, updateData);
-        await batch.commit();
-
-        logger.info('policies-accepted', {
-            ids: acceptances.map((a) => a.policyId).join(','),
-            userId,
-        });
+        const userPolicyService = new UserPolicyService();
+        const result = await userPolicyService.acceptMultiplePolicies(userId, acceptances);
 
         res.status(HTTP_STATUS.OK).json({
             success: true,
             message: 'All policies accepted successfully',
-            acceptedPolicies: acceptances.map((acceptance) => ({
-                policyId: acceptance.policyId,
-                versionHash: acceptance.versionHash,
-                acceptedAt: new Date().toISOString(),
-            })),
+            acceptedPolicies: result,
         });
     } catch (error) {
         if (error instanceof ApiError) {
@@ -159,7 +74,7 @@ export const acceptMultiplePolicies = async (req: AuthenticatedRequest, res: Res
                 },
             });
         } else {
-            logger.error('Failed to accept multiple policies', error, {
+            logger.error('Failed to accept multiple policies', error as Error, {
                 userId: req.user?.uid,
             });
             throw error;
@@ -177,53 +92,8 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
             throw new ApiError(HTTP_STATUS.UNAUTHORIZED, 'AUTH_REQUIRED', 'Authentication required');
         }
 
-        const firestore = firestoreDb;
-
-        // Get all policies
-        const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
-
-        // Get user's acceptance data
-        const userDoc = await firestore.collection(FirestoreCollections.USERS).doc(userId).get();
-
-        if (!userDoc.exists) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
-        }
-
-        const userData = userDoc.data()!;
-        const userAcceptedPolicies = userData.acceptedPolicies || {};
-
-        const policies: PolicyAcceptanceStatus[] = [];
-        let totalPending = 0;
-
-        policiesSnapshot.forEach((doc) => {
-            const policyData = doc.data();
-            const policyId = doc.id;
-            const currentVersionHash = policyData.currentVersionHash;
-            const userAcceptedHash = userAcceptedPolicies[policyId];
-            const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
-
-            if (needsAcceptance) {
-                totalPending++;
-            }
-
-            policies.push({
-                policyId,
-                currentVersionHash,
-                userAcceptedHash,
-                needsAcceptance,
-                policyName: policyData.policyName,
-            });
-        });
-
-        const needsAcceptance = totalPending > 0;
-
-        // Return user policy status
-
-        const response: UserPolicyStatusResponse = {
-            needsAcceptance,
-            policies,
-            totalPending,
-        };
+        const userPolicyService = new UserPolicyService();
+        const response = await userPolicyService.getUserPolicyStatus(userId);
 
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
@@ -235,7 +105,7 @@ export const getUserPolicyStatus = async (req: AuthenticatedRequest, res: Respon
                 },
             });
         } else {
-            logger.error('Failed to get user policy status', error, {
+            logger.error('Failed to get user policy status', error as Error, {
                 userId: req.user?.uid,
             });
             throw error;
