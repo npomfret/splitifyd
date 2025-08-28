@@ -25,6 +25,7 @@ import { GroupData } from '../types/group-types';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { z } from 'zod';
+import { SettlementService } from '../services/SettlementService';
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -399,40 +400,8 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
         }
 
-        const settlementDoc = await getSettlementsCollection().doc(settlementId).get();
-
-        if (!settlementDoc.exists) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-        }
-
-        const settlement = settlementDoc.data() as any;
-
-        // Validate settlement data structure - strict enforcement
-        try {
-            SettlementDocumentSchema.parse({ ...settlement, id: settlementId });
-        } catch (error) {
-            logger.error('Settlement document validation failed', error as Error, {
-                settlementId,
-                userId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
-        }
-
-        await verifyGroupMembership(settlement.groupId, userId);
-
-        const [payerData, payeeData] = await Promise.all([fetchUserData(settlement.payerId), fetchUserData(settlement.payeeId)]);
-
-        const responseData: SettlementListItem = {
-            id: settlement.id,
-            groupId: settlement.groupId,
-            payer: payerData,
-            payee: payeeData,
-            amount: settlement.amount,
-            currency: settlement.currency,
-            date: timestampToISO(settlement.date),
-            note: settlement.note,
-            createdAt: timestampToISO(settlement.createdAt),
-        };
+        const settlementService = new SettlementService();
+        const responseData = await settlementService.getSettlement(settlementId, userId);
 
         const response: GetSettlementResponse = {
             success: true,
@@ -441,7 +410,7 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error fetching settlement', error, {
-            settlementId: req.params?.id,
+            settlementId: req.params?.settlementId,
             userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
@@ -553,10 +522,8 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
 
         const { groupId, limit, cursor, userId: filterUserId, startDate, endDate } = value;
 
-        await verifyGroupMembership(groupId, userId);
-
-        // Use extracted function to get settlements data
-        const result = await _getGroupSettlementsData(groupId, {
+        const settlementService = new SettlementService();
+        const result = await settlementService.listSettlements(groupId, userId, {
             limit,
             cursor,
             userId: filterUserId,
@@ -571,7 +538,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
         res.status(HTTP_STATUS.OK).json(response);
     } catch (error) {
         logger.error('Error listing settlements', error, {
-            groupId: req.params?.groupId,
+            groupId: req.query?.groupId,
             userId: req.user?.uid,
         });
         if (error instanceof ApiError) {
