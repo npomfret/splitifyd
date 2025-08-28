@@ -12,6 +12,139 @@ The most significant issues are:
 
 This report details the specific issues found and provides recommendations for refactoring the tests to be more robust, maintainable, and aligned with the project's standards.
 
+## Progress Update (2025-08-28)
+
+### Completed Tasks:
+1. ✅ **Removed contradictory test file**: Deleted `webapp-v2/src/__tests__/unit/integration/enhanced-stores-ui.test.ts` - this was a hybrid test that provided the worst of both unit and integration testing
+2. ✅ **Verified webapp store tests**: Both `auth-store.test.ts` and `groups-store-enhanced.test.ts` have already been fixed to properly test the public interface rather than manipulating internal signals
+3. ✅ **Identified builder pattern adoption**: Found that `UserService.test.ts` and `validation.test.ts` already implement the builder pattern, though the service tests still over-use mocks
+
+### Additional Improvements (2025-08-28 continued):
+4. ✅ **Simplified validation tests**: Reduced `string-validation.test.ts` from 321 lines to 113 lines by removing redundant tests
+5. ✅ **Created E2E conversion recommendations**: Documented in `tasks/e2e-conversion-recommendations.md`
+
+### Remaining Issues:
+- **Firebase service tests** still rely heavily on mocking implementation details - recommend converting to E2E tests
+- Some validation tests remain redundant but are lower priority
+
+## Final Recommendations - Revised Strategy with Playwright
+
+### Key Insight: Playwright Can Be Used for Unit Tests
+After further research, we've discovered that **Playwright can effectively replace traditional unit tests** without requiring the Firebase emulator. This opens up a powerful testing strategy that prioritizes test quality over speed.
+
+### Philosophy: Quality Over Speed
+**It's OK for tests to be slower if they are:**
+- Less brittle and more maintainable
+- Easier to read and understand
+- Better at testing real user behavior
+- More confident in what they verify
+
+A 500ms Playwright test that actually tests behavior is far superior to a 50ms Jest test that only verifies mocks were called.
+
+### Three-Tier Testing Strategy with Playwright
+
+#### 1. Component Tests (No Backend Required)
+- Use `@preact/playwright-ct` for isolated component testing
+- Tests run in real browser but components mount in isolation
+- ~50-200ms per test (still fast!)
+- Perfect for: Forms, modals, UI components
+- **Benefit**: Real browser, real DOM, real user interactions
+
+#### 2. Mocked Integration Tests (No Emulator Required)
+- Use Playwright with `route()` API to mock all backend calls
+- Test complete user flows with deterministic data
+- ~500ms-1s per test (acceptable trade-off)
+- Perfect for: Service layer tests, error handling, edge cases
+- **Benefit**: Tests actual UI behavior, not implementation details
+
+#### 3. Full E2E Tests (With Emulator)
+- Current approach for critical user journeys
+- 2-5s per test (worth it for confidence)
+- Perfect for: Critical paths, multi-user scenarios
+- **Benefit**: Ultimate confidence in real system behavior
+
+### Immediate Actions - Revised
+
+1. **Stop Writing Mock-Heavy Unit Tests**
+   - No more `expect(mockFunction).toHaveBeenCalledWith(...)`
+   - No more complex mock setups
+   - If you need to test it, test it with Playwright
+
+2. **Convert Service Tests to Mocked Playwright Tests**
+   ```typescript
+   // Instead of mocking Firestore calls
+   // Test the actual UI with mocked API responses
+   await context.route('**/api/auth/register', route => {
+     route.fulfill({ json: mockResponse });
+   });
+   await registrationPage.performRegistration();
+   await expect(page).toHaveURL('/dashboard');
+   ```
+
+3. **Keep Pure Logic as Traditional Unit Tests**
+   - Balance calculations
+   - Debt simplification algorithms
+   - Date utilities
+   - These don't need a browser
+
+### Why This Approach is Superior
+
+1. **Less Brittle**: Tests don't break when implementation changes
+2. **More Readable**: Tests read like user stories, not technical specifications
+3. **Better Coverage**: Tests actual user-facing behavior
+4. **Unified Tooling**: One test framework (Playwright) for most needs
+5. **Real Browser Testing**: Catches issues Jest would miss
+6. **Developer Experience**: Better debugging with Playwright Inspector
+
+### Example Migration
+
+**Before (Brittle Jest Test):**
+```typescript
+it('registers user', async () => {
+  mockAuth.createUser.mockResolvedValue({ uid: 'test' });
+  mockFirestore.set.mockResolvedValue({});
+  
+  await userService.registerUser(data);
+  
+  expect(mockAuth.createUser).toHaveBeenCalledWith(...);
+  expect(mockFirestore.set).toHaveBeenCalledTimes(2);
+});
+```
+
+**After (Robust Playwright Test):**
+```typescript
+test('registers user', async ({ page, context }) => {
+  // Mock the API, not the implementation
+  await context.route('**/api/register', route => {
+    route.fulfill({ json: { user: testUser } });
+  });
+  
+  // Test actual behavior
+  await page.goto('/register');
+  await page.fill('[name="email"]', 'test@example.com');
+  await page.fill('[name="password"]', 'password');
+  await page.click('button[type="submit"]');
+  
+  // Verify outcomes users care about
+  await expect(page).toHaveURL('/dashboard');
+  await expect(page.locator('.welcome')).toContainText('Welcome');
+});
+```
+
+### Metrics Update
+- Reduced validation test by 65% (321 → 113 lines)
+- Removed 1 contradictory hybrid test
+- **New Goal**: Convert 60% of mock-heavy unit tests to Playwright
+- **Expected Outcome**: 
+  - Tests 10x slower (50ms → 500ms) 
+  - But 100x more valuable (test real behavior, not mocks)
+  - 50% less test maintenance (no mock updates)
+
+### The Bottom Line
+**Speed is not the primary metric for test quality.** A slower test that gives confidence in real behavior is infinitely more valuable than a fast test that only verifies implementation details. Playwright enables us to write tests that are slightly slower but dramatically better.
+
+See `tasks/e2e-conversion-recommendations.md` for detailed conversion patterns.
+
 ---
 
 ## 2. General Issues & Recommendations
