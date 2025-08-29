@@ -1,5 +1,6 @@
 
 import { DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from 'firebase-admin/firestore';
+import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { Group, GroupWithBalance } from '../types/group-types';
@@ -694,13 +695,27 @@ export class GroupService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const groupData = groupDoc.data()!;
+        const rawData = groupDoc.data();
+        if (!rawData) {
+            throw Errors.INTERNAL_ERROR();
+        }
 
-        if (!groupData.data || !groupData.data.members || Object.keys(groupData.data.members).length === 0) {
+        let validatedGroup;
+        try {
+            validatedGroup = GroupDocumentSchema.parse({ ...rawData, id: groupId });
+        } catch (error) {
+            logger.error('Group document validation failed', error as Error, {
+                groupId,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+            });
+            throw Errors.INTERNAL_ERROR();
+        }
+
+        if (!validatedGroup.data.members || Object.keys(validatedGroup.data.members).length === 0) {
             throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
         }
 
-        if (!(userId in groupData.data.members)) {
+        if (!(userId in validatedGroup.data.members)) {
             throw Errors.FORBIDDEN();
         }
 

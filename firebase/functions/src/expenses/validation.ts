@@ -101,7 +101,7 @@ const updateExpenseSchema = Joi.object({
     receiptUrl: Joi.string().uri().optional().allow(''),
 }).min(1);
 
-const sanitizeExpenseData = (data: CreateExpenseRequest | UpdateExpenseRequest): CreateExpenseRequest | UpdateExpenseRequest => {
+const sanitizeExpenseData = <T extends CreateExpenseRequest | UpdateExpenseRequest>(data: T): T => {
     const sanitized = { ...data };
 
     if ('description' in sanitized && typeof sanitized.description === 'string') {
@@ -223,7 +223,7 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
         receiptUrl: value.receiptUrl?.trim(),
     };
 
-    return sanitizeExpenseData(expenseData) as CreateExpenseRequest;
+    return sanitizeExpenseData(expenseData);
 };
 
 export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
@@ -317,7 +317,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         }
     }
 
-    return sanitizeExpenseData(update) as UpdateExpenseRequest;
+    return sanitizeExpenseData(update);
 };
 
 export const calculateSplits = (amount: number, splitType: string, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] => {

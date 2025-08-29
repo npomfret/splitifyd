@@ -9,6 +9,7 @@ import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/opt
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
+import { transformGroupDocument } from '../groups/handlers';
 
 export class GroupShareService {
     private generateShareToken(): string {
@@ -85,8 +86,15 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        const groupData = groupDoc.data()!;
-        const group = { id: groupId, ...groupData.data };
+        let group;
+        try {
+            group = transformGroupDocument(groupDoc);
+        } catch (error) {
+            logger.error('Group document validation failed', error as Error, {
+                groupId,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
+        }
 
         if (!checkIsGroupOwner(group, userId) && !isGroupMember(group, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
@@ -153,20 +161,22 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        const groupData = groupDoc.data()!;
-
-        if (!groupData.data) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP', 'Group data is invalid');
+        let group;
+        try {
+            group = transformGroupDocument(groupDoc);
+        } catch (error) {
+            logger.error('Group document validation failed', error as Error, {
+                groupId,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
-
-        const group = { id: groupId, ...groupData.data };
         const isAlreadyMember = isGroupMember(group, userId);
 
         return {
             groupId: groupDoc.id,
-            groupName: groupData.data.name,
-            groupDescription: groupData.data.description || '',
-            memberCount: Object.keys(groupData.data.members).length,
+            groupName: group.name,
+            groupDescription: group.description || '',
+            memberCount: Object.keys(group.members).length,
             isAlreadyMember,
         };
     }
@@ -206,19 +216,30 @@ export class GroupShareService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const groupData = groupSnapshot.data()!;
-            const originalUpdatedAt = getUpdatedAtTimestamp(groupData);
-
-            if (userId in groupData.data.members) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+            let group;
+            try {
+                group = transformGroupDocument(groupSnapshot);
+            } catch (error) {
+                logger.error('Group document validation failed', error as Error, {
+                    groupId,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
             }
 
-            const group = { id: groupId, ...groupData.data };
+            const rawData = groupSnapshot.data();
+            if (!rawData) {
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DATA_NULL', 'Group document data is null');
+            }
+            const originalUpdatedAt = getUpdatedAtTimestamp(rawData);
+
+            if (userId in group.members) {
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+            }
             if (checkIsGroupOwner(group, userId)) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
             }
 
-            const memberIndex = Object.keys(groupData.data.members).length;
+            const memberIndex = Object.keys(group.members).length;
 
             const newMember = {
                 role: MemberRoles.MEMBER,
@@ -229,7 +250,7 @@ export class GroupShareService {
             };
 
             const updatedMembers = {
-                ...groupData.data.members,
+                ...group.members,
                 [userId]: newMember,
             };
 
@@ -243,7 +264,7 @@ export class GroupShareService {
             );
 
             return {
-                groupName: groupData.data!.name!,
+                groupName: group.name,
                 invitedBy: shareLink.createdBy,
             };
         });

@@ -321,7 +321,7 @@ export class SettlementService {
                 updates.note = updateData.note;
             } else {
                 // If note is explicitly set to empty string or null, remove it
-                updates.note = FieldValue.delete() as any;
+                updates.note = FieldValue.delete();
             }
         }
 

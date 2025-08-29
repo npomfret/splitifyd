@@ -39,6 +39,35 @@ export class PolicyService {
     private policiesCollection = firestoreDb.collection(FirestoreCollections.POLICIES);
 
     /**
+     * Validates that a policy document remains valid after an update operation
+     */
+    private async validatePolicyAfterUpdate(
+        policyId: string, 
+        operationType: 'update' | 'publish' | 'version deletion',
+        additionalContext: Record<string, any> = {}
+    ): Promise<void> {
+        const updatedDoc = await this.policiesCollection.doc(policyId).get();
+        if (!updatedDoc.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);
+        }
+
+        try {
+            const rawData = updatedDoc.data();
+            if (!rawData) {
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', `Policy document data is null after ${operationType}`);
+            }
+            PolicyDocumentSchema.parse(rawData);
+        } catch (validationError) {
+            logger.error(`Policy document validation failed after ${operationType}`, validationError as Error, {
+                policyId,
+                ...additionalContext,
+                validationErrors: validationError instanceof z.ZodError ? validationError.issues : undefined,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, `INVALID_POLICY_AFTER_${operationType.replace(' ', '_').toUpperCase()}`, `Policy document became invalid after ${operationType}`);
+        }
+    }
+
+    /**
      * Calculate SHA-256 hash of policy text
      */
     private calculatePolicyHash(text: string): string {
@@ -241,6 +270,9 @@ export class PolicyService {
 
             await this.policiesCollection.doc(id).update(updates);
 
+            // Validate the updated document to ensure it's still valid
+            await this.validatePolicyAfterUpdate(id, 'update');
+
             logger.info('Policy updated', { 
                 policyId: id, 
                 versionHash, 
@@ -291,6 +323,9 @@ export class PolicyService {
                 currentVersionHash: versionHash,
                 updatedAt: createServerTimestamp(),
             });
+
+            // Validate the updated document to ensure it's still valid
+            await this.validatePolicyAfterUpdate(id, 'publish', { versionHash });
 
             logger.info('Policy published', { policyId: id, versionHash });
 
@@ -464,6 +499,9 @@ export class PolicyService {
                 versions: updatedVersions,
                 updatedAt: createServerTimestamp(),
             });
+
+            // Validate the updated document to ensure it's still valid
+            await this.validatePolicyAfterUpdate(id, 'version deletion', { deletedVersionHash: hash });
 
             logger.info('Policy version deleted', { policyId: id, versionHash: hash });
         } catch (error) {
