@@ -1,14 +1,12 @@
 import { Response } from 'express';
-import { DocumentReference } from 'firebase-admin/firestore';
-import { z } from 'zod';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { firestoreDb } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
-import { ApiError, Errors } from '../utils/errors';
+import { ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { validateCreateExpense, validateUpdateExpense, validateExpenseId, Expense, ExpenseDocumentSchema } from './validation';
+import { validateCreateExpense, validateUpdateExpense, validateExpenseId, Expense } from './validation';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { expenseService } from '../services/ExpenseService';
 
@@ -16,61 +14,7 @@ const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
 };
 
-const getGroupsCollection = () => {
-    return firestoreDb.collection(FirestoreCollections.GROUPS);
-};
 
-const fetchExpense = async (expenseId: string, userId: string): Promise<{ docRef: DocumentReference; expense: Expense }> => {
-    const docRef = getExpensesCollection().doc(expenseId);
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-        throw Errors.NOT_FOUND('Expense');
-    }
-
-    const rawData = doc.data();
-    if (!rawData) {
-        throw Errors.NOT_FOUND('Expense');
-    }
-
-    // Validate the expense data structure
-    let expense: Expense;
-    try {
-        // Add the id field since it's not stored in the document data
-        const dataWithId = { ...rawData, id: doc.id };
-        const validatedData = ExpenseDocumentSchema.parse(dataWithId);
-        expense = validatedData as Expense;
-    } catch (error) {
-        logger.error('Invalid expense document structure', error as Error, {
-            expenseId,
-            validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-        });
-        throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense data is corrupted');
-    }
-
-    // Check if the expense is soft-deleted
-    if (expense.deletedAt) {
-        throw Errors.NOT_FOUND('Expense');
-    }
-
-    // Single authorization check: fetch group once and verify access
-    const groupDoc = await getGroupsCollection().doc(expense.groupId).get();
-
-    if (!groupDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    const groupData = groupDoc.data();
-
-    // Check if this is a group document (has data.name)
-    if (!groupData || !groupData.data || !groupData.data.name) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    // Participant check is now handled by the permission system in individual handlers
-
-    return { docRef, expense };
-};
 
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
