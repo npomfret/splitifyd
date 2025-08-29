@@ -1,7 +1,6 @@
-import * as admin from 'firebase-admin';
 import { DocumentSnapshot, Query, Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { firestoreDb } from '../firebase';
+import {firebaseAuth, firestoreDb} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -252,7 +251,7 @@ export class CommentService {
         await this.verifyCommentAccess(targetType, targetId, userId, resolvedGroupId);
 
         // Get user display name for the comment
-        const userRecord = await admin.auth().getUser(userId);
+        const userRecord = await firebaseAuth.getUser(userId);
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
 
         // Prepare comment data

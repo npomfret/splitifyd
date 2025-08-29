@@ -1,7 +1,6 @@
-import * as admin from 'firebase-admin';
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import { Timestamp } from 'firebase-admin/firestore';
-import { firestoreDb } from '../firebase';
+import {firebaseAuth, firestoreDb} from '../firebase';
 import { FirestoreCollections, SystemUserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { Errors, ApiError } from '../utils/errors';
@@ -136,7 +135,7 @@ export class UserService {
 
         try {
             // Get user from Firebase Auth
-            const userRecord = await admin.auth().getUser(userId);
+            const userRecord = await firebaseAuth.getUser(userId);
 
             // Ensure required fields are present
             this.validateUserRecord(userRecord);
@@ -210,7 +209,7 @@ export class UserService {
      * Fetch a batch of users and add to result map
      */
     private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
-        const getUsersResult = await admin.auth().getUsers(uids.map((uid) => ({ uid })));
+        const getUsersResult = await firebaseAuth.getUsers(uids.map((uid) => ({ uid })));
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
@@ -255,7 +254,7 @@ export class UserService {
             }
 
             // Update Firebase Auth
-            await admin.auth().updateUser(userId, authUpdateData);
+            await firebaseAuth.updateUser(userId, authUpdateData);
 
             // Build update object for Firestore
             const firestoreUpdate: any = {
@@ -304,7 +303,7 @@ export class UserService {
 
         try {
             // Get user to ensure they exist
-            const userRecord = await admin.auth().getUser(userId);
+            const userRecord = await firebaseAuth.getUser(userId);
             if (!userRecord.email) {
                 throw Errors.INVALID_INPUT('User email not found');
             }
@@ -315,7 +314,7 @@ export class UserService {
             // Consider implementing a more secure password verification flow.
 
             // Update password in Firebase Auth
-            await admin.auth().updateUser(userId, {
+            await firebaseAuth.updateUser(userId, {
                 password: validatedData.newPassword,
             });
 
@@ -366,7 +365,7 @@ export class UserService {
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).delete();
 
             // Delete user from Firebase Auth
-            await admin.auth().deleteUser(userId);
+            await firebaseAuth.deleteUser(userId);
 
             logger.info('User account deleted successfully', { userId });
 
@@ -399,7 +398,7 @@ export class UserService {
 
         try {
             // Create the user in Firebase Auth
-            userRecord = await admin.auth().createUser({
+            userRecord = await firebaseAuth.createUser({
                 email,
                 password,
                 displayName,
@@ -447,7 +446,7 @@ export class UserService {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {
                 try {
-                    await admin.auth().deleteUser(userRecord.uid);
+                    await firebaseAuth.deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
                     logger.error('Failed to cleanup orphaned auth user', cleanupError, {

@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import * as admin from 'firebase-admin';
 import { Errors, sendError } from '../utils/errors';
-import { firestoreDb } from '../firebase';
+import {firebaseAuth, firestoreDb} from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
@@ -42,10 +41,10 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
     try {
         // Verify ID token - no fallbacks or hacks
-        const decodedToken = await admin.auth().verifyIdToken(token);
+        const decodedToken = await firebaseAuth.verifyIdToken(token);
 
         // Fetch full user profile from Firebase Auth
-        const userRecord = await admin.auth().getUser(decodedToken.uid);
+        const userRecord = await firebaseAuth.getUser(decodedToken.uid);
 
         if (!userRecord.email || !userRecord.displayName) {
             throw new Error('User missing required fields: email and displayName are mandatory');
