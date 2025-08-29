@@ -3,8 +3,7 @@ import { firestoreDb } from '../firebase';
 import { logger } from '../logger';
 import { getChangedFields, getGroupChangedFields, calculatePriority, createMinimalChangeDocument, createMinimalBalanceChangeDocument, ChangeType } from '../utils/change-detection';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { firestore } from 'firebase-admin';
-import DocumentSnapshot = firestore.DocumentSnapshot;
+import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { z } from 'zod';
 
