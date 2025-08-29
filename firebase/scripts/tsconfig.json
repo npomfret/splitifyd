@@ -2,13 +2,14 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2020",
+    "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "moduleResolution": "node"
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "../functions/src/**/*.ts"]
 }

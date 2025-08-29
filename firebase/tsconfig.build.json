@@ -3,14 +3,15 @@
     "target": "es2022",
     "module": "es2022",
     "lib": ["es2022"],
-    "outDir": "./scripts/dist",
-    "rootDir": "./scripts",
+    "noEmit": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["scripts/**/*.ts"],
-  "exclude": ["node_modules", "scripts/dist"]
+  "include": ["scripts/**/*.ts", "functions/src/**/*.ts"],
+  "exclude": ["node_modules", "functions/lib"]
 }
