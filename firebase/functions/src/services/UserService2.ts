@@ -80,12 +80,12 @@ interface FirestoreUserDocument {
     email: string;
     displayName: string;
     role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
-    createdAt: admin.firestore.Timestamp;
-    updatedAt: admin.firestore.Timestamp;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
     acceptedPolicies: Record<string, string>;
     themeColor: UserThemeColor;
-    termsAcceptedAt?: admin.firestore.Timestamp;
-    cookiePolicyAcceptedAt?: admin.firestore.Timestamp;
+    termsAcceptedAt?: Timestamp;
+    cookiePolicyAcceptedAt?: Timestamp;
 }
 
 /**

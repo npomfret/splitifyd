@@ -1,4 +1,5 @@
-import * as admin from 'firebase-admin';
+
+import { FieldValue, Filter, Query } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
@@ -255,7 +256,7 @@ export class SettlementService {
                 updates.note = updateData.note;
             } else {
                 // If note is explicitly set to empty string or null, remove it
-                updates.note = admin.firestore.FieldValue.delete() as any;
+                updates.note = FieldValue.delete() as any;
             }
         }
 
@@ -358,16 +359,16 @@ export class SettlementService {
         const startDate = options.startDate;
         const endDate = options.endDate;
 
-        let query: admin.firestore.Query = this.settlementsCollection
+        let query: Query = this.settlementsCollection
             .where('groupId', '==', groupId)
             .orderBy('date', 'desc')
             .limit(limit);
 
         if (filterUserId) {
             query = query.where(
-                admin.firestore.Filter.or(
-                    admin.firestore.Filter.where('payerId', '==', filterUserId),
-                    admin.firestore.Filter.where('payeeId', '==', filterUserId)
+                Filter.or(
+                    Filter.where('payerId', '==', filterUserId),
+                    Filter.where('payeeId', '==', filterUserId)
                 )
             );
         }

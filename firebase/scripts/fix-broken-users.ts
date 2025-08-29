@@ -1,6 +1,7 @@
 #!/usr/bin/env npx tsx
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
+import { Firestore, Timestamp } from 'firebase-admin/firestore';
 import { execSync } from 'child_process';
 import { FirestoreCollections, SystemUserRoles, UserThemeColor } from '@splitifyd/shared';
 import { parseEnvironment, initializeFirebase } from './firebase-init';
@@ -30,8 +31,8 @@ interface FirestoreUserDocument {
     email: string;
     displayName: string;
     role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
-    createdAt: admin.firestore.Timestamp;
-    updatedAt: admin.firestore.Timestamp;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
     acceptedPolicies: Record<string, string>;
     themeColor: UserThemeColor;
 }
@@ -46,7 +47,7 @@ interface BrokenUserStats {
 }
 
 // We'll get these instances dynamically
-let firestoreDb: admin.firestore.Firestore;
+let firestoreDb: Firestore;
 let createServerTimestamp: any;
 let getCurrentPolicyVersions: any;
 let assignThemeColor: any;

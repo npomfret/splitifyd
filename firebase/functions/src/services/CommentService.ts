@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { DocumentSnapshot, Query, Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
@@ -108,7 +109,7 @@ export class CommentService {
     /**
      * Transform Firestore comment document to Comment interface
      */
-    private transformCommentDocument(doc: admin.firestore.DocumentSnapshot): Comment {
+    private transformCommentDocument(doc: DocumentSnapshot): Comment {
         const data = doc.data();
         if (!data) {
             throw new Error('Comment document has no data');
@@ -143,8 +144,8 @@ export class CommentService {
 
         return {
             ...comment,
-            createdAt: timestampToISO(comment.createdAt as admin.firestore.Timestamp),
-            updatedAt: timestampToISO(comment.updatedAt as admin.firestore.Timestamp),
+            createdAt: timestampToISO(comment.createdAt as Timestamp),
+            updatedAt: timestampToISO(comment.updatedAt as Timestamp),
         };
     }
 
@@ -183,7 +184,7 @@ export class CommentService {
 
         // Build the query
         const commentsCollection = this.getCommentsCollection(targetType, targetId);
-        let query: admin.firestore.Query = commentsCollection.orderBy('createdAt', 'desc').limit(limit + 1); // Fetch one extra to check if there are more
+        let query: Query = commentsCollection.orderBy('createdAt', 'desc').limit(limit + 1); // Fetch one extra to check if there are more
 
         // Apply cursor-based pagination if provided
         if (cursor) {
@@ -211,8 +212,8 @@ export class CommentService {
             const comment = this.transformCommentDocument(doc);
             return {
                 ...comment,
-                createdAt: timestampToISO(comment.createdAt as admin.firestore.Timestamp),
-                updatedAt: timestampToISO(comment.updatedAt as admin.firestore.Timestamp),
+                createdAt: timestampToISO(comment.createdAt as Timestamp),
+                updatedAt: timestampToISO(comment.updatedAt as Timestamp),
             };
         });
 
@@ -279,8 +280,8 @@ export class CommentService {
         // Convert timestamps to ISO strings for the API response
         return {
             ...createdComment,
-            createdAt: timestampToISO(createdComment.createdAt as admin.firestore.Timestamp),
-            updatedAt: timestampToISO(createdComment.updatedAt as admin.firestore.Timestamp),
+            createdAt: timestampToISO(createdComment.createdAt as Timestamp),
+            updatedAt: timestampToISO(createdComment.updatedAt as Timestamp),
         };
     }
 }

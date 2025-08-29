@@ -1,5 +1,5 @@
-import * as admin from 'firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
+
+import { Timestamp, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { Errors } from './errors';
 import { logger } from '../logger';
 import { createOptimisticTimestamp } from './dateHelpers';
@@ -18,7 +18,7 @@ import { createOptimisticTimestamp } from './dateHelpers';
  *
  * ⚠️ DEPRECATED: This function has a design flaw - use checkAndUpdateWithTimestamp instead
  */
-export const updateWithTimestamp = async (transaction: admin.firestore.Transaction, docRef: admin.firestore.DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
+export const updateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
     // DO NOT perform reads here - Firestore requires all reads before writes
     // Caller must verify timestamp before calling this function
 
@@ -35,7 +35,7 @@ export const updateWithTimestamp = async (transaction: admin.firestore.Transacti
  * 🎯 CORRECT: Check timestamp conflict and update document in proper transaction order
  * This function follows Firestore's requirement: ALL reads must come before ANY writes
  */
-export const checkAndUpdateWithTimestamp = async (transaction: admin.firestore.Transaction, docRef: admin.firestore.DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
+export const checkAndUpdateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
     // Step 1: READ FIRST (as required by Firestore)
     const freshDoc = await transaction.get(docRef);
 

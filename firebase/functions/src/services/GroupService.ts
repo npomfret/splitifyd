@@ -1,4 +1,5 @@
-import * as admin from 'firebase-admin';
+
+import { DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { Group, GroupWithBalance } from '../types/group-types';
@@ -68,7 +69,7 @@ export class GroupService {
     /**
      * Fetch a group and verify user access
      */
-    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: admin.firestore.DocumentReference; group: Group }> {
+    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: DocumentReference; group: Group }> {
         const docRef = this.getGroupsCollection().doc(groupId);
         const doc = await docRef.get();
 
@@ -302,8 +303,8 @@ export class GroupService {
         }
 
         const results = await Promise.all(queries);
-        const snapshot = results[0] as admin.firestore.QuerySnapshot;
-        const changesSnapshot = includeMetadata ? (results[1] as admin.firestore.QuerySnapshot) : null;
+        const snapshot = results[0] as QuerySnapshot;
+        const changesSnapshot = includeMetadata ? (results[1] as QuerySnapshot) : null;
         const documents = snapshot.docs;
 
         // Determine if there are more results
@@ -311,7 +312,7 @@ export class GroupService {
         const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
         // Transform documents to groups and extract group IDs
-        const groups: Group[] = returnedDocs.map((doc: admin.firestore.QueryDocumentSnapshot) => transformGroupDocument(doc));
+        const groups: Group[] = returnedDocs.map((doc: QueryDocumentSnapshot) => transformGroupDocument(doc));
         const groupIds = groups.map((group) => group.id);
 
         // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4

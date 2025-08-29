@@ -1,4 +1,5 @@
-import * as admin from 'firebase-admin';
+
+import { DocumentReference, DocumentSnapshot } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError, Errors } from '../utils/errors';
@@ -52,7 +53,7 @@ export class ExpenseService {
     /**
      * Fetch and validate an expense document
      */
-    private async fetchExpense(expenseId: string): Promise<{ docRef: admin.firestore.DocumentReference; expense: Expense }> {
+    private async fetchExpense(expenseId: string): Promise<{ docRef: DocumentReference; expense: Expense }> {
         const docRef = this.expensesCollection.doc(expenseId);
         const doc = await docRef.get();
 
@@ -131,7 +132,7 @@ export class ExpenseService {
     /**
      * Transform group document to Group object
      */
-    private transformGroupDocument(doc: admin.firestore.DocumentSnapshot): Group {
+    private transformGroupDocument(doc: DocumentSnapshot): Group {
         const data = doc.data();
         if (!data || !data.data) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');

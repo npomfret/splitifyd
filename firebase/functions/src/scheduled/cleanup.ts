@@ -1,5 +1,6 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { admin, firestoreDb } from '../firebase';
+import { firestoreDb } from '../firebase';
+import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 
@@ -72,7 +73,7 @@ async function logCleanupMetrics(metrics: { collection: string; deletedCount: nu
         await firestoreDb.collection('system-metrics').add({
             type: 'cleanup',
             ...metrics,
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: FieldValue.serverTimestamp(),
         });
     } catch (error) {
         // Don't fail cleanup if metrics logging fails - silently ignore

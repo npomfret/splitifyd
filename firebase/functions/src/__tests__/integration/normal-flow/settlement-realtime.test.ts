@@ -3,7 +3,8 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import * as admin from 'firebase-admin';
+
+import { Timestamp } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
@@ -46,7 +47,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         // Create a settlement directly in Firestore (simulating what the API does)
         const settlementData = {
             ...new SettlementBuilder().withGroupId(groupId).withPayer(userId2).withPayee(userId1).build(),
-            createdAt: admin.firestore.Timestamp.now(),
+            createdAt: Timestamp.now(),
             createdBy: userId2,
         };
 
@@ -81,7 +82,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         // Create a settlement
         const settlementData = {
             ...new SettlementBuilder().withGroupId(groupId).withPayer(userId2).withPayee(userId1).build(),
-            createdAt: admin.firestore.Timestamp.now(),
+            createdAt: Timestamp.now(),
             createdBy: userId2,
         };
 

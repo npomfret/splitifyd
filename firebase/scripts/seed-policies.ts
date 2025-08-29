@@ -3,6 +3,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
+import { Firestore } from 'firebase-admin/firestore';
 import assert from 'node:assert';
 import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
@@ -25,7 +26,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 initializeFirebase(env);
 
 // We'll get these instances dynamically
-let firestoreDb: admin.firestore.Firestore;
+let firestoreDb: Firestore;
 let createPolicyInternal: any;
 let publishPolicyInternal: any;
 

@@ -1,5 +1,5 @@
-import * as admin from 'firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+
+import { DocumentSnapshot, FieldValue } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { userService } from './UserService2';
@@ -8,7 +8,7 @@ import { FirestoreCollections, Group, GroupMembersResponse, User } from '@spliti
 import { calculateGroupBalances } from './balanceCalculator';
 
 export class GroupMemberService {
-    private transformGroupDocument(doc: admin.firestore.DocumentSnapshot): Group {
+    private transformGroupDocument(doc: DocumentSnapshot): Group {
         const data = doc.data();
         if (!data) {
             throw new Error('Invalid group document');

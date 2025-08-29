@@ -1,5 +1,6 @@
 import { Response } from 'express';
-import * as admin from 'firebase-admin';
+
+import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
@@ -70,7 +71,7 @@ export const GroupDocumentSchema = z
 /**
  * Transform Firestore document to Group format
  */
-export const transformGroupDocument = (doc: admin.firestore.DocumentSnapshot): Group => {
+export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
     const rawData = doc.data();
     if (!rawData) {
         throw new Error('Invalid group document');

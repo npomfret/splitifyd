@@ -1,7 +1,8 @@
 import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import * as admin from 'firebase-admin';
+
+import { Timestamp } from 'firebase-admin/firestore';
 import { sanitizeString } from '../utils/security';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
@@ -15,14 +16,14 @@ export interface Expense {
     currency: string;
     description: string;
     category: string;
-    date: admin.firestore.Timestamp | Date;
+    date: Timestamp | Date;
     splitType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
     participants: string[];
     splits: ExpenseSplit[];
     receiptUrl?: string;
-    createdAt: admin.firestore.Timestamp | Date;
-    updatedAt: admin.firestore.Timestamp | Date;
-    deletedAt: admin.firestore.Timestamp | null;
+    createdAt: Timestamp | Date;
+    updatedAt: Timestamp | Date;
+    deletedAt: Timestamp | null;
     deletedBy: string | null;
 }
 

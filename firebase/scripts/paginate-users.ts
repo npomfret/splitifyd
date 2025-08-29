@@ -1,5 +1,6 @@
 #!/usr/bin/env npx tsx
 import * as admin from 'firebase-admin';
+import { Firestore, DocumentSnapshot, FieldPath } from 'firebase-admin/firestore';
 import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 import { parseEnvironment, initializeFirebase } from './firebase-init';
 
@@ -26,7 +27,7 @@ console.log(`📄 Page size: ${pageSize}, Max pages: ${maxPages}`);
 
 
 // We'll get these instances dynamically
-let firestoreDb: admin.firestore.Firestore;
+let firestoreDb: Firestore;
 
 /**
  * Initialize Firebase and import handlers
@@ -56,7 +57,7 @@ async function initializeAppServices() {
 /**
  * Format user data as single line JSON
  */
-function formatUserData(doc: admin.firestore.DocumentSnapshot): string {
+function formatUserData(doc: DocumentSnapshot): string {
     const data = doc.data();
     if (!data) return JSON.stringify({ id: doc.id, data: null });
 
@@ -114,10 +115,10 @@ async function paginateUsers(): Promise<void> {
         console.log(`Found ${totalUsers} total users across ${totalPages} pages`);
         console.log(`Will display up to ${Math.min(maxPages, totalPages)} pages\n`);
 
-        let query = firestoreDb.collection(FirestoreCollections.USERS).orderBy(admin.firestore.FieldPath.documentId()).limit(pageSize);
+        let query = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId()).limit(pageSize);
 
         let pageNumber = 1;
-        let lastDoc: admin.firestore.DocumentSnapshot | null = null;
+        let lastDoc: DocumentSnapshot | null = null;
 
         while (pageNumber <= maxPages && pageNumber <= totalPages) {
             console.log(`📄 PAGE ${pageNumber}/${Math.min(maxPages, totalPages)}:`);
@@ -125,7 +126,7 @@ async function paginateUsers(): Promise<void> {
 
             // Apply pagination cursor if we have one
             if (lastDoc) {
-                query = firestoreDb.collection(FirestoreCollections.USERS).orderBy(admin.firestore.FieldPath.documentId()).startAfter(lastDoc).limit(pageSize);
+                query = firestoreDb.collection(FirestoreCollections.USERS).orderBy(FieldPath.documentId()).startAfter(lastDoc).limit(pageSize);
             }
 
             const snapshot = await query.get();
