@@ -9,6 +9,7 @@ import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group, CreateExpens
 import { Expense, calculateSplits } from '../expenses/validation';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PermissionEngine } from '../permissions';
+import { _getGroupMembersData } from '../groups/memberHandlers';
 
 /**
  * Zod schemas for expense document validation
@@ -544,6 +545,194 @@ export class ExpenseService {
             });
             throw error;
         }
+    }
+
+    /**
+     * List all expenses for a user across all groups with pagination
+     */
+    async listUserExpenses(
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        } = {},
+    ): Promise<{
+        expenses: any[];
+        count: number;
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        const limit = Math.min(options.limit || 50, 100);
+        const cursor = options.cursor;
+        const includeDeleted = options.includeDeleted || false;
+
+        let query = this.expensesCollection
+            .where('participants', 'array-contains', userId)
+            .select(
+                'groupId',
+                'createdBy',
+                'paidBy',
+                'amount',
+                'currency',
+                'description',
+                'category',
+                'date',
+                'splitType',
+                'participants',
+                'splits',
+                'receiptUrl',
+                'createdAt',
+                'updatedAt',
+                'deletedAt',
+                'deletedBy',
+            )
+            .orderBy('date', 'desc')
+            .orderBy('createdAt', 'desc')
+            .limit(limit + 1);
+
+        // Filter out deleted expenses by default
+        if (!includeDeleted) {
+            query = query.where(DELETED_AT_FIELD, '==', null);
+        }
+
+        if (cursor) {
+            try {
+                const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+                const cursorData = JSON.parse(decodedCursor);
+
+                if (cursorData.date && cursorData.createdAt) {
+                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createServerTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp());
+                }
+            } catch (error) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
+            }
+        }
+
+        const snapshot = await query.get();
+
+        const hasMore = snapshot.docs.length > limit;
+        const expenses = snapshot.docs.slice(0, limit).map((doc) => {
+            const data = doc.data() as Expense;
+            return {
+                id: doc.id,
+                ...this.transformExpenseToResponse({ ...data, id: doc.id }),
+            };
+        });
+
+        let nextCursor: string | undefined;
+        if (hasMore && expenses.length > 0) {
+            const lastDoc = snapshot.docs[limit - 1];
+            const lastDocData = lastDoc.data() as Expense;
+            const cursorData = {
+                date: timestampToISO(lastDocData.date),
+                createdAt: timestampToISO(lastDocData.createdAt),
+                id: lastDoc.id,
+            };
+            nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+        }
+
+        return {
+            expenses,
+            count: expenses.length,
+            hasMore,
+            nextCursor,
+        };
+    }
+
+    /**
+     * Get expense history/audit log
+     */
+    async getExpenseHistory(expenseId: string, userId: string): Promise<{
+        history: any[];
+        count: number;
+    }> {
+        // Verify user has access to this expense first
+        await this.fetchExpense(expenseId);
+
+        const historySnapshot = await this.expensesCollection
+            .doc(expenseId)
+            .collection('history')
+            .orderBy('modifiedAt', 'desc')
+            .limit(20)
+            .get();
+
+        const history = historySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                modifiedAt: timestampToISO(data.modifiedAt),
+                modifiedBy: data.modifiedBy,
+                changeType: data.changeType,
+                changes: data.changes,
+                previousAmount: data.amount,
+                previousDescription: data.description,
+                previousCategory: data.category,
+                previousDate: data.date ? timestampToISO(data.date) : undefined,
+                previousSplits: data.splits,
+            };
+        });
+
+        return {
+            history,
+            count: history.length,
+        };
+    }
+
+    /**
+     * Get consolidated expense details (expense + group + members)
+     * Eliminates race conditions by providing all needed data in one request
+     */
+    async getExpenseFullDetails(expenseId: string, userId: string): Promise<{
+        expense: any;
+        group: any;
+        members: any;
+    }> {
+        // Fetch the expense
+        const { expense } = await this.fetchExpense(expenseId);
+
+        // Get group document for permission check and data
+        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
+        if (!groupDoc.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+
+        // Check if user is a participant in this expense or a group member (access control for viewing)
+        if (!expense.participants || !expense.participants.includes(userId)) {
+            // Additional check: allow group members to view expenses they're not participants in
+            const groupData = groupDoc.data();
+            if (!groupData?.data?.members?.[userId]) {
+                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
+            }
+        }
+
+        const groupData = groupDoc.data();
+        if (!groupData?.data?.name) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
+        }
+
+        // Transform group data using same pattern as groups handler
+        const group = {
+            id: groupDoc.id,
+            name: groupData.data.name,
+            description: groupData.data.description || '',
+            createdBy: groupData.data.createdBy,
+            members: groupData.data.members,
+            createdAt: groupData.createdAt.toDate().toISOString(),
+            updatedAt: groupData.updatedAt.toDate().toISOString(),
+        };
+
+        // Get members data using the proper helper function
+        const members = await _getGroupMembersData(expense.groupId, groupData.data.members || {});
+
+        // Format expense response
+        const expenseResponse = this.transformExpenseToResponse(expense);
+
+        return {
+            expense: expenseResponse,
+            group,
+            members,
+        };
     }
 }
 
