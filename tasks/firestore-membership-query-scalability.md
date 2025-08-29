@@ -46,12 +46,12 @@ firestoreDb.collectionGroup('members').where('userId', '==', userId)
 
 Since there's no existing data, we can do a complete, aggressive refactor without dual-writes, migrations, or feature flags.
 
-### Phase 1: Update Shared Types (15 min)
+### Phase 1: Update Shared Types (10 min)
 
 1. **Update GroupMember interface** - Add required `userId` field
-2. **Update Group interface** - Remove `members` map entirely
+2. **Remove `members` map from Group interface** - Clean break from old structure
 3. **Add GroupWithMembers type** - For when we need group + members together
-4. **Update/remove groupSize() function** - It's now async via MemberService
+4. **Make groupSize() async** - Will call MemberService for count
 
 ### Phase 2: Create MemberService (30 min)
 
@@ -68,90 +68,71 @@ Create `firebase/functions/src/services/MemberService.ts` with clean subcollecti
 - `getGroupMemberCount(groupId)` - Count members
 - `batchAddMembers(groupId, members)` - Batch add for group creation
 
-### Phase 3: Rewrite Core Group Operations (45 min)
+### Phase 3: Update Core Group Operations (45 min)
 
-1. **Group creation** (`GroupService.createGroup`)
-    - Create group doc without members field
-    - Use `MemberService.batchAddMembers()` for initial members
-2. **Group listing** (`GroupService.listGroups`)
-    - Use `MemberService.getUserGroups()` to get group IDs
-    - Batch fetch group documents
-    - Handle pagination in-memory
-3. **Group access checks** (`fetchGroupWithAccess`)
-    - Use `MemberService.isMember()` instead of checking members map
-4. **Delete User check** (`UserService2.deleteUser`)
-    - Use `MemberService.getUserGroups()` to check if user has groups
+**GroupService.ts:**
+- `createGroup()` - Create group doc without members, use `MemberService.batchAddMembers()`
+- `listGroups()` - Replace line 283's problematic query with collection group query via `MemberService.getUserGroups()`
+- `fetchGroupWithAccess()` - Use `MemberService.isMember()` for access checks
+- `addComputedFields()` - Fetch members when needed
 
-### Phase 4: Fix All Member Operations (45 min)
+**UserService2.ts:**
+- `deleteUser()` - Replace line 358's problematic query with collection group query
 
-1. **Add member to group** (`groups/handlers.ts`)
-    - Use `MemberService.addMember()`
-2. **Remove member from group**
-    - Use `MemberService.removeMember()`
-3. **Update member role** (`permissionHandlers.ts`)
-    - Use `MemberService.updateMember()` instead of field path updates
-4. **Get group members**
-    - Use `MemberService.getGroupMembers()`
+### Phase 4: Fix Member Management (45 min)
+
+**GroupMemberService.ts:**
+- `leaveGroup()` - Use `MemberService.removeMember()` instead of updating members map
+- `removeGroupMember()` - Use `MemberService.removeMember()` instead of updating members map
+- `getGroupMembers()` - Use `MemberService.getGroupMembers()` instead of accessing group.members
+
+**GroupShareService.ts:**
+- `joinGroupByLink()` - Use `MemberService.addMember()` instead of updating members map
+- `previewGroup()` - Use `MemberService.getGroupMemberCount()` instead of Object.keys(members).length
+
+**GroupPermissionService.ts:**
+- `setMemberRole()` - Use `MemberService.updateMember()` instead of field path updates to `data.members.${userId}.role`
 
 ### Phase 5: Fix Validation & Authorization (1 hour)
 
-1. **Update isGroupMember()** helper
-    - Use `MemberService.isMember()` async call
-2. **Update isGroupOwner()** helper
-    - Check `group.createdBy` or use `MemberService.getMemberRole()`
-3. **Fix PermissionEngine**
-    - Update to work with async member lookups
-4. **Fix settlement validation**
-    - Update membership checks in settlement operations
-5. **Fix expense validation**
-    - Update membership checks in expense operations
+- Update `isGroupMember()` helper in `utils/groupHelpers.ts` to use async `MemberService.isMember()`
+- Update `isGroupOwner()` helper - can stay synchronous using `group.createdBy`
+- Fix `PermissionEngine` to work with async member lookups
+- Update settlement/expense validation that checks membership
 
 ### Phase 6: Update Transform Functions (30 min)
 
-1. **transformGroupDocument()**
-    - Handle groups without members field
-    - Add helper to populate members when needed
-2. **addComputedFields()**
-    - Fetch members from subcollection when needed
-3. **Update balance calculations**
-    - Fetch members for balance computation
+- `transformGroupDocument()` - Handle groups without members field
+- Add helper to populate members when needed for API responses
+- Update balance calculations to fetch members from subcollection
 
-### Phase 7: Fix Test Infrastructure (1 hour)
+### Phase 7: Fix Tests (1 hour)
 
-1. **Update test mocking**
-    - Mock `.collection().doc().collection()` chain
-    - Mock `collectionGroup()` queries
-2. **Update GroupBuilder**
-    - Don't set members on group document
-    - Add helper to create member subcollection docs
-3. **Update GroupMemberBuilder**
-    - Include required userId field
-4. **Update test fixtures**
-    - Use new structure in all test data
-5. **Fix integration test helpers**
-    - Update `createGroupWithMembers()` to use subcollections
-    - Update member verification helpers
+- Mock subcollection chains: `.collection().doc().collection()`
+- Mock `collectionGroup()` queries  
+- Update `GroupBuilder` to not set members on group document
+- Add `GroupMemberBuilder` with required `userId` field
+- Update all test fixtures and integration test helpers
+- Fix 15+ test files that reference group.members
 
-### Phase 8: Create Index and Deploy (15 min)
+### Phase 8: Create Collection Group Index (15 min)
 
-1. **Create collection group index**
-    ```json
-    {
-        "collectionGroup": "members",
-        "fields": [{ "fieldPath": "userId", "order": "ASCENDING" }],
-        "queryScope": "COLLECTION_GROUP"
-    }
-    ```
-2. **Deploy index** via Firebase CLI or console
+Add to `firebase/firestore.indexes.json`:
+```json
+{
+  "collectionGroup": "members",
+  "queryScope": "COLLECTION_GROUP",
+  "fields": [
+    {"fieldPath": "userId", "order": "ASCENDING"}
+  ]
+}
+```
 
-3. **Run tests** to verify everything works
+### Phase 9: Deploy & Verify (15 min)
 
-### Phase 9: Clean Up (30 min)
-
-1. **Remove all TODO comments**
-2. **Remove any migration helpers**
-3. **Update API documentation**
-4. **Verify no remaining dynamic field paths**
+- Deploy index to Firebase
+- Run all tests to ensure no regressions
+- Verify new users can list groups without index errors
 
 ## Total Time Estimate: ~5-6 hours
 
@@ -174,26 +155,38 @@ Create `firebase/functions/src/services/MemberService.ts` with clean subcollecti
 
 ## Files to Modify
 
-### Core Files
+### Core Services (7 files)
+- `/packages/shared/src/shared-types.ts` - Update types, add userId to GroupMember, remove members from Group
+- `/firebase/functions/src/services/MemberService.ts` - **NEW FILE** - Subcollection operations
+- `/firebase/functions/src/services/GroupService.ts` - Replace line 283 query, update createGroup, fetchGroupWithAccess
+- `/firebase/functions/src/services/GroupMemberService.ts` - Replace member map operations with MemberService calls
+- `/firebase/functions/src/services/GroupShareService.ts` - Use MemberService for joinGroupByLink, previewGroup
+- `/firebase/functions/src/services/GroupPermissionService.ts` - Replace field path updates with MemberService.updateMember
+- `/firebase/functions/src/services/UserService2.ts` - Replace line 358 query with collection group query
 
-- `/packages/shared/src/shared-types.ts` - Update types
-- `/firebase/functions/src/services/MemberService.ts` - New service
-- `/firebase/functions/src/services/GroupService.ts` - Update queries
-- `/firebase/functions/src/groups/handlers.ts` - Update member ops
-- `/firebase/functions/src/groups/permissionHandlers.ts` - Update role changes
-- `/firebase/functions/src/services/UserService2.ts` - Update delete check
+### Helper Files (3 files)
+- `/firebase/functions/src/utils/groupHelpers.ts` - Make isGroupMember() async, update groupSize()
+- `/firebase/functions/src/permissions/permission-engine.ts` - Handle async member lookups
+- `/firebase/functions/src/groups/handlers.ts` - Update transformGroupDocument, addComputedFields
 
-### Helper Files
+### Configuration (1 file)
+- `/firebase/firestore.indexes.json` - Add collection group index for members
 
-- `/firebase/functions/src/utils/groupHelpers.ts` - Update helpers
-- `/firebase/functions/src/permissions/index.ts` - Update permission checks
-- `/firebase/functions/src/services/balance.ts` - Update balance calcs
+### Test Files (15+ files)
+**Unit Tests:**
+- `/firebase/functions/src/__tests__/unit/groupHelpers.test.ts` - Update mocks for async helpers
+- `/firebase/functions/src/__tests__/unit/permission-engine.test.ts` - Update member access mocks
 
-### Test Files
+**Integration Tests:**
+- `/firebase/functions/src/__tests__/integration/normal-flow/groups.test.ts` - Update group creation/listing
+- `/firebase/functions/src/__tests__/integration/normal-flow/groups-full-details.test.ts` - Update member queries
+- `/firebase/functions/src/__tests__/integration/normal-flow/group-members.test.ts` - Update member operations
+- `/firebase/functions/src/__tests__/integration/group-permissions.test.ts` - Update role changes
+- `/firebase/functions/src/__tests__/integration/real-time/group-membership-sync.test.ts` - Update member sync
+- Plus 8+ other integration tests that reference group.members
 
-- `/firebase/functions/src/__tests__/unit/*.test.ts` - Update mocks
-- `/firebase/functions/src/__tests__/integration/*.test.ts` - Update fixtures
-- `/firebase/functions/src/test-support/builders/*.ts` - Update builders
+**Test Support:**
+- `/firebase/functions/src/test-support/builders/*` - Update GroupBuilder, create GroupMemberBuilder
 
 ## Rollback Plan
 
