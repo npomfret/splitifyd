@@ -1,10 +1,11 @@
 import { Request, Response } from 'express';
 import { HTTP_STATUS } from '../constants';
-import { userService } from '../services/UserService2';
+import { getUserService } from '../services/serviceRegistration';
 import { ApiError } from '../utils/errors';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
+        const userService = getUserService();
         const result = await userService.registerUser(req.body);
         res.status(HTTP_STATUS.CREATED).json(result);
     } catch (error: unknown) {

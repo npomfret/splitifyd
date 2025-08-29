@@ -29,6 +29,10 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
 
+// Initialize service registry
+import { registerAllServices } from './services/serviceRegistration';
+registerAllServices();
+
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
