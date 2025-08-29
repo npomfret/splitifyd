@@ -11,6 +11,7 @@ import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../user/validation';
 import { z } from 'zod';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 /**
  * Zod schema for User document validation
@@ -128,6 +129,15 @@ export class UserService {
      * @throws If user is not found or an error occurs
      */
     async getUser(userId: string): Promise<UserProfile> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserService2',
+            'getUser',
+            async () => this._getUser(userId),
+            { userId }
+        );
+    }
+
+    private async _getUser(userId: string): Promise<UserProfile> {
         // Check cache first
         if (this.cache.has(userId)) {
             return this.cache.get(userId)!;
@@ -181,6 +191,15 @@ export class UserService {
      * Get multiple user profiles by UIDs (batch operation)
      */
     async getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserService2',
+            'getUsers',
+            async () => this._getUsers(uids),
+            { userCount: uids.length }
+        );
+    }
+
+    private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
         const result = new Map<string, UserProfile>();
         const uncachedUids: string[] = [];
 
@@ -240,6 +259,15 @@ export class UserService {
      * @throws ApiError if update fails
      */
     async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserService2',
+            'updateProfile',
+            async () => this._updateProfile(userId, requestBody, language),
+            { userId }
+        );
+    }
+
+    private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
         // Validate the request body with localized error messages
         const validatedData = validateUpdateUserProfile(requestBody, language);
 
@@ -403,6 +431,14 @@ export class UserService {
      * @throws ApiError if registration fails
      */
     async registerUser(requestBody: unknown): Promise<RegisterUserResult> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserService2',
+            'registerUser',
+            async () => this._registerUser(requestBody)
+        );
+    }
+
+    private async _registerUser(requestBody: unknown): Promise<RegisterUserResult> {
         // Validate the request body
         const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
 

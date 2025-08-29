@@ -18,6 +18,7 @@ import { PermissionEngine } from '../permissions';
 import { LoggerContext } from '../logger';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { UpdateGroupRequest } from '../types/group-types';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 /**
  * Service for managing group operations
@@ -106,6 +107,15 @@ export class GroupService {
      * Get a single group by ID with user-specific balance information
      */
     async getGroup(groupId: string, userId: string): Promise<GroupWithBalance> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupService',
+            'getGroup',
+            async () => this._getGroup(groupId, userId),
+            { groupId, userId }
+        );
+    }
+
+    private async _getGroup(groupId: string, userId: string): Promise<GroupWithBalance> {
         const { group } = await this.fetchGroupWithAccess(groupId, userId);
 
         // Calculate balance information on-demand
@@ -266,6 +276,23 @@ export class GroupService {
      * PERFORMANCE OPTIMIZED: Batches database operations to prevent N+1 queries
      */
     async listGroups(
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            order?: 'asc' | 'desc';
+            includeMetadata?: boolean;
+        } = {},
+    ): Promise<ListGroupsResponse> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupService',
+            'listGroups',
+            async () => this._listGroups(userId, options),
+            { userId, limit: options.limit }
+        );
+    }
+
+    private async _listGroups(
         userId: string,
         options: {
             limit?: number;
@@ -462,6 +489,15 @@ export class GroupService {
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
     async createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupService',
+            'createGroup',
+            async () => this._createGroup(userId, groupData),
+            { userId }
+        );
+    }
+
+    private async _createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
         // Initialize group structure with server timestamps
         const docRef = this.getGroupsCollection().doc();
         const serverTimestamp = createTrueServerTimestamp();
@@ -623,6 +659,21 @@ export class GroupService {
      * Returns simplified debts and balance information
      */
     async getGroupBalances(groupId: string, userId: string): Promise<{
+        groupId: string;
+        userBalances: any;
+        simplifiedDebts: any;
+        lastUpdated: string;
+        balancesByCurrency: Record<string, any>;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupService',
+            'getGroupBalances',
+            async () => this._getGroupBalances(groupId, userId),
+            { groupId, userId }
+        );
+    }
+
+    private async _getGroupBalances(groupId: string, userId: string): Promise<{
         groupId: string;
         userBalances: any;
         simplifiedDebts: any;
