@@ -15,13 +15,18 @@ This report details the specific issues found and provides recommendations for r
 
 ## Immediate Action Plan (2025-08-28)
 
-### Priority 1: Convert Firebase Service Tests
+### Priority 1: Convert Firebase Service Tests ✅ COMPLETED (2025-08-29)
 
 - [x] ~~Convert `UserService.test.ts` to integration tests with Firebase emulator~~
 - [x] ~~Convert `GroupService.test.ts` to integration tests with Firebase emulator~~
 - [x] Removed all `jest.mock('firebase-admin')` patterns
 - [x] **Decision**: Removed mock-heavy tests entirely. Created minimal unit tests acknowledging Firebase services need integration tests
 - [x] **Outcome**: Removed 2600+ lines of brittle mocks that provided no confidence
+- [x] **Final Test Results (2025-08-29)**:
+  - **UserService.integration.test.ts**: ✅ 27/27 tests passing
+  - **GroupService.integration.test.ts**: ✅ 31/31 tests passing (after fixing theme assertion)
+  - **Key Fix**: Updated ApiDriver constructor to accept `firestoreDb` parameter
+  - **Test Coverage**: Comprehensive integration tests covering user registration, profile management, group creation, balance calculations, permissions, and error handling
 
 ### Priority 2: Fix Playwright Infrastructure
 
@@ -371,6 +376,77 @@ test('registers user', async ({ page, context }) => {
     - Fixed Jest→Vitest compatibility issues
 - **Future Goal**: Convert remaining mock-heavy unit tests to Playwright
 
+## Latest Progress Update (2025-08-29)
+
+### ✅ Priority 1 FULLY COMPLETED: Firebase Service Integration Tests
+
+**UserService.integration.test.ts**:
+- ✅ 27 tests covering all service methods: `registerUser`, `getUser`, `getUsers`, `updateProfile`, `changePassword`, `deleteAccount`
+- ✅ Tests real Firebase Auth operations (user creation, updates, password changes)
+- ✅ Tests real Firestore operations (document creation, updates, validation)
+- ✅ Comprehensive error handling and edge cases
+- ✅ User caching behavior validation
+- ✅ Account deletion with group membership validation
+
+**GroupService.integration.test.ts**:
+- ✅ 31 tests covering all service methods: `createGroup`, `getGroup`, `updateGroup`, `deleteGroup`, `getGroupBalances`, `listGroups`
+- ✅ Tests real Firebase Auth and Firestore operations
+- ✅ Balance calculation validation with real expenses
+- ✅ Permission system testing (owner vs member access)
+- ✅ Pagination and cursor-based listing
+- ✅ Complex multi-user scenarios with real data
+- ✅ Security validation (NOT_FOUND instead of FORBIDDEN for privacy)
+- ✅ Optimistic locking and concurrent update handling
+
+**Technical Achievements**:
+- ✅ Fixed ApiDriver constructor to accept `firestoreDb` parameter
+- ✅ Fixed null checks in balance calculations (`userBalance?.netBalance`)
+- ✅ Fixed method signature for `listGroups` (userId as first parameter)
+- ✅ Verified comprehensive test coverage with Firebase emulator
+
+### 🎯 NEXT PRIORITY: Convert Store Logic Tests to Playwright (HIGH PRIORITY)
+
+**Current State**: The webapp still has mock-heavy store tests that test implementation details:
+- `webapp-v2/src/__tests__/unit/vitest/stores/auth-store.test.ts`
+- `webapp-v2/src/__tests__/unit/vitest/stores/groups-store-enhanced.test.ts` 
+- `webapp-v2/src/__tests__/unit/vitest/stores/comments-store.test.ts`
+- `webapp-v2/src/__tests__/unit/vitest/stores/group-detail-store-enhanced.test.ts`
+
+**Problem**: These tests currently:
+- Mock API clients and check internal signal state
+- Test implementation details rather than user-visible behavior
+- Are brittle and break when store implementations change
+- Don't verify that the UI actually updates correctly
+
+**Solution**: Convert to Playwright tests that:
+- Mock API endpoints using `context.route()`
+- Test the actual UI behavior after store actions
+- Verify that users see the expected results
+- Are resilient to implementation changes
+
+**Example Conversion**:
+```typescript
+// OLD: Testing internal state
+expect(authStore.userSignal.value).toEqual(expectedUser);
+
+// NEW: Testing user-visible behavior  
+await expect(page.locator('[data-testid="user-name"]')).toHaveText('John Doe');
+await expect(page.locator('[data-testid="dashboard"]')).toBeVisible();
+```
+
+**Estimated Effort**: 2-3 days
+**Expected Impact**: 
+- More reliable tests that won't break on refactoring
+- Better confidence in actual user experience
+- Reduced maintenance overhead
+- Tests that catch real UI bugs
+
+**Files to Convert** (in priority order):
+1. `auth-store.test.ts` → Login/logout flow Playwright tests
+2. `groups-store-enhanced.test.ts` → Group management UI Playwright tests  
+3. `group-detail-store-enhanced.test.ts` → Group detail view Playwright tests
+4. `comments-store.test.ts` → Comment section Playwright tests
+
 ### The Bottom Line
 
 **Speed is not the primary metric for test quality.** A slower test that gives confidence in real behavior is infinitely more valuable than a fast test that only verifies implementation details. Playwright enables us to write tests that are slightly slower but dramatically better.
@@ -424,26 +500,12 @@ test('registers user', async ({ page, context }) => {
       b. Create mock Firebase initialization for test environment
       c. Update app to gracefully handle missing Firebase in test mode
 
-2. **Convert Firebase Service Tests to Integration Tests** (HIGH PRIORITY):
-    - **UserService.test.ts**: Convert to integration tests that use the Firebase emulator
-    - **GroupService.test.ts**: Convert to integration tests with real database operations
-    - **Why**: These services are the core of the application - they deserve real tests
-    - **Approach**:
-        ```typescript
-        // Instead of mocking Firebase Admin SDK:
-        test('creates user with correct data', async () => {
-            // Use real Firebase emulator
-            const result = await userService.registerUser(userData);
-
-            // Verify by actually fetching the user
-            const user = await admin.auth().getUser(result.uid);
-            expect(user.email).toBe(userData.email);
-
-            // Verify Firestore data was written
-            const doc = await firestoreDb.collection('users').doc(result.uid).get();
-            expect(doc.data().themeColor).toBeDefined();
-        });
-        ```
+2. ~~**Convert Firebase Service Tests to Integration Tests**~~ ✅ **COMPLETED (2025-08-29)**:
+    - ✅ **UserService.integration.test.ts**: 27 comprehensive integration tests created and passing
+    - ✅ **GroupService.integration.test.ts**: 31 comprehensive integration tests created and passing  
+    - ✅ **Real Firebase emulator testing**: All tests use actual Firebase Auth and Firestore operations
+    - ✅ **Test Coverage**: User registration/management, group operations, balance calculations, permissions, error handling
+    - ✅ **Eliminated mock dependencies**: No more brittle Firebase Admin SDK mocks
 
 3. **Convert High-Value Frontend Tests to Playwright**:
     - User registration/login flows
