@@ -11,41 +11,9 @@ import { getCurrentPolicyVersions } from '../auth/policy-helpers';
 import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../user/validation';
-import { z } from 'zod';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-
-/**
- * Zod schema for User document validation
- * All fields are optional since user documents can be created incrementally
- */
-const UserDocumentSchema = z
-    .object({
-        email: z.string().email().optional(), // Email might be in Auth only
-        displayName: z.string().optional(), // Display name might be in Auth only
-        themeColor: z
-            .union([
-                z.string(),
-                z.object({
-                    light: z.string(),
-                    dark: z.string(),
-                    name: z.string(),
-                    pattern: z.string(),
-                    assignedAt: z.string(),
-                    colorIndex: z.number(),
-                }),
-            ])
-            .optional(), // Can be string or UserThemeColor object
-        preferredLanguage: z.string().optional(),
-        createdAt: z.any().optional(), // Firestore Timestamp
-        updatedAt: z.any().optional(), // Firestore Timestamp
-        role: z.nativeEnum(SystemUserRoles).optional(),
-        acceptedPolicies: z.record(z.string(), z.string()).optional(),
-        termsAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
-        cookiePolicyAcceptedAt: z.any().optional(), // Firestore Timestamp from registration
-        passwordChangedAt: z.any().optional(), // Firestore Timestamp when password was changed
-        photoURL: z.string().nullable().optional(), // Photo URL can be null or undefined
-    })
-    .passthrough();
+import { UserDocumentSchema, UserDataSchema } from '../schemas/user';
+import { z } from 'zod';
 
 /**
  * User profile interface for consistent user data across the application
@@ -160,7 +128,9 @@ export class UserService {
             // Validate user data structure - strict enforcement
             if (userData) {
                 try {
-                    UserDocumentSchema.parse(userData);
+                    // Add document ID to data for validation
+                    const dataWithId = { ...userData, id: userDoc.id };
+                    UserDocumentSchema.parse(dataWithId);
                 } catch (error) {
                     const zodError = error as z.ZodError;
                     logger.error('User document validation failed', error as Error, {
@@ -306,7 +276,7 @@ export class UserService {
 
             // Validate update object before applying to Firestore
             try {
-                UserDocumentSchema.parse(firestoreUpdate);
+                UserDataSchema.parse(firestoreUpdate);
             } catch (error) {
                 logger.error('User document update validation failed', error as Error, {
                     userId,
@@ -494,7 +464,7 @@ export class UserService {
 
             // Validate user document before writing to Firestore
             try {
-                UserDocumentSchema.parse(userDoc);
+                UserDataSchema.parse(userDoc);
             } catch (error) {
                 logger.error('User document validation failed during registration', error as Error, {
                     userId: userRecord.uid,

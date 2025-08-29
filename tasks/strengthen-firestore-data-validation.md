@@ -296,6 +296,35 @@ All validation has been successfully migrated to strict enforcement mode with ze
 - ✅ **Complete GroupShareService validation** - using transformGroupDocument for type safety
 - ✅ **Strict DataFetcher validation** - no silent fallbacks, proper error propagation
 
+#### ✅ Schema Organization & Infrastructure Enhancement (Current Session - 2025-08-29)
+
+**Centralized Schema Infrastructure**
+- Created comprehensive schema organization in `src/schemas/` directory
+- Implemented centralized `index.ts` for unified schema exports
+- Created reusable `common.ts` with schema fragments and helpers
+- Standardized Document/Data schema pattern for consistent read vs write validation
+
+**Schema Enhancement & Standardization**
+- Enhanced `ExpenseDocumentSchema` and `SettlementDocumentSchema` with common fragments
+- Created dedicated `PolicyDocumentSchema` and `UserDocumentSchema` files
+- Added comprehensive validation monitoring with `validation-monitor.ts` 
+- Added validation helpers with `validation-helpers.ts` for common operations
+- Improved error messages with descriptive validation text
+
+**Critical Bug Fixes & TypeScript Compilation**
+- ✅ **Fixed TypeScript compilation errors** - missing imports, incorrect type usage
+- ✅ **Fixed schema validation logic bugs** - proper Document vs Data schema usage
+- ✅ **Fixed Firestore ID injection** - added `doc.id` to data before validation for read operations
+- ✅ **Fixed LoggerContext type errors** - changed to ContextualLogger interface
+- ✅ **Fixed ZodError property access** - corrected `errors` to `issues` property
+- ✅ **All 229 unit tests pass** - validation working correctly in production
+
+**Schema Pattern Standardization**
+- Document schemas (with `id` field) for data read from Firestore with `doc.data()` + `doc.id`
+- Data schemas (without `id` field) for data being written to Firestore with `.set()`, `.add()`
+- Consistent use of `createDocumentSchemas()` helper for paired schema creation
+- Forward-compatible `.passthrough()` mode instead of strict validation
+
 ## 5. Detailed Implementation Plan (Original)
 
 ### Phase 1: Foundation Setup (Non-Breaking)

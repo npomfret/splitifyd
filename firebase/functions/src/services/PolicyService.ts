@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
@@ -12,25 +11,8 @@ import {
     PolicyVersion,
 } from '@splitifyd/shared';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-
-/**
- * Zod schema for Policy document validation
- */
-const PolicyVersionSchema = z.object({
-    text: z.string(),
-    createdAt: z.any(), // Firestore Timestamp
-    publishedBy: z.string().optional(),
-});
-
-const PolicyDocumentSchema = z
-    .object({
-        policyName: z.string().min(1),
-        currentVersionHash: z.string().min(1),
-        versions: z.record(z.string(), PolicyVersionSchema),
-        createdAt: z.any().optional(), // Firestore Timestamp
-        updatedAt: z.any().optional(), // Firestore Timestamp
-    })
-    .passthrough();
+import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
+import { z } from 'zod';
 
 /**
  * Service for managing policy operations
@@ -56,7 +38,9 @@ export class PolicyService {
             if (!rawData) {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', `Policy document data is null after ${operationType}`);
             }
-            PolicyDocumentSchema.parse(rawData);
+            // Add document ID to data for validation
+            const dataWithId = { ...rawData, id: updatedDoc.id };
+            PolicyDocumentSchema.parse(dataWithId);
         } catch (validationError) {
             logger.error(`Policy document validation failed after ${operationType}`, validationError as Error, {
                 policyId,
@@ -405,7 +389,7 @@ export class PolicyService {
 
             // Validate policy data before writing to Firestore
             try {
-                const validatedPolicyData = PolicyDocumentSchema.parse(policyData);
+                const validatedPolicyData = PolicyDataSchema.parse(policyData);
                 await this.policiesCollection.doc(id).set(validatedPolicyData);
             } catch (validationError) {
                 logger.error('Policy data validation failed before creation', validationError as Error, {
@@ -534,7 +518,9 @@ export class PolicyService {
                 // Validate policy data structure with Zod
                 let data;
                 try {
-                    data = PolicyDocumentSchema.parse(rawData);
+                    // Add document ID to data for validation
+                    const dataWithId = { ...rawData, id: doc.id };
+                    data = PolicyDocumentSchema.parse(dataWithId);
                 } catch (error) {
                     logger.error('Policy document validation failed', error as Error, {
                         policyId: doc.id,
@@ -590,7 +576,9 @@ export class PolicyService {
             // Validate policy data structure with Zod
             let data;
             try {
-                data = PolicyDocumentSchema.parse(rawData);
+                // Add document ID to data for validation
+                const dataWithId = { ...rawData, id: policyDoc.id };
+                data = PolicyDocumentSchema.parse(dataWithId);
             } catch (error) {
                 logger.error('Policy document validation failed', error as Error, {
                     policyId: id,

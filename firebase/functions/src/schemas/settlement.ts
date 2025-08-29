@@ -1,22 +1,46 @@
 import { z } from 'zod';
-import { Timestamp } from 'firebase-admin/firestore';
+import { 
+    FirestoreTimestampSchema, 
+    AuditFieldsSchema,
+    UserIdSchema, 
+    GroupIdSchema, 
+    CurrencyCodeSchema,
+    createDocumentSchemas 
+} from './common';
+
+/**
+ * Base Settlement schema without document ID
+ */
+const BaseSettlementSchema = z.object({
+    groupId: GroupIdSchema,
+    payerId: UserIdSchema, 
+    payeeId: UserIdSchema,
+    amount: z.number().min(0, 'Amount must be non-negative'),
+    currency: CurrencyCodeSchema,
+    date: FirestoreTimestampSchema,
+    createdBy: UserIdSchema,
+    note: z.string().optional(),
+}).merge(AuditFieldsSchema);
+
+/**
+ * Create Document and Data schemas using common pattern
+ */
+const { DocumentSchema: SettlementDocumentSchema, DataSchema: SettlementDataSchema } = 
+    createDocumentSchemas(BaseSettlementSchema);
 
 /**
  * Zod schema for Settlement document validation
  * Separated from SettlementService to avoid circular import issues
+ * 
+ * Usage:
+ * ```typescript
+ * const settlement = SettlementDocumentSchema.parse(doc.data());
+ * ```
  */
-export const SettlementDocumentSchema = z.object({
-    id: z.string().min(1),
-    groupId: z.string().min(1),
-    payerId: z.string().min(1),
-    payeeId: z.string().min(1),
-    amount: z.number().min(0),
-    currency: z.string().min(1),
-    date: z.instanceof(Timestamp),
-    createdBy: z.string().min(1),
-    createdAt: z.instanceof(Timestamp),
-    updatedAt: z.instanceof(Timestamp),
-    note: z.string().optional(),
-});
+export { SettlementDocumentSchema, SettlementDataSchema };
 
+/**
+ * Type definitions derived from schemas
+ */
 export type SettlementDocument = z.infer<typeof SettlementDocumentSchema>;
+export type SettlementData = z.infer<typeof SettlementDataSchema>;

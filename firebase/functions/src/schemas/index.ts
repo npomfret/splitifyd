@@ -1,0 +1,105 @@
+/**
+ * Central Schema Index - Unified exports for all Firestore document validation schemas
+ * 
+ * This file provides a single import point for all Zod schemas used for Firestore
+ * document validation. It standardizes naming conventions and ensures consistency
+ * across the codebase.
+ * 
+ * Usage:
+ * ```typescript
+ * import { ExpenseDocumentSchema, GroupDocumentSchema } from '../schemas';
+ * ```
+ */
+
+// Common schema fragments and utilities
+export {
+    FirestoreTimestampSchema,
+    AuditFieldsSchema,
+    OptionalAuditFieldsSchema,
+    SoftDeletionFieldsSchema,
+    DocumentIdSchema,
+    CurrencyCodeSchema,
+    UserIdSchema,
+    GroupIdSchema,
+    createDocumentSchemas,
+    SCHEMA_CONFIG,
+} from './common';
+
+// Comment schemas
+export {
+    CommentDocumentSchema,
+    CommentDataSchema,
+    type ParsedComment,
+    type CommentData,
+} from './comment';
+
+// Expense schemas
+export {
+    ExpenseDocumentSchema,
+    ExpenseDataSchema,
+    ExpenseSplitSchema,
+    type ExpenseDocument,
+    type ExpenseData,
+} from './expense';
+
+// Settlement schemas
+export {
+    SettlementDocumentSchema,
+    SettlementDataSchema,
+    type SettlementDocument,
+    type SettlementData,
+} from './settlement';
+
+// ShareLink schemas
+export {
+    ShareLinkDocumentSchema,
+    ShareLinkDataSchema,
+    type ParsedShareLink,
+    type ShareLinkData,
+} from './sharelink';
+
+// User schemas
+export {
+    UserDocumentSchema,
+    UserDataSchema,
+    type UserDocument,
+    type UserData,
+} from './user';
+
+// Policy schemas
+export {
+    PolicyDocumentSchema,
+    PolicyDataSchema,
+    PolicyVersionSchema,
+    type PolicyDocument,
+    type PolicyData,
+    type PolicyVersion,
+} from './policy';
+
+// Group schemas (from handlers - needs to be moved here eventually)
+// Note: GroupDocumentSchema is currently in groups/handlers.ts and should be migrated
+// to this location for consistency
+
+// Validation monitoring and utilities
+export {
+    validateWithMonitoring,
+    validateSafely,
+    EnhancedValidationError,
+    getValidationMetrics,
+    resetValidationMetrics,
+    startValidationMetricsLogging,
+} from './validation-monitor';
+
+export {
+    validateFirestoreDocument,
+    validateBeforeWrite,
+    validateUpdate,
+    monitorValidation,
+    validateDocumentBatch,
+    createValidatedTransform,
+    safeWrite,
+} from './validation-helpers';
+
+// Change tracking schemas (currently inline in triggers - could be centralized)
+// Note: Change document schemas are currently defined in triggers/change-tracker.ts
+// and could be moved here if needed for reuse
