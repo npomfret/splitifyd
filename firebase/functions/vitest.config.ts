@@ -6,6 +6,9 @@ export default defineConfig({
         environment: 'node',
         globals: true,
         setupFiles: ['./vitest.setup.ts'],
+        env: {
+            GCLOUD_PROJECT: 'splitifyd',
+        },
         include: ['src/**/*.test.ts'],
         exclude: ['node_modules', 'lib', 'dist'],
         coverage: {

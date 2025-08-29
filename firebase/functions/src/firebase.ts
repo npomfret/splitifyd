@@ -3,8 +3,8 @@ import assert from "node:assert";
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
-if (!process.env.GCLOUD_PROJECT) {// hack for convenience when running the tests
-    process.env.GCLOUD_PROJECT = "splitifyd";
+if (!process.env.GCLOUD_PROJECT) {
+    throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere")
 }
 
 function _loadFirebaseConfig() {
@@ -32,9 +32,8 @@ export function isTest() {
 
 if (!admin.apps || admin.apps.length === 0) {
     // see https://firebase.google.com/docs/emulator-suite/connect_firestore#web
-    assert(process.env.GCLOUD_PROJECT, "GCLOUD_PROJECT env var must be set");
     const app = admin.initializeApp({
-        projectId: process.env.GCLOUD_PROJECT
+        projectId: process.env.GCLOUD_PROJECT!
     });
 
     if (!isProduction()) {

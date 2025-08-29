@@ -115,7 +115,9 @@ export class ApiDriver {
         } else {
             // Initialize admin if not already done
             if (!admin.apps || admin.apps.length === 0) {
-                const projectId = process.env.GCLOUD_PROJECT || 'splitifyd';
+                if(!process.env.GCLOUD_PROJECT)
+                    throw Error("process.env.GCLOUD_PROJECT must be set")
+                const projectId = process.env.GCLOUD_PROJECT;
                 admin.initializeApp({ projectId });
 
                 // Connect to emulator if not in production
