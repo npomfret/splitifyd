@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { useTranslation } from 'react-i18next';
 import { route } from 'preact-router';
@@ -102,7 +103,7 @@ describe('LeaveGroupDialog', () => {
         
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
-            expect(mockRoute).toHaveBeenCalledWith('/dashboard');
+            expect(mockRoute).toHaveBeenCalledWith('/dashboard', false);
             expect(onCloseMock).toHaveBeenCalled();
         });
     });
