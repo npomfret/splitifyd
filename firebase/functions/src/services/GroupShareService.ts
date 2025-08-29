@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
@@ -7,6 +8,7 @@ import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@s
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
 
 export class GroupShareService {
     private generateShareToken(): string {
@@ -24,10 +26,33 @@ export class GroupShareService {
 
         const shareLinkDoc = groupsSnapshot.docs[0];
         const groupId = shareLinkDoc.ref.parent.parent!.id;
-        const shareLink: ShareLink = {
-            id: shareLinkDoc.id,
-            ...(shareLinkDoc.data() as Omit<ShareLink, 'id'>),
-        };
+        
+        // Validate and parse share link data
+        const rawData = shareLinkDoc.data();
+        if (!rawData) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'SHARELINK_DATA_NULL', 'Share link document data is null');
+        }
+
+        const dataWithId = { ...rawData, id: shareLinkDoc.id };
+        let shareLink: ShareLink;
+        try {
+            const validatedShareLink = ShareLinkDocumentSchema.parse(dataWithId);
+            shareLink = {
+                id: validatedShareLink.id,
+                token: validatedShareLink.token,
+                createdBy: validatedShareLink.createdBy,
+                createdAt: validatedShareLink.createdAt,
+                expiresAt: validatedShareLink.expiresAt,
+                isActive: validatedShareLink.isActive,
+            };
+        } catch (error) {
+            logger.error('ShareLink document validation failed', error as Error, {
+                shareLinkId: shareLinkDoc.id,
+                groupId,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Share link document structure is invalid');
+        }
 
         return { groupId, shareLink };
     }
@@ -85,7 +110,18 @@ export class GroupShareService {
                 isActive: true,
             };
 
-            transaction.set(shareLinkDoc, shareLinkData);
+            // Validate share link data before writing to Firestore
+            try {
+                const validatedShareLinkData = ShareLinkDataSchema.parse(shareLinkData);
+                transaction.set(shareLinkDoc, validatedShareLinkData);
+            } catch (error) {
+                logger.error('ShareLink data validation failed before write', error as Error, {
+                    groupId,
+                    createdBy: userId,
+                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Failed to create share link due to invalid data structure');
+            }
         });
 
         const shareablePath = `/join?linkId=${shareToken}`;

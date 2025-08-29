@@ -18,6 +18,7 @@ import {
 import { isGroupMember } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { CommentDocumentSchema, CommentDataSchema } from '../schemas/comment';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -25,18 +26,6 @@ import { PerformanceMonitor } from '../utils/performance-monitor';
 type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
     authorAvatar: string | null; // Firestore doesn't allow undefined, so we use null
 };
-
-/**
- * Zod schema for Comment document - validates before writing to Firestore
- */
-const CommentDocumentSchema = z.object({
-    authorId: z.string().min(1),
-    authorName: z.string().min(1),
-    authorAvatar: z.string().nullable(),
-    text: z.string().min(1),
-    createdAt: z.any(), // Firestore Timestamp
-    updatedAt: z.any(), // Firestore Timestamp
-});
 
 /**
  * Service for managing comment operations
@@ -111,20 +100,31 @@ export class CommentService {
      * Transform Firestore comment document to Comment interface
      */
     private transformCommentDocument(doc: DocumentSnapshot): Comment {
-        const data = doc.data();
-        if (!data) {
-            throw new Error('Comment document has no data');
+        const rawData = doc.data();
+        if (!rawData) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_DATA_NULL', 'Comment document data is null');
         }
 
-        return {
-            id: doc.id,
-            authorId: data.authorId,
-            authorName: data.authorName,
-            authorAvatar: data.authorAvatar || undefined,
-            text: data.text,
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-        };
+        // Validate and parse comment data structure with Zod
+        const dataWithId = { ...rawData, id: doc.id };
+        try {
+            const validatedComment = CommentDocumentSchema.parse(dataWithId);
+            return {
+                id: validatedComment.id,
+                authorId: validatedComment.authorId,
+                authorName: validatedComment.authorName,
+                authorAvatar: validatedComment.authorAvatar || undefined,
+                text: validatedComment.text,
+                createdAt: validatedComment.createdAt,
+                updatedAt: validatedComment.updatedAt,
+            };
+        } catch (error) {
+            logger.error('Comment document validation failed', error as Error, {
+                commentId: doc.id,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_COMMENT_DATA', 'Comment document structure is invalid');
+        }
     }
 
     /**
@@ -305,7 +305,7 @@ export class CommentService {
         };
 
         // Validate comment data structure before writing to Firestore
-        const validatedComment = CommentDocumentSchema.parse(commentCreateData);
+        const validatedComment = CommentDataSchema.parse(commentCreateData);
 
         // Create the comment document
         const commentsCollection = this.getCommentsCollection(targetType, targetId);

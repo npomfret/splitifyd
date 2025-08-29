@@ -368,7 +368,18 @@ export class PolicyService {
                 updatedAt: timestampToISO(now),
             };
 
-            await this.policiesCollection.doc(id).set(policyData);
+            // Validate policy data before writing to Firestore
+            try {
+                const validatedPolicyData = PolicyDocumentSchema.parse(policyData);
+                await this.policiesCollection.doc(id).set(validatedPolicyData);
+            } catch (validationError) {
+                logger.error('Policy data validation failed before creation', validationError as Error, {
+                    policyName,
+                    customId,
+                    validationErrors: validationError instanceof z.ZodError ? validationError.issues : undefined,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Failed to create policy due to invalid data structure');
+            }
 
             logger.info('Policy created successfully', { policyId: id, policyName, versionHash });
 
@@ -476,14 +487,20 @@ export class PolicyService {
             const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
 
             policiesSnapshot.forEach((doc) => {
-                const data = doc.data() as PolicyDocument;
+                const rawData = doc.data();
+                if (!rawData) {
+                    logger.warn('Policy document has no data', { policyId: doc.id });
+                    return;
+                }
 
-                // Validate policy data structure
+                // Validate policy data structure with Zod
+                let data;
                 try {
-                    PolicyDocumentSchema.parse(data);
+                    data = PolicyDocumentSchema.parse(rawData);
                 } catch (error) {
                     logger.error('Policy document validation failed', error as Error, {
                         policyId: doc.id,
+                        validationErrors: error instanceof z.ZodError ? error.issues : undefined,
                     });
                     return;
                 }
@@ -527,17 +544,19 @@ export class PolicyService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
-            const data = policyDoc.data() as PolicyDocument;
-            if (!data) {
+            const rawData = policyDoc.data();
+            if (!rawData) {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
             }
 
-            // Validate policy data structure
+            // Validate policy data structure with Zod
+            let data;
             try {
-                PolicyDocumentSchema.parse(data);
+                data = PolicyDocumentSchema.parse(rawData);
             } catch (error) {
                 logger.error('Policy document validation failed', error as Error, {
                     policyId: id,
+                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
                 });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Policy document structure is invalid');
             }
