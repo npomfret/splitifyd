@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
-import { route } from 'preact-router';
 import { useSignal, useComputed, batch } from '@preact/signals';
-import { routes } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { apiClient } from '../app/apiClient';
 import { BaseLayout } from '../components/layout/BaseLayout';
 import { LoadingSpinner, Card, Button, Avatar } from '@/components/ui';
@@ -89,15 +88,15 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     }, [groupId, expenseId]);
 
     const handleEdit = () => {
-        route(routes.editExpense(groupId!, expenseId!));
+        navigationService.goToEditExpense(groupId!, expenseId!);
     };
 
     const handleCopy = () => {
-        route(routes.copyExpense(groupId!, expenseId!));
+        navigationService.goToCopyExpense(groupId!, expenseId!);
     };
 
     const handleBack = () => {
-        route(routes.groupDetail(groupId!));
+        navigationService.goToGroup(groupId!);
     };
 
     const handleDelete = async () => {
@@ -106,7 +105,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         try {
             await apiClient.deleteExpense(expenseId);
             // Navigate back to group after successful deletion
-            route(routes.groupDetail(groupId!));
+            navigationService.goToGroup(groupId!);
         } catch (error) {
             logError('Failed to delete expense', error);
             // Error is handled by ExpenseActions component

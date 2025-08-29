@@ -1,5 +1,4 @@
-import { route } from 'preact-router';
-import { ROUTES, routes } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { Card, Button } from '@/components/ui';
@@ -34,7 +33,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 Error
                             </h2>
                             <p className="text-gray-600">No group specified. Cannot add expense without a group.</p>
-                            <Button variant="primary" onClick={() => route(ROUTES.DASHBOARD)}>
+                            <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
                                 Back to Dashboard
                             </Button>
                         </Stack>
@@ -73,7 +72,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 Error
                             </h2>
                             <p className="text-gray-600">{formState.initError}</p>
-                            <Button variant="primary" onClick={() => route(routes.groupDetail(groupId))}>
+                            <Button variant="primary" onClick={() => navigationService.goToGroup(groupId)}>
                                 Back to Group
                             </Button>
                         </Stack>
@@ -94,7 +93,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                 Group Not Found
                             </h2>
                             <p className="text-gray-600">The group you're trying to add an expense to doesn't exist or you don't have access to it.</p>
-                            <Button variant="primary" onClick={() => route(ROUTES.DASHBOARD)}>
+                            <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
                                 Back to Dashboard
                             </Button>
                         </Stack>

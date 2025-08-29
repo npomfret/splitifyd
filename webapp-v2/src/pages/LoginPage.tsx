@@ -1,8 +1,7 @@
 import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
 import { useTranslation } from 'react-i18next';
-import { ROUTES } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -43,7 +42,7 @@ export function LoginPage() {
     // Redirect if already logged in
     useEffect(() => {
         if (authStore.user) {
-            route(ROUTES.DASHBOARD, true);
+            navigationService.goToDashboard();
         }
     }, [authStore.user]);
 
@@ -87,7 +86,7 @@ export function LoginPage() {
 
                     <button
                         type="button"
-                        onClick={() => route(ROUTES.RESET_PASSWORD)}
+                        onClick={() => navigationService.goToResetPassword()}
                         class="text-sm text-blue-600 hover:text-blue-500 transition-colors"
                     >
                         {t('loginPage.forgotPassword')}
@@ -103,7 +102,7 @@ export function LoginPage() {
                         {t('loginPage.noAccount')}{' '}
                         <button
                             type="button"
-                            onClick={() => route(ROUTES.REGISTER)}
+                            onClick={() => navigationService.goToRegister()}
                             class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
                         >
                             {t('loginPage.signUp')}

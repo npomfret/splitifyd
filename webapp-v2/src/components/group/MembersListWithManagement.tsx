@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useSignal, useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
-import { ROUTES } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { Card } from '../ui/Card';
 import { LoadingSpinner } from '@/components/ui';
 import { Avatar } from '../ui/Avatar';
@@ -107,7 +106,7 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
             // Successfully left - navigation will handle the redirect
 
             // Navigate to dashboard after leaving
-            route(ROUTES.DASHBOARD);
+            navigationService.goToDashboard();
         } catch (error: any) {
             logError('Failed to leave group', error);
         } finally {

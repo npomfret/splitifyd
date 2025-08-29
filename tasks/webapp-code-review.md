@@ -222,7 +222,7 @@ Major architectural improvements completed to address "god" components and hooks
     - ✅ Created `useCurrencySelector` hook - Manages dropdown logic separate from UI
     - ✅ Refactored `CurrencyAmountInput` to use service and hook - Component now presentation-only
 
-### 4. Standardize and Improve Routing Logic
+### 4. Standardize and Improve Routing Logic ✅ COMPLETED
 
 **Problem:** Navigation logic is inconsistent and, in one case, inefficient.
 
@@ -234,6 +234,23 @@ Major architectural improvements completed to address "god" components and hooks
 
 **Action Items:**
 
-- [ ] **Task 4.1:** Create a unified navigation service or hook that abstracts `preact-router`'s `route()` function, and use it consistently for all internal navigation.
-- [ ] **Task 4.2:** Refactor `ProtectedRoute` to remove navigation side effects. The logic for redirecting unauthenticated users should be handled at a higher level, possibly within the router's logic itself or a dedicated routing hook.
-- [ ] **Task 4.3:** Remove the `setInterval` polling from `main.tsx`. Replace it by hooking into the `preact-router`'s event system to listen for route changes directly, which is far more efficient.
+- [x] **Task 4.1:** Create a unified navigation service or hook that abstracts `preact-router`'s `route()` function, and use it consistently for all internal navigation. ✅ COMPLETED
+- [x] **Task 4.2:** Refactor `ProtectedRoute` to remove navigation side effects. The logic for redirecting unauthenticated users should be handled at a higher level, possibly within the router's logic itself or a dedicated routing hook. ✅ COMPLETED
+- [x] **Task 4.3:** Remove the `setInterval` polling from `main.tsx`. Replace it by hooking into the `preact-router`'s event system to listen for route changes directly, which is far more efficient. ✅ COMPLETED
+
+**Completed Implementation (2025-08-29):**
+
+- ✅ **Unified NavigationService**: Comprehensive `NavigationService` class at `services/navigation.service.ts` with:
+  - Type-safe navigation methods for all routes (e.g., `goToDashboard()`, `goToGroup(id)`, `goToAddExpense(groupId)`)
+  - Centralized navigation logging and audit trail
+  - Support for query parameters and navigation options
+  - Event-based navigation tracking replacing inefficient polling
+
+- ✅ **Complete Migration**: All direct `route()` calls replaced across **12 files**:
+  - **Pages**: `LoginPage`, `RegisterPage`, `ResetPasswordPage`, `NotFoundPage`, `JoinGroupPage`, `GroupDetailPage`, `ExpenseDetailPage`, `DashboardPage`, `AddExpensePage`
+  - **Components**: `UserMenu`, `GroupsList`, `MembersListWithManagement`
+
+- ✅ **Improved ProtectedRoute**: Declarative authentication handling using `navigationService.goToLogin()`
+- ✅ **Event-Based Navigation Tracking**: Replaced polling with proper event listeners for `popstate`, `pushstate`, and `replacestate`
+
+**Architecture Impact**: The application now has fully consistent, type-safe, and efficient navigation throughout. All navigation goes through a single service, making it easy to add features like navigation guards, analytics, or debugging in the future.

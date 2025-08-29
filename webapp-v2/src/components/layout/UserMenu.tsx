@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
-import { ROUTES } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { useTranslation } from 'react-i18next';
 
@@ -80,7 +79,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <button
                         onClick={() => {
                             setIsOpen(false);
-                            route(ROUTES.DASHBOARD);
+                            navigationService.goToDashboard();
                         }}
                         class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         data-testid="user-menu-dashboard-link"
@@ -92,7 +91,7 @@ export function UserMenu({ user }: UserMenuProps) {
                     <button
                         onClick={() => {
                             setIsOpen(false);
-                            route(ROUTES.SETTINGS);
+                            navigationService.goToSettings();
                         }}
                         class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                         data-testid="user-menu-settings-link"
@@ -110,7 +109,7 @@ export function UserMenu({ user }: UserMenuProps) {
                             try {
                                 await authStore.logout();
                                 // Force immediate redirect to login
-                                route(ROUTES.LOGIN, true);
+                                navigationService.goToLogin();
                             } catch (error) {
                                 // Error is already handled in authStore
                                 console.error('Logout failed:', error);

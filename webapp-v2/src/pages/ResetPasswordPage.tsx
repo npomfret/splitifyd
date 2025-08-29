@@ -1,7 +1,6 @@
 import { signal } from '@preact/signals';
 import { useEffect, useState } from 'preact/hooks';
-import { route } from 'preact-router';
-import { ROUTES } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
 import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
@@ -89,7 +88,7 @@ export function ResetPasswordPage() {
                         <div class="text-center">
                             <button
                                 type="button"
-                                onClick={() => route(ROUTES.LOGIN)}
+                                onClick={() => navigationService.goToLogin()}
                                 class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                             >
                                 ← Back to Sign In
@@ -117,7 +116,7 @@ export function ResetPasswordPage() {
                 <div class="text-center">
                     <button
                         type="button"
-                        onClick={() => route(ROUTES.LOGIN)}
+                        onClick={() => navigationService.goToLogin()}
                         class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         ← Back to Sign In

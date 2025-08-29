@@ -1,7 +1,6 @@
 import { useEffect } from 'preact/hooks';
-import { route } from 'preact-router';
 import { useSignal, useComputed } from '@preact/signals';
-import { ROUTES, routes } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { useGroupModals } from '../app/hooks/useGroupModals';
@@ -108,7 +107,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Check if it's a 404 error (group not found or no access)
         if (error.value.includes('not found') || error.value.includes('Not Found')) {
             // Navigate to 404 page for consistent experience
-            route(ROUTES.NOT_FOUND, true);
+            navigationService.goToNotFound();
             return null;
         }
 
@@ -119,7 +118,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                     <Card className="p-6 text-center">
                         <h2 className="text-xl font-semibold mb-2">Error Loading Group</h2>
                         <p className="text-gray-600 mb-4">{error.value}</p>
-                        <Button variant="primary" onClick={() => route(ROUTES.DASHBOARD)}>
+                        <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
                             Back to Dashboard
                         </Button>
                     </Card>
@@ -132,7 +131,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     if (!group.value) {
         if (isInitialized.value) {
             // Group not found after loading - navigate to 404
-            route(ROUTES.NOT_FOUND, true);
+            navigationService.goToNotFound();
             return null;
         } else {
             // Still loading
@@ -148,15 +147,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     // Handle click events
     const handleExpenseClick = (expense: any) => {
-        route(routes.expenseDetail(groupId!, expense.id));
+        navigationService.goToExpenseDetail(groupId!, expense.id);
     };
 
     const handleExpenseCopy = (expense: any) => {
-        route(routes.copyExpense(groupId!, expense.id));
+        navigationService.goToCopyExpense(groupId!, expense.id);
     };
 
     const handleAddExpense = () => {
-        route(routes.addExpense(groupId!));
+        navigationService.goToAddExpense(groupId!);
     };
 
     const handleSettleUp = () => {
@@ -184,7 +183,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     const handleGroupDelete = () => {
         // Navigate to dashboard after group deletion
-        route(ROUTES.DASHBOARD);
+        navigationService.goToDashboard();
     };
 
     const handleLeaveGroup = () => {

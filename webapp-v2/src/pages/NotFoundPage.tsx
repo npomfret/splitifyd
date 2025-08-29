@@ -1,8 +1,7 @@
 import { useComputed } from '@preact/signals';
-import { route } from 'preact-router';
 import { useAuth } from '../app/hooks/useAuth';
 import { useTranslation } from 'react-i18next';
-import { ROUTES } from '@/constants/routes';
+import { navigationService } from '@/services/navigation.service';
 
 interface NotFoundPageProps {
     path?: string;
@@ -31,7 +30,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                 <div className="space-x-4">
                     {isAuthenticated.value ? (
                         <button
-                            onClick={() => route(ROUTES.DASHBOARD)}
+                            onClick={() => navigationService.goToDashboard()}
                             className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block"
                             data-testid="go-to-dashboard-link"
                         >
@@ -39,7 +38,7 @@ export function NotFoundPage({ path }: NotFoundPageProps) {
                         </button>
                     ) : (
                         <button
-                            onClick={() => route(ROUTES.HOME)}
+                            onClick={() => navigationService.goHome()}
                             className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors inline-block"
                             data-testid="go-home-link"
                         >
