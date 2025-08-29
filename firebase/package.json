@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Firebase backend system with Cloud Functions for storing and retrieving JSON documents",
   "scripts": {
-    "build": "npm run build:check && cd functions && npm run build",
+    "build:scripts": "tsc --project tsconfig.build.json",
+    "build": "npm run build:check && npm run build:scripts && cd functions && npm run build",
     "build:check": "tsc --project scripts/tsconfig.json --noEmit",
     "clean": "tsx scripts/kill-emulators.ts && rm -rf firebase-export-* *.log functions/*.log ../*.log && rm -rf public",
     "super-clean": "npm run clean && rm -rf node_modules",
