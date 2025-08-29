@@ -4,6 +4,7 @@ import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
 import { ExpenseDocumentSchema } from '../../schemas/expense';
 import { SettlementDocumentSchema } from '../../schemas/settlement';
+import { transformGroupDocument } from '../../groups/handlers';
 import { z } from 'zod';
 import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';
@@ -48,7 +49,7 @@ export class DataFetcher {
                     return {
                         ...validatedExpense,
                         date: timestampToISO(validatedExpense.date),
-                    } as Expense;
+                    };
                 } catch (error) {
                     logger.error('Invalid expense document in balance calculation', error as Error, {
                         docId: doc.id,
@@ -58,7 +59,7 @@ export class DataFetcher {
                     return null; // Skip invalid documents
                 }
             })
-            .filter((expense): expense is Expense => expense !== null && !expense[DELETED_AT_FIELD as keyof Expense]);
+            .filter((expense) => expense !== null && !expense[DELETED_AT_FIELD as keyof typeof expense]) as Expense[];
     }
 
     private async fetchSettlements(groupId: string): Promise<Settlement[]> {
@@ -79,7 +80,7 @@ export class DataFetcher {
                     return {
                         ...validatedSettlement,
                         date: validatedSettlement.date ? timestampToISO(validatedSettlement.date) : undefined,
-                    } as Settlement;
+                    };
                 } catch (error) {
                     logger.error('Invalid settlement document in balance calculation', error as Error, {
                         docId: doc.id,
@@ -89,7 +90,7 @@ export class DataFetcher {
                     return null; // Skip invalid documents
                 }
             })
-            .filter((settlement): settlement is Settlement => settlement !== null);
+            .filter((settlement) => settlement !== null) as Settlement[];
     }
 
     private async fetchGroupData(groupId: string): Promise<GroupData> {
@@ -99,19 +100,23 @@ export class DataFetcher {
             throw new Error('Group not found');
         }
 
-        const groupData = groupDoc.data() as any;
-        if (!groupData.data?.members) {
+        // Use proper validation for group document
+        const group = transformGroupDocument(groupDoc);
+        if (!group.members) {
             throw new Error('Group missing members - invalid data structure');
         }
 
-        const memberIds = Object.keys(groupData.data.members);
+        const memberIds = Object.keys(group.members);
         if (memberIds.length === 0) {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }
 
         return {
             id: groupId,
-            data: groupData.data,
+            data: {
+                members: group.members,
+                name: group.name,
+            },
         };
     }
 }

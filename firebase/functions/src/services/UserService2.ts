@@ -270,6 +270,18 @@ export class UserService {
                 firestoreUpdate.preferredLanguage = validatedData.preferredLanguage;
             }
 
+            // Validate update object before applying to Firestore
+            try {
+                UserDocumentSchema.parse(firestoreUpdate);
+            } catch (error) {
+                logger.error('User document update validation failed', error as Error, {
+                    userId,
+                    updateData: firestoreUpdate,
+                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document update validation failed');
+            }
+
             // Update Firestore user document
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
 
@@ -427,6 +439,17 @@ export class UserService {
             }
             if (cookiePolicyAccepted) {
                 userDoc.cookiePolicyAcceptedAt = createServerTimestamp();
+            }
+
+            // Validate user document before writing to Firestore
+            try {
+                UserDocumentSchema.parse(userDoc);
+            } catch (error) {
+                logger.error('User document validation failed during registration', error as Error, {
+                    userId: userRecord.uid,
+                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+                });
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document validation failed during registration');
             }
 
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);

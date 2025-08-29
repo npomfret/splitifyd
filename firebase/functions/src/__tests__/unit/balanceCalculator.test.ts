@@ -1,7 +1,7 @@
 import { describe, expect, beforeEach, vi, it, type Mock } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
-import { SimplifiedDebt } from '@splitifyd/shared';
+import { SimplifiedDebt, PermissionLevels } from '@splitifyd/shared';
 import { UserProfile } from '../../services/UserService2';
 import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
@@ -148,16 +148,42 @@ class MockGroupBuilder {
         data: {
             data: {
                 name: 'Test Group',
+                createdBy: 'user-1', // Required field
+                description: 'Test group for balance calculations',
                 members: {
-                    'user-1': { role: 'owner' },
-                    'user-2': { role: 'member' },
+                    'user-1': { 
+                        role: 'admin',  // Valid role
+                        status: 'active'  // Required status field
+                    },
+                    'user-2': { 
+                        role: 'member',  // Valid role  
+                        status: 'active'  // Required status field
+                    },
                 },
+                permissions: {
+                    expenseEditing: PermissionLevels.ANYONE,
+                    expenseDeletion: PermissionLevels.ANYONE,
+                    memberInvitation: PermissionLevels.ANYONE,
+                    memberApproval: 'automatic' as const,
+                    settingsManagement: PermissionLevels.ANYONE,
+                }, // Use default OPEN permissions
             },
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
         },
     };
 
     withMembers(members: Record<string, any>): MockGroupBuilder {
-        this.group.data.data.members = members;
+        // Ensure all members have required fields
+        const validMembers: Record<string, any> = {};
+        for (const [userId, member] of Object.entries(members)) {
+            validMembers[userId] = {
+                role: member.role || 'member', // Default to 'member' if not specified
+                status: member.status || 'active', // Default to 'active' if not specified
+                ...member // Allow override of defaults
+            };
+        }
+        this.group.data.data.members = validMembers;
         return this;
     }
 

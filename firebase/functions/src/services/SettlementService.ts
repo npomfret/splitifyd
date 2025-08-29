@@ -103,11 +103,11 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        const settlement = settlementDoc.data() as any;
-
-        // Validate settlement data structure - strict enforcement
+        // Validate and parse settlement data structure - strict enforcement
+        const rawData = settlementDoc.data();
+        let settlement;
         try {
-            SettlementDocumentSchema.parse({ ...settlement, id: settlementId });
+            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
         } catch (error) {
             logger.error('Settlement document validation failed', error as Error, {
                 settlementId,
@@ -214,7 +214,18 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        const settlement = settlementDoc.data() as any;
+        // Validate and parse settlement data structure  
+        const rawData = settlementDoc.data();
+        let settlement;
+        try {
+            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
+        } catch (error) {
+            logger.error('Settlement document validation failed in updateSettlement', error as Error, {
+                settlementId,
+                userId,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
+        }
 
         await verifyGroupMembership(settlement.groupId, userId);
 
@@ -291,7 +302,18 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        const settlement = settlementDoc.data() as any;
+        // Validate and parse settlement data structure  
+        const rawData = settlementDoc.data();
+        let settlement;
+        try {
+            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
+        } catch (error) {
+            logger.error('Settlement document validation failed in deleteSettlement', error as Error, {
+                settlementId,
+                userId,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
+        }
 
         await verifyGroupMembership(settlement.groupId, userId);
 

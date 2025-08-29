@@ -1,34 +1,14 @@
 
-import { DocumentSnapshot, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
 import { Errors } from '../utils/errors';
 import { userService } from './UserService2';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, Group, GroupMembersResponse, User } from '@splitifyd/shared';
+import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
+import { transformGroupDocument } from '../groups/handlers';
 
 export class GroupMemberService {
-    private transformGroupDocument(doc: DocumentSnapshot): Group {
-        const data = doc.data();
-        if (!data) {
-            throw new Error('Invalid group document');
-        }
-
-        if (!data.data) {
-            throw new Error('Invalid group document structure: missing data field');
-        }
-        const groupData = data.data;
-
-        return {
-            id: doc.id,
-            name: groupData.name!,
-            description: groupData.description ?? '',
-            createdBy: groupData.createdBy!,
-            members: groupData.members,
-            createdAt: data.createdAt!.toDate().toISOString(),
-            updatedAt: data.updatedAt!.toDate().toISOString(),
-        } as Group;
-    }
 
     private getInitials(nameOrEmail: string): string {
         const name = nameOrEmail || '';
@@ -90,7 +70,7 @@ export class GroupMemberService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(doc);
+        const group = transformGroupDocument(doc);
 
         if (!(userId in group.members)) {
             throw Errors.FORBIDDEN();
@@ -111,7 +91,7 @@ export class GroupMemberService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(doc);
+        const group = transformGroupDocument(doc);
 
         if (!(userId in group.members)) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
@@ -180,7 +160,7 @@ export class GroupMemberService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(doc);
+        const group = transformGroupDocument(doc);
 
         if (group.createdBy !== userId) {
             throw Errors.FORBIDDEN();

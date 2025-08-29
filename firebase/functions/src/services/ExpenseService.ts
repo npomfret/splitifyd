@@ -1,16 +1,17 @@
 
-import { DocumentReference, DocumentSnapshot } from 'firebase-admin/firestore';
+import { DocumentReference } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { firestoreDb } from '../firebase';
 import { ApiError, Errors } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { timestampToISO, createServerTimestamp, parseISOToTimestamp } from '../utils/dateHelpers';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, Group, CreateExpenseRequest, UpdateExpenseRequest } from '@splitifyd/shared';
+import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, CreateExpenseRequest, UpdateExpenseRequest } from '@splitifyd/shared';
 import { Expense, calculateSplits } from '../expenses/validation';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PermissionEngine } from '../permissions';
 import { _getGroupMembersData } from '../groups/memberHandlers';
+import { transformGroupDocument } from '../groups/handlers';
 import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas/expense';
 
 // Re-export schemas for backward compatibility
@@ -45,7 +46,12 @@ export class ExpenseService {
             // Add the id field since it's not stored in the document data
             const dataWithId = { ...rawData, id: doc.id };
             const validatedData = ExpenseDocumentSchema.parse(dataWithId);
-            expense = validatedData as Expense;
+            // Use the validated data directly - schema parse guarantees type safety
+            // Convert receiptUrl from null to undefined if needed
+            expense = {
+                ...validatedData,
+                receiptUrl: validatedData.receiptUrl || undefined,
+            };
         } catch (error) {
             logger.error('Invalid expense document structure', error as Error, {
                 expenseId,
@@ -112,26 +118,6 @@ export class ExpenseService {
         return this.transformExpenseToResponse(expense);
     }
 
-    /**
-     * Transform group document to Group object
-     */
-    private transformGroupDocument(doc: DocumentSnapshot): Group {
-        const data = doc.data();
-        if (!data || !data.data) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        return {
-            id: doc.id,
-            name: data.data.name,
-            description: data.data.description || '',
-            createdBy: data.data.createdBy,
-            members: data.data.members || {},
-            permissions: data.data.permissions,
-            createdAt: data.createdAt?.toDate().toISOString() || new Date().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString() || new Date().toISOString(),
-        } as Group;
-    }
 
     /**
      * Create a new expense
@@ -146,7 +132,7 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(groupDoc);
+        const group = transformGroupDocument(groupDoc);
 
         // Check if user can create expenses in this group
         const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
@@ -248,7 +234,7 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(groupDoc);
+        const group = transformGroupDocument(groupDoc);
 
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -331,8 +317,13 @@ export class ExpenseService {
             }
 
             // Create history entry
+            // Filter out undefined values for Firestore compatibility
+            const cleanExpenseData = Object.fromEntries(
+                Object.entries(expense).filter(([, value]) => value !== undefined)
+            );
+
             const historyEntry = {
-                ...expense,
+                ...cleanExpenseData,
                 modifiedAt: createServerTimestamp(),
                 modifiedBy: userId,
                 changeType: 'update' as const,
@@ -515,7 +506,7 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = this.transformGroupDocument(groupDoc);
+        const group = transformGroupDocument(groupDoc);
 
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check

@@ -429,8 +429,22 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should prevent deletion of users with active groups', async () => {
-            const users = userPool.getUsers(2);
-            const [userInGroup, otherUser] = users;
+            // Create fresh users for this test to avoid token expiry issues
+            const userInGroup = await apiDriver.createUser(
+                new UserBuilder()
+                    .withEmail('userwithgroup@example.com')
+                    .withPassword('TestPass123!')
+                    .withDisplayName('User With Group')
+                    .build()
+            );
+
+            const otherUser = await apiDriver.createUser(
+                new UserBuilder()
+                    .withEmail('otheruser@example.com')
+                    .withPassword('TestPass123!')
+                    .withDisplayName('Other User')
+                    .build()
+            );
 
             // Create a group with the user
             const group = await apiDriver.createGroupWithMembers(
