@@ -73,6 +73,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
                         <button 
                             onClick={() => isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome()}
                             class="flex items-center"
+                            data-testid="header-logo-link"
                         >
                             <img src="/images/logo.svg" alt={t('header.logoAlt')} class="h-8" />
                         </button>
