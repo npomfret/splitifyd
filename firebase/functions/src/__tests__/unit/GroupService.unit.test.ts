@@ -32,8 +32,16 @@ describe('GroupService - Unit Tests', () => {
     // - deleteGroup() - requires Firestore and cascade deletion
     // - updateMember() - requires Firestore and member management
     // - removeMember() - requires Firestore and balance recalculation
+    // - getGroupFullDetails() - requires Firestore, balance calculations, and multiple service integrations
     //
     // Testing these methods without Firebase would require extensive mocking
     // that tests implementation details rather than behavior, providing no
     // real confidence in the code's correctness.
+
+    describe('getGroupFullDetails', () => {
+        test('should have getGroupFullDetails method', () => {
+            expect(groupService.getGroupFullDetails).toBeDefined();
+            expect(typeof groupService.getGroupFullDetails).toBe('function');
+        });
+    });
 });

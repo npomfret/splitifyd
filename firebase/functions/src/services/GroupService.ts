@@ -664,6 +664,84 @@ export class GroupService {
             balancesByCurrency: balances.balancesByCurrency || {},
         };
     }
+
+    /**
+     * Get comprehensive group details including members, expenses, balances, and settlements
+     * @param groupId Group ID
+     * @param userId User ID for access control
+     * @param options Pagination options for expenses and settlements
+     * @returns Complete group details
+     */
+    async getGroupFullDetails(
+        groupId: string, 
+        userId: string, 
+        options: {
+            expenseLimit?: number;
+            expenseCursor?: string;
+            settlementLimit?: number;
+            settlementCursor?: string;
+        } = {}
+    ) {
+        if (!userId) {
+            throw Errors.UNAUTHORIZED();
+        }
+
+        // Validate and set defaults for pagination
+        const expenseLimit = Math.min(options.expenseLimit || 20, 100);
+        const settlementLimit = Math.min(options.settlementLimit || 20, 100);
+
+        // Get group with access check (this will throw if user doesn't have access)
+        const groupWithBalance = await this.getGroup(groupId, userId);
+        
+        // Extract the base group data (without the balance field added by getGroup)
+        const group: Group = {
+            id: groupWithBalance.id,
+            name: groupWithBalance.name,
+            description: groupWithBalance.description,
+            createdBy: groupWithBalance.createdBy,
+            members: groupWithBalance.members,
+            createdAt: groupWithBalance.createdAt,
+            updatedAt: groupWithBalance.updatedAt,
+            securityPreset: groupWithBalance.securityPreset,
+            permissions: groupWithBalance.permissions,
+            presetAppliedAt: groupWithBalance.presetAppliedAt,
+        };
+
+        // Import the helper functions dynamically to avoid circular dependencies
+        const { _getGroupMembersData } = await import('../groups/memberHandlers');
+        const { _getGroupExpensesData } = await import('../expenses/handlers');
+        const { SettlementService } = await import('./SettlementService');
+
+        // Fetch all data in parallel
+        const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
+            // Get members using extracted function with theme information
+            _getGroupMembersData(groupId, group.members),
+
+            // Get expenses using extracted function with pagination
+            _getGroupExpensesData(groupId, {
+                limit: expenseLimit,
+                cursor: options.expenseCursor,
+            }),
+
+            // Get balances using existing calculator
+            calculateGroupBalances(groupId),
+
+            // Get settlements using extracted function with pagination
+            new SettlementService()._getGroupSettlementsData(groupId, {
+                limit: settlementLimit,
+                cursor: options.settlementCursor,
+            }),
+        ]);
+
+        // Construct response using existing patterns
+        return {
+            group,
+            members: membersData,
+            expenses: expensesData,
+            balances: balancesData as any, // Type conversion - GroupBalance from models matches GroupBalances structure
+            settlements: settlementsData,
+        };
+    }
 }
 
 // Create and export singleton instance

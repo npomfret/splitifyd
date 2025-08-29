@@ -340,3 +340,30 @@
         - Proper permission checking and access control for all operations
     - **All unit tests passing (230 tests)** - build successful
     - **Note:** Following established pattern, skipped comprehensive unit tests for service methods due to mocking complexity with Vitest/Firestore
+
+### Phase 9: Complete Group Domain Refactoring
+
+**Goal**: Move the final remaining group handler to GroupService to complete domain service refactoring.
+
+1.  **Task 9.1: Move `getGroupFullDetails` to GroupService**: ✅ **COMPLETED** (2025-08-29)
+    - ✅ Added `getGroupFullDetails` method to GroupService with comprehensive functionality:
+        - Consolidates group, member, expense, balance, and settlement data in single request
+        - Maintains pagination support for expenses and settlements with proper parameter validation
+        - Implements proper access control via existing `getGroup` method
+        - Uses dynamic imports to avoid circular dependencies with helper functions
+        - Fetches all data in parallel for optimal performance
+    - ✅ Added minimal unit test for `getGroupFullDetails` method following established pattern
+    - ✅ Refactored `groups/handlers.ts` to use GroupService method:
+        - Handler reduced from ~70 lines to ~22 lines (~69% reduction)
+        - Removed unused imports (`calculateGroupBalances`, `_getGroupMembersData`, `_getGroupExpensesData`, `SettlementService`)
+        - Clean parameter parsing and delegation to service layer
+        - Maintained all existing API contracts and functionality
+    - **Key improvements:**
+        - **Complete centralization of ALL group operations in GroupService**
+        - Final piece of domain service layer architecture completed
+        - Consistent error handling and validation across entire group domain
+        - Clean separation of concerns maintained throughout refactoring
+        - Handler code serves purely as request/response routing layer
+        - All existing API contracts preserved with no breaking changes
+    - **All unit tests passing (231 tests)** - build successful
+    - **Phase 9 marks the completion of the core domain service layer refactoring**

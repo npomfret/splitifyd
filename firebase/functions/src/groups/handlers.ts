@@ -6,14 +6,10 @@ import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group } from '../types/group-types';
-import { GroupFullDetails, SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { PermissionEngine } from '../permissions';
-import { calculateGroupBalances } from '../services/balance';
 import { groupService } from '../services/GroupService';
-import { _getGroupMembersData } from './memberHandlers';
-import { _getGroupExpensesData } from '../expenses/handlers';
-import { SettlementService } from '../services/SettlementService';
 import { z } from 'zod';
 
 /**
@@ -231,64 +227,17 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     const groupId = validateGroupId(req.params.id);
 
     // Parse pagination parameters from query string
-    const expenseLimit = Math.min(parseInt(req.query.expenseLimit as string) || 20, 100);
+    const expenseLimit = parseInt(req.query.expenseLimit as string) || 20;
     const expenseCursor = req.query.expenseCursor as string;
-    const settlementLimit = Math.min(parseInt(req.query.settlementLimit as string) || 20, 100);
+    const settlementLimit = parseInt(req.query.settlementLimit as string) || 20;
     const settlementCursor = req.query.settlementCursor as string;
 
-    try {
-        // Get group with access check (this will throw if user doesn't have access)
-        const groupWithBalance = await groupService.getGroup(groupId, userId);
-        // Extract the base group data (without the balance field added by getGroup)
-        const group: Group = {
-            id: groupWithBalance.id,
-            name: groupWithBalance.name,
-            description: groupWithBalance.description,
-            createdBy: groupWithBalance.createdBy,
-            members: groupWithBalance.members,
-            createdAt: groupWithBalance.createdAt,
-            updatedAt: groupWithBalance.updatedAt,
-            securityPreset: groupWithBalance.securityPreset,
-            permissions: groupWithBalance.permissions,
-            presetAppliedAt: groupWithBalance.presetAppliedAt,
-        };
+    const result = await groupService.getGroupFullDetails(groupId, userId, {
+        expenseLimit,
+        expenseCursor,
+        settlementLimit,
+        settlementCursor,
+    });
 
-        // Use extracted internal functions to eliminate duplication
-        const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
-            // Get members using extracted function with theme information
-            _getGroupMembersData(groupId, group.members),
-
-            // Get expenses using extracted function with pagination
-            _getGroupExpensesData(groupId, {
-                limit: expenseLimit,
-                cursor: expenseCursor,
-            }),
-
-            // Get balances using existing calculator
-            calculateGroupBalances(groupId),
-
-            // Get settlements using extracted function with pagination
-            new SettlementService()._getGroupSettlementsData(groupId, {
-                limit: settlementLimit,
-                cursor: settlementCursor,
-            }),
-        ]);
-
-        // Construct response using existing patterns
-        const response: GroupFullDetails = {
-            group,
-            members: membersData,
-            expenses: expensesData,
-            balances: balancesData as any, // Type conversion - GroupBalance from models matches GroupBalances structure
-            settlements: settlementsData,
-        };
-
-        res.json(response);
-    } catch (error) {
-        logger.error('Error in getGroupFullDetails', error, {
-            groupId,
-            userId,
-        });
-        throw error;
-    }
+    res.json(result);
 };
