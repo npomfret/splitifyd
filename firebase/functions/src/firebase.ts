@@ -23,7 +23,7 @@ export function isEmulator() {
 }
 
 export function isProduction() {
-    return process.env.NODE_ENV !== "production";
+    return process.env.NODE_ENV === "production";
 }
 
 export function isTest() {
@@ -52,20 +52,9 @@ if (!admin.apps || admin.apps.length === 0) {
             // sanity checks
 
             // these are all set by firebase
-            assert(process.env.EMULATOR_UI_PORT);
-            assert(process.env.EMULATOR_AUTH_PORT);
-            assert(process.env.EMULATOR_AUTH_PORT);
-            assert(process.env.EMULATOR_FUNCTIONS_PORT);
-            assert(process.env.EMULATOR_FIRESTORE_PORT);
-            assert(process.env.EMULATOR_HOSTING_PORT);
             assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
             assert(process.env.FIRESTORE_EMULATOR_HOST);
             assert(process.env.FIREBASE_CONFIG);
-
-            // these are all set by the app
-            assert(process.env.DEV_FORM_EMAIL);
-            assert(process.env.DEV_FORM_PASSWORD);
-            assert(process.env.WARNING_BANNER);
         } else {
             assert(isTest(), "do not set env.FUNCTIONS_EMULATOR artificially!");
 

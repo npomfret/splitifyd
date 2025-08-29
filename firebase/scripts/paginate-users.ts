@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
-import * as path from 'path';
-import * as fs from 'fs';
 import * as admin from 'firebase-admin';
+import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
+import { parseEnvironment, initializeFirebase } from './firebase-init';
 
 /**
  * Script to paginate through user documents in Firestore
@@ -16,54 +16,14 @@ const targetEnvironment = args[0];
 const pageSize = parseInt(args[1]) || 10;
 const maxPages = parseInt(args[2]) || 5;
 
-// Environment setup
-let isEmulator: boolean;
-let environment: string;
+// Parse command line arguments and initialize Firebase
+const env = parseEnvironment(process.argv.slice(2));
+initializeFirebase(env);
 
-if (require.main === module) {
-    // Called directly - require explicit argument
-    if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
-        console.error('❌ Usage: tsx paginate-users.ts <emulator|production> [pageSize] [maxPages]');
-        console.error('   pageSize: Number of users per page (default: 10)');
-        console.error('   maxPages: Maximum pages to display (default: 5)');
-        process.exit(1);
-    }
-    isEmulator = targetEnvironment === 'emulator';
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-} else {
-    isEmulator = !isProduction();
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-}
-
+const { isEmulator, environment } = env;
 console.log(`🎯 Paginating through users in ${environment}`);
 console.log(`📄 Page size: ${pageSize}, Max pages: ${maxPages}`);
 
-// Initialize Firebase Admin for production BEFORE any other imports
-if (!isEmulator && require.main === module) {
-    console.log('   Using Production Firebase');
-
-    const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
-
-    if (!fs.existsSync(serviceAccountPath)) {
-        console.error('❌ Service account key not found at firebase/service-account-key.json');
-        console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
-        process.exit(1);
-    }
-
-    if (admin.apps.length === 0) {
-        console.log('🔑 Initializing Firebase Admin with service account...');
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccountPath),
-            projectId: 'splitifyd',
-        });
-    }
-} else if (isEmulator) {
-    console.log('   Using Firebase Emulator Suite');
-}
-
-// Import shared types that don't depend on Firebase initialization
-import { FirestoreCollections, UserRoles } from '@splitifyd/shared';
-import {isProduction} from "../functions/src/firebase";
 
 // We'll get these instances dynamically
 let firestoreDb: admin.firestore.Firestore;
@@ -71,7 +31,7 @@ let firestoreDb: admin.firestore.Firestore;
 /**
  * Initialize Firebase and import handlers
  */
-async function initializeFirebase() {
+async function initializeAppServices() {
     console.log('🔧 Initializing Firebase database connection...');
 
     if (!isEmulator && require.main === module) {
@@ -220,7 +180,7 @@ async function paginateUsers(): Promise<void> {
 async function main(): Promise<void> {
     try {
         // Initialize Firebase
-        await initializeFirebase();
+        await initializeAppServices();
 
         // Start pagination
         await paginateUsers();

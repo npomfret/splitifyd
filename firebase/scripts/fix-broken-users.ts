@@ -1,65 +1,23 @@
 #!/usr/bin/env npx tsx
-import * as path from 'path';
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
-import assert from 'node:assert';
 import { execSync } from 'child_process';
+import { FirestoreCollections, SystemUserRoles, UserThemeColor } from '@splitifyd/shared';
+import { parseEnvironment, initializeFirebase } from './firebase-init';
 
 /**
  * Script to fix broken user accounts by ensuring every Firebase Auth user
  * has a corresponding Firestore user document
  */
 
-// Parse command line arguments or detect environment
+// Parse command line arguments and initialize Firebase
 const args = process.argv.slice(2);
-const targetEnvironment = args[0];
+const env = parseEnvironment(args);
+initializeFirebase(env);
 
-// If called directly, require explicit argument
-// If called as a module, detect from environment
-let isEmulator: boolean;
-let environment: string;
-
-if (require.main === module) {
-    // Called directly - require explicit argument
-    if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
-        console.error('❌ Usage: tsx fix-broken-users.ts <emulator|production>');
-        process.exit(1);
-    }
-    isEmulator = targetEnvironment === 'emulator';
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-} else {
-    isEmulator = !isProduction();
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-}
-
+const { isEmulator, environment } = env;
 console.log(`🎯 Running user fixing for ${environment}`);
 
-// Initialize Firebase Admin for production BEFORE any other imports
-if (!isEmulator && require.main === module) {
-    console.log('   Using Production Firebase');
-
-    const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
-
-    if (!fs.existsSync(serviceAccountPath)) {
-        console.error('❌ Service account key not found at firebase/service-account-key.json');
-        console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
-        process.exit(1);
-    }
-
-    if (admin.apps.length === 0) {
-        console.log('🔑 Initializing Firebase Admin with service account...');
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccountPath),
-            projectId: 'splitifyd', // Explicit project ID like seed-policies.ts
-        });
-    }
-} else if (isEmulator) {
-    console.log('   Using Firebase Emulator Suite');
-}
-
-// Import shared types that don't depend on Firebase initialization
-import { FirestoreCollections, UserRoles, UserThemeColor } from '@splitifyd/shared';
-import {isProduction} from "../functions/src/firebase";
 
 // We'll import Firebase-dependent modules dynamically after initialization
 
@@ -71,7 +29,7 @@ import {isProduction} from "../functions/src/firebase";
 interface FirestoreUserDocument {
     email: string;
     displayName: string;
-    role: typeof UserRoles.USER | typeof UserRoles.ADMIN;
+    role: typeof SystemUserRoles.SYSTEM_USER | typeof SystemUserRoles.SYSTEM_ADMIN;
     createdAt: admin.firestore.Timestamp;
     updatedAt: admin.firestore.Timestamp;
     acceptedPolicies: Record<string, string>;
@@ -96,7 +54,7 @@ let assignThemeColor: any;
 /**
  * Initialize Firebase and import handlers
  */
-async function initializeFirebase() {
+async function initializeAppServices() {
     console.log('🔧 Initializing Firebase database connection...');
 
     if (!isEmulator && require.main === module) {
@@ -226,7 +184,7 @@ async function createUserDocument(authUser: admin.auth.UserRecord): Promise<void
         const userDoc: FirestoreUserDocument = {
             email: authUser.email!,
             displayName: authUser.displayName!,
-            role: UserRoles.USER,
+            role: SystemUserRoles.SYSTEM_USER,
             createdAt: createServerTimestamp(),
             updatedAt: createServerTimestamp(),
             acceptedPolicies: currentPolicyVersions,
@@ -257,7 +215,7 @@ async function fixBrokenUsers(): Promise<void> {
 
     try {
         // Initialize Firebase and import handlers
-        await initializeFirebase();
+        await initializeAppServices();
 
         console.log('');
         console.log('═══════════════════════════════════════════════════════');
