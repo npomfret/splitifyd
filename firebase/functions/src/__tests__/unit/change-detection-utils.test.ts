@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import * as admin from 'firebase-admin/firestore';
+import {DocumentSnapshot, Timestamp} from "firebase-admin/firestore";
 import { getChangedFields, getGroupChangedFields, calculatePriority, createChangeDocument, shouldNotifyUser } from '../../utils/change-detection';
 
 describe('Change Detection Utilities', () => {
@@ -9,7 +9,7 @@ describe('Change Detection Utilities', () => {
             const after = {
                 exists: true,
                 data: () => ({ field1: 'value1', field2: 'value2' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getChangedFields(before, after);
             expect(result).toEqual(['*']);
@@ -19,11 +19,11 @@ describe('Change Detection Utilities', () => {
             const before = {
                 exists: true,
                 data: () => ({ field1: 'value1' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
             const after = {
                 exists: false,
                 data: () => undefined,
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getChangedFields(before, after);
             expect(result).toEqual(['*']);
@@ -37,7 +37,7 @@ describe('Change Detection Utilities', () => {
                     field2: 'value2',
                     field3: { nested: 'old' },
                 }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
             const after = {
                 exists: true,
                 data: () => ({
@@ -45,7 +45,7 @@ describe('Change Detection Utilities', () => {
                     field2: 'value2',
                     field3: { nested: 'new' },
                 }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getChangedFields(before, after);
             expect(result).toContain('field1');
@@ -57,11 +57,11 @@ describe('Change Detection Utilities', () => {
             const before = {
                 exists: true,
                 data: () => ({ field1: 'value1', field2: 'value2' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
             const after = {
                 exists: true,
                 data: () => ({ field1: 'value1' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getChangedFields(before, after);
             expect(result).toContain('field2');
@@ -72,11 +72,11 @@ describe('Change Detection Utilities', () => {
             const before = {
                 exists: true,
                 data: () => ({ field1: 'value1' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
             const after = {
                 exists: true,
                 data: () => ({ field1: 'value1', field2: 'value2' }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getChangedFields(before, after);
             expect(result).toContain('field2');
@@ -94,7 +94,7 @@ describe('Change Detection Utilities', () => {
                         description: 'Same',
                     },
                 }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
             const after = {
                 exists: true,
                 data: () => ({
@@ -103,7 +103,7 @@ describe('Change Detection Utilities', () => {
                         description: 'Same',
                     },
                 }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getGroupChangedFields(before, after);
             expect(result).toContain('name');
@@ -115,7 +115,7 @@ describe('Change Detection Utilities', () => {
             const after = {
                 exists: true,
                 data: () => ({ data: { name: 'Group' } }),
-            } as unknown as admin.DocumentSnapshot;
+            } as unknown as DocumentSnapshot;
 
             const result = getGroupChangedFields(before, after);
             expect(result).toEqual(['*']);
@@ -208,10 +208,10 @@ describe('Change Detection Utilities', () => {
         let mockTimestamp: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-            mockTimestamp = vi.spyOn(admin.Timestamp, 'now').mockReturnValue({
+            mockTimestamp = vi.spyOn(Timestamp, 'now').mockReturnValue({
                 seconds: 1234567890,
                 nanoseconds: 0,
-            } as admin.Timestamp);
+            } as Timestamp);
         });
 
         afterEach(() => {

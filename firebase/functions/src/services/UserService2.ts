@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import { Timestamp } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
 import { FirestoreCollections, SystemUserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
@@ -98,7 +99,7 @@ export class UserService {
      * Validates that a user record has all required fields
      * @throws Error if required fields are missing
      */
-    private validateUserRecord(userRecord: admin.auth.UserRecord): asserts userRecord is admin.auth.UserRecord & { email: string; displayName: string } {
+    private validateUserRecord(userRecord: UserRecord): asserts userRecord is UserRecord & { email: string; displayName: string } {
         if (!userRecord.email || !userRecord.displayName) {
             throw new Error(`User ${userRecord.uid} missing required fields: email and displayName are mandatory`);
         }
@@ -107,7 +108,7 @@ export class UserService {
     /**
      * Creates a UserProfile from Firebase Auth record and Firestore data
      */
-    private createUserProfile(userRecord: admin.auth.UserRecord & { email: string; displayName: string }, firestoreData: any): UserProfile {
+    private createUserProfile(userRecord: UserRecord & { email: string; displayName: string }, firestoreData: any): UserProfile {
         return {
             uid: userRecord.uid,
             email: userRecord.email,
@@ -245,7 +246,7 @@ export class UserService {
 
         try {
             // Build update object for Firebase Auth
-            const authUpdateData: admin.auth.UpdateRequest = {};
+            const authUpdateData: UpdateRequest = {};
             if (validatedData.displayName !== undefined) {
                 authUpdateData.displayName = validatedData.displayName;
             }
@@ -394,7 +395,7 @@ export class UserService {
         // Validate the request body
         const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
 
-        let userRecord: admin.auth.UserRecord | null = null;
+        let userRecord: UserRecord | null = null;
 
         try {
             // Create the user in Firebase Auth

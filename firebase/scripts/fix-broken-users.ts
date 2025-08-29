@@ -2,6 +2,7 @@
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
+import { UserRecord } from "firebase-admin/auth";
 import { execSync } from 'child_process';
 import { FirestoreCollections, SystemUserRoles, UserThemeColor } from '@splitifyd/shared';
 import { parseEnvironment, initializeFirebase } from './firebase-init';
@@ -99,7 +100,7 @@ async function initializeAppServices() {
 /**
  * Get all Firebase Auth users using Firebase CLI export
  */
-async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
+async function getAllAuthUsers(): Promise<UserRecord[]> {
     console.log('🔍 Starting to fetch Firebase Auth users via Firebase CLI...');
 
     try {
@@ -115,7 +116,7 @@ async function getAllAuthUsers(): Promise<admin.auth.UserRecord[]> {
         const usersData = JSON.parse(fs.readFileSync(tmpFile, 'utf8'));
 
         // Convert CLI export format to UserRecord format
-        const users: admin.auth.UserRecord[] = usersData.users.map((user: any) => ({
+        const users: UserRecord[] = usersData.users.map((user: any) => ({
             uid: user.localId,
             email: user.email,
             displayName: user.displayName,
@@ -158,7 +159,7 @@ async function getExistingFirestoreUsers(): Promise<Set<string>> {
 /**
  * Validate that an auth user has the required fields
  */
-function validateAuthUser(user: admin.auth.UserRecord): { valid: boolean; reason?: string } {
+function validateAuthUser(user: UserRecord): { valid: boolean; reason?: string } {
     if (!user.email) {
         return { valid: false, reason: 'missing email' };
     }
@@ -173,7 +174,7 @@ function validateAuthUser(user: admin.auth.UserRecord): { valid: boolean; reason
 /**
  * Create a Firestore user document for an auth user
  */
-async function createUserDocument(authUser: admin.auth.UserRecord): Promise<void> {
+async function createUserDocument(authUser: UserRecord): Promise<void> {
     try {
         // Get current policy versions
         const currentPolicyVersions = await getCurrentPolicyVersions();
@@ -237,8 +238,8 @@ async function fixBrokenUsers(): Promise<void> {
         console.log(`Found ${existingFirestoreUsers.size} Firestore user documents`);
 
         // Find users that need fixing
-        const brokenUsers: admin.auth.UserRecord[] = [];
-        const invalidUsers: admin.auth.UserRecord[] = [];
+        const brokenUsers: UserRecord[] = [];
+        const invalidUsers: UserRecord[] = [];
 
         for (const authUser of authUsers) {
             const validation = validateAuthUser(authUser);

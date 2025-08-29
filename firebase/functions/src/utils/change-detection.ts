@@ -1,6 +1,5 @@
-import * as admin from 'firebase-admin/firestore';
+import {DocumentData, DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
 import { removeUndefinedFields } from './firestore-helpers';
-import { DocumentData } from 'firebase-admin/firestore';
 
 export type ChangeType = 'created' | 'updated' | 'deleted';
 export type ChangePriority = 'high' | 'medium' | 'low';
@@ -14,7 +13,7 @@ export interface ChangeMetadata {
 /**
  * Get list of changed fields between two documents
  */
-export function getChangedFields(before: admin.DocumentSnapshot | undefined, after: admin.DocumentSnapshot | undefined): string[] {
+export function getChangedFields(before: DocumentSnapshot | undefined, after: DocumentSnapshot | undefined): string[] {
     if (!before?.exists) return ['*']; // New document
     if (!after?.exists) return ['*']; // Deleted document
 
@@ -85,7 +84,7 @@ function extractChangedFields(afterData: DocumentData, beforeData: DocumentData)
 /**
  * Extract changed fields from nested group structure
  */
-export function getGroupChangedFields(before: admin.DocumentSnapshot | undefined, after: admin.DocumentSnapshot | undefined): string[] {
+export function getGroupChangedFields(before: DocumentSnapshot | undefined, after: DocumentSnapshot | undefined): string[] {
     if (!before?.exists) return ['*'];
     if (!after?.exists) return ['*'];
 
@@ -132,7 +131,7 @@ export function createChangeDocument(
     const baseDoc = {
         [`${entityType}Id`]: entityId,
         changeType,
-        timestamp: admin.Timestamp.now(),
+        timestamp: Timestamp.now(),
         metadata,
         ...additionalData,
     };
@@ -168,7 +167,7 @@ export function createMinimalChangeDocument(entityId: string, entityType: 'group
         id: entityId,
         type: entityType,
         action: changeType,
-        timestamp: admin.Timestamp.now(),
+        timestamp: Timestamp.now(),
         users: affectedUsers,
     };
 
@@ -201,7 +200,7 @@ export function createMinimalBalanceChangeDocument(groupId: string, affectedUser
         groupId,
         type: 'balance',
         action: 'recalculated',
-        timestamp: admin.Timestamp.now(),
+        timestamp: Timestamp.now(),
         users: affectedUsers,
     });
 }
