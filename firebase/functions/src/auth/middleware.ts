@@ -117,15 +117,11 @@ export const requireAdmin = async (req: AuthenticatedRequest, res: Response, nex
  * Combined middleware for admin endpoints - authenticates and checks admin role
  */
 export const authenticateAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        await authenticate(req, res, async (error?: any) => {
-            if (error) {
-                next(error);
-                return;
-            }
-            await requireAdmin(req, res, next);
-        });
-    } catch (error) {
-        next(error);
-    }
+    await authenticate(req, res, async (error?: any) => {
+        if (error) {
+            next(error);
+            return;
+        }
+        await requireAdmin(req, res, next);
+    });
 };

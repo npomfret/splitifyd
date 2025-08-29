@@ -1,7 +1,7 @@
 
 import { FieldValue } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
-import { Errors } from '../utils/errors';
+import { Errors, ApiError } from '../utils/errors';
 import { userService } from './UserService2';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/shared';
@@ -144,12 +144,23 @@ export class GroupMemberService {
                 }
             }
         } catch (balanceError: unknown) {
-            const errorMessage = balanceError instanceof Error ? balanceError.message : String(balanceError);
-            const apiErrorDetails = (balanceError as any)?.details?.message || '';
-
-            if (errorMessage.includes('Cannot leave group with outstanding balance') || apiErrorDetails.includes('Cannot leave group with outstanding balance')) {
-                throw balanceError;
+            // If it's our specific "outstanding balance" error from the validation above, re-throw it
+            if (balanceError instanceof ApiError) {
+                // Check if it's the expected ApiError with outstanding balance message
+                const details = balanceError.details;
+                if (details?.message?.includes('Cannot leave group with outstanding balance')) {
+                    throw balanceError;
+                }
             }
+
+            // For any other errors from calculateGroupBalances (e.g., database issues, data corruption), 
+            // log them for debugging and throw a generic error to the user
+            logger.error('Unexpected error during balance check for leaving group', balanceError as Error, { 
+                groupId, 
+                userId,
+                operation: 'leave-group'
+            });
+            throw Errors.INTERNAL_ERROR();
         }
 
         const updatedMembers = { ...group.members };
@@ -224,12 +235,24 @@ export class GroupMemberService {
                 }
             }
         } catch (balanceError: unknown) {
-            const errorMessage = balanceError instanceof Error ? balanceError.message : String(balanceError);
-            const apiErrorDetails = (balanceError as any)?.details?.message || '';
-
-            if (errorMessage.includes('Cannot remove member with outstanding balance') || apiErrorDetails.includes('Cannot remove member with outstanding balance')) {
-                throw balanceError;
+            // If it's our specific "outstanding balance" error from the validation above, re-throw it
+            if (balanceError instanceof ApiError) {
+                // Check if it's the expected ApiError with outstanding balance message
+                const details = balanceError.details;
+                if (details?.message?.includes('Cannot remove member with outstanding balance')) {
+                    throw balanceError;
+                }
             }
+
+            // For any other errors from calculateGroupBalances (e.g., database issues, data corruption), 
+            // log them for debugging and throw a generic error to the user
+            logger.error('Unexpected error during balance check for member removal', balanceError as Error, { 
+                groupId, 
+                userId,
+                memberId,
+                operation: 'remove-member'
+            });
+            throw Errors.INTERNAL_ERROR();
         }
 
         const updatedMembers = { ...group.members };
