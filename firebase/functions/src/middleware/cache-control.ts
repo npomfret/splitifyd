@@ -26,7 +26,7 @@ export function applyCacheControl(req: Request, res: Response, next: NextFunctio
 
     if (staticPageConfig) {
         // Static pages can have minimal caching
-        const maxAge = config.isDevelopment ? staticPageConfig.dev : staticPageConfig.prod;
+        const maxAge = config.isProduction ? staticPageConfig.prod : staticPageConfig.dev;
         res.setHeader('Cache-Control', `public, max-age=${maxAge}`);
 
         // Applied caching for cacheable endpoint

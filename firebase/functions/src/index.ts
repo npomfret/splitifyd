@@ -20,7 +20,7 @@ import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFu
 import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment, listComments } from './comments/handlers';
-import { admin, firestoreDb } from './firebase';
+import {admin, firestoreDb, isEmulator} from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { getUserProfile, updateUserProfile, changePassword, deleteUserAccount } from './user/handlers';
@@ -34,7 +34,7 @@ import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from '
 import { cleanupChanges } from './scheduled/cleanup';
 
 // Test emulator connections when running locally
-if (process.env.FUNCTIONS_EMULATOR === 'true') {
+if (isEmulator()) {
     // Helper function to wait for emulator with exponential backoff
     async function waitForEmulator(testFn: () => Promise<any>, maxRetries = 5, initialDelay = 1000): Promise<void> {
         for (let i = 0; i < maxRetries; i++) {

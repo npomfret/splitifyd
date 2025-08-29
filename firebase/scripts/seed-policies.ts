@@ -29,8 +29,7 @@ if (require.main === module) {
     isEmulator = targetEnvironment === 'emulator';
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 } else {
-    // Called as module - detect from FUNCTIONS_EMULATOR env var (set by emulator)
-    isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+    isEmulator = !isProduction();
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 }
 
@@ -62,6 +61,7 @@ if (!isEmulator && require.main === module) {
 // Now import modules that depend on Firebase initialization
 import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
+import {isProduction} from "../functions/src/firebase";
 
 // We'll get these instances dynamically
 let firestoreDb: admin.firestore.Firestore;

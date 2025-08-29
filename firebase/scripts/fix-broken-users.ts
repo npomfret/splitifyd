@@ -28,8 +28,7 @@ if (require.main === module) {
     isEmulator = targetEnvironment === 'emulator';
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 } else {
-    // Called as module - detect from FUNCTIONS_EMULATOR env var (set by emulator)
-    isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+    isEmulator = !isProduction();
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 }
 
@@ -60,6 +59,7 @@ if (!isEmulator && require.main === module) {
 
 // Import shared types that don't depend on Firebase initialization
 import { FirestoreCollections, UserRoles, UserThemeColor } from '@splitifyd/shared';
+import {isProduction} from "../functions/src/firebase";
 
 // We'll import Firebase-dependent modules dynamically after initialization
 

@@ -29,7 +29,6 @@ const envSchema = z.object({
 // Type for the CONFIG object
 export interface ClientConfig {
     isProduction: boolean;
-    isDevelopment: boolean;
     requestBodyLimit: string;
     validation: {
         maxRequestSizeBytes: number;
@@ -72,8 +71,7 @@ function getEnv(): z.infer<typeof envSchema> {
 // Build the CONFIG object lazily
 function buildConfig(): ClientConfig {
     const env = getEnv();
-    const isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
-    const isProduction = !isEmulator;
+    const isProduction = process.env.NODE_ENV === 'production';
 
     // Validate required production variables
     if (isProduction) {
@@ -87,7 +85,6 @@ function buildConfig(): ClientConfig {
 
     return {
         isProduction,
-        isDevelopment: isEmulator,
         requestBodyLimit: '1mb',
         validation: {
             maxRequestSizeBytes: SYSTEM.BYTES_PER_KB * SYSTEM.BYTES_PER_KB,
@@ -101,7 +98,7 @@ function buildConfig(): ClientConfig {
             previewLength: DOCUMENT_CONFIG.PREVIEW_LENGTH,
         },
         formDefaults: {
-            displayName: isEmulator ? 'test' : '',
+            displayName: isProduction ? '' : 'test',
             email: env.DEV_FORM_EMAIL ?? '',
             password: env.DEV_FORM_PASSWORD ?? '',
         },
@@ -190,7 +187,6 @@ function buildAppConfiguration(): AppConfiguration {
             hasApiKey: !!env.CLIENT_API_KEY,
             hasAuthDomain: !!env.CLIENT_AUTH_DOMAIN,
             nodeEnv: process.env.NODE_ENV,
-            emulator: env.FUNCTIONS_EMULATOR,
         });
         throw new Error('Firebase configuration is incomplete in production');
     }
@@ -216,11 +212,11 @@ export function getAppConfig(): AppConfiguration {
             const config = getConfig();
 
             // Skip validation in development since we're using dummy values
-            if (config.isDevelopment) {
-                cachedAppConfig = builtConfig;
-            } else {
+            if (config.isProduction) {
                 // Validate in production
                 cachedAppConfig = validateAppConfiguration(builtConfig);
+            } else {
+                cachedAppConfig = builtConfig;
             }
 
             // App configuration built and validated successfully

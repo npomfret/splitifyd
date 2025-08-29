@@ -31,8 +31,7 @@ if (require.main === module) {
     isEmulator = targetEnvironment === 'emulator';
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 } else {
-    // Called as module - detect from FUNCTIONS_EMULATOR env var
-    isEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+    isEmulator = !isProduction();
     environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
 }
 
@@ -64,6 +63,7 @@ if (!isEmulator && require.main === module) {
 
 // Import shared types that don't depend on Firebase initialization
 import { FirestoreCollections, UserRoles } from '@splitifyd/shared';
+import {isProduction} from "../functions/src/firebase";
 
 // We'll get these instances dynamically
 let firestoreDb: admin.firestore.Firestore;
