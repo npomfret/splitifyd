@@ -5,6 +5,7 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import {
     FirestoreCollections,
     PolicyDocument,
@@ -187,6 +188,8 @@ export class PolicyService {
     }
 
     private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
+        LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
+        
         try {
             const doc = await this.policiesCollection.doc(id).get();
 
@@ -314,6 +317,8 @@ export class PolicyService {
     }
 
     private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
+        LoggerContext.update({ policyId: id, operation: 'publish-policy', versionHash });
+        
         return this.publishPolicyInternal(id, versionHash);
     }
 
@@ -390,6 +395,8 @@ export class PolicyService {
     }
 
     private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
+        LoggerContext.update({ operation: 'create-policy', policyName, customId });
+        
         return this.createPolicyInternal(policyName, text, customId);
     }
 

@@ -3,6 +3,7 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 
@@ -74,6 +75,8 @@ export class UserPolicyService {
     }
 
     private async _acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
+        LoggerContext.update({ userId, policyId, operation: 'accept-policy', versionHash });
+        
         try {
             // Validate that the policy exists and the version hash is current
             await this.validatePolicyAndVersion(policyId, versionHash);
@@ -116,6 +119,8 @@ export class UserPolicyService {
     }
 
     private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
+        LoggerContext.update({ userId, operation: 'accept-multiple-policies', count: acceptances.length });
+        
         try {
             // Validate all policies and version hashes first
             for (const acceptance of acceptances) {

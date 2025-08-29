@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import {firebaseAuth, firestoreDb} from '../firebase';
 import { FirestoreCollections, SystemUserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
 import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import { Errors, ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp } from '../utils/dateHelpers';
@@ -138,6 +139,8 @@ export class UserService {
     }
 
     private async _getUser(userId: string): Promise<UserProfile> {
+        LoggerContext.update({ userId });
+        
         // Check cache first
         if (this.cache.has(userId)) {
             return this.cache.get(userId)!;
@@ -161,7 +164,6 @@ export class UserService {
                 } catch (error) {
                     const zodError = error as z.ZodError;
                     logger.error('User document validation failed', error as Error, {
-                        userId,
                         userData: JSON.stringify(userData),
                         validationErrors: zodError.issues,
                     });
@@ -178,11 +180,11 @@ export class UserService {
         } catch (error) {
             // Check if error is from Firebase Auth (user not found)
             if ((error as any).code === 'auth/user-not-found') {
-                logger.error('User not found in Firebase Auth', { userId });
+                logger.error('User not found in Firebase Auth', error as Error);
                 throw Errors.NOT_FOUND('User not found');
             }
 
-            logger.error('Failed to get user profile', { error, userId });
+            logger.error('Failed to get user profile', error as Error);
             throw error;
         }
     }
@@ -200,6 +202,8 @@ export class UserService {
     }
 
     private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
+        LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
+        
         const result = new Map<string, UserProfile>();
         const uncachedUids: string[] = [];
 
@@ -268,6 +272,8 @@ export class UserService {
     }
 
     private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
+        LoggerContext.update({ userId, operation: 'update-profile' });
+        
         // Validate the request body with localized error messages
         const validatedData = validateUpdateUserProfile(requestBody, language);
 
@@ -321,11 +327,11 @@ export class UserService {
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
-                logger.error('User not found in Firebase Auth', { userId });
+                logger.error('User not found in Firebase Auth', error as unknown as Error);
                 throw Errors.NOT_FOUND('User not found');
             }
 
-            logger.error('Failed to update user profile', { error: error as Error, userId });
+            logger.error('Failed to update user profile', error as unknown as Error);
             throw error;
         }
     }
@@ -338,6 +344,8 @@ export class UserService {
      * @throws ApiError if password change fails
      */
     async changePassword(userId: string, requestBody: unknown): Promise<{ message: string }> {
+        LoggerContext.update({ userId, operation: 'change-password' });
+        
         // Validate the request body
         const validatedData = validateChangePassword(requestBody);
 
@@ -364,7 +372,7 @@ export class UserService {
                 passwordChangedAt: createServerTimestamp(),
             });
 
-            logger.info('Password changed successfully', { userId });
+            logger.info('Password changed successfully');
 
             return {
                 message: 'Password changed successfully',
@@ -372,11 +380,11 @@ export class UserService {
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
-                logger.error('User not found in Firebase Auth', { userId });
+                logger.error('User not found in Firebase Auth', error as unknown as Error);
                 throw Errors.NOT_FOUND('User not found');
             }
 
-            logger.error('Failed to change password', { error: error as Error, userId });
+            logger.error('Failed to change password', error as unknown as Error);
             throw error;
         }
     }
@@ -389,6 +397,8 @@ export class UserService {
      * @throws ApiError if deletion fails or user has active groups
      */
     async deleteAccount(userId: string, requestBody: unknown): Promise<{ message: string }> {
+        LoggerContext.update({ userId, operation: 'delete-account' });
+        
         // Validate the request body - ensures confirmDelete is true
         validateDeleteUser(requestBody);
 
@@ -407,7 +417,7 @@ export class UserService {
             // Delete user from Firebase Auth
             await firebaseAuth.deleteUser(userId);
 
-            logger.info('User account deleted successfully', { userId });
+            logger.info('User account deleted successfully');
 
             return {
                 message: 'Account deleted successfully',
@@ -415,11 +425,11 @@ export class UserService {
         } catch (error: unknown) {
             // Check if error is from Firebase Auth (user not found)
             if (error && typeof error === 'object' && 'code' in error && error.code === 'auth/user-not-found') {
-                logger.error('User not found in Firebase Auth', { userId });
+                logger.error('User not found in Firebase Auth', error as unknown as Error);
                 throw Errors.NOT_FOUND('User not found');
             }
 
-            logger.error('Failed to delete user account', { error: error as Error, userId });
+            logger.error('Failed to delete user account', error as unknown as Error);
             throw error;
         }
     }
@@ -439,6 +449,8 @@ export class UserService {
     }
 
     private async _registerUser(requestBody: unknown): Promise<RegisterUserResult> {
+        LoggerContext.update({ operation: 'register-user' });
+        
         // Validate the request body
         const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
 
@@ -451,6 +463,9 @@ export class UserService {
                 password,
                 displayName,
             });
+            
+            // Add userId to context now that user is created
+            LoggerContext.update({ userId: userRecord.uid });
 
             // Get current policy versions for user acceptance
             const currentPolicyVersions = await getCurrentPolicyVersions();
@@ -490,7 +505,7 @@ export class UserService {
 
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
 
-            logger.info('user-registered', { id: userRecord.uid });
+            logger.info('user-registered');
 
             return {
                 success: true,
@@ -508,9 +523,8 @@ export class UserService {
                     await firebaseAuth.deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
-                    logger.error('Failed to cleanup orphaned auth user', cleanupError, {
-                        userId: userRecord.uid,
-                    });
+                    LoggerContext.update({ userId: userRecord.uid });
+                    logger.error('Failed to cleanup orphaned auth user', cleanupError as Error);
                 }
             }
 

@@ -7,6 +7,7 @@ import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import {
     Settlement,
     CreateSettlementRequest,
@@ -107,6 +108,8 @@ export class SettlementService {
     }
 
     private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
+        LoggerContext.update({ settlementId, userId });
+        
         const settlementDoc = await this.settlementsCollection.doc(settlementId).get();
 
         if (!settlementDoc.exists) {
@@ -189,6 +192,9 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        LoggerContext.setBusinessContext({ groupId });
+        LoggerContext.update({ userId, operation: 'list-settlements' });
+        
         await verifyGroupMembership(groupId, userId);
 
         return this._getGroupSettlementsData(groupId, options);
@@ -207,6 +213,9 @@ export class SettlementService {
     }
 
     private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
+        LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
+        LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
+        
         await verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
@@ -237,6 +246,9 @@ export class SettlementService {
         const validatedSettlement = SettlementDocumentSchema.parse(settlement);
 
         await this.settlementsCollection.doc(settlementId).set(validatedSettlement);
+        
+        // Update context with the created settlement ID
+        LoggerContext.setBusinessContext({ settlementId });
 
         return {
             ...settlement,
@@ -259,6 +271,9 @@ export class SettlementService {
     }
 
     private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
+        LoggerContext.setBusinessContext({ settlementId });
+        LoggerContext.update({ userId, operation: 'update-settlement' });
+        
         const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementDoc = await settlementRef.get();
 
@@ -356,6 +371,9 @@ export class SettlementService {
     }
 
     private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {
+        LoggerContext.setBusinessContext({ settlementId });
+        LoggerContext.update({ userId, operation: 'delete-settlement' });
+        
         const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementDoc = await settlementRef.get();
 
@@ -423,6 +441,9 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        LoggerContext.setBusinessContext({ groupId });
+        LoggerContext.update({ operation: 'get-group-settlements-data', limit: options.limit || 50 });
+        
         const limit = options.limit || 50;
         const cursor = options.cursor;
         const filterUserId = options.userId;

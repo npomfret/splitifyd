@@ -69,6 +69,9 @@ export class GroupMemberService {
     }
 
     private async _getGroupMembers(userId: string, groupId: string): Promise<GroupMembersResponse> {
+        LoggerContext.setBusinessContext({ groupId });
+        LoggerContext.update({ userId, operation: 'get-group-members' });
+        
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -99,6 +102,9 @@ export class GroupMemberService {
     }
 
     private async _leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
+        LoggerContext.setBusinessContext({ groupId });
+        LoggerContext.update({ userId, operation: 'leave-group' });
+        
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -173,6 +179,9 @@ export class GroupMemberService {
     }
 
     private async _removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
+        LoggerContext.setBusinessContext({ groupId });
+        LoggerContext.update({ userId, operation: 'remove-group-member', memberId });
+        
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }

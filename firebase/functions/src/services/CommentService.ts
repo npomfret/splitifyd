@@ -5,6 +5,7 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
 import {
     FirestoreCollections,
     CommentTargetTypes,
@@ -180,6 +181,8 @@ export class CommentService {
             groupId?: string;
         } = {},
     ): Promise<ListCommentsResponse> {
+        LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
+        
         const limit = options.limit || 50;
         const { cursor, groupId } = options;
 
@@ -267,6 +270,8 @@ export class CommentService {
         userId: string,
         groupId?: string,
     ): Promise<CommentApiResponse> {
+        LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
+        
         // For expense comments, resolve the groupId from the expense
         let resolvedGroupId = groupId;
         if (targetType === CommentTargetTypes.EXPENSE) {
