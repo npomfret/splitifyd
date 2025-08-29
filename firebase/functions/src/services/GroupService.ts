@@ -9,7 +9,7 @@ import { calculateGroupBalances } from './balanceCalculator';
 import { calculateExpenseMetadata } from './expenseMetadataService';
 import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
 import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
-import { userService } from './UserService2';
+import { getUserService } from './serviceRegistration';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
 import { DOCUMENT_CONFIG } from '../constants';
 import { logger } from '../logger';
@@ -351,7 +351,7 @@ export class GroupService {
         for (const group of groups) {
             Object.keys(group.members).forEach((memberId) => allMemberIds.add(memberId));
         }
-        const allMemberProfiles = await userService.getUsers(Array.from(allMemberIds));
+        const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
 
         // Calculate balances for groups that have expenses
         const groupsWithExpenses = groups.filter(group => {
@@ -810,5 +810,4 @@ export class GroupService {
     }
 }
 
-// Create and export singleton instance
-export const groupService = new GroupService();
+// ServiceRegistry handles service instantiation

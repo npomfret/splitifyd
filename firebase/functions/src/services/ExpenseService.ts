@@ -846,5 +846,4 @@ export class ExpenseService {
     }
 }
 
-// Export singleton instance
-export const expenseService = new ExpenseService();
+// ServiceRegistry handles service instantiation

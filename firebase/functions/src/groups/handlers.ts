@@ -9,7 +9,7 @@ import { Group } from '../types/group-types';
 import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { PermissionEngine } from '../permissions';
-import { groupService } from '../services/GroupService';
+import { getGroupService } from '../services/serviceRegistration';
 import { z } from 'zod';
 
 /**
@@ -132,7 +132,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const sanitizedData = sanitizeGroupData(groupData);
 
     // Use GroupService to create the group
-    const group = await groupService.createGroup(userId, sanitizedData);
+    const group = await getGroupService().createGroup(userId, sanitizedData);
 
     res.status(HTTP_STATUS.CREATED).json(group);
 };
@@ -147,7 +147,7 @@ export const getGroup = async (req: AuthenticatedRequest, res: Response): Promis
     }
     const groupId = validateGroupId(req.params.id);
 
-    const groupWithBalance = await groupService.getGroup(groupId, userId);
+    const groupWithBalance = await getGroupService().getGroup(groupId, userId);
     res.json(groupWithBalance);
 };
 
@@ -168,7 +168,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const sanitizedUpdates = sanitizeGroupData(updates);
 
     // Use GroupService to update the group
-    const response = await groupService.updateGroup(groupId, userId, sanitizedUpdates);
+    const response = await getGroupService().updateGroup(groupId, userId, sanitizedUpdates);
 
     res.json(response);
 };
@@ -184,7 +184,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const groupId = validateGroupId(req.params.id);
 
     // Use GroupService to delete the group
-    const response = await groupService.deleteGroup(groupId, userId);
+    const response = await getGroupService().deleteGroup(groupId, userId);
 
     res.json(response);
 };
@@ -204,7 +204,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
     const includeMetadata = req.query.includeMetadata === 'true';
 
-    const response = await groupService.listGroups(userId, {
+    const response = await getGroupService().listGroups(userId, {
         limit,
         cursor,
         order,
@@ -232,7 +232,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     const settlementLimit = parseInt(req.query.settlementLimit as string) || 20;
     const settlementCursor = req.query.settlementCursor as string;
 
-    const result = await groupService.getGroupFullDetails(groupId, userId, {
+    const result = await getGroupService().getGroupFullDetails(groupId, userId, {
         expenseLimit,
         expenseCursor,
         settlementLimit,

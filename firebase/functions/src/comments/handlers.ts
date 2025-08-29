@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateComment, validateListCommentsQuery } from './validation';
 import { CommentTargetTypes, CommentTargetType, CreateCommentResponse, ListCommentsApiResponse } from '@splitifyd/shared';
-import { CommentService } from '../services/CommentService';
+import { getCommentService } from '../services/serviceRegistration';
 
 /**
  * Create a new comment
@@ -30,8 +30,7 @@ export const createComment = async (req: AuthenticatedRequest, res: Response): P
             targetId,
         });
 
-        const commentService = new CommentService();
-        const responseData = await commentService.createComment(targetType, targetId, validatedRequest, userId);
+        const responseData = await getCommentService().createComment(targetType, targetId, validatedRequest, userId);
 
         const response: CreateCommentResponse = {
             success: true,
@@ -74,8 +73,7 @@ export const listComments = async (req: AuthenticatedRequest, res: Response): Pr
         // Validate query parameters
         const { cursor, limit } = validateListCommentsQuery(req.query);
 
-        const commentService = new CommentService();
-        const responseData = await commentService.listComments(targetType, targetId, userId, {
+        const responseData = await getCommentService().listComments(targetType, targetId, userId, {
             limit,
             cursor,
         });

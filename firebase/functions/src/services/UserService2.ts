@@ -539,5 +539,4 @@ export class UserService {
     }
 }
 
-// Export a singleton instance for use across the application
-export const userService = new UserService();
+// ServiceRegistry handles service instantiation

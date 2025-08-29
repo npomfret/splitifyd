@@ -2,7 +2,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { firestoreDb } from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
-import { userService } from './UserService2';
+import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
@@ -24,7 +24,7 @@ export class GroupMemberService {
     async getGroupMembersData(groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> {
         const memberIds = Object.keys(membersMap);
 
-        const memberProfiles = await userService.getUsers(memberIds);
+        const memberProfiles = await getUserService().getUsers(memberIds);
 
         const members: User[] = memberIds.map((memberId: string) => {
             const profile = memberProfiles.get(memberId);

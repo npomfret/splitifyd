@@ -12,10 +12,12 @@ vi.mock('../../firebase', () => ({
     },
 }));
 
-vi.mock('../../services/UserService2', () => ({
-    userService: {
-        getUsers: vi.fn(),
-    },
+const mockGetUsers = vi.fn();
+
+vi.mock('../../services/serviceRegistration', () => ({
+    getUserService: () => ({
+        getUsers: mockGetUsers,
+    }),
 }));
 
 vi.mock('../../utils/debtSimplifier', () => ({
@@ -24,12 +26,10 @@ vi.mock('../../utils/debtSimplifier', () => ({
 
 // Import mocked dependencies
 import { firestoreDb } from '../../firebase';
-import { userService } from '../../services/UserService2';
 import { simplifyDebts } from '../../utils/debtSimplifier';
 
 // Type the mocked functions
 const mockDb = firestoreDb as any;
-const mockUserService = userService as any;
 const mockSimplifyDebts = simplifyDebts as any;
 
 // Enhanced builders - only specify what's needed for each test
@@ -243,7 +243,7 @@ describe('calculateGroupBalances', () => {
 
         const userMap = new Map<string, UserProfile>();
         mockUsers.forEach((user) => userMap.set(user.uid, user));
-        mockUserService.getUsers = vi.fn().mockResolvedValue(userMap);
+        mockGetUsers.mockResolvedValue(userMap);
         vi.mocked(mockSimplifyDebts).mockImplementation(() => []);
     });
 
@@ -640,7 +640,7 @@ describe('calculateGroupBalances', () => {
 
             await calculateGroupBalances('group-1');
 
-            expect(mockUserService.getUsers).toHaveBeenCalledWith(['user-1', 'user-2']);
+            expect(mockGetUsers).toHaveBeenCalledWith(['user-1', 'user-2']);
         });
     });
 });

@@ -1,6 +1,18 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ServiceRegistry } from '../../services/ServiceRegistry';
-import { registerAllServices, getUserService, getGroupService } from '../../services/serviceRegistration';
+import { 
+    registerAllServices, 
+    getUserService, 
+    getGroupService, 
+    getExpenseService,
+    getSettlementService,
+    getCommentService,
+    getPolicyService,
+    getUserPolicyService,
+    getGroupMemberService,
+    getGroupPermissionService,
+    getGroupShareService
+} from '../../services/serviceRegistration';
 
 describe('ServiceRegistry', () => {
     let registry: ServiceRegistry;
@@ -113,5 +125,78 @@ describe('Service Registration', () => {
         const userService2 = getUserService();
         
         expect(userService1).toBe(userService2);
+    });
+
+    it('should verify all service getters work correctly', () => {
+        // Test all service getters to ensure they return valid instances
+        const userService = getUserService();
+        const groupService = getGroupService();
+        const expenseService = getExpenseService();
+        const settlementService = getSettlementService();
+        const commentService = getCommentService();
+        const policyService = getPolicyService();
+        const userPolicyService = getUserPolicyService();
+        const groupMemberService = getGroupMemberService();
+        const groupPermissionService = getGroupPermissionService();
+        const groupShareService = getGroupShareService();
+
+        // Verify all services are defined
+        expect(userService).toBeDefined();
+        expect(groupService).toBeDefined();
+        expect(expenseService).toBeDefined();
+        expect(settlementService).toBeDefined();
+        expect(commentService).toBeDefined();
+        expect(policyService).toBeDefined();
+        expect(userPolicyService).toBeDefined();
+        expect(groupMemberService).toBeDefined();
+        expect(groupPermissionService).toBeDefined();
+        expect(groupShareService).toBeDefined();
+
+        // Verify key methods exist
+        expect(typeof userService.getUser).toBe('function');
+        expect(typeof groupService.getGroup).toBe('function');
+        expect(typeof expenseService.getExpense).toBe('function');
+        expect(typeof settlementService.getSettlement).toBe('function');
+        expect(typeof commentService.createComment).toBe('function');
+        expect(typeof policyService.getPolicy).toBe('function');
+        expect(typeof userPolicyService.acceptPolicy).toBe('function');
+        expect(typeof groupMemberService.getGroupMembers).toBe('function');
+        expect(typeof groupPermissionService.applySecurityPreset).toBe('function');
+        expect(typeof groupShareService.generateShareableLink).toBe('function');
+    });
+
+    it('should verify singleton behavior across all services', () => {
+        // Test that all services return the same instance on multiple calls
+        expect(getUserService()).toBe(getUserService());
+        expect(getGroupService()).toBe(getGroupService());
+        expect(getExpenseService()).toBe(getExpenseService());
+        expect(getSettlementService()).toBe(getSettlementService());
+        expect(getCommentService()).toBe(getCommentService());
+        expect(getPolicyService()).toBe(getPolicyService());
+        expect(getUserPolicyService()).toBe(getUserPolicyService());
+        expect(getGroupMemberService()).toBe(getGroupMemberService());
+        expect(getGroupPermissionService()).toBe(getGroupPermissionService());
+        expect(getGroupShareService()).toBe(getGroupShareService());
+    });
+
+    it('should verify lazy initialization for all services', () => {
+        const registry = ServiceRegistry.getInstance();
+        const info = registry.getDependencyInfo();
+        
+        // Initially no services should be initialized
+        expect(info.initialized.length).toBe(0);
+        
+        // Access one service
+        getUserService();
+        const afterOneService = registry.getDependencyInfo();
+        expect(afterOneService.initialized).toContain('UserService');
+        expect(afterOneService.initialized.length).toBe(1);
+        
+        // Access another service 
+        getGroupService();
+        const afterTwoServices = registry.getDependencyInfo();
+        expect(afterTwoServices.initialized).toContain('UserService');
+        expect(afterTwoServices.initialized).toContain('GroupService');
+        expect(afterTwoServices.initialized.length).toBe(2);
     });
 });

@@ -38,6 +38,10 @@ async function initializeHandlers() {
         // Production mode - use the admin instance we already initialized
         firestoreDb = admin.firestore();
 
+        // Register all services before importing handlers
+        const { registerAllServices } = await import('../functions/src/services/serviceRegistration');
+        registerAllServices();
+
         // Import handlers that will use our initialized admin instance
         const handlers = await import('../functions/src/policies/handlers');
         createPolicyInternal = handlers.createPolicyInternal;
@@ -45,6 +49,11 @@ async function initializeHandlers() {
     } else {
         // Emulator mode - import everything normally
         const firebaseModule = await import('../functions/src/firebase');
+        
+        // Register all services before importing handlers
+        const { registerAllServices } = await import('../functions/src/services/serviceRegistration');
+        registerAllServices();
+        
         const handlers = await import('../functions/src/policies/handlers');
 
         firestoreDb = firebaseModule.firestoreDb;

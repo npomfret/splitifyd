@@ -1,5 +1,5 @@
 import { firestoreDb } from '../../firebase';
-import { userService } from '../UserService2';
+import { getUserService } from '../serviceRegistration';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
 import { ExpenseDocumentSchema } from '../../schemas/expense';
@@ -20,7 +20,7 @@ export class DataFetcher {
 
         // Fetch member profiles after we have group data
         const memberIds = Object.keys(groupData.data.members);
-        const memberProfiles = await userService.getUsers(memberIds);
+        const memberProfiles = await getUserService().getUsers(memberIds);
 
         return {
             groupId,

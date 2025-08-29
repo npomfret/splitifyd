@@ -3,16 +3,15 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { validateGroupId } from './validation';
 import { logger } from '../logger';
 import { GroupMembersResponse } from '@splitifyd/shared';
-import { GroupMemberService } from '../services/GroupMemberService';
+import { getGroupMemberService } from '../services/serviceRegistration';
 
-const groupMemberService = new GroupMemberService();
 
 /**
  * Internal function to get group members data
  * Used by both the HTTP handler and consolidated endpoints
  */
 export const _getGroupMembersData = async (groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> => {
-    return await groupMemberService.getGroupMembersData(groupId, membersMap);
+    return await getGroupMemberService().getGroupMembersData(groupId, membersMap);
 };
 
 /**
@@ -24,7 +23,7 @@ export const getGroupMembers = async (req: AuthenticatedRequest, res: Response):
     const groupId = validateGroupId(req.params.id);
 
     try {
-        const response = await groupMemberService.getGroupMembers(userId!, groupId);
+        const response = await getGroupMemberService().getGroupMembers(userId!, groupId);
         res.json(response);
     } catch (error) {
         logger.error('Error in getGroupMembers', error, {
@@ -44,7 +43,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
     const groupId = validateGroupId(req.params.id);
 
     try {
-        const result = await groupMemberService.leaveGroup(userId!, groupId);
+        const result = await getGroupMemberService().leaveGroup(userId!, groupId);
         res.json(result);
     } catch (error) {
         logger.error('Error in leaveGroup', error, {
@@ -65,7 +64,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
     const memberId = req.params.memberId;
 
     try {
-        const result = await groupMemberService.removeGroupMember(userId!, groupId, memberId);
+        const result = await getGroupMemberService().removeGroupMember(userId!, groupId, memberId);
         res.json(result);
     } catch (error) {
         logger.error('Error in removeGroupMember', error, {

@@ -8,7 +8,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
-import { expenseService } from '../services/ExpenseService';
+import { getExpenseService } from '../services/serviceRegistration';
 import { ExpenseDocumentSchema } from '../schemas/expense';
 import { z } from 'zod';
 
@@ -23,7 +23,7 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     const expenseData = validateCreateExpense(req.body);
 
     try {
-        const expense = await expenseService.createExpense(userId, expenseData);
+        const expense = await getExpenseService().createExpense(userId, expenseData);
         res.status(HTTP_STATUS.CREATED).json(expense);
     } catch (error) {
         logger.error('Failed to create expense', error, {
@@ -38,7 +38,7 @@ export const getExpense = async (req: AuthenticatedRequest, res: Response): Prom
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
 
-    const expense = await expenseService.getExpense(expenseId, userId);
+    const expense = await getExpenseService().getExpense(expenseId, userId);
 
     res.json(expense);
 };
@@ -49,7 +49,7 @@ export const updateExpense = async (req: AuthenticatedRequest, res: Response): P
     const updateData = validateUpdateExpense(req.body);
 
     try {
-        const updatedExpense = await expenseService.updateExpense(expenseId, userId, updateData);
+        const updatedExpense = await getExpenseService().updateExpense(expenseId, userId, updateData);
         res.json(updatedExpense);
     } catch (error) {
         logger.error('Failed to update expense', error, {
@@ -65,7 +65,7 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
 
-    await expenseService.deleteExpense(expenseId, userId);
+    await getExpenseService().deleteExpense(expenseId, userId);
 
     res.json({
         message: 'Expense deleted successfully',
@@ -224,7 +224,7 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
     const cursor = req.query.cursor as string;
     const includeDeleted = req.query.includeDeleted === 'true';
 
-    const result = await expenseService.listGroupExpenses(groupId, userId, {
+    const result = await getExpenseService().listGroupExpenses(groupId, userId, {
         limit,
         cursor,
         includeDeleted,
@@ -239,7 +239,7 @@ export const listUserExpenses = async (req: AuthenticatedRequest, res: Response)
     const cursor = req.query.cursor as string;
     const includeDeleted = req.query.includeDeleted === 'true';
 
-    const result = await expenseService.listUserExpenses(userId, {
+    const result = await getExpenseService().listUserExpenses(userId, {
         limit,
         cursor,
         includeDeleted,
@@ -252,7 +252,7 @@ export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
 
-    const result = await expenseService.getExpenseHistory(expenseId, userId);
+    const result = await getExpenseService().getExpenseHistory(expenseId, userId);
 
     res.json(result);
 };
@@ -266,7 +266,7 @@ export const getExpenseFullDetails = async (req: AuthenticatedRequest, res: Resp
     const expenseId = validateExpenseId(req.params.id);
 
     try {
-        const result = await expenseService.getExpenseFullDetails(expenseId, userId);
+        const result = await getExpenseService().getExpenseFullDetails(expenseId, userId);
         res.json(result);
     } catch (error) {
         logger.error('Error in getExpenseFullDetails', error, {
