@@ -7,6 +7,7 @@ import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
 import { transformGroupDocument } from '../groups/handlers';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 export class GroupMemberService {
 
@@ -59,6 +60,15 @@ export class GroupMemberService {
     }
 
     async getGroupMembers(userId: string, groupId: string): Promise<GroupMembersResponse> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupMemberService',
+            'getGroupMembers',
+            async () => this._getGroupMembers(userId, groupId),
+            { userId, groupId }
+        );
+    }
+
+    private async _getGroupMembers(userId: string, groupId: string): Promise<GroupMembersResponse> {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -80,6 +90,15 @@ export class GroupMemberService {
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupMemberService',
+            'leaveGroup',
+            async () => this._leaveGroup(userId, groupId),
+            { userId, groupId }
+        );
+    }
+
+    private async _leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -145,6 +164,15 @@ export class GroupMemberService {
     }
 
     async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupMemberService',
+            'removeGroupMember',
+            async () => this._removeGroupMember(userId, groupId, memberId),
+            { userId, groupId, memberId }
+        );
+    }
+
+    private async _removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
         }

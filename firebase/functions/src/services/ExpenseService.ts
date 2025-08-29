@@ -13,6 +13,7 @@ import { PermissionEngine } from '../permissions';
 import { _getGroupMembersData } from '../groups/memberHandlers';
 import { transformGroupDocument } from '../groups/handlers';
 import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas/expense';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 // Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
@@ -107,6 +108,15 @@ export class ExpenseService {
      * Get a single expense by ID
      */
     async getExpense(expenseId: string, userId: string): Promise<any> {
+        return PerformanceMonitor.monitorServiceCall(
+            'ExpenseService',
+            'getExpense',
+            async () => this._getExpense(expenseId, userId),
+            { expenseId, userId }
+        );
+    }
+
+    private async _getExpense(expenseId: string, userId: string): Promise<any> {
         const { expense } = await this.fetchExpense(expenseId);
 
         // Verify user has access to view this expense
@@ -123,6 +133,15 @@ export class ExpenseService {
      * Create a new expense
      */
     async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
+        return PerformanceMonitor.monitorServiceCall(
+            'ExpenseService',
+            'createExpense',
+            async () => this._createExpense(userId, expenseData),
+            { userId, groupId: expenseData.groupId, amount: expenseData.amount }
+        );
+    }
+
+    private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
         // Verify user is a member of the group
         await verifyGroupMembership(expenseData.groupId, userId);
 
@@ -225,6 +244,15 @@ export class ExpenseService {
      * Update an existing expense
      */
     async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
+        return PerformanceMonitor.monitorServiceCall(
+            'ExpenseService',
+            'updateExpense',
+            async () => this._updateExpense(expenseId, userId, updateData),
+            { expenseId, userId }
+        );
+    }
+
+    private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
         // Fetch the existing expense
         const { docRef, expense } = await this.fetchExpense(expenseId);
 
@@ -381,6 +409,28 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'ExpenseService',
+            'listGroupExpenses',
+            async () => this._listGroupExpenses(groupId, userId, options),
+            { groupId, userId, limit: options.limit, includeDeleted: options.includeDeleted }
+        );
+    }
+
+    private async _listGroupExpenses(
+        groupId: string,
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        } = {},
+    ): Promise<{
+        expenses: any[];
+        count: number;
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
         // Verify user is a member of the group
         await verifyGroupMembership(groupId, userId);
 
@@ -497,6 +547,15 @@ export class ExpenseService {
      * Delete an expense (soft delete)
      */
     async deleteExpense(expenseId: string, userId: string): Promise<void> {
+        return PerformanceMonitor.monitorServiceCall(
+            'ExpenseService',
+            'deleteExpense',
+            async () => this._deleteExpense(expenseId, userId),
+            { expenseId, userId }
+        );
+    }
+
+    private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
         // Fetch the existing expense
         const { docRef, expense } = await this.fetchExpense(expenseId);
 

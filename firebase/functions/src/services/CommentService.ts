@@ -16,6 +16,7 @@ import {
 } from '@splitifyd/shared';
 import { isGroupMember } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -161,6 +162,24 @@ export class CommentService {
             groupId?: string;
         } = {},
     ): Promise<ListCommentsResponse> {
+        return PerformanceMonitor.monitorServiceCall(
+            'CommentService',
+            'listComments',
+            async () => this._listComments(targetType, targetId, userId, options),
+            { targetType, targetId, userId, limit: options.limit }
+        );
+    }
+
+    private async _listComments(
+        targetType: CommentTargetType,
+        targetId: string,
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            groupId?: string;
+        } = {},
+    ): Promise<ListCommentsResponse> {
         const limit = options.limit || 50;
         const { cursor, groupId } = options;
 
@@ -227,6 +246,21 @@ export class CommentService {
      * Create a new comment
      */
     async createComment(
+        targetType: CommentTargetType,
+        targetId: string,
+        commentData: CreateCommentRequest,
+        userId: string,
+        groupId?: string,
+    ): Promise<CommentApiResponse> {
+        return PerformanceMonitor.monitorServiceCall(
+            'CommentService',
+            'createComment',
+            async () => this._createComment(targetType, targetId, commentData, userId, groupId),
+            { targetType, targetId, userId }
+        );
+    }
+
+    private async _createComment(
         targetType: CommentTargetType,
         targetId: string,
         commentData: CreateCommentRequest,

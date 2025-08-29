@@ -10,6 +10,7 @@ import {
     PolicyDocument,
     PolicyVersion,
 } from '@splitifyd/shared';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 /**
  * Zod schema for Policy document validation
@@ -177,6 +178,15 @@ export class PolicyService {
      * Create new draft version (not published)
      */
     async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'PolicyService',
+            'updatePolicy',
+            async () => this._updatePolicy(id, text, publish),
+            { policyId: id, publish }
+        );
+    }
+
+    private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
         try {
             const doc = await this.policiesCollection.doc(id).get();
 
@@ -295,6 +305,15 @@ export class PolicyService {
      * Publish a policy version
      */
     async publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'PolicyService',
+            'publishPolicy',
+            async () => this._publishPolicy(id, versionHash),
+            { policyId: id, versionHash }
+        );
+    }
+
+    private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
         return this.publishPolicyInternal(id, versionHash);
     }
 
@@ -362,6 +381,15 @@ export class PolicyService {
      * Create a new policy
      */
     async createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'PolicyService',
+            'createPolicy',
+            async () => this._createPolicy(policyName, text, customId),
+            { policyName, customId }
+        );
+    }
+
+    private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
         return this.createPolicyInternal(policyName, text, customId);
     }
 

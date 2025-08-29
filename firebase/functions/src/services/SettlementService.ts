@@ -16,6 +16,7 @@ import {
     FirestoreCollections,
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 import { GroupData } from '../types/group-types';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 
@@ -97,6 +98,15 @@ export class SettlementService {
      * Get a single settlement with user data
      */
     async getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
+        return PerformanceMonitor.monitorServiceCall(
+            'SettlementService',
+            'getSettlement',
+            async () => this._getSettlement(settlementId, userId),
+            { settlementId, userId }
+        );
+    }
+
+    private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
         const settlementDoc = await this.settlementsCollection.doc(settlementId).get();
 
         if (!settlementDoc.exists) {
@@ -155,6 +165,30 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'SettlementService',
+            'listSettlements',
+            async () => this._listSettlements(groupId, userId, options),
+            { groupId, userId, limit: options.limit }
+        );
+    }
+
+    private async _listSettlements(
+        groupId: string,
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            userId?: string;
+            startDate?: string;
+            endDate?: string;
+        } = {},
+    ): Promise<{
+        settlements: SettlementListItem[];
+        count: number;
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
         await verifyGroupMembership(groupId, userId);
 
         return this._getGroupSettlementsData(groupId, options);
@@ -164,6 +198,15 @@ export class SettlementService {
      * Create a new settlement
      */
     async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
+        return PerformanceMonitor.monitorServiceCall(
+            'SettlementService',
+            'createSettlement',
+            async () => this._createSettlement(settlementData, userId),
+            { userId, groupId: settlementData.groupId, amount: settlementData.amount }
+        );
+    }
+
+    private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
         await verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
@@ -207,6 +250,15 @@ export class SettlementService {
      * Update an existing settlement
      */
     async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
+        return PerformanceMonitor.monitorServiceCall(
+            'SettlementService',
+            'updateSettlement',
+            async () => this._updateSettlement(settlementId, updateData, userId),
+            { settlementId, userId }
+        );
+    }
+
+    private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
         const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementDoc = await settlementRef.get();
 
@@ -295,6 +347,15 @@ export class SettlementService {
      * Delete a settlement
      */
     async deleteSettlement(settlementId: string, userId: string): Promise<void> {
+        return PerformanceMonitor.monitorServiceCall(
+            'SettlementService',
+            'deleteSettlement',
+            async () => this._deleteSettlement(settlementId, userId),
+            { settlementId, userId }
+        );
+    }
+
+    private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {
         const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementDoc = await settlementRef.get();
 

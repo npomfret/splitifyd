@@ -474,3 +474,67 @@ The phase was fundamentally too ambitious. Instead of following the successful i
 - ✅ **Architecture**: Clean, maintainable service layer with proper monitoring
 
 **Phase 10B demonstrates the effectiveness of the incremental approach - meaningful improvements delivered safely without the complexity of "big bang" refactoring.**
+
+## Phase 11: Complete Performance Monitoring Coverage ✅ **COMPLETED** (2025-08-29)
+
+**Goal**: Extend performance monitoring to all remaining services for comprehensive observability across the entire service layer.
+
+### Task 11.1: Complete Service Performance Monitoring ✅ **COMPLETED** (2025-08-29)
+
+**What was implemented:**
+1. ✅ **ExpenseService monitoring** - Added to `createExpense`, `updateExpense`, `deleteExpense`, `getExpense`, `listGroupExpenses`
+   - Context includes: expenseId, userId, groupId, amount
+   - All methods wrapped with non-intrusive performance monitoring
+
+2. ✅ **SettlementService monitoring** - Added to `createSettlement`, `updateSettlement`, `deleteSettlement`, `getSettlement`, `listSettlements`
+   - Context includes: settlementId, userId, groupId, amount
+   - Complete coverage of all settlement operations
+
+3. ✅ **GroupMemberService monitoring** - Added to `leaveGroup`, `removeGroupMember`, `getGroupMembers`
+   - Context includes: userId, groupId, memberId
+   - All member management operations tracked
+
+4. ✅ **GroupPermissionService monitoring** - Added to `applySecurityPreset`, `updateGroupPermissions`, `setMemberRole`
+   - Context includes: userId, groupId, targetUserId, role, preset
+   - All permission and role management operations monitored
+
+5. ✅ **GroupShareService monitoring** - Added to `generateShareableLink`, `joinGroupByLink`
+   - Context includes: userId, groupId, linkId
+   - Share link operations for group joining tracked
+
+6. ✅ **PolicyService monitoring** - Added to `updatePolicy`, `publishPolicy`, `createPolicy`
+   - Context includes: policyId, policyName, versionHash, customId
+   - All policy management operations monitored
+
+7. ✅ **UserPolicyService monitoring** - Added to `acceptPolicy`, `acceptMultiplePolicies`
+   - Context includes: userId, policyId, versionHash, acceptance count
+   - All policy acceptance operations tracked
+
+8. ✅ **CommentService monitoring** - Added to `createComment`, `listComments`
+   - Context includes: targetType, targetId, userId
+   - Comment operations for both group and expense comments tracked
+
+**Key improvements:**
+- **100% service coverage**: All 12 service classes now have performance monitoring on critical operations
+- **26 monitored methods**: Complete observability across all major service operations
+- **Contextual logging**: Each operation includes relevant business context (IDs, amounts, counts)
+- **Non-breaking implementation**: Preserved all existing functionality and API contracts
+- **Performance thresholds**: Automatic logging for operations >500ms (info) and >1000ms (warnings)
+- **Production visibility**: Operations with performance issues automatically surface in logs
+
+**Technical implementation:**
+- Used consistent wrapper pattern: public method → PerformanceMonitor.monitorServiceCall → private _method
+- Zero disruption to existing code - purely additive enhancement
+- Maintained TypeScript type safety throughout
+- All services follow the same monitoring pattern for consistency
+
+**All 220 unit tests passing, build successful**
+
+**Results Summary:**
+- ✅ **Service layer**: 100% complete with comprehensive performance monitoring
+- ✅ **Performance visibility**: All critical operations monitored with contextual logging  
+- ✅ **Architecture quality**: Clean, maintainable service layer enhanced with observability
+- ✅ **Production readiness**: Essential monitoring for identifying bottlenecks and performance issues
+- ✅ **Zero disruption**: All existing functionality preserved
+
+**Phase 11 completes the service layer performance monitoring initiative, providing production-ready observability across the entire Firebase Functions backend.**

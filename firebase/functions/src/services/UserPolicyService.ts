@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 /**
  * Interface for policy acceptance status
@@ -64,6 +65,15 @@ export class UserPolicyService {
      * Accept a single policy version for a user
      */
     async acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserPolicyService',
+            'acceptPolicy',
+            async () => this._acceptPolicy(userId, policyId, versionHash),
+            { userId, policyId, versionHash }
+        );
+    }
+
+    private async _acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
         try {
             // Validate that the policy exists and the version hash is current
             await this.validatePolicyAndVersion(policyId, versionHash);
@@ -97,6 +107,15 @@ export class UserPolicyService {
      * Accept multiple policy versions for a user
      */
     async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
+        return PerformanceMonitor.monitorServiceCall(
+            'UserPolicyService',
+            'acceptMultiplePolicies',
+            async () => this._acceptMultiplePolicies(userId, acceptances),
+            { userId, count: acceptances.length }
+        );
+    }
+
+    private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
         try {
             // Validate all policies and version hashes first
             for (const acceptance of acceptances) {

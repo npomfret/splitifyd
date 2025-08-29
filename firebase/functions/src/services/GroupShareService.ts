@@ -6,6 +6,7 @@ import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 export class GroupShareService {
     private generateShareToken(): string {
@@ -33,6 +34,18 @@ export class GroupShareService {
 
 
     async generateShareableLink(userId: string, groupId: string): Promise<{
+        shareablePath: string;
+        linkId: string;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupShareService',
+            'generateShareableLink',
+            async () => this._generateShareableLink(userId, groupId),
+            { userId, groupId }
+        );
+    }
+
+    private async _generateShareableLink(userId: string, groupId: string): Promise<{
         shareablePath: string;
         linkId: string;
     }> {
@@ -123,6 +136,20 @@ export class GroupShareService {
     }
 
     async joinGroupByLink(userId: string, userEmail: string, linkId: string): Promise<{
+        groupId: string;
+        groupName: string;
+        message: string;
+        success: boolean;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupShareService',
+            'joinGroupByLink',
+            async () => this._joinGroupByLink(userId, userEmail, linkId),
+            { userId, linkId }
+        );
+    }
+
+    private async _joinGroupByLink(userId: string, userEmail: string, linkId: string): Promise<{
         groupId: string;
         groupName: string;
         message: string;

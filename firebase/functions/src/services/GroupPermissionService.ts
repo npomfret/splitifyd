@@ -8,6 +8,7 @@ import { PermissionEngine, permissionCache } from '../permissions';
 import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { z } from 'zod';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 export class GroupPermissionService {
     private getGroupsCollection() {
@@ -41,6 +42,19 @@ export class GroupPermissionService {
     }
 
     async applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
+        message: string;
+        preset: any;
+        permissions: any;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupPermissionService',
+            'applySecurityPreset',
+            async () => this._applySecurityPreset(userId, groupId, preset),
+            { userId, groupId, preset }
+        );
+    }
+
+    private async _applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
         message: string;
         preset: any;
         permissions: any;
@@ -104,6 +118,18 @@ export class GroupPermissionService {
         message: string;
         permissions: any;
     }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupPermissionService',
+            'updateGroupPermissions',
+            async () => this._updateGroupPermissions(userId, groupId, permissions),
+            { userId, groupId }
+        );
+    }
+
+    private async _updateGroupPermissions(userId: string, groupId: string, permissions: any): Promise<{
+        message: string;
+        permissions: any;
+    }> {
         if (!groupId) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
         }
@@ -157,6 +183,20 @@ export class GroupPermissionService {
     }
 
     async setMemberRole(userId: string, groupId: string, targetUserId: string, role: any): Promise<{
+        message: string;
+        userId: string;
+        oldRole: any;
+        newRole: any;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'GroupPermissionService',
+            'setMemberRole',
+            async () => this._setMemberRole(userId, groupId, targetUserId, role),
+            { userId, groupId, targetUserId, role }
+        );
+    }
+
+    private async _setMemberRole(userId: string, groupId: string, targetUserId: string, role: any): Promise<{
         message: string;
         userId: string;
         oldRole: any;
