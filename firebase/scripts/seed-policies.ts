@@ -1,8 +1,12 @@
 #!/usr/bin/env npx tsx
+
 import * as path from 'path';
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
 import assert from 'node:assert';
+import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
+import { ApiDriver } from '@splitifyd/test-support';
+import { getEnvironment, initializeFirebase } from './firebase-init';
 
 /*
  * This script seeds policy files to either the emulator or production
@@ -11,57 +15,14 @@ import assert from 'node:assert';
  *   tsx seed-policies.ts production
  */
 
-// Parse command line arguments or detect environment
-const args = process.argv.slice(2);
-const targetEnvironment = args[0];
+assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
-// If called directly, require explicit argument
-// If called as a module, detect from environment
-let isEmulator: boolean;
-let environment: string;
+// Parse environment - handle both direct calls and module calls
+const env = getEnvironment();
+console.log(`🎯 Running policy seeding for ${env.environment}`);
 
-if (require.main === module) {
-    // Called directly - require explicit argument
-    if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
-        console.error('❌ Usage: tsx seed-policies.ts <emulator|production>');
-        process.exit(1);
-    }
-    isEmulator = targetEnvironment === 'emulator';
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-} else {
-    isEmulator = !isProduction();
-    environment = isEmulator ? 'EMULATOR' : 'PRODUCTION';
-}
-
-console.log(`🎯 Running policy seeding for ${environment}`);
-
-// Initialize Firebase Admin for production BEFORE any other imports
-if (!isEmulator && require.main === module) {
-    console.log('   Using Production Firebase');
-
-    const serviceAccountPath = path.join(__dirname, '../service-account-key.json');
-
-    if (!fs.existsSync(serviceAccountPath)) {
-        console.error('❌ Service account key not found at firebase/service-account-key.json');
-        console.error('💡 Make sure you have downloaded the service account key and placed it in the firebase directory');
-        process.exit(1);
-    }
-
-    if (admin.apps.length === 0) {
-        console.log('🔑 Initializing Firebase Admin with service account...');
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccountPath),
-            projectId: process.env.GCLOUD_PROJECT,
-        });
-    }
-} else if (isEmulator) {
-    console.log('   Using Firebase Emulator Suite');
-}
-
-// Now import modules that depend on Firebase initialization
-import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
-import {isProduction} from "../functions/src/firebase";
+// Initialize Firebase using common pattern
+initializeFirebase(env);
 
 // We'll get these instances dynamically
 let firestoreDb: admin.firestore.Firestore;
@@ -69,10 +30,10 @@ let createPolicyInternal: any;
 let publishPolicyInternal: any;
 
 /**
- * Initialize Firebase and import handlers
+ * Initialize Firebase handlers
  */
-async function initializeFirebase() {
-    if (!isEmulator && require.main === module) {
+async function initializeHandlers() {
+    if (!env.isEmulator && require.main === module) {
         // Production mode - use the admin instance we already initialized
         firestoreDb = admin.firestore();
 
@@ -140,7 +101,7 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
  * Verify policies are accessible via API (only for emulator)
  */
 async function verifyPoliciesViaApi(): Promise<void> {
-    if (!isEmulator) {
+    if (!env.isEmulator) {
         console.log('⏭️  Skipping API verification (not available for production)');
         return;
     }
@@ -187,12 +148,12 @@ async function verifyPoliciesViaApi(): Promise<void> {
  */
 export async function seedPolicies() {
     console.log(`📚 Reading policy documents from docs/policies...`);
-    console.log(`🌍 Target environment: ${environment}`);
+    console.log(`🌍 Target environment: ${env.environment}`);
 
     assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
-    // Initialize Firebase and import handlers
-    await initializeFirebase();
+    // Initialize Firebase handlers
+    await initializeHandlers();
 
     try {
         // Verify all policy files exist first
@@ -210,7 +171,7 @@ export async function seedPolicies() {
         await seedPolicy(PolicyIds.COOKIE_POLICY, 'Cookie Policy', 'cookie-policy.md');
         await seedPolicy(PolicyIds.PRIVACY_POLICY, 'Privacy Policy', 'privacy-policy.md');
 
-        console.log(`✅ Successfully seeded all policies to ${environment}`);
+        console.log(`✅ Successfully seeded all policies to ${env.environment}`);
 
         // Verify policies were created by querying Firestore directly
         const docs = await firestoreDb.collection(FirestoreCollections.POLICIES).get();
@@ -228,9 +189,9 @@ export async function seedPolicies() {
         // Verify policies are accessible via API (emulator only)
         await verifyPoliciesViaApi();
 
-        console.log(`\n🎉 ${environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);
+        console.log(`\n🎉 ${env.environment} POLICY SEEDING COMPLETED SUCCESSFULLY!`);
     } catch (error) {
-        console.error(`❌ Failed to seed policies to ${environment}:`, error);
+        console.error(`❌ Failed to seed policies to ${env.environment}:`, error);
         throw error;
     }
 }

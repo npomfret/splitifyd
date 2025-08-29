@@ -31,6 +31,25 @@ export function parseEnvironment(args: string[]): ScriptEnvironment {
     };
 }
 
+export function getEnvironmentForModule(): ScriptEnvironment {
+    // For scripts called as modules, detect from NODE_ENV
+    const isEmulatorEnv = !isProduction();
+    return {
+        isEmulator: isEmulatorEnv,
+        environment: isEmulatorEnv ? 'EMULATOR' : 'PRODUCTION'
+    };
+}
+
+export function getEnvironment(args?: string[]): ScriptEnvironment {
+    if (require.main === module || (args && args.length > 0)) {
+        // Called directly - parse command line args
+        return parseEnvironment(args || process.argv.slice(2));
+    } else {
+        // Called as a module - detect from NODE_ENV
+        return getEnvironmentForModule();
+    }
+}
+
 export function initializeFirebase(env: ScriptEnvironment): void {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
     
