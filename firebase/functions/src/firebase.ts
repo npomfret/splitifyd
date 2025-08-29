@@ -3,8 +3,24 @@ import assert from "node:assert";
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+export function isEmulator() {
+    return process.env.NODE_ENV === "development" && process.env.FUNCTIONS_EMULATOR === "true";
+}
+
+export function isProduction() {
+    return process.env.NODE_ENV === "production";
+}
+
+export function isTest() {
+    return process.env.NODE_ENV !== "production" && process.env.FUNCTIONS_EMULATOR !== "true";
+}
+
 if (!process.env.GCLOUD_PROJECT) {
-    throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere")
+    if(isTest()) {
+        throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!")
+    } else {
+        throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere")
+    }
 }
 
 function _loadFirebaseConfig() {
@@ -16,18 +32,6 @@ function _loadFirebaseConfig() {
     } catch (error) {
         throw new Error(`Failed to read firebase.json at ${firebaseJsonPath}: ${error}`);
     }
-}
-
-export function isEmulator() {
-    return process.env.NODE_ENV === "development" && process.env.FUNCTIONS_EMULATOR === "true";
-}
-
-export function isProduction() {
-    return process.env.NODE_ENV === "production";
-}
-
-export function isTest() {
-    return process.env.NODE_ENV !== "production" && process.env.FUNCTIONS_EMULATOR !== "true";
 }
 
 if (!admin.apps || admin.apps.length === 0) {
