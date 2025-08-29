@@ -4,9 +4,10 @@ import type { User } from '@splitifyd/test-support';
 import { ApiDriver, ExpenseBuilder } from '@splitifyd/test-support';
 import type { Group } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import {firestoreDb} from "../functions/src/firebase";
 
 // Initialize ApiDriver which handles all configuration
-const driver = new ApiDriver();
+const driver = new ApiDriver(firestoreDb);
 
 // Test user registration data (extends base User with password for registration)
 interface TestUserRegistration {

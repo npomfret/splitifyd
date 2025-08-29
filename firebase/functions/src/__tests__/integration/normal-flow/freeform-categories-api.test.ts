@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Freeform Categories API Integration', () => {
     let driver: ApiDriver;
@@ -13,7 +14,7 @@ describe('Freeform Categories API Integration', () => {
     // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

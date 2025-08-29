@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver: ApiDriver;
@@ -12,7 +13,7 @@ describe('Balance Calculation Integration Test', () => {
     let shareLinkId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
+        apiDriver = new ApiDriver(firestoreDb);
     });
 
     beforeEach(async () => {

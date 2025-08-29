@@ -15,7 +15,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
     let driver: ApiDriver;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
     });
     let groupId: string;
     let userId1: string;

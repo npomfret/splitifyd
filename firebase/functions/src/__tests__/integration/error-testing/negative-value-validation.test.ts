@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Negative Value Validation', () => {
     let driver: ApiDriver;
@@ -11,7 +12,7 @@ describe('Negative Value Validation', () => {
     // vi.setTimeout(10000);
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

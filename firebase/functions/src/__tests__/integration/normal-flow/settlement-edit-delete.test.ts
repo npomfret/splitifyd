@@ -5,6 +5,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import {firestoreDb} from "../../../firebase";
 
 describe('Settlement Edit and Delete Operations', () => {
     let userPool: FirebaseIntegrationTestUserPool;
@@ -15,7 +16,7 @@ describe('Settlement Edit and Delete Operations', () => {
     let groupId: string;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create user pool with 3 users
         userPool = new FirebaseIntegrationTestUserPool(driver, 3);

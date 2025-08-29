@@ -2,13 +2,14 @@ import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Policy Validation Tests', () => {
     let driver: ApiDriver;
     let testUser: User;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
         testUser = await driver.createUser(new UserBuilder().build());
     });
 

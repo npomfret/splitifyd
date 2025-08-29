@@ -9,13 +9,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, Group } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Permission System Edge Cases', () => {
     let driver: ApiDriver;
     let users: User[] = [];
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create test users
         users = await Promise.all([

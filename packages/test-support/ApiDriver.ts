@@ -29,9 +29,9 @@ import {
     MemberRole,
 } from '@splitifyd/shared';
 
-import type { DocumentData } from 'firebase-admin/firestore';
+import type {DocumentData} from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -92,7 +92,8 @@ export interface SettlementChangeDocument extends MinimalChangeDocument {
     groupId: string;
 }
 
-export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
+export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {
+}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -104,35 +105,11 @@ export class ApiDriver {
         balanceHasUpdate: () => (balances: GroupBalances) => balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated,
     };
 
-    constructor(firestoreDb?: admin.firestore.Firestore) {
+    constructor(firestoreDb: admin.firestore.Firestore) {
         this.baseUrl = API_BASE_URL;
         this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
         this.firebaseApiKey = FIREBASE_API_KEY;
-
-        // Initialize firestoreDb - either use provided one or create new instance
-        if (firestoreDb) {
-            this.firestoreDb = firestoreDb;
-        } else {
-            // Initialize admin if not already done
-            if (!admin.apps || admin.apps.length === 0) {
-                if(!process.env.GCLOUD_PROJECT)
-                    throw Error("process.env.GCLOUD_PROJECT must be set")
-                const projectId = process.env.GCLOUD_PROJECT;
-                admin.initializeApp({ projectId });
-
-                // Connect to emulator if not in production
-                if (process.env.NODE_ENV !== 'production') {
-                    const firestore = admin.firestore();
-                    // Get port from firebase-emulator config
-                    const config = getFirebaseEmulatorConfig();
-                    firestore.settings({
-                        host: `localhost:${config.firestorePort}`,
-                        ssl: false,
-                    });
-                }
-            }
-            this.firestoreDb = admin.firestore();
-        }
+        this.firestoreDb = firestoreDb;
     }
 
     getBaseUrl(): string {
@@ -159,7 +136,7 @@ export class ApiDriver {
         // Use Firebase Auth REST API to sign in
         const signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 email: userInfo.email,
                 password: userInfo.password,
@@ -275,28 +252,28 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
-        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
+        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
     }
 
     async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<Group>, options?: PollOptions): Promise<Group> {
-        return this.pollUntil(() => this.getGroup(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
+        return this.pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
-        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
+        return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
-        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
+        return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
     async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
-        const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
+        const groupData = {name, description: `Test group created at ${new Date().toISOString()}`};
 
         const group = await this.createGroup(groupData, creatorToken);
 
@@ -304,7 +281,7 @@ export class ApiDriver {
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         if (otherMembers.length > 0) {
             const shareResponse = await this.generateShareLink(group.id, creatorToken);
-            const { linkId } = shareResponse;
+            const {linkId} = shareResponse;
 
             // Step 3: Have other members join using the share link
             for (const member of otherMembers) {
@@ -382,23 +359,23 @@ export class ApiDriver {
     }
 
     async applySecurityPreset(groupId: string, token: string, preset: SecurityPreset): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', { preset }, token);
+        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', {preset}, token);
     }
 
     async updateGroupPermissions(groupId: string, token: string, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
+        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', {permissions}, token);
     }
 
     async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', { role }, token);
+        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', {role}, token);
     }
 
     async approveMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/approve`, 'PUT', { targetUserId }, token);
+        return await this.apiRequest(`/groups/${groupId}/members/approve`, 'PUT', {targetUserId}, token);
     }
 
     async rejectMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/reject`, 'PUT', { targetUserId }, token);
+        return await this.apiRequest(`/groups/${groupId}/members/reject`, 'PUT', {targetUserId}, token);
     }
 
     async getPendingMembers(groupId: string, token: string): Promise<PendingMembersResponse> {
@@ -454,19 +431,19 @@ export class ApiDriver {
     }
 
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+        return await this.apiRequest('/user/change-password', 'POST', {currentPassword, newPassword}, token);
     }
 
     async sendPasswordResetEmail(email: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/reset-password', 'POST', { email }, null);
+        return await this.apiRequest('/user/reset-password', 'POST', {email}, null);
     }
 
     async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<MessageResponse> {
-        return await this.apiRequest('/user/account', 'DELETE', { confirmDelete }, token);
+        return await this.apiRequest('/user/account', 'DELETE', {confirmDelete}, token);
     }
 
     private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
-        const { timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry } = options;
+        const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
 
         const startTime = Date.now();
         let lastError: Error | null = null;
@@ -499,7 +476,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
+                ...(token && {Authorization: `Bearer ${token}`}),
             },
         };
 

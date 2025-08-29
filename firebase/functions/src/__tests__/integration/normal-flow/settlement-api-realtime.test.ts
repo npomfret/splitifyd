@@ -19,7 +19,7 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create user pool with 2 users
         userPool = new FirebaseIntegrationTestUserPool(driver, 2);

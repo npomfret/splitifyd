@@ -3,11 +3,12 @@ import { ApiDriver, User } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { beforeAll } from 'vitest';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import {firestoreDb} from "../../../firebase";
 
 // vi.setTimeout(8000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
-    const driver = new ApiDriver();
+    const driver = new ApiDriver(firestoreDb);
     let userPool: FirebaseIntegrationTestUserPool;
 
     const _testUsers = (count: number) => userPool.getUsers(count);

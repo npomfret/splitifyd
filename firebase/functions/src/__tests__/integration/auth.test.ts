@@ -1,11 +1,12 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 import { ApiDriver, UserBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../firebase";
 
 describe('Firebase Auth Emulator Integration', () => {
     let driver: ApiDriver;
 
     beforeAll(() => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
     });
 
     test('should be able to register a new user in the emulator', async () => {

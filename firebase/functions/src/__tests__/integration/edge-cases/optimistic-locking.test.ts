@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { groupSize } from '@splitifyd/shared';
 import { ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Optimistic Locking Integration Tests', () => {
     // vi.setTimeout(25000); // it takes about 18s
@@ -14,7 +15,7 @@ describe('Optimistic Locking Integration Tests', () => {
     let users: User[] = [];
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create test users
         for (let i = 0; i < 3; i++) {

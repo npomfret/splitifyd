@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { Group, groupSize } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Error Handling and Recovery Testing', () => {
     let driver: ApiDriver;
@@ -13,7 +14,7 @@ describe('Error Handling and Recovery Testing', () => {
     // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create main test user
         mainUser = await driver.createUser(new UserBuilder().build());

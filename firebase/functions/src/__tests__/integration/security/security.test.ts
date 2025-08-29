@@ -7,9 +7,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { SecurityPresets } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Comprehensive Security Test Suite', () => {
-    const driver = new ApiDriver();
+    const driver = new ApiDriver(firestoreDb);
     let users: User[] = [];
 
     // Reduced timeout to meet guideline maximum

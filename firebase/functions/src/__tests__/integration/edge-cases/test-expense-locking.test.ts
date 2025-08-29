@@ -3,13 +3,14 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Expense Locking Debug Test', () => {
     let driver: ApiDriver;
     let user: User;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create one test user
         user = await driver.createUser({

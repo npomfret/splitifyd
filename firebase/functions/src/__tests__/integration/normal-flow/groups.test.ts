@@ -8,6 +8,7 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('RESTful Group Endpoints', () => {
     let driver: ApiDriver;
@@ -16,7 +17,7 @@ describe('RESTful Group Endpoints', () => {
     // Set a longer timeout for these integration tests
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

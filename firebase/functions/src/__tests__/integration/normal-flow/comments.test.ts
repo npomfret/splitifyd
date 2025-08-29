@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateCommentResponse, ListCommentsApiResponse, FirestoreCollections } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 // Extend ApiDriver with comment-specific methods
 interface CommentApiDriver extends ApiDriver {
@@ -108,7 +109,7 @@ describe('Comments API Integration Tests', () => {
     // Set timeout for integration tests
 
     beforeAll(async () => {
-        const baseDriver = new ApiDriver();
+        const baseDriver = new ApiDriver(firestoreDb);
         driver = extendApiDriver(baseDriver);
 
         // Create test users

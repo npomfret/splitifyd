@@ -6,6 +6,7 @@ import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrati
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
+import {firestoreDb} from "../../../firebase";
 
 describe('ExpenseService - Integration Tests', () => {
     let apiDriver: ApiDriver;
@@ -17,7 +18,7 @@ describe('ExpenseService - Integration Tests', () => {
     let groupId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
+        apiDriver = new ApiDriver(firestoreDb);
         expenseService = new ExpenseService();
 
         // Create user pool with 4 users

@@ -5,6 +5,7 @@ import { UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Complex Unsettled Balance - API Integration Test', () => {
     let driver: ApiDriver;
@@ -13,7 +14,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     let charlie: User;
 
     beforeEach(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create users for multi-currency and complex scenarios
         alice = await driver.createUser(new UserBuilder().withEmail(`alice-${uuidv4()}@test.com`).build());

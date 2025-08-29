@@ -10,7 +10,7 @@ describe('Trigger Debug Tests', () => {
     let groupId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
+        apiDriver = new ApiDriver(firestoreDb);
 
         user1 = await apiDriver.createUser(new UserBuilder().build());
     });

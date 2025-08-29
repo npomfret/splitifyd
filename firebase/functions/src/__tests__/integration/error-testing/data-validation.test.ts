@@ -5,6 +5,7 @@ import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('API Validation Smoke Tests', () => {
     let driver: ApiDriver;
@@ -12,7 +13,7 @@ describe('API Validation Smoke Tests', () => {
     let testGroup: Group;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

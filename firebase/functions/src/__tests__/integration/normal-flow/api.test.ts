@@ -11,6 +11,7 @@ import { ApiDriver, User } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { groupSize } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 describe('Comprehensive API Test Suite', () => {
     let driver: ApiDriver;
@@ -24,7 +25,7 @@ describe('Comprehensive API Test Suite', () => {
     // Reduced timeout to meet guideline maximum
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create user pool with 6 users (covers all test needs)
         userPool = new FirebaseIntegrationTestUserPool(driver, 6);

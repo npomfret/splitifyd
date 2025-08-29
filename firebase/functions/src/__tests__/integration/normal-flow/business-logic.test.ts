@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import {firestoreDb} from "../../../firebase";
 
 describe('Business Logic Edge Cases', () => {
     let driver: ApiDriver;
@@ -12,7 +13,7 @@ describe('Business Logic Edge Cases', () => {
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver();
+        driver = new ApiDriver(firestoreDb);
 
         // Create user pool with 4 users (3 for main tests + 1 for isolated test)
         userPool = new FirebaseIntegrationTestUserPool(driver, 4);

@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { ExpenseBuilder } from '@splitifyd/test-support';
+import {firestoreDb} from "../../../firebase";
 
 describe('Expenses Full Details API', () => {
     let apiDriver: ApiDriver;
@@ -14,7 +15,7 @@ describe('Expenses Full Details API', () => {
     let expenseId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
+        apiDriver = new ApiDriver(firestoreDb);
 
         // Create user pool with 4 users (need extra for outsider test)
         userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4);

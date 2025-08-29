@@ -5,11 +5,12 @@ import { beforeAll } from 'vitest';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
+import {firestoreDb} from "../../../firebase";
 
 // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
 describe('Group Membership Real-Time Sync Tests', () => {
-    const driver = new ApiDriver();
+    const driver = new ApiDriver(firestoreDb);
     let userPool: FirebaseIntegrationTestUserPool;
     const db = getFirestore();
     const activeListeners: Array<() => void> = [];
