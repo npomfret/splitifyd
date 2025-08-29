@@ -1,10 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-if (!process.env.GCLOUD_PROJECT) {
-    throw Error("process.env.GCLOUD_PROJECT must be set")
-}
-
 export interface FirebaseEmulatorConfig {
     projectId: string;
     functionsPort: number;
