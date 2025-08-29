@@ -5,12 +5,39 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections, SecurityPresets, MemberRoles, PermissionChangeLog } from '@splitifyd/shared';
 import { PermissionEngine, permissionCache } from '../permissions';
-import { transformGroupDocument } from '../groups/handlers';
+import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
 import { createServerTimestamp } from '../utils/dateHelpers';
+import { z } from 'zod';
 
 export class GroupPermissionService {
     private getGroupsCollection() {
         return firestoreDb.collection(FirestoreCollections.GROUPS);
+    }
+
+    /**
+     * Validates a group document after an update operation
+     */
+    private async validateUpdatedGroupDocument(groupDoc: FirebaseFirestore.DocumentReference, operationContext: string): Promise<void> {
+        const updatedDoc = await groupDoc.get();
+        if (!updatedDoc.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found after update');
+        }
+
+        const data = updatedDoc.data();
+        if (!data) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document is empty after update');
+        }
+
+        try {
+            GroupDocumentSchema.parse(data);
+        } catch (error) {
+            logger.error('Group document validation failed after update operation', error as Error, {
+                groupId: updatedDoc.id,
+                operationContext,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', `Group data validation failed after ${operationContext}`);
+        }
     }
 
     async applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
@@ -58,6 +85,9 @@ export class GroupPermissionService {
         updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
+        
+        // Validate the group document after update
+        await this.validateUpdatedGroupDocument(groupDoc.ref, 'security preset application');
 
         permissionCache.invalidateGroup(groupId);
 
@@ -112,6 +142,9 @@ export class GroupPermissionService {
         updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
+        
+        // Validate the group document after update
+        await this.validateUpdatedGroupDocument(groupDoc.ref, 'group permissions update');
 
         permissionCache.invalidateGroup(groupId);
 
@@ -174,6 +207,9 @@ export class GroupPermissionService {
         updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
+        
+        // Validate the group document after update
+        await this.validateUpdatedGroupDocument(groupDoc.ref, 'member role change');
 
         permissionCache.invalidateGroup(groupId);
         permissionCache.invalidateUser(targetUserId);

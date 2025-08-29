@@ -36,12 +36,21 @@ const mockSimplifyDebts = simplifyDebts as any;
 class FirestoreExpenseBuilder extends ExpenseBuilder {
     private firestoreFields: any = {
         id: 'expense-1',
+        createdBy: 'default-user-id',
         createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        deletedAt: null,
+        deletedBy: null,
     };
     private excludeCurrency = false;
 
     withId(id: string): FirestoreExpenseBuilder {
         this.firestoreFields.id = id;
+        return this;
+    }
+
+    withCreatedBy(userId: string): FirestoreExpenseBuilder {
+        this.firestoreFields.createdBy = userId;
         return this;
     }
 
@@ -56,6 +65,10 @@ class FirestoreExpenseBuilder extends ExpenseBuilder {
         const result = {
             ...this.firestoreFields,
             ...baseExpense,
+            // Ensure splits exists for validation
+            splits: baseExpense.splits || [{ userId: baseExpense.paidBy, amount: baseExpense.amount }],
+            // Convert date string to Firestore Timestamp
+            date: Timestamp.fromDate(new Date(baseExpense.date)),
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {
@@ -68,12 +81,20 @@ class FirestoreExpenseBuilder extends ExpenseBuilder {
 class FirestoreSettlementBuilder extends SettlementBuilder {
     private firestoreFields: any = {
         id: 'settlement-1',
+        createdBy: 'default-user-id',
         createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        date: Timestamp.now(),
     };
     private excludeCurrency = false;
 
     withId(id: string): FirestoreSettlementBuilder {
         this.firestoreFields.id = id;
+        return this;
+    }
+
+    withCreatedBy(userId: string): FirestoreSettlementBuilder {
+        this.firestoreFields.createdBy = userId;
         return this;
     }
 
@@ -88,6 +109,8 @@ class FirestoreSettlementBuilder extends SettlementBuilder {
         const result = {
             ...this.firestoreFields,
             ...baseSettlement,
+            // Convert date string to Firestore Timestamp if provided
+            date: baseSettlement.date ? Timestamp.fromDate(new Date(baseSettlement.date)) : this.firestoreFields.date,
         };
         // Remove currency if withoutCurrency was called
         if (this.excludeCurrency) {

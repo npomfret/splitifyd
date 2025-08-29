@@ -196,14 +196,42 @@ This refactor is critical for the stability and long-term health of the applicat
 - Prevents malformed group documents from being written via GroupService
 - Fails fast with clear error logging if validation fails
 
-### Status: ✅ COMPLETE
+#### ✅ Additional Critical Validation Gaps Addressed (Post-Complete Analysis)
+
+**ExpenseService Pagination Methods (services/ExpenseService.ts)**
+- Fixed unsafe `as Expense` casts in `listGroupExpenses()` and `listUserExpenses()`
+- Replaced with `ExpenseDocumentSchema.parse()` with proper error handling
+- Added `normalizeValidatedExpense()` helper to handle null/undefined type conversions
+- Skip invalid documents with detailed logging instead of crashing
+
+**Expenses Handlers List Operations (expenses/handlers.ts)**
+- Fixed unsafe casts in `_getGroupExpensesData()` - internal function used by HTTP handlers
+- Added proper Zod validation with error logging for invalid documents
+- Consistent error handling pattern across all expense list operations
+
+**Balance Calculator Data Fetching (services/balance/DataFetcher.ts)**
+- Fixed unsafe casts in `fetchExpenses()` and `fetchSettlements()`
+- Critical for balance accuracy - invalid documents now logged and skipped
+- Prevents balance calculation errors from corrupted data
+
+**Group Permission Service Update Validation (services/GroupPermissionService.ts)**
+- Added `validateUpdatedGroupDocument()` method for post-update validation
+- Validates documents after all update operations (security presets, permissions, roles)
+- Critical for security - ensures group permission changes don't corrupt documents
+- Comprehensive error logging with operation context
+
+### Status: ✅ COMPLETE (All Remaining Gaps Closed)
 
 All validation has been successfully migrated to strict enforcement mode:
 
 - All read operations use Zod schemas with `.parse()` that throw on invalid data
 - All write operations validate documents before `.set()`, `.add()`, or `.update()`
-- No validation warnings remain - all validation failures now throw errors immediately
-- GroupService.createGroup() now validates before writing (last remaining gap closed)
+- All update operations validate the resulting document state post-update
+- Critical service methods (ExpenseService, DataFetcher, GroupPermissionService) now have proper validation
+- No unsafe `as Type` casts remain at Firestore boundaries
+- Graceful error handling - invalid documents are logged and skipped rather than crashing the system
+- GroupService.createGroup() validates before writing (original gap)
+- All newly identified validation gaps have been closed
 
 ## 5. Detailed Implementation Plan (Original)
 

@@ -67,6 +67,33 @@ This report details the specific issues found and provides recommendations for r
     - Tests participant validation and group membership
     - No more mock-heavy anti-patterns
 
+### Priority 5: Delete Fake Unit Tests (2025-08-29)
+
+- [x] **Identified and deleted 8 fake unit tests** that violated testing principles
+- [x] **Files deleted**:
+    - `GroupMemberService.unit.test.ts` - 36 lines
+    - `ExpenseService.unit.test.ts` - 41 lines  
+    - `PolicyService.unit.test.ts` - 39 lines
+    - `GroupShareService.unit.test.ts` - 35 lines
+    - `GroupPermissionService.unit.test.ts` - 36 lines
+    - `UserService.unit.test.ts` - 52 lines
+    - `UserPolicyService.unit.test.ts` - 36 lines
+    - `GroupService.unit.test.ts` - 47 lines
+- [x] **Total Impact**: Removed 322 lines of fake tests
+- [x] **Rationale for Deletion**:
+    - **Violated testing principles**: These tests required Firebase emulator to run, making them integration tests disguised as unit tests
+    - **Failed constructor test pattern**: All tests followed the same meaningless pattern of `new ServiceClass()` expecting success
+    - **Zero business logic coverage**: Services contain no pure logic to unit test - all functionality depends on Firebase
+    - **Comprehensive integration coverage exists**: All deleted services already have proper integration tests in `src/__tests__/integration/`
+- [x] **Verified Integration Coverage**:
+    - `GroupMemberService` → `group-members.test.ts` (comprehensive member management)
+    - `ExpenseService` → `ExpenseService.integration.test.ts` (488 lines, full CRUD + validation)
+    - `GroupService` → `GroupService.integration.test.ts` (31 tests, all operations)
+    - `UserService` → `UserService.integration.test.ts` (27 tests, auth + profiles)
+    - `PolicyService` → `policies.integration.test.ts` (policy retrieval + validation)
+    - `GroupPermissionService` → `permission-system.test.ts` (security presets + roles)
+    - Additional services covered in normal-flow integration tests
+
 ## Progress Update (2025-08-28)
 
 ### Priority 3 Completion (2025-08-28):
@@ -368,12 +395,19 @@ test('registers user', async ({ page, context }) => {
     - Removed: 1,262 lines of brittle mock-heavy tests  
     - Added: 440 lines of robust integration tests
     - Net reduction: 822 lines of better tests
-- ✅ **Total Achievement**:
-    - Combined reduction: 1,939 lines of problematic test code removed
-    - All remaining tests pass with improved maintainability
+- ✅ **Total Achievement (Including Priority 5)**:
+    - **Combined reduction: 2,261 lines of problematic test code removed**
+      - Priority 3 cleanup: 1,117 lines removed (validation, duplicates, etc.)
+      - Priority 4 (ExpenseService): 822 lines net reduction (1,262 deleted, 440 added)
+      - Priority 5 (fake unit tests): 322 lines removed
+    - All remaining tests pass with improved maintainability  
     - Behavior-focused tests instead of implementation details
     - Consolidated test logic for easier understanding
     - Fixed Jest→Vitest compatibility issues
+    - **Testing architecture now correctly follows project principles**:
+      - Unit tests = tests without Firebase emulator (pure logic only)
+      - Integration tests = tests with Firebase emulator (service tests)
+      - No more fake "unit tests" that secretly require Firebase
 - **Future Goal**: Convert remaining mock-heavy unit tests to Playwright
 
 ## Latest Progress Update (2025-08-29)

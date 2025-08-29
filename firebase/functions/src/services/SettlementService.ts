@@ -17,6 +17,10 @@ import {
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { GroupData } from '../types/group-types';
+import { SettlementDocumentSchema } from '../schemas/settlement';
+
+// Re-export schema for backward compatibility
+export { SettlementDocumentSchema };
 
 /**
  * Zod schema for User document - ensures critical fields are present
@@ -28,23 +32,6 @@ const UserDataSchema = z
         // Other fields are optional for this basic validation
     })
     .passthrough(); // Allow additional fields to pass through
-
-/**
- * Zod schema for Settlement document - validates before writing to Firestore
- */
-const SettlementDocumentSchema = z.object({
-    id: z.string().min(1),
-    groupId: z.string().min(1),
-    payerId: z.string().min(1),
-    payeeId: z.string().min(1),
-    amount: z.number().min(0),
-    currency: z.string().min(1),
-    date: z.any(), // Firestore Timestamp
-    createdBy: z.string().min(1),
-    createdAt: z.any(), // Firestore Timestamp
-    updatedAt: z.any(), // Firestore Timestamp
-    note: z.string().optional(),
-});
 
 /**
  * Service for managing settlement operations

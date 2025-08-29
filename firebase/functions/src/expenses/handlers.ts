@@ -6,9 +6,11 @@ import { ApiError } from '../utils/errors';
 import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { validateCreateExpense, validateUpdateExpense, validateExpenseId, Expense } from './validation';
+import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { expenseService } from '../services/ExpenseService';
+import { ExpenseDocumentSchema } from '../schemas/expense';
+import { z } from 'zod';
 
 const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
@@ -137,7 +139,25 @@ export const _getGroupExpensesData = async (
 
     const hasMore = snapshot.docs.length > limit;
     const expenses = snapshot.docs.slice(0, limit).map((doc) => {
-        const data = doc.data() as Expense;
+        const rawData = doc.data();
+        if (!rawData) {
+            logger.warn('Empty expense document in _getGroupExpensesData', { docId: doc.id, groupId });
+            return null;
+        }
+
+        const dataWithId = { ...rawData, id: doc.id };
+        let data;
+        try {
+            data = ExpenseDocumentSchema.parse(dataWithId);
+        } catch (error) {
+            logger.error('Invalid expense document in _getGroupExpensesData', error as Error, {
+                docId: doc.id,
+                groupId,
+                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+            });
+            return null; // Skip invalid documents
+        }
+
         return {
             id: doc.id,
             groupId: data.groupId,
@@ -157,18 +177,31 @@ export const _getGroupExpensesData = async (
             deletedAt: data.deletedAt ? timestampToISO(data.deletedAt) : null,
             deletedBy: data.deletedBy || null,
         };
-    });
+    }).filter(expense => expense !== null);
 
     let nextCursor: string | undefined;
     if (hasMore && expenses.length > 0) {
         const lastDoc = snapshot.docs[limit - 1];
-        const lastDocData = lastDoc.data() as Expense;
-        const cursorData = {
-            date: timestampToISO(lastDocData.date),
-            createdAt: timestampToISO(lastDocData.createdAt),
-            id: lastDoc.id,
-        };
-        nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+        const rawData = lastDoc.data();
+        if (rawData) {
+            const dataWithId = { ...rawData, id: lastDoc.id };
+            try {
+                const lastDocData = ExpenseDocumentSchema.parse(dataWithId);
+                const cursorData = {
+                    date: timestampToISO(lastDocData.date),
+                    createdAt: timestampToISO(lastDocData.createdAt),
+                    id: lastDoc.id,
+                };
+                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+            } catch (error) {
+                logger.error('Invalid last document for cursor generation in _getGroupExpensesData', error as Error, {
+                    docId: lastDoc.id,
+                    groupId,
+                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
+                });
+                // Don't set nextCursor if validation fails
+            }
+        }
     }
 
     return {
