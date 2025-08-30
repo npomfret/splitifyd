@@ -40,11 +40,116 @@ Our first attempt turned a simple query scalability fix into a massive refactor 
 - Multiple additional database calls to get members for balance calculations
 - Collection group queries for every permission check
 
+## ANALYSIS: What Went Wrong in Second Attempt
+
+### Summary of Uncommitted Changes (16 files, 325+ lines)
+
+After the revert, we had a massive uncommitted changeset mixing 3 distinct pieces of work:
+
+#### 1. **Logger Error Serialization Fix** (~32 lines) ✅ **GOOD WORK**
+- **Files**: `firebase/scripts/logger.ts`
+- **Problem**: `JSON.stringify()` doesn't serialize Error objects properly (non-enumerable properties)
+- **Solution**: Added `deepSerializeErrors()` function to recursively find and serialize Error objects
+- **Status**: ✅ **SHOULD BE SEPARATE COMMIT** - Completely unrelated to membership migration
+
+#### 2. **Member Subcollection Migration** (~250 lines) ⚠️ **DEVIATED FROM PLAN**
+- **Files**: GroupService.ts, DataFetcher.ts, MemberService.ts, etc.
+- **Plan Deviation**: Jumped from Phase 3 directly to Phase 6 behavior
+  - **Plan**: "Still populate group.members in response using `getLegacyMembersMap()`"
+  - **Actual**: Completely removed `group.members` field population
+- **Impact**: Broke backward compatibility prematurely
+
+#### 3. **Test Mock Infrastructure** (~100 lines) ⚠️ **REACTIVE FIX**
+- **Files**: `balanceCalculator.test.ts`
+- **Problem**: Tests broke when DataFetcher started using MemberService subcollections
+- **Solution**: Enhanced Firestore mocks to support `doc().collection()` chain + member subcollection mocks
+- **Status**: Should have been deferred to Phase 5 (Test Infrastructure Update)
+
+### Root Causes of Large Commits
+
+#### 1. **Reactive Test Fixing Instead of Proactive Planning**
+- When `balanceCalculator.test.ts` broke, we immediately fixed it
+- Should have: Made minimal changes to keep tests passing, deferred proper test updates to Phase 5
+- **Problem**: Mixed feature work with test infrastructure work
+
+#### 2. **Skipped Phases Without Realizing**  
+- **Phase 3 Plan**: "Still populate group.members field using getLegacyMembersMap()"
+- **What We Did**: Removed `group.members` entirely (Phase 6 behavior)
+- **Impact**: Jumped 3 phases ahead without backward compatibility safety net
+
+#### 3. **Unrelated Work Mixed In**
+- Logger fix was discovered during test debugging
+- Should have: Stashed work, fixed logger separately, returned to main work
+- **Problem**: One commit contained 3 unrelated pieces of work
+
+#### 4. **No Intermediate Commits**
+- Accumulated all changes before any commits
+- Should have: Commit after each phase completion
+- **Problem**: Lost ability to rollback individual phases
+
+### What Went Well ✅
+
+#### 1. **MD File Specification Was Accurate**
+- Correctly identified the phased approach needed
+- Time estimates were realistic
+- Success criteria were clear and measurable
+- **Lesson**: The planning was good, execution deviated from it
+
+#### 2. **Core Technical Solutions Were Sound**
+- MemberService subcollection architecture works correctly
+- Firestore collection group query approach is scalable
+- Test mock enhancements were technically correct
+- Logger error serialization fix was needed and well-implemented
+
+#### 3. **All Tests Eventually Passed**
+- 15/15 tests passing shows the technical implementation works
+- Proper mocking patterns were established
+- **Lesson**: The work quality was good, just poorly organized
+
+---
+
 ## REVISED PLAN: Incremental Migration with Clear Phases
 
 ### Core Insight: Separate the Query Fix from Everything Else
 
 The original problem was **one specific query** in GroupService.listGroups() (line 283). We don't need to change the entire data model - we just need to fix that one query.
+
+### Key Improvements to Process
+
+#### 1. **Add Explicit Commit Points**
+```markdown
+## Phase 1: Core MemberService Only ⏱️ 45 min
+...
+### 📍 COMMIT POINT: "feat: add MemberService for subcollection management"
+- `git add firebase/functions/src/services/MemberService.ts firebase/firestore.indexes.json`
+- `git commit -m "feat: add MemberService for subcollection management"`
+```
+
+#### 2. **Add "What NOT to Do" Guards**
+```markdown
+### ⚠️ DO NOT in This Phase:
+- Remove members field from Group interface
+- Update test infrastructure  
+- Fix unrelated issues (stash and handle separately)
+```
+
+#### 3. **Add Pre-Flight Checklist**
+```markdown
+### Before Starting Phase X:
+- [ ] All previous phases committed and pushed
+- [ ] No uncommitted changes
+- [ ] All tests passing
+- [ ] Confirm which exact files will be modified in this phase
+```
+
+#### 4. **Separate Unrelated Work Protocol**
+```markdown
+### Found an Unrelated Issue?
+1. Stash current work: `git stash`
+2. Fix issue in separate branch: `git checkout -b fix/logger-error-serialization`  
+3. Create separate PR
+4. Return to main work: `git checkout main && git stash pop`
+```
 
 ---
 
