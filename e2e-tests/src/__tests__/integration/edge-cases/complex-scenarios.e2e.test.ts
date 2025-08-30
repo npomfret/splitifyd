@@ -4,6 +4,7 @@ import { GroupDetailPage } from '../../../pages';
 import { JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -39,24 +40,26 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Alice adds beach house expense ($800)
         const memberCount = 2; // Alice and Bob
         const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
-        await aliceExpenseFormPage.submitExpense({
-            description: 'Beach House Rental',
-            amount: 800.0,
-            paidBy: alice.displayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
+        const beachHouseExpense = new ExpenseBuilder()
+            .withDescription('Beach House Rental')
+            .withAmount(800.0)
+            .withPaidBy(alice.displayName)
+            .withCurrency('USD')
+            .withSplitType('equal')
+            .build();
+        await aliceExpenseFormPage.submitExpense(beachHouseExpense);
 
         // Bob adds restaurant expense ($120)
         const bobGroupDetailPage = new GroupDetailPage(bobPage);
         const bobExpenseFormPage = await bobGroupDetailPage.clickAddExpenseButton(memberCount);
-        await bobExpenseFormPage.submitExpense({
-            description: 'Restaurant Dinner',
-            amount: 120.0,
-            paidBy: bob.displayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
+        const restaurantExpense = new ExpenseBuilder()
+            .withDescription('Restaurant Dinner')
+            .withAmount(120.0)
+            .withPaidBy(bob.displayName)
+            .withCurrency('USD')
+            .withSplitType('equal')
+            .build();
+        await bobExpenseFormPage.submitExpense(restaurantExpense);
 
         // Wait for real-time updates to sync Alice's page with latest data
         await aliceGroupDetailPage.waitForBalancesToLoad(groupId);

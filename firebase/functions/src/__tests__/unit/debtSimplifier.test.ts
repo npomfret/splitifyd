@@ -1,4 +1,4 @@
-import { simplifyDebts, UserBalance } from '../../utils/debtSimplifier';
+import { simplifyDebts } from '../../utils/debtSimplifier';
 import { DebtScenarios } from '@splitifyd/test-support';
 
 describe('simplifyDebts', () => {

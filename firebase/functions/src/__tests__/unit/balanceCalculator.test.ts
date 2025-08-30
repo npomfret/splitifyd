@@ -1,9 +1,9 @@
 import { describe, expect, beforeEach, vi, it, type Mock } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
-import { SimplifiedDebt, PermissionLevels } from '@splitifyd/shared';
+import { SimplifiedDebt } from '@splitifyd/shared';
 import { UserProfile } from '../../services/UserService2';
-import { ExpenseBuilder, SettlementBuilder, MockGroupBuilder, MockFirestoreBuilder, FirestoreExpenseBuilder, FirestoreSettlementBuilder, UserProfileBuilder } from '@splitifyd/test-support';
+import { MockGroupBuilder, MockFirestoreBuilder, FirestoreExpenseBuilder, FirestoreSettlementBuilder, UserProfileBuilder } from '@splitifyd/test-support';
 
 // Mock dependencies
 vi.mock('../../firebase', () => ({

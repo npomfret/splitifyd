@@ -97,3 +97,66 @@ To improve the overall quality, readability, and maintainability of the codebase
 -   **Faster Development:** Writing new tests will be quicker and less error-prone.
 
 By consistently applying the builder pattern, we can significantly elevate the quality of our test suites and the overall developer experience.
+
+## 5. Implementation Progress
+
+### Phase 1: Refactored Priority E2E Test Files (COMPLETED)
+
+**Files Successfully Refactored:**
+
+1. **`e2e-tests/src/__tests__/integration/edge-cases/complex-scenarios.e2e.test.ts`**
+   - ✅ Replaced manual expense object creation with `ExpenseBuilder`
+   - ✅ Added proper import for `@splitifyd/test-support`
+   - ✅ Improved readability by using fluent builder API
+
+2. **`e2e-tests/src/__tests__/integration/normal-flow/expense-operations.e2e.test.ts`**
+   - ✅ Replaced manual expense object in expense lifecycle test
+   - ✅ Now uses `ExpenseBuilder` with proper `withPaidBy(user.uid)` pattern
+   - ✅ Much cleaner and more maintainable test setup
+
+3. **`e2e-tests/src/__tests__/integration/normal-flow/multi-user-happy-path.e2e.test.ts`**
+   - ✅ Refactored 4 different manual expense creation patterns
+   - ✅ Used builders for single expenses, multiple user scenarios, and batch expense creation
+   - ✅ Properly uses `user.displayName` for UI interactions where display names are expected
+
+### Patterns Implemented
+
+#### Before (Manual Object Creation):
+```typescript
+await expenseFormPage.submitExpense({
+    description: 'Beach House Rental',
+    amount: 800.0,
+    paidBy: alice.displayName,
+    currency: 'USD',
+    splitType: 'equal',
+});
+```
+
+#### After (Builder Pattern):
+```typescript
+const beachHouseExpense = new ExpenseBuilder()
+    .withDescription('Beach House Rental')
+    .withAmount(800.0)
+    .withPaidBy(alice.displayName)  // Correct for UI interactions
+    .withCurrency('USD')
+    .withSplitType('equal')
+    .build();
+await expenseFormPage.submitExpense(beachHouseExpense);
+```
+
+### Benefits Already Realized
+
+- **Improved Readability**: Test intent is now clearer with explicit builder methods
+- **Better Maintainability**: Changes to expense structure only need to be made in the builder
+- **Enhanced Consistency**: All expense creation now follows the same pattern
+- **Type Safety**: Builder enforces proper types and provides sensible defaults
+- **Consistency**: Proper use of `user.displayName` for UI interactions where display names are expected
+
+### Next Steps (Future Phases)
+
+- Phase 2: Refactor remaining E2E test files with manual object creation
+- Phase 3: Refactor Firebase integration tests to use builders consistently  
+- Phase 4: Expand builder library for new entities as they are introduced
+- Phase 5: Consider adding linting rules to enforce builder usage
+
+The refactoring has already demonstrated significant improvements in code quality and test maintainability.
