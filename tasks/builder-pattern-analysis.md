@@ -1,66 +1,407 @@
-# Codebase Analysis and Recommendations: Builder Pattern and Testing Strategy
+# Builder Pattern Consolidation - Implementation Plan
 
-## 1. Executive Summary
+## Executive Summary
 
-This document provides a detailed analysis of the current state of the builder pattern and testing strategy within the codebase. The project has a solid testing foundation with a mix of unit, integration, and E2E tests. The builder pattern is well-adopted in unit and integration tests, which is a significant strength. However, there are inconsistencies in its application, including ad-hoc builders defined within test files and manual object creation where builders would be more appropriate.
+This document provides a detailed, incremental implementation plan for consolidating and improving the builder pattern across the codebase. Based on analysis of the current state, we have identified significant opportunities to improve test maintainability, reduce code duplication, and enforce consistent patterns.
 
-The E2E tests use a robust page object model but could be improved by leveraging the builder pattern for test data generation, which would reduce hardcoded data and improve maintainability.
+**Current State:**
+- 8 well-designed builders in `packages/test-support/builders`
+- 7+ ad-hoc builders scattered across test files
+- Manual object creation in critical test files
+- E2E tests with hardcoded test data
+- No governance to prevent pattern drift
 
-The main recommendations are to consolidate all builders into a shared package, introduce new builders for complex objects, and enforce the use of builders across all test suites, including E2E tests.
+**Target State:**
+- All builders consolidated in shared package
+- Zero ad-hoc builders in test files
+- Complex objects created exclusively via builders
+- E2E tests using builders for dynamic test data
+- Automated enforcement of builder patterns
 
-## 2. Builder Pattern Analysis
+---
 
-The builder pattern is used to construct complex objects step-by-step. It is particularly useful in tests for creating test data.
+## Implementation Phases
 
-### 2.1. Good Practices
+### Phase 1: Extract and Consolidate Ad-hoc Builders ⭐ **HIGH PRIORITY**
+**Timeline: 2-3 hours | Risk: Low**
 
-*   **Extensive Use in Backend Tests:** The `firebase/functions` unit and integration tests make excellent use of the builder pattern. `UserBuilder`, `CreateGroupRequestBuilder`, `ExpenseBuilder`, and `SettlementBuilder` are used effectively to create clean and readable tests.
-*   **Fluent Interfaces:** The builders use a fluent interface (e.g., `.withName("...").withDescription("...")`), which makes them easy to use.
-*   **Sensible Defaults:** The builders provide sensible default values, so tests only need to specify the data that is relevant to the test case.
-*   **Shared Builders:** The `packages/test-support/builders` directory is a good example of a centralized location for shared builders.
+#### 1.1 Extract from `firebase/functions/src/__tests__/unit/balanceCalculator.test.ts`
 
-### 2.2. Areas for Improvement
+**Builders to Extract:**
+- `FirestoreExpenseBuilder` (line 36) → extends ExpenseBuilder
+- `FirestoreSettlementBuilder` (line 81) → extends SettlementBuilder  
+- `MockGroupBuilder` (line 145) → creates mock group objects
+- `UserProfileBuilder` (line 196) → creates user profile test data
+- `MockFirestoreBuilder` (line 124) → creates mock Firestore instances
 
-*   **Ad-hoc Builders:** Several test files define their own local builders. This leads to code duplication and makes it difficult to maintain the builders.
-*   **Manual Object Creation:** In some cases, complex objects are still created manually. The most notable example is the `balances` object in `debtSimplifier.test.ts`. This makes the tests harder to read and more brittle.
-*   **Inconsistent Location:** Some builders are located in the shared `packages/test-support/builders` directory, while others are defined locally within test files. This makes it difficult to discover and reuse existing builders.
+**Implementation Steps:**
+1. Create new files in `packages/test-support/builders/`:
+   - `FirestoreExpenseBuilder.ts`
+   - `FirestoreSettlementBuilder.ts` 
+   - `MockGroupBuilder.ts`
+   - `UserProfileBuilder.ts`
+   - `MockFirestoreBuilder.ts`
+2. Move class definitions with all methods intact
+3. Update imports in `balanceCalculator.test.ts`
+4. Add exports to `packages/test-support/builders/index.ts`
+5. Run tests to verify functionality
 
-### 2.2.1. Ad-hoc Builders to Consolidate
+#### 1.2 Extract from `firebase/functions/src/__tests__/unit/comments-validation.test.ts`
 
-The following builders are defined locally within test files and should be moved to the shared `packages/test-support/builders` directory:
+**Builders to Extract:**
+- `CommentRequestBuilder` (line 6) → creates comment request objects
+- `QueryBuilder` (line 78) → creates Firestore query mocks
 
-*   **From `balanceCalculator.test.ts`:**
-    *   `FirestoreExpenseBuilder`
-    *   `FirestoreSettlementBuilder`
-    *   `MockGroupBuilder`
-    *   `UserProfileBuilder`
-*   **From `comments-validation.test.ts`:**
-    *   `CommentRequestBuilder`
-    *   `QueryBuilder`
+**Implementation Steps:**
+1. Create `packages/test-support/builders/CommentRequestBuilder.ts`
+2. Create `packages/test-support/builders/QueryBuilder.ts`
+3. Update imports in `comments-validation.test.ts`
+4. Add exports to index.ts
+5. Run tests to verify functionality
 
-## 3. Test-Specific Analysis
+**Success Criteria:**
+- ✅ All ad-hoc builders moved to shared package
+- ✅ Original test files have zero local builder definitions
+- ✅ All existing tests pass without modification
+- ✅ New builders are accessible via `@splitifyd/test-support`
 
-### 3.1. Unit Tests (`firebase/functions`)
+---
 
-The unit tests make good use of builders, especially for creating mock objects. However, the use of ad-hoc, file-local builders is a source of duplication.
+### Phase 2: Create Essential New Builders ⭐ **HIGH PRIORITY**
+**Timeline: 2 hours | Risk: Medium**
 
-### 3.2. Integration Tests (`firebase/functions`)
+#### 2.1 UserBalanceBuilder - Critical for debtSimplifier.test.ts
 
-The integration tests are the best example of how to use the builder pattern effectively. They consistently use the shared builders from `packages/test-support`, which makes the tests clean, readable, and maintainable.
+**Problem:** Manual creation of complex `UserBalance` objects 10+ times
+```typescript
+// Current problematic pattern:
+const balances: Record<string, UserBalance> = {
+    user1: {
+        userId: 'user1',
+        owes: { user2: 50 },
+        owedBy: {},
+        netBalance: -50
+    },
+    // ... repeated manually
+};
+```
 
-### 3.3. E2E Tests (`e2e-tests`)
+**Solution:** Create `packages/test-support/builders/UserBalanceBuilder.ts`
+```typescript
+export class UserBalanceBuilder {
+    private balance: UserBalance;
 
-The E2E tests use a well-structured page object model and workflows, which is a good practice. However, they do not use the builder pattern for test data generation. Instead, test data is often hardcoded within the test files. This makes the tests more brittle and harder to maintain.
+    constructor(userId: string) {
+        this.balance = {
+            userId,
+            owes: {},
+            owedBy: {},
+            netBalance: 0
+        };
+    }
 
-The `user-pool.fixture.ts` is a good exception, as it correctly uses the `UserBuilder` to create a pool of test users.
+    withOwes(userId: string, amount: number): this {
+        this.balance.owes[userId] = amount;
+        this.calculateNetBalance();
+        return this;
+    }
 
-## 4. Recommendations
+    withOwedBy(userId: string, amount: number): this {
+        this.balance.owedBy[userId] = amount;
+        this.calculateNetBalance();
+        return this;
+    }
 
-To improve the consistency, maintainability, and readability of the tests, the following actions are recommended:
+    build(): UserBalance {
+        return { ...this.balance };
+    }
+}
+```
 
-1.  **Consolidate Builders:** Move all ad-hoc builders from the unit tests into the shared `packages/test-support/builders` directory. This will create a single source of truth for all test data builders.
-2.  **Introduce New Builders:** Create new builders for complex objects that are currently created manually. A `UserBalanceBuilder` should be created for `debtSimplifier.test.ts`.
-3.  **Enforce Builder Usage in E2E Tests:** Refactor the E2E tests to use the shared builders for test data generation. This will reduce the amount of hardcoded data and make the tests more robust.
-4.  **Standardize Builder Location:** Enforce the rule that all builders must be located in the `packages/test-support/builders` directory.
-5.  **Remove Deprecated Files:** The `e2e-tests/src/constants/selectors.ts` and `e2e-tests/src/utils/error-proxy.ts` files are marked as deprecated and should be removed to reduce clutter.
-6.  **Refactor Workflows:** Encourage more consistent use of the existing workflows in the E2E tests to further reduce code duplication and improve readability.
+#### 2.2 BalancesBuilder - Composite Builder Pattern
+
+Create `packages/test-support/builders/BalancesBuilder.ts` for building complete balance scenarios:
+```typescript
+export class BalancesBuilder {
+    private balances: Record<string, UserBalance> = {};
+
+    addUser(userId: string, builderFn: (builder: UserBalanceBuilder) => UserBalanceBuilder): this {
+        const balance = builderFn(new UserBalanceBuilder(userId)).build();
+        this.balances[userId] = balance;
+        return this;
+    }
+
+    build(): Record<string, UserBalance> {
+        return { ...this.balances };
+    }
+}
+```
+
+**Refactoring Target:** Replace all manual balance creation in `debtSimplifier.test.ts`
+
+**Success Criteria:**
+- ✅ UserBalanceBuilder handles all balance scenarios
+- ✅ BalancesBuilder simplifies complex multi-user scenarios  
+- ✅ debtSimplifier.test.ts has zero manual UserBalance objects
+- ✅ Test readability significantly improved
+
+---
+
+### Phase 3: E2E Test Data Builders 🔶 **MEDIUM PRIORITY**
+**Timeline: 3-4 hours | Risk: Medium**
+
+#### 3.1 Create E2E-Specific Builders
+
+**Current Problem:** Hardcoded test data throughout E2E tests
+- Static strings like "Test Group", "Alice", "Bob"
+- No data uniqueness for parallel execution
+- Difficult to create complex test scenarios
+
+**Solution: Create specialized E2E builders**
+
+**GroupTestDataBuilder:**
+```typescript
+export class GroupTestDataBuilder {
+    private data: GroupTestData;
+
+    constructor() {
+        this.data = {
+            name: `Test Group ${Date.now()}`,
+            description: `Auto-generated test group`,
+            currency: 'USD'
+        };
+    }
+
+    withName(name: string): this {
+        this.data.name = name;
+        return this;
+    }
+
+    forParallelExecution(): this {
+        this.data.name += ` - ${Math.random().toString(36).substr(2, 9)}`;
+        return this;
+    }
+}
+```
+
+**ExpenseScenarioBuilder:**
+```typescript
+export class ExpenseScenarioBuilder {
+    private scenario: ExpenseScenario;
+
+    static simpleSplit(): ExpenseScenarioBuilder {
+        return new ExpenseScenarioBuilder()
+            .withAmount(100)
+            .withDescription('Test expense')
+            .splitEqually();
+    }
+
+    static complexSplit(): ExpenseScenarioBuilder {
+        return new ExpenseScenarioBuilder()
+            .withAmount(150)
+            .withCustomSplits();
+    }
+}
+```
+
+#### 3.2 Refactor E2E Tests
+
+**Target Files:**
+- `e2e-tests/src/tests/normal-flow/**/*.test.ts`
+- `e2e-tests/src/tests/error-testing/**/*.test.ts`
+
+**Implementation Strategy:**
+1. Replace hardcoded group names with `GroupTestDataBuilder`
+2. Replace hardcoded expense data with `ExpenseScenarioBuilder`
+3. Use `UserBuilder` for dynamic user creation
+4. Ensure all test data is unique for parallel execution
+
+**Success Criteria:**
+- ✅ Zero hardcoded test data strings in E2E tests
+- ✅ All test data generated dynamically
+- ✅ Tests can run in parallel without conflicts
+- ✅ Complex scenarios easier to create and maintain
+
+---
+
+### Phase 4: Establish Governance 🔶 **MEDIUM PRIORITY** 
+**Timeline: 1-2 hours | Risk: Low**
+
+#### 4.1 Create Builder Guidelines
+
+**Create `packages/test-support/BUILDER_GUIDELINES.md`:**
+```markdown
+# Builder Pattern Guidelines
+
+## When to Create a New Builder
+- Complex objects with 3+ properties
+- Objects used in multiple test files
+- Objects with conditional logic or computed properties
+
+## Builder Requirements
+- Must be in packages/test-support/builders/
+- Must implement fluent interface
+- Must provide sensible defaults
+- Must have build() method
+- Should have reset() method for reuse
+
+## Naming Conventions
+- Class: {ObjectType}Builder
+- File: {ObjectType}Builder.ts
+- Methods: with{PropertyName}(value)
+```
+
+#### 4.2 Add Automated Enforcement
+
+**ESLint Custom Rule:**
+```javascript
+// .eslintrc.js addition
+rules: {
+  'custom/no-adhoc-builders': 'error'
+}
+```
+
+**Rule Logic:**
+- Detect `class *Builder` outside of `packages/test-support/builders/`
+- Suggest moving to shared package
+- Block CI/CD if violations found
+
+**Success Criteria:**
+- ✅ Clear guidelines documented
+- ✅ ESLint rule prevents new ad-hoc builders
+- ✅ Pre-commit hook validates builder locations
+
+---
+
+### Phase 5: Clean Up and Optimize 🟡 **LOW PRIORITY**
+**Timeline: 1 hour | Risk: Low**
+
+#### 5.1 Remove Deprecated Files
+- Delete `e2e-tests/src/constants/selectors.ts` (deprecated)
+- Delete `e2e-tests/src/utils/error-proxy.ts` (deprecated)
+- Clean up unused imports
+
+#### 5.2 Builder Enhancements
+
+**Add Standard Methods to All Builders:**
+```typescript
+interface StandardBuilder<T> {
+    build(): T;
+    reset(): this;           // Reset to defaults for reuse
+    buildMany(count: number): T[];  // Batch creation
+}
+```
+
+**Type Safety Improvements:**
+```typescript
+class TypedBuilder<T extends Record<string, any>> {
+    protected data: Partial<T> = {};
+    
+    build(): T {
+        // Ensure all required fields present
+        return this.data as T;
+    }
+}
+```
+
+---
+
+### Phase 6: Documentation and Training 🟡 **LOW PRIORITY**
+**Timeline: 1 hour | Risk: Low**
+
+#### 6.1 Update Test Documentation
+
+**Add to `docs/guides/testing.md`:**
+```markdown
+## Builder Pattern Usage
+
+### Creating Test Data
+```typescript
+// ✅ Good - Use builders
+const user = new UserBuilder()
+    .withEmail('test@example.com')
+    .withDisplayName('Test User')
+    .build();
+
+// ❌ Bad - Manual object creation
+const user = {
+    email: 'test@example.com',
+    displayName: 'Test User',
+    // ... many more properties
+};
+```
+
+#### 6.2 Migration Examples
+
+**Before/After Examples:**
+```typescript
+// BEFORE: Manual, brittle, duplicated
+const balances: Record<string, UserBalance> = {
+    user1: { userId: 'user1', owes: { user2: 50 }, owedBy: {}, netBalance: -50 },
+    user2: { userId: 'user2', owes: {}, owedBy: { user1: 50 }, netBalance: 50 }
+};
+
+// AFTER: Builder, reusable, readable
+const balances = new BalancesBuilder()
+    .addUser('user1', b => b.withOwes('user2', 50))
+    .addUser('user2', b => b.withOwedBy('user1', 50))
+    .build();
+```
+
+---
+
+## Success Metrics & Verification
+
+### Quantitative Metrics
+- ✅ **Zero ad-hoc builders** in test files (currently 7+)
+- ✅ **50% reduction** in test setup code lines
+- ✅ **100% builder usage** for complex objects
+- ✅ **Zero hardcoded test data** in E2E tests
+- ✅ **ESLint rule** preventing pattern violations
+
+### Qualitative Improvements
+- ✅ **Improved readability** - tests focus on what matters
+- ✅ **Better maintainability** - changes in one place
+- ✅ **Reduced duplication** - reusable builders
+- ✅ **Easier onboarding** - clear patterns to follow
+- ✅ **Parallel test safety** - unique test data
+
+### Verification Steps
+1. **After Each Phase:** Run full test suite (`npm test`)
+2. **Code Review:** Verify builder quality and consistency
+3. **ESLint Check:** Ensure no rule violations
+4. **Documentation Review:** Confirm guidelines are clear
+5. **Team Training:** Walk through new patterns
+
+---
+
+## Risk Mitigation Strategy
+
+### High-Risk Areas
+- **Test logic changes** - Keep original test logic intact
+- **Import path updates** - Use search/replace carefully
+- **Type compatibility** - Ensure builders match expected types
+
+### Mitigation Actions
+- **Incremental approach** - One builder at a time
+- **Thorough testing** - Run tests after each extraction
+- **Rollback plan** - Git branches for each phase
+- **Team review** - Code review after Phase 1
+- **Documentation** - Clear migration examples
+
+### Rollback Triggers
+- Test suite failure rate > 5%
+- Build time increase > 20%
+- Team feedback indicates reduced productivity
+- ESLint rule causes excessive friction
+
+---
+
+## Next Steps
+
+1. **Get team approval** for implementation plan
+2. **Create feature branch** for builder consolidation
+3. **Start Phase 1** - extract ad-hoc builders
+4. **Review after Phase 1** - gather team feedback
+5. **Continue phases** based on priority and feedback
+6. **Document lessons learned** for future improvements
