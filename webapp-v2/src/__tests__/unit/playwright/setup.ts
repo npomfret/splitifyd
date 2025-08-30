@@ -308,8 +308,12 @@ export async function clearAuthState(page: Page) {
             }
         });
     } catch (error: any) {
-        // Ignore localStorage access errors (happens on about:blank)
-        console.debug('Failed to clear storage (likely on about:blank):', error.message);
+        // Only suppress localStorage access errors when on about:blank page
+        const currentUrl = page.url();
+        if (currentUrl !== 'about:blank') {
+            throw error;
+        }
+        // Otherwise silently ignore - about:blank doesn't allow localStorage access
     }
     
     // Clear cookies
