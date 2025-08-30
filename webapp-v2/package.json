@@ -13,13 +13,8 @@
     "clean": "rm -rf dist",
     "super-clean": "npm run clean && rm -rf node_modules",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "npm run test:unit:vitest && npm run test:unit:playwright",
-    "test:unit:vitest": "vitest run src/__tests__/unit/vitest",
-    "test:unit:playwright": "playwright test",
-    "test:integration": "echo no integration tests",
-    "test:playwright": "playwright test",
-    "test:playwright:ui": "playwright test --ui",
-    "test:playwright:debug": "PWDEBUG=1 playwright test",
+    "test:unit": "vitest run src/__tests__/unit/vitest && playwright test --workers=4",
+    "test:integration": "echo 'no integration tests' && exit 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
   },
   "dependencies": {

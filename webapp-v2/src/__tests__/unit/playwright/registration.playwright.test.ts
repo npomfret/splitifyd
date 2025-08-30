@@ -131,12 +131,25 @@ test.describe('User Registration Form', () => {
         await expect(strengthIndicator.locator('.bg-red-500')).toBeVisible();
     });
 
-    test.skip('shows medium password strength', async ({ page }) => {
-        // TODO: This test is flaky and needs to be investigated.
-        // It seems that state is leaking between tests, causing this test to fail.
+    test('shows medium password strength', async ({ page }) => {
+        // Navigate fresh to avoid state leakage
+        await page.goto('/register');
+        await page.waitForLoadState('domcontentloaded');
+        
+        const passwordInput = page.locator('#password-input');
         const strengthIndicator = page.locator('div.space-y-2:has(span:text("Password strength:"))');
-        await page.locator('#password-input').clear();
-        await page.fill('#password-input', 'Medium123');
+        
+        // Ensure field is completely clear first
+        await passwordInput.click();
+        await passwordInput.fill(''); // Clear completely
+        await page.waitForTimeout(100); // Small wait for UI to update
+        
+        // Fill with medium strength password (shorter/simpler than strong)
+        await passwordInput.fill('abc123');
+        
+        // Wait for password strength calculation
+        await page.waitForTimeout(200);
+        
         await expect(strengthIndicator).toContainText('Medium');
         await expect(strengthIndicator.locator('.bg-yellow-500')).toBeVisible();
     });

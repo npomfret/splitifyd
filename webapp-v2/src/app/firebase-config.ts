@@ -1,25 +1,4 @@
-interface FirebaseConfig {
-    apiKey: string;
-    authDomain: string;
-    projectId: string;
-    storageBucket: string;
-    messagingSenderId: string;
-    appId: string;
-}
-
-interface AppConfiguration {
-    firebase: FirebaseConfig;
-    firebaseAuthUrl?: string;
-    firebaseFirestoreUrl?: string;
-    environment: {
-        warningBanner?: string;
-    };
-    formDefaults: {
-        displayName?: string;
-        email?: string;
-        password?: string;
-    };
-}
+import type { AppConfiguration } from '@splitifyd/shared';
 
 class FirebaseConfigManager {
     private configPromise: Promise<AppConfiguration> | null = null;

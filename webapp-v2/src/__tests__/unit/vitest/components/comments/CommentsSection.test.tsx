@@ -1,6 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/preact';
 import { vi, beforeEach, describe, it, expect, afterEach } from 'vitest';
-import { signal } from '@preact/signals';
 import userEvent from '@testing-library/user-event';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import type { CommentApiResponse } from '@splitifyd/shared';
@@ -10,28 +9,25 @@ vi.mock('@heroicons/react/24/outline', () => ({
     PaperAirplaneIcon: () => <div data-testid="paper-airplane-icon">Send</div>,
 }));
 
-// Create mock signals that can be updated in tests
-const mockCommentsSignal = signal<CommentApiResponse[]>([]);
-const mockLoadingSignal = signal<boolean>(false);
-const mockSubmittingSignal = signal<boolean>(false);
-const mockErrorSignal = signal<string | null>(null);
-const mockHasMoreSignal = signal<boolean>(false);
-
-// Mock the comments store with factory function to avoid hoisting issues
-vi.mock('@/stores/comments-store', () => ({
-    commentsStore: {
-        commentsSignal: mockCommentsSignal,
-        loadingSignal: mockLoadingSignal,
-        submittingSignal: mockSubmittingSignal,
-        errorSignal: mockErrorSignal,
-        hasMoreSignal: mockHasMoreSignal,
-        registerComponent: vi.fn(),
-        deregisterComponent: vi.fn(),
-        addComment: vi.fn(),
-        loadMoreComments: vi.fn(),
-        reset: vi.fn(),
-    },
-}));
+// Mock the comments store without hoisting issues
+vi.mock('@/stores/comments-store', async () => {
+    const { signal } = await import('@preact/signals');
+    
+    return {
+        commentsStore: {
+            commentsSignal: signal([]),
+            loadingSignal: signal(false),
+            submittingSignal: signal(false),
+            errorSignal: signal(null),
+            hasMoreSignal: signal(false),
+            registerComponent: vi.fn(),
+            deregisterComponent: vi.fn(),
+            addComment: vi.fn(),
+            loadMoreComments: vi.fn(),
+            reset: vi.fn(),
+        },
+    };
+});
 
 // Mock child components
 vi.mock('@/components/comments/CommentsList', () => ({
@@ -123,18 +119,18 @@ import { commentsStore } from '@/stores/comments-store';
 
 describe('CommentsSection', () => {
     let user: ReturnType<typeof userEvent.setup>;
-    const mockCommentsStore = vi.mocked(commentsStore);
+    const mockCommentsStore = vi.mocked(commentsStore) as any;
 
     beforeEach(() => {
         vi.clearAllMocks();
         user = userEvent.setup();
 
         // Reset all signals to default state
-        mockCommentsSignal.value = [];
-        mockLoadingSignal.value = false;
-        mockSubmittingSignal.value = false;
-        mockErrorSignal.value = null;
-        mockHasMoreSignal.value = false;
+        mockCommentsStore.commentsSignal.value = [];
+        mockCommentsStore.loadingSignal.value = false;
+        mockCommentsStore.submittingSignal.value = false;
+        mockCommentsStore.errorSignal.value = null;
+        mockCommentsStore.hasMoreSignal.value = false;
     });
 
     afterEach(() => {
@@ -189,7 +185,7 @@ describe('CommentsSection', () => {
         });
 
         it('should display error message when error exists', () => {
-            mockErrorSignal.value = 'Failed to load comments';
+            mockCommentsStore.errorSignal.value = 'Failed to load comments';
 
             renderCommentsSection();
 
@@ -200,9 +196,9 @@ describe('CommentsSection', () => {
 
         it('should pass correct props to CommentsList', () => {
             const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
-            mockCommentsSignal.value = comments;
-            mockLoadingSignal.value = true;
-            mockHasMoreSignal.value = true;
+            mockCommentsStore.commentsSignal.value = comments;
+            mockCommentsStore.loadingSignal.value = true;
+            mockCommentsStore.hasMoreSignal.value = true;
 
             renderCommentsSection({ maxHeight: '300px' });
 
@@ -213,7 +209,7 @@ describe('CommentsSection', () => {
         });
 
         it('should pass correct props to CommentInput', () => {
-            mockSubmittingSignal.value = true;
+            mockCommentsStore.submittingSignal.value = true;
 
             renderCommentsSection({ targetType: 'expense' });
 
@@ -261,7 +257,7 @@ describe('CommentsSection', () => {
 
     describe('Load More Functionality', () => {
         it('should call loadMoreComments when load more is triggered', async () => {
-            mockHasMoreSignal.value = true;
+            mockCommentsStore.hasMoreSignal.value = true;
             mockCommentsStore.loadMoreComments.mockResolvedValue(undefined);
 
             renderCommentsSection();
@@ -273,7 +269,7 @@ describe('CommentsSection', () => {
         });
 
         it('should handle load more errors gracefully', async () => {
-            mockHasMoreSignal.value = true;
+            mockCommentsStore.hasMoreSignal.value = true;
             const error = new Error('Load more failed');
             mockCommentsStore.loadMoreComments.mockRejectedValue(error);
 
@@ -322,7 +318,7 @@ describe('CommentsSection', () => {
             // Add comments via signal
             const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
 
-            mockCommentsSignal.value = comments;
+            mockCommentsStore.commentsSignal.value = comments;
 
             await waitFor(() => {
                 expect(screen.getByTestId('comments-count')).toHaveTextContent('2');
@@ -334,7 +330,7 @@ describe('CommentsSection', () => {
 
             expect(screen.getByTestId('loading-state')).toHaveTextContent('not-loading');
 
-            mockLoadingSignal.value = true;
+            mockCommentsStore.loadingSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('loading-state')).toHaveTextContent('loading');
@@ -346,7 +342,7 @@ describe('CommentsSection', () => {
 
             expect(screen.getByTestId('disabled-state')).toHaveTextContent('enabled');
 
-            mockSubmittingSignal.value = true;
+            mockCommentsStore.submittingSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('disabled-state')).toHaveTextContent('disabled');
@@ -358,14 +354,14 @@ describe('CommentsSection', () => {
 
             expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
 
-            mockErrorSignal.value = 'Connection failed';
+            mockCommentsStore.errorSignal.value = 'Connection failed';
 
             await waitFor(() => {
                 expect(screen.getByText('Connection failed')).toBeInTheDocument();
             });
 
             // Clear error
-            mockErrorSignal.value = null;
+            mockCommentsStore.errorSignal.value = null;
 
             await waitFor(() => {
                 expect(screen.queryByText('Connection failed')).not.toBeInTheDocument();
@@ -378,7 +374,7 @@ describe('CommentsSection', () => {
             expect(screen.getByTestId('has-more')).toHaveTextContent('no-more');
             expect(screen.queryByTestId('load-more-button')).not.toBeInTheDocument();
 
-            mockHasMoreSignal.value = true;
+            mockCommentsStore.hasMoreSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('has-more')).toHaveTextContent('has-more');
@@ -400,12 +396,12 @@ describe('CommentsSection', () => {
             renderCommentsSection();
 
             // Simulate rapid state changes that might happen with real-time updates
-            mockLoadingSignal.value = true;
-            mockErrorSignal.value = 'Error 1';
-            mockLoadingSignal.value = false;
-            mockErrorSignal.value = null;
-            mockCommentsSignal.value = [new CommentBuilder().build()];
-            mockHasMoreSignal.value = true;
+            mockCommentsStore.loadingSignal.value = true;
+            mockCommentsStore.errorSignal.value = 'Error 1';
+            mockCommentsStore.loadingSignal.value = false;
+            mockCommentsStore.errorSignal.value = null;
+            mockCommentsStore.commentsSignal.value = [new CommentBuilder().build()];
+            mockCommentsStore.hasMoreSignal.value = true;
 
             // Component should handle all changes without crashing
             await waitFor(() => {
