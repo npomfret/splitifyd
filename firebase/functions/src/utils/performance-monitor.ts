@@ -1,14 +1,43 @@
 import { logger } from '../logger';
 
 /**
+ * Context for performance monitoring operations
+ */
+export interface PerformanceContext {
+    [key: string]: string | number | boolean | undefined;
+}
+
+/**
+ * Context for validation monitoring operations
+ */
+export interface ValidationContext extends PerformanceContext {
+    documentId?: string;
+    collection?: string;
+    documentCount?: number;
+    userId?: string;
+    validationMode?: 'standard' | 'strict' | 'monitoring';
+    operation?: string;
+}
+
+/**
+ * Context for sync validation monitoring operations
+ */
+export interface SyncValidationContext extends PerformanceContext {
+    documentId?: string;
+    collection?: string;
+    fieldName?: string;
+    userId?: string;
+}
+
+/**
  * Performance monitoring utility for tracking operation durations
  */
 export class PerformanceMonitor {
     private startTime: number;
     private operationName: string;
-    private context: Record<string, any>;
+    private context: PerformanceContext;
 
-    constructor(operationName: string, context: Record<string, any> = {}) {
+    constructor(operationName: string, context: PerformanceContext = {}) {
         this.operationName = operationName;
         this.context = context;
         this.startTime = Date.now();
@@ -17,7 +46,7 @@ export class PerformanceMonitor {
     /**
      * End timing and log performance metrics
      */
-    end(additionalContext?: Record<string, any>): number {
+    end(additionalContext?: PerformanceContext): number {
         const duration = Date.now() - this.startTime;
         const logContext = { 
             ...this.context, 
@@ -54,7 +83,7 @@ export class PerformanceMonitor {
     static async monitor<T>(
         operationName: string,
         operation: () => Promise<T>,
-        context: Record<string, any> = {}
+        context: PerformanceContext = {}
     ): Promise<T> {
         const monitor = new PerformanceMonitor(operationName, context);
         
@@ -75,7 +104,7 @@ export class PerformanceMonitor {
         operationType: 'read' | 'write' | 'query' | 'transaction',
         collection: string,
         operation: () => Promise<T>,
-        additionalContext: Record<string, any> = {}
+        additionalContext: PerformanceContext = {}
     ): Promise<T> {
         return this.monitor(
             `db-${operationType}`,
@@ -95,7 +124,7 @@ export class PerformanceMonitor {
         serviceName: string,
         methodName: string,
         operation: () => Promise<T>,
-        additionalContext: Record<string, any> = {}
+        additionalContext: PerformanceContext = {}
     ): Promise<T> {
         return this.monitor(
             `service-call`,
@@ -107,30 +136,107 @@ export class PerformanceMonitor {
             }
         );
     }
-}
 
-/**
- * Decorator to automatically monitor service methods
- * Usage: @MonitorPerformance('ServiceName', 'methodName')
- */
-export function MonitorPerformance(serviceName: string, methodName?: string) {
-    return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-        const originalMethod = descriptor.value;
-        const actualMethodName = methodName || propertyName;
-
-        descriptor.value = async function (...args: any[]) {
-            return PerformanceMonitor.monitorServiceCall(
-                serviceName,
-                actualMethodName,
-                () => originalMethod.apply(this, args),
-                { 
-                    // Add argument context for key operations
-                    ...(args[0] && typeof args[0] === 'string' ? { resourceId: args[0] } : {}),
-                    ...(args.length > 0 ? { argCount: args.length } : {})
-                }
+    /**
+     * Monitor validation operations specifically
+     */
+    static async monitorValidation<T>(
+        validationType: 'document' | 'batch' | 'strict' | 'pre-operation',
+        schemaName: string,
+        operation: () => Promise<T>,
+        context: ValidationContext = {}
+    ): Promise<T> {
+        const monitor = new PerformanceMonitor(`validation-${validationType}`, {
+            schemaName,
+            ...context,
+            validationType,
+        });
+        
+        try {
+            const result = await operation();
+            monitor.end({ 
+                success: true,
+                validationResult: 'passed'
+            });
+            return result;
+        } catch (error) {
+            const isValidationError = error instanceof Error && (
+                error.message.includes('validation failed') ||
+                error.name === 'EnhancedValidationError'
             );
-        };
 
-        return descriptor;
-    };
+            monitor.end({ 
+                success: false,
+                validationResult: isValidationError ? 'failed' : 'error',
+                error: error instanceof Error ? error.message : String(error),
+                errorType: isValidationError ? 'validation' : 'system'
+            });
+
+            // Log validation failures with enhanced context
+            if (isValidationError) {
+                logger.warn(`Validation failed`, {
+                    validationType,
+                    schemaName,
+                    documentId: context.documentId,
+                    collection: context.collection,
+                    userId: context.userId,
+                    validationMode: context.validationMode || 'standard',
+                    operation: context.operation,
+                    error: error instanceof Error ? error.message : String(error)
+                });
+            }
+
+            throw error;
+        }
+    }
+
+    /**
+     * Monitor sync validation operations (for immediate validation checks)
+     */
+    static monitorSyncValidation<T>(
+        validationType: 'schema' | 'field' | 'constraint',
+        schemaName: string,
+        operation: () => T,
+        context: SyncValidationContext = {}
+    ): T {
+        const startTime = Date.now();
+        
+        try {
+            const result = operation();
+            const duration = Date.now() - startTime;
+
+            // Log slow sync validations (>50ms for sync operations)
+            if (duration > 50) {
+                logger.warn(`Slow sync validation detected`, {
+                    validationType,
+                    schemaName,
+                    duration_ms: duration,
+                    ...context
+                });
+            }
+
+            return result;
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            const isValidationError = error instanceof Error && (
+                error.message.includes('validation failed') ||
+                error.name === 'ZodError' ||
+                error.name === 'EnhancedValidationError'
+            );
+
+            // Log validation failures
+            if (isValidationError) {
+                logger.info(`Sync validation failed`, {
+                    validationType,
+                    schemaName,
+                    duration_ms: duration,
+                    validationResult: 'failed',
+                    error: error instanceof Error ? error.message : String(error),
+                    ...context
+                });
+            }
+
+            throw error;
+        }
+    }
 }

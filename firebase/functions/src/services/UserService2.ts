@@ -13,7 +13,7 @@ import { validateRegisterRequest } from '../auth/validation';
 import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../user/validation';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { UserDocumentSchema, UserDataSchema } from '../schemas/user';
-import { z } from 'zod';
+import { getFirestoreValidationService } from './serviceRegistration';
 
 /**
  * User profile interface for consistent user data across the application
@@ -125,17 +125,22 @@ export class UserService {
             const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
             const userData = userDoc.data();
 
-            // Validate user data structure - strict enforcement
+            // Validate user data structure using centralized validation service
             if (userData) {
                 try {
-                    // Add document ID to data for validation
-                    const dataWithId = { ...userData, id: userDoc.id };
-                    UserDocumentSchema.parse(dataWithId);
+                    const validationService = getFirestoreValidationService();
+                    validationService.validateDocument(
+                        UserDocumentSchema,
+                        userDoc,
+                        'UserDocument',
+                        {
+                            userId,
+                            operation: 'getUser',
+                        }
+                    );
                 } catch (error) {
-                    const zodError = error as z.ZodError;
                     logger.error('User document validation failed', error as Error, {
                         userData: JSON.stringify(userData),
-                        validationErrors: zodError.issues,
                     });
                     throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document structure is invalid');
                 }
@@ -276,12 +281,22 @@ export class UserService {
 
             // Validate update object before applying to Firestore
             try {
-                UserDataSchema.parse(firestoreUpdate);
+                const validationService = getFirestoreValidationService();
+                validationService.validateBeforeWrite(
+                    UserDataSchema,
+                    firestoreUpdate,
+                    'UserData',
+                    {
+                        documentId: userId,
+                        collection: 'users',
+                        userId,
+                        operation: 'updateProfile',
+                    }
+                );
             } catch (error) {
                 logger.error('User document update validation failed', error as Error, {
                     userId,
                     updateData: firestoreUpdate,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
                 });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document update validation failed');
             }
@@ -464,11 +479,21 @@ export class UserService {
 
             // Validate user document before writing to Firestore
             try {
-                UserDataSchema.parse(userDoc);
+                const validationService = getFirestoreValidationService();
+                validationService.validateBeforeWrite(
+                    UserDataSchema,
+                    userDoc,
+                    'UserData',
+                    {
+                        documentId: userRecord.uid,
+                        collection: 'users',
+                        userId: userRecord.uid,
+                        operation: 'registerUser',
+                    }
+                );
             } catch (error) {
                 logger.error('User document validation failed during registration', error as Error, {
                     userId: userRecord.uid,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
                 });
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document validation failed during registration');
             }

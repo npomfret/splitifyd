@@ -9,6 +9,7 @@ import { UserPolicyService } from './UserPolicyService';
 import { GroupMemberService } from './GroupMemberService';
 import { GroupPermissionService } from './GroupPermissionService';
 import { GroupShareService } from './GroupShareService';
+import { FirestoreValidationService } from './FirestoreValidationService';
 
 /**
  * Register all services with the ServiceRegistry
@@ -28,6 +29,7 @@ let userPolicyServiceInstance: UserPolicyService | null = null;
 let groupMemberServiceInstance: GroupMemberService | null = null;
 let groupPermissionServiceInstance: GroupPermissionService | null = null;
 let groupShareServiceInstance: GroupShareService | null = null;
+let firestoreValidationServiceInstance: FirestoreValidationService | null = null;
 
 /**
  * Initialize all service registrations
@@ -105,6 +107,13 @@ export function registerAllServices(): void {
         }
         return groupShareServiceInstance;
     });
+
+    registry.registerService('FirestoreValidationService', () => {
+        if (!firestoreValidationServiceInstance) {
+            firestoreValidationServiceInstance = FirestoreValidationService.getInstance();
+        }
+        return firestoreValidationServiceInstance;
+    });
 }
 
 /**
@@ -120,7 +129,8 @@ export const SERVICE_NAMES = {
     USER_POLICY_SERVICE: 'UserPolicyService',
     GROUP_MEMBER_SERVICE: 'GroupMemberService',
     GROUP_PERMISSION_SERVICE: 'GroupPermissionService',
-    GROUP_SHARE_SERVICE: 'GroupShareService'
+    GROUP_SHARE_SERVICE: 'GroupShareService',
+    FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService'
 } as const;
 
 /**
@@ -164,4 +174,8 @@ export function getGroupPermissionService(): GroupPermissionService {
 
 export function getGroupShareService(): GroupShareService {
     return ServiceRegistry.getInstance().getService<GroupShareService>(SERVICE_NAMES.GROUP_SHARE_SERVICE);
+}
+
+export function getFirestoreValidationService(): FirestoreValidationService {
+    return ServiceRegistry.getInstance().getService<FirestoreValidationService>(SERVICE_NAMES.FIRESTORE_VALIDATION_SERVICE);
 }

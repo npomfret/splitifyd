@@ -6,6 +6,7 @@ import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrati
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb, firebaseAuth } from '../../../firebase';
+import { registerAllServices, getUserService } from '../../../services/serviceRegistration';
 
 describe('UserService - Integration Tests', () => {
     let apiDriver: ApiDriver;
@@ -14,7 +15,10 @@ describe('UserService - Integration Tests', () => {
 
     beforeAll(async () => {
         apiDriver = new ApiDriver(firestoreDb);
-        userService = new UserService();
+        
+        // Register all services before creating instances
+        registerAllServices();
+        userService = getUserService();
 
         // Create user pool with 3 users
         userPool = new FirebaseIntegrationTestUserPool(apiDriver, 3);

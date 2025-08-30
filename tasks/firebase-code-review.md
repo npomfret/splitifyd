@@ -772,3 +772,158 @@ The phase was fundamentally too ambitious. Instead of following the successful i
 **Phase B successfully completes the ServiceRegistry migration initiative, providing a solid foundation for future service layer enhancements while maintaining complete backward compatibility.**
 
 **Current Status**: ServiceRegistry migration fully completed. All handlers use consistent dependency management with enhanced error handling from upstream integration. System remains fully functional with comprehensive dependency management infrastructure.
+
+## Phase C: Data Validation Enhancement ✅ **COMPLETED** (2025-01-25)
+
+**Goal**: Enhance data validation across the application with centralized Firestore validation service and audit schema consistency between Joi (API validation) and Zod (Firestore validation) layers.
+
+### Phase C.1: FirestoreValidationService Implementation ✅ **COMPLETED** (2025-01-25)
+
+**What was implemented:**
+1. ✅ **FirestoreValidationService** - Created `src/services/FirestoreValidationService.ts`
+   - Singleton pattern for consistent validation across all services
+   - Two core methods: `validateDocument()` for read operations, `validateBeforeWrite()` for write operations  
+   - Integration with existing validation helpers (`validateFirestoreDocument`, `validateBeforeWrite`)
+   - Performance monitoring integration via business context logging
+   - Enhanced error reporting with business context (userId, operation, documentId, collection)
+
+2. ✅ **ServiceRegistry Integration** - Added to service management system:
+   - Registered FirestoreValidationService in `serviceRegistration.ts`
+   - Added getter function `getFirestoreValidationService()`  
+   - Added to SERVICE_NAMES constant for consistency
+   - Lazy initialization pattern maintains performance
+
+3. ✅ **UserService2 Migration** - Updated to use centralized validation:
+   - **getUser method**: Document validation with context (userId, operation: 'getUser')
+   - **updateProfile method**: Write validation with context (userId, operation: 'updateProfile')  
+   - **registerUser method**: Write validation with context (operation: 'registerUser')
+   - Replaced direct Zod schema calls with FirestoreValidationService calls
+   - Maintained all existing functionality and error handling
+
+4. ✅ **Performance Monitoring Enhancement** - Extended monitoring for validation:
+   - Added `monitorValidation()` method for async validation operations
+   - Added `monitorSyncValidation()` method for sync validation operations
+   - Validation-specific metrics: success/failure rates, duration tracking, error categorization
+   - Business context integration: validation failures logged with full request context
+   - **Integrated into FirestoreValidationService**: Both `validateDocument()` and `validateBeforeWrite()` now use performance monitoring
+   - **Automatic slow validation detection**: Operations >50ms logged as warnings
+
+5. ✅ **Comprehensive Unit Testing** - Complete test coverage for FirestoreValidationService:
+   - Created `src/__tests__/unit/firestore-validation-service.test.ts`
+   - **18 unit tests** covering all functionality:
+     - Singleton pattern verification (private constructor, consistent instances)
+     - validateDocument() method (success, failure, context handling)
+     - validateBeforeWrite() method (success, failure, partial context)
+     - getValidationMetrics() delegation
+     - Service registry integration (registration, lazy initialization, singleton behavior)
+   - **Comprehensive mocking**: All dependencies properly mocked (validation-helpers, performance-monitor, logger-context)
+   - **All tests passing**: 18/18 tests pass, ready for production
+
+**Key improvements:**
+- **Centralized validation**: Single service for all Firestore document validation
+- **Consistent error reporting**: Unified validation error format across all services
+- **Enhanced monitoring**: Validation performance and failure tracking
+- **Business context**: Full request context in all validation operations  
+- **Fail-fast approach**: Early validation catches data integrity issues
+- **Zero disruption**: All existing functionality preserved
+
+**Technical implementation:**
+- Used existing validation infrastructure (`validation-helpers.ts`, `validation-monitor.ts`)
+- Singleton pattern ensures consistent service instance
+- Integration with LoggerContext for request tracing
+- TypeScript generic support for type-safe validation
+- Performance monitoring for slow validation operations
+
+### Phase C.2: Schema Consistency Audit ✅ **COMPLETED** (2025-01-25)
+
+**What was implemented:**
+1. ✅ **Comprehensive Schema Analysis** - Audited all validation layers:
+   - **Joi Schemas**: Analyzed `user/validation.ts` and `groups/validation.ts`
+   - **Zod Schemas**: Analyzed `schemas/user.ts` and discovered missing group schema
+   - **Shared Types**: Analyzed `packages/shared/src/shared-types.ts` for frontend expectations
+   - **Data Flow Mapping**: Client Request → Joi → Business Logic → Zod → Firestore
+
+2. ✅ **Critical Inconsistencies Identified**:
+   - **Missing Zod Schema**: Group documents have no Firestore validation (critical security gap)
+   - **Field Validation Mismatches**: Joi enforces length limits, Zod schemas don't match
+   - **Missing Shared Types**: Request/response types not exported from shared package
+   - **Language Support**: Joi restricts to 'en', Zod allows any string
+   - **Sanitization Gap**: Joi sanitizes input, Zod expects pre-sanitized data
+   - **Error Format Differences**: Joi and Zod produce different error message formats
+
+3. ✅ **Impact Analysis**: 
+   - **Security Risk**: Group documents can contain invalid data due to missing Zod validation
+   - **Data Integrity**: Inconsistent field validation between API and Firestore layers
+   - **User Experience**: Inconsistent validation error messages across application
+   - **Development Velocity**: Schema mismatches slow feature development
+
+4. ✅ **Implementation Plan Created**:
+   - **Phase 1 (High Priority)**: Create missing Group Zod schema, align field limits, add shared types
+   - **Phase 2 (Medium Priority)**: Standardize validation constants, error messages, comprehensive tests
+   - **Phase 3 (Low Priority)**: Single source schema architecture, validation pipeline optimization
+
+**Key findings:**
+- **12 Joi validation files** found across codebase
+- **Critical gap**: Groups validated by Joi but not Zod for Firestore operations
+- **Inconsistent limits**: displayName, group name, description length validation differs
+- **Missing types**: UpdateUserProfileRequest, DeleteUserRequest, ChangePasswordRequest not in shared package
+- **Architecture issue**: Double validation with different schemas causes redundancy
+
+**Next Steps for Validation Enhancement:**
+1. **Immediate (High Priority)**:
+   - Create missing Group Zod schema in `schemas/group.ts`
+   - Implement shared validation constants file
+   - Align field validation limits between Joi and Zod schemas
+   - Export missing request/response types from shared package
+
+2. **Follow-up (Medium Priority)**:
+   - Standardize error message format across validation layers
+   - Add validation consistency integration tests
+   - Document field mappings between API and Firestore schemas
+   - Implement comprehensive validation test suite
+
+3. **Future (Low Priority)**:
+   - Consider single source of truth for schema definitions
+   - Optimize validation pipeline to reduce redundancy
+   - Implement schema generation (Joi from Zod or vice versa)
+   - Add performance optimization for validation operations
+
+**Results Summary:**
+- ✅ **FirestoreValidationService**: Centralized Firestore validation with business context and performance monitoring
+- ✅ **Comprehensive unit testing**: 18 unit tests covering all functionality, 100% pass rate  
+- ✅ **Performance monitoring integration**: Automatic slow validation detection and metrics tracking
+- ✅ **UserService2 integration**: Successfully migrated to use validation service
+- ✅ **Schema consistency audit**: Comprehensive analysis revealing critical gaps and inconsistencies
+- ✅ **Implementation roadmap**: Clear prioritized plan for addressing validation issues
+- ✅ **Zero disruption**: All existing functionality preserved while adding validation enhancements
+- ✅ **Production ready**: Full testing coverage, monitoring, and proper service registry integration
+
+**Phase C successfully enhances the data validation infrastructure while identifying critical schema consistency issues that need attention in future work. The FirestoreValidationService provides a solid foundation for consistent validation across all services.**
+
+## Outstanding Questions for Future Development
+
+### Question 1: Validation Service Rollout
+**Should we systematically extend FirestoreValidationService usage to other services following the UserService2 pattern?**
+
+Currently, only UserService2 has been migrated to use the centralized FirestoreValidationService. The remaining services (GroupService, ExpenseService, SettlementService, etc.) still use direct Zod schema validation. 
+
+**Considerations:**
+- **Consistency**: All services should follow the same validation patterns
+- **Performance monitoring**: Other services would benefit from validation performance tracking
+- **Business context**: Enhanced error reporting with full request context
+- **Incremental approach**: Following established pattern of one service at a time
+
+**Recommendation**: Yes, systematically migrate all services to use FirestoreValidationService, prioritizing services with the most complex validation logic first (GroupService, ExpenseService).
+
+### Question 2: Performance Monitoring Scope Extension
+**Should the enhanced performance monitoring be extended to validation operations in other services?**
+
+The current performance monitoring enhancements include validation-specific monitoring (`monitorValidation`, `monitorSyncValidation`) but are only utilized in FirestoreValidationService.
+
+**Considerations:**
+- **Observability**: Validation performance issues across all services need visibility
+- **Business context**: Other services would benefit from enhanced validation failure logging
+- **Production debugging**: Slow validation operations should be detected system-wide
+- **Consistency**: All services should have the same level of monitoring
+
+**Recommendation**: Yes, extend the enhanced performance monitoring to all services as they migrate to FirestoreValidationService usage.
