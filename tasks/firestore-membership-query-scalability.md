@@ -414,5 +414,233 @@ groups.forEach(group => {
 
 The immediate scalability problem (new user index errors) has been **completely resolved**. The dual-write architecture is working perfectly and tests confirm the solution is production-ready.
 
-**Optional Future Optimizations** (Phases 4-8):
-These phases are now **optional** since the core issue is fixed. They can be implemented when/if additional optimization is needed.
+---
+
+## 🧹 CLEANUP TASKS NEEDED
+
+### Current Technical Debt
+While the core issue is resolved, we have introduced technical debt that violates project guidelines:
+
+1. **Dual-Write Architecture** - Writing to both subcollections AND embedded members
+2. **Backward Compatibility Code** - Violates "No backward-compatible code, ever" rule
+3. **getLegacyMembersMap()** - Temporary adapter that should be removed
+4. **Embedded members field** - Still present in Group documents (redundant data)
+
+### Recommended Cleanup Approach
+
+#### Option A: Full Cleanup (Phases 6-7) 
+**Time: ~5 hours total**
+- Remove embedded members completely
+- Update frontend to fetch members separately
+- Clean, modern architecture
+- **Downside:** Breaking change, requires coordinated frontend/backend deployment
+
+#### Option B: Backend-Only Cleanup
+**Time: ~2 hours**
+- Keep API contracts identical
+- Remove dual-write to embedded members
+- Use subcollections exclusively internally
+- Populate `members` field only in API responses (not stored)
+- **Benefit:** No frontend changes needed
+
+#### Option C: Gradual Migration
+**Time: Ongoing**
+- Add feature flag for subcollection-only mode
+- Test in staging/production gradually
+- Remove dual-write once confident
+- Eventually deprecate embedded members
+
+### Immediate Cleanup Tasks (Recommended)
+
+1. **Remove redundant logging** - Clean up debug logs added during implementation
+2. **Add monitoring** - Track dual-write performance impact
+3. **Document the architecture** - Add inline comments explaining the temporary dual-write
+4. **Create tech debt ticket** - Track the cleanup work for future sprint
+
+---
+
+## 🎯 RECOMMENDED CLEANUP PLAN: Option B (Backend-Only)
+
+### Phase 5: Backend Cleanup ⏱️ 2 hours
+
+**Goal:** Remove dual-write technical debt while maintaining API compatibility
+
+#### Step 5.1: Stop Writing to Embedded Members (45 min)
+1. Update `MemberService` methods:
+   - Remove embedded member writes from `addMember()`
+   - Remove embedded member writes from `removeMember()`
+   - Remove embedded member writes from `updateMember()`
+2. Keep `getLegacyMembersMap()` for API response population
+
+#### Step 5.2: Clean Group Document Creation (30 min)
+1. Update `GroupService.createGroup()`:
+   - Don't write empty `members: {}` to group document
+   - Use subcollection-only for member storage
+   - Populate `members` field in response via `getLegacyMembersMap()`
+
+#### Step 5.3: Remove Redundant Code (30 min)
+1. Clean up debug logging from implementation
+2. Add inline comments explaining architecture decisions
+3. Remove unused imports and dead code paths
+
+#### Step 5.4: Add Monitoring (15 min)
+1. Add performance metrics for subcollection queries
+2. Add error tracking for collection group queries
+3. Monitor API response times
+
+### Success Criteria Phase 5:
+- ✅ No dual-write operations (clean architecture)
+- ✅ API contracts unchanged (backward compatible responses)  
+- ✅ All tests still pass
+- ✅ Production monitoring in place
+- ✅ Technical debt resolved per project guidelines
+
+### Files to Change (Phase 5):
+- `firebase/functions/src/services/MemberService.ts` - Remove embedded writes
+- `firebase/functions/src/services/GroupService.ts` - Remove embedded member creation
+- Add monitoring/metrics where appropriate
+
+### Future Consideration (Optional Phase 6):
+Once confident in subcollection architecture:
+- Remove `getLegacyMembersMap()` method
+- Remove `members` field from API responses  
+- Update frontend to fetch members separately
+- **Note:** This becomes a breaking change requiring frontend updates
+
+---
+
+## 🔄 REVISED APPROACH: Frontend-First Migration
+
+### Problem with Original Cleanup Plan
+The original Phase 5 cleanup approach had a critical flaw: **we cannot remove the dual-write backend code until the frontend stops reading from embedded members**. 
+
+**Key Insight**: The frontend currently expects `group.members` field in API responses. If we remove dual-write first, we create a data inconsistency risk.
+
+### Correct Migration Order: UI First, Then Backend
+
+```
+Current State: Backend writes to BOTH → Frontend reads from embedded
+Target State:  Backend writes to subcollections → Frontend reads from separate API
+```
+
+---
+
+## 🎯 REVISED MIGRATION PLAN: Frontend-First
+
+### Phase 1: Backend API Enhancement ⏱️ 30 min
+
+**Goal**: Ensure `/groups/:id/members` endpoint reads from subcollections
+
+#### Step 1.1: Update GroupMemberService.getGroupMembers() (20 min)
+- Change from reading `group.members` to `memberService.getGroupMembers()`
+- Keep identical response format for frontend compatibility
+- Test that endpoint returns subcollection data
+
+#### Step 1.2: Verify API Contract (10 min)
+- Confirm `/groups/:id/members` returns data from subcollections
+- Ensure response matches `GroupMembersResponseSchema`
+
+### Phase 2: Frontend Migration ⏱️ 2 hours
+
+**Goal**: Update frontend to fetch members separately instead of expecting embedded
+
+#### Step 2.1: Update Type Definitions (20 min)
+- Make `members` field optional in `GroupSchema` (frontend)
+- Update `@splitifyd/shared` Group interface if needed
+- Plan for eventual removal of members field
+
+#### Step 2.2: Create Member Fetching Pattern (30 min)
+- Add `getGroupMembers(groupId)` method to API client
+- Create caching strategy for member data
+- Handle loading states for member fetching
+
+#### Step 2.3: Update Components (70 min)
+Components that currently use `group.members`:
+- `MembersList.tsx` - Display list of group members
+- `PayerSelector.tsx` - Select who paid for expense  
+- `ParticipantSelector.tsx` - Select expense participants
+- `SplitAmountInputs.tsx` - Input split amounts per member
+- `SplitBreakdown.tsx` - Show expense split breakdown
+- `ExpenseItem.tsx` - Display expense with member info
+
+Change each to:
+- Fetch members via separate API call
+- Handle member loading states
+- Maintain same UI/UX experience
+
+### Phase 3: Remove Embedded Members from API Responses ⏱️ 1 hour
+
+**Goal**: Stop including `members` field in group API responses
+
+#### Step 3.1: Update GroupService.listGroups() (30 min)
+- Remove line: `group.members = legacyMembers`
+- Groups returned without embedded members
+- Frontend now must use separate member API
+
+#### Step 3.2: Update GroupService.getGroup() (30 min)
+- Remove member population from single group responses
+- Verify group detail pages still work with separate member fetching
+
+### Phase 4: Stop Dual-Write Operations ⏱️ 30 min
+
+**Goal**: Remove all embedded member writes (clean architecture)
+
+#### Step 4.1: Update Group Creation (15 min)
+- `GroupService.createGroup()`: Remove embedded member writes
+- Only create members in subcollections
+- Don't include `members: {}` in group document
+
+#### Step 4.2: Update Member Operations (15 min)
+- `GroupShareService.joinGroupByLink()`: Remove embedded updates
+- `GroupPermissionService.setMemberRole()`: Remove embedded updates  
+- Verify all operations work via subcollections only
+
+### Phase 5: Final Cleanup ⏱️ 30 min
+
+#### Step 5.1: Remove Legacy Code (20 min)
+- Remove `MemberService.getLegacyMembersMap()` method
+- Remove debug logging from migration
+- Remove unused embedded member handling code
+
+#### Step 5.2: Documentation & Testing (10 min)
+- Update inline comments
+- Run full test suite
+- Verify performance improvements
+
+---
+
+## 🎯 SUCCESS CRITERIA
+
+### After Phase 2 (Frontend Migration):
+- ✅ Frontend fetches members via `/groups/:id/members` API
+- ✅ UI continues to work identically for end users
+- ✅ Backend still dual-writing (safety net in place)
+
+### After Phase 3 (Remove Embedded Members):
+- ✅ API responses no longer include embedded `members` field
+- ✅ Frontend exclusively uses separate member API
+- ✅ Backend still dual-writing to subcollections
+
+### After Phase 4 (Stop Dual-Write):
+- ✅ Clean architecture: subcollection-only writes
+- ✅ No embedded member data in group documents
+- ✅ All operations via MemberService
+
+### After Phase 5 (Cleanup):
+- ✅ No legacy compatibility code
+- ✅ Clean, modern scalable architecture
+- ✅ Full migration completed
+
+---
+
+## 🔄 WHY THIS ORDER WORKS
+
+1. **Phase 1**: Ensures backend API provides subcollection data
+2. **Phase 2**: Frontend learns to read from new source (with fallback still available)
+3. **Phase 3**: Remove embedded data from responses (frontend ready)
+4. **Phase 4**: Stop writing embedded data (clean architecture)
+5. **Phase 5**: Remove all legacy/compatibility code
+
+**Key Safety**: Each phase can be independently rolled back without data loss or user impact.
+
+**Status:** Ready to begin frontend-first migration approach
