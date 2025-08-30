@@ -10,6 +10,7 @@ import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMembe
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
 import { transformGroupDocument } from '../groups/handlers';
+import { memberService } from './MemberService';
 
 export class GroupShareService {
     private generateShareToken(): string {
@@ -266,7 +267,17 @@ export class GroupShareService {
             return {
                 groupName: group.name,
                 invitedBy: shareLink.createdBy,
+                newMember: newMember,
             };
+        });
+
+        // PHASE 3: Also add member to subcollection for new architecture
+        await memberService.addMember(groupId, userId, {
+            role: result.newMember.role,
+            status: result.newMember.status,
+            invitedBy: result.newMember.invitedBy,
+            joinedAt: result.newMember.joinedAt,
+            themeIndex: result.newMember.theme.colorIndex,
         });
 
         logger.info('User joined group via share link', {

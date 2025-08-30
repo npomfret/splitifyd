@@ -10,6 +10,7 @@ import { GroupDocumentSchema } from '../schemas';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { z } from 'zod';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { memberService } from './MemberService';
 
 export class GroupPermissionService {
     private getGroupsCollection() {
@@ -249,6 +250,12 @@ export class GroupPermissionService {
         updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
+
+        // PHASE 3: Also update role in subcollection for new architecture
+        await memberService.updateMember(groupId, targetUserId, {
+            role: role,
+            lastPermissionChange: now,
+        });
         
         // Validate the group document after update
         await this.validateUpdatedGroupDocument(groupDoc.ref, 'member role change');

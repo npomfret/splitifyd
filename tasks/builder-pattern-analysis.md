@@ -2,39 +2,40 @@
 
 ## Executive Summary
 
-After analyzing the codebase, the original plan has critical gaps. This revision provides a realistic, actionable approach.
+This document provides a detailed, incremental implementation plan for consolidating and improving the builder pattern across the codebase. Based on analysis of the current state, we have identified significant opportunities to improve test maintainability, reduce code duplication, and enforce consistent patterns.
 
-**Current State (VERIFIED):**
-- 9 builders in `packages/test-support/builders` (not 8 as originally stated)
-- 7 ad-hoc builders scattered across test files
-- Manual object creation in `debtSimplifier.test.ts` (10+ manual UserBalance objects)
-- E2E tests use workflows/page objects pattern, not builders
+**Current State:**
+- 8 well-designed builders in `packages/test-support/builders`
+- 7+ ad-hoc builders scattered across test files
+- Manual object creation in critical test files
+- E2E tests with hardcoded test data
 - No governance to prevent pattern drift
 
 **Target State:**
-- Extract ad-hoc builders to shared package
-- Create UserBalanceBuilder for debt test scenarios
-- Enhance E2E test data generation (not direct builders)
-- Implement governance to prevent regression
+- All builders consolidated in shared package
+- Zero ad-hoc builders in test files
+- Complex objects created exclusively via builders
+- E2E tests using builders for dynamic test data
+- Automated enforcement of builder patterns
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Extract Ad-hoc Builders ⭐ **HIGH PRIORITY**
-**Timeline: 4-5 hours | Risk: Medium**
+### Phase 1: Extract and Consolidate Ad-hoc Builders ⭐ **HIGH PRIORITY**
+**Timeline: 2-3 hours | Risk: Low**
 
-#### 1.1 Extract from `balanceCalculator.test.ts`
+#### 1.1 Extract from `firebase/functions/src/__tests__/unit/balanceCalculator.test.ts`
 
-**Critical Finding**: These builders extend existing builders, need careful handling:
-- `FirestoreExpenseBuilder` (line 36) → extends ExpenseBuilder, adds Firestore fields
-- `FirestoreSettlementBuilder` (line 81) → extends SettlementBuilder, adds Firestore fields
-- `MockGroupBuilder` (line 145) → standalone, direct extraction
-- `UserProfileBuilder` (line 196) → standalone, direct extraction  
-- `MockFirestoreBuilder` (line 124) → utility class for mocking
+**Builders to Extract:**
+- `FirestoreExpenseBuilder` (line 36) → extends ExpenseBuilder
+- `FirestoreSettlementBuilder` (line 81) → extends SettlementBuilder  
+- `MockGroupBuilder` (line 145) → creates mock group objects
+- `UserProfileBuilder` (line 196) → creates user profile test data
+- `MockFirestoreBuilder` (line 124) → creates mock Firestore instances
 
 **Implementation Steps:**
-1. Create files in `packages/test-support/builders/`:
+1. Create new files in `packages/test-support/builders/`:
    - `FirestoreExpenseBuilder.ts`
    - `FirestoreSettlementBuilder.ts` 
    - `MockGroupBuilder.ts`
@@ -45,16 +46,18 @@ After analyzing the codebase, the original plan has critical gaps. This revision
 4. Add exports to `packages/test-support/builders/index.ts`
 5. Run tests to verify functionality
 
-#### 1.2 Extract from `comments-validation.test.ts`
+#### 1.2 Extract from `firebase/functions/src/__tests__/unit/comments-validation.test.ts`
 
 **Builders to Extract:**
-- `CommentRequestBuilder` (line 6) → fluent interface for comment requests
-- `QueryBuilder` (line 78) → creates Firestore query mocks (rename to avoid conflicts)
+- `CommentRequestBuilder` (line 6) → creates comment request objects
+- `QueryBuilder` (line 78) → creates Firestore query mocks
 
 **Implementation Steps:**
-1. Create `CommentRequestBuilder.ts` and `CommentQueryBuilder.ts`
-2. Update imports and test references
-3. Add to index.ts exports
+1. Create `packages/test-support/builders/CommentRequestBuilder.ts`
+2. Create `packages/test-support/builders/QueryBuilder.ts`
+3. Update imports in `comments-validation.test.ts`
+4. Add exports to index.ts
+5. Run tests to verify functionality
 
 **Success Criteria:**
 - ✅ All ad-hoc builders moved to shared package
@@ -64,34 +67,48 @@ After analyzing the codebase, the original plan has critical gaps. This revision
 
 ---
 
-### Phase 2: UserBalanceBuilder for Debt Tests ⭐ **HIGH PRIORITY**  
-**Timeline: 3 hours | Risk: Medium**
+### Phase 2: Create Essential New Builders ⭐ **HIGH PRIORITY**
+**Timeline: 2 hours | Risk: Medium**
 
-#### 2.1 The Problem
-`debtSimplifier.test.ts` has 10+ manually created `UserBalance` objects:
+#### 2.1 UserBalanceBuilder - Critical for debtSimplifier.test.ts
+
+**Problem:** Manual creation of complex `UserBalance` objects 10+ times
 ```typescript
+// Current problematic pattern:
 const balances: Record<string, UserBalance> = {
-    user1: { userId: 'user1', owes: { user2: 50 }, owedBy: {}, netBalance: 0 },
-    user2: { userId: 'user2', owes: {}, owedBy: { user1: 50 }, netBalance: 0 }
+    user1: {
+        userId: 'user1',
+        owes: { user2: 50 },
+        owedBy: {},
+        netBalance: -50
+    },
+    // ... repeated manually
 };
 ```
 
-#### 2.2 UserBalanceBuilder Implementation
+**Solution:** Create `packages/test-support/builders/UserBalanceBuilder.ts`
 ```typescript
 export class UserBalanceBuilder {
     private balance: UserBalance;
 
     constructor(userId: string) {
-        this.balance = { userId, owes: {}, owedBy: {}, netBalance: 0 };
+        this.balance = {
+            userId,
+            owes: {},
+            owedBy: {},
+            netBalance: 0
+        };
     }
 
-    owes(userId: string, amount: number): this {
+    withOwes(userId: string, amount: number): this {
         this.balance.owes[userId] = amount;
+        this.calculateNetBalance();
         return this;
     }
 
-    owedBy(userId: string, amount: number): this {
+    withOwedBy(userId: string, amount: number): this {
         this.balance.owedBy[userId] = amount;
+        this.calculateNetBalance();
         return this;
     }
 
@@ -101,22 +118,26 @@ export class UserBalanceBuilder {
 }
 ```
 
-#### 2.3 Test Data Factory Pattern
-Create common debt scenarios:
+#### 2.2 BalancesBuilder - Composite Builder Pattern
+
+Create `packages/test-support/builders/BalancesBuilder.ts` for building complete balance scenarios:
 ```typescript
-export const DebtScenarios = {
-    simpleDebt: () => ({
-        user1: new UserBalanceBuilder('user1').owes('user2', 50).build(),
-        user2: new UserBalanceBuilder('user2').owedBy('user1', 50).build()
-    }),
-    
-    triangularDebt: () => ({
-        user1: new UserBalanceBuilder('user1').owes('user2', 30).owedBy('user3', 30).build(),
-        user2: new UserBalanceBuilder('user2').owes('user3', 30).owedBy('user1', 30).build(),
-        user3: new UserBalanceBuilder('user3').owes('user1', 30).owedBy('user2', 30).build()
-    })
-};
+export class BalancesBuilder {
+    private balances: Record<string, UserBalance> = {};
+
+    addUser(userId: string, builderFn: (builder: UserBalanceBuilder) => UserBalanceBuilder): this {
+        const balance = builderFn(new UserBalanceBuilder(userId)).build();
+        this.balances[userId] = balance;
+        return this;
+    }
+
+    build(): Record<string, UserBalance> {
+        return { ...this.balances };
+    }
+}
 ```
+
+**Refactoring Target:** Replace all manual balance creation in `debtSimplifier.test.ts`
 
 **Success Criteria:**
 - ✅ UserBalanceBuilder handles all balance scenarios
@@ -126,118 +147,261 @@ export const DebtScenarios = {
 
 ---
 
-### Phase 3: E2E Test Data Generation 🔶 **MEDIUM PRIORITY**
-**Timeline: 8-10 hours | Risk: High**
+### Phase 3: E2E Test Data Builders 🔶 **MEDIUM PRIORITY**
+**Timeline: 3-4 hours | Risk: Medium**
 
-#### 3.1 Architecture Reality Check
-E2E tests use **workflows and page objects**, not direct builders. Examples:
-- `GroupWorkflow.createGroup()` 
-- `generateTestGroupName()` from test-support
-- Page objects handle UI interactions
+#### 3.1 Create E2E-Specific Builders
 
-#### 3.2 Actual Solution: Enhance Test Data Generation
-Instead of builders, improve existing patterns:
+**Current Problem:** Hardcoded test data throughout E2E tests
+- Static strings like "Test Group", "Alice", "Bob"
+- No data uniqueness for parallel execution
+- Difficult to create complex test scenarios
 
-**Enhance `generateTestGroupName()`:**
+**Solution: Create specialized E2E builders**
+
+**GroupTestDataBuilder:**
 ```typescript
-export const TestDataGenerator = {
-  uniqueGroupName: (prefix: string = 'Test') => 
-    `${prefix} Group ${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-    
-  uniqueEmail: () => 
-    `test-${Date.now()}@example.com`,
-    
-  expenseData: (type: 'simple' | 'complex') => ({
-    description: `${type} expense ${Date.now()}`,
-    amount: type === 'simple' ? '25' : '150.50',
-    category: type === 'simple' ? 'Food' : 'Bills & Utilities'
-  })
+export class GroupTestDataBuilder {
+    private data: GroupTestData;
+
+    constructor() {
+        this.data = {
+            name: `Test Group ${Date.now()}`,
+            description: `Auto-generated test group`,
+            currency: 'USD'
+        };
+    }
+
+    withName(name: string): this {
+        this.data.name = name;
+        return this;
+    }
+
+    forParallelExecution(): this {
+        this.data.name += ` - ${Math.random().toString(36).substr(2, 9)}`;
+        return this;
+    }
 }
 ```
 
-#### 3.3 Focus Areas
-1. **Parallel Test Safety**: Ensure all test data is unique
-2. **Workflow Enhancement**: Add data generation to existing workflows  
-3. **Leave Page Objects**: They work well as-is
-
-**Success Criteria:**
-- ✅ All test data guaranteed unique for parallel execution
-- ✅ Enhanced workflows for common scenarios
-- ✅ Zero changes to working page object pattern
-
----
-
-### Phase 4: Prevent Regression 🔶 **MEDIUM PRIORITY**
-**Timeline: 2 hours | Risk: Low**
-
-#### 4.1 Pre-commit Hook (More Practical than ESLint)
-```bash
-#!/bin/bash
-# Check for new Builder classes outside test-support
-if grep -r "class.*Builder" --include="*.ts" --exclude-dir="node_modules" --exclude-dir="packages/test-support" .; then
-    echo "ERROR: Found Builder class outside packages/test-support/"
-    echo "Move to packages/test-support/builders/ or use existing builders"
-    exit 1
-fi
-```
-
-#### 4.2 Builder Validation Tests
-Create test to ensure all builders follow pattern:
+**ExpenseScenarioBuilder:**
 ```typescript
-describe('Builder Pattern Validation', () => {
-  it('should have build() method', () => {
-    // Test all exported builders have build() method
-  });
-  
-  it('should return new instance on build()', () => {
-    // Ensure immutability
-  });
-});
+export class ExpenseScenarioBuilder {
+    private scenario: ExpenseScenario;
+
+    static simpleSplit(): ExpenseScenarioBuilder {
+        return new ExpenseScenarioBuilder()
+            .withAmount(100)
+            .withDescription('Test expense')
+            .splitEqually();
+    }
+
+    static complexSplit(): ExpenseScenarioBuilder {
+        return new ExpenseScenarioBuilder()
+            .withAmount(150)
+            .withCustomSplits();
+    }
+}
 ```
 
+#### 3.2 Refactor E2E Tests
+
+**Target Files:**
+- `e2e-tests/src/tests/normal-flow/**/*.test.ts`
+- `e2e-tests/src/tests/error-testing/**/*.test.ts`
+
+**Implementation Strategy:**
+1. Replace hardcoded group names with `GroupTestDataBuilder`
+2. Replace hardcoded expense data with `ExpenseScenarioBuilder`
+3. Use `UserBuilder` for dynamic user creation
+4. Ensure all test data is unique for parallel execution
+
 **Success Criteria:**
-- ✅ Pre-commit hook prevents new ad-hoc builders
-- ✅ Validation tests ensure consistent patterns
+- ✅ Zero hardcoded test data strings in E2E tests
+- ✅ All test data generated dynamically
+- ✅ Tests can run in parallel without conflicts
+- ✅ Complex scenarios easier to create and maintain
 
 ---
 
-## REMOVED PHASES
+### Phase 4: Establish Governance 🔶 **MEDIUM PRIORITY** 
+**Timeline: 1-2 hours | Risk: Low**
 
-**Phase 5 & 6 were theoretical fluff. Focus on Phases 1-4.**
+#### 4.1 Create Builder Guidelines
+
+**Create `packages/test-support/BUILDER_GUIDELINES.md`:**
+```markdown
+# Builder Pattern Guidelines
+
+## When to Create a New Builder
+- Complex objects with 3+ properties
+- Objects used in multiple test files
+- Objects with conditional logic or computed properties
+
+## Builder Requirements
+- Must be in packages/test-support/builders/
+- Must implement fluent interface
+- Must provide sensible defaults
+- Must have build() method
+- Should have reset() method for reuse
+
+## Naming Conventions
+- Class: {ObjectType}Builder
+- File: {ObjectType}Builder.ts
+- Methods: with{PropertyName}(value)
+```
+
+#### 4.2 Add Automated Enforcement
+
+**ESLint Custom Rule:**
+```javascript
+// .eslintrc.js addition
+rules: {
+  'custom/no-adhoc-builders': 'error'
+}
+```
+
+**Rule Logic:**
+- Detect `class *Builder` outside of `packages/test-support/builders/`
+- Suggest moving to shared package
+- Block CI/CD if violations found
+
+**Success Criteria:**
+- ✅ Clear guidelines documented
+- ✅ ESLint rule prevents new ad-hoc builders
+- ✅ Pre-commit hook validates builder locations
 
 ---
 
-## Success Metrics
+### Phase 5: Clean Up and Optimize 🟡 **LOW PRIORITY**
+**Timeline: 1 hour | Risk: Low**
 
-### Quantitative Targets  
-- ✅ Zero ad-hoc builders in test files (currently 7)
-- ✅ Replace 10+ manual UserBalance objects in debtSimplifier.test.ts
-- ✅ Pre-commit hook preventing regression
+#### 5.1 Remove Deprecated Files
+- Delete `e2e-tests/src/constants/selectors.ts` (deprecated)
+- Delete `e2e-tests/src/utils/error-proxy.ts` (deprecated)
+- Clean up unused imports
 
-### Verification
-1. **After Each Phase:** Run full test suite
-2. **Phase 1:** Check imports work correctly  
-3. **Phase 2:** All debt scenarios use builders
-4. **Phase 4:** Pre-commit hook catches violations
+#### 5.2 Builder Enhancements
+
+**Add Standard Methods to All Builders:**
+```typescript
+interface StandardBuilder<T> {
+    build(): T;
+    reset(): this;           // Reset to defaults for reuse
+    buildMany(count: number): T[];  // Batch creation
+}
+```
+
+**Type Safety Improvements:**
+```typescript
+class TypedBuilder<T extends Record<string, any>> {
+    protected data: Partial<T> = {};
+    
+    build(): T {
+        // Ensure all required fields present
+        return this.data as T;
+    }
+}
+```
 
 ---
 
-## Risk Mitigation
+### Phase 6: Documentation and Training 🟡 **LOW PRIORITY**
+**Timeline: 1 hour | Risk: Low**
+
+#### 6.1 Update Test Documentation
+
+**Add to `docs/guides/testing.md`:**
+```markdown
+## Builder Pattern Usage
+
+### Creating Test Data
+```typescript
+// ✅ Good - Use builders
+const user = new UserBuilder()
+    .withEmail('test@example.com')
+    .withDisplayName('Test User')
+    .build();
+
+// ❌ Bad - Manual object creation
+const user = {
+    email: 'test@example.com',
+    displayName: 'Test User',
+    // ... many more properties
+};
+```
+
+#### 6.2 Migration Examples
+
+**Before/After Examples:**
+```typescript
+// BEFORE: Manual, brittle, duplicated
+const balances: Record<string, UserBalance> = {
+    user1: { userId: 'user1', owes: { user2: 50 }, owedBy: {}, netBalance: -50 },
+    user2: { userId: 'user2', owes: {}, owedBy: { user1: 50 }, netBalance: 50 }
+};
+
+// AFTER: Builder, reusable, readable
+const balances = new BalancesBuilder()
+    .addUser('user1', b => b.withOwes('user2', 50))
+    .addUser('user2', b => b.withOwedBy('user1', 50))
+    .build();
+```
+
+---
+
+## Success Metrics & Verification
+
+### Quantitative Metrics
+- ✅ **Zero ad-hoc builders** in test files (currently 7+)
+- ✅ **50% reduction** in test setup code lines
+- ✅ **100% builder usage** for complex objects
+- ✅ **Zero hardcoded test data** in E2E tests
+- ✅ **ESLint rule** preventing pattern violations
+
+### Qualitative Improvements
+- ✅ **Improved readability** - tests focus on what matters
+- ✅ **Better maintainability** - changes in one place
+- ✅ **Reduced duplication** - reusable builders
+- ✅ **Easier onboarding** - clear patterns to follow
+- ✅ **Parallel test safety** - unique test data
+
+### Verification Steps
+1. **After Each Phase:** Run full test suite (`npm test`)
+2. **Code Review:** Verify builder quality and consistency
+3. **ESLint Check:** Ensure no rule violations
+4. **Documentation Review:** Confirm guidelines are clear
+5. **Team Training:** Walk through new patterns
+
+---
+
+## Risk Mitigation Strategy
 
 ### High-Risk Areas
-- **Test breakage** during extraction
-- **Import path issues** after moves
-- **Inheritance breakage** (FirestoreExpenseBuilder extends ExpenseBuilder)
+- **Test logic changes** - Keep original test logic intact
+- **Import path updates** - Use search/replace carefully
+- **Type compatibility** - Ensure builders match expected types
 
-### Mitigation
-- One builder extraction at a time  
-- Run tests after EACH extraction
-- Git branch per phase
-- Keep original test logic unchanged
+### Mitigation Actions
+- **Incremental approach** - One builder at a time
+- **Thorough testing** - Run tests after each extraction
+- **Rollback plan** - Git branches for each phase
+- **Team review** - Code review after Phase 1
+- **Documentation** - Clear migration examples
 
-## Immediate Next Steps
+### Rollback Triggers
+- Test suite failure rate > 5%
+- Build time increase > 20%
+- Team feedback indicates reduced productivity
+- ESLint rule causes excessive friction
 
-1. Create branch `refactor/builder-consolidation`
-2. Start with Phase 1.1 - extract MockGroupBuilder (simplest)
-3. Verify tests pass before continuing  
-4. Get team review after Phase 1 complete
+---
+
+## Next Steps
+
+1. **Get team approval** for implementation plan
+2. **Create feature branch** for builder consolidation
+3. **Start Phase 1** - extract ad-hoc builders
+4. **Review after Phase 1** - gather team feedback
+5. **Continue phases** based on priority and feedback
+6. **Document lessons learned** for future improvements

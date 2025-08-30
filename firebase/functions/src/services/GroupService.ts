@@ -11,7 +11,7 @@ import { transformGroupDocument } from '../groups/handlers';
 import { GroupDocumentSchema, GroupDataSchema } from '../schemas';
 import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { getUserService } from './serviceRegistration';
-import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
+import { memberService } from './MemberService';
 import { DOCUMENT_CONFIG } from '../constants';
 import { logger } from '../logger';
 import { parseISOToTimestamp, getRelativeTime, createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -309,14 +309,37 @@ export class GroupService {
         const order = options.order ?? 'desc';
         const includeMetadata = options.includeMetadata === true;
 
-        // Build base query - groups where user is a member
-        const baseQuery = this.getGroupsCollection().where(`members.${userId}`, '!=', null);
+        // SCALABILITY FIX: Use MemberService collection group query instead of embedded member query
+        // This replaces the problematic: .where(`members.${userId}`, '!=', null)
+        // which requires composite indexes for each new user
+        const userGroupIds = await memberService.getUserGroups(userId);
+        
+        if (userGroupIds.length === 0) {
+            // User is not a member of any groups
+            return {
+                groups: [],
+                count: 0,
+                hasMore: false,
+                pagination: {
+                    limit,
+                    order,
+                },
+                metadata: includeMetadata ? {
+                    lastChangeTimestamp: Date.now(),
+                    changeCount: 0,
+                    serverTime: Date.now(),
+                    hasRecentChanges: false,
+                } : undefined,
+            };
+        }
 
-        // Build paginated query
-        const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
-
+        // Fetch group documents for the user's groups
+        const groupPromises = userGroupIds.map(groupId => 
+            this.getGroupsCollection().doc(groupId).get()
+        );
+        
         // Execute parallel queries for performance
-        const queries: Promise<any>[] = [paginatedQuery.get()];
+        const queries: Promise<any>[] = [Promise.all(groupPromises)];
 
         // Include metadata query if requested
         if (includeMetadata) {
@@ -332,30 +355,62 @@ export class GroupService {
         }
 
         const results = await Promise.all(queries);
-        const snapshot = results[0] as QuerySnapshot;
+        const groupDocs = results[0];
         const changesSnapshot = includeMetadata ? (results[1] as QuerySnapshot) : null;
-        const documents = snapshot.docs;
 
-        // Determine if there are more results
-        const hasMore = documents.length > limit;
-        const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
+        // Filter out non-existent groups and transform to Group objects
+        const existingGroupDocs = groupDocs.filter((doc: any) => doc.exists);
+        let groups: Group[] = existingGroupDocs.map((doc: QueryDocumentSnapshot) => transformGroupDocument(doc));
+        
+        // BACKWARD COMPATIBILITY: Populate members field using legacy method
+        // This ensures existing code continues to work unchanged
+        for (const group of groups) {
+            try {
+                const legacyMembers = await memberService.getLegacyMembersMap(group.id);
+                // Only populate if subcollection has members (for gradual migration)
+                if (Object.keys(legacyMembers).length > 0) {
+                    group.members = legacyMembers;
+                }
+            } catch (error) {
+                // Fall back to embedded members if subcollection read fails
+                // This handles the case where data hasn't been migrated yet
+                logger.warn('Failed to fetch members from subcollection, using embedded members', {
+                    error: error as Error,
+                    groupId: group.id,
+                    userId,
+                });
+            }
+        }
 
-        // Transform documents to groups and extract group IDs
-        const groups: Group[] = returnedDocs.map((doc: QueryDocumentSnapshot) => transformGroupDocument(doc));
-        const groupIds = groups.map((group) => group.id);
+        // Sort groups by updatedAt (to simulate the original query ordering)
+        groups.sort((a, b) => {
+            const aTime = new Date(a.updatedAt).getTime();
+            const bTime = new Date(b.updatedAt).getTime();
+            return order === 'desc' ? bTime - aTime : aTime - bTime;
+        });
+
+        // Apply pagination after sorting
+        // NOTE: This is in-memory pagination, which is less efficient but necessary
+        // for this transition phase. Phase 8 will restore cursor-based pagination
+        const startIndex = cursor ? parseInt(cursor, 10) : 0;
+        const endIndex = startIndex + limit;
+        const hasMore = groups.length > endIndex;
+        const returnedGroups = groups.slice(startIndex, endIndex);
+
+        const groupIds = returnedGroups.map((group) => group.id);
 
         // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
         const { expenseMetadataByGroup } = await this.batchFetchGroupData(groupIds);
 
         // Batch fetch user profiles for all members across all groups
         const allMemberIds = new Set<string>();
-        for (const group of groups) {
+        for (const group of returnedGroups) {
             Object.keys(group.members).forEach((memberId) => allMemberIds.add(memberId));
         }
         const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
 
         // Calculate balances for groups that have expenses
-        const groupsWithExpenses = groups.filter(group => {
+        const groupsWithExpenses = returnedGroups.filter(group => {
             const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
             return expenseMetadata.count > 0;
         });
@@ -378,7 +433,7 @@ export class GroupService {
         });
 
         // Process each group using batched data - no more database calls!
-        const groupsWithBalances: Group[] = groups.map((group) => {
+        const groupsWithBalances: Group[] = returnedGroups.map((group) => {
             // Get pre-fetched data for this group (no database calls)
             const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
@@ -452,13 +507,10 @@ export class GroupService {
 
         // Generate nextCursor if there are more results
         let nextCursor: string | undefined;
-        if (hasMore && returnedDocs.length > 0) {
-            const lastDoc = returnedDocs[returnedDocs.length - 1];
-            const lastGroup = transformGroupDocument(lastDoc);
-            nextCursor = encodeCursor({
-                updatedAt: lastGroup.updatedAt,
-                id: lastGroup.id,
-            });
+        if (hasMore && returnedGroups.length > 0) {
+            // Use simple offset-based cursor for transition phase
+            // Phase 8 will restore proper cursor-based pagination
+            nextCursor = String(endIndex);
         }
 
         const response: ListGroupsResponse = {
@@ -565,11 +617,25 @@ export class GroupService {
         // Store in Firestore with flat structure (no data wrapper)
         await docRef.set(documentToWrite);
 
+        // PHASE 3: Also create members in subcollections for new architecture
+        const memberCreationPromises = Object.entries(members).map(([memberId, memberData]) => 
+            memberService.addMember(docRef.id, memberId, {
+                role: memberData.role,
+                status: memberData.status,
+                invitedBy: memberData.invitedBy,
+                joinedAt: memberData.joinedAt,
+                themeIndex: memberData.theme.colorIndex,
+            })
+        );
+
+        // Create all members in parallel
+        await Promise.all(memberCreationPromises);
+
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
 
         // Log the creation
-        logger.info('group-created', { id: docRef.id });
+        logger.info('group-created', { id: docRef.id, memberCount: Object.keys(members).length });
 
         // Fetch the created document to get server-side timestamps
         const createdDoc = await docRef.get();

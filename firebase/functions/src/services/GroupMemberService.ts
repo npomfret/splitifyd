@@ -8,6 +8,7 @@ import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/sha
 import { calculateGroupBalances } from './balanceCalculator';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { memberService } from './MemberService';
 
 export class GroupMemberService {
 
@@ -171,6 +172,9 @@ export class GroupMemberService {
             updatedAt: FieldValue.serverTimestamp(),
         });
 
+        // PHASE 3: Also remove member from subcollection for new architecture
+        await memberService.removeMember(groupId, userId);
+
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-left', { id: userId, groupId });
 
@@ -262,6 +266,9 @@ export class GroupMemberService {
             members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // PHASE 3: Also remove member from subcollection for new architecture
+        await memberService.removeMember(groupId, memberId);
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-removed', { id: memberId, groupId });
