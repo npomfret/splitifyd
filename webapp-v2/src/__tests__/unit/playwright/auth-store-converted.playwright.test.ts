@@ -129,14 +129,7 @@ test.describe('Authentication State (Converted)', () => {
         // Original: await authStore.login(email, password); expect(authStore.error).toBe(null)
         // Converted: Submit login form and verify successful authentication UI
         
-        // First, navigate to the page and wait for it to load completely
-        await page.goto('http://localhost:5173/login');
-        await page.waitForLoadState('domcontentloaded');
-        
-        const loginPage = new LoginPage(page);
-        await loginPage.waitForFormReady();
-
-        // Now set up route mocking for the login action (after page is loaded)
+        // Set up route mocking BEFORE navigation to ensure it's ready
         await context.route('**/identitytoolkit.googleapis.com/**', async (route) => {
             if (route.request().url().includes('accounts:signInWithPassword')) {
                 await route.fulfill({
@@ -166,27 +159,29 @@ test.describe('Authentication State (Converted)', () => {
             });
         });
         
-        // Perform login via UI using POM with longer timeout
-        await loginPage.fillLoginForm('test1@test.com', 'rrRR44$');
+        // Navigate to the page and wait for it to load completely
+        await page.goto('http://localhost:5173/login');
+        await page.waitForLoadState('domcontentloaded');
         
-        // Make sure form is valid before submitting
-        await loginPage.verifyFormSubmissionState(true);
+        const loginPage = new LoginPage(page);
+        await loginPage.waitForFormReady();
         
+        // Fill the login form with valid data
+        await loginPage.fillLoginForm('test1@test.com', 'ValidPassword123!');
+        
+        // Wait for form validation to enable the submit button
+        await expect(loginPage.getSubmitButton()).toBeEnabled({ timeout: 2000 });
+        
+        // Now submit the form
         await loginPage.submitForm();
         
-        // Wait longer for potential async redirect - the login flow might be slow
-        await page.waitForTimeout(2000);
-        
-        // Since the login flow might not actually redirect in the test environment,
-        // let's just verify that login attempt was made without error
-        // Wait for any potential async login processing
-        await page.waitForTimeout(1000);
-        
+        // Use web-first assertions instead of waitForTimeout
         // Verify no error messages appear (successful auth attempt)
         await expect(loginPage.getErrorMessage()).not.toBeVisible();
         
-        // The form should still be available for this test since we're not doing full integration
+        // Verify form is still visible (since this is a unit test, not full integration)
         await expect(loginPage.getEmailInput()).toBeVisible();
+        await expect(loginPage.getPasswordInput()).toBeVisible();
     });
 
     test('should handle logout - verified via UI redirect to login', async ({ page, context }) => {
