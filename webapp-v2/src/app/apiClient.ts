@@ -5,51 +5,49 @@
  * This ensures the server response matches our expected types
  */
 
-import { responseSchemas, ApiErrorResponseSchema } from '../api/apiSchemas';
-import { z } from 'zod';
-import { logWarning, logError, logApiRequest, logApiResponse } from '../utils/browser-logger';
+import {ApiErrorResponseSchema, responseSchemas} from '../api/apiSchemas';
+import {z} from 'zod';
+import {logApiRequest, logApiResponse, logError, logWarning} from '../utils/browser-logger';
 import type {
-    CreateGroupRequest,
-    Group,
-    ListGroupsResponse,
-    GroupMembersResponse,
-    GroupBalances,
-    ExpenseData,
-    AppConfiguration,
-    CreateExpenseRequest,
-    CreateSettlementRequest,
-    Settlement,
-    SettlementListItem,
-    GroupFullDetails,
-    ExpenseFullDetails,
-    ListExpensesResponse,
-    ListSettlementsResponse,
-    MessageResponse,
-    LeaveGroupResponse,
-    RemoveGroupMemberResponse,
-    ShareLinkResponse,
-    PreviewGroupResponse,
-    JoinGroupResponse,
-    RegisterResponse,
-    HealthCheckResponse,
-    UserPoliciesResponse,
-    CurrentPolicyResponse,
-    UserProfileResponse,
-    AcceptPolicyResponse,
     AcceptMultiplePoliciesResponse,
-    PolicyAcceptanceStatus,
-    UserPolicyStatusResponse,
     AcceptPolicyRequest,
-    CreateSettlementResponse,
-    ListSettlementsApiResponse,
+    AcceptPolicyResponse,
+    AppConfiguration,
     CommentApiResponse,
     CreateCommentResponse,
+    CreateExpenseRequest,
+    CreateGroupRequest,
+    CreateSettlementRequest,
+    CreateSettlementResponse,
+    CurrentPolicyResponse,
+    ExpenseData,
+    ExpenseFullDetails,
+    Group,
+    GroupBalances,
+    GroupFullDetails,
+    GroupMembersResponse,
+    HealthCheckResponse,
+    JoinGroupResponse,
+    LeaveGroupResponse,
     ListCommentsApiResponse,
+    ListExpensesResponse,
+    ListGroupsResponse,
+    ListSettlementsApiResponse,
+    ListSettlementsResponse,
+    MessageResponse,
+    PolicyAcceptanceStatus,
+    PreviewGroupResponse,
+    RegisterResponse,
+    RemoveGroupMemberResponse,
+    Settlement,
+    SettlementListItem,
+    ShareLinkResponse,
+    UserPoliciesResponse,
+    UserPolicyStatusResponse,
+    UserProfileResponse,
 } from '@splitifyd/shared';
 
 // All types are now imported from shared-types
-
-// API configuration - use global getApiBaseUrl function injected during build
 
 export class ApiValidationError extends Error {
     constructor(
@@ -338,8 +336,7 @@ export class ApiClient {
     // Internal method that handles the actual request with retry logic
     private async requestWithRetry<T = any>(config: RequestConfig<T>, attemptNumber: number): Promise<T> {
         const { endpoint, ...options } = config;
-        const apiBaseUrl = (window as any).getApiBaseUrl ? (window as any).getApiBaseUrl() : '/api';
-        const url = buildUrl(`${apiBaseUrl}${endpoint}`, options.params, options.query);
+        const url = buildUrl(`/api${endpoint}`, options.params, options.query);
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',

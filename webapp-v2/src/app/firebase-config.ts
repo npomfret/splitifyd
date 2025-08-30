@@ -76,21 +76,14 @@ class FirebaseConfigManager {
 
 export const firebaseConfigManager = new FirebaseConfigManager();
 
-// Set up API base URL using global function (injected during build)
+// Set up API base URL - use static path handled by Firebase hosting rewrites
 const setupApiBaseUrl = () => {
     // Skip during SSG
     if (typeof window === 'undefined') {
         return;
     }
 
-    const getApiBaseUrl = (window as any).getApiBaseUrl;
-    if (!getApiBaseUrl) {
-        throw new Error('getApiBaseUrl function is not available - check post-build.js');
-    }
-
-    const apiBaseUrl = getApiBaseUrl();
-    console.log({ apiBaseUrl });
-    firebaseConfigManager.setApiBaseUrl(apiBaseUrl);
+    firebaseConfigManager.setApiBaseUrl('/api');
 };
 
 setupApiBaseUrl();

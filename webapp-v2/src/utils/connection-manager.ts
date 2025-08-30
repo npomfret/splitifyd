@@ -1,5 +1,5 @@
-import { signal } from '@preact/signals';
-import { logWarning, logError, logInfo } from './browser-logger';
+import {signal} from '@preact/signals';
+import {logError, logInfo, logWarning} from './browser-logger';
 
 // Health check configuration
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
@@ -146,8 +146,8 @@ export class ConnectionManager {
             return; // Don't check server if we're offline
         }
 
-        if (typeof window === 'undefined' || !(window as any).getApiBaseUrl) {
-            throw new Error('window.getApiBaseUrl function is not available - cannot check server health');
+        if (typeof window === 'undefined') {
+            return; // Skip health checks during SSR
         }
 
         this.lastServerCheck = Date.now();
@@ -156,8 +156,7 @@ export class ConnectionManager {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), SERVER_CHECK_TIMEOUT);
 
-            const apiUrl = (window as any).getApiBaseUrl();
-            const response = await fetch(`${apiUrl}/health`, {
+            const response = await fetch(`/api/health`, {
                 method: 'GET',
                 signal: controller.signal,
                 cache: 'no-cache',

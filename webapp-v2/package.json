@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:check && vite build && node scripts/post-build.js",
+    "build": "npm run build:check && vite build",
     "build:check": "tsc --project tsconfig.build.json --noEmit",
-    "build:prod": "tsc && vite build && node scripts/post-build.js",
+    "build:prod": "tsc && vite build",
     "watch": "vite build --watch",
     "preview": "vite preview",
     "typecheck": "npm run build:check",
