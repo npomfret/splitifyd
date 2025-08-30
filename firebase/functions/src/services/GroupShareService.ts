@@ -258,7 +258,7 @@ export class GroupShareService {
                 transaction,
                 groupRef,
                 {
-                    'data.members': updatedMembers,
+                    members: updatedMembers,
                 },
                 originalUpdatedAt,
             );

@@ -7,7 +7,8 @@ import { Group, GroupWithBalance } from '../types/group-types';
 import { FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
 import { calculateExpenseMetadata } from './expenseMetadataService';
-import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
+import { transformGroupDocument } from '../groups/handlers';
+import { GroupDocumentSchema, GroupDataSchema } from '../schemas';
 import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { getUserService } from './serviceRegistration';
 import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
@@ -309,7 +310,7 @@ export class GroupService {
         const includeMetadata = options.includeMetadata === true;
 
         // Build base query - groups where user is a member
-        const baseQuery = this.getGroupsCollection().where(`data.members.${userId}`, '!=', null).select('data', 'createdAt', 'updatedAt');
+        const baseQuery = this.getGroupsCollection().where(`members.${userId}`, '!=', null);
 
         // Build paginated query
         const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
@@ -544,15 +545,15 @@ export class GroupService {
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
         };
 
-        // Validate the complete document structure before writing
+        // Add server timestamps to the flat document structure
         const documentToWrite = {
-            data: newGroup,
+            ...newGroup,
             createdAt: serverTimestamp,
             updatedAt: serverTimestamp,
         };
 
         try {
-            GroupDocumentSchema.parse(documentToWrite);
+            GroupDataSchema.parse(newGroup);
         } catch (error) {
             logger.error('Invalid group document to write', error as Error, {
                 groupId: docRef.id,
@@ -561,7 +562,7 @@ export class GroupService {
             throw Errors.INVALID_INPUT();
         }
 
-        // Store in Firestore with true server timestamps for the document-level timestamps
+        // Store in Firestore with flat structure (no data wrapper)
         await docRef.set(documentToWrite);
 
         // Add group context to logger
@@ -610,9 +611,9 @@ export class GroupService {
                 transaction,
                 docRef,
                 {
-                    'data.name': updatedData.name,
-                    'data.description': updatedData.description,
-                    'data.updatedAt': updatedData.updatedAt.toISOString(),
+                    name: updatedData.name,
+                    description: updatedData.description,
+                    updatedAt: updatedData.updatedAt.toISOString(),
                 },
                 originalUpdatedAt,
             );
@@ -702,7 +703,8 @@ export class GroupService {
 
         let validatedGroup;
         try {
-            validatedGroup = GroupDocumentSchema.parse({ ...rawData, id: groupId });
+            const dataWithId = { ...rawData, id: groupId };
+            validatedGroup = GroupDocumentSchema.parse(dataWithId);
         } catch (error) {
             logger.error('Group document validation failed', error as Error, {
                 groupId,
@@ -711,11 +713,11 @@ export class GroupService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        if (!validatedGroup.data.members || Object.keys(validatedGroup.data.members).length === 0) {
+        if (!validatedGroup.members || Object.keys(validatedGroup.members).length === 0) {
             throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
         }
 
-        if (!(userId in validatedGroup.data.members)) {
+        if (!(userId in validatedGroup.members)) {
             throw Errors.FORBIDDEN();
         }
 

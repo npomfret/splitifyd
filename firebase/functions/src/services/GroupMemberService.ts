@@ -167,7 +167,7 @@ export class GroupMemberService {
         delete updatedMembers[userId];
 
         await docRef.update({
-            'data.members': updatedMembers,
+            members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 
@@ -259,7 +259,7 @@ export class GroupMemberService {
         delete updatedMembers[memberId];
 
         await docRef.update({
-            'data.members': updatedMembers,
+            members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 

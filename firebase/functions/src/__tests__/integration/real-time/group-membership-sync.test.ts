@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { beforeAll } from 'vitest';
+import { beforeAll, afterAll, describe, it, expect } from 'vitest';
 import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -54,7 +54,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         const unsubscribe = groupRef.onSnapshot((snapshot) => {
             if (snapshot.exists) {
                 const data = snapshot.data();
-                const members = data?.data?.members || {};
+                const members = data?.members || {};
                 const memberCount = Object.keys(members).length;
 
                 membershipChanges.push({

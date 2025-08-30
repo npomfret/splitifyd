@@ -5,7 +5,8 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections, SecurityPresets, MemberRoles, PermissionChangeLog } from '@splitifyd/shared';
 import { PermissionEngine, permissionCache } from '../permissions';
-import { transformGroupDocument, GroupDocumentSchema } from '../groups/handlers';
+import { transformGroupDocument } from '../groups/handlers';
+import { GroupDocumentSchema } from '../schemas';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { z } from 'zod';
 import { PerformanceMonitor } from '../utils/performance-monitor';
@@ -30,7 +31,8 @@ export class GroupPermissionService {
         }
 
         try {
-            GroupDocumentSchema.parse(data);
+            const dataWithId = { ...data, id: updatedDoc.id };
+            GroupDocumentSchema.parse(dataWithId);
         } catch (error) {
             logger.error('Group document validation failed after update operation', error as Error, {
                 groupId: updatedDoc.id,
@@ -83,9 +85,9 @@ export class GroupPermissionService {
         const now = new Date().toISOString();
 
         const updateData: any = {
-            'data.securityPreset': preset,
-            'data.presetAppliedAt': now,
-            'data.permissions': newPermissions,
+            securityPreset: preset,
+            presetAppliedAt: now,
+            permissions: newPermissions,
             updatedAt: createServerTimestamp(),
         };
 
@@ -96,7 +98,7 @@ export class GroupPermissionService {
             changes: { preset, permissions: newPermissions },
         };
 
-        updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
+        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
         
@@ -153,8 +155,8 @@ export class GroupPermissionService {
         const updatedPermissions = { ...group.permissions, ...permissions };
 
         const updateData: any = {
-            'data.securityPreset': SecurityPresets.CUSTOM,
-            'data.permissions': updatedPermissions,
+            securityPreset: SecurityPresets.CUSTOM,
+            permissions: updatedPermissions,
             updatedAt: createServerTimestamp(),
         };
 
@@ -165,7 +167,7 @@ export class GroupPermissionService {
             changes: { permissions },
         };
 
-        updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
+        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
         
@@ -232,8 +234,8 @@ export class GroupPermissionService {
         const oldRole = group.members[targetUserId].role;
 
         const updateData: any = {
-            [`data.members.${targetUserId}.role`]: role,
-            [`data.members.${targetUserId}.lastPermissionChange`]: now,
+            [`members.${targetUserId}.role`]: role,
+            [`members.${targetUserId}.lastPermissionChange`]: now,
             updatedAt: createServerTimestamp(),
         };
 
@@ -244,7 +246,7 @@ export class GroupPermissionService {
             changes: { userId: targetUserId, oldRole, newRole: role },
         };
 
-        updateData['data.permissionHistory'] = FieldValue.arrayUnion(changeLog);
+        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
         await groupDoc.ref.update(updateData);
         

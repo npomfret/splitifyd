@@ -76,9 +76,15 @@ export {
     type PolicyVersion,
 } from './policy';
 
-// Group schemas (from handlers - needs to be moved here eventually)
-// Note: GroupDocumentSchema is currently in groups/handlers.ts and should be migrated
-// to this location for consistency
+// Group schemas
+export {
+    GroupDocumentSchema,
+    GroupDataSchema,
+    GroupMemberSchema,
+    type GroupDocument,
+    type GroupData,
+    type GroupMember,
+} from './group';
 
 // Validation monitoring and utilities
 export {
@@ -100,6 +106,12 @@ export {
     safeWrite,
 } from './validation-helpers';
 
-// Change tracking schemas (currently inline in triggers - could be centralized)
-// Note: Change document schemas are currently defined in triggers/change-tracker.ts
-// and could be moved here if needed for reuse
+// Change tracking schemas
+export {
+    GroupChangeDocumentSchema,
+    TransactionChangeDocumentSchema,
+    BalanceChangeDocumentSchema,
+    type GroupChangeDocument,
+    type TransactionChangeDocument,
+    type BalanceChangeDocument,
+} from './change-documents';

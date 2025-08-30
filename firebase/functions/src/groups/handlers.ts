@@ -6,63 +6,14 @@ import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
 import { Group } from '../types/group-types';
-import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { SecurityPresets } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { PermissionEngine } from '../permissions';
 import { getGroupService } from '../services/serviceRegistration';
+import { GroupDocumentSchema } from '../schemas';
 import { z } from 'zod';
 
-/**
- * Zod schemas for group document validation
- */
-const GroupMemberSchema = z
-    .object({
-        role: z.nativeEnum(MemberRoles),
-        status: z.nativeEnum(MemberStatuses),
-        joinedAt: z.any(), // Firestore Timestamp
-        invitedBy: z.string().optional(),
-        invitedAt: z.any().optional(), // Firestore Timestamp
-        color: z
-            .object({
-                light: z.string(),
-                dark: z.string(),
-                name: z.string(),
-                pattern: z.string(),
-                assignedAt: z.string(),
-                colorIndex: z.number(),
-            })
-            .optional(),
-    })
-    .passthrough();
-
-const GroupDataSchema = z
-    .object({
-        name: z.string().min(1),
-        description: z.string().optional(),
-        createdBy: z.string().min(1),
-        members: z.record(z.string(), GroupMemberSchema),
-        securityPreset: z.nativeEnum(SecurityPresets).optional(),
-        permissions: z
-            .object({
-                expenseEditing: z.string(),
-                expenseDeletion: z.string(),
-                memberInvitation: z.string(),
-                memberApproval: z.union([z.literal('automatic'), z.literal('admin-required')]),
-                settingsManagement: z.string(),
-            })
-            .passthrough()
-            .optional(), // Allow extra fields like settlementCreation, memberManagement, groupManagement
-        presetAppliedAt: z.any().optional(), // Firestore Timestamp
-    })
-    .passthrough();
-
-export const GroupDocumentSchema = z
-    .object({
-        data: GroupDataSchema,
-        createdAt: z.any(), // Firestore Timestamp
-        updatedAt: z.any(), // Firestore Timestamp
-    })
-    .passthrough();
+// Group schemas are now centralized in ../schemas/
 
 /**
  * Transform Firestore document to Group format
@@ -76,7 +27,8 @@ export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
     // Validate the group document structure
     let data: z.infer<typeof GroupDocumentSchema>;
     try {
-        data = GroupDocumentSchema.parse(rawData);
+        const dataWithId = { ...rawData, id: doc.id };
+        data = GroupDocumentSchema.parse(dataWithId);
     } catch (error) {
         logger.error('Invalid group document structure', error as Error, {
             groupId: doc.id,
@@ -85,7 +37,7 @@ export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
         throw new Error('Group data is corrupted');
     }
 
-    const groupData = data.data;
+    const groupData = data;
 
     // Transform members to ensure joinedAt follows the same pattern as createdAt/updatedAt
     const transformedMembers: Record<string, any> = {};
@@ -106,8 +58,8 @@ export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
         members: transformedMembers,
-        createdAt: data.createdAt!.toDate().toISOString(),
-        updatedAt: data.updatedAt!.toDate().toISOString(),
+        createdAt: groupData.createdAt!.toDate().toISOString(),
+        updatedAt: groupData.updatedAt!.toDate().toISOString(),
 
         // Permission system fields - guaranteed to be present
         securityPreset,

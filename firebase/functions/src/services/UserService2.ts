@@ -390,7 +390,7 @@ export class UserService {
         try {
             // Check if user has any groups or outstanding balances
             // This is a simplified check - in production you'd want more thorough validation
-            const groupsSnapshot = await firestoreDb.collection(FirestoreCollections.GROUPS).where(`data.members.${userId}`, '!=', null).get();
+            const groupsSnapshot = await firestoreDb.collection(FirestoreCollections.GROUPS).where(`members.${userId}`, '!=', null).get();
 
             if (!groupsSnapshot.empty) {
                 throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');

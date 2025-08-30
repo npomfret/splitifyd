@@ -31,7 +31,7 @@ export class BalanceCalculationService {
      */
     calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
         // 1. Extract member IDs for initialization
-        const memberIds = Object.keys(input.groupData.data.members);
+        const memberIds = Object.keys(input.groupData.members);
 
         // 2. Process expenses to calculate initial balances by currency
         const balancesByCurrency = this.expenseProcessor.processExpenses(input.expenses, memberIds);

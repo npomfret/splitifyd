@@ -39,10 +39,8 @@ export interface ExpenseSplit {
 
 export interface GroupData {
     id: string;
-    data: {
-        name: string;
-        members: Record<string, GroupMember>;
-    };
+    name: string;
+    members: Record<string, GroupMember>;
 }
 
 export interface GroupMember {

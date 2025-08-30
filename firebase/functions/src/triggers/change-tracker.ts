@@ -5,35 +5,13 @@ import { getChangedFields, getGroupChangedFields, calculatePriority, createMinim
 import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
-import { z } from 'zod';
+import { 
+    GroupChangeDocumentSchema,
+    TransactionChangeDocumentSchema,
+    BalanceChangeDocumentSchema 
+} from '../schemas/change-documents';
 
-/**
- * Zod schemas for change documents - validates data before writing to Firestore
- */
-const GroupChangeDocumentSchema = z.object({
-    id: z.string().min(1),
-    type: z.literal('group'),
-    action: z.enum(['created', 'updated', 'deleted']),
-    timestamp: z.any(), // Firestore Timestamp
-    users: z.array(z.string()),
-});
-
-const TransactionChangeDocumentSchema = z.object({
-    id: z.string().min(1),
-    type: z.enum(['expense', 'settlement']),
-    action: z.enum(['created', 'updated', 'deleted']),
-    timestamp: z.any(), // Firestore Timestamp
-    users: z.array(z.string()),
-    groupId: z.string().min(1),
-});
-
-const BalanceChangeDocumentSchema = z.object({
-    groupId: z.string().min(1),
-    type: z.literal('balance'),
-    action: z.literal('recalculated'),
-    timestamp: z.any(), // Firestore Timestamp
-    users: z.array(z.string()),
-});
+// Change document schemas are now centralized in ../schemas/change-documents.ts
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -48,19 +26,19 @@ export const trackGroupChanges = onDocumentWritten(
         const { before, after, changeType } = extractDataChange(event);
 
         try {
-            // Get changed fields (groups have nested structure)
+            // Get changed fields (groups use flat structure)
             const changedFields = getGroupChangedFields(before, after);
 
             // Calculate priority (not currently used)
             calculatePriority(changeType, changedFields, 'group');
 
-            // Get affected users from the group (nested in data field)
+            // Get affected users from the group (flat structure)
             const afterData = after?.data();
             const beforeData = before?.data();
 
             // Members are stored as a map, not an array of IDs
-            const afterMembers = afterData?.data?.members || {};
-            const beforeMembers = beforeData?.data?.members || {};
+            const afterMembers = afterData?.members || {};
+            const beforeMembers = beforeData?.members || {};
 
             // Combine all member IDs from both before and after states
             const allMemberIds = new Set([...Object.keys(afterMembers), ...Object.keys(beforeMembers)]);

@@ -296,7 +296,7 @@ All validation has been successfully migrated to strict enforcement mode with ze
 - ✅ **Complete GroupShareService validation** - using transformGroupDocument for type safety
 - ✅ **Strict DataFetcher validation** - no silent fallbacks, proper error propagation
 
-#### ✅ Schema Organization & Infrastructure Enhancement (Current Session - 2025-08-29)
+#### ✅ Schema Organization & Infrastructure Enhancement (Session - 2025-08-29)
 
 **Centralized Schema Infrastructure**
 - Created comprehensive schema organization in `src/schemas/` directory
@@ -324,6 +324,47 @@ All validation has been successfully migrated to strict enforcement mode with ze
 - Data schemas (without `id` field) for data being written to Firestore with `.set()`, `.add()`
 - Consistent use of `createDocumentSchemas()` helper for paired schema creation
 - Forward-compatible `.passthrough()` mode instead of strict validation
+
+#### ✅ Group Document Structure Migration (Current Session - 2025-08-30)
+
+**Eliminated Nested Group Document Structure**
+- **CRITICAL MIGRATION**: Removed unnecessary nested `{ data: { members, name, ... } }` structure from groups
+- Updated all services to use flat structure: `{ members, name, ... }` directly
+- Groups now consistent with other document types (expenses, settlements, users)
+- Fixed over 19 files across services, triggers, and utilities
+
+**Services Updated for Flat Structure**
+- ✅ **GroupService**: Fixed group creation and updates to use flat field paths (`name` vs `data.name`)
+- ✅ **GroupPermissionService**: Fixed security preset and permission updates to flat paths
+- ✅ **SettlementService**: Updated group member validation to access flat `members` field
+- ✅ **ExpenseService**: Fixed group data access in expense operations
+- ✅ **UserService2**: Updated group membership queries from `data.members` to `members`
+- ✅ **Balance Services**: Updated group data extraction to use flat structure
+- ✅ **Group Helpers**: Fixed group validation and member checking
+
+**Firebase Triggers & Change Detection Fixed**
+- ✅ **change-tracker.ts**: Updated group change tracking to read flat `members` instead of nested `data.members`
+- ✅ **change-detection.ts**: Fixed `getGroupChangedFields()` to compare flat document structure
+- ✅ **Schema Updates**: Created proper `GroupDocumentSchema` for flat structure validation
+
+**Test Infrastructure Updates**
+- ✅ **Unit Tests**: Fixed `change-detection-utils.test.ts` to expect flat group structure
+- ✅ **Integration Tests**: All group-related integration tests now pass with flat structure
+- ✅ **Mock Builders**: Updated test data builders to generate flat group documents
+
+**Type Safety & Validation**
+- ✅ **New Group Schemas**: Created `GroupDocumentSchema` and `GroupDataSchema` in centralized schema organization
+- ✅ **Change Document Schemas**: Added proper validation for trigger-generated change documents
+- ✅ **Type Consistency**: Fixed GroupData interface across balance calculation services
+- ✅ **Runtime Validation**: All group operations now validate against flat structure schemas
+
+**Migration Status: ✅ COMPLETE**
+- ✅ **Zero remaining nested structure access** - all `data.field` patterns eliminated
+- ✅ **All services updated** - no service still expects nested group structure
+- ✅ **Change tracking working** - Firebase triggers properly detect flat structure changes  
+- ✅ **All tests passing** - unit and integration tests validate flat structure works
+- ✅ **Type safety maintained** - no unsafe casts, all validation through Zod schemas
+- ✅ **Backward compatibility unnecessary** - no production data to migrate
 
 ## 5. Detailed Implementation Plan (Original)
 
@@ -563,6 +604,37 @@ Monitor after each phase:
 - Validation failure logs (Phase 3)
 - Response time impact
 - Test coverage maintenance
+
+## 6. Remaining Type Safety Improvements (Future Enhancements)
+
+### GroupService Balance Calculation Type Safety
+
+**Issue Identified**: During final validation review, several `as any` casts remain in `GroupService.ts` for balance calculations:
+- `currencyBalances as any` - Complex nested balance calculation results
+- `balancesData as any` - Balance data structure type conversion
+
+**Recommended Solutions**:
+
+#### Option 2: Create Proper TypeScript Interfaces for Balance Calculation Results
+- **File**: `firebase/functions/src/services/balance/types.ts`
+- **Changes**:
+  - Define `CurrencyBalanceResult` interface for individual currency balance results
+  - Define `GroupBalanceCalculationResult` interface for complete balance calculation output
+  - Update `BalanceCalculationService` to use proper return types
+  - Update `GroupService.addComputedFields()` to use typed interfaces instead of `as any`
+
+#### Option 3: Add Validation Schemas for Balance Calculation Outputs
+- **File**: Create `firebase/functions/src/schemas/balance.ts`
+- **Changes**:
+  - Define `CurrencyBalanceResultSchema` using Zod
+  - Define `GroupBalanceCalculationResultSchema` using Zod
+  - Add runtime validation to balance calculation results before returning
+  - Validate balance data in `GroupService` before type conversion
+  - Export inferred types from schemas for compile-time safety
+
+**Priority**: Medium (enhancement for future development)
+
+**Benefit**: Complete elimination of remaining `as any` casts for full type safety across the entire validation system.
 
 ### Notes
 

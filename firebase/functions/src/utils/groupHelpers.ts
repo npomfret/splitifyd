@@ -58,13 +58,13 @@ export const verifyGroupMembership = async (groupId: string, userId: string): Pr
 
     const groupData = groupDoc.data();
 
-    // Check if this is a group document (has data.members)
-    if (!groupData || !groupData.data || !groupData.data.name) {
+    // Check if this is a group document (has members)
+    if (!groupData || !groupData.name) {
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
     }
 
     // Check if user is a member (including owner)
-    if (userId in groupData.data.members) {
+    if (userId in groupData.members) {
         return;
     }
 

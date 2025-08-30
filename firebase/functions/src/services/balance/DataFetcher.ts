@@ -19,7 +19,7 @@ export class DataFetcher {
         const [expenses, settlements, groupData] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
 
         // Fetch member profiles after we have group data
-        const memberIds = Object.keys(groupData.data.members);
+        const memberIds = Object.keys(groupData.members);
         const memberProfiles = await getUserService().getUsers(memberIds);
 
         return {
@@ -134,10 +134,8 @@ export class DataFetcher {
 
         return {
             id: groupId,
-            data: {
-                members: group.members,
-                name: group.name,
-            },
+            name: group.name,
+            members: group.members,
         };
     }
 }

@@ -82,14 +82,14 @@ function extractChangedFields(afterData: DocumentData, beforeData: DocumentData)
 }
 
 /**
- * Extract changed fields from nested group structure
+ * Extract changed fields from group structure
  */
 export function getGroupChangedFields(before: DocumentSnapshot | undefined, after: DocumentSnapshot | undefined): string[] {
     if (!before?.exists) return ['*'];
     if (!after?.exists) return ['*'];
 
-    const beforeData = before.data()?.data || {};
-    const afterData = after.data()?.data || {};
+    const beforeData = before.data() || {};
+    const afterData = after.data() || {};
 
     return extractChangedFields(afterData, beforeData);
 }

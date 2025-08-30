@@ -224,7 +224,7 @@ export class ExpenseService {
             }
 
             const groupDataInTx = groupDocInTx.data();
-            if (!groupDataInTx?.data) {
+            if (!groupDataInTx) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
             }
 
@@ -811,29 +811,29 @@ export class ExpenseService {
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
             const groupData = groupDoc.data();
-            if (!groupData?.data?.members?.[userId]) {
+            if (!groupData?.members?.[userId]) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }
         }
 
         const groupData = groupDoc.data();
-        if (!groupData?.data?.name) {
+        if (!groupData?.name) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
         }
 
         // Transform group data using same pattern as groups handler
         const group = {
             id: groupDoc.id,
-            name: groupData.data.name,
-            description: groupData.data.description || '',
-            createdBy: groupData.data.createdBy,
-            members: groupData.data.members,
+            name: groupData.name,
+            description: groupData.description || '',
+            createdBy: groupData.createdBy,
+            members: groupData.members,
             createdAt: groupData.createdAt.toDate().toISOString(),
             updatedAt: groupData.updatedAt.toDate().toISOString(),
         };
 
         // Get members data using the proper helper function
-        const members = await _getGroupMembersData(expense.groupId, groupData.data.members || {});
+        const members = await _getGroupMembersData(expense.groupId, groupData.members || {});
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);

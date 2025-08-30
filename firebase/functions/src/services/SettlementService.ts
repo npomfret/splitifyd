@@ -55,7 +55,7 @@ export class SettlementService {
         }
 
         const groupData = groupDoc.data();
-        const groupDataTyped = groupData?.data as GroupData;
+        const groupDataTyped = groupData as GroupData;
 
         const allMemberIds = Object.keys(groupDataTyped.members || {});
 

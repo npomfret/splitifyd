@@ -85,23 +85,19 @@ describe('Change Detection Utilities', () => {
     });
 
     describe('getGroupChangedFields', () => {
-        it('should handle nested group structure', () => {
+        it('should handle flat group structure', () => {
             const before = {
                 exists: true,
                 data: () => ({
-                    data: {
-                        name: 'Old Name',
-                        description: 'Same',
-                    },
+                    name: 'Old Name',
+                    description: 'Same',
                 }),
             } as unknown as DocumentSnapshot;
             const after = {
                 exists: true,
                 data: () => ({
-                    data: {
-                        name: 'New Name',
-                        description: 'Same',
-                    },
+                    name: 'New Name',
+                    description: 'Same',
                 }),
             } as unknown as DocumentSnapshot;
 
@@ -114,7 +110,7 @@ describe('Change Detection Utilities', () => {
             const before = undefined;
             const after = {
                 exists: true,
-                data: () => ({ data: { name: 'Group' } }),
+                data: () => ({ name: 'Group' }),
             } as unknown as DocumentSnapshot;
 
             const result = getGroupChangedFields(before, after);

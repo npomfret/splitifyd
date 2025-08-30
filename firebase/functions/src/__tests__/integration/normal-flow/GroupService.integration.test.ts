@@ -53,8 +53,8 @@ describe('GroupService - Integration Tests', () => {
             expect(doc.exists).toBe(true);
             
             const docData = doc.data()!;
-            expect(docData.data.name).toBe('Test Group');
-            expect(docData.data.createdBy).toBe(creator.uid);
+            expect(docData.name).toBe('Test Group');
+            expect(docData.createdBy).toBe(creator.uid);
             expect(docData.createdAt).toBeDefined();
             expect(docData.updatedAt).toBeDefined();
 
