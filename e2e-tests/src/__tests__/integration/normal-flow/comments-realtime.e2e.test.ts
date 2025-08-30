@@ -48,7 +48,7 @@ test.describe('Real-time Comments E2E', () => {
         await groupDetailPage.addComment(aliceComment);
 
         // Bob should see Alice's comment appear in real-time (no page refresh!)
-        await bobGroupDetailPage.waitForCommentToAppear(aliceComment, 8000);
+        await bobGroupDetailPage.waitForCommentToAppear(aliceComment);
 
         // Test 2: Bob adds a comment, Alice should see it in real-time
         const bobComment = `Hello from ${bob.displayName}! Time: ${Date.now()}`;
@@ -56,7 +56,7 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.addComment(bobComment);
 
         // Alice should see Bob's comment appear in real-time
-        await groupDetailPage.waitForCommentToAppear(bobComment, 8000);
+        await groupDetailPage.waitForCommentToAppear(bobComment);
 
         // Test 3: Verify both users see both comments
         await expect(alicePage).toHaveURL(groupDetailUrlPattern(groupId)); // Still on group page
@@ -71,15 +71,15 @@ test.describe('Real-time Comments E2E', () => {
 
         // Alice adds first rapid comment
         await groupDetailPage.addComment(rapidComments[0]);
-        await bobGroupDetailPage.waitForCommentToAppear(rapidComments[0], 5000);
+        await bobGroupDetailPage.waitForCommentToAppear(rapidComments[0]);
 
         // Bob adds second rapid comment
         await bobGroupDetailPage.addComment(rapidComments[1]);
-        await groupDetailPage.waitForCommentToAppear(rapidComments[1], 5000);
+        await groupDetailPage.waitForCommentToAppear(rapidComments[1]);
 
         // Alice adds third rapid comment
         await groupDetailPage.addComment(rapidComments[2]);
-        await bobGroupDetailPage.waitForCommentToAppear(rapidComments[2], 5000);
+        await bobGroupDetailPage.waitForCommentToAppear(rapidComments[2]);
 
         // Final verification: Both users should see all 5 comments
         await groupDetailPage.waitForCommentCount(5);
@@ -163,14 +163,14 @@ test.describe('Real-time Comments E2E', () => {
         await expenseDetailPage.addComment(aliceExpenseComment);
 
         // Bob should see it in real-time
-        await bobExpenseDetailPage.waitForCommentToAppear(aliceExpenseComment, 8000);
+        await bobExpenseDetailPage.waitForCommentToAppear(aliceExpenseComment);
 
         // Bob adds a comment
         const bobExpenseComment = `Bob's expense comment! Time: ${Date.now()}`;
         await bobExpenseDetailPage.addComment(bobExpenseComment);
 
         // Alice should see Bob's comment
-        await expenseDetailPage.waitForCommentToAppear(bobExpenseComment, 8000);
+        await expenseDetailPage.waitForCommentToAppear(bobExpenseComment);
 
         // Both should see 2 comments
         await expenseDetailPage.waitForCommentCount(2);
@@ -225,12 +225,12 @@ test.describe('Real-time Comments E2E', () => {
         await groupDetailPage.addComment(validComment);
 
         // Bob should still receive real-time updates
-        await bobGroupDetailPage.waitForCommentToAppear(validComment, 8000);
+        await bobGroupDetailPage.waitForCommentToAppear(validComment);
 
         // Test 4: Bob adds comment to ensure real-time is still working bidirectionally
         const bobComment = `Bob's comment after Alice's errors - ${Date.now()}`;
         await bobGroupDetailPage.addComment(bobComment);
-        await groupDetailPage.waitForCommentToAppear(bobComment, 8000);
+        await groupDetailPage.waitForCommentToAppear(bobComment);
 
         // Both should see 2 valid comments
         await groupDetailPage.waitForCommentCount(2);
