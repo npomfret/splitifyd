@@ -168,10 +168,12 @@ Building on Phase 1 success, Phase 2 continues refactoring E2E tests to use Expe
    - ✅ Refactored single-user and multi-currency expense scenarios
    - ✅ Enhanced test clarity with descriptive builder variable names
 
-6. **`e2e-tests/src/__tests__/integration/normal-flow/multi-currency-basic.e2e.test.ts` (PARTIAL)**
+6. **`e2e-tests/src/__tests__/integration/normal-flow/multi-currency-basic.e2e.test.ts` (COMPLETED)**
    - ✅ Added ExpenseBuilder import 
-   - ✅ Refactored first test case with USD and EUR expenses
-   - 🔄 Multiple additional test cases identified for future refactoring
+   - ✅ Refactored all 5 test cases with multi-currency support
+   - ✅ Converted manual submitExpense calls in all test methods
+   - ✅ Enhanced test readability with descriptive expense variable names
+   - ✅ Demonstrates builder pattern works seamlessly across USD, EUR, and GBP currencies
 
 ### Patterns Refined in Phase 2
 
@@ -196,11 +198,37 @@ await expenseFormPage.submitExpense(expenseName);
 - **Simplified Maintenance**: Changes to expense structure centralized in builder
 - **Cross-Currency Support**: Pattern works seamlessly with USD, EUR, and other currencies
 
+### Phase 2: Additional E2E Test File Refactoring (COMPLETED)
+
+Phase 2 has been successfully completed, demonstrating comprehensive ExpenseBuilder adoption across different test scenarios:
+
+**Completed Refactoring Results:**
+- **6 E2E test files** successfully refactored to use ExpenseBuilder pattern
+- **15+ manual expense creation patterns** converted to builder approach
+- **Multi-currency support** validated across USD, EUR, and GBP
+- **Consistent patterns** established across form-based, currency-specific, and balance visualization tests
+
+### Phase 2 Summary
+
+All targeted files in Phase 2 have been successfully refactored:
+
+4. ✅ `add-expense-happy-path.e2e.test.ts` - 4 test cases refactored
+5. ✅ `balance-visualization-single-user.e2e.test.ts` - 3 expense creations refactored
+6. ✅ `multi-currency-basic.e2e.test.ts` - 5 test cases refactored (all manual patterns eliminated)
+
+### Benefits Demonstrated in Phase 2
+
+- **Complete Pattern Consistency**: All E2E expense creation now follows the builder pattern
+- **Enhanced Multi-Currency Support**: Builder pattern works seamlessly across all supported currencies
+- **Improved Test Readability**: Descriptive variable names make test intent crystal clear
+- **Reduced Maintenance Burden**: Centralized expense structure changes in ExpenseBuilder
+- **Type Safety Enforcement**: Builder ensures proper ExpenseData structure across all tests
+
 ### Next Steps (Future Phases)
 
-- Phase 2 (ONGOING): Complete refactoring of `multi-currency-basic.e2e.test.ts` and other identified files with `submitExpense` patterns
 - Phase 3: Refactor Firebase integration tests to use builders consistently  
-- Phase 4: Expand builder library for new entities as they are introduced
-- Phase 5: Consider adding linting rules to enforce builder usage
+- Phase 4: Identify and refactor other test files with remaining manual object creation patterns
+- Phase 5: Expand builder library for new entities as they are introduced
+- Phase 6: Consider adding linting rules to enforce builder usage
 
-The refactoring continues to demonstrate significant improvements in code quality and test maintainability. Phase 2 has already established consistent patterns across different test types (form-based, currency-specific, and balance visualization).
+**Phase 2 Status: COMPLETE** - All targeted E2E test files now consistently use the ExpenseBuilder pattern, establishing a solid foundation for continued builder pattern adoption across the entire test suite.
