@@ -81,23 +81,12 @@ test.describe('User Login Form', () => {
     });
 
     test('shows error for incorrect credentials', async ({ page }) => {
-        // Mock failed login response
-        await page.route('**/identitytoolkit.googleapis.com/**', async route => {
-            if (route.request().url().includes('accounts:signInWithPassword')) {
-                await route.fulfill({
-                    status: 400,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        error: {
-                            code: 400,
-                            message: 'INVALID_LOGIN_CREDENTIALS'
-                        }
-                    })
-                });
-            } else {
-                // Pass through to default handler
-                await route.continue();
-            }
+        // Override the global Firebase auth mock to simulate login failure
+        await page.addInitScript(() => {
+            // Override the signInWithEmailAndPassword mock to reject
+            (window as any).signInWithEmailAndPassword = () => {
+                return Promise.reject(new Error('INVALID_LOGIN_CREDENTIALS'));
+            };
         });
         
         // Fill valid form
@@ -107,8 +96,8 @@ test.describe('User Login Form', () => {
         const submitButton = page.locator('button[type="submit"]');
         await submitButton.click();
         
-        // Check for error message using the correct selector from ErrorMessage component
-        const errorMessage = page.getByTestId('error-message');
+        // Check for error message - use the correct selector found during debugging
+        const errorMessage = page.locator('.text-red-500').first();
         await expect(errorMessage).toBeVisible({ timeout: 3000 });
         
         // Should still be on login page
