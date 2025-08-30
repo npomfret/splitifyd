@@ -1,84 +1,7 @@
 import { validateRegisterRequest } from '../../auth/validation';
 import { validateCreateExpense, validateUpdateExpense } from '../../expenses/validation';
 import { ApiError } from '../../utils/errors';
-
-// Test builders - only specify what's needed for each test
-class RegisterRequestBuilder {
-    private request: any = {
-        email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'Test User',
-        termsAccepted: true,
-        cookiePolicyAccepted: true,
-    };
-
-    withEmail(email: string): RegisterRequestBuilder {
-        this.request.email = email;
-        return this;
-    }
-
-    withPassword(password: string): RegisterRequestBuilder {
-        this.request.password = password;
-        return this;
-    }
-
-    withDisplayName(displayName: string): RegisterRequestBuilder {
-        this.request.displayName = displayName;
-        return this;
-    }
-
-    withoutDisplayName(): RegisterRequestBuilder {
-        delete this.request.displayName;
-        return this;
-    }
-
-    withTermsAccepted(accepted: boolean): RegisterRequestBuilder {
-        this.request.termsAccepted = accepted;
-        return this;
-    }
-
-    withoutTermsAccepted(): RegisterRequestBuilder {
-        delete this.request.termsAccepted;
-        return this;
-    }
-
-    withCookiePolicyAccepted(accepted: boolean): RegisterRequestBuilder {
-        this.request.cookiePolicyAccepted = accepted;
-        return this;
-    }
-
-    withoutCookiePolicyAccepted(): RegisterRequestBuilder {
-        delete this.request.cookiePolicyAccepted;
-        return this;
-    }
-
-    build(): any {
-        return { ...this.request };
-    }
-}
-
-class ExpenseDataBuilder {
-    private expense: any = {
-        groupId: 'group123',
-        paidBy: 'user123',
-        amount: 100.5,
-        description: 'Dinner at restaurant',
-        category: 'food',
-        currency: 'USD',
-        date: '2024-01-15T00:00:00.000Z',
-        splitType: 'equal',
-        participants: ['user123', 'user456'],
-    };
-
-    withReceiptUrl(url: string): ExpenseDataBuilder {
-        this.expense.receiptUrl = url;
-        return this;
-    }
-
-    build(): any {
-        return { ...this.expense };
-    }
-}
+import { RegisterRequestBuilder, ValidationExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {
@@ -125,7 +48,7 @@ describe('Auth Validation', () => {
 describe('Expense Validation', () => {
     describe('validateCreateExpense and validateUpdateExpense', () => {
         it('should validate complete expense data including optional fields', () => {
-            const validExpenseData = new ExpenseDataBuilder().withReceiptUrl('https://example.com/receipt.jpg').build();
+            const validExpenseData = new ValidationExpenseBuilder().withReceiptUrl('https://example.com/receipt.jpg').build();
 
             const result = validateCreateExpense(validExpenseData);
 
