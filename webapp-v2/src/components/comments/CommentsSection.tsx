@@ -22,11 +22,11 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
 
     // Subscribe to comments when component mounts or target changes
     useEffect(() => {
-        commentsStore.subscribeToComments(targetType, targetId);
+        commentsStore.registerComponent(targetType, targetId);
 
         // Cleanup on unmount
         return () => {
-            commentsStore.dispose();
+            commentsStore.deregisterComponent(targetId);
         };
     }, [targetType, targetId]);
 

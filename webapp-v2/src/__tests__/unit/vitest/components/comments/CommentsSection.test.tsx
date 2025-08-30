@@ -10,18 +10,25 @@ vi.mock('@heroicons/react/24/outline', () => ({
     PaperAirplaneIcon: () => <div data-testid="paper-airplane-icon">Send</div>,
 }));
 
+// Create mock signals that can be updated in tests
+const mockCommentsSignal = signal<CommentApiResponse[]>([]);
+const mockLoadingSignal = signal<boolean>(false);
+const mockSubmittingSignal = signal<boolean>(false);
+const mockErrorSignal = signal<string | null>(null);
+const mockHasMoreSignal = signal<boolean>(false);
+
 // Mock the comments store with factory function to avoid hoisting issues
 vi.mock('@/stores/comments-store', () => ({
     commentsStore: {
-        commentsSignal: signal<CommentApiResponse[]>([]),
-        loadingSignal: signal<boolean>(false),
-        submittingSignal: signal<boolean>(false),
-        errorSignal: signal<string | null>(null),
-        hasMoreSignal: signal<boolean>(false),
-        subscribeToComments: vi.fn(),
+        commentsSignal: mockCommentsSignal,
+        loadingSignal: mockLoadingSignal,
+        submittingSignal: mockSubmittingSignal,
+        errorSignal: mockErrorSignal,
+        hasMoreSignal: mockHasMoreSignal,
+        registerComponent: vi.fn(),
+        deregisterComponent: vi.fn(),
         addComment: vi.fn(),
         loadMoreComments: vi.fn(),
-        dispose: vi.fn(),
         reset: vi.fn(),
     },
 }));
@@ -123,11 +130,11 @@ describe('CommentsSection', () => {
         user = userEvent.setup();
 
         // Reset all signals to default state
-        mockCommentsStore.commentsSignal.value = [];
-        mockCommentsStore.loadingSignal.value = false;
-        mockCommentsStore.submittingSignal.value = false;
-        mockCommentsStore.errorSignal.value = null;
-        mockCommentsStore.hasMoreSignal.value = false;
+        mockCommentsSignal.value = [];
+        mockLoadingSignal.value = false;
+        mockSubmittingSignal.value = false;
+        mockErrorSignal.value = null;
+        mockHasMoreSignal.value = false;
     });
 
     afterEach(() => {
@@ -145,30 +152,30 @@ describe('CommentsSection', () => {
     };
 
     describe('Component Lifecycle', () => {
-        it('should subscribe to comments on mount', () => {
+        it('should register component on mount', () => {
             renderCommentsSection();
 
-            expect(mockCommentsStore.subscribeToComments).toHaveBeenCalledWith('group', 'test-group-123');
+            expect(mockCommentsStore.registerComponent).toHaveBeenCalledWith('group', 'test-group-123');
         });
 
-        it('should dispose subscription on unmount', () => {
+        it('should deregister component on unmount', () => {
             const { unmount } = renderCommentsSection();
 
             unmount();
 
-            expect(mockCommentsStore.dispose).toHaveBeenCalled();
+            expect(mockCommentsStore.deregisterComponent).toHaveBeenCalledWith('test-group-123');
         });
 
-        it('should resubscribe when target changes', () => {
+        it('should reregister when target changes', () => {
             const { rerender } = renderCommentsSection({ targetId: 'group-1' });
 
-            expect(mockCommentsStore.subscribeToComments).toHaveBeenCalledWith('group', 'group-1');
+            expect(mockCommentsStore.registerComponent).toHaveBeenCalledWith('group', 'group-1');
 
             // Change target
             rerender(<CommentsSection targetType="expense" targetId="expense-2" />);
 
-            expect(mockCommentsStore.subscribeToComments).toHaveBeenCalledWith('expense', 'expense-2');
-            expect(mockCommentsStore.subscribeToComments).toHaveBeenCalledTimes(2);
+            expect(mockCommentsStore.deregisterComponent).toHaveBeenCalledWith('group-1');
+            expect(mockCommentsStore.registerComponent).toHaveBeenCalledWith('expense', 'expense-2');
         });
     });
 
@@ -182,7 +189,7 @@ describe('CommentsSection', () => {
         });
 
         it('should display error message when error exists', () => {
-            mockCommentsStore.errorSignal.value = 'Failed to load comments';
+            mockErrorSignal.value = 'Failed to load comments';
 
             renderCommentsSection();
 
@@ -193,9 +200,9 @@ describe('CommentsSection', () => {
 
         it('should pass correct props to CommentsList', () => {
             const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
-            mockCommentsStore.commentsSignal.value = comments;
-            mockCommentsStore.loadingSignal.value = true;
-            mockCommentsStore.hasMoreSignal.value = true;
+            mockCommentsSignal.value = comments;
+            mockLoadingSignal.value = true;
+            mockHasMoreSignal.value = true;
 
             renderCommentsSection({ maxHeight: '300px' });
 
@@ -206,7 +213,7 @@ describe('CommentsSection', () => {
         });
 
         it('should pass correct props to CommentInput', () => {
-            mockCommentsStore.submittingSignal.value = true;
+            mockSubmittingSignal.value = true;
 
             renderCommentsSection({ targetType: 'expense' });
 
@@ -254,7 +261,7 @@ describe('CommentsSection', () => {
 
     describe('Load More Functionality', () => {
         it('should call loadMoreComments when load more is triggered', async () => {
-            mockCommentsStore.hasMoreSignal.value = true;
+            mockHasMoreSignal.value = true;
             mockCommentsStore.loadMoreComments.mockResolvedValue(undefined);
 
             renderCommentsSection();
@@ -266,7 +273,7 @@ describe('CommentsSection', () => {
         });
 
         it('should handle load more errors gracefully', async () => {
-            mockCommentsStore.hasMoreSignal.value = true;
+            mockHasMoreSignal.value = true;
             const error = new Error('Load more failed');
             mockCommentsStore.loadMoreComments.mockRejectedValue(error);
 
@@ -315,7 +322,7 @@ describe('CommentsSection', () => {
             // Add comments via signal
             const comments = [new CommentBuilder().withId('comment-1').build(), new CommentBuilder().withId('comment-2').build()];
 
-            mockCommentsStore.commentsSignal.value = comments;
+            mockCommentsSignal.value = comments;
 
             await waitFor(() => {
                 expect(screen.getByTestId('comments-count')).toHaveTextContent('2');
@@ -327,7 +334,7 @@ describe('CommentsSection', () => {
 
             expect(screen.getByTestId('loading-state')).toHaveTextContent('not-loading');
 
-            mockCommentsStore.loadingSignal.value = true;
+            mockLoadingSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('loading-state')).toHaveTextContent('loading');
@@ -339,7 +346,7 @@ describe('CommentsSection', () => {
 
             expect(screen.getByTestId('disabled-state')).toHaveTextContent('enabled');
 
-            mockCommentsStore.submittingSignal.value = true;
+            mockSubmittingSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('disabled-state')).toHaveTextContent('disabled');
@@ -351,14 +358,14 @@ describe('CommentsSection', () => {
 
             expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
 
-            mockCommentsStore.errorSignal.value = 'Connection failed';
+            mockErrorSignal.value = 'Connection failed';
 
             await waitFor(() => {
                 expect(screen.getByText('Connection failed')).toBeInTheDocument();
             });
 
             // Clear error
-            mockCommentsStore.errorSignal.value = null;
+            mockErrorSignal.value = null;
 
             await waitFor(() => {
                 expect(screen.queryByText('Connection failed')).not.toBeInTheDocument();
@@ -371,7 +378,7 @@ describe('CommentsSection', () => {
             expect(screen.getByTestId('has-more')).toHaveTextContent('no-more');
             expect(screen.queryByTestId('load-more-button')).not.toBeInTheDocument();
 
-            mockCommentsStore.hasMoreSignal.value = true;
+            mockHasMoreSignal.value = true;
 
             await waitFor(() => {
                 expect(screen.getByTestId('has-more')).toHaveTextContent('has-more');
@@ -393,12 +400,12 @@ describe('CommentsSection', () => {
             renderCommentsSection();
 
             // Simulate rapid state changes that might happen with real-time updates
-            mockCommentsStore.loadingSignal.value = true;
-            mockCommentsStore.errorSignal.value = 'Error 1';
-            mockCommentsStore.loadingSignal.value = false;
-            mockCommentsStore.errorSignal.value = null;
-            mockCommentsStore.commentsSignal.value = [new CommentBuilder().build()];
-            mockCommentsStore.hasMoreSignal.value = true;
+            mockLoadingSignal.value = true;
+            mockErrorSignal.value = 'Error 1';
+            mockLoadingSignal.value = false;
+            mockErrorSignal.value = null;
+            mockCommentsSignal.value = [new CommentBuilder().build()];
+            mockHasMoreSignal.value = true;
 
             // Component should handle all changes without crashing
             await waitFor(() => {

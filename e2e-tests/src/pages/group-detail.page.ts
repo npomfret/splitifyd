@@ -1538,6 +1538,29 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Verify that comment authors are visible in the comments section
+     */
+    async verifyCommentAuthorsVisible(authorNames: string[]): Promise<void> {
+        const commentsSection = this.getCommentsSection();
+        
+        for (const authorName of authorNames) {
+            const authorElement = commentsSection.locator('span.font-medium', { hasText: authorName }).first();
+            await expect(authorElement).toBeVisible();
+        }
+    }
+
+    /**
+     * Verify that all specified comments are visible
+     */
+    async verifyCommentsVisible(commentTexts: string[]): Promise<void> {
+        const commentsSection = this.getCommentsSection();
+        
+        for (const commentText of commentTexts) {
+            await expect(commentsSection.getByText(commentText)).toBeVisible();
+        }
+    }
+
+    /**
      * Verify real-time comment updates work between multiple users
      * This method should be used in multi-user tests
      */

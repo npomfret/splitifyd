@@ -131,7 +131,7 @@ test.describe('Real-time Comments E2E', () => {
         await alicePage.waitForURL(new RegExp(`/groups/${groupId}$`), { timeout: 3000 });
 
         // Click on the newly created expense to navigate to expense detail page
-        await alicePage.getByText('Test Expense for Comments').click();
+        await groupDetailPage.clickExpenseToView('Test Expense for Comments');
 
         // Wait for navigation to expense detail page
         await alicePage.waitForURL(new RegExp(`/groups/${groupId}/expenses/[a-zA-Z0-9]+$`), { timeout: 3000 });
@@ -158,8 +158,7 @@ test.describe('Real-time Comments E2E', () => {
         await expenseDetailPage.verifyCommentsSection();
         await bobExpenseDetailPage.verifyCommentsSection();
 
-        // Wait for comments section to be fully initialized
-        await alicePage.waitForTimeout(200);// not allow
+        // Comments section already verified above
 
         // Test real-time expense comments
         const aliceExpenseComment = `comment ${uuidv4()}`;
@@ -269,15 +268,13 @@ test.describe('Real-time Comments E2E', () => {
         await groupDetailPage.addComment(comment1);
         await bobGroupDetailPage.waitForCommentToAppear(comment1);
 
-        // Brief pause to ensure timestamp order
-        await alicePage.waitForTimeout(100);
+        // Real-time updates will handle proper ordering
 
         // Bob adds second comment
         await bobGroupDetailPage.addComment(comment2);
         await groupDetailPage.waitForCommentToAppear(comment2);
 
-        // Brief pause
-        await alicePage.waitForTimeout(100);
+        // Real-time updates will handle proper ordering
 
         // Alice adds third comment
         await groupDetailPage.addComment(comment3);
@@ -289,19 +286,15 @@ test.describe('Real-time Comments E2E', () => {
 
         // Verify all comments are visible with correct author names
         // Comments should appear in chronological order (newest first in most chat UIs)
-        const aliceCommentsSection = groupDetailPage.getCommentsSection();
-        const bobCommentsSection = bobGroupDetailPage.getCommentsSection();
+        const authorNames = [alice.displayName, bob.displayName];
+        const allComments = [comment1, comment2, comment3];
 
-        // Check that author names appear at least once (users may have multiple comments)
-        await expect(aliceCommentsSection.locator('span.font-medium', { hasText: alice.displayName }).first()).toBeVisible();
-        await expect(aliceCommentsSection.locator('span.font-medium', { hasText: bob.displayName }).first()).toBeVisible();
-        await expect(bobCommentsSection.locator('span.font-medium', { hasText: alice.displayName }).first()).toBeVisible();
-        await expect(bobCommentsSection.locator('span.font-medium', { hasText: bob.displayName }).first()).toBeVisible();
+        // Check that author names appear for both users
+        await groupDetailPage.verifyCommentAuthorsVisible(authorNames);
+        await bobGroupDetailPage.verifyCommentAuthorsVisible(authorNames);
 
         // All three comment texts should be visible for both users
-        for (const comment of [comment1, comment2, comment3]) {
-            await expect(aliceCommentsSection.getByText(comment)).toBeVisible();
-            await expect(bobCommentsSection.getByText(comment)).toBeVisible();
-        }
+        await groupDetailPage.verifyCommentsVisible(allComments);
+        await bobGroupDetailPage.verifyCommentsVisible(allComments);
     });
 });

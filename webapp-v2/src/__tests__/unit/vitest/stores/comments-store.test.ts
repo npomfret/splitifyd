@@ -153,7 +153,7 @@ describe('CommentsStore', () => {
     });
 
     afterEach(() => {
-        commentsStore.dispose();
+        commentsStore.reset();
     });
 
     describe('Initial State', () => {
@@ -168,8 +168,8 @@ describe('CommentsStore', () => {
         });
     });
 
-    describe('subscribeToComments', () => {
-        it('should subscribe to group comments', () => {
+    describe('registerComponent', () => {
+        it('should subscribe to group comments when registering first component', () => {
             const mockSnapshot = new FirestoreDocBuilder()
                 .withId('comment-1')
                 .withData({
@@ -187,7 +187,7 @@ describe('CommentsStore', () => {
                 return vi.fn(); // unsubscribe function
             });
 
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             expect(commentsStore.targetType).toBe('group');
             expect(commentsStore.targetId).toBe('group-123');
@@ -197,14 +197,14 @@ describe('CommentsStore', () => {
             expect(commentsStore.comments[0].text).toBe('Hello world');
         });
 
-        it('should subscribe to expense comments', () => {
+        it('should subscribe to expense comments when registering first component', () => {
             const mockSnapshot = new FirestoreDocBuilder().buildSnapshot();
             mockOnSnapshot.mockImplementation((_query: any, onSuccess: any) => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
 
-            commentsStore.subscribeToComments('expense', 'expense-456');
+            commentsStore.registerComponent('expense', 'expense-456');
 
             expect(commentsStore.targetType).toBe('expense');
             expect(commentsStore.targetId).toBe('expense-456');
@@ -218,22 +218,22 @@ describe('CommentsStore', () => {
                 return vi.fn();
             });
 
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             expect(commentsStore.loading).toBe(false);
             expect(commentsStore.error).toContain('Failed to load comments');
         });
 
-        it('should dispose previous subscription when subscribing to new target', () => {
+        it('should cleanup previous subscription when registering new target', () => {
             const mockUnsubscribe = vi.fn();
             mockOnSnapshot.mockReturnValue(mockUnsubscribe);
 
             // Subscribe to first target
-            commentsStore.subscribeToComments('group', 'group-1');
+            commentsStore.registerComponent('group', 'group-1');
             expect(mockOnSnapshot).toHaveBeenCalledTimes(1);
 
             // Subscribe to second target
-            commentsStore.subscribeToComments('expense', 'expense-2');
+            commentsStore.registerComponent('expense', 'expense-2');
 
             expect(mockUnsubscribe).toHaveBeenCalled();
             expect(mockOnSnapshot).toHaveBeenCalledTimes(2);
@@ -248,7 +248,7 @@ describe('CommentsStore', () => {
                 return vi.fn();
             });
 
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             expect(commentsStore.hasMore).toBe(true);
         });
@@ -262,7 +262,7 @@ describe('CommentsStore', () => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
         });
 
         it('should add group comment successfully', async () => {
@@ -283,7 +283,7 @@ describe('CommentsStore', () => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
-            commentsStore.subscribeToComments('expense', 'expense-456');
+            commentsStore.registerComponent('expense', 'expense-456');
 
             mockApiClient.createExpenseComment.mockResolvedValue(new CommentBuilder().build());
 
@@ -340,7 +340,7 @@ describe('CommentsStore', () => {
                 return vi.fn();
             });
 
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             // Verify initial state after subscription
             expect(commentsStore.comments.length).toBe(20);
@@ -367,7 +367,7 @@ describe('CommentsStore', () => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             await commentsStore.loadMoreComments();
 
@@ -397,7 +397,7 @@ describe('CommentsStore', () => {
                 onSuccess(mockSnapshot);
                 return vi.fn();
             });
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             // Reset
             commentsStore.reset();
@@ -412,19 +412,19 @@ describe('CommentsStore', () => {
         });
     });
 
-    describe('dispose', () => {
+    describe('cleanup', () => {
         it('should call unsubscribe function', () => {
             const mockUnsubscribe = vi.fn();
             mockOnSnapshot.mockReturnValue(mockUnsubscribe);
 
-            commentsStore.subscribeToComments('group', 'group-123');
-            commentsStore.dispose();
+            commentsStore.registerComponent('group', 'group-123');
+            commentsStore.reset();
 
             expect(mockUnsubscribe).toHaveBeenCalled();
         });
 
-        it('should handle dispose when no subscription exists', () => {
-            expect(() => commentsStore.dispose()).not.toThrow();
+        it('should handle reset when no subscription exists', () => {
+            expect(() => commentsStore.reset()).not.toThrow();
         });
     });
 
@@ -445,7 +445,7 @@ describe('CommentsStore', () => {
                 return vi.fn();
             });
 
-            commentsStore.subscribeToComments('group', 'group-123');
+            commentsStore.registerComponent('group', 'group-123');
 
             expect(commentsStore.commentsSignal.value).toHaveLength(1);
             expect(commentsStore.loadingSignal.value).toBe(false);
