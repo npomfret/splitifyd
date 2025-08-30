@@ -68,8 +68,8 @@ export async function setupMocks(page: Page) {
             refreshToken: 'mock-refresh-token',
             tenantId: null,
             delete: () => Promise.resolve(),
-            getIdToken: (forceRefresh?: boolean) => Promise.resolve('mock-id-token'),
-            getIdTokenResult: (forceRefresh?: boolean) => Promise.resolve({ token: 'mock-id-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: 'mock', signInSecondFactor: null }),
+            getIdToken: (_forceRefresh?: boolean) => Promise.resolve('mock-id-token'),
+            getIdTokenResult: (_forceRefresh?: boolean) => Promise.resolve({ token: 'mock-id-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: 'mock', signInSecondFactor: null }),
             reload: () => Promise.resolve(),
             toJSON: () => ({ uid: 'mock-user-id', email: 'mock@example.com' }),
         };
@@ -88,10 +88,10 @@ export async function setupMocks(page: Page) {
                 setTimeout(() => callback(null), 0);
                 return () => {};
             },
-            signInWithEmailAndPassword: (email: string, password: string) => 
+            signInWithEmailAndPassword: (_email: string, _password: string) => 
                 Promise.resolve({ user: mockUser, operationType: 'signIn', providerId: null, additionalUserInfo: null }),
             signOut: () => Promise.resolve(),
-            sendPasswordResetEmail: (email: string) => Promise.resolve(),
+            sendPasswordResetEmail: (_email: string) => Promise.resolve(),
         };
 
         const mockApp = {
@@ -132,7 +132,7 @@ export async function setupMocks(page: Page) {
                     update: () => Promise.resolve(),
                     delete: () => Promise.resolve(),
                 }),
-                add: (data: any) => Promise.resolve({ 
+                add: (_data: any) => Promise.resolve({ 
                     id: 'mock-doc-id', 
                     path: `${path}/mock-doc-id`,
                     parent: null,
@@ -153,12 +153,12 @@ export async function setupMocks(page: Page) {
             mockApp.options = { ...mockApp.options, ...config };
             return mockApp;
         };
-        (window as any).getAuth = (app?: any) => mockAuth;
-        (window as any).getFirestore = (app?: any) => mockFirestore;
-        (window as any).connectAuthEmulator = (auth: any, url: string, options?: any) => {
+        (window as any).getAuth = (_app?: any) => mockAuth;
+        (window as any).getFirestore = (_app?: any) => mockFirestore;
+        (window as any).connectAuthEmulator = (_auth: any, url: string, _options?: any) => {
             console.log('Mock: Connected to auth emulator at', url);
         };
-        (window as any).connectFirestoreEmulator = (firestore: any, host: string, port: number) => {
+        (window as any).connectFirestoreEmulator = (_firestore: any, host: string, port: number) => {
             console.log('Mock: Connected to firestore emulator at', host, port);
         };
         (window as any).signInWithEmailAndPassword = mockAuth.signInWithEmailAndPassword;
@@ -170,7 +170,7 @@ export async function setupMocks(page: Page) {
         (window as any).firebase = {
             apps: [mockApp],
             initializeApp: (window as any).initializeApp,
-            app: (name?: string) => mockApp,
+            app: (_name?: string) => mockApp,
             auth: () => mockAuth,
             firestore: () => mockFirestore,
         };
@@ -186,7 +186,6 @@ export async function setupMocks(page: Page) {
     // Mock ES6 module imports at the browser level
     await page.addInitScript(() => {
         // Intercept dynamic imports for Firebase modules
-        const originalModules = new Map();
         
         // Override System.js if present (used by some bundlers)
         if ((window as any).System) {
