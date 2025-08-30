@@ -4,6 +4,7 @@ import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { v4 as uuidv4 } from 'uuid';
 
 // Enable error reporting and debugging
 setupConsoleErrorReporting();
@@ -67,7 +68,11 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
 
         // Test 4: Multiple rapid comments to test real-time reliability
-        const rapidComments = [`Rapid comment 1 from ${alice.displayName}`, `Rapid comment 2 from ${bob.displayName}`, `Rapid comment 3 from ${alice.displayName}`];
+        const rapidComments = [
+            `Rapid comment 1 from ${alice.displayName}`,
+            `Rapid comment 2 from ${bob.displayName}`,
+            `Rapid comment 3 from ${alice.displayName}`
+        ];
 
         // Alice adds first rapid comment
         await groupDetailPage.addComment(rapidComments[0]);
@@ -154,10 +159,10 @@ test.describe('Real-time Comments E2E', () => {
         await bobExpenseDetailPage.verifyCommentsSection();
 
         // Wait for comments section to be fully initialized
-        await alicePage.waitForTimeout(200);
+        await alicePage.waitForTimeout(200);// not allow
 
         // Test real-time expense comments
-        const aliceExpenseComment = `Alice's expense comment! Time: ${Date.now()}`;
+        const aliceExpenseComment = `comment ${uuidv4()}`;
 
         // Alice adds comment to expense
         await expenseDetailPage.addComment(aliceExpenseComment);
@@ -166,7 +171,7 @@ test.describe('Real-time Comments E2E', () => {
         await bobExpenseDetailPage.waitForCommentToAppear(aliceExpenseComment);
 
         // Bob adds a comment
-        const bobExpenseComment = `Bob's expense comment! Time: ${Date.now()}`;
+        const bobExpenseComment = `comment ${uuidv4()}`;
         await bobExpenseDetailPage.addComment(bobExpenseComment);
 
         // Alice should see Bob's comment
