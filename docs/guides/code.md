@@ -39,6 +39,22 @@ import type { CreateGroupRequest, Group } from '@splitifyd/shared';
 
 ---
 
+## Security
+
+### Server-Side (`firebase`)
+
+Security is enforced primarily on the backend, which operates on a zero-trust principle with the client.
+
+- **Firebase Security Rules**: Define granular access control for all Firestore database operations, acting as the primary data-layer defense.
+- **Authentication Middleware**: Every API request is protected by middleware that verifies the user's Firebase Auth ID token. This ensures that only authenticated users with valid sessions can access protected routes.
+
+### Client-Side (`webapp-v2`)
+
+The client's role in security is minimal and it does not contain any access-control logic.
+
+- **Token-Based Authentication**: The frontend's sole security responsibility is to send the user's ID token with every API request.
+- **No Client-Side Checks**: The client performs no permission checks and relies entirely on the backend to enforce access control. If the backend denies a request, the client simply handles the resulting error.
+
 ## Backend (`firebase`)
 
 The backend is built on Firebase Functions using Express.js.
@@ -72,26 +88,117 @@ The frontend is a Preact application built with Vite.
 
 ### State Management
 
-- **Preact Signals**: The app uses `@preact/signals` as its core reactivity and state management library.
-- **Global Stores**: Global state is organized into feature-based "stores" (e.g., `auth-store.ts`, `groups-store.ts`). These stores are singleton classes that encapsulate signals, computed values, and actions related to a specific domain.
+The application uses **Preact Signals** (`@preact/signals`) as its core reactivity and state management system. This provides:
+
+- Fine-grained reactivity without unnecessary re-renders
+- Automatic dependency tracking
+- Synchronous updates
+- TypeScript support
+- **Proper encapsulation** through private class fields
+
+#### 1. Store Pattern
+
+Global state is organized into feature-based "stores" that encapsulate related signals, computed values, and actions. **All signals must be private class fields to enforce proper encapsulation.**
 
 ```typescript
-// Example from app/stores/groups-store.ts
-const groupsSignal = signal<Group[]>([]);
-const loadingSignal = signal<boolean>(false);
+// Example Store Structure
+interface SomeStore {
+    // State properties (read-only to consumers)
+    readonly data: ReadonlySignal<SomeData[]>;
+    readonly loading: ReadonlySignal<boolean>;
+    readonly error: ReadonlySignal<string | null>;
 
-class GroupsStoreImpl implements GroupsStore {
-    get groups() {
-        return groupsSignal.value;
+    // Actions (the only way to mutate state)
+    fetchData(): Promise<void>;
+    updateData(item: SomeData): Promise<void>;
+    clearError(): void;
+}
+```
+
+#### 2. Signal Declaration - PROPER ENCAPSULATION
+
+Signals must be declared as **private class fields** using the `#` syntax to ensure true encapsulation:
+
+```typescript
+// ✅ CORRECT: Private class field signals with proper encapsulation
+import { signal, ReadonlySignal } from '@preact/signals';
+
+class SomeStoreImpl implements SomeStore {
+    // Private signals - cannot be accessed or mutated from outside
+    #dataSignal = signal<SomeData[]>([]);
+    #loadingSignal = signal<boolean>(false);
+    #errorSignal = signal<string | null>(null);
+
+    // Expose read-only access to components
+    get data(): ReadonlySignal<SomeData[]> {
+        return this.#dataSignal;
     }
-    // ...
-    async fetchGroups() {
-        /* ... */
+
+    get loading(): ReadonlySignal<boolean> {
+        return this.#loadingSignal;
+    }
+
+    get error(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+
+    // Actions are the ONLY way to mutate state
+    async fetchData(): Promise<void> {
+        this.#loadingSignal.value = true;
+        this.#errorSignal.value = null;
+
+        try {
+            const data = await api.getData();
+            this.#dataSignal.value = data;
+        } catch (error) {
+            this.#errorSignal.value = this.getErrorMessage(error);
+            throw error;
+        } finally {
+            this.#loadingSignal.value = false;
+        }
+    }
+
+    updateData(item: SomeData): void {
+        this.#dataSignal.value = [...this.#dataSignal.value, item];
+    }
+
+    clearError(): void {
+        this.#errorSignal.value = null;
     }
 }
 ```
 
-**note** we do not yet use firebase websockets for data updates, so often the UI needs to be refreshed to pick up new changes.
+#### ❌ ANTI-PATTERN TO AVOID
+
+Never declare signals at the module level outside the class:
+
+```typescript
+// ❌ WRONG: Module-level signals break encapsulation
+const dataSignal = signal<SomeData[]>([]); // DON'T DO THIS!
+const loadingSignal = signal<boolean>(false); // DON'T DO THIS!
+
+class SomeStoreImpl {
+    get data() {
+        return dataSignal.value; // This exposes mutable global state!
+    }
+}
+```
+
+**Why this is dangerous:** Module-level signals become global variables that any code can directly mutate via `someSignal.value = ...`, completely bypassing the store's control and making state changes unpredictable and untraceable.
+
+#### 3. Store Singleton Pattern
+
+Stores are exported as singleton instances:
+
+```typescript
+// Store implementation
+class GroupsStoreImpl implements GroupsStore {
+    // implementation...
+}
+
+// Export singleton instance
+export const groupsStore = new GroupsStoreImpl();
+```
 
 ### API Communication & Runtime Validation
 
