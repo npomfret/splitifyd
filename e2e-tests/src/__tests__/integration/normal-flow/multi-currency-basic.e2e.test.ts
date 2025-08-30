@@ -2,6 +2,7 @@ import { authenticatedPageTest, expect } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 // Enable debugging helpers
 setupMCPDebugOnFailure();
@@ -21,13 +22,14 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create USD expense using page object methods
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense({
-            description: 'Lunch',
-            amount: 25.0,
-            currency: 'USD',
-            paidBy: user.displayName,
-            splitType: 'equal',
-        });
+        const lunchExpense = new ExpenseBuilder()
+            .withDescription('Lunch')
+            .withAmount(25.0)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage1.submitExpense(lunchExpense);
 
         // Verify back on group page with USD expense
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -35,13 +37,14 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense({
-            description: 'Dinner',
-            amount: 30.0,
-            currency: 'EUR',
-            paidBy: user.displayName,
-            splitType: 'equal',
-        });
+        const dinnerExpense = new ExpenseBuilder()
+            .withDescription('Dinner')
+            .withAmount(30.0)
+            .withCurrency('EUR')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage2.submitExpense(dinnerExpense);
 
         // Verify both expenses with separate currencies
         await expect(groupDetailPage.getCurrencyAmount('25.00')).toBeVisible();

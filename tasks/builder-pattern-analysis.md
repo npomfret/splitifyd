@@ -152,11 +152,55 @@ await expenseFormPage.submitExpense(beachHouseExpense);
 - **Type Safety**: Builder enforces proper types and provides sensible defaults
 - **Consistency**: Proper use of `user.displayName` for UI interactions where display names are expected
 
+### Phase 2: Additional E2E Test File Refactoring (IN PROGRESS)
+
+Building on Phase 1 success, Phase 2 continues refactoring E2E tests to use ExpenseBuilder pattern:
+
+**Files Successfully Refactored in Phase 2:**
+
+4. **`e2e-tests/src/__tests__/integration/normal-flow/add-expense-happy-path.e2e.test.ts`**
+   - ✅ Replaced form-based expense creation with ExpenseBuilder in 4 test cases
+   - ✅ Converted manual `fillDescription()`, `fillAmount()`, `typeCategoryText()` calls to builder pattern
+   - ✅ Improved test readability and maintainability
+   
+5. **`e2e-tests/src/__tests__/integration/normal-flow/balance-visualization-single-user.e2e.test.ts`** 
+   - ✅ Replaced 3 manual `submitExpense` calls with ExpenseBuilder
+   - ✅ Refactored single-user and multi-currency expense scenarios
+   - ✅ Enhanced test clarity with descriptive builder variable names
+
+6. **`e2e-tests/src/__tests__/integration/normal-flow/multi-currency-basic.e2e.test.ts` (PARTIAL)**
+   - ✅ Added ExpenseBuilder import 
+   - ✅ Refactored first test case with USD and EUR expenses
+   - 🔄 Multiple additional test cases identified for future refactoring
+
+### Patterns Refined in Phase 2
+
+#### Consistent ExpenseBuilder Usage:
+```typescript
+// Standard pattern established across all refactored files
+const expenseName = new ExpenseBuilder()
+    .withDescription('Descriptive Name')
+    .withAmount(numericAmount)
+    .withCurrency('USD')
+    .withPaidBy(user.displayName)  // Always displayName for UI compatibility
+    .withSplitType('equal')
+    .build();
+await expenseFormPage.submitExpense(expenseName);
+```
+
+### Benefits Demonstrated in Phase 2
+
+- **Reduced Code Duplication**: Eliminated repeated form field filling patterns
+- **Improved Type Safety**: Builder enforces proper ExpenseData structure
+- **Better Test Naming**: Descriptive expense variable names improve readability
+- **Simplified Maintenance**: Changes to expense structure centralized in builder
+- **Cross-Currency Support**: Pattern works seamlessly with USD, EUR, and other currencies
+
 ### Next Steps (Future Phases)
 
-- Phase 2: Refactor remaining E2E test files with manual object creation
+- Phase 2 (ONGOING): Complete refactoring of `multi-currency-basic.e2e.test.ts` and other identified files with `submitExpense` patterns
 - Phase 3: Refactor Firebase integration tests to use builders consistently  
 - Phase 4: Expand builder library for new entities as they are introduced
 - Phase 5: Consider adding linting rules to enforce builder usage
 
-The refactoring has already demonstrated significant improvements in code quality and test maintainability.
+The refactoring continues to demonstrate significant improvements in code quality and test maintainability. Phase 2 has already established consistent patterns across different test types (form-based, currency-specific, and balance visualization).
