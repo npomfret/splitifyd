@@ -6,27 +6,21 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
 import { groupSize } from '@splitifyd/shared';
-import {firestoreDb} from "../../../../firebase";
 
 describe('Group Management', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let allUsers: User[] = [];
 
     // Helper to get users from pool
     const getTestUsers = (count: number): User[] => {
-        return userPool.getUsers(count);
+        return allUsers.slice(0, count);
     };
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 6 users (covers all test needs)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 6);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(6));
     });
 
     describe('Group Creation', () => {

@@ -1,7 +1,6 @@
 import { test, describe, beforeAll, afterAll, expect } from 'vitest';
 import { ApiDriver, User, generateNewUserDetails } from '@splitifyd/test-support';
 import { Group, MemberRoles, SecurityPresets } from '@splitifyd/shared';
-import {firestoreDb} from "../../firebase";
 
 describe('Group Permissions', () => {
     let apiDriver: ApiDriver;
@@ -10,7 +9,7 @@ describe('Group Permissions', () => {
     let group: Group;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
+        apiDriver = new ApiDriver();
         adminUser = await apiDriver.createUser(generateNewUserDetails('admin'));
         memberUser = await apiDriver.createUser(generateNewUserDetails('member'));
         const groupData = {

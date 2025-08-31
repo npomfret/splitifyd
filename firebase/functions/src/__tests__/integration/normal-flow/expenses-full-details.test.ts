@@ -1,13 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('Expenses Full Details API', () => {
     let apiDriver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let users: User[] = [];
+    let allUsers: User[] = [];
     let alice: User;
     let bob: User;
     let charlie: User;
@@ -15,16 +14,12 @@ describe('Expenses Full Details API', () => {
     let expenseId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 4 users (need extra for outsider test)
-        userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4);
-        await userPool.initialize();
+        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
+        users = allUsers.slice(0, 4);
     });
 
     beforeEach(async () => {
         // Use users from pool
-        const users = userPool.getUsers(3);
         alice = users[0];
         bob = users[1];
         charlie = users[2];
@@ -88,7 +83,6 @@ describe('Expenses Full Details API', () => {
 
         it('should fail for users not in the group', async () => {
             // Use the 4th user from the pool as an outsider
-            const users = userPool.getUsers(4);
             const outsider = users[3];
 
             await expect(apiDriver.getExpenseFullDetails(expenseId, outsider.token)).rejects.toThrow();

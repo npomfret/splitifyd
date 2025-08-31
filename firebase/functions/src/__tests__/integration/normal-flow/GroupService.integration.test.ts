@@ -1,8 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
-
-import { ApiDriver, User, ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { ApiDriver, User, ExpenseBuilder, CreateGroupRequestBuilder, borrowTestUsers } from '@splitifyd/test-support';
 import { GroupService } from '../../../services/GroupService';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { MemberRoles, SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb } from '../../../firebase';
@@ -11,23 +9,20 @@ import { registerAllServices, getGroupService } from '../../../services/serviceR
 describe('GroupService - Integration Tests', () => {
     let apiDriver: ApiDriver;
     let groupService: GroupService;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let users: User[] = [];
+    let allUsers: User[] = [];
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
+        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
+        users = allUsers.slice(0, 4);
         
         // Register all services before creating instances
         registerAllServices();
         groupService = getGroupService();
-
-        // Create user pool with 4 users for complex scenarios
-        userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4);
-        await userPool.initialize();
     });
 
     describe('createGroup', () => {
         test('should create a group with minimal data', async () => {
-            const users = userPool.getUsers(1);
             const creator = users[0];
 
             const groupData = new CreateGroupRequestBuilder()
@@ -63,7 +58,6 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should create a group with multiple members', async () => {
-            const users = userPool.getUsers(3);
             const [creator, member1, member2] = users;
 
             const groupData = new CreateGroupRequestBuilder()
@@ -95,7 +89,6 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should assign theme colors to members correctly', async () => {
-            const users = userPool.getUsers(2);
             const [creator, member] = users;
 
             const groupData = new CreateGroupRequestBuilder()
@@ -120,7 +113,6 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should set default security preset and permissions', async () => {
-            const users = userPool.getUsers(1);
             const creator = users[0];
 
             const groupData = new CreateGroupRequestBuilder()
@@ -145,7 +137,6 @@ describe('GroupService - Integration Tests', () => {
         let nonMember: User;
 
         beforeEach(async () => {
-            const users = userPool.getUsers(3);
             [creator, member, nonMember] = users;
 
             // Create a test group
@@ -234,7 +225,6 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            const users = userPool.getUsers(2);
             [creator, member] = users;
 
             const group = await apiDriver.createGroupWithMembers(
@@ -300,7 +290,6 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            const users = userPool.getUsers(2);
             [creator, member] = users;
 
             const group = await apiDriver.createGroupWithMembers(
@@ -359,7 +348,6 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            const users = userPool.getUsers(2);
             [creator, member] = users;
 
             const group = await apiDriver.createGroupWithMembers(
@@ -449,7 +437,6 @@ describe('GroupService - Integration Tests', () => {
         let testGroupIds: string[] = [];
 
         beforeEach(async () => {
-            const users = userPool.getUsers(2);
             [creator, member] = users;
 
             // Create multiple test groups
@@ -547,7 +534,6 @@ describe('GroupService - Integration Tests', () => {
         let nonMember: User;
 
         beforeEach(async () => {
-            const users = userPool.getUsers(3);
             [creator, member, nonMember] = users;
 
             const group = await apiDriver.createGroupWithMembers(
@@ -595,7 +581,6 @@ describe('GroupService - Integration Tests', () => {
 
     describe('error handling and validation', () => {
         test('should validate group document structure', async () => {
-            const users = userPool.getUsers(1);
             const creator = users[0];
 
             // Valid group creation should work
@@ -611,7 +596,6 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should handle concurrent updates gracefully', async () => {
-            const users = userPool.getUsers(1);
             const creator = users[0];
 
             const groupData = new CreateGroupRequestBuilder()
@@ -640,7 +624,6 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should handle malformed input gracefully', async () => {
-            const users = userPool.getUsers(1);
             const creator = users[0];
 
             // Empty name should be handled by validation layer

@@ -8,7 +8,6 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { UserBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../../firebase";
 
 describe('Invite Tracking', () => {
     let driver: ApiDriver;
@@ -16,7 +15,7 @@ describe('Invite Tracking', () => {
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

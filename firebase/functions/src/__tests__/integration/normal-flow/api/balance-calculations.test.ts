@@ -6,29 +6,26 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, User, borrowTestUsers, AppDriver} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
 import { groupSize } from '@splitifyd/shared';
 import {firestoreDb} from "../../../../firebase";
 
 describe('Balance Calculations', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let appDriver: AppDriver;
     let balanceTestGroup: any;
-    let users: User[];
+    let users: User[] = [];
+    let allUsers: User[] = [];
 
     // Helper to get users from pool
     const getTestUsers = (count: number): User[] => {
-        return userPool.getUsers(count);
+        return allUsers.slice(0, count);
     };
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 6 users (covers all test needs)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 6);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(6));
+        appDriver = new AppDriver(driver, firestoreDb);
     });
 
     beforeEach(async () => {
@@ -120,7 +117,7 @@ describe('Balance Calculations', () => {
         const expense = await driver.createExpense(expenseData, users[0].token);
 
         // Wait for the expense change to be processed
-        await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
+        await appDriver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
             return changes.some((change) => change.id === expense.id);
         });
 
@@ -151,7 +148,7 @@ describe('Balance Calculations', () => {
         const secondExpense = await driver.createExpense(secondExpenseData, users[1].token);
 
         // Wait for the second expense change to be processed
-        await driver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
+        await appDriver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
             return changes.some((change) => change.id === secondExpense.id);
         });
 

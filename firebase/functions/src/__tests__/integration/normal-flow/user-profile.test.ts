@@ -3,7 +3,6 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('User Profile Management API Tests', () => {
     let driver: ApiDriver;
@@ -11,7 +10,7 @@ describe('User Profile Management API Tests', () => {
     let secondUser: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
     });
 
     beforeEach(async () => {

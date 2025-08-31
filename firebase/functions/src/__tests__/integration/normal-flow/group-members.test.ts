@@ -1,22 +1,18 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { beforeAll } from 'vitest';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
-import {firestoreDb} from "../../../firebase";
 
 // vi.setTimeout(8000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
-    const driver = new ApiDriver(firestoreDb);
-    let userPool: FirebaseIntegrationTestUserPool;
+    let driver: ApiDriver;
+    let allUsers: User[] = [];
 
-    const _testUsers = (count: number) => userPool.getUsers(count);
+    const _testUsers = (count: number) => allUsers.slice(0, count);
 
     beforeAll(async () => {
-        // Create user pool with 5 users
-        userPool = new FirebaseIntegrationTestUserPool(driver, 5);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(5));
     });
 
     // Helper function to create a group with multiple members

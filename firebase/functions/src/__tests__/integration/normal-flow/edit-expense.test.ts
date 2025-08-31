@@ -9,7 +9,6 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, ExpenseUpdateBuilder, UserBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('Edit Expense Integration Tests', () => {
     let driver: ApiDriver;
@@ -17,7 +16,7 @@ describe('Edit Expense Integration Tests', () => {
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
 
         // Create test users
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);

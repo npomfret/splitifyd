@@ -3,13 +3,12 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('Public Endpoints Tests', () => {
     let driver: ApiDriver;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
     });
 
     describe('Health Check Endpoint', () => {

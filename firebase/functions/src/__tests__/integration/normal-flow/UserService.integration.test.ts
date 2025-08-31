@@ -1,8 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, User, UserBuilder } from '@splitifyd/test-support';
+import { ApiDriver, User, UserBuilder, borrowTestUsers } from '@splitifyd/test-support';
 import { UserService } from '../../../services/UserService2';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb, firebaseAuth } from '../../../firebase';
@@ -11,18 +10,16 @@ import { registerAllServices, getUserService } from '../../../services/serviceRe
 describe('UserService - Integration Tests', () => {
     let apiDriver: ApiDriver;
     let userService: UserService;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let users: User[] = [];
+    let allUsers: User[] = [];
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
+        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(3));
+        users = allUsers.slice(0, 3);
         
         // Register all services before creating instances
         registerAllServices();
         userService = getUserService();
-
-        // Create user pool with 3 users
-        userPool = new FirebaseIntegrationTestUserPool(apiDriver, 3);
-        await userPool.initialize();
     });
 
     describe('registerUser', () => {
@@ -74,7 +71,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should reject registration with existing email', async () => {
-            const users = userPool.getUsers(1);
             const existingUser = users[0];
 
             const duplicateData = new UserBuilder()
@@ -160,7 +156,6 @@ describe('UserService - Integration Tests', () => {
 
     describe('getUser', () => {
         test('should return complete user profile from Auth and Firestore', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             const profile = await userService.getUser(testUser.uid);
@@ -176,7 +171,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should cache user profiles for subsequent requests', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             // First call - should fetch from Firebase
@@ -197,7 +191,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should validate Firestore user document structure', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             // This should work with valid data structure
@@ -212,7 +205,6 @@ describe('UserService - Integration Tests', () => {
 
     describe('getUsers', () => {
         test('should fetch multiple users efficiently with caching', async () => {
-            const users = userPool.getUsers(3);
             const uids = users.map(u => u.uid);
 
             const profiles = await userService.getUsers(uids);
@@ -228,7 +220,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should handle mixed cached and uncached users', async () => {
-            const users = userPool.getUsers(3);
             const [user1, user2, user3] = users;
 
             // Cache first user by calling getUser
@@ -244,7 +235,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should handle batching for large user sets', async () => {
-            const users = userPool.getUsers(3);
             const uids = users.map(u => u.uid);
 
             // Add more UIDs to test batching (in real scenario this would be 100+)
@@ -265,7 +255,6 @@ describe('UserService - Integration Tests', () => {
         let testUser: User;
 
         beforeEach(() => {
-            const users = userPool.getUsers(1);
             testUser = users[0];
         });
 
@@ -347,7 +336,6 @@ describe('UserService - Integration Tests', () => {
         let testUser: User;
 
         beforeEach(() => {
-            const users = userPool.getUsers(1);
             testUser = users[0];
         });
 
@@ -467,7 +455,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should require confirmation for deletion', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             // Try to delete without confirmation
@@ -491,7 +478,6 @@ describe('UserService - Integration Tests', () => {
 
     describe('error handling and edge cases', () => {
         test('should handle malformed Firestore documents gracefully', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             // The service should validate document structure using Zod
@@ -510,7 +496,6 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should maintain data consistency between Auth and Firestore', async () => {
-            const users = userPool.getUsers(1);
             const testUser = users[0];
 
             const profile = await userService.getUser(testUser.uid);

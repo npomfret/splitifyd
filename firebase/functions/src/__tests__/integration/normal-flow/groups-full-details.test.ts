@@ -1,29 +1,24 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
 import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('Groups Full Details API', () => {
     let apiDriver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
+    let users: User[] = [];
+    let allUsers: User[] = [];
     let alice: User;
     let bob: User;
     let charlie: User;
     let groupId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 3 users
-        userPool = new FirebaseIntegrationTestUserPool(apiDriver, 4); // Need 4 for the outsider test
-        await userPool.initialize();
+        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
+        users = allUsers.slice(0, 4);
     });
 
     beforeEach(async () => {
         // Use users from pool
-        const users = userPool.getUsers(3);
         alice = users[0];
         bob = users[1];
         charlie = users[2];
@@ -102,7 +97,6 @@ describe('Groups Full Details API', () => {
 
         it('should respect user access permissions', async () => {
             // Use the 4th user from the pool as an outsider
-            const users = userPool.getUsers(4);
             const outsider = users[3];
 
             // Should throw an error when unauthorized user tries to access

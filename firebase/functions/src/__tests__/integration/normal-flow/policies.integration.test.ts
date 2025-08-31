@@ -9,7 +9,7 @@ describe('Policies API Integration Tests', () => {
     let apiDriver: ApiDriver;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
+        apiDriver = new ApiDriver();
 
         // Clean up any existing data first
         const firestore = firestoreDb;

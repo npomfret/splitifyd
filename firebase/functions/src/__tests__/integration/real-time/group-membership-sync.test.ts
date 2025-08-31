@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver } from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
+import { borrowTestUsers } from '@splitifyd/test-support';
 import { getFirestore } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {firestoreDb} from "../../../firebase";
@@ -10,16 +10,17 @@ import {firestoreDb} from "../../../firebase";
 // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
 describe('Group Membership Real-Time Sync Tests', () => {
-    const driver = new ApiDriver(firestoreDb);
-    let userPool: FirebaseIntegrationTestUserPool;
+    let driver: ApiDriver;
+    let appDriver: AppDriver;
+    let users: User[] = [];
     const db = getFirestore();
     const activeListeners: Array<() => void> = [];
 
-    const _testUsers = (count: number) => userPool.getUsers(count);
+    const _testUsers = (count: number) => users.slice(0, count);
 
     beforeAll(async () => {
-        userPool = new FirebaseIntegrationTestUserPool(driver, 3);
-        await userPool.initialize();
+        ({ driver, users } = await borrowTestUsers(3));
+        appDriver = new AppDriver(driver, firestoreDb);
     });
 
     afterAll(() => {
@@ -74,7 +75,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
 
         // Wait for initial membership state to be detected by the listener
         // Use ApiDriver to ensure group has user1 as member
-        await driver.waitForUserJoinGroup(groupId, user1.uid, user1.token, 3000);
+        await appDriver.waitForUserJoinGroup(groupId, user1.uid, user1.token, 3000);
 
         // Wait for listener to capture initial state
         await new Promise((resolve) => {
@@ -98,7 +99,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         await driver.joinGroupViaShareLink(linkId, user2.token);
 
         // Use ApiDriver to wait for user2 to join the group
-        await driver.waitForUserJoinGroup(groupId, user2.uid, user1.token, 5000);
+        await appDriver.waitForUserJoinGroup(groupId, user2.uid, user1.token, 5000);
 
         // Wait for the real-time listener to detect the change
         const updateReceived = await membershipChangePromise;
@@ -158,7 +159,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         await driver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
         // Use ApiDriver to wait for change records to be created
-        await driver.waitForGroupChangeRecords(groupId, user1.uid, 1, 3000);
+        await appDriver.waitForGroupChangeRecords(groupId, user1.uid, 1, 3000);
 
         // Wait for listener to capture the changes
         await new Promise((resolve) => {

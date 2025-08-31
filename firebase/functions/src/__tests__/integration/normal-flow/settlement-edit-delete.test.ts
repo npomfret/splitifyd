@@ -2,30 +2,28 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, User, borrowTestUsers, AppDriver} from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import {firestoreDb} from "../../../firebase";
 
 describe('Settlement Edit and Delete Operations', () => {
-    let userPool: FirebaseIntegrationTestUserPool;
     let driver: ApiDriver;
+    let appDriver: AppDriver;
+    let users: User[] = [];
+    let allUsers: User[] = [];
     let user1: User;
     let user2: User;
     let user3: User;
     let groupId: string;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 3 users
-        userPool = new FirebaseIntegrationTestUserPool(driver, 3);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(3));
+        appDriver = new AppDriver(driver, firestoreDb);
+        users = allUsers.slice(0, 3);
     });
 
     beforeEach(async () => {
         // Use users from pool
-        const users = userPool.getUsers(3);
         user1 = users[0];
         user2 = users[1];
         user3 = users[2];
@@ -74,7 +72,7 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(initialSettlement, user1.token);
 
             // Wait for initial settlement creation change to be processed
-            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
+            await appDriver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
 
             // Update the settlement using builder
             const updateData = new SettlementUpdateBuilder().withAmount(125.0).withCurrency('USD').withDate(new Date().toISOString()).build();
@@ -82,10 +80,10 @@ describe('Settlement Edit and Delete Operations', () => {
             await driver.updateSettlement(createdSettlement.id, updateData, user1.token);
 
             // Wait for the settlement update event
-            await driver.waitForSettlementUpdatedEvent(groupId, createdSettlement.id, [user1, user2]);
+            await appDriver.waitForSettlementUpdatedEvent(groupId, createdSettlement.id, [user1, user2]);
 
             // Verify the change notification exists
-            const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
+            const changeNotification = await appDriver.mostRecentSettlementChangeEvent(groupId);
             expect(changeNotification).toBeTruthy();
             expect(changeNotification!.groupId).toBe(groupId);
             expect(changeNotification!.id).toBe(createdSettlement.id);
@@ -179,16 +177,16 @@ describe('Settlement Edit and Delete Operations', () => {
             const createdSettlement = await driver.createSettlement(settlement, user1.token);
 
             // Wait for initial settlement creation change to be processed
-            await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user2, user3]);
+            await appDriver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user2, user3]);
 
             // Delete the settlement
             await driver.deleteSettlement(createdSettlement.id, user1.token);
 
             // Wait for the settlement deletion event
-            await driver.waitForSettlementDeletedEvent(groupId, createdSettlement.id, [user2, user3]);
+            await appDriver.waitForSettlementDeletedEvent(groupId, createdSettlement.id, [user2, user3]);
 
             // Verify the change notification exists
-            const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
+            const changeNotification = await appDriver.mostRecentSettlementChangeEvent(groupId);
             expect(changeNotification).toBeTruthy();
             expect(changeNotification!.groupId).toBe(groupId);
             expect(changeNotification!.id).toBe(createdSettlement.id);

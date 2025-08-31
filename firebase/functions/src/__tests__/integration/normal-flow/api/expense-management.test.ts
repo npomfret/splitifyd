@@ -6,28 +6,22 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
-import {firestoreDb} from "../../../../firebase";
 
 describe('Expense Management', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
     let testGroup: any;
-    let users: User[];
+    let users: User[] = [];
+    let allUsers: User[] = [];
 
     // Helper to get users from pool
     const getTestUsers = (count: number): User[] => {
-        return userPool.getUsers(count);
+        return allUsers.slice(0, count);
     };
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 6 users (covers all test needs)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 6);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(6));
     });
 
     beforeEach(async () => {

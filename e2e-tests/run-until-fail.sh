@@ -13,7 +13,7 @@
 # In headed mode, workers are automatically set to 1 for better visibility.
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/multi-user-happy-path.e2e.test.ts"
+TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/group-management.e2e.test.ts"
 TEST_FILTER=""
 
 # Detect script location and set working directory

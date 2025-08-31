@@ -1,19 +1,19 @@
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
-import { Timestamp } from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 import {firebaseAuth, firestoreDb} from '../firebase';
-import { FirestoreCollections, SystemUserRoles, AuthErrors, UserThemeColor } from '@splitifyd/shared';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
-import { Errors, ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { createServerTimestamp } from '../utils/dateHelpers';
-import { getCurrentPolicyVersions } from '../auth/policy-helpers';
-import { assignThemeColor } from '../user-management/assign-theme-color';
-import { validateRegisterRequest } from '../auth/validation';
-import { validateUpdateUserProfile, validateChangePassword, validateDeleteUser } from '../user/validation';
-import { PerformanceMonitor } from '../utils/performance-monitor';
-import { UserDocumentSchema, UserDataSchema } from '../schemas/user';
-import { getFirestoreValidationService } from './serviceRegistration';
+import {AuthErrors, FirestoreCollections, SystemUserRoles, User, UserThemeColor} from '@splitifyd/shared';
+import {logger} from '../logger';
+import {LoggerContext} from '../utils/logger-context';
+import {ApiError, Errors} from '../utils/errors';
+import {HTTP_STATUS} from '../constants';
+import {createServerTimestamp} from '../utils/dateHelpers';
+import {getCurrentPolicyVersions} from '../auth/policy-helpers';
+import {assignThemeColor} from '../user-management/assign-theme-color';
+import {validateRegisterRequest} from '../auth/validation';
+import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
+import {PerformanceMonitor} from '../utils/performance-monitor';
+import {UserDataSchema, UserDocumentSchema} from '../schemas/user';
+import {getFirestoreValidationService} from './serviceRegistration';
 
 /**
  * User profile interface for consistent user data across the application
@@ -102,13 +102,13 @@ export class UserService {
             'UserService2',
             'getUser',
             async () => this._getUser(userId),
-            { userId }
+            {userId}
         );
     }
 
     private async _getUser(userId: string): Promise<UserProfile> {
-        LoggerContext.update({ userId });
-        
+        LoggerContext.update({userId});
+
         // Check cache first
         if (this.cache.has(userId)) {
             return this.cache.get(userId)!;
@@ -172,13 +172,13 @@ export class UserService {
             'UserService2',
             'getUsers',
             async () => this._getUsers(uids),
-            { userCount: uids.length }
+            {userCount: uids.length}
         );
     }
 
     private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
-        LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
-        
+        LoggerContext.update({operation: 'batch-get-users', userCount: uids.length});
+
         const result = new Map<string, UserProfile>();
         const uncachedUids: string[] = [];
 
@@ -207,7 +207,7 @@ export class UserService {
      * Fetch a batch of users and add to result map
      */
     private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
-        const getUsersResult = await firebaseAuth.getUsers(uids.map((uid) => ({ uid })));
+        const getUsersResult = await firebaseAuth.getUsers(uids.map((uid) => ({uid})));
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
@@ -242,13 +242,13 @@ export class UserService {
             'UserService2',
             'updateProfile',
             async () => this._updateProfile(userId, requestBody, language),
-            { userId }
+            {userId}
         );
     }
 
     private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
-        LoggerContext.update({ userId, operation: 'update-profile' });
-        
+        LoggerContext.update({userId, operation: 'update-profile'});
+
         // Validate the request body with localized error messages
         const validatedData = validateUpdateUserProfile(requestBody, language);
 
@@ -329,8 +329,8 @@ export class UserService {
      * @throws ApiError if password change fails
      */
     async changePassword(userId: string, requestBody: unknown): Promise<{ message: string }> {
-        LoggerContext.update({ userId, operation: 'change-password' });
-        
+        LoggerContext.update({userId, operation: 'change-password'});
+
         // Validate the request body
         const validatedData = validateChangePassword(requestBody);
 
@@ -382,8 +382,8 @@ export class UserService {
      * @throws ApiError if deletion fails or user has active groups
      */
     async deleteAccount(userId: string, requestBody: unknown): Promise<{ message: string }> {
-        LoggerContext.update({ userId, operation: 'delete-account' });
-        
+        LoggerContext.update({userId, operation: 'delete-account'});
+
         // Validate the request body - ensures confirmDelete is true
         validateDeleteUser(requestBody);
 
@@ -434,11 +434,27 @@ export class UserService {
     }
 
     private async _registerUser(requestBody: unknown): Promise<RegisterUserResult> {
-        LoggerContext.update({ operation: 'register-user' });
-        
-        // Validate the request body
-        const { email, password, displayName, termsAccepted, cookiePolicyAccepted } = validateRegisterRequest(requestBody);
+        LoggerContext.update({operation: 'register-user'});
 
+        // Validate the request body
+        const {email, password, displayName, termsAccepted, cookiePolicyAccepted} = validateRegisterRequest(requestBody);
+
+        const user = await this.createUserDirect(
+            email,
+            password,
+            displayName,
+            termsAccepted,
+            cookiePolicyAccepted
+        );
+
+        return {
+            success: true,
+            message: 'Account created successfully',
+            user,
+        }
+    }
+
+    async createUserDirect(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<User> {
         let userRecord: UserRecord | null = null;
 
         try {
@@ -448,9 +464,9 @@ export class UserService {
                 password,
                 displayName,
             });
-            
+
             // Add userId to context now that user is created
-            LoggerContext.update({ userId: userRecord.uid });
+            LoggerContext.update({userId: userRecord.uid});
 
             // Get current policy versions for user acceptance
             const currentPolicyVersions = await getCurrentPolicyVersions();
@@ -500,17 +516,11 @@ export class UserService {
 
             await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
 
-            logger.info('user-registered');
-
             return {
-                success: true,
-                message: 'Account created successfully',
-                user: {
-                    uid: userRecord.uid,
-                    email: userRecord.email,
-                    displayName: userRecord.displayName,
-                },
-            };
+                uid: userRecord.uid,
+                email: userRecord.email,
+                displayName: userRecord.displayName,
+            } as User;
         } catch (error: unknown) {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {
@@ -518,7 +528,7 @@ export class UserService {
                     await firebaseAuth.deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
-                    LoggerContext.update({ userId: userRecord.uid });
+                    LoggerContext.update({userId: userRecord.uid});
                     logger.error('Failed to cleanup orphaned auth user', cleanupError as Error);
                 }
             }

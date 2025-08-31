@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
-import {firestoreDb} from "../../../firebase";
 
 describe('Custom Categories Feature Tests', () => {
     let driver: ApiDriver;
@@ -12,7 +11,7 @@ describe('Custom Categories Feature Tests', () => {
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
     });
 

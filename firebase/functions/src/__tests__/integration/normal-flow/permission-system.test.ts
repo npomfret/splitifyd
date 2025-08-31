@@ -9,14 +9,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitifyd/shared';
-import {firestoreDb} from "../../../firebase";
 
 describe('Permission System Integration Tests', () => {
     let driver: ApiDriver;
     let users: User[] = [];
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
 
         // Create test users: admin, member1, member2, viewer
         users = await Promise.all([

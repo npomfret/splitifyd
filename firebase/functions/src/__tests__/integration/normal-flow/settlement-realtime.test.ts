@@ -1,22 +1,20 @@
 // Test to verify that settlements generate realtime update notifications
 // This test documents a bug where the frontend doesn't refresh settlements
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 
 import { Timestamp } from 'firebase-admin/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { ApiDriver } from '@splitifyd/test-support';
+import {ApiDriver, AppDriver} from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
 import { randomUUID } from 'crypto';
 import { firestoreDb } from '../../../firebase';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
-    let driver: ApiDriver;
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
 
-    beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-    });
     let groupId: string;
     let userId1: string;
     let userId2: string;
@@ -54,7 +52,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         const settlementRef = await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for settlement change notification using ApiDriver
-        await driver.waitForSettlementChanges(
+        await appDriver.waitForSettlementChanges(
             groupId,
             (changes) => {
                 return changes.some(
@@ -65,7 +63,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         );
 
         // Get the change notification for verification
-        const allChanges = await driver.getSettlementChanges(groupId);
+        const allChanges = await appDriver.getSettlementChanges(groupId);
         const changeNotification = allChanges.find((change) => change.id === settlementRef.id);
 
         // Verify the change notification was created
@@ -89,7 +87,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         await firestoreDb.collection('settlements').add(settlementData);
 
         // Wait for balance change notification using ApiDriver
-        await driver.waitForBalanceChanges(
+        await appDriver.waitForBalanceChanges(
             groupId,
             (changes) => {
                 return changes.some(
@@ -100,7 +98,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         );
 
         // Get the change notification for verification
-        const allChanges = await driver.getBalanceChanges(groupId);
+        const allChanges = await appDriver.getBalanceChanges(groupId);
         const changeNotification = allChanges.find((change) => change.users.includes(userId1) && change.users.includes(userId2));
 
         // Verify the balance change notification was created

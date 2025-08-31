@@ -3,15 +3,17 @@
 
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, User, borrowTestUsers, AppDriver} from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../support/FirebaseIntegrationTestUserPool';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { firestoreDb } from '../../../firebase';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
-    let userPool: FirebaseIntegrationTestUserPool;
     let driver: ApiDriver;
+    let appDriver: AppDriver;
+
+    let users: User[] = [];
+    let allUsers: User[] = [];
     let user1: User;
     let user2: User;
     let groupId: string;
@@ -19,16 +21,13 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 2 users
-        userPool = new FirebaseIntegrationTestUserPool(driver, 2);
-        await userPool.initialize();
+        ({ driver, users: allUsers } = await borrowTestUsers(2));
+        appDriver = new AppDriver(driver, firestoreDb);
+        users = allUsers.slice(0, 2);
     });
 
     beforeEach(async () => {
         // Use users from pool
-        const users = userPool.getUsers(2);
         user1 = users[0];
         user2 = users[1];
     });
@@ -60,10 +59,10 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
         expect(createdSettlement.id).toBeDefined();
 
         // Wait for settlement creation event
-        await driver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
+        await appDriver.waitForSettlementCreationEvent(groupId, createdSettlement.id, [user1, user2]);
 
         // Verify the change by getting the most recent settlement change event
-        const changeNotification = await driver.mostRecentSettlementChangeEvent(groupId);
+        const changeNotification = await appDriver.mostRecentSettlementChangeEvent(groupId);
         expect(changeNotification).toBeTruthy();
         expect(changeNotification!.groupId).toBe(groupId);
         expect(changeNotification!.id).toBe(createdSettlement.id);

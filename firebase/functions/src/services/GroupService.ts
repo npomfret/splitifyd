@@ -1,26 +1,22 @@
-
-import { DocumentReference, QuerySnapshot, QueryDocumentSnapshot } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { firestoreDb } from '../firebase';
-import { Errors } from '../utils/errors';
-import { Group, GroupWithBalance } from '../types/group-types';
-import { FirestoreCollections, ListGroupsResponse, DELETED_AT_FIELD } from '@splitifyd/shared';
-import { calculateGroupBalances } from './balanceCalculator';
-import { calculateExpenseMetadata } from './expenseMetadataService';
-import { transformGroupDocument } from '../groups/handlers';
-import { GroupDocumentSchema, GroupDataSchema } from '../schemas';
-import { isGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
-import { getUserService } from './serviceRegistration';
-import { buildPaginatedQuery, encodeCursor } from '../utils/pagination';
-import { DOCUMENT_CONFIG } from '../constants';
-import { logger } from '../logger';
-import { parseISOToTimestamp, getRelativeTime, createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { MemberRoles, MemberStatuses, SecurityPresets, CreateGroupRequest, MessageResponse } from '@splitifyd/shared';
-import { PermissionEngine } from '../permissions';
-import { LoggerContext } from '../logger';
-import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
-import { UpdateGroupRequest } from '../types/group-types';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import {DocumentReference, QueryDocumentSnapshot, QuerySnapshot} from 'firebase-admin/firestore';
+import {z} from 'zod';
+import {firestoreDb} from '../firebase';
+import {Errors} from '../utils/errors';
+import {Group, GroupWithBalance, UpdateGroupRequest} from '../types/group-types';
+import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
+import {calculateGroupBalances} from './balanceCalculator';
+import {calculateExpenseMetadata} from './expenseMetadataService';
+import {transformGroupDocument} from '../groups/handlers';
+import {GroupDataSchema, GroupDocumentSchema} from '../schemas';
+import {getThemeColorForMember, isGroupMember, isGroupOwner} from '../utils/groupHelpers';
+import {getUserService} from './serviceRegistration';
+import {buildPaginatedQuery, encodeCursor} from '../utils/pagination';
+import {DOCUMENT_CONFIG} from '../constants';
+import {logger, LoggerContext} from '../logger';
+import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {PermissionEngine} from '../permissions';
+import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
+import {PerformanceMonitor} from '../utils/performance-monitor';
 
 /**
  * Service for managing group operations
@@ -568,17 +564,12 @@ export class GroupService {
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
 
-        // Log the creation
-        logger.info('group-created', { id: docRef.id });
-
         // Fetch the created document to get server-side timestamps
         const createdDoc = await docRef.get();
         const group = transformGroupDocument(createdDoc);
 
         // Add computed fields before returning
-        const groupWithComputed = await this.addComputedFields(group, userId);
-
-        return groupWithComputed;
+        return await this.addComputedFields(group, userId);
     }
 
     /**

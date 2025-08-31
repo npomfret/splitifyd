@@ -6,6 +6,7 @@ export default defineConfig({
         environment: 'node',
         globals: true,
         setupFiles: ['./vitest.setup.ts'],
+        silent: false,
         env: {
             GCLOUD_PROJECT: 'splitifyd',
         },
@@ -25,16 +26,15 @@ export default defineConfig({
         },
         testTimeout: 10000, // Increased for integration tests
         hookTimeout: 10000, // Increased for integration tests setup/teardown
-        // Allow file parallelism but prevent test case parallelism within files
+        // Force sequential execution for Firebase integration tests
         pool: 'forks',
         poolOptions: {
             forks: {
-                singleFork: false, // Allow multiple processes for file parallelism
-                maxForks: 3, // Limit to 3 concurrent test files
+                singleFork: true, // Run everything in a single process
             },
         },
-        fileParallelism: true, // Allow test files to run in parallel
-        maxConcurrency: 1, // But limit concurrent test cases within each file to 1
+        fileParallelism: false, // No file parallelism - run test files sequentially
+        maxConcurrency: 1, // Limit concurrent test cases within each file to 1
     },
     resolve: {
         alias: {

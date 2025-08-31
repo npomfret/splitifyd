@@ -6,14 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, generateTestEmail, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('User Management Tests', () => {
     let driver: ApiDriver;
     let testUser: User;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
         testUser = await driver.createUser(new UserBuilder().build());
     });
 

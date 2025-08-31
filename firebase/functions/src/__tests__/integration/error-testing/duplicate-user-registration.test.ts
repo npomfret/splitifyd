@@ -3,7 +3,6 @@
 import { beforeAll, describe, expect, test } from 'vitest';
 
 import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
 
 describe('Duplicate User Registration Tests', () => {
     let driver: ApiDriver;
@@ -11,7 +10,7 @@ describe('Duplicate User Registration Tests', () => {
     // vi.setTimeout(4000); // it takes about 2s
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        driver = new ApiDriver();
     });
 
     describe('Sequential Registration', () => {

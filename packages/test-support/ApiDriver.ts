@@ -4,34 +4,34 @@ import {
     ExpenseData,
     ExpenseFullDetails,
     ExpenseHistoryResponse,
-    FirestoreCollections,
     Group,
     GroupBalances,
     GroupFullDetails,
     GroupMembersResponse,
+    GroupPermissions,
     JoinGroupResponse,
     LeaveGroupResponse,
     ListExpensesResponse,
     ListGroupsResponse,
     ListSettlementsResponse,
+    MemberRole,
     MessageResponse,
     PendingMembersResponse,
     RegisterResponse,
     RemoveGroupMemberResponse,
+    SecurityPreset,
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
     User as BaseUser,
     UserPoliciesResponse,
     UserProfileResponse,
-    SecurityPreset,
-    GroupPermissions,
-    MemberRole,
 } from '@splitifyd/shared';
 
 import type {DocumentData} from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
+import {Matcher, PollOptions, pollUntil} from "./Polling";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -42,18 +42,6 @@ const API_BASE_URL = config.baseUrl;
 export interface User extends BaseUser {
     token: string;
 }
-
-// Re-export shared types for backward compatibility
-// Polling configuration interface
-interface PollOptions {
-    timeout?: number; // Total timeout in ms (default: 10000)
-    interval?: number; // Polling interval in ms (default: 500)
-    errorMsg?: string; // Custom error message
-    onRetry?: (attempt: number, error?: Error) => void; // Callback for debugging
-}
-
-// Generic matcher type
-type Matcher<T> = (value: T) => boolean | Promise<boolean>;
 
 /**
  * Helper functions for querying change collections in tests
@@ -99,17 +87,15 @@ export class ApiDriver {
     private readonly baseUrl: string;
     private readonly authPort: number;
     private readonly firebaseApiKey: string;
-    private readonly firestoreDb: admin.firestore.Firestore;
 
     static readonly matchers = {
         balanceHasUpdate: () => (balances: GroupBalances) => balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated,
     };
 
-    constructor(firestoreDb: admin.firestore.Firestore) {
+    constructor() {
         this.baseUrl = API_BASE_URL;
         this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
         this.firebaseApiKey = FIREBASE_API_KEY;
-        this.firestoreDb = firestoreDb;
     }
 
     getBaseUrl(): string {
@@ -132,21 +118,47 @@ export class ApiDriver {
                 throw error;
             }
         }
+        return await this.firebaseSignIn(userInfo);
+    }
 
+    async borrowTestUser(): Promise<User> {
+        const poolUser = await this.apiRequest('/test-pool/borrow', 'POST', {});
+        const {user: {displayName, email, password}, token} = poolUser;
+        return await this.firebaseSignIn({email, password, displayName, token})
+    }
+
+    private async firebaseSignIn(userInfo: { email: string; password: string; displayName: string, token?: string }) {
         // Use Firebase Auth REST API to sign in
-        const signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                email: userInfo.email,
-                password: userInfo.password,
-                returnSecureToken: true,
-            }),
-        });
+
+        let signInResponse: Response;
+        if (userInfo.token) {
+            // Exchange custom token for ID token
+            signInResponse = await fetch(
+                `http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        token: userInfo.token,
+                        returnSecureToken: true
+                    })
+                }
+            );
+        } else {
+            signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    email: userInfo.email,
+                    password: userInfo.password,
+                    returnSecureToken: true,
+                }),
+            });
+        }
 
         if (!signInResponse.ok) {
             const error = (await signInResponse.json()) as { error?: { message?: string } };
-            throw new Error(`Authentication failed: ${error.error?.message || 'Unknown error'}`);
+            throw new Error(`Custom token exchange failed: ${error.error?.message || 'Unknown error'}`);
         }
 
         const authData = (await signInResponse.json()) as { idToken: string };
@@ -161,6 +173,18 @@ export class ApiDriver {
             email: userInfo.email,
             token: authData.idToken,
         };
+    }
+
+    async returnTestUser(email: string): Promise<void> {
+        await this.apiRequest('/test-pool/return', 'POST', {email});
+    }
+
+    async getTestPoolStatus(): Promise<any> {
+        return await this.apiRequest('/test-pool/status', 'GET');
+    }
+
+    async resetTestPool(): Promise<any> {
+        return await this.apiRequest('/test-pool/reset', 'POST');
     }
 
     async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
@@ -252,7 +276,7 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
-        return this.pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
+        return pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<GroupBalances> {
@@ -260,7 +284,7 @@ export class ApiDriver {
     }
 
     async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<Group>, options?: PollOptions): Promise<Group> {
-        return this.pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
+        return pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
@@ -442,34 +466,6 @@ export class ApiDriver {
         return await this.apiRequest('/user/account', 'DELETE', {confirmDelete}, token);
     }
 
-    private async pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
-        const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
-
-        const startTime = Date.now();
-        let lastError: Error | null = null;
-        let attempts = 0;
-
-        while (Date.now() - startTime < timeout) {
-            try {
-                attempts++;
-                const result = await fetcher();
-                if (await matcher(result)) {
-                    return result;
-                }
-            } catch (error) {
-                lastError = error as Error;
-            }
-
-            if (onRetry) {
-                onRetry(attempts, lastError || undefined);
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, interval));
-        }
-
-        throw new Error(`${errorMsg} after ${timeout}ms (${attempts} attempts). ` + `Last error: ${lastError?.message || 'None'}`);
-    }
-
     async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
         const options: RequestInit = {
@@ -511,249 +507,5 @@ export class ApiDriver {
             throw error;
         }
     }
-
-    async mostRecentGroupChangeEvent(group: Group) {
-        const changes = await this.getGroupChanges(group.id);
-        return changes[0]; // they are most recent first
-    }
-
-    async countGroupChanges(groupId: string) {
-        return (await this.getGroupChanges(groupId)).length;
-    }
-
-    async countExpenseChanges(groupId: string) {
-        return (await this.getExpenseChanges(groupId)).length;
-    }
-
-    async countBalanceChanges(groupId: string) {
-        return (await this.getBalanceChanges(groupId)).length;
-    }
-
-    async mostRecentExpenseChangeEvent(groupId: string) {
-        const changes = await this.getExpenseChanges(groupId);
-        return changes[0]; // they are most recent first
-    }
-
-    async waitForGroupCreationEvent(groupId: string, creator: User) {
-        await this.waitForGroupEvent('created', groupId, creator, 1);
-    }
-
-    async waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
-        await this.waitForGroupEvent('updated', groupId, creator, expectedCount);
-    }
-
-    async waitForExpenseCreationEvent(groupId: string, expenseId: string, participants: User[]) {
-        await this.waitForExpenseEvent('created', groupId, expenseId, participants, 1);
-    }
-
-    async waitForExpenseUpdatedEvent(groupId: string, expenseId: string, participants: User[], expectedCount = 1) {
-        await this.waitForExpenseEvent('updated', groupId, expenseId, participants, expectedCount);
-    }
-
-    async waitForExpenseEvent(action: string, groupId: string, expenseId: string, participants: User[], expectedCount: number) {
-        await this.waitForExpenseChanges(groupId, (changes) => {
-            const found = changes.filter((doc) => {
-                if (doc.type !== 'expense') throw Error('should not get here');
-
-                if (doc.id !== expenseId) return false;
-
-                if (doc.action !== action) return false;
-
-                // Check all participants are in the users array
-                return participants.every((p) => doc.users.includes(p.uid));
-            });
-
-            return found.length === expectedCount;
-        });
-    }
-
-    async waitForBalanceRecalculationEvent(groupId: string, participants: User[], expectedCount = 1) {
-        await this.waitForBalanceChanges(groupId, (changes) => {
-            const found = changes.filter((doc) => {
-                if (doc.type !== 'balance') throw Error('should not get here');
-
-                if (doc.action !== 'recalculated') return false;
-
-                // Check all participants are in the users array
-                return participants.every((p) => doc.users.includes(p.uid));
-            });
-
-            return found.length >= expectedCount;
-        });
-    }
-
-    async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number, timeout: number = 2000) {
-        await this.waitForGroupChanges(
-            groupId,
-            (changes) => {
-                const found = changes.filter((doc) => {
-                    if (doc.type !== 'group') throw Error('should not get here');
-
-                    if (doc.action !== action) return false;
-
-                    return doc.users.includes(creator.uid);
-                });
-
-                return found.length === expectedCount;
-            },
-            timeout,
-        );
-    }
-
-    async waitForGroupChanges(groupId: string, matcher: Matcher<GroupChangeDocument[]>, timeout = 2000) {
-        const endTime = Date.now() + timeout;
-        while (Date.now() < endTime) {
-            const changes = await this.getGroupChanges(groupId);
-            if (matcher(changes)) return;
-        }
-
-        const changes = await this.getGroupChanges(groupId);
-        console.error(`${changes.length} observed`);
-        for (const change of changes) {
-            console.error(` * ${JSON.stringify(change)}`);
-        }
-
-        throw Error(`timeout waiting for group changes`);
-    }
-
-    async waitForExpenseChanges(groupId: string, matcher: Matcher<ExpenseChangeDocument[]>, timeout = 2000) {
-        const endTime = Date.now() + timeout;
-        while (Date.now() < endTime) {
-            const changes = await this.getExpenseChanges(groupId);
-            if (matcher(changes)) return;
-        }
-        throw Error(`timeout waiting for expense changes`);
-    }
-
-    async waitForSettlementChanges(groupId: string, matcher: Matcher<SettlementChangeDocument[]>, timeout = 2000) {
-        const endTime = Date.now() + timeout;
-        while (Date.now() < endTime) {
-            const changes = await this.getSettlementChanges(groupId);
-            if (matcher(changes)) return;
-        }
-        throw Error(`timeout waiting for settlement changes`);
-    }
-
-    async waitForBalanceChanges(groupId: string, matcher: Matcher<BalanceChangeDocument[]>, timeout = 2000) {
-        const endTime = Date.now() + timeout;
-        while (Date.now() < endTime) {
-            const changes = await this.getBalanceChanges(groupId);
-            if (matcher(changes)) return;
-        }
-        throw Error(`timeout waiting for balance changes`);
-    }
-
-    async getExpenseChanges(groupId: string): Promise<ExpenseChangeDocument[]> {
-        return (await this.getTransactionChanges(groupId, 'expense')) as ExpenseChangeDocument[];
-    }
-
-    async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
-        return (await this.getTransactionChanges(groupId, 'settlement')) as SettlementChangeDocument[];
-    }
-
-    async getTransactionChanges(groupId: string, type: string) {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).where('type', '==', type).orderBy('timestamp', 'desc').get();
-
-        return snapshot.docs.map((doc) => doc.data() as MinimalChangeDocument);
-    }
-
-    async getBalanceChanges(groupId: string): Promise<BalanceChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).orderBy('timestamp', 'desc').get();
-
-        return snapshot.docs.map((doc) => doc.data() as BalanceChangeDocument);
-    }
-
-    async getGroupChanges(groupId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).where('id', '==', groupId).orderBy('timestamp', 'desc').get();
-
-        return snapshot.docs.map((doc) => doc.data() as GroupChangeDocument);
-    }
-
-    /**
-     * Wait for a specific user to be a member of a group
-     */
-    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<Group> {
-        return this.pollUntil(
-            () => this.getGroup(groupId, token),
-            (group) => group.members.hasOwnProperty(userId),
-            {
-                timeout,
-                errorMsg: `User ${userId} did not join group ${groupId}`,
-            },
-        );
-    }
-
-    /**
-     * Wait for group change records to be created
-     */
-    async waitForGroupChangeRecords(groupId: string, userId: string, minimumCount = 1, timeout = 3000): Promise<GroupChangeDocument[]> {
-        return this.pollUntil(
-            () => this.getGroupChangesForUser(groupId, userId),
-            (changes) => changes.length >= minimumCount,
-            {
-                timeout,
-                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`,
-            },
-        );
-    }
-
-    /**
-     * Get group changes filtered by user
-     */
-    async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection('group-changes').where('id', '==', groupId).where('users', 'array-contains', userId).get();
-
-        return snapshot.docs.map((doc) => doc.data() as GroupChangeDocument);
-    }
-
-    /**
-     * Wait for settlement creation event to be tracked
-     */
-    async waitForSettlementCreationEvent(groupId: string, settlementId: string, participants: User[]) {
-        return this.waitForSettlementEvent('created', groupId, settlementId, participants, 1);
-    }
-
-    /**
-     * Wait for settlement updated event to be tracked
-     */
-    async waitForSettlementUpdatedEvent(groupId: string, settlementId: string, participants: User[], expectedCount = 1) {
-        return this.waitForSettlementEvent('updated', groupId, settlementId, participants, expectedCount);
-    }
-
-    /**
-     * Wait for settlement deleted event to be tracked
-     */
-    async waitForSettlementDeletedEvent(groupId: string, settlementId: string, participants: User[]) {
-        return this.waitForSettlementEvent('deleted', groupId, settlementId, participants, 1);
-    }
-
-    /**
-     * Generic method to wait for settlement events
-     */
-    async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: User[], expectedCount: number) {
-        const participantUids = participants.map((p) => p.uid);
-
-        return this.waitForSettlementChanges(groupId, (changes) => {
-            const relevantChanges = changes.filter(
-                (change) => change.id === settlementId && change.action === action && change.type === 'settlement' && participantUids.every((uid) => change.users.includes(uid)),
-            );
-            return relevantChanges.length >= expectedCount;
-        });
-    }
-
-    /**
-     * Count settlement changes for a group
-     */
-    async countSettlementChanges(groupId: string): Promise<number> {
-        const changes = await this.getSettlementChanges(groupId);
-        return changes.length;
-    }
-
-    /**
-     * Get most recent settlement change event
-     */
-    async mostRecentSettlementChangeEvent(groupId: string) {
-        const changes = await this.getSettlementChanges(groupId);
-        return changes.length > 0 ? changes[0] : null;
-    }
 }
+

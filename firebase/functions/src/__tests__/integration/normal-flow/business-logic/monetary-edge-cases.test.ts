@@ -3,24 +3,20 @@ import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
-import {firestoreDb} from "../../../../firebase";
+import { borrowTestUsers } from '@splitifyd/test-support';
 
 describe('Additional Monetary Edge Cases', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
     let users: User[] = [];
+    let allUsers: User[] = [];
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 4 users (3 for main tests + 1 for isolated test)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 4);
-        await userPool.initialize();
-
-        // Set the first 3 users for main tests
-        users = userPool.getUsers(3);
+        // Borrow 4 users with automatic cleanup
+        ({ driver, users: allUsers } = await borrowTestUsers(4));
+        
+        // Use first 3 users for main tests (4th available for isolated tests)
+        users = allUsers.slice(0, 3);
     });
 
     beforeEach(async () => {

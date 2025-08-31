@@ -1,9 +1,10 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { ApiDriver, generateNewUserDetails, User, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder } from '@splitifyd/test-support';
+import {ApiDriver, generateNewUserDetails, User, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, AppDriver} from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
 
 describe('Change Detection Integration Tests', () => {
-    const apiDriver = new ApiDriver(firestoreDb);
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
     let user1: User;
     let user2: User;
 
@@ -20,10 +21,10 @@ describe('Change Detection Integration Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(1);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(1);
         });
 
         it('should create an "updated" change document when a group is modified', async () => {
@@ -32,11 +33,11 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Updated Name').build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupUpdatedEvent(group.id, user1);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(2);
         });
 
         it('should immediately process multiple rapid group updates', async () => {
@@ -47,25 +48,25 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 3').build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 3);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupUpdatedEvent(group.id, user1, 3);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(4);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(4);
         });
 
         it('should track affected users when members are added', async () => {
             const group = await apiDriver.createGroupWithMembers('Multi-member Group', [user1, user2], user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1); // user joining (share link creation no longer triggers group update)
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupUpdatedEvent(group.id, user1, 1); // user joining (share link creation no longer triggers group update)
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(2);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(2);
 
             // step 3 - check the affected users
-            const lastUpdate = await apiDriver.mostRecentGroupChangeEvent(group);
+            const lastUpdate = await appDriver.mostRecentGroupChangeEvent(group);
 
             expect(lastUpdate).toBeTruthy();
             expect(lastUpdate!.users).toContain(user1.uid);
@@ -81,15 +82,15 @@ describe('Change Detection Integration Tests', () => {
             const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(group.id).withPaidBy(user1.uid).withParticipants([user1.uid]).build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1]);
+            await appDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1]);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countExpenseChanges(group.id)).toBe(1);
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+            expect(await appDriver.countExpenseChanges(group.id)).toBe(1);
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(1);
 
             // step 3 - check the details of the most recent change
-            const lastExpenseChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            const lastExpenseChange = await appDriver.mostRecentExpenseChangeEvent(group.id);
             expect(lastExpenseChange).toBeTruthy();
             expect(lastExpenseChange?.groupId).toBe(group.id);
             expect(lastExpenseChange?.action).toBe('created');
@@ -101,20 +102,20 @@ describe('Change Detection Integration Tests', () => {
             const group = await apiDriver.createGroupWithMembers('Multi-user Expense Group', [user1, user2], user1.token);
 
             // Wait for group creation events to settle
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
 
             const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(group.id).withPaidBy(user1.uid).withParticipants([user1.uid, user2.uid]).build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1, user2]);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
+            await appDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1, user2]);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countExpenseChanges(group.id)).toBe(1);
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+            expect(await appDriver.countExpenseChanges(group.id)).toBe(1);
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(1);
 
             // step 3 - check the details include both users
-            const lastExpenseChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            const lastExpenseChange = await appDriver.mostRecentExpenseChangeEvent(group.id);
             expect(lastExpenseChange).toBeTruthy();
             expect(lastExpenseChange?.users).toContain(user1.uid);
             expect(lastExpenseChange?.users).toContain(user2.uid);
@@ -129,16 +130,16 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
-            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // one for create, one for update
+            await appDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await appDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // one for create, one for update
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countExpenseChanges(group.id)).toBe(2); // created + updated
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(2);
+            expect(await appDriver.countExpenseChanges(group.id)).toBe(2); // created + updated
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(2);
 
             // step 3 - check the most recent change is the update
-            const lastChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            const lastChange = await appDriver.mostRecentExpenseChangeEvent(group.id);
             expect(lastChange).toBeTruthy();
             expect(lastChange?.action).toBe('updated');
             expect(lastChange?.type).toBe('expense');
@@ -154,13 +155,13 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withDescription('Update 3').build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
-            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1], 3);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 4); // 1 create + 3 updates
+            await appDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await appDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1], 3);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1], 4); // 1 create + 3 updates
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countExpenseChanges(group.id)).toBe(4); // 1 created + 3 updated
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(4);
+            expect(await appDriver.countExpenseChanges(group.id)).toBe(4); // 1 created + 3 updated
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(4);
         });
 
         it('should track expense deletion (soft delete) immediately', async () => {
@@ -171,16 +172,16 @@ describe('Change Detection Integration Tests', () => {
             await apiDriver.deleteExpense(expense.id, user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
-            await apiDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]); // soft delete is an update
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // create + delete
+            await appDriver.waitForExpenseCreationEvent(group.id, expense.id, [user1]);
+            await appDriver.waitForExpenseUpdatedEvent(group.id, expense.id, [user1]); // soft delete is an update
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1], 2); // create + delete
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countExpenseChanges(group.id)).toBe(2); // created + updated (soft delete)
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(2);
+            expect(await appDriver.countExpenseChanges(group.id)).toBe(2); // created + updated (soft delete)
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(2);
 
             // step 3 - verify the last change is the soft delete
-            const lastChange = await apiDriver.mostRecentExpenseChangeEvent(group.id);
+            const lastChange = await appDriver.mostRecentExpenseChangeEvent(group.id);
             expect(lastChange).toBeTruthy();
             expect(lastChange?.action).toBe('updated'); // soft delete shows as update
             expect(lastChange?.type).toBe('expense');
@@ -192,22 +193,22 @@ describe('Change Detection Integration Tests', () => {
             const group = await apiDriver.createGroupWithMembers('Settlement Group', [user1, user2], user1.token);
 
             // Wait for group creation and member addition events to settle
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
 
             const settlement = await apiDriver.createSettlement(new SettlementBuilder().withGroupId(group.id).withPayer(user1.uid).withPayee(user2.uid).build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
+            await appDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(2); // created + member added
-            expect(await apiDriver.countSettlementChanges(group.id)).toBe(1);
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(2); // created + member added
+            expect(await appDriver.countSettlementChanges(group.id)).toBe(1);
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(1);
 
             // step 3 - check the details of the most recent settlement change
-            const lastSettlementChange = await apiDriver.mostRecentSettlementChangeEvent(group.id);
+            const lastSettlementChange = await appDriver.mostRecentSettlementChangeEvent(group.id);
             expect(lastSettlementChange).toBeTruthy();
             expect(lastSettlementChange?.groupId).toBe(group.id);
             expect(lastSettlementChange?.action).toBe('created');
@@ -220,22 +221,22 @@ describe('Change Detection Integration Tests', () => {
             const group = await apiDriver.createGroupWithMembers('Legacy Format Group', [user1, user2], user1.token);
 
             // Wait for group creation and member addition events to settle
-            await apiDriver.waitForGroupCreationEvent(group.id, user1);
-            await apiDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
+            await appDriver.waitForGroupCreationEvent(group.id, user1);
+            await appDriver.waitForGroupUpdatedEvent(group.id, user1, 1);
 
             const settlement = await apiDriver.createSettlement(new SettlementBuilder().withGroupId(group.id).withPayer(user1.uid).withPayee(user2.uid).build(), user1.token);
 
             // step 1 - find the expected events
-            await apiDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
-            await apiDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
+            await appDriver.waitForSettlementCreationEvent(group.id, settlement.id, [user1, user2]);
+            await appDriver.waitForBalanceRecalculationEvent(group.id, [user1, user2]);
 
             // step 2 - make sure there are no extra / unplanned events
-            expect(await apiDriver.countGroupChanges(group.id)).toBe(2); // created + member added
-            expect(await apiDriver.countSettlementChanges(group.id)).toBe(1);
-            expect(await apiDriver.countBalanceChanges(group.id)).toBe(1);
+            expect(await appDriver.countGroupChanges(group.id)).toBe(2); // created + member added
+            expect(await appDriver.countSettlementChanges(group.id)).toBe(1);
+            expect(await appDriver.countBalanceChanges(group.id)).toBe(1);
 
             // step 3 - verify the settlement change includes both users
-            const change = await apiDriver.mostRecentSettlementChangeEvent(group.id);
+            const change = await appDriver.mostRecentSettlementChangeEvent(group.id);
             expect(change).toBeTruthy();
             expect(change?.users).toContain(user1.uid);
             expect(change?.users).toContain(user2.uid);
@@ -253,21 +254,21 @@ describe('Change Detection Integration Tests', () => {
 
             const settlement = await apiDriver.createSettlement(new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).build(), user2.token);
 
-            await apiDriver.waitForGroupChanges(group.id, (changes) => {
+            await appDriver.waitForGroupChanges(group.id, (changes) => {
                 return changes.length > 0;
             });
 
-            await apiDriver.waitForSettlementChanges(group.id, (changes) => {
+            await appDriver.waitForSettlementChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter((item) => item.id === settlement.id);
                 return changesOfInterest.length > 0;
             });
 
-            await apiDriver.waitForExpenseChanges(group.id, (changes) => {
+            await appDriver.waitForExpenseChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter((item) => item.id === expense.id);
                 return changesOfInterest.length > 0;
             });
 
-            await apiDriver.waitForBalanceChanges(group.id, (changes) => {
+            await appDriver.waitForBalanceChanges(group.id, (changes) => {
                 const changesOfInterest = changes.filter((item) => item.users.length === 2 && item.users.includes(user1.uid) && item.users.includes(user2.uid));
                 return changesOfInterest.length >= 2;
             });

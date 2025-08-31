@@ -7,7 +7,7 @@ import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import {firestoreDb} from "../functions/src/firebase";
 
 // Initialize ApiDriver which handles all configuration
-const driver = new ApiDriver(firestoreDb);
+const driver = new ApiDriver();
 
 // Test user registration data (extends base User with password for registration)
 interface TestUserRegistration {
@@ -293,6 +293,26 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 
 async function createTestUserRegistration(userInfo: TestUserRegistration): Promise<User> {
     return await driver.createUser(userInfo);
+}
+
+async function createTestPoolUsers(): Promise<void> {
+    console.log('🏊 Initializing test pool users...');
+    
+    const POOL_SIZE = 50;
+
+    // Check which pool users already exist
+    const emails = [];
+    for (let i = 1; i <= POOL_SIZE; i++) {
+        // Try to create the user - if it already exists, Firebase will throw an error
+        const user = await driver.borrowTestUser();
+        console.log(`Created pool user:`, user.email);
+        emails.push(user.email);
+    }
+    for (const email of emails) {
+        await driver.returnTestUser(email);
+    }
+
+    console.log('✅ Test pool users ready');
 }
 
 async function createGroupWithInvite(name: string, description: string, createdBy: User): Promise<GroupWithInvite> {
@@ -840,14 +860,36 @@ export async function generateTestData(): Promise<void> {
 
     console.log(`🚀 Starting test data generation in ${testConfig.mode} mode`);
 
+    // Initialize test pool users first (before regular test data)
+    console.log('Initializing test user pool...');
+    const poolInitStart = Date.now();
+    await createTestPoolUsers();
+    logTiming('Test pool initialization', poolInitStart);
+
     // Generate users based on config
     const TEST_USERS = generateTestUserRegistrations(testConfig);
 
-    // Create all test users in parallel
-    console.log(`Creating ${testConfig.userCount} test users...`);
+    // Create first 3 test users in parallel
+    console.log(`Creating first 3 test users in parallel...`);
     const userCreationStart = Date.now();
-    const users = await Promise.all(TEST_USERS.map((userInfo) => createTestUserRegistration(userInfo)));
-    console.log(`✓ Created ${users.length} users`);
+    
+    // Create first 3 users in parallel
+    const firstThreeUsers = TEST_USERS.slice(0, 3);
+    const remainingUsers = TEST_USERS.slice(3);
+    
+    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => createTestUserRegistration(userInfo)));
+    console.log(`✓ Created ${parallelUsers.length} users in parallel`);
+    
+    // Create remaining users sequentially if any
+    const sequentialUsers = [];
+    for (const userInfo of remainingUsers) {
+        const user = await createTestUserRegistration(userInfo);
+        sequentialUsers.push(user);
+        console.log(`✓ Created user: ${user.email}`);
+    }
+    
+    const users = [...parallelUsers, ...sequentialUsers];
+    console.log(`✓ Total created ${users.length} users (${parallelUsers.length} parallel, ${sequentialUsers.length} sequential)`);
     logTiming('User creation', userCreationStart);
 
     // test1@test.com creates groups and collects invite links

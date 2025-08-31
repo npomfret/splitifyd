@@ -3,32 +3,23 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, describe, expect, test } from 'vitest';
-
-import { ApiDriver } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
-import {firestoreDb} from "../../../../firebase";
+import {beforeAll, describe, expect, test} from 'vitest';
+import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 
 describe('API Security & Headers', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
-
-        // Create user pool with 6 users (covers all test needs)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 6);
-        await userPool.initialize();
+        ({driver} = await borrowTestUsers(6));
     });
 
     test('should return proper CORS headers', async () => {
-        const testOrigin = 'http://localhost:3000';
         const url = `${driver.getBaseUrl()}/health`;
 
         const response = await fetch(url, {
             method: 'OPTIONS',
             headers: {
-                Origin: testOrigin,
+                Origin: 'http://localhost:3000',
                 'Access-Control-Request-Method': 'GET',
                 'Access-Control-Request-Headers': 'Content-Type,Authorization',
             },

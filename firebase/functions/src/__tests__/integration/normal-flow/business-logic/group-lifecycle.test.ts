@@ -1,26 +1,22 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers } from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { FirebaseIntegrationTestUserPool } from '../../../support/FirebaseIntegrationTestUserPool';
-import {firestoreDb} from "../../../../firebase";
+import type { User } from '@splitifyd/test-support';
 
 describe('Group Lifecycle Edge Cases', () => {
     let driver: ApiDriver;
-    let userPool: FirebaseIntegrationTestUserPool;
     let users: User[] = [];
+    let allUsers: User[] = [];
     let testGroup: any;
 
     beforeAll(async () => {
-        driver = new ApiDriver(firestoreDb);
+        // Borrow 4 users with automatic cleanup
+        ({ driver, users: allUsers } = await borrowTestUsers(4));
 
-        // Create user pool with 4 users (3 for main tests + 1 for isolated test)
-        userPool = new FirebaseIntegrationTestUserPool(driver, 4);
-        await userPool.initialize();
-
-        // Set the first 3 users for main tests
-        users = userPool.getUsers(3);
+        // Use first 3 users for main tests (4th available for isolated tests)
+        users = allUsers.slice(0, 3);
     });
 
     beforeEach(async () => {
@@ -62,8 +58,8 @@ describe('Group Lifecycle Edge Cases', () => {
     });
 
     test('should handle multiple expenses with same participants', async () => {
-        // Use the 4th user from pool for this isolated test
-        const testUser = userPool.getUser(3);
+        // Use the 4th user for this isolated test (we borrowed 4 users total)
+        const testUser = allUsers[3];
 
         const multiExpenseGroupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
         const multiExpenseGroup = await driver.createGroup(multiExpenseGroupData, testUser.token);

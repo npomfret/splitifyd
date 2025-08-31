@@ -28,6 +28,7 @@ import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
+import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
 
 // Initialize service registry
 import { registerAllServices } from './services/serviceRegistration';
@@ -254,6 +255,12 @@ function setupRoutes(app: express.Application): void {
     app.get('/policies/current', asyncHandler(getCurrentPolicies));
     app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
+    // Test pool endpoints (emulator only, no auth required)
+    app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
+    app.post('/test-pool/return', asyncHandler(returnTestUser));
+    app.get('/test-pool/status', asyncHandler(getPoolStatus));
+    app.post('/test-pool/reset', asyncHandler(resetPool));
+
     // User policy endpoints (requires auth)
     app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
@@ -385,7 +392,7 @@ function setupRoutes(app: express.Application): void {
 export const api = onRequest(
     {
         invoker: 'public', // Allow unauthenticated access for CORS and public endpoints
-        maxInstances: 10,
+        maxInstances: 1, // Single instance required for test pool in-memory state
         timeoutSeconds: 20,
         region: 'us-central1',
         memory: '512MiB', // Optimized for API workload with authentication and database operations

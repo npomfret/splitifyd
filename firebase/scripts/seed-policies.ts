@@ -120,7 +120,7 @@ async function verifyPoliciesViaApi(): Promise<void> {
     console.log('🔍 VERIFYING POLICIES VIA API...');
     console.log('═══════════════════════════════════════════════════════');
 
-    const apiDriver = new ApiDriver(firestoreDb);
+    const apiDriver = new ApiDriver();
 
     try {
         // Test 1: Get all current policies

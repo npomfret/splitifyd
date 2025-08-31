@@ -1,17 +1,16 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, User} from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Trigger Debug Tests', () => {
-    let apiDriver: ApiDriver;
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
     let user1: User;
     let groupId: string;
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver(firestoreDb);
-
         user1 = await apiDriver.createUser(new UserBuilder().build());
     });
 
@@ -27,7 +26,7 @@ describe('Trigger Debug Tests', () => {
         // Created group
 
         // Wait for trigger to fire using proper polling
-        await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
+        await appDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
 
         // Check if any change documents were created
         const groupChanges = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).get();
@@ -50,7 +49,7 @@ describe('Trigger Debug Tests', () => {
             // Created group for expense test
 
             // Wait for group trigger to complete
-            await apiDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
+            await appDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
         }
 
         // Create an expense using builder
@@ -61,7 +60,7 @@ describe('Trigger Debug Tests', () => {
         expect(expense.id).toBeDefined();
 
         // Wait for trigger to fire using proper polling
-        await apiDriver.waitForExpenseChanges(groupId, (changes) => changes.some((c) => c.id === expense.id));
+        await appDriver.waitForExpenseChanges(groupId, (changes) => changes.some((c) => c.id === expense.id));
 
         // Check transaction-changes collection for expense changes
         const expenseChanges = await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).get();
