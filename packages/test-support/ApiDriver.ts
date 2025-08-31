@@ -1,5 +1,6 @@
 import {
     type CreateExpenseRequest,
+    CreateCommentResponse,
     CurrentPolicyResponse,
     ExpenseData,
     ExpenseFullDetails,
@@ -11,6 +12,7 @@ import {
     GroupPermissions,
     JoinGroupResponse,
     LeaveGroupResponse,
+    ListCommentsApiResponse,
     ListExpensesResponse,
     ListGroupsResponse,
     ListSettlementsResponse,
@@ -464,6 +466,41 @@ export class ApiDriver {
 
     async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<MessageResponse> {
         return await this.apiRequest('/user/account', 'DELETE', {confirmDelete}, token);
+    }
+
+    // Comment API methods
+    async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
+        return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
+    }
+
+    async createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse> {
+        return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
+    }
+
+    async listGroupComments(groupId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse> {
+        const queryParams = new URLSearchParams();
+        if (params) {
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+        const queryString = queryParams.toString();
+        return await this.apiRequest(`/groups/${groupId}/comments${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
+    }
+
+    async listExpenseComments(expenseId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse> {
+        const queryParams = new URLSearchParams();
+        if (params) {
+            Object.entries(params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    queryParams.append(key, value.toString());
+                }
+            });
+        }
+        const queryString = queryParams.toString();
+        return await this.apiRequest(`/expenses/${expenseId}/comments${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
     async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {

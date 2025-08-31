@@ -8,99 +8,10 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, User } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
-import { CreateCommentResponse, ListCommentsApiResponse, FirestoreCollections } from '@splitifyd/shared';
-
-// Extend ApiDriver with comment-specific methods
-interface CommentApiDriver extends ApiDriver {
-    createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse>;
-    createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse>;
-    listGroupComments(groupId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse>;
-    listExpenseComments(expenseId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse>;
-}
-
-// Add comment API methods to ApiDriver
-function extendApiDriver(driver: ApiDriver): CommentApiDriver {
-    const extended = driver as any;
-
-    extended.createGroupComment = async (groupId: string, text: string, token: string) => {
-        const response = await fetch(`${(driver as any).baseUrl}/${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ text }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        return await response.json();
-    };
-
-    extended.createExpenseComment = async (expenseId: string, text: string, token: string) => {
-        const response = await fetch(`${(driver as any).baseUrl}/${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ text }),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        return await response.json();
-    };
-
-    extended.listGroupComments = async (groupId: string, token: string, params: Record<string, any> = {}) => {
-        const url = new URL(`${(driver as any).baseUrl}/${FirestoreCollections.GROUPS}/${groupId}/${FirestoreCollections.COMMENTS}`);
-        Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]));
-
-        const response = await fetch(url.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        return await response.json();
-    };
-
-    extended.listExpenseComments = async (expenseId: string, token: string, params: Record<string, any> = {}) => {
-        const url = new URL(`${(driver as any).baseUrl}/${FirestoreCollections.EXPENSES}/${expenseId}/${FirestoreCollections.COMMENTS}`);
-        Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]));
-
-        const response = await fetch(url.toString(), {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        return await response.json();
-    };
-
-    return extended as CommentApiDriver;
-}
+import { FirestoreCollections } from '@splitifyd/shared';
 
 describe('Comments API Integration Tests', () => {
-    let driver: CommentApiDriver;
+    let driver: ApiDriver;
     let users: User[] = [];
     let testGroup: any;
     let testExpense: any;
@@ -108,8 +19,7 @@ describe('Comments API Integration Tests', () => {
     // Set timeout for integration tests
 
     beforeAll(async () => {
-        const baseDriver = new ApiDriver();
-        driver = extendApiDriver(baseDriver);
+        driver = new ApiDriver();
 
         // Create test users
         users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
