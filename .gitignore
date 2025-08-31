@@ -80,3 +80,4 @@ directives
 .claude/agents/prompt-advisor.md
 .claude/commands/merge.md
 .claude/commands/commit.md
+.claude/commands/comment.md

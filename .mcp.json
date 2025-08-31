@@ -7,19 +7,33 @@
     "typescript-mcp": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@mizchi/lsmcp", "-p", "typescript"]
+      "args": [
+        "-y",
+        "@mizchi/lsmcp",
+        "-p",
+        "typescript"
+      ]
     },
     "ts-morph": {
       "command": "npx",
-      "args": ["-y", "@sirosuzume/mcp-tsmorph-refactor"]
+      "args": [
+        "-y",
+        "@sirosuzume/mcp-tsmorph-refactor"
+      ]
     },
     "context-provider": {
       "command": "npx",
-      "args": ["-y", "code-context-provider-mcp"]
+      "args": [
+        "-y",
+        "code-context-provider-mcp"
+      ]
     },
     "playwright": {
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
     }
   }
 }
