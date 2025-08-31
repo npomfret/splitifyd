@@ -1,4 +1,4 @@
-import { firestoreDb, FieldPath } from '../firebase';
+import { firestoreDb } from '../firebase';
 import { FirestoreCollections, GroupMember, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
