@@ -1,102 +1,9 @@
 import { validateCreateComment, validateListCommentsQuery, validateTargetId, validateCommentId } from '../../comments/validation';
 import { ApiError } from '../../utils/errors';
 import { CommentTargetTypes } from '@splitifyd/shared';
+import { CommentRequestBuilder, CommentQueryBuilder } from '@splitifyd/test-support';
 
-// Builder pattern for creating comment request objects
-class CommentRequestBuilder {
-    private request: any = {};
 
-    withText(text: string) {
-        this.request.text = text;
-        return this;
-    }
-
-    withTargetType(targetType: string) {
-        this.request.targetType = targetType;
-        return this;
-    }
-
-    withGroupTarget(targetId: string) {
-        this.request.targetType = CommentTargetTypes.GROUP;
-        this.request.targetId = targetId;
-        return this;
-    }
-
-    withExpenseTarget(targetId: string, groupId: string) {
-        this.request.targetType = CommentTargetTypes.EXPENSE;
-        this.request.targetId = targetId;
-        this.request.groupId = groupId;
-        return this;
-    }
-
-    withTargetId(targetId: string) {
-        this.request.targetId = targetId;
-        return this;
-    }
-
-    withGroupId(groupId: string) {
-        this.request.groupId = groupId;
-        return this;
-    }
-
-    withLongText(length: number = 501) {
-        this.request.text = 'a'.repeat(length);
-        return this;
-    }
-
-    withWhitespaceText(text: string = 'test') {
-        this.request.text = `  ${text}  `;
-        return this;
-    }
-
-    withXSSText() {
-        this.request.text = '<script>alert("xss")</script>Safe text';
-        return this;
-    }
-
-    withXSSTargetId() {
-        this.request.targetId = '<script>group123</script>';
-        return this;
-    }
-
-    withMissingField(field: string) {
-        delete this.request[field];
-        return this;
-    }
-
-    withEmptyField(field: string) {
-        this.request[field] = '';
-        return this;
-    }
-
-    build() {
-        return { ...this.request };
-    }
-}
-
-// Builder pattern for query parameters
-class QueryBuilder {
-    private query: any = {};
-
-    withCursor(cursor: string) {
-        this.query.cursor = cursor;
-        return this;
-    }
-
-    withLimit(limit: string | number) {
-        this.query.limit = typeof limit === 'number' ? limit.toString() : limit;
-        return this;
-    }
-
-    withInvalidLimit(invalidValue: string) {
-        this.query.limit = invalidValue;
-        return this;
-    }
-
-    build() {
-        return { ...this.query };
-    }
-}
 
 describe('Comments Validation', () => {
     describe('validateCreateComment', () => {
@@ -212,7 +119,7 @@ describe('Comments Validation', () => {
 
     describe('validateListCommentsQuery', () => {
         it('should validate valid query with default limit', () => {
-            const query = new QueryBuilder().build();
+            const query = new CommentQueryBuilder().build();
 
             const result = validateListCommentsQuery(query);
 
@@ -221,7 +128,7 @@ describe('Comments Validation', () => {
         });
 
         it('should validate query with cursor and custom limit', () => {
-            const query = new QueryBuilder().withCursor('comment123').withLimit('10').build();
+            const query = new CommentQueryBuilder().withCursor('comment123').withLimit('10').build();
 
             const result = validateListCommentsQuery(query);
 
@@ -230,7 +137,7 @@ describe('Comments Validation', () => {
         });
 
         it('should enforce maximum limit', () => {
-            const query = new QueryBuilder()
+            const query = new CommentQueryBuilder()
                 .withLimit('150') // Exceeds max of 100
                 .build();
 
@@ -238,7 +145,7 @@ describe('Comments Validation', () => {
         });
 
         it('should enforce minimum limit', () => {
-            const query = new QueryBuilder()
+            const query = new CommentQueryBuilder()
                 .withLimit('0') // Below min of 1
                 .build();
 
@@ -246,7 +153,7 @@ describe('Comments Validation', () => {
         });
 
         it('should throw error for invalid limit format', () => {
-            const query = new QueryBuilder().withInvalidLimit('not-a-number').build();
+            const query = new CommentQueryBuilder().withInvalidLimit('not-a-number').build();
 
             expect(() => validateListCommentsQuery(query)).toThrow(ApiError);
         });

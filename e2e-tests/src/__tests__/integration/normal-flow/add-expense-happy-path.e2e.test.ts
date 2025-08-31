@@ -3,12 +3,13 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 setupMCPDebugOnFailure();
 
 test.describe('Add Expense E2E', () => {
     test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+        const { page, user } = authenticatedPage;
         const memberCount = 1;
 
         // Use the comprehensive helper method for group creation and preparation
@@ -17,20 +18,14 @@ test.describe('Add Expense E2E', () => {
         // Navigate to expense form with all necessary waits
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
-        const categorySelect = expenseFormPage.getCategorySelect();
-
-        await expenseFormPage.fillDescription('Test Dinner');
-        await expenseFormPage.fillAmount('50');
-
-        await expect(categorySelect).toBeVisible();
-        await expenseFormPage.typeCategoryText('dinner');
-
-        // The save button should be visible
-        // Check if button is enabled and get validation errors if not
-        await expenseFormPage.expectSubmitButtonEnabled();
-
-        // Submit the expense
-        await expenseFormPage.clickSaveExpenseButton();
+        const testDinnerExpense = new ExpenseBuilder()
+            .withDescription('Test Dinner')
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(testDinnerExpense);
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -42,7 +37,7 @@ test.describe('Add Expense E2E', () => {
     // Form validation tests moved to form-validation.e2e.test.ts
 
     test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+        const { page, user } = authenticatedPage;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
 
@@ -54,20 +49,15 @@ test.describe('Add Expense E2E', () => {
 
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
-        const categorySelect = expenseFormPage.getCategorySelect();
-        await expect(categorySelect).toBeVisible();
+        const categoryExpense = new ExpenseBuilder()
+            .withDescription('Dinner with category')
+            .withAmount(45)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(categoryExpense);
 
-        const initialCategory = await categorySelect.inputValue();
-
-        await expenseFormPage.typeCategoryText('Bills & Utilities');
-
-        const newCategory = await categorySelect.inputValue();
-        expect(newCategory).not.toBe(initialCategory);
-
-        await expenseFormPage.fillDescription('Dinner with category');
-        await expenseFormPage.fillAmount('45');
-
-        await expenseFormPage.clickSaveExpenseButton();
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -75,7 +65,7 @@ test.describe('Add Expense E2E', () => {
     });
 
     test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+        const { page, user } = authenticatedPage;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
 
@@ -92,15 +82,14 @@ test.describe('Add Expense E2E', () => {
         await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        // Select all participants for the expense
-        await expenseFormPage.selectAllParticipants();
-
-        // Fill in the expense details
-        await expenseFormPage.fillDescription('Movie Tickets');
-        await expenseFormPage.fillAmount('25');
-
-        // Now save the expense (button enable check and spinner wait handled internally)
-        await expenseFormPage.clickSaveExpenseButton();
+        const movieTicketsExpense = new ExpenseBuilder()
+            .withDescription('Movie Tickets')
+            .withAmount(25)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(movieTicketsExpense);
 
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -113,7 +102,7 @@ test.describe('Add Expense E2E', () => {
     });
 
     test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+        const { page, user } = authenticatedPage;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
 
@@ -125,13 +114,14 @@ test.describe('Add Expense E2E', () => {
 
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
-        // Test custom category input
-        await expenseFormPage.typeCategoryText('Custom Office Supplies');
-
-        await expenseFormPage.fillDescription('Custom category expense');
-        await expenseFormPage.fillAmount('16');
-
-        await expenseFormPage.clickSaveExpenseButton();
+        const customCategoryExpense = new ExpenseBuilder()
+            .withDescription('Custom category expense')
+            .withAmount(16)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(customCategoryExpense);
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });

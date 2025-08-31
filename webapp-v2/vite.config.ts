@@ -1,10 +1,6 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-
-const execAsync = promisify(exec);
 
 export default defineConfig(() => ({
     base: '/',
@@ -15,17 +11,6 @@ export default defineConfig(() => ({
                 enabled: false,
             },
         }),
-        {
-            name: 'post-build-script',
-            closeBundle: async () => {
-                try {
-                    await execAsync('node scripts/post-build.js');
-                    console.log('Post-build script executed successfully');
-                } catch (error) {
-                    console.error('Post-build script failed:', error);
-                }
-            },
-        },
     ],
     resolve: {
         alias: {

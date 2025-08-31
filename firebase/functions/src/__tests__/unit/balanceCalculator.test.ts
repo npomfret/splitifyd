@@ -1,9 +1,9 @@
 import { describe, expect, beforeEach, vi, it, type Mock } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { calculateGroupBalances } from '../../services/balanceCalculator';
-import { SimplifiedDebt, PermissionLevels } from '@splitifyd/shared';
+import { SimplifiedDebt } from '@splitifyd/shared';
 import { UserProfile } from '../../services/UserService2';
-import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import { MockGroupBuilder, MockFirestoreBuilder, FirestoreExpenseBuilder, FirestoreSettlementBuilder, UserProfileBuilder } from '@splitifyd/test-support';
 
 // Mock dependencies
 vi.mock('../../firebase', () => ({
@@ -33,192 +33,11 @@ const mockDb = firestoreDb as any;
 const mockSimplifyDebts = simplifyDebts as any;
 
 // Enhanced builders - only specify what's needed for each test
-class FirestoreExpenseBuilder extends ExpenseBuilder {
-    private firestoreFields: any = {
-        id: 'expense-1',
-        createdBy: 'default-user-id',
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        deletedAt: null,
-        deletedBy: null,
-    };
-    private excludeCurrency = false;
 
-    withId(id: string): FirestoreExpenseBuilder {
-        this.firestoreFields.id = id;
-        return this;
-    }
 
-    withCreatedBy(userId: string): FirestoreExpenseBuilder {
-        this.firestoreFields.createdBy = userId;
-        return this;
-    }
-
-    withoutCurrency(): FirestoreExpenseBuilder {
-        // For testing missing currency validation
-        this.excludeCurrency = true;
-        return this;
-    }
-
-    build(): any {
-        const baseExpense = super.build();
-        const result = {
-            ...this.firestoreFields,
-            ...baseExpense,
-            // Ensure splits exists for validation
-            splits: baseExpense.splits || [{ userId: baseExpense.paidBy, amount: baseExpense.amount }],
-            // Convert date string to Firestore Timestamp
-            date: Timestamp.fromDate(new Date(baseExpense.date)),
-        };
-        // Remove currency if withoutCurrency was called
-        if (this.excludeCurrency) {
-            delete result.currency;
-        }
-        return result;
-    }
-}
-
-class FirestoreSettlementBuilder extends SettlementBuilder {
-    private firestoreFields: any = {
-        id: 'settlement-1',
-        createdBy: 'default-user-id',
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-        date: Timestamp.now(),
-    };
-    private excludeCurrency = false;
-
-    withId(id: string): FirestoreSettlementBuilder {
-        this.firestoreFields.id = id;
-        return this;
-    }
-
-    withCreatedBy(userId: string): FirestoreSettlementBuilder {
-        this.firestoreFields.createdBy = userId;
-        return this;
-    }
-
-    withoutCurrency(): FirestoreSettlementBuilder {
-        // For testing missing currency validation
-        this.excludeCurrency = true;
-        return this;
-    }
-
-    build(): any {
-        const baseSettlement = super.build();
-        const result = {
-            ...this.firestoreFields,
-            ...baseSettlement,
-            // Convert date string to Firestore Timestamp if provided
-            date: baseSettlement.date ? Timestamp.fromDate(new Date(baseSettlement.date)) : this.firestoreFields.date,
-        };
-        // Remove currency if withoutCurrency was called
-        if (this.excludeCurrency) {
-            delete result.currency;
-        }
-        return result;
-    }
-}
-
-// Helper class for mock Firestore responses
-class MockFirestoreBuilder {
-    static createQuerySnapshot(docs: any[]) {
-        return {
-            docs: docs.map((doc) => ({
-                id: doc.id || 'default-id',
-                data: () => doc,
-            })),
-            empty: docs.length === 0,
-        };
-    }
-
-    static createDocSnapshot(doc: any) {
-        return {
-            exists: true,
-            id: doc.id || 'default-id',
-            data: () => doc.data || doc,
-        };
-    }
-}
 
 // Builder for mock group
-class MockGroupBuilder {
-    private group: any = {
-        id: 'group-1',
-        data: {
-            name: 'Test Group',
-            createdBy: 'user-1', // Required field
-            description: 'Test group for balance calculations',
-            members: {
-                'user-1': { 
-                    role: 'admin',  // Valid role
-                    status: 'active'  // Required status field
-                },
-                'user-2': { 
-                    role: 'member',  // Valid role  
-                    status: 'active'  // Required status field
-                },
-            },
-            permissions: {
-                expenseEditing: PermissionLevels.ANYONE,
-                expenseDeletion: PermissionLevels.ANYONE,
-                memberInvitation: PermissionLevels.ANYONE,
-                memberApproval: 'automatic' as const,
-                settingsManagement: PermissionLevels.ANYONE,
-            }, // Use default OPEN permissions
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-        },
-    };
 
-    withMembers(members: Record<string, any>): MockGroupBuilder {
-        // Ensure all members have required fields
-        const validMembers: Record<string, any> = {};
-        for (const [userId, member] of Object.entries(members)) {
-            validMembers[userId] = {
-                role: member.role || 'member', // Default to 'member' if not specified
-                status: member.status || 'active', // Default to 'active' if not specified
-                ...member // Allow override of defaults
-            };
-        }
-        this.group.members = validMembers;
-        return this;
-    }
-
-    build(): any {
-        return { ...this.group };
-    }
-}
-
-// Builder for user profiles
-class UserProfileBuilder {
-    private user: UserProfile = {
-        uid: 'user-1',
-        displayName: 'Test User',
-        email: 'test@example.com',
-        photoURL: null,
-        emailVerified: true,
-    };
-
-    withUid(uid: string): UserProfileBuilder {
-        this.user.uid = uid;
-        return this;
-    }
-
-    withDisplayName(name: string): UserProfileBuilder {
-        this.user.displayName = name;
-        return this;
-    }
-
-    withEmail(email: string): UserProfileBuilder {
-        this.user.email = email;
-        return this;
-    }
-
-    build(): UserProfile {
-        return { ...this.user };
-    }
-}
 
 describe('calculateGroupBalances', () => {
     let mockGet: Mock;

@@ -1,4 +1,5 @@
-import { simplifyDebts, UserBalance } from '../../utils/debtSimplifier';
+import { simplifyDebts } from '../../utils/debtSimplifier';
+import { DebtScenarios } from '@splitifyd/test-support';
 
 describe('simplifyDebts', () => {
     it('should return empty array for empty balances', () => {
@@ -7,31 +8,13 @@ describe('simplifyDebts', () => {
     });
 
     it('should return empty array when all balances are zero', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: { userId: 'user1', owes: {}, owedBy: {}, netBalance: 0 },
-            user2: { userId: 'user2', owes: {}, owedBy: {}, netBalance: 0 },
-        };
+        const balances = DebtScenarios.allZeroBalances();
         const result = simplifyDebts(balances, 'USD');
         expect(result).toEqual([]);
     });
 
     it('should handle simple two-person debt', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 50 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: {},
-                owedBy: { user1: 50 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.simpleTwoPerson();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -45,22 +28,7 @@ describe('simplifyDebts', () => {
     });
 
     it('should cancel out reciprocal debts', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 50 },
-                owedBy: { user2: 30 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: { user1: 30 },
-                owedBy: { user1: 50 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.reciprocalDebts();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -74,29 +42,7 @@ describe('simplifyDebts', () => {
     });
 
     it('should simplify triangular debt cycle', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 30 },
-                owedBy: { user3: 30 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: { user3: 30 },
-                owedBy: { user1: 30 },
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-
-                owes: { user1: 30 },
-                owedBy: { user2: 30 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.triangularCycle();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -104,36 +50,7 @@ describe('simplifyDebts', () => {
     });
 
     it('should handle complex debt network', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 40, user3: 30, user4: 20 },
-                owedBy: { user2: 30 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: { user1: 30, user4: 40 },
-                owedBy: { user1: 40 },
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-
-                owes: {},
-                owedBy: { user1: 30 },
-                netBalance: 0,
-            },
-            user4: {
-                userId: 'user4',
-
-                owes: { user1: 20 },
-                owedBy: { user2: 40 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.complexFourUser();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -160,58 +77,14 @@ describe('simplifyDebts', () => {
     });
 
     it('should ignore amounts below 0.01 threshold', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 0.005 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: {},
-                owedBy: { user1: 0.005 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.belowThreshold();
 
         const result = simplifyDebts(balances, 'USD');
         expect(result).toHaveLength(0);
     });
 
     it('should handle uneven amounts with optimal matching', () => {
-        const balances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-
-                owes: { user2: 100 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-
-                owes: { user3: 50, user4: 50 },
-                owedBy: { user1: 100 },
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-
-                owes: {},
-                owedBy: { user2: 50 },
-                netBalance: 0,
-            },
-            user4: {
-                userId: 'user4',
-
-                owes: {},
-                owedBy: { user2: 50 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.unevenChain();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -232,38 +105,7 @@ describe('simplifyDebts', () => {
 
     it('should handle 5-user circular debt scenario', () => {
         // Test 5-user circular debt: A→B→C→D→E→A (each owes next person $20)
-        const balances: Record<string, UserBalance> = {
-            userA: {
-                userId: 'userA',
-                owes: { userB: 20 },
-                owedBy: { userE: 20 },
-                netBalance: 0,
-            },
-            userB: {
-                userId: 'userB',
-                owes: { userC: 20 },
-                owedBy: { userA: 20 },
-                netBalance: 0,
-            },
-            userC: {
-                userId: 'userC',
-                owes: { userD: 20 },
-                owedBy: { userB: 20 },
-                netBalance: 0,
-            },
-            userD: {
-                userId: 'userD',
-                owes: { userE: 20 },
-                owedBy: { userC: 20 },
-                netBalance: 0,
-            },
-            userE: {
-                userId: 'userE',
-                owes: { userA: 20 },
-                owedBy: { userD: 20 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.fiveUserCircle();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -273,44 +115,7 @@ describe('simplifyDebts', () => {
 
     it('should handle large complex debt network with 6 users', () => {
         // Test complex 6-user network with multiple debt relationships
-        const balances: Record<string, UserBalance> = {
-            alice: {
-                userId: 'alice',
-                owes: { bob: 50, charlie: 30 },
-                owedBy: { frank: 40 },
-                netBalance: 0,
-            },
-            bob: {
-                userId: 'bob',
-                owes: { diana: 60 },
-                owedBy: { alice: 50, eve: 30 },
-                netBalance: 0,
-            },
-            charlie: {
-                userId: 'charlie',
-                owes: { eve: 45 },
-                owedBy: { alice: 30, diana: 25 },
-                netBalance: 0,
-            },
-            diana: {
-                userId: 'diana',
-                owes: { charlie: 25, frank: 35 },
-                owedBy: { bob: 60 },
-                netBalance: 0,
-            },
-            eve: {
-                userId: 'eve',
-                owes: { bob: 30 },
-                owedBy: { charlie: 45 },
-                netBalance: 0,
-            },
-            frank: {
-                userId: 'frank',
-                owes: { alice: 40 },
-                owedBy: { diana: 35 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.sixUserNetwork();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -337,38 +142,7 @@ describe('simplifyDebts', () => {
 
     it('should optimize debt paths in star network pattern', () => {
         // Test star network: one central user owes/owed by multiple others
-        const balances: Record<string, UserBalance> = {
-            center: {
-                userId: 'center',
-                owes: { user1: 100, user2: 50 },
-                owedBy: { user3: 80, user4: 70 },
-                netBalance: 0,
-            },
-            user1: {
-                userId: 'user1',
-                owes: {},
-                owedBy: { center: 100 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-                owes: {},
-                owedBy: { center: 50 },
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-                owes: { center: 80 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user4: {
-                userId: 'user4',
-                owes: { center: 70 },
-                owedBy: {},
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.starNetwork();
 
         const result = simplifyDebts(balances, 'USD');
 
@@ -394,47 +168,7 @@ describe('simplifyDebts', () => {
 
     it('should handle mixed currency debt networks', () => {
         // Test debt simplification with different currencies (should not cross-consolidate)
-        const usdBalances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-                owes: { user2: 100 },
-                owedBy: { user3: 50 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-                owes: { user3: 80 },
-                owedBy: { user1: 100 },
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-                owes: { user1: 50 },
-                owedBy: { user2: 80 },
-                netBalance: 0,
-            },
-        };
-
-        const eurBalances: Record<string, UserBalance> = {
-            user1: {
-                userId: 'user1',
-                owes: {},
-                owedBy: { user2: 60 },
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-                owes: { user1: 60, user3: 40 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-                owes: {},
-                owedBy: { user2: 40 },
-                netBalance: 0,
-            },
-        };
+        const { usd: usdBalances, eur: eurBalances } = DebtScenarios.mixedCurrencyScenarios();
 
         // Test USD currency debt simplification
         const usdResult = simplifyDebts(usdBalances, 'USD');
@@ -460,38 +194,7 @@ describe('simplifyDebts', () => {
 
     it('should handle asymmetric debt networks efficiently', () => {
         // Test network where debt amounts are very uneven
-        const balances: Record<string, UserBalance> = {
-            whale: {
-                userId: 'whale',
-                owes: {},
-                owedBy: { user1: 1000, user2: 800, user3: 600 },
-                netBalance: 0,
-            },
-            user1: {
-                userId: 'user1',
-                owes: { whale: 1000, user4: 50 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user2: {
-                userId: 'user2',
-                owes: { whale: 800, user4: 30 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user3: {
-                userId: 'user3',
-                owes: { whale: 600, user4: 20 },
-                owedBy: {},
-                netBalance: 0,
-            },
-            user4: {
-                userId: 'user4',
-                owes: {},
-                owedBy: { user1: 50, user2: 30, user3: 20 },
-                netBalance: 0,
-            },
-        };
+        const balances = DebtScenarios.asymmetricWhale();
 
         const result = simplifyDebts(balances, 'USD');
 

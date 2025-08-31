@@ -2,6 +2,7 @@ import { authenticatedPageTest as test, expect } from '../../../fixtures/authent
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 setupMCPDebugOnFailure();
 
@@ -45,22 +46,24 @@ test.describe('Single User Balance Visualization', () => {
 
         // Add expenses - pass user info for better error reporting
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount, user);
-        await expenseFormPage1.submitExpense({
-            description: 'Dinner',
-            amount: 120,
-            currency: 'USD',
-            paidBy: user.displayName,
-            splitType: 'equal',
-        });
+        const dinnerExpense = new ExpenseBuilder()
+            .withDescription('Dinner')
+            .withAmount(120)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage1.submitExpense(dinnerExpense);
 
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount, user);
-        await expenseFormPage2.submitExpense({
-            description: 'Groceries',
-            amount: 80,
-            currency: 'USD',
-            paidBy: user.displayName,
-            splitType: 'equal',
-        });
+        const groceriesExpense = new ExpenseBuilder()
+            .withDescription('Groceries')
+            .withAmount(80)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage2.submitExpense(groceriesExpense);
 
         // Verify Balances section shows settled up for single-user groups
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -100,13 +103,14 @@ test.describe('Single User Balance Visualization', () => {
 
         // Add expense
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense({
-            description: 'International expense',
-            amount: 250,
-            currency: 'USD',
-            paidBy: user.displayName,
-            splitType: 'equal',
-        });
+        const internationalExpense = new ExpenseBuilder()
+            .withDescription('International expense')
+            .withAmount(250)
+            .withCurrency('USD')
+            .withPaidBy(user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(internationalExpense);
 
         // Check for currency formatting in expense section
         await expect(groupDetailPage.getCurrencyAmount('250.00')).toBeVisible();

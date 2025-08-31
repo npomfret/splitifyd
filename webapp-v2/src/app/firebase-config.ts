@@ -1,25 +1,4 @@
-interface FirebaseConfig {
-    apiKey: string;
-    authDomain: string;
-    projectId: string;
-    storageBucket: string;
-    messagingSenderId: string;
-    appId: string;
-}
-
-interface AppConfiguration {
-    firebase: FirebaseConfig;
-    firebaseAuthUrl?: string;
-    firebaseFirestoreUrl?: string;
-    environment: {
-        warningBanner?: string;
-    };
-    formDefaults: {
-        displayName?: string;
-        email?: string;
-        password?: string;
-    };
-}
+import type { AppConfiguration } from '@splitifyd/shared';
 
 class FirebaseConfigManager {
     private configPromise: Promise<AppConfiguration> | null = null;
@@ -76,21 +55,14 @@ class FirebaseConfigManager {
 
 export const firebaseConfigManager = new FirebaseConfigManager();
 
-// Set up API base URL using global function (injected during build)
+// Set up API base URL - use static path handled by Firebase hosting rewrites
 const setupApiBaseUrl = () => {
     // Skip during SSG
     if (typeof window === 'undefined') {
         return;
     }
 
-    const getApiBaseUrl = (window as any).getApiBaseUrl;
-    if (!getApiBaseUrl) {
-        throw new Error('getApiBaseUrl function is not available - check post-build.js');
-    }
-
-    const apiBaseUrl = getApiBaseUrl();
-    console.log({ apiBaseUrl });
-    firebaseConfigManager.setApiBaseUrl(apiBaseUrl);
+    firebaseConfigManager.setApiBaseUrl('/api');
 };
 
 setupApiBaseUrl();

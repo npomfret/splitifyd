@@ -3,6 +3,7 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 
 setupMCPDebugOnFailure();
 
@@ -16,13 +17,14 @@ test.describe('Basic Expense Operations E2E', () => {
 
         // Create expense using page object
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense({
-            description: 'Test Expense Lifecycle',
-            amount: 50,
-            currency: 'USD',
-            paidBy: groupInfo.user.displayName,
-            splitType: 'equal',
-        });
+        const testExpense = new ExpenseBuilder()
+            .withDescription('Test Expense Lifecycle')
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidBy(groupInfo.user.displayName)
+            .withSplitType('equal')
+            .build();
+        await expenseFormPage.submitExpense(testExpense);
 
         // Verify expense appears in list
         await expect(groupDetailPage.getExpenseByDescription('Test Expense Lifecycle')).toBeVisible();
