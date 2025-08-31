@@ -23,16 +23,18 @@ export default defineConfig({
                 'src/index.ts', // Entry point
             ],
         },
-        testTimeout: 30000, // Increased for integration tests
-        hookTimeout: 30000, // Increased for integration tests setup/teardown
-        // Force sequential execution for integration tests to prevent Firebase emulator conflicts
+        testTimeout: 10000, // Increased for integration tests
+        hookTimeout: 10000, // Increased for integration tests setup/teardown
+        // Allow file parallelism but prevent test case parallelism within files
         pool: 'forks',
         poolOptions: {
             forks: {
-                singleFork: true, // Run all tests in a single process
+                singleFork: false, // Allow multiple processes for file parallelism
+                maxForks: 3, // Limit to 3 concurrent test files
             },
         },
-        maxConcurrency: 1, // Limit to 1 concurrent test
+        fileParallelism: true, // Allow test files to run in parallel
+        maxConcurrency: 1, // But limit concurrent test cases within each file to 1
     },
     resolve: {
         alias: {
