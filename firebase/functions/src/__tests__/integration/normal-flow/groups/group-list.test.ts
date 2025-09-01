@@ -115,8 +115,7 @@ describe('GET /groups - List Groups', () => {
 
     test('should handle groups with expenses and settlements correctly', async () => {
         // Create a group with expenses - using user objects that are already created
-        const groupData = new CreateGroupRequestBuilder().withName(`Integration Test Group ${uuidv4()}`).withMembers([users[0], users[1]]).build();
-        const testGroup = await apiDriver.createGroup(groupData, users[0].token);
+        const testGroup = await apiDriver.createGroupWithMembers(`Integration Test Group ${uuidv4()}`, [users[0], users[1]], users[0].token);
 
         // Add an expense
         const expenseData = new ExpenseBuilder()

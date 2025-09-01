@@ -37,13 +37,6 @@ describe('RESTful Group CRUD Operations', () => {
         test('should create a group with member objects', async () => {
             const groupData = new CreateGroupRequestBuilder()
                 .withName(`Group with Members ${uuidv4()}`)
-                .withMembers([
-                    {
-                        uid: users[0].uid,
-                        displayName: users[0].displayName,
-                        email: users[0].email,
-                    },
-                ])
                 .build();
 
             const response = await apiDriver.createGroup(groupData, users[0].token);

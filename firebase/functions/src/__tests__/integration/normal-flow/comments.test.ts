@@ -7,7 +7,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -22,13 +22,7 @@ describe('Comments API Integration Tests', () => {
 
         // Create a test group with multiple members
         const members = users.slice(0, 2);
-        const groupData = new CreateGroupRequestBuilder()
-            .withName(`Comments Test Group ${uuidv4()}`)
-            .withDescription('Test group for comment API testing')
-            .withMembers(members)
-            .build();
-
-        testGroup = await apiDriver.createGroup(groupData, members[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Comments Test Group ${uuidv4()}`, members, members[0].token);
 
         // Create a test expense
         const expenseData = new ExpenseBuilder()

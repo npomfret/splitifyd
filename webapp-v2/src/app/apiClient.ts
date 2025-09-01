@@ -25,7 +25,6 @@ import type {
     Group,
     GroupBalances,
     GroupFullDetails,
-    GroupMembersResponse,
     HealthCheckResponse,
     JoinGroupResponse,
     LeaveGroupResponse,
@@ -593,14 +592,6 @@ export class ApiClient {
             method: 'GET',
             params: { id },
             query: Object.keys(queryParams).length > 0 ? queryParams : undefined,
-        });
-    }
-
-    async getGroupMembers(id: string): Promise<GroupMembersResponse> {
-        return this.request({
-            endpoint: '/groups/:id/members',
-            method: 'GET',
-            params: { id },
         });
     }
 

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
-import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Additional Monetary Edge Cases', () => {
@@ -13,8 +13,7 @@ describe('Additional Monetary Edge Cases', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
 
-        const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await apiDriver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     test('should handle currency-style formatting for display', async () => {

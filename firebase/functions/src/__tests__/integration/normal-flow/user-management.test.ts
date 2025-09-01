@@ -403,7 +403,7 @@ describe('User Management Tests', () => {
     describe('User Profile Management', () => {
         test('should allow users to update their own groups', async () => {
             // Test user can update groups they created
-            const groupData = new CreateGroupRequestBuilder().withName(`User Profile Group ${user.displayName}`).withMembers([user]).build();
+            const groupData = new CreateGroupRequestBuilder().withName(`User Profile Group ${user.displayName}`).build();
 
             const userGroup = await apiDriver.createGroup(groupData, user.token);
 
@@ -421,7 +421,7 @@ describe('User Management Tests', () => {
         test('should prevent users from updating other users groups', async () => {
             const otherUser = await borrowTestUser();
 
-            const otherGroupData = new CreateGroupRequestBuilder().withName(`Other User Group ${otherUser.displayName}`).withMembers([otherUser]).build();
+            const otherGroupData = new CreateGroupRequestBuilder().withName(`Other User Group ${otherUser.displayName}`).build();
 
             const otherUserGroup = await apiDriver.createGroup(otherGroupData, otherUser.token);
 
@@ -440,7 +440,7 @@ describe('User Management Tests', () => {
 
     describe('Data Validation and Security', () => {
         test('should handle concurrent user operations safely', async () => {
-            const concurrentGroupData = new CreateGroupRequestBuilder().withName(`Concurrent Test Group ${user.displayName}`).withMembers([user]).build();
+            const concurrentGroupData = new CreateGroupRequestBuilder().withName(`Concurrent Test Group ${user.displayName}`).build();
 
             const userGroup = await apiDriver.createGroup(concurrentGroupData, user.token);
 

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ExpenseBuilder, CreateGroupRequestBuilder, ApiDriver} from '@splitifyd/test-support';
+import {ExpenseBuilder, ApiDriver} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -14,8 +14,7 @@ describe('Freeform Categories API Integration', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);
-        const groupData = new CreateGroupRequestBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await apiDriver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Freeform Categories Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     describe('Expense Creation with Custom Categories', () => {

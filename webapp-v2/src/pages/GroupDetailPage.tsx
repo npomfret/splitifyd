@@ -200,7 +200,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             groupId={groupId!}
                             variant="sidebar"
                             onInviteClick={handleShare}
-                            onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                            onMemberChange={() => enhancedGroupDetailStore.refreshAll()}
                             onLeaveGroupClick={handleLeaveGroup}
                         />
 
@@ -248,7 +248,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             <MembersListWithManagement
                                 groupId={groupId!}
                                 onInviteClick={handleShare}
-                                onMemberChange={() => enhancedGroupDetailStore.fetchMembers()}
+                                onMemberChange={() => enhancedGroupDetailStore.refreshAll()}
                                 onLeaveGroupClick={handleLeaveGroup}
                             />
                         </div>

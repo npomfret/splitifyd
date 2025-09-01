@@ -255,7 +255,7 @@ describe('User Profile Management API Tests', () => {
         it('should prevent deletion when user is member of groups', async () => {
             // Create a group with the test user - use unique name to avoid conflicts
             const uniqueGroupName = `Delete-Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new CreateGroupRequestBuilder().withName(uniqueGroupName).withMembers([users[0]]).build();
+            const group = new CreateGroupRequestBuilder().withName(uniqueGroupName).build();
 
             await apiDriver.createGroup(group, users[0].token);
 
@@ -283,9 +283,8 @@ describe('User Profile Management API Tests', () => {
             const user = await _freshUserToMutate();
 
             const uniqueGroupName = `Test-Group-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-            const group = new CreateGroupRequestBuilder().withName(uniqueGroupName).withMembers([user, users[1]]).build();
 
-            const groupResponse = await apiDriver.createGroup(group, user.token);
+            const groupResponse = await apiDriver.createGroupWithMembers(uniqueGroupName, [user, users[1]], user.token);
             const groupId = groupResponse.id;
 
             // Update display name with unique value

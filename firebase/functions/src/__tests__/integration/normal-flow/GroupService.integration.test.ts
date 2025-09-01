@@ -56,61 +56,6 @@ describe('GroupService - Integration Tests', () => {
             await doc.ref.delete();
         });
 
-        test('should create a group with multiple members', async () => {
-            const [creator, member1, member2] = testUsers;
-
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Multi-Member Group')
-                .withMembers([
-                    { uid: creator.uid, displayName: creator.displayName, email: creator.email },
-                    { uid: member1.uid, displayName: member1.displayName, email: member1.email },
-                    { uid: member2.uid, displayName: member2.displayName, email: member2.email },
-                ])
-                .build();
-
-            const group = await groupService.createGroup(creator.uid, groupData);
-
-            expect(Object.keys(group.members)).toHaveLength(3);
-            expect(group.members[creator.uid].role).toBe(MemberRoles.ADMIN);
-            expect(group.members[member1.uid].role).toBe(MemberRoles.MEMBER);
-            expect(group.members[member2.uid].role).toBe(MemberRoles.MEMBER);
-
-            // Each member should have a different theme color
-            const themes = Object.values(group.members).map(m => m.theme);
-            const uniqueThemes = new Set(themes);
-            expect(uniqueThemes.size).toBe(themes.length);
-
-            // Creator should have theme index 0
-            expect(group.members[creator.uid].theme).toBeDefined();
-
-            // Cleanup
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
-        });
-
-        test('should assign theme colors to members correctly', async () => {
-            const [creator, member] = testUsers;
-
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Theme Test Group')
-                .withMembers([
-                    { uid: creator.uid, displayName: creator.displayName, email: creator.email },
-                    { uid: member.uid, displayName: member.displayName, email: member.email },
-                ])
-                .build();
-
-            const group = await groupService.createGroup(creator.uid, groupData);
-
-            // Creator should get first theme (index 0)
-            expect(group.members[creator.uid].theme).toBeDefined();
-            
-            // Other member should get different theme
-            expect(group.members[member.uid].theme).toBeDefined();
-            expect(group.members[creator.uid].theme).not.toBe(group.members[member.uid].theme);
-
-            // Cleanup
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
-        });
-
         test('should set default security preset and permissions', async () => {
             const creator = testUsers[0];
 

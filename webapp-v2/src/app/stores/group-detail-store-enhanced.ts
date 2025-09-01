@@ -262,18 +262,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async fetchMembers(): Promise<void> {
         if (!this.currentGroupId) return;
 
-        this.#loadingMembersSignal.value = true;
-        try {
-            const memberData = await apiClient.getGroupMembers(this.currentGroupId);
-            if (memberData.members.length === 0) {
-                logError('group has no members', { groupId: this.currentGroupId });
-            }
-            this.#membersSignal.value = memberData.members;
-        } catch (error) {
-            logWarning('Failed to fetch members', { error });
-        } finally {
-            this.#loadingMembersSignal.value = false;
-        }
+        logInfo('fetchMembers: refreshing all data to ensure consistency', { groupId: this.currentGroupId });
+        await this.refreshAll();
     }
 
     async fetchExpenses(cursor?: string, includeDeleted: boolean = false): Promise<void> {
@@ -460,9 +450,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     async removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }> {
         try {
             const response = await apiClient.removeGroupMember(groupId, memberId);
-            // Refresh members and balances after successful removal
+            // Refresh all data after successful removal
             if (response.success) {
-                await Promise.all([this.fetchMembers(), this.fetchBalances()]);
+                await this.refreshAll();
             }
             return response;
         } catch (error) {

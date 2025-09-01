@@ -14,8 +14,7 @@ describe('Group Lifecycle Edge Cases', () => {
     });
 
     beforeEach(async () => {
-        const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await apiDriver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     test('should handle viewing group with no expenses', async () => {
