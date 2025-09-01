@@ -45,6 +45,24 @@ export class CreateGroupModalPage extends BasePage {
 
         // Use standardized button click with proper error handling
         await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
+
+        // Check if modal has already closed (instant group creation)
+        const modalStillOpen = await this.isOpen();
+        
+        if (modalStillOpen) {
+            // Modal is still open, wait for button to enter loading state
+            await expect(async () => {
+                const hasSpinner = await submitButton.locator('.animate-spin').count() > 0;
+                const ariaBusy = await submitButton.getAttribute('aria-busy');
+                const isDisabled = await submitButton.isDisabled();
+                
+                // Button should either show loading spinner, be marked as busy, or be disabled during submission
+                if (!hasSpinner && ariaBusy !== 'true' && !isDisabled) {
+                    throw new Error('Button has not entered loading state yet');
+                }
+            }).toPass({ timeout: 1000 });
+        }
+        // If modal is already closed, skip the loading state check
     }
 
     async trySubmitForm(): Promise<boolean> {
@@ -103,8 +121,34 @@ export class CreateGroupModalPage extends BasePage {
         await this.waitForModalToClose();
     }
 
+    async waitForButtonSpinnerToDisappear() {
+        // Wait for button to not have spinner (loading complete)
+        await expect(async () => {
+            const button = this.getSubmitButton();
+            const hasSpinner = await button.locator('.animate-spin').count() > 0;
+            const ariaBusy = await button.getAttribute('aria-busy');
+            
+            if (hasSpinner || ariaBusy === 'true') {
+                throw new Error('Button still has spinner/loading state');
+            }
+        }).toPass({ timeout: 5000 });
+    }
+
     async waitForModalToClose() {
-        await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 2000 });
+        // First check if modal is still visible
+        const isVisible = await this.isOpen();
+        
+        if (isVisible) {
+            // Wait for any loading spinner to disappear first
+            try {
+                await this.waitForButtonSpinnerToDisappear();
+            } catch {
+                // Spinner might have already disappeared if creation was instant
+            }
+        }
+        
+        // Now wait for modal to actually close
+        await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 5000 });
     }
 
     // Element accessors
