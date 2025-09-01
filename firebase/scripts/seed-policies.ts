@@ -123,13 +123,6 @@ async function verifyPoliciesViaApi(): Promise<void> {
     const apiDriver = new ApiDriver();
 
     try {
-        // Test 1: Get all current policies
-        console.log('\n📋 Fetching all current policies via API...');
-        const allPolicies = await apiDriver.getAllPolicies();
-
-        console.log(`✅ Successfully fetched ${allPolicies.count} policies via API`);
-        console.log('Policies available:', Object.keys(allPolicies.policies));
-
         // Test 2: Fetch each individual policy
         const policyIds = [PolicyIds.TERMS_OF_SERVICE, PolicyIds.COOKIE_POLICY, PolicyIds.PRIVACY_POLICY];
 

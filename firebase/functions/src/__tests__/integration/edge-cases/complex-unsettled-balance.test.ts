@@ -169,7 +169,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         const settlement = await apiDriver.createSettlement(settlementData, user2.token);
 
         // Verify settlement was stored correctly
-        const storedSettlement = await apiDriver.getSettlement(settlement.id, user2.token);
+        const storedSettlement = await apiDriver.getSettlement(group.id, settlement.id, user2.token);
 
         expect(storedSettlement.amount).toBe(actualDebtAmount);
         expect(storedSettlement.payer.uid).toBe(user2.uid);

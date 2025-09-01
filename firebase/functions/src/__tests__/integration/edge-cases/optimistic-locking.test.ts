@@ -240,7 +240,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state
-            const updatedSettlement = await apiDriver.getSettlement(settlement.id, users[0].token);
+            const updatedSettlement = await apiDriver.getSettlement(group.id, settlement.id, users[0].token);
             expect([75, 100]).toContain(updatedSettlement?.amount);
         });
     });

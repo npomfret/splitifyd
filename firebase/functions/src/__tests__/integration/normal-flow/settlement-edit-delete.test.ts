@@ -158,7 +158,7 @@ describe('Settlement Edit and Delete Operations', () => {
             await apiDriver.deleteSettlement(createdSettlement.id, user1.token);
 
             // Verify settlement is deleted (should throw 404)
-            await expect(apiDriver.getSettlement(createdSettlement.id, user1.token)).rejects.toThrow(/404/);
+            await expect(apiDriver.getSettlement(groupId, createdSettlement.id, user1.token)).rejects.toThrow(/404/);
         });
 
         it('should generate change notification when settlement is deleted', async () => {
@@ -195,14 +195,14 @@ describe('Settlement Edit and Delete Operations', () => {
             await expect(apiDriver.deleteSettlement(createdSettlement.id, user3.token)).rejects.toThrow(/403.*NOT_SETTLEMENT_CREATOR/);
 
             // Verify settlement still exists
-            const stillExists = await apiDriver.getSettlement(createdSettlement.id, user1.token);
+            const stillExists = await apiDriver.getSettlement(groupId, createdSettlement.id, user1.token);
             expect(stillExists.id).toBe(createdSettlement.id);
 
             // Now delete as the creator (user1) - should succeed
             await apiDriver.deleteSettlement(createdSettlement.id, user1.token);
 
             // Verify deletion
-            await expect(apiDriver.getSettlement(createdSettlement.id, user1.token)).rejects.toThrow(/404/);
+            await expect(apiDriver.getSettlement(groupId, createdSettlement.id, user1.token)).rejects.toThrow(/404/);
         });
 
         it('should update balances when settlement is deleted', async () => {

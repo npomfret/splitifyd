@@ -7,25 +7,20 @@ import {
     ExpenseFullDetails,
     ExpenseHistoryResponse,
     Group,
-    GroupBalances,
     GroupFullDetails,
-    GroupPermissions,
     JoinGroupResponse,
     LeaveGroupResponse,
-    ListCommentsApiResponse,
     ListExpensesResponse,
     ListGroupsResponse,
     ListSettlementsResponse,
     MemberRole,
     MessageResponse,
-    PendingMembersResponse,
     RegisterResponse,
     RemoveGroupMemberResponse,
     SecurityPreset,
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
-    UserPoliciesResponse,
     UserProfileResponse,
     UserRegistration
 } from '@splitifyd/shared';
@@ -35,6 +30,7 @@ import * as admin from 'firebase-admin';
 import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 import {Matcher, PollOptions, pollUntil} from "./Polling";
 import {UserRegistrationBuilder} from "./builders";
+import {GroupBalances} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -174,14 +170,6 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', {email});
     }
 
-    async getTestPoolStatus(): Promise<any> {
-        return await this.apiRequest('/test-pool/status', 'GET');
-    }
-
-    async resetTestPool(): Promise<any> {
-        return await this.apiRequest('/test-pool/reset', 'POST');
-    }
-
     async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
         return response as ExpenseData;
@@ -202,11 +190,6 @@ export class ApiDriver {
     async createSettlement(settlementData: any, token: string): Promise<Settlement> {
         const response = await this.apiRequest('/settlements', 'POST', settlementData, token);
         return response.data as Settlement;
-    }
-
-    async getSettlement(settlementId: string, token: string): Promise<SettlementListItem> {
-        const response = await this.apiRequest(`/settlements/${settlementId}`, 'GET', null, token);
-        return response.data;
     }
 
     async updateSettlement(settlementId: string, updateData: any, token: string): Promise<SettlementListItem> {
@@ -257,17 +240,8 @@ export class ApiDriver {
         return await this.apiRequest(endpoint, 'GET', null, token);
     }
 
-    async getGroupExpenses(groupId: string, token: string, limit?: number): Promise<ListExpensesResponse> {
-        const limitParam = limit ? `&limit=${limit}` : '';
-        return await this.apiRequest(`/expenses/group?groupId=${groupId}${limitParam}`, 'GET', null, token);
-    }
-
     async getExpenseHistory(expenseId: string, token: string): Promise<ExpenseHistoryResponse> {
         return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
-    }
-
-    async getGroupBalances(groupId: string, token: string): Promise<GroupBalances> {
-        return await this.apiRequest(`/groups/balances?groupId=${groupId}`, 'GET', null, token);
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
@@ -317,10 +291,12 @@ export class ApiDriver {
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as Group;
     }
 
+    /**
+     * @deprecated use getGroupFullDetails()
+     */
     async getGroup(groupId: string, token: string): Promise<Group> {
         return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
     }
-
 
     async getGroupFullDetails(
         groupId: string,
@@ -371,24 +347,8 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', {preset}, token);
     }
 
-    async updateGroupPermissions(groupId: string, token: string, permissions: Partial<GroupPermissions>): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', {permissions}, token);
-    }
-
     async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', {role}, token);
-    }
-
-    async approveMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/approve`, 'PUT', {targetUserId}, token);
-    }
-
-    async rejectMember(groupId: string, token: string, targetUserId: string): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/reject`, 'PUT', {targetUserId}, token);
-    }
-
-    async getPendingMembers(groupId: string, token: string): Promise<PendingMembersResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/pending`, 'GET', null, token);
     }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {
@@ -423,16 +383,8 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
-    async getAllPolicies(): Promise<UserPoliciesResponse> {
-        return await this.apiRequest('/policies/current', 'GET', null, null);
-    }
-
     async getPolicy(policyId: string): Promise<CurrentPolicyResponse> {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
-    }
-
-    async getUserProfile(token: string | null): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/profile', 'GET', null, token);
     }
 
     async updateUserProfile(token: string | null, updates: { displayName?: string; photoURL?: string | null }): Promise<UserProfileResponse> {
@@ -443,14 +395,6 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', {currentPassword, newPassword}, token);
     }
 
-    async sendPasswordResetEmail(email: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/reset-password', 'POST', {email}, null);
-    }
-
-    async deleteUserAccount(token: string | null, confirmDelete: boolean): Promise<MessageResponse> {
-        return await this.apiRequest('/user/account', 'DELETE', {confirmDelete}, token);
-    }
-
     // Comment API methods
     async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
@@ -458,32 +402,6 @@ export class ApiDriver {
 
     async createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse> {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
-    }
-
-    async listGroupComments(groupId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse> {
-        const queryParams = new URLSearchParams();
-        if (params) {
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    queryParams.append(key, value.toString());
-                }
-            });
-        }
-        const queryString = queryParams.toString();
-        return await this.apiRequest(`/groups/${groupId}/comments${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
-    }
-
-    async listExpenseComments(expenseId: string, token: string, params?: Record<string, any>): Promise<ListCommentsApiResponse> {
-        const queryParams = new URLSearchParams();
-        if (params) {
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    queryParams.append(key, value.toString());
-                }
-            });
-        }
-        const queryString = queryParams.toString();
-        return await this.apiRequest(`/expenses/${expenseId}/comments${queryString ? `?${queryString}` : ''}`, 'GET', null, token);
     }
 
     // todo: this should be private
@@ -528,5 +446,92 @@ export class ApiDriver {
             throw error;
         }
     }
-}
 
+    async getGroupBalances(groupId: string, token: string) {
+        const res = await this.getGroupFullDetails(groupId, token);
+        return res.balances;
+    }
+
+    async getGroupExpenses(groupId: string, token: string) {
+        const res = await this.getGroupFullDetails(groupId, token);
+        return res.expenses;
+    }
+
+    async getSettlement(groupId: string, settlementId: string, token: string) {
+        const res = await this.getGroupFullDetails(groupId, token);
+        return res.settlements.settlements.find((s: any) => s.id === settlementId)!;
+    }
+
+    async listGroupComments(groupId: string, _token: string, params?: { limit?: number; cursor?: string }) {
+        // Query Firestore directly like the frontend does
+        const db = admin.firestore();
+        const collectionPath = `groups/${groupId}/comments`;
+        
+        let query = db.collection(collectionPath).orderBy("createdAt", "desc");
+        
+        if (params?.limit) {
+            query = query.limit(params.limit);
+        } else {
+            query = query.limit(20); // Default limit
+        }
+        
+        if (params?.cursor) {
+            const cursorDoc = await db.collection(collectionPath).doc(params.cursor).get();
+            if (cursorDoc.exists) {
+                query = query.startAfter(cursorDoc);
+            }
+        }
+        
+        const snapshot = await query.get();
+        const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Check if there are more comments
+        const hasMore = snapshot.docs.length === (params?.limit || 20);
+        
+        return {
+            success: true,
+            data: {
+                comments,
+                hasMore,
+                nextCursor: snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : null
+            }
+        };
+    }
+    
+    async listExpenseComments(expenseId: string, _token: string, params?: { limit?: number; cursor?: string }) {
+        // Query Firestore directly like the frontend does
+        const db = admin.firestore();
+        const collectionPath = `expenses/${expenseId}/comments`;
+        
+        let query = db.collection(collectionPath).orderBy("createdAt", "desc");
+        
+        if (params?.limit) {
+            query = query.limit(params.limit);
+        } else {
+            query = query.limit(20); // Default limit
+        }
+        
+        if (params?.cursor) {
+            const cursorDoc = await db.collection(collectionPath).doc(params.cursor).get();
+            if (cursorDoc.exists) {
+                query = query.startAfter(cursorDoc);
+            }
+        }
+        
+        const snapshot = await query.get();
+        const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Check if there are more comments
+        const hasMore = snapshot.docs.length === (params?.limit || 20);
+        
+        return {
+            success: true,
+            data: {
+                comments,
+                hasMore,
+                nextCursor: snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : null
+            }
+        };
+    }
+
+}

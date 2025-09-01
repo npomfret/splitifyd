@@ -94,7 +94,7 @@ describe('Settlement Management', () => {
                 .build();
 
             const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
-            const retrieved = await apiDriver.getSettlement(created.id, settlementUsers[0].token);
+            const retrieved = await apiDriver.getSettlement(testGroup.id, created.id, settlementUsers[0].token);
 
             expect(retrieved.id).toBe(created.id);
             expect(retrieved.amount).toBe(100.0);
@@ -111,11 +111,11 @@ describe('Settlement Management', () => {
             const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
             const outsiderUser = getTestUsers(3)[2]; // Get a third user from pool
 
-            await expect(apiDriver.getSettlement(created.id, outsiderUser.token)).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
+            await expect(apiDriver.getSettlement(testGroup.id, created.id, outsiderUser.token)).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
         });
 
         test('should handle non-existent settlement', async () => {
-            await expect(apiDriver.getSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+            await expect(apiDriver.getSettlement(testGroup.id, 'non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
     });
 
@@ -166,7 +166,7 @@ describe('Settlement Management', () => {
             const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
             await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
 
-            await expect(apiDriver.getSettlement(created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+            await expect(apiDriver.getSettlement(testGroup.id, created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
 
         test('should reject deletion by non-creator', async () => {

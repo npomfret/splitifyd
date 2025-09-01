@@ -11,15 +11,14 @@ import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
 import { createServerTimestamp, timestampToISO } from './utils/dateHelpers';
-import { createExpense, getExpense, updateExpense, deleteExpense, listGroupExpenses, listUserExpenses, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
+import { createExpense, getExpense, updateExpense, deleteExpense, listUserExpenses, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
-import { getGroupBalances } from './groups/balanceHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, getGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
 import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
-import { createSettlement, getSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
-import { createComment, listComments } from './comments/handlers';
+import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
+import { createComment } from './comments/handlers';
 import {admin, firestoreDb, isEmulator} from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
@@ -280,7 +279,6 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(getExpense));
     app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
     app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
-    app.get(`/${FirestoreCollections.EXPENSES}/group`, authenticate, asyncHandler(listGroupExpenses));
     app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(listUserExpenses));
     app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
     app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
@@ -290,7 +288,6 @@ function setupRoutes(app: express.Application): void {
     app.get(`/${FirestoreCollections.GROUPS}`, authenticate, asyncHandler(listGroups));
 
     // Specific group endpoints must come BEFORE :id routes
-    app.get(`/${FirestoreCollections.GROUPS}/balances`, authenticate, asyncHandler(getGroupBalances));
     app.post(`/${FirestoreCollections.GROUPS}/share`, authenticate, asyncHandler(generateShareableLink));
     app.post(`/${FirestoreCollections.GROUPS}/preview`, authenticate, asyncHandler(previewGroupByLink));
     app.post(`/${FirestoreCollections.GROUPS}/join`, authenticate, asyncHandler(joinGroupByLink));
@@ -312,15 +309,12 @@ function setupRoutes(app: express.Application): void {
     // Settlement endpoints (requires auth)
     app.post(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(createSettlement));
     app.get(`/${FirestoreCollections.SETTLEMENTS}`, authenticate, asyncHandler(listSettlements));
-    app.get(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(getSettlement));
     app.put(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(updateSettlement));
     app.delete(`/${FirestoreCollections.SETTLEMENTS}/:settlementId`, authenticate, asyncHandler(deleteSettlement));
 
     // Comment endpoints (requires auth)
     app.post(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
-    app.get(`/${FirestoreCollections.GROUPS}/:groupId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listComments));
     app.post(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(createComment));
-    app.get(`/${FirestoreCollections.EXPENSES}/:expenseId/${FirestoreCollections.COMMENTS}`, authenticate, asyncHandler(listComments));
 
     // Admin Policy endpoints (requires admin auth)
     app.post(`/admin/${FirestoreCollections.POLICIES}`, authenticateAdmin, asyncHandler(createPolicy));

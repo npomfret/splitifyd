@@ -11,8 +11,6 @@ import {logApiRequest, logApiResponse, logError, logWarning} from '../utils/brow
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
-    AcceptPolicyResponse,
-    AppConfiguration,
     CommentApiResponse,
     CreateCommentResponse,
     CreateExpenseRequest,
@@ -23,13 +21,9 @@ import type {
     ExpenseData,
     ExpenseFullDetails,
     Group,
-    GroupBalances,
     GroupFullDetails,
-    HealthCheckResponse,
     JoinGroupResponse,
     LeaveGroupResponse,
-    ListCommentsApiResponse,
-    ListExpensesResponse,
     ListGroupsResponse,
     ListSettlementsApiResponse,
     ListSettlementsResponse,
@@ -39,9 +33,7 @@ import type {
     RegisterResponse,
     RemoveGroupMemberResponse,
     Settlement,
-    SettlementListItem,
     ShareLinkResponse,
-    UserPoliciesResponse,
     UserPolicyStatusResponse,
     UserProfileResponse,
 } from '@splitifyd/shared';
@@ -308,7 +300,6 @@ export class ApiClient {
     // Enhanced request method with RequestConfig support
     private async request<T = any>(config: RequestConfig<T>): Promise<T>;
     // Legacy overload for backward compatibility
-    private async request<T = any>(endpoint: string, options: RequestOptions): Promise<T>;
     private async request<T = any>(configOrEndpoint: RequestConfig<T> | string, options?: RequestOptions): Promise<T> {
         // Normalize input to RequestConfig
         let config: RequestConfig<T>;
@@ -533,13 +524,6 @@ export class ApiClient {
     }
 
     // Convenience methods for common endpoints (using enhanced RequestConfig internally)
-    async getConfig(): Promise<AppConfiguration> {
-        return this.request({
-            endpoint: '/config',
-            method: 'GET',
-        });
-    }
-
     async getGroups(options?: { includeMetadata?: boolean; page?: number; limit?: number; order?: 'asc' | 'desc'; cursor?: string }): Promise<ListGroupsResponse> {
         const query: Record<string, string> = {};
         if (options?.includeMetadata) query.includeMetadata = 'true';
@@ -552,14 +536,6 @@ export class ApiClient {
             endpoint: '/groups',
             method: 'GET',
             query: Object.keys(query).length > 0 ? query : undefined,
-        });
-    }
-
-    async getGroup(id: string): Promise<Group> {
-        return this.request({
-            endpoint: '/groups/:id',
-            method: 'GET',
-            params: { id },
         });
     }
 
@@ -632,32 +608,6 @@ export class ApiClient {
         });
     }
 
-    async getGroupBalances(groupId: string): Promise<GroupBalances> {
-        return this.request({
-            endpoint: '/groups/balances',
-            method: 'GET',
-            query: { groupId },
-        });
-    }
-
-    async getExpenses(groupId: string, limit?: number, cursor?: string, includeDeleted?: boolean): Promise<ListExpensesResponse> {
-        const query: Record<string, string> = { groupId };
-        if (limit !== undefined) {
-            query.limit = limit.toString();
-        }
-        if (cursor !== undefined) {
-            query.cursor = cursor;
-        }
-        if (includeDeleted !== undefined) {
-            query.includeDeleted = includeDeleted.toString();
-        }
-        return this.request({
-            endpoint: '/expenses/group',
-            method: 'GET',
-            query,
-        });
-    }
-
     async createExpense(data: CreateExpenseRequest): Promise<ExpenseData> {
         return this.request({
             endpoint: '/expenses',
@@ -697,14 +647,6 @@ export class ApiClient {
             body: data,
         });
         return response.data;
-    }
-
-    async getSettlement(settlementId: string): Promise<SettlementListItem> {
-        return this.request({
-            endpoint: '/settlements/:settlementId',
-            method: 'GET',
-            params: { settlementId },
-        });
     }
 
     async listSettlements(groupId: string, limit?: number, cursor?: string, userId?: string, startDate?: string, endDate?: string): Promise<ListSettlementsResponse> {
@@ -790,22 +732,7 @@ export class ApiClient {
         });
     }
 
-    async healthCheck(): Promise<HealthCheckResponse> {
-        return this.request({
-            endpoint: '/health',
-            method: 'GET',
-        });
-    }
-
     // User policy acceptance methods
-    async acceptPolicy(policyId: string, versionHash: string): Promise<AcceptPolicyResponse> {
-        return this.request({
-            endpoint: '/user/policies/accept',
-            method: 'POST',
-            body: { policyId, versionHash },
-        });
-    }
-
     async acceptMultiplePolicies(acceptances: AcceptPolicyRequest[]): Promise<AcceptMultiplePoliciesResponse> {
         return this.request({
             endpoint: '/user/policies/accept-multiple',
@@ -821,14 +748,6 @@ export class ApiClient {
         });
     }
 
-    async getCurrentPolicies(): Promise<UserPoliciesResponse> {
-        return this.request({
-            endpoint: '/policies/current',
-            method: 'GET',
-            skipAuth: true, // Public endpoint
-        });
-    }
-
     async getCurrentPolicy(policyId: string): Promise<CurrentPolicyResponse> {
         return this.request({
             endpoint: '/policies/:id/current',
@@ -839,13 +758,6 @@ export class ApiClient {
     }
 
     // User profile management methods
-    async getUserProfile(): Promise<UserProfileResponse> {
-        return this.request({
-            endpoint: '/user/profile',
-            method: 'GET',
-        });
-    }
-
     async updateUserProfile(data: { displayName?: string }): Promise<UserProfileResponse> {
         return this.request({
             endpoint: '/user/profile',
@@ -859,22 +771,6 @@ export class ApiClient {
             endpoint: '/user/change-password',
             method: 'POST',
             body: data,
-        });
-    }
-
-    async sendPasswordResetEmail(email: string): Promise<MessageResponse> {
-        return this.request({
-            endpoint: '/user/reset-password',
-            method: 'POST',
-            body: { email },
-            skipAuth: true, // Public endpoint
-        });
-    }
-
-    async deleteUserAccount(): Promise<MessageResponse> {
-        return this.request({
-            endpoint: '/user/account',
-            method: 'DELETE',
         });
     }
 
@@ -899,31 +795,6 @@ export class ApiClient {
         return response.data;
     }
 
-    async listGroupComments(groupId: string, options?: { cursor?: string; limit?: number }): Promise<ListCommentsApiResponse> {
-        const query: Record<string, string> = {};
-        if (options?.cursor) query.cursor = options.cursor;
-        if (options?.limit) query.limit = options.limit.toString();
-
-        return this.request({
-            endpoint: '/groups/:groupId/comments',
-            method: 'GET',
-            params: { groupId },
-            query: Object.keys(query).length > 0 ? query : undefined,
-        });
-    }
-
-    async listExpenseComments(expenseId: string, options?: { cursor?: string; limit?: number }): Promise<ListCommentsApiResponse> {
-        const query: Record<string, string> = {};
-        if (options?.cursor) query.cursor = options.cursor;
-        if (options?.limit) query.limit = options.limit.toString();
-
-        return this.request({
-            endpoint: '/expenses/:expenseId/comments',
-            method: 'GET',
-            params: { expenseId },
-            query: Object.keys(query).length > 0 ? query : undefined,
-        });
-    }
 }
 
 // Export types for external use
