@@ -5,7 +5,6 @@ import { ROUTES } from '@/constants/routes';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
-import { ExpenseData } from '@splitifyd/shared';
 import { logError } from '@/utils/browser-logger.ts';
 import { useAuth } from './useAuth';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';
@@ -45,10 +44,8 @@ export function useFormInitialization({
 
     // Load expense data for edit mode
     const loadExpenseForEdit = async (expenseId: string) => {
-        const expense = await apiClient.request<ExpenseData>('/expenses', {
-            method: 'GET',
-            query: { id: expenseId },
-        });
+        const expenseDetails = await apiClient.getExpenseFullDetails(expenseId);
+        const expense = expenseDetails.expense;
 
         if (!expense) {
             throw new Error('Expense not found');
@@ -81,10 +78,8 @@ export function useFormInitialization({
 
     // Load expense data for copy mode
     const loadExpenseForCopy = async (sourceExpenseId: string) => {
-        const sourceExpense = await apiClient.request<ExpenseData>('/expenses', {
-            method: 'GET',
-            query: { id: sourceExpenseId },
-        });
+        const sourceExpenseDetails = await apiClient.getExpenseFullDetails(sourceExpenseId);
+        const sourceExpense = sourceExpenseDetails.expense;
 
         if (!sourceExpense) {
             throw new Error('Source expense not found');

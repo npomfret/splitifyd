@@ -390,7 +390,6 @@ export interface Group {
 export interface CreateGroupRequest {
     name: string;
     description?: string;
-    members?: RegisteredUser[];
 }
 
 // Permission-related request/response types

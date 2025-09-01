@@ -1,6 +1,7 @@
 import {
-    type CreateExpenseRequest,
+    AuthenticatedFirebaseUser,
     CreateCommentResponse,
+    type CreateExpenseRequest,
     CurrentPolicyResponse,
     ExpenseData,
     ExpenseFullDetails,
@@ -27,8 +28,7 @@ import {
     ShareLinkResponse,
     UserPoliciesResponse,
     UserProfileResponse,
-    UserRegistration,
-    AuthenticatedFirebaseUser
+    UserRegistration
 } from '@splitifyd/shared';
 
 import type {DocumentData} from 'firebase-admin/firestore';
@@ -296,26 +296,19 @@ export class ApiDriver {
 
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
-        if (otherMembers.length > 0) {
-            const shareResponse = await this.generateShareLink(group.id, creatorToken);
-            const {linkId} = shareResponse;
+        await this.addMembersViaShareLink(group.id, otherMembers, creatorToken);
+        return await this.getGroup(group.id, creatorToken);
+    }
+
+    async addMembersViaShareLink(groupId: string, toAdd: AuthenticatedFirebaseUser[], creatorToken: string) {
+        if (toAdd.length > 0) {
+            const {linkId} = await this.generateShareLink(groupId, creatorToken);
 
             // Step 3: Have other members join using the share link
-            for (const member of otherMembers) {
+            for (const member of toAdd) {
                 await this.joinGroupViaShareLink(linkId, member.token);
             }
         }
-
-        // Step 4: Fetch the updated group to get all members
-        const updatedGroup = await this.getGroup(group.id, creatorToken);
-
-        for (const member of members) {
-            // sanity check
-            if (!(member.uid in updatedGroup.members))
-                throw Error(`member ${JSON.stringify(member)} has been added to group, but does not appear in the members collection: ${JSON.stringify(Object.keys(group.members))}`);
-        }
-
-        return updatedGroup;
     }
 
     async createGroup(groupData: any, token: string): Promise<Group> {

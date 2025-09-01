@@ -502,7 +502,6 @@ export class GroupService {
         const now = createOptimisticTimestamp();
 
         // Create member list with theme assignments
-        const initialMemberIds = createGroupRequest.members ? createGroupRequest.members.map((m: any) => m.uid) : [userId];
         const members: Record<string, any> = {};
 
         // CRUCIAL: Ensure creator is always first with theme index 0 and gets ADMIN role
@@ -513,20 +512,6 @@ export class GroupService {
             theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(),
         };
-
-        // Add other members with incrementing theme indices
-        let memberIndex = 1;
-        for (const memberId of initialMemberIds) {
-            if (memberId !== userId) {
-                members[memberId] = {
-                    role: MemberRoles.MEMBER,
-                    status: MemberStatuses.ACTIVE,
-                    theme: getThemeColorForMember(memberIndex),
-                    joinedAt: now.toDate().toISOString(),
-                };
-                memberIndex++;
-            }
-        }
 
         const newGroup: Group = {
             id: docRef.id,
