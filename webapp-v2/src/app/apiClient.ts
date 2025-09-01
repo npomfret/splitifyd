@@ -307,10 +307,10 @@ export class ApiClient {
     }
 
     // Enhanced request method with RequestConfig support
-    async request<T = any>(config: RequestConfig<T>): Promise<T>;
+    private async request<T = any>(config: RequestConfig<T>): Promise<T>;
     // Legacy overload for backward compatibility
-    async request<T = any>(endpoint: string, options: RequestOptions): Promise<T>;
-    async request<T = any>(configOrEndpoint: RequestConfig<T> | string, options?: RequestOptions): Promise<T> {
+    private async request<T = any>(endpoint: string, options: RequestOptions): Promise<T>;
+    private async request<T = any>(configOrEndpoint: RequestConfig<T> | string, options?: RequestOptions): Promise<T> {
         // Normalize input to RequestConfig
         let config: RequestConfig<T>;
         if (typeof configOrEndpoint === 'string') {
@@ -940,15 +940,3 @@ export type { RequestConfig, RequestInterceptor, ResponseInterceptor, AcceptPoli
 
 // Export a singleton instance
 export const apiClient = new ApiClient();
-
-// Helper function to create strongly typed requests
-export function createTypedRequest<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE', schema?: z.ZodSchema<T>) {
-    return (additionalConfig: Omit<RequestConfig<T>, 'endpoint' | 'method' | 'schema'> = {}) => {
-        return apiClient.request<T>({
-            endpoint,
-            method,
-            schema,
-            ...additionalConfig,
-        });
-    };
-}
