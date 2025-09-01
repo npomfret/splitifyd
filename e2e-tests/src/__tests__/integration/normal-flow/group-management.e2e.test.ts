@@ -73,7 +73,7 @@ authenticatedPageTest.describe('Group Management', () => {
         await expect(editModal.saveButton).toBeDisabled();
 
         // Try with valid name
-        await editModal.editGroupName('Valid Name');
+        await editModal.editGroupName('some oterh Valid Name');
         // Save button should be enabled now
         await expect(editModal.saveButton).toBeEnabled();
 

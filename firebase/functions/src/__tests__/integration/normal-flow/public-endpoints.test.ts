@@ -1,19 +1,15 @@
 // Tests for public endpoints that don't require authentication
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import { ApiDriver } from '@splitifyd/test-support';
 
 describe('Public Endpoints Tests', () => {
-    let driver: ApiDriver;
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-    });
+    const apiDriver = new ApiDriver();
 
     describe('Health Check Endpoint', () => {
         test('should return health status without authentication', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`);
 
             expect(response.status).toBe(200);
 
@@ -29,7 +25,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should include proper headers', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`);
 
             expect(response.headers.get('content-type')).toContain('application/json');
             expect(response.headers.get('x-content-type-options')).toBeDefined();
@@ -37,7 +33,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should handle HEAD requests', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`, { method: 'HEAD' });
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, { method: 'HEAD' });
 
             expect(response.status).toBe(200);
             expect(response.headers.get('content-type')).toContain('application/json');
@@ -46,7 +42,7 @@ describe('Public Endpoints Tests', () => {
 
     describe('Status Endpoint', () => {
         test('should return system status without authentication', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/status`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/status`);
 
             expect(response.status).toBe(200);
 
@@ -72,7 +68,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should not expose sensitive information', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/status`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/status`);
             const data = await response.json();
 
             // Should not contain sensitive keys, tokens, or internal paths
@@ -85,7 +81,7 @@ describe('Public Endpoints Tests', () => {
 
     describe('Config Endpoint', () => {
         test('should return Firebase configuration without authentication', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/config`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/config`);
 
             expect(response.status).toBe(200);
 
@@ -105,14 +101,14 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should include proper cache headers', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/config`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/config`);
 
             expect(response.headers.get('cache-control')).toBeDefined();
             expect(response.headers.get('cache-control')).toMatch(/max-age=\d+/);
         });
 
         test('should not expose sensitive configuration', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/config`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/config`);
             const data = (await response.json()) as any;
 
             const jsonString = JSON.stringify(data);
@@ -147,7 +143,7 @@ describe('Public Endpoints Tests', () => {
                 },
             };
 
-            const response = await fetch(`${driver.getBaseUrl()}/csp-violation-report`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/csp-violation-report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -164,7 +160,7 @@ describe('Public Endpoints Tests', () => {
                 'not-a-csp-report': 'invalid data',
             };
 
-            const response = await fetch(`${driver.getBaseUrl()}/csp-violation-report`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/csp-violation-report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -177,7 +173,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should handle invalid JSON gracefully', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/csp-violation-report`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/csp-violation-report`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -192,7 +188,7 @@ describe('Public Endpoints Tests', () => {
             const methods = ['GET', 'PUT', 'DELETE', 'PATCH'];
 
             for (const method of methods) {
-                const response = await fetch(`${driver.getBaseUrl()}/csp-violation-report`, {
+                const response = await fetch(`${apiDriver.getBaseUrl()}/csp-violation-report`, {
                     method,
                 });
 
@@ -204,7 +200,7 @@ describe('Public Endpoints Tests', () => {
     describe('CORS Headers', () => {
         test('should return proper CORS headers for OPTIONS requests', async () => {
             const testOrigin = 'http://localhost:3000';
-            const response = await fetch(`${driver.getBaseUrl()}/health`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, {
                 method: 'OPTIONS',
                 headers: {
                     Origin: testOrigin,
@@ -220,7 +216,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should include CORS headers in actual requests', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, {
                 headers: {
                     Origin: 'http://localhost:3000',
                 },
@@ -235,7 +231,7 @@ describe('Public Endpoints Tests', () => {
             const endpoints = ['/health', '/status', '/config'];
 
             for (const endpoint of endpoints) {
-                const response = await fetch(`${driver.getBaseUrl()}${endpoint}`);
+                const response = await fetch(`${apiDriver.getBaseUrl()}${endpoint}`);
 
                 expect(response.headers.get('X-Content-Type-Options')).toBeTruthy();
                 expect(response.headers.get('X-Frame-Options')).toBeTruthy();
@@ -250,7 +246,7 @@ describe('Public Endpoints Tests', () => {
 
     describe('Cache Control Headers', () => {
         test('should have strict no-cache headers for API endpoints', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`);
 
             expect(response.status).toBe(200);
 
@@ -269,7 +265,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should prevent 304 Not Modified responses', async () => {
             // Make the same request twice to ensure no 304 responses
-            const url = `${driver.getBaseUrl()}/health`;
+            const url = `${apiDriver.getBaseUrl()}/health`;
 
             const response1 = await fetch(url);
             const response2 = await fetch(url);
@@ -285,7 +281,7 @@ describe('Public Endpoints Tests', () => {
 
         test('should ignore If-None-Match headers and not return 304', async () => {
             // Simulate browser sending If-None-Match header (which would trigger 304 with ETags)
-            const response = await fetch(`${driver.getBaseUrl()}/health`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, {
                 headers: {
                     'If-None-Match': 'W/"some-etag-value"',
                 },
@@ -300,7 +296,7 @@ describe('Public Endpoints Tests', () => {
 
     describe('Error Handling', () => {
         test('should return 404 for non-existent endpoints', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/non-existent-endpoint`);
+            const response = await fetch(`${apiDriver.getBaseUrl()}/non-existent-endpoint`);
 
             expect(response.status).toBe(404);
 
@@ -312,7 +308,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should handle invalid HTTP methods gracefully', async () => {
-            const response = await fetch(`${driver.getBaseUrl()}/health`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, {
                 method: 'INVALID',
             });
 
@@ -324,7 +320,7 @@ describe('Public Endpoints Tests', () => {
     describe('Rate Limiting', () => {
         test('should handle multiple requests to public endpoints', async () => {
             // Make multiple concurrent requests to test rate limiting
-            const promises = Array.from({ length: 20 }, () => fetch(`${driver.getBaseUrl()}/health`));
+            const promises = Array.from({ length: 20 }, () => fetch(`${apiDriver.getBaseUrl()}/health`));
 
             const responses = await Promise.all(promises);
 

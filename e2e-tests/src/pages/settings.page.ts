@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ARIA_ROLES, SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
+import { SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
 import type { User as BaseUser } from '@splitifyd/shared';
 
 export class SettingsPage extends BasePage {

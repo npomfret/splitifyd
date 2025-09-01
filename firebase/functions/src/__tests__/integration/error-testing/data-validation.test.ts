@@ -1,23 +1,21 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
 
 describe('API Validation Smoke Tests', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: Group;
 
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    let users: User[];
 
     beforeEach(async () => {
-        testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        users = await borrowTestUsers(3);
+
+        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     describe('Date Validation - Smoke Tests', () => {
@@ -27,7 +25,7 @@ describe('API Validation Smoke Tests', () => {
                 date: 'invalid-date-format',
             };
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
 
         test('should reject future dates', async () => {
@@ -36,7 +34,7 @@ describe('API Validation Smoke Tests', () => {
 
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
 
         test('should accept valid dates', async () => {
@@ -45,7 +43,7 @@ describe('API Validation Smoke Tests', () => {
 
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
         });
     });
@@ -54,7 +52,7 @@ describe('API Validation Smoke Tests', () => {
         test('should accept valid category', async () => {
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
         });
 
@@ -64,7 +62,7 @@ describe('API Validation Smoke Tests', () => {
                 category: '',
             };
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
 
         test('should reject null category', async () => {
@@ -73,7 +71,7 @@ describe('API Validation Smoke Tests', () => {
                 category: null as any,
             };
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
     });
 
@@ -81,7 +79,7 @@ describe('API Validation Smoke Tests', () => {
         test('should accept valid description within limits', async () => {
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Valid description').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
         });
 
@@ -89,19 +87,19 @@ describe('API Validation Smoke Tests', () => {
             const longDescription = 'A'.repeat(201); // Over 200 char limit
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(longDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
 
         test('should accept valid group name', async () => {
             const groupData = new CreateGroupRequestBuilder().withName('Valid Group Name').build();
-            const response = await driver.createGroup(groupData, users[0].token);
+            const response = await apiDriver.createGroup(groupData, users[0].token);
             expect(response.id).toBeDefined();
         });
 
         test('should reject group name exceeding length limit', async () => {
             const longGroupName = 'A'.repeat(101); // Over 100 char limit
             const groupData = new CreateGroupRequestBuilder().withName(longGroupName).build();
-            await expect(driver.createGroup(groupData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createGroup(groupData, users[0].token)).rejects.toThrow();
         });
 
         test('should reject XSS attempts', async () => {
@@ -109,7 +107,7 @@ describe('API Validation Smoke Tests', () => {
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(xssDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             // API should reject dangerous content rather than sanitize it
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
         });
     });
 
@@ -120,7 +118,7 @@ describe('API Validation Smoke Tests', () => {
                 // Missing required fields like amount, description, etc.
             };
 
-            await expect(driver.createExpense(incompleteData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createExpense(incompleteData, users[0].token)).rejects.toThrow();
         });
 
         test('should reject missing required group fields', async () => {
@@ -129,7 +127,7 @@ describe('API Validation Smoke Tests', () => {
                 description: 'Test description',
             };
 
-            await expect(driver.createGroup(incompleteGroupData, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.createGroup(incompleteGroupData, users[0].token)).rejects.toThrow();
         });
     });
 });

@@ -1,6 +1,5 @@
 import type { User as BaseUser } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
-import { firestoreDb } from '../../../firebase/functions/src/firebase';
 
 /**
  * Thin wrapper around the remote test user pool API.
@@ -35,9 +34,9 @@ export class UserPool {
     }
 
     /**
-     * Release a user back to the remote API pool.
+     * Release a user back to the remote API pool with retry logic.
      */
-    releaseUser(user: BaseUser): void {
+    async releaseUser(user: BaseUser): Promise<void> {
         if (!this.usersInUse.has(user.uid)) {
             console.log(`⚠️ Attempted to release unknown user: ${user.email}`);
             return;
@@ -45,12 +44,34 @@ export class UserPool {
 
         this.usersInUse.delete(user.uid);
         
-        // Return to API pool (async but don't wait)
-        this.apiDriver.returnTestUser(user.email).catch((error: any) => {
-            console.log(`⚠️ Failed to return user ${user.email} to pool: ${error.message}`);
-        });
+        // Return to API pool with retry logic
+        await this.returnUserWithRetry(user.email);
         
         console.log(`🏊 Returned pool user: ${user.email}`);
+    }
+
+    /**
+     * Return user with exponential backoff retry logic.
+     */
+    private async returnUserWithRetry(email: string, maxRetries = 3, baseDelay = 1000): Promise<void> {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                await this.apiDriver.returnTestUser(email);
+                return; // Success!
+            } catch (error: any) {
+                const isLastAttempt = attempt === maxRetries;
+                
+                if (isLastAttempt) {
+                    console.log(`❌ Failed to return user ${email} after ${maxRetries} attempts: ${error.message}`);
+                    // Don't throw - we don't want to break the test, just log the failure
+                    return;
+                }
+                
+                const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+                console.log(`⏳ Retry ${attempt}/${maxRetries} for user ${email} in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
 }
 

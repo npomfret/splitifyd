@@ -3,30 +3,29 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
-import { SettlementBuilder } from '@splitifyd/test-support';
+import {ApiDriver, SettlementBuilder, User, borrowTestUsers} from '@splitifyd/test-support';
 
 describe('Settlement Management', () => {
-    let driver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let testGroup: any;
     let settlementUsers: User[];
-    let allUsers: User[] = [];
+    let users: User[];
+
+    beforeEach(async () => {
+        users = await borrowTestUsers(6);
+    });
 
     // Helper to get users from pool
     const getTestUsers = (count: number): User[] => {
-        return allUsers.slice(0, count);
+        return users.slice(0, count);
     };
-
-    beforeAll(async () => {
-        ({ driver, users: allUsers } = await borrowTestUsers(6));
-    });
 
     beforeEach(async () => {
         settlementUsers = getTestUsers(2);
-        testGroup = await driver.createGroupWithMembers(`Settlement Test Group ${uuidv4()}`, settlementUsers, settlementUsers[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Settlement Test Group ${uuidv4()}`, settlementUsers, settlementUsers[0].token);
     });
 
     describe('Settlement Creation', () => {
@@ -39,7 +38,7 @@ describe('Settlement Management', () => {
                 .withNote('Test settlement payment')
                 .build();
 
-            const createdSettlement = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const createdSettlement = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
             expect(createdSettlement.id).toBeDefined();
             expect(createdSettlement.groupId).toBe(testGroup.id);
@@ -50,7 +49,7 @@ describe('Settlement Management', () => {
         test('should create a settlement without optional fields', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(25.0).build();
 
-            const createdSettlement = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const createdSettlement = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
             expect(createdSettlement.id).toBeDefined();
             expect(createdSettlement.amount).toBe(25.0);
@@ -59,7 +58,7 @@ describe('Settlement Management', () => {
         test('should reject settlement with invalid group', async () => {
             const settlementData = new SettlementBuilder().withGroupId('invalid-group-id').withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 404.*GROUP_NOT_FOUND/);
+            await expect(apiDriver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 404.*GROUP_NOT_FOUND/);
         });
 
         test('should reject settlement between non-group-members', async () => {
@@ -67,19 +66,19 @@ describe('Settlement Management', () => {
 
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(outsiderUser.uid).build();
 
-            await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*USER_NOT_IN_GROUP/);
+            await expect(apiDriver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*USER_NOT_IN_GROUP/);
         });
 
         test('should validate required fields', async () => {
             const invalidData = {};
 
-            await expect(driver.createSettlement(invalidData, settlementUsers[0].token)).rejects.toThrow(/VALIDATION_ERROR|validation|required/);
+            await expect(apiDriver.createSettlement(invalidData, settlementUsers[0].token)).rejects.toThrow(/VALIDATION_ERROR|validation|required/);
         });
 
         test('should validate positive amounts', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(-50).build();
 
-            await expect(driver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+            await expect(apiDriver.createSettlement(settlementData, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
         });
     });
 
@@ -93,8 +92,8 @@ describe('Settlement Management', () => {
                 .withNote('Retrieve test')
                 .build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
-            const retrieved = await driver.getSettlement(created.id, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+            const retrieved = await apiDriver.getSettlement(created.id, settlementUsers[0].token);
 
             expect(retrieved.id).toBe(created.id);
             expect(retrieved.amount).toBe(100.0);
@@ -108,14 +107,14 @@ describe('Settlement Management', () => {
         test('should reject retrieval by non-group-member', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
             const outsiderUser = getTestUsers(3)[2]; // Get a third user from pool
 
-            await expect(driver.getSettlement(created.id, outsiderUser.token)).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
+            await expect(apiDriver.getSettlement(created.id, outsiderUser.token)).rejects.toThrow(/status 403.*NOT_GROUP_MEMBER/);
         });
 
         test('should handle non-existent settlement', async () => {
-            await expect(driver.getSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+            await expect(apiDriver.getSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
     });
 
@@ -129,14 +128,14 @@ describe('Settlement Management', () => {
                 .withNote('Original note')
                 .build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
             const updateData = {
                 amount: 75.25,
                 note: 'Updated note',
             };
 
-            const updated = await driver.updateSettlement(created.id, updateData, settlementUsers[0].token);
+            const updated = await apiDriver.updateSettlement(created.id, updateData, settlementUsers[0].token);
 
             expect(updated.amount).toBe(75.25);
             expect(updated.note).toBe('Updated note');
@@ -145,17 +144,17 @@ describe('Settlement Management', () => {
         test('should reject update by non-creator', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-            await expect(driver.updateSettlement(created.id, { amount: 100 }, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+            await expect(apiDriver.updateSettlement(created.id, { amount: 100 }, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
         });
 
         test('should validate update data', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-            await expect(driver.updateSettlement(created.id, { amount: -100 }, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
+            await expect(apiDriver.updateSettlement(created.id, { amount: -100 }, settlementUsers[0].token)).rejects.toThrow(/status 400.*VALIDATION_ERROR/);
         });
     });
 
@@ -163,39 +162,39 @@ describe('Settlement Management', () => {
         test('should delete a settlement', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
-            await driver.deleteSettlement(created.id, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
+            await apiDriver.deleteSettlement(created.id, settlementUsers[0].token);
 
-            await expect(driver.getSettlement(created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+            await expect(apiDriver.getSettlement(created.id, settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
 
         test('should reject deletion by non-creator', async () => {
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).build();
 
-            const created = await driver.createSettlement(settlementData, settlementUsers[0].token);
+            const created = await apiDriver.createSettlement(settlementData, settlementUsers[0].token);
 
-            await expect(driver.deleteSettlement(created.id, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
+            await expect(apiDriver.deleteSettlement(created.id, settlementUsers[1].token)).rejects.toThrow(/status 403.*NOT_SETTLEMENT_CREATOR/);
         });
 
         test('should handle deletion of non-existent settlement', async () => {
-            await expect(driver.deleteSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
+            await expect(apiDriver.deleteSettlement('non-existent-id', settlementUsers[0].token)).rejects.toThrow(/status 404.*SETTLEMENT_NOT_FOUND/);
         });
     });
 
     describe('Settlement Listing', () => {
         test('should list settlements for a group', async () => {
             await Promise.all([
-                driver.createSettlement(
+                apiDriver.createSettlement(
                     new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(50).withNote('First settlement').build(),
                     settlementUsers[0].token,
                 ),
-                driver.createSettlement(
+                apiDriver.createSettlement(
                     new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[1].uid).withPayee(settlementUsers[0].uid).withAmount(25).withNote('Second settlement').build(),
                     settlementUsers[1].token,
                 ),
             ]);
 
-            const response = await driver.listSettlements(settlementUsers[0].token, { groupId: testGroup.id });
+            const response = await apiDriver.listSettlements(settlementUsers[0].token, { groupId: testGroup.id });
 
             expect(response.settlements).toBeDefined();
             expect(Array.isArray(response.settlements)).toBe(true);
@@ -211,7 +210,7 @@ describe('Settlement Management', () => {
             const settlements = [];
             for (let i = 0; i < 5; i++) {
                 settlements.push(
-                    driver.createSettlement(
+                    apiDriver.createSettlement(
                         new SettlementBuilder()
                             .withGroupId(testGroup.id)
                             .withPayer(settlementUsers[0].uid)
@@ -225,7 +224,7 @@ describe('Settlement Management', () => {
             }
             await Promise.all(settlements);
 
-            const firstPage = await driver.listSettlements(settlementUsers[0].token, {
+            const firstPage = await apiDriver.listSettlements(settlementUsers[0].token, {
                 groupId: testGroup.id,
                 limit: 3,
             });
@@ -234,7 +233,7 @@ describe('Settlement Management', () => {
             expect(firstPage.hasMore).toBe(true);
             expect(firstPage.nextCursor).toBeDefined();
 
-            const secondPage = await driver.listSettlements(settlementUsers[0].token, {
+            const secondPage = await apiDriver.listSettlements(settlementUsers[0].token, {
                 groupId: testGroup.id,
                 limit: 3,
                 cursor: firstPage.nextCursor,

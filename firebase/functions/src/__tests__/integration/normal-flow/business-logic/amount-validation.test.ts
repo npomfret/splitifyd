@@ -1,27 +1,21 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, User, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { borrowTestUsers } from '@splitifyd/test-support';
 
 describe('Amount Validation Edge Cases', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
-
-    beforeAll(async () => {
-        // Borrow 4 users with automatic cleanup
-        ({ driver, users: allUsers } = await borrowTestUsers(4));
-        
-        // Use first 3 users for main tests (4th available for isolated tests)
-        users = allUsers.slice(0, 3);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(4);
+    });
+    
+    beforeEach(async () => {
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
     describe('Decimal Precision Edge Cases', () => {
@@ -33,10 +27,10 @@ describe('Amount Validation Edge Cases', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(0.01);
             expect(createdExpense.splits).toHaveLength(2);
 
@@ -54,10 +48,10 @@ describe('Amount Validation Edge Cases', () => {
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(33.333333);
 
             // Verify splits are reasonable (within 1 cent of expected)
@@ -77,10 +71,10 @@ describe('Amount Validation Edge Cases', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(999999.99);
             expect(createdExpense.splits).toHaveLength(2);
 
@@ -102,7 +96,7 @@ describe('Amount Validation Edge Cases', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*required|INVALID_AMOUNT/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*required|INVALID_AMOUNT/i);
         });
 
         test('should reject negative amounts', async () => {
@@ -113,7 +107,7 @@ describe('Amount Validation Edge Cases', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*invalid|INVALID_AMOUNT/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*invalid|INVALID_AMOUNT/i);
         });
     });
 });

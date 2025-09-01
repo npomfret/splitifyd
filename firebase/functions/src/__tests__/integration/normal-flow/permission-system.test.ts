@@ -3,35 +3,29 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitifyd/shared';
 
 describe('Permission System Integration Tests', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
 
-    beforeAll(async () => {
-        driver = new ApiDriver();
+    let users: User[];
 
-        // Create test users: admin, member1, member2, viewer
-        users = await Promise.all([
-            driver.createUser(new UserBuilder().withName('Admin User').build()),
-            driver.createUser(new UserBuilder().withName('Member 1').build()),
-            driver.createUser(new UserBuilder().withName('Member 2').build()),
-            driver.createUser(new UserBuilder().withName('Viewer User').build()),
-        ]);
+    beforeEach(async () => {
+        users = await borrowTestUsers(4);
     });
 
     describe('Open Collaboration Preset (Default)', () => {
         let openGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Open Collaboration Test ${uuidv4()}`;
-            openGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
+            const members = users.slice(0, 3);
+            openGroup = await apiDriver.createGroupWithMembers(groupName, members, members[0].token);
 
             // Verify group has open collaboration settings by default
             expect(openGroup.securityPreset).toBe(SecurityPresets.OPEN);
@@ -49,7 +43,7 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
             expect(expense.id).toBeDefined();
             expect(expense.createdBy).toBe(users[1].uid);
         });
@@ -65,7 +59,7 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Member 2 (different user) edits the expense
             const updateData = {
@@ -73,7 +67,7 @@ describe('Permission System Integration Tests', () => {
                 amount: 150,
             };
 
-            const updatedExpense = await driver.updateExpense(expense.id, updateData, users[2].token);
+            const updatedExpense = await apiDriver.updateExpense(expense.id, updateData, users[2].token);
             expect(updatedExpense.description).toBe('Updated by different member');
             expect(updatedExpense.amount).toBe(150);
         });
@@ -89,25 +83,26 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Member 2 deletes the expense (different user)
-            await driver.deleteExpense(expense.id, users[2].token);
+            await apiDriver.deleteExpense(expense.id, users[2].token);
 
             // Verify expense is deleted
-            await expect(driver.getExpense(expense.id, users[1].token)).rejects.toThrow();
+            await expect(apiDriver.getExpense(expense.id, users[1].token)).rejects.toThrow();
         });
     });
 
     describe('Managed Group Preset', () => {
         let managedGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Managed Group Test ${uuidv4()}`;
-            managedGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
+            const members = users.slice(0, 3);
+            managedGroup = await apiDriver.createGroupWithMembers(groupName, members, members[0].token);
 
             // Apply managed group preset
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${managedGroup.id}/security/preset`,
                 'POST',
                 {
@@ -117,7 +112,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Set user roles: users[0] = admin, users[1] = member, users[2] = viewer
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${managedGroup.id}/members/${users[1].uid}/role`,
                 'PUT',
                 {
@@ -126,7 +121,7 @@ describe('Permission System Integration Tests', () => {
                 users[0].token,
             );
 
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${managedGroup.id}/members/${users[2].uid}/role`,
                 'PUT',
                 {
@@ -136,7 +131,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Refresh group data to get updated permissions
-            managedGroup = await driver.getGroup(managedGroup.id, users[0].token);
+            managedGroup = await apiDriver.getGroup(managedGroup.id, users[0].token);
         });
 
         test('members can create expenses', async () => {
@@ -149,7 +144,7 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('transport')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
             expect(expense.id).toBeDefined();
             expect(expense.createdBy).toBe(users[1].uid);
         });
@@ -164,7 +159,7 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[2].token)).rejects.toMatchObject({
+            await expect(apiDriver.createExpense(expenseData, users[2].token)).rejects.toMatchObject({
                 status: 403,
                 message: expect.stringContaining('permission'),
             });
@@ -181,11 +176,11 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Same member edits it
             const updateData = { description: 'Updated by owner' };
-            const updatedExpense = await driver.updateExpense(expense.id, updateData, users[1].token);
+            const updatedExpense = await apiDriver.updateExpense(expense.id, updateData, users[1].token);
             expect(updatedExpense.description).toBe('Updated by owner');
         });
 
@@ -200,11 +195,11 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[0].token);
+            const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Member tries to edit admin's expense
             const updateData = { description: 'Unauthorized edit attempt' };
-            await expect(driver.updateExpense(expense.id, updateData, users[1].token)).rejects.toMatchObject({
+            await expect(apiDriver.updateExpense(expense.id, updateData, users[1].token)).rejects.toMatchObject({
                 status: 403,
                 message: expect.stringContaining('permission'),
             });
@@ -221,11 +216,11 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Admin edits member's expense
             const updateData = { description: 'Edited by admin' };
-            const updatedExpense = await driver.updateExpense(expense.id, updateData, users[0].token);
+            const updatedExpense = await apiDriver.updateExpense(expense.id, updateData, users[0].token);
             expect(updatedExpense.description).toBe('Edited by admin');
         });
 
@@ -240,13 +235,13 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Same member deletes it
-            await driver.deleteExpense(expense.id, users[1].token);
+            await apiDriver.deleteExpense(expense.id, users[1].token);
 
             // Verify deletion
-            await expect(driver.getExpense(expense.id, users[1].token)).rejects.toThrow();
+            await expect(apiDriver.getExpense(expense.id, users[1].token)).rejects.toThrow();
         });
 
         test('members cannot delete others expenses', async () => {
@@ -260,10 +255,10 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('entertainment')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[0].token);
+            const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Member tries to delete admin's expense
-            await expect(driver.deleteExpense(expense.id, users[1].token)).rejects.toMatchObject({
+            await expect(apiDriver.deleteExpense(expense.id, users[1].token)).rejects.toMatchObject({
                 status: 403,
                 message: expect.stringContaining('permission'),
             });
@@ -280,27 +275,35 @@ describe('Permission System Integration Tests', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Admin deletes member's expense
-            await driver.deleteExpense(expense.id, users[0].token);
+            await apiDriver.deleteExpense(expense.id, users[0].token);
 
             // Verify deletion
-            await expect(driver.getExpense(expense.id, users[0].token)).rejects.toThrow();
+            await expect(apiDriver.getExpense(expense.id, users[0].token)).rejects.toThrow();
         });
     });
 
     describe('Role Management', () => {
         let roleTestGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Role Management Test ${uuidv4()}`;
-            roleTestGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
+            // users = await borrowTestUsers(4);
+            if(!users)
+                throw Error()
+            const members = users.slice(0, 3);
+            roleTestGroup = await apiDriver.createGroupWithMembers(groupName, members, members[0].token);
+
+            // sanity check
+            const group = await apiDriver.getGroup(roleTestGroup.id, members[0].token);
+            console.log(group.id)
         });
 
         test('admins can change member roles', async () => {
             // Change user[1] to viewer role
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${roleTestGroup.id}/members/${users[1].uid}/role`,
                 'PUT',
                 {
@@ -309,13 +312,13 @@ describe('Permission System Integration Tests', () => {
                 users[0].token,
             );
 
-            const updatedGroup = await driver.getGroup(roleTestGroup.id, users[0].token);
+            const updatedGroup = await apiDriver.getGroup(roleTestGroup.id, users[0].token);
             expect(updatedGroup.members[users[1].uid].role).toBe(MemberRoles.VIEWER);
         });
 
         test('members cannot change roles', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${roleTestGroup.id}/members/${users[2].uid}/role`,
                     'PUT',
                     {
@@ -331,7 +334,7 @@ describe('Permission System Integration Tests', () => {
         test('cannot demote last admin', async () => {
             // Try to demote the only admin (users[0])
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${roleTestGroup.id}/members/${users[0].uid}/role`,
                     'PUT',
                     {
@@ -349,9 +352,10 @@ describe('Permission System Integration Tests', () => {
     describe('Security Preset Switching', () => {
         let presetGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Preset Switching Test ${uuidv4()}`;
-            presetGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
+            const members = users.slice(0, 2);
+            presetGroup = await apiDriver.createGroupWithMembers(groupName, members, members[0].token);
         });
 
         test('can switch from open to managed preset', async () => {
@@ -360,7 +364,7 @@ describe('Permission System Integration Tests', () => {
             expect(presetGroup.permissions.expenseEditing).toBe(PermissionLevels.ANYONE);
 
             // Switch to managed
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${presetGroup.id}/security/preset`,
                 'POST',
                 {
@@ -370,14 +374,14 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Verify change
-            const updatedGroup = await driver.getGroup(presetGroup.id, users[0].token);
+            const updatedGroup = await apiDriver.getGroup(presetGroup.id, users[0].token);
             expect(updatedGroup.securityPreset).toBe(SecurityPresets.MANAGED);
             expect(updatedGroup.permissions.expenseEditing).toBe(PermissionLevels.OWNER_AND_ADMIN);
         });
 
         test('can switch back to open preset', async () => {
             // Switch back to open
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${presetGroup.id}/security/preset`,
                 'POST',
                 {
@@ -387,7 +391,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Verify change
-            const updatedGroup = await driver.getGroup(presetGroup.id, users[0].token);
+            const updatedGroup = await apiDriver.getGroup(presetGroup.id, users[0].token);
             expect(updatedGroup.securityPreset).toBe(SecurityPresets.OPEN);
             expect(updatedGroup.permissions.expenseEditing).toBe(PermissionLevels.ANYONE);
         });
@@ -395,7 +399,7 @@ describe('Permission System Integration Tests', () => {
         test('only admins can change security presets', async () => {
             // Member tries to change preset
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${presetGroup.id}/security/preset`,
                     'POST',
                     {

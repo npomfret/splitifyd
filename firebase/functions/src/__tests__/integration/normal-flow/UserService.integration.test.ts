@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, User, UserBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import {UserBuilder, User, ApiDriver, borrowTestUsers, borrowTestUser} from '@splitifyd/test-support';
 import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
@@ -8,15 +8,16 @@ import { firestoreDb, firebaseAuth } from '../../../firebase';
 import { registerAllServices, getUserService } from '../../../services/serviceRegistration';
 
 describe('UserService - Integration Tests', () => {
-    let apiDriver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let userService: UserService;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+
+    let users: User[];
+
+    beforeEach(async () => {
+        users = await borrowTestUsers(3)
+    });
 
     beforeAll(async () => {
-        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(3));
-        users = allUsers.slice(0, 3);
-        
         // Register all services before creating instances
         registerAllServices();
         userService = getUserService();
@@ -422,21 +423,8 @@ describe('UserService - Integration Tests', () => {
 
         test('should prevent deletion of users with active groups', async () => {
             // Create fresh users for this test to avoid token expiry issues
-            const userInGroup = await apiDriver.createUser(
-                new UserBuilder()
-                    .withEmail('userwithgroup@example.com')
-                    .withPassword('TestPass123!')
-                    .withDisplayName('User With Group')
-                    .build()
-            );
-
-            const otherUser = await apiDriver.createUser(
-                new UserBuilder()
-                    .withEmail('otheruser@example.com')
-                    .withPassword('TestPass123!')
-                    .withDisplayName('Other User')
-                    .build()
-            );
+            const userInGroup = await borrowTestUser();
+            const otherUser = await borrowTestUser();
 
             // Create a group with the user
             const group = await apiDriver.createGroupWithMembers(

@@ -1,7 +1,7 @@
 #!/usr/bin/env npx tsx
 import * as admin from 'firebase-admin';
 import { Firestore, DocumentSnapshot, FieldPath } from 'firebase-admin/firestore';
-import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { parseEnvironment, initializeFirebase } from './firebase-init';
 
 /**

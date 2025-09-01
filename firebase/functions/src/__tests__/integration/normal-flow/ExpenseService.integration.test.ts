@@ -1,32 +1,26 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User, ExpenseBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import {ApiDriver, User, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 
 describe('ExpenseService - Integration Tests', () => {
-    let apiDriver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let expenseService: ExpenseService;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+
     let alice: User;
     let bob: User;
     let charlie: User;
+    let outsider: User;
+
     let groupId: string;
 
-    beforeAll(async () => {
-        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
-        users = allUsers.slice(0, 4);
-        expenseService = new ExpenseService();
-    });
-
     beforeEach(async () => {
-        // Use users from pool
-        alice = users[0];
-        bob = users[1];
-        charlie = users[2];
+        ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
+
+        expenseService = new ExpenseService();
 
         // Create a fresh group for each test with managed permissions
         const group = await apiDriver.createGroupWithMembers('ExpenseService Test Group', [alice, bob, charlie], alice.token);
@@ -89,8 +83,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should deny access to non-group member', async () => {
-            const outsider = users[3];
-
             await expect(expenseService.getExpense(expenseId, outsider.uid)).rejects.toEqual(
                 new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense')
             );
@@ -187,8 +179,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should deny access to non-group member', async () => {
-            const outsider = users[3];
-
             await expect(expenseService.listGroupExpenses(groupId, outsider.uid)).rejects.toThrow();
         });
     });
@@ -279,8 +269,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should deny access to non-group member', async () => {
-            const outsider = users[3];
-
             const expenseData = {
                 groupId,
                 paidBy: outsider.uid,
@@ -298,8 +286,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should reject expense with non-group member as payer', async () => {
-            const outsider = users[3];
-
             const expenseData = {
                 groupId,
                 paidBy: outsider.uid, // Non-member as payer
@@ -319,8 +305,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should reject expense with non-group member as participant', async () => {
-            const outsider = users[3];
-
             const expenseData = {
                 groupId,
                 paidBy: alice.uid,
@@ -399,8 +383,6 @@ describe('ExpenseService - Integration Tests', () => {
         });
 
         it('should reject invalid payer update', async () => {
-            const outsider = users[3];
-
             await expect(expenseService.updateExpense(expenseId, alice.uid, {
                 paidBy: outsider.uid
             })).rejects.toEqual(

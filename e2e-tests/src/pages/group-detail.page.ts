@@ -31,7 +31,9 @@ export class GroupDetailPage extends BasePage {
     }
 
     getGroupDescription() {
-        return this.page.getByText(/test|description/i).first();
+        // Target the paragraph element containing the group description
+        // This is rendered in GroupHeader.tsx as: <p className="text-gray-600">{group.description}</p>
+        return this.page.locator('p.text-gray-600').first();
     }
 
     getMembersCount() {

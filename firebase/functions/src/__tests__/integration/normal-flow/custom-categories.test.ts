@@ -1,23 +1,21 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 
 describe('Custom Categories Feature Tests', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
 
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(3);
+
         const groupId = uuidv4();
-        testGroup = await driver.createGroupWithMembers(`Test Group ${groupId}`, users, users[0].token);
+        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${groupId}`, users, users[0].token);
     });
 
     describe('Custom Category Acceptance', () => {
@@ -27,10 +25,10 @@ describe('Custom Categories Feature Tests', () => {
             for (const category of customCategories) {
                 const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory(category).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-                const response = await driver.createExpense(expenseData, users[0].token);
+                const response = await apiDriver.createExpense(expenseData, users[0].token);
                 expect(response.id).toBeDefined();
 
-                const createdExpense = await driver.getExpense(response.id, users[0].token);
+                const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
                 expect(createdExpense.category).toBe(category);
             }
         });
@@ -45,10 +43,10 @@ describe('Custom Categories Feature Tests', () => {
             for (const category of previouslyInvalidCategories) {
                 const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory(category).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-                const response = await driver.createExpense(expenseData, users[0].token);
+                const response = await apiDriver.createExpense(expenseData, users[0].token);
                 expect(response.id).toBeDefined();
 
-                const createdExpense = await driver.getExpense(response.id, users[0].token);
+                const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
                 expect(createdExpense.category).toBe(category);
             }
         });
@@ -58,7 +56,7 @@ describe('Custom Categories Feature Tests', () => {
 
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory(tooLongCategory).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/category.*50.*characters|INVALID_CATEGORY/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/category.*50.*characters|INVALID_CATEGORY/i);
         });
 
         test('should accept maximum length categories', async () => {
@@ -66,10 +64,10 @@ describe('Custom Categories Feature Tests', () => {
 
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory(maxLengthCategory).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.category).toBe(maxLengthCategory);
         });
 
@@ -77,13 +75,13 @@ describe('Custom Categories Feature Tests', () => {
             // Create expense with predefined category
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-            const createResponse = await driver.createExpense(expenseData, users[0].token);
+            const createResponse = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Update to custom category
             const customCategory = 'Fine Dining & Wine Tasting';
-            await driver.updateExpense(createResponse.id, { category: customCategory }, users[0].token);
+            await apiDriver.updateExpense(createResponse.id, { category: customCategory }, users[0].token);
 
-            const updatedExpense = await driver.getExpense(createResponse.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createResponse.id, users[0].token);
             expect(updatedExpense.category).toBe(customCategory);
         });
     });
@@ -95,10 +93,10 @@ describe('Custom Categories Feature Tests', () => {
             for (const category of predefinedCategories) {
                 const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory(category).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
 
-                const response = await driver.createExpense(expenseData, users[0].token);
+                const response = await apiDriver.createExpense(expenseData, users[0].token);
                 expect(response.id).toBeDefined();
 
-                const createdExpense = await driver.getExpense(response.id, users[0].token);
+                const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
                 expect(createdExpense.category).toBe(category);
             }
         });

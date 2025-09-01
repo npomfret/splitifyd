@@ -28,8 +28,8 @@ base.extend<AuthenticatedFixtures>({
         try {
             await use({ page, user });
         } finally {
-            // Release user back to pool for reuse
-            userPool.releaseUser(user);
+            // Release user back to pool for reuse with proper error handling
+            await userPool.releaseUser(user);
         }
     },
 });

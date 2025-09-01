@@ -1,25 +1,20 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ExpenseBuilder, CreateGroupRequestBuilder, ApiDriver, User} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 
 describe('Freeform Categories API Integration', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
 
-    // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(3);
         const groupData = new CreateGroupRequestBuilder().withName(`Freeform Categories Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
     describe('Expense Creation with Custom Categories', () => {
@@ -34,7 +29,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(customCategory);
             expect(response.description).toBe('Pens and notebooks');
@@ -52,7 +47,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(specialCategory);
             expect(response.description).toBe('Business lunch');
@@ -69,7 +64,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(safeCategory);
             expect(response.amount).toBe(999.0);
@@ -86,7 +81,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(maxLengthCategory);
             expect(response.category).toHaveLength(50);
@@ -105,7 +100,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
         });
 
         test('should reject expense with empty category', async () => {
@@ -118,7 +113,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
         });
 
         test('should reject expense with whitespace-only category', async () => {
@@ -131,7 +126,7 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
         });
     });
 
@@ -147,12 +142,12 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const createdExpense = await driver.createExpense(expenseData, users[0].token);
+            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
             expect(createdExpense.category).toBe('food');
 
             // Update to custom category
             const customCategory = 'Gourmet Restaurant Experience';
-            await driver.updateExpense(
+            await apiDriver.updateExpense(
                 createdExpense.id,
                 {
                     category: customCategory,
@@ -161,7 +156,7 @@ describe('Freeform Categories API Integration', () => {
             );
 
             // Fetch the updated expense to verify the changes
-            const updatedExpense = await driver.getExpense(createdExpense.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
 
             expect(updatedExpense.category).toBe(customCategory);
             expect(updatedExpense.description).toBe('Dinner'); // Other fields unchanged
@@ -179,11 +174,11 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const createdExpense = await driver.createExpense(expenseData, users[0].token);
+            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
             expect(createdExpense.category).toBe(customCategory);
 
             // Update to predefined category
-            await driver.updateExpense(
+            await apiDriver.updateExpense(
                 createdExpense.id,
                 {
                     category: 'shopping',
@@ -192,7 +187,7 @@ describe('Freeform Categories API Integration', () => {
             );
 
             // Fetch the updated expense to verify the changes
-            const updatedExpense = await driver.getExpense(createdExpense.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
 
             expect(updatedExpense.category).toBe('shopping');
             expect(updatedExpense.description).toBe('Office supplies');
@@ -210,12 +205,12 @@ describe('Freeform Categories API Integration', () => {
                 .withParticipants([users[0].uid])
                 .build();
 
-            const createdExpense = await driver.createExpense(expenseData, users[0].token);
+            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
             expect(createdExpense.category).toBe(firstCategory);
 
             // Update to second custom category
             const secondCategory = 'Home Improvement - Bathroom';
-            await driver.updateExpense(
+            await apiDriver.updateExpense(
                 createdExpense.id,
                 {
                     category: secondCategory,
@@ -224,7 +219,7 @@ describe('Freeform Categories API Integration', () => {
             );
 
             // Fetch the updated expense to verify the changes
-            const updatedExpense = await driver.getExpense(createdExpense.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
 
             expect(updatedExpense.category).toBe(secondCategory);
             expect(updatedExpense.amount).toBe(150.0);
@@ -243,7 +238,7 @@ describe('Freeform Categories API Integration', () => {
                     .withParticipants([users[0].uid])
                     .build();
 
-                const response = await driver.createExpense(expenseData, users[0].token);
+                const response = await apiDriver.createExpense(expenseData, users[0].token);
 
                 expect(response.category).toBe(category);
                 expect(response.description).toBe(`Test ${category}`);
@@ -264,7 +259,7 @@ describe('Freeform Categories API Integration', () => {
                 .build();
 
             // XSS content should be rejected entirely
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);
         });
 
         test('should handle categories with special SQL-like characters', async () => {
@@ -279,7 +274,7 @@ describe('Freeform Categories API Integration', () => {
                 .build();
 
             // Should be safely stored without causing database issues
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(sqlLikeCategory);
             expect(response.amount).toBe(10.0);

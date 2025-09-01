@@ -3,30 +3,19 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-support';
 
 describe('Expense Management', () => {
-    let driver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: User[] = [];
-    let allUsers: User[] = [];
-
-    // Helper to get users from pool
-    const getTestUsers = (count: number): User[] => {
-        return allUsers.slice(0, count);
-    };
-
-    beforeAll(async () => {
-        ({ driver, users: allUsers } = await borrowTestUsers(6));
-    });
+    let users: User[];
 
     beforeEach(async () => {
-        users = getTestUsers(2);
-        testGroup = await driver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        users = await borrowTestUsers(2);
+        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     describe('Expense Creation', () => {
@@ -37,12 +26,12 @@ describe('Expense Management', () => {
                 .withParticipants(users.map((u) => u.uid))
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
             const createdExpense = { id: response.id, ...expenseData };
 
             // Verify the expense was created by fetching it
-            const fetchedExpense = await driver.getExpense(createdExpense.id, users[0].token);
+            const fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
             expect(fetchedExpense.description).toBe(expenseData.description);
             expect(fetchedExpense.amount).toBe(expenseData.amount);
             expect(fetchedExpense.paidBy).toBe(users[0].uid);
@@ -62,11 +51,11 @@ describe('Expense Management', () => {
                 .withCategory('utilities')
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
             // Verify the expense was created correctly with unequal splits
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(100);
             expect(createdExpense.splitType).toBe('exact');
             expect(createdExpense.splits).toHaveLength(2);
@@ -82,7 +71,7 @@ describe('Expense Management', () => {
 
         test("should list all of a group's expenses", async () => {
             // Add multiple expenses
-            await driver.createExpense(
+            await apiDriver.createExpense(
                 new ExpenseBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(100)
@@ -93,7 +82,7 @@ describe('Expense Management', () => {
                 users[0].token,
             );
 
-            await driver.createExpense(
+            await apiDriver.createExpense(
                 new ExpenseBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(50)
@@ -104,7 +93,7 @@ describe('Expense Management', () => {
                 users[1].token,
             );
 
-            const response = await driver.getGroupExpenses(testGroup.id, users[0].token);
+            const response = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             expect(response).toHaveProperty('expenses');
             expect(Array.isArray(response.expenses)).toBe(true);
             expect(response.expenses.length).toBe(2);
@@ -122,7 +111,7 @@ describe('Expense Management', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
                 .build();
-            const createdExpense = await driver.createExpense(initialExpenseData, users[0].token);
+            const createdExpense = await apiDriver.createExpense(initialExpenseData, users[0].token);
 
             const updatedData = {
                 description: 'Updated Test Expense',
@@ -131,9 +120,9 @@ describe('Expense Management', () => {
             };
 
             // Use PUT for updates, passing the expense ID in the query
-            await driver.updateExpense(createdExpense.id, updatedData, users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, updatedData, users[0].token);
 
-            const fetchedExpense = await driver.getExpense(createdExpense.id, users[0].token);
+            const fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
 
             expect(fetchedExpense.description).toBe(updatedData.description);
             expect(fetchedExpense.amount).toBe(updatedData.amount);
@@ -150,11 +139,11 @@ describe('Expense Management', () => {
                 .withParticipants(users.map((u) => u.uid))
                 .build();
 
-            const createResponse = await driver.createExpense(testExpenseData, users[0].token);
+            const createResponse = await apiDriver.createExpense(testExpenseData, users[0].token);
             expect(createResponse.id).toBeDefined();
 
             // Fetch the created expense to verify initial splits
-            const initialExpense = await driver.getExpense(createResponse.id, users[0].token);
+            const initialExpense = await apiDriver.getExpense(createResponse.id, users[0].token);
             expect(initialExpense.amount).toBe(100);
             expect(initialExpense.splits).toHaveLength(2);
             expect(initialExpense.splits[0].amount).toBe(50);
@@ -165,10 +154,10 @@ describe('Expense Management', () => {
                 amount: 150.5,
             };
 
-            await driver.updateExpense(createResponse.id, updatedData, users[0].token);
+            await apiDriver.updateExpense(createResponse.id, updatedData, users[0].token);
 
             // Fetch the updated expense to verify splits were recalculated
-            const updatedExpense = await driver.getExpense(createResponse.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createResponse.id, users[0].token);
 
             expect(updatedExpense.amount).toBe(150.5);
             expect(updatedExpense.splits).toHaveLength(2);
@@ -195,11 +184,11 @@ describe('Expense Management', () => {
                 ])
                 .build();
 
-            const createResponse = await driver.createExpense(testExpenseData, users[0].token);
+            const createResponse = await apiDriver.createExpense(testExpenseData, users[0].token);
             expect(createResponse.id).toBeDefined();
 
             // Fetch the created expense to verify initial splits
-            const initialExpense = await driver.getExpense(createResponse.id, users[0].token);
+            const initialExpense = await apiDriver.getExpense(createResponse.id, users[0].token);
             expect(initialExpense.amount).toBe(100);
             expect(initialExpense.splits).toHaveLength(2);
             const user0Split = initialExpense.splits.find((s: any) => s.userId === users[0].uid);
@@ -212,10 +201,10 @@ describe('Expense Management', () => {
                 amount: 150,
             };
 
-            await driver.updateExpense(createResponse.id, updatedData, users[0].token);
+            await apiDriver.updateExpense(createResponse.id, updatedData, users[0].token);
 
             // Fetch the updated expense to verify splits were recalculated to equal
-            const updatedExpense = await driver.getExpense(createResponse.id, users[0].token);
+            const updatedExpense = await apiDriver.getExpense(createResponse.id, users[0].token);
 
             expect(updatedExpense.amount).toBe(150);
             expect(updatedExpense.splits).toHaveLength(2);
@@ -238,14 +227,14 @@ describe('Expense Management', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants(users.map((u) => u.uid))
                 .build();
-            const createdExpense = await driver.createExpense(expenseToDeleteData, users[1].token);
+            const createdExpense = await apiDriver.createExpense(expenseToDeleteData, users[1].token);
             expect(createdExpense.id).toBeDefined();
 
             // Now, delete it
-            await driver.deleteExpense(createdExpense.id, users[1].token);
+            await apiDriver.deleteExpense(createdExpense.id, users[1].token);
 
             // Verify it's gone
-            await expect(driver.getExpense(createdExpense.id, users[1].token)).rejects.toThrow(/status 404/);
+            await expect(apiDriver.getExpense(createdExpense.id, users[1].token)).rejects.toThrow(/status 404/);
         });
     });
 });

@@ -5,6 +5,9 @@
 # Claude stuff
 /directives
 
+# MCP cache
+.lsmcp/
+
 # Logs
 logs
 *.log

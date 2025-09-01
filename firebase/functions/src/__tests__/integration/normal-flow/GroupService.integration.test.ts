@@ -1,5 +1,5 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, User, ExpenseBuilder, CreateGroupRequestBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import { beforeEach, describe, expect, test } from 'vitest';
+import {ApiDriver, User, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { GroupService } from '../../../services/GroupService';
 import { MemberRoles, SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
@@ -7,15 +7,13 @@ import { firestoreDb } from '../../../firebase';
 import { registerAllServices, getGroupService } from '../../../services/serviceRegistration';
 
 describe('GroupService - Integration Tests', () => {
-    let apiDriver: ApiDriver;
+    const apiDriver = new ApiDriver();
     let groupService: GroupService;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    let testUsers: User[] = [];
 
-    beforeAll(async () => {
-        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
-        users = allUsers.slice(0, 4);
-        
+    beforeEach(async () => {
+        testUsers = await borrowTestUsers(4);
+
         // Register all services before creating instances
         registerAllServices();
         groupService = getGroupService();
@@ -23,7 +21,7 @@ describe('GroupService - Integration Tests', () => {
 
     describe('createGroup', () => {
         test('should create a group with minimal data', async () => {
-            const creator = users[0];
+            const creator = testUsers[0];
 
             const groupData = new CreateGroupRequestBuilder()
                 .withName('Test Group')
@@ -58,7 +56,7 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should create a group with multiple members', async () => {
-            const [creator, member1, member2] = users;
+            const [creator, member1, member2] = testUsers;
 
             const groupData = new CreateGroupRequestBuilder()
                 .withName('Multi-Member Group')
@@ -89,7 +87,7 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should assign theme colors to members correctly', async () => {
-            const [creator, member] = users;
+            const [creator, member] = testUsers;
 
             const groupData = new CreateGroupRequestBuilder()
                 .withName('Theme Test Group')
@@ -113,7 +111,7 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should set default security preset and permissions', async () => {
-            const creator = users[0];
+            const creator = testUsers[0];
 
             const groupData = new CreateGroupRequestBuilder()
                 .withName('Security Test Group')
@@ -137,7 +135,7 @@ describe('GroupService - Integration Tests', () => {
         let nonMember: User;
 
         beforeEach(async () => {
-            [creator, member, nonMember] = users;
+            [creator, member, nonMember] = testUsers;
 
             // Create a test group
             const group = await apiDriver.createGroupWithMembers(
@@ -225,7 +223,7 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            [creator, member] = users;
+            [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
                 'Test Group for Updates',
@@ -290,7 +288,7 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            [creator, member] = users;
+            [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
                 'Test Group for Deletion',
@@ -348,7 +346,7 @@ describe('GroupService - Integration Tests', () => {
         let member: User;
 
         beforeEach(async () => {
-            [creator, member] = users;
+            [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
                 'Test Group for Balances',
@@ -437,7 +435,7 @@ describe('GroupService - Integration Tests', () => {
         let testGroupIds: string[] = [];
 
         beforeEach(async () => {
-            [creator, member] = users;
+            [creator, member] = testUsers;
 
             // Create multiple test groups
             const group1 = await apiDriver.createGroupWithMembers('List Test Group 1', [creator], creator.token);
@@ -534,7 +532,7 @@ describe('GroupService - Integration Tests', () => {
         let nonMember: User;
 
         beforeEach(async () => {
-            [creator, member, nonMember] = users;
+            [creator, member, nonMember] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
                 'Security Test Group',
@@ -581,7 +579,7 @@ describe('GroupService - Integration Tests', () => {
 
     describe('error handling and validation', () => {
         test('should validate group document structure', async () => {
-            const creator = users[0];
+            const creator = testUsers[0];
 
             // Valid group creation should work
             const groupData = new CreateGroupRequestBuilder()
@@ -596,7 +594,7 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should handle concurrent updates gracefully', async () => {
-            const creator = users[0];
+            const creator = testUsers[0];
 
             const groupData = new CreateGroupRequestBuilder()
                 .withName('Concurrent Test Group')
@@ -624,7 +622,7 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should handle malformed input gracefully', async () => {
-            const creator = users[0];
+            const creator = testUsers[0];
 
             // Empty name should be handled by validation layer
             // This test ensures the service doesn't crash

@@ -1,27 +1,20 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { borrowTestUsers } from '@splitifyd/test-support';
 
 describe('Split Validation Edge Cases', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
 
-    beforeAll(async () => {
-        // Borrow 4 users with automatic cleanup
-        ({ driver, users: allUsers } = await borrowTestUsers(4));
-        
-        // Use first 3 users for main tests (4th available for isolated tests)
-        users = allUsers.slice(0, 3);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(4);
+
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
     describe('Exact Split Validation', () => {
@@ -37,7 +30,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/split.*total|amounts.*equal|INVALID_SPLIT_TOTAL/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/split.*total|amounts.*equal|INVALID_SPLIT_TOTAL/i);
         });
 
         test('should accept splits with minor rounding differences (within 1 cent)', async () => {
@@ -53,10 +46,10 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(100);
             expect(createdExpense.splits).toHaveLength(3);
         });
@@ -73,7 +66,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/split.*total|amounts.*equal|INVALID_SPLIT_TOTAL/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/split.*total|amounts.*equal|INVALID_SPLIT_TOTAL/i);
         });
 
         test('should reject negative split amounts', async () => {
@@ -88,7 +81,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|negative|amount.*invalid/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|negative|amount.*invalid/i);
         });
 
         test('should reject zero split amounts', async () => {
@@ -103,7 +96,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*required|amount.*invalid/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive|amount.*required|amount.*invalid/i);
         });
 
         test('should reject duplicate users in splits', async () => {
@@ -118,7 +111,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/duplicate.*user|participant.*once|DUPLICATE_SPLIT_USERS/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/duplicate.*user|participant.*once|DUPLICATE_SPLIT_USERS/i);
         });
 
         test('should reject splits for users not in participants list', async () => {
@@ -133,7 +126,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/participant|split.*user|INVALID_SPLIT_USER/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/participant|split.*user|INVALID_SPLIT_USER/i);
         });
     });
 
@@ -150,7 +143,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|percentages.*add.*up|INVALID_PERCENTAGE_TOTAL/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|percentages.*add.*up|INVALID_PERCENTAGE_TOTAL/i);
         });
 
         test('should accept percentages with minor rounding differences (within 0.01%)', async () => {
@@ -166,10 +159,10 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            const response = await driver.createExpense(expenseData, users[0].token);
+            const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
 
-            const createdExpense = await driver.getExpense(response.id, users[0].token);
+            const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
             expect(createdExpense.amount).toBe(100);
             expect(createdExpense.splits).toHaveLength(3);
         });
@@ -186,7 +179,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|INVALID_INPUT|less than or equal to 100/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|INVALID_INPUT|less than or equal to 100/i);
         });
 
         test('should reject percentages over 100%', async () => {
@@ -200,7 +193,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|max.*100|percentage.*invalid/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/percentage.*100|max.*100|percentage.*invalid/i);
         });
     });
 
@@ -217,7 +210,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/splits.*participants|splits.*all|INVALID_SPLITS/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/splits.*participants|splits.*all|INVALID_SPLITS/i);
         });
 
         test('should require splits for all participants in percentage split type', async () => {
@@ -231,7 +224,7 @@ describe('Split Validation Edge Cases', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/splits.*participants|splits.*all|INVALID_SPLITS/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/splits.*participants|splits.*all|INVALID_SPLITS/i);
         });
     });
 });

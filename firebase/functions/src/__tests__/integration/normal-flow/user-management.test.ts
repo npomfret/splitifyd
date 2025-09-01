@@ -1,26 +1,26 @@
 // Tests for user management endpoints
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, generateTestEmail, User } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUser, generateTestEmail, User} from '@splitifyd/test-support';
 import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('User Management Tests', () => {
-    let driver: ApiDriver;
-    let testUser: User;
+    // Automatic user pool management - fresh user for each test, automatic cleanup!
+    const apiDriver = new ApiDriver();
+    let user: User;
 
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        testUser = await driver.createUser(new UserBuilder().build());
+    beforeEach(async () => {
+        user = await borrowTestUser();
     });
 
     describe('User Registration', () => {
         test('should register a new user successfully', async () => {
             const userData = new UserBuilder().build();
 
-            const response = await driver.register(userData);
+            const response = await apiDriver.register(userData);
 
             expect(response).toHaveProperty('user');
             expect(response.user).toHaveProperty('uid');
@@ -33,7 +33,7 @@ describe('User Management Tests', () => {
 
             for (const email of invalidEmails) {
                 try {
-                    await driver.register(new UserBuilder().withEmail(email).build());
+                    await apiDriver.register(new UserBuilder().withEmail(email).build());
                     // If registration succeeds, the email validation is too permissive
                     throw new Error(`Email validation is too permissive: "${email}" was accepted`);
                 } catch (error) {
@@ -59,7 +59,7 @@ describe('User Management Tests', () => {
             ];
 
             for (const password of weakPasswords) {
-                await expect(driver.register(new UserBuilder().withPassword(password).build())).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
+                await expect(apiDriver.register(new UserBuilder().withPassword(password).build())).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
             }
         });
 
@@ -72,7 +72,7 @@ describe('User Management Tests', () => {
             ];
 
             for (const data of incompleteData) {
-                await expect(driver.register(data as any)).rejects.toThrow(/400|required|missing.*field|validation/i);
+                await expect(apiDriver.register(data as any)).rejects.toThrow(/400|required|missing.*field|validation/i);
             }
         });
 
@@ -81,16 +81,16 @@ describe('User Management Tests', () => {
             const firstUser = new UserBuilder().build();
 
             // First registration should succeed
-            await driver.register(firstUser);
+            await apiDriver.register(firstUser);
 
             // Second registration with same email should fail
-            await expect(driver.register(new UserBuilder().withEmail(firstUser.email).build())).rejects.toThrow(/400|409|email.*exists|already.*registered/i);
+            await expect(apiDriver.register(new UserBuilder().withEmail(firstUser.email).build())).rejects.toThrow(/400|409|email.*exists|already.*registered/i);
         });
 
         test('should reject excessively long display names', async () => {
             const longDisplayName = 'A'.repeat(256); // Very long name
 
-            await expect(driver.register(new UserBuilder().withDisplayName(longDisplayName).build())).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
+            await expect(apiDriver.register(new UserBuilder().withDisplayName(longDisplayName).build())).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
         });
 
         // Comprehensive invalid registration tests for terms and cookie policy
@@ -99,7 +99,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -116,7 +116,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -133,7 +133,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -149,7 +149,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -166,7 +166,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -183,7 +183,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -200,7 +200,7 @@ describe('User Management Tests', () => {
                 const userData = new UserBuilder().build();
 
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -215,7 +215,7 @@ describe('User Management Tests', () => {
 
             test('should reject registration with combined invalid fields', async () => {
                 try {
-                    await driver.makeInvalidApiCall('/register', 'POST', {
+                    await apiDriver.makeInvalidApiCall('/register', 'POST', {
                         email: 'invalid-email',
                         password: '123',
                         displayName: '',
@@ -234,7 +234,7 @@ describe('User Management Tests', () => {
 
                 // Test specific error code for terms not accepted
                 try {
-                    await driver.register({
+                    await apiDriver.register({
                         email: userData.email,
                         password: userData.password,
                         displayName: userData.displayName,
@@ -249,7 +249,7 @@ describe('User Management Tests', () => {
                 // Test specific error code for cookie policy not accepted
                 const userData2 = new UserBuilder().build();
                 try {
-                    await driver.register({
+                    await apiDriver.register({
                         email: userData2.email,
                         password: userData2.password,
                         displayName: userData2.displayName,
@@ -268,25 +268,25 @@ describe('User Management Tests', () => {
         let testGroup: any;
         // let userExpenses: any[] = []; // Not used currently
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             // Create a test group and some expenses for the user
-            const secondUser = await driver.createUser(new UserBuilder().build());
+            const secondUser = await borrowTestUser();
 
-            testGroup = await driver.createGroupWithMembers(`User Expenses Test Group ${uuidv4()}`, [testUser, secondUser], testUser.token);
+            testGroup = await apiDriver.createGroupWithMembers(`User Expenses Test Group ${uuidv4()}`, [user, secondUser], user.token);
 
             // Create multiple expenses
-            await driver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(100).withPaidBy(testUser.uid).withParticipants([testUser.uid, secondUser.uid]).withDescription('User Expense 1').build(),
-                testUser.token,
+            await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(100).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription('User Expense 1').build(),
+                user.token,
             );
 
-            await driver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(50).withPaidBy(testUser.uid).withParticipants([testUser.uid, secondUser.uid]).withDescription('User Expense 2').build(),
-                testUser.token,
+            await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(50).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription('User Expense 2').build(),
+                user.token,
             );
 
-            await driver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(75).withPaidBy(secondUser.uid).withParticipants([testUser.uid, secondUser.uid]).withDescription('Other User Expense').build(),
+            await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(75).withPaidBy(secondUser.uid).withParticipants([user.uid, secondUser.uid]).withDescription('Other User Expense').build(),
                 secondUser.token,
             );
 
@@ -294,7 +294,7 @@ describe('User Management Tests', () => {
         });
 
         test('should list all expenses for a user across groups', async () => {
-            const response = await driver.listUserExpenses(testUser.token);
+            const response = await apiDriver.listUserExpenses(user.token);
 
             expect(response).toHaveProperty('expenses');
             expect(Array.isArray(response.expenses)).toBe(true);
@@ -308,11 +308,11 @@ describe('User Management Tests', () => {
         });
 
         test('should require authentication for user expenses', async () => {
-            await expect(driver.listUserExpenses(null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
+            await expect(apiDriver.listUserExpenses(null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
         });
 
         test('should include expense metadata in user expenses', async () => {
-            const response = await driver.listUserExpenses(testUser.token);
+            const response = await apiDriver.listUserExpenses(user.token);
 
             expect(response.expenses.length).toBeGreaterThan(0);
 
@@ -330,7 +330,7 @@ describe('User Management Tests', () => {
 
         test('should handle pagination parameters', async () => {
             // Test with limit parameter
-            const limitedResponse = await driver.listUserExpenses(testUser.token, { limit: 2 });
+            const limitedResponse = await apiDriver.listUserExpenses(user.token, { limit: 2 });
 
             expect(limitedResponse).toHaveProperty('expenses');
             expect(Array.isArray(limitedResponse.expenses)).toBe(true);
@@ -343,7 +343,7 @@ describe('User Management Tests', () => {
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
 
-            const response = await driver.listUserExpenses(testUser.token, {
+            const response = await apiDriver.listUserExpenses(user.token, {
                 startDate: yesterday.toISOString(),
                 endDate: tomorrow.toISOString(),
             });
@@ -355,9 +355,9 @@ describe('User Management Tests', () => {
         });
 
         test('should return empty array for user with no expenses', async () => {
-            const newUser = await driver.createUser(new UserBuilder().build());
+            const newUser = await apiDriver.createUser(new UserBuilder().build());// don't use the pool users - we need a clean one
 
-            const response = await driver.listUserExpenses(newUser.token);
+            const response = await apiDriver.listUserExpenses(newUser.token);
 
             expect(response).toHaveProperty('expenses');
             expect(Array.isArray(response.expenses)).toBe(true);
@@ -372,7 +372,7 @@ describe('User Management Tests', () => {
             for (const param of invalidParams) {
                 try {
                     // For invalid parameter testing, we use makeInvalidApiCall to test error handling
-                    const response = await driver.makeInvalidApiCall(`/expenses/user?${param}`, 'GET', null, testUser.token);
+                    const response = await apiDriver.makeInvalidApiCall(`/expenses/user?${param}`, 'GET', null, user.token);
                     // API currently allows invalid parameters and returns data anyway
                     // TODO: Strengthen validation to reject invalid parameters
                     expect(response).toHaveProperty('expenses');
@@ -385,7 +385,7 @@ describe('User Management Tests', () => {
         });
 
         test('should not expose other users private data', async () => {
-            const response = await driver.listUserExpenses(testUser.token);
+            const response = await apiDriver.listUserExpenses(user.token);
 
             // Should not include sensitive fields like internal IDs or audit logs
             const expense = response.expenses[0];
@@ -402,36 +402,36 @@ describe('User Management Tests', () => {
     describe('User Profile Management', () => {
         test('should allow users to update their own groups', async () => {
             // Test user can update groups they created
-            const groupData = new CreateGroupRequestBuilder().withName(`User Profile Group ${testUser.displayName}`).withMembers([testUser]).build();
+            const groupData = new CreateGroupRequestBuilder().withName(`User Profile Group ${user.displayName}`).withMembers([user]).build();
 
-            const userGroup = await driver.createGroup(groupData, testUser.token);
+            const userGroup = await apiDriver.createGroup(groupData, user.token);
 
             const updatedData = {
-                name: `Updated Profile Group ${testUser.displayName}`,
+                name: `Updated Profile Group ${user.displayName}`,
                 description: 'Updated group description',
             };
 
-            await driver.updateGroup(userGroup.id, updatedData, testUser.token);
+            await apiDriver.updateGroup(userGroup.id, updatedData, user.token);
 
-            const retrievedGroup = await driver.getGroup(userGroup.id, testUser.token);
-            expect(retrievedGroup.name).toBe(`Updated Profile Group ${testUser.displayName}`);
+            const retrievedGroup = await apiDriver.getGroup(userGroup.id, user.token);
+            expect(retrievedGroup.name).toBe(`Updated Profile Group ${user.displayName}`);
         });
 
         test('should prevent users from updating other users groups', async () => {
-            const otherUser = await driver.createUser(new UserBuilder().build());
+            const otherUser = await borrowTestUser();
 
             const otherGroupData = new CreateGroupRequestBuilder().withName(`Other User Group ${otherUser.displayName}`).withMembers([otherUser]).build();
 
-            const otherUserGroup = await driver.createGroup(otherGroupData, otherUser.token);
+            const otherUserGroup = await apiDriver.createGroup(otherGroupData, otherUser.token);
 
-            // testUser should not be able to update otherUser's group
+            // user should not be able to update otherUser's group
             await expect(
-                driver.updateGroup(
+                apiDriver.updateGroup(
                     otherUserGroup.id,
                     {
                         name: 'Hijacked Group Name',
                     },
-                    testUser.token,
+                    user.token,
                 ),
             ).rejects.toThrow(/403|404|forbidden|access.*denied|not.*found/i);
         });
@@ -439,18 +439,18 @@ describe('User Management Tests', () => {
 
     describe('Data Validation and Security', () => {
         test('should handle concurrent user operations safely', async () => {
-            const concurrentGroupData = new CreateGroupRequestBuilder().withName(`Concurrent Test Group ${testUser.displayName}`).withMembers([testUser]).build();
+            const concurrentGroupData = new CreateGroupRequestBuilder().withName(`Concurrent Test Group ${user.displayName}`).withMembers([user]).build();
 
-            const userGroup = await driver.createGroup(concurrentGroupData, testUser.token);
+            const userGroup = await apiDriver.createGroup(concurrentGroupData, user.token);
 
             // Perform multiple concurrent updates
             const promises = Array.from({ length: 5 }, (_, i) =>
-                driver.updateGroup(
+                apiDriver.updateGroup(
                     userGroup.id,
                     {
                         name: `Concurrent Update ${i + 1}`,
                     },
-                    testUser.token,
+                    user.token,
                 ),
             );
 
@@ -468,7 +468,7 @@ describe('User Management Tests', () => {
             const userData = new UserBuilder().build();
 
             try {
-                await driver.register({
+                await apiDriver.register({
                     email: userData.email,
                     password: userData.password,
                     displayName: userData.displayName,
@@ -486,7 +486,7 @@ describe('User Management Tests', () => {
             const userData = new UserBuilder().build();
 
             try {
-                await driver.register({
+                await apiDriver.register({
                     email: userData.email,
                     password: userData.password,
                     displayName: userData.displayName,
@@ -504,7 +504,7 @@ describe('User Management Tests', () => {
             const userData = new UserBuilder().build();
 
             try {
-                await driver.register({
+                await apiDriver.register({
                     email: userData.email,
                     password: userData.password,
                     displayName: userData.displayName,
@@ -523,7 +523,7 @@ describe('User Management Tests', () => {
             const userData = new UserBuilder().build();
 
             // Register user with both acceptances
-            const response = await driver.register({
+            const response = await apiDriver.register({
                 email: userData.email,
                 password: userData.password,
                 displayName: userData.displayName,
@@ -545,7 +545,7 @@ describe('User Management Tests', () => {
         test('should allow registration with both acceptances', async () => {
             const userData = new UserBuilder().build();
 
-            const response = await driver.register({
+            const response = await apiDriver.register({
                 email: userData.email,
                 password: userData.password,
                 displayName: userData.displayName,

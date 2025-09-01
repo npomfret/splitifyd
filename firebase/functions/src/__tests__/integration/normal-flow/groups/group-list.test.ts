@@ -3,32 +3,29 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, User} from '@splitifyd/test-support';
 
 describe('GET /groups - List Groups', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    const apiDriver = new ApiDriver();
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(3);
+
         // Create multiple groups for testing
         const groupPromises = [];
         for (let i = 0; i < 5; i++) {
-            groupPromises.push(driver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token));
+            groupPromises.push(apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(), users[0].token));
         }
         await Promise.all(groupPromises);
     });
 
     test('should list all user groups', async () => {
-        const response = await driver.listGroups(users[0].token);
+        const response = await apiDriver.listGroups(users[0].token);
 
         expect(response.groups).toBeDefined();
         expect(Array.isArray(response.groups)).toBe(true);
@@ -38,7 +35,7 @@ describe('GET /groups - List Groups', () => {
     });
 
     test('should include group summaries with balance', async () => {
-        const response = await driver.listGroups(users[0].token);
+        const response = await apiDriver.listGroups(users[0].token);
 
         const firstGroup = response.groups[0];
         expect(firstGroup).toHaveProperty('id');
@@ -54,13 +51,13 @@ describe('GET /groups - List Groups', () => {
 
     test('should support pagination', async () => {
         // Get first page
-        const page1 = await driver.listGroups(users[0].token, { limit: 2 });
+        const page1 = await apiDriver.listGroups(users[0].token, { limit: 2 });
         expect(page1.groups).toHaveLength(2);
         expect(page1.hasMore).toBe(true);
         expect(page1.nextCursor).toBeDefined();
 
         // Get second page
-        const page2 = await driver.listGroups(users[0].token, {
+        const page2 = await apiDriver.listGroups(users[0].token, {
             limit: 2,
             cursor: page1.nextCursor,
         });
@@ -74,8 +71,8 @@ describe('GET /groups - List Groups', () => {
     });
 
     test('should support ordering', async () => {
-        const responseDesc = await driver.listGroups(users[0].token, { order: 'desc' });
-        const responseAsc = await driver.listGroups(users[0].token, { order: 'asc' });
+        const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
+        const responseAsc = await apiDriver.listGroups(users[0].token, { order: 'asc' });
 
         // The most recently updated should be first in desc, last in asc
         expect(responseDesc.groups[0].id).not.toBe(responseAsc.groups[0].id);
@@ -83,27 +80,27 @@ describe('GET /groups - List Groups', () => {
 
     test('should only show groups where user is member', async () => {
         // Create a group with only user[1]
-        const otherGroup = await driver.createGroup(new CreateGroupRequestBuilder().withName(`Other User Group ${uuidv4()}`).build(), users[1].token);
+        const otherGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Other User Group ${uuidv4()}`).build(), users[1].token);
 
         // user[0] should not see this group
-        const response = await driver.listGroups(users[0].token);
+        const response = await apiDriver.listGroups(users[0].token);
         const groupIds = response.groups.map((g: any) => g.id);
         expect(groupIds).not.toContain(otherGroup.id);
     });
 
     test('should require authentication', async () => {
-        await expect(driver.listGroups('')).rejects.toThrow(/401|unauthorized/i);
+        await expect(apiDriver.listGroups('')).rejects.toThrow(/401|unauthorized/i);
     });
 
     test('should handle includeMetadata parameter correctly', async () => {
         // Test without metadata
-        const responseWithoutMeta = await driver.listGroups(users[0].token, {
+        const responseWithoutMeta = await apiDriver.listGroups(users[0].token, {
             includeMetadata: false,
         });
         expect(responseWithoutMeta.metadata).toBeUndefined();
 
         // Test with metadata (note: may be undefined if no recent changes)
-        const responseWithMeta = await driver.listGroups(users[0].token, {
+        const responseWithMeta = await apiDriver.listGroups(users[0].token, {
             includeMetadata: true,
         });
         // Metadata might not exist if no recent changes, but structure should be correct if present
@@ -118,7 +115,7 @@ describe('GET /groups - List Groups', () => {
     test('should handle groups with expenses and settlements correctly', async () => {
         // Create a group with expenses - using user objects that are already created
         const groupData = new CreateGroupRequestBuilder().withName(`Integration Test Group ${uuidv4()}`).withMembers([users[0], users[1]]).build();
-        const testGroup = await driver.createGroup(groupData, users[0].token);
+        const testGroup = await apiDriver.createGroup(groupData, users[0].token);
 
         // Add an expense
         const expenseData = new ExpenseBuilder()
@@ -128,10 +125,10 @@ describe('GET /groups - List Groups', () => {
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
             .build();
-        await driver.createExpense(expenseData, users[0].token);
+        await apiDriver.createExpense(expenseData, users[0].token);
 
         // List groups and verify the test group has balance data
-        const response = await driver.listGroups(users[0].token);
+        const response = await apiDriver.listGroups(users[0].token);
         const groupInList = response.groups.find((g: any) => g.id === testGroup.id);
 
         expect(groupInList).toBeDefined();

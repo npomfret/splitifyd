@@ -1,28 +1,18 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-support';
 
 describe('Expenses Full Details API', () => {
-    let apiDriver: ApiDriver;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
     let alice: User;
     let bob: User;
     let charlie: User;
+    let outsider: User;
     let groupId: string;
     let expenseId: string;
 
-    beforeAll(async () => {
-        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
-        users = allUsers.slice(0, 4);
-    });
-
     beforeEach(async () => {
-        // Use users from pool
-        alice = users[0];
-        bob = users[1];
-        charlie = users[2];
+        ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
 
         // Create a fresh group and expense for each test
         const group = await apiDriver.createGroupWithMembers('Expense Full Details Test Group', [alice, bob, charlie], alice.token);
@@ -83,8 +73,6 @@ describe('Expenses Full Details API', () => {
 
         it('should fail for users not in the group', async () => {
             // Use the 4th user from the pool as an outsider
-            const outsider = users[3];
-
             await expect(apiDriver.getExpenseFullDetails(expenseId, outsider.token)).rejects.toThrow();
         });
 

@@ -1,4 +1,4 @@
-import {admin} from '../firebase';
+import {admin, firestoreDb} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {User} from "@splitifyd/shared";
 
@@ -8,15 +8,22 @@ interface PoolUser {
     password: string
 }
 
+interface FirestorePoolUser {
+    email: string;
+    user: User;
+    token: string;
+    password: string;
+    status: 'available' | 'borrowed';
+    createdAt: FirebaseFirestore.Timestamp;
+}
+
 const POOL_PREFIX = 'testpool';
 const POOL_DOMAIN = 'example.com';
 const POOL_PASSWORD = 'rrRR44$$';
+const POOL_COLLECTION = 'test-user-pool';
 
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
-
-    private available: Map<string, PoolUser> = new Map();// key = poolUser.email
-    private borrowed: Map<string, PoolUser> = new Map();// key = poolUser.email
 
     private constructor() {
     }
@@ -29,36 +36,82 @@ export class TestUserPoolService {
     }
 
     async borrowUser(): Promise<PoolUser> {
-        const poolUser = this.available.values().next().value;
-
-        if (poolUser === undefined) {
-            const newUser = await this.createUser();
-            this.borrowed.set(newUser.user.email, newUser);
-            return newUser;
-        } else {
-            // Move from available to borrowed
-            this.available.delete(poolUser!.user.email);
-            this.borrowed.set(poolUser!.user.email, poolUser);
-
-            return poolUser;
+        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        
+        // Use transaction to atomically claim an available user
+        const result = await firestoreDb.runTransaction(async (transaction) => {
+            // Query for available users
+            const availableQuery = await transaction.get(
+                poolRef.where('status', '==', 'available').limit(1)
+            );
+            
+            if (!availableQuery.empty) {
+                // Found an available user - claim it atomically
+                const doc = availableQuery.docs[0];
+                const data = doc.data() as FirestorePoolUser;
+                
+                // Update status to borrowed within transaction
+                transaction.update(doc.ref, { status: 'borrowed' });
+                
+                return {
+                    user: data.user,
+                    token: data.token,
+                    password: data.password
+                };
+            }
+            
+            // No available users - return null to create new one outside transaction
+            return null;
+        });
+        
+        if (result) {
+            return result;
         }
+        
+        // No available users found - create a new one
+        // This is done outside transaction since createUser() involves Auth API calls
+        const newUser = await this.createUser();
+        await poolRef.doc(newUser.user.email).set({
+            email: newUser.user.email,
+            user: newUser.user,
+            token: newUser.token,
+            password: newUser.password,
+            status: 'borrowed' as const,
+            createdAt: admin.firestore.Timestamp.now()
+        });
+        return newUser;
     }
 
-    returnUser(email: string) {
-        if (this.borrowed.has(email)) {
-            const poolUser = this.borrowed.get(email)!;
-            this.borrowed.delete(email);
-            this.available.set(email, poolUser);
-        } else {
-            throw Error(`User ${email} not found in borrowed pool`);
-        }
+    async returnUser(email: string): Promise<void> {
+        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        
+        // Use transaction to atomically return user
+        await firestoreDb.runTransaction(async (transaction) => {
+            const doc = await transaction.get(poolRef.doc(email));
+            
+            if (!doc.exists) {
+                throw Error(`User ${email} not found in pool`);
+            }
+            
+            const data = doc.data() as FirestorePoolUser;
+            if (data.status !== 'borrowed') {
+                // This could be a duplicate return attempt - make it idempotent
+                if (data.status === 'available') {
+                    // User is already available - this is fine, just log it
+                    console.log(`⚠️ User ${email} was already returned to pool`);
+                    return;
+                }
+                throw Error(`User ${email} is not borrowed (status: ${data.status})`);
+            }
+            
+            // Update status to available within transaction
+            transaction.update(doc.ref, { status: 'available' });
+        });
     }
 
     private async createUser(): Promise<PoolUser> {
         // unique enough!
         const id = Math.random().toString(16).substring(2, 10); // e.g., "a1b2c3d4"
-
-        console.log("createUser", {id});
 
         const email = `${POOL_PREFIX}.${id}@${POOL_DOMAIN}`;
 
@@ -76,22 +129,32 @@ export class TestUserPoolService {
         return {user, password: POOL_PASSWORD, token};
     }
 
-    getPoolStatus() {
+    async getPoolStatus() {
+        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const [availableSnapshot, borrowedSnapshot] = await Promise.all([
+            poolRef.where('status', '==', 'available').get(),
+            poolRef.where('status', '==', 'borrowed').get()
+        ]);
+        
         return {
-            available: this.available.size,
-            borrowed: this.borrowed.size,
-            total: this.poolSize(),
+            available: availableSnapshot.size,
+            borrowed: borrowedSnapshot.size,
+            total: availableSnapshot.size + borrowedSnapshot.size,
         }
     }
 
-    private poolSize() {
-        return this.available.size + this.borrowed.size;
-    }
-
     // Force cleanup all borrows (for testing/admin use)
-    resetPool(): void {
-        for (const email of this.borrowed.keys()) {
-            this.returnUser(email)
+    async resetPool(): Promise<void> {
+        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const borrowedSnapshot = await poolRef.where('status', '==', 'borrowed').get();
+        
+        const batch = firestoreDb.batch();
+        borrowedSnapshot.docs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+            batch.update(doc.ref, { status: 'available' });
+        });
+        
+        if (borrowedSnapshot.size > 0) {
+            await batch.commit();
         }
     }
 }

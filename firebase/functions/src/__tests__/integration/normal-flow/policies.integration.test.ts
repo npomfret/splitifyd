@@ -6,11 +6,9 @@ import { ApiDriver } from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 
 describe('Policies API Integration Tests', () => {
-    let apiDriver: ApiDriver;
+    let apiDriver = new ApiDriver();
 
     beforeAll(async () => {
-        apiDriver = new ApiDriver();
-
         // Clean up any existing data first
         const firestore = firestoreDb;
         try {

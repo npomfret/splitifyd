@@ -30,7 +30,7 @@ authenticatedPageTest.describe('User Profile Error Handling', () => {
         await expect(settingsPage.getSaveChangesButton()).toBeDisabled();
 
         // Test valid display name - error should be gone and button enabled
-        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), 'Valid Name');
+        await settingsPage.fillPreactInput(settingsPage.getDisplayNameInput(), 'a Valid Name');
         await expect(page.getByText('Display name cannot be empty')).not.toBeVisible();
         await expect(page.getByText('Display name must be 100 characters or less')).not.toBeVisible();
         await expect(settingsPage.getSaveChangesButton()).toBeEnabled();

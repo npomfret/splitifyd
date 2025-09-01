@@ -1,17 +1,17 @@
-import { test, describe, beforeAll, afterAll, expect } from 'vitest';
-import { ApiDriver, User, generateNewUserDetails } from '@splitifyd/test-support';
+import {test, describe, afterAll, expect, beforeEach} from 'vitest';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import { Group, MemberRoles, SecurityPresets } from '@splitifyd/shared';
+import {ApiDriver} from "@splitifyd/test-support";
 
 describe('Group Permissions', () => {
-    let apiDriver: ApiDriver;
-    let adminUser: User;
-    let memberUser: User;
+    const apiDriver = new ApiDriver();
     let group: Group;
+    let adminUser: any;
+    let memberUser: any;
 
-    beforeAll(async () => {
-        apiDriver = new ApiDriver();
-        adminUser = await apiDriver.createUser(generateNewUserDetails('admin'));
-        memberUser = await apiDriver.createUser(generateNewUserDetails('member'));
+    beforeEach(async () => {
+        ([adminUser, memberUser] = await borrowTestUsers(3));
+
         const groupData = {
             name: 'Permission Test Group',
         };

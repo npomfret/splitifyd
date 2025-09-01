@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
-import {ApiDriver, AppDriver, User} from '@splitifyd/test-support';
+import {describe, it, expect, beforeEach,} from 'vitest';
+import {ApiDriver, AppDriver, borrowTestUser, User} from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Trigger Debug Tests', () => {
     const apiDriver = new ApiDriver();
@@ -10,21 +10,13 @@ describe('Trigger Debug Tests', () => {
     let user1: User;
     let groupId: string;
 
-    beforeAll(async () => {
-        user1 = await apiDriver.createUser(new UserBuilder().build());
-    });
-
-    beforeEach(async () => {});
+    beforeEach(async() => {
+        user1 = await borrowTestUser();
+        const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+        groupId = group.id
+    })
 
     it('should fire group trigger when creating a group', async () => {
-        // Starting simple trigger test
-
-        // Create a group using builder with minimal data
-        const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-        groupId = group.id;
-
-        // Created group
-
         // Wait for trigger to fire using proper polling
         await appDriver.waitForGroupChanges(groupId, (changes) => changes.length > 0);
 

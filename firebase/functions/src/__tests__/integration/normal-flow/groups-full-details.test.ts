@@ -1,27 +1,19 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
-import { ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, SettlementBuilder, User} from '@splitifyd/test-support';
 
 describe('Groups Full Details API', () => {
-    let apiDriver: ApiDriver;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
+
+    let groupId: string;
+
     let alice: User;
     let bob: User;
     let charlie: User;
-    let groupId: string;
-
-    beforeAll(async () => {
-        ({ driver: apiDriver, users: allUsers } = await borrowTestUsers(4));
-        users = allUsers.slice(0, 4);
-    });
+    let outsider: User;
 
     beforeEach(async () => {
-        // Use users from pool
-        alice = users[0];
-        bob = users[1];
-        charlie = users[2];
+        ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
 
         // Create a fresh group for each test
         const group = await apiDriver.createGroupWithMembers('Full Details Test Group', [alice, bob, charlie], alice.token);
@@ -97,7 +89,6 @@ describe('Groups Full Details API', () => {
 
         it('should respect user access permissions', async () => {
             // Use the 4th user from the pool as an outsider
-            const outsider = users[3];
 
             // Should throw an error when unauthorized user tries to access
             await expect(apiDriver.getGroupFullDetails(groupId, outsider.token)).rejects.toThrow(/Group.*not found|not found|Group/i);

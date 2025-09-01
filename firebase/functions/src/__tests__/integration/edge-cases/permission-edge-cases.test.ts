@@ -3,35 +3,28 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, Group } from '@splitifyd/shared';
 
 describe('Permission System Edge Cases', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
 
-    beforeAll(async () => {
-        driver = new ApiDriver();
+    let users: User[];
 
-        // Create test users
-        users = await Promise.all([
-            driver.createUser(new UserBuilder().withName('Edge Admin').build()),
-            driver.createUser(new UserBuilder().withName('Edge Member').build()),
-            driver.createUser(new UserBuilder().withName('Edge Viewer').build()),
-            driver.createUser(new UserBuilder().withName('Non Member').build()),
-        ]);
+    beforeEach(async () => {
+        users = await borrowTestUsers(4);
     });
 
     describe('Non-member Access Attempts', () => {
         let testGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Non-member Test ${uuidv4()}`;
-            testGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
+            testGroup = await apiDriver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
         });
 
         test('non-member cannot create expenses', async () => {
@@ -44,16 +37,16 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('food')
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[3].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.createExpense(expenseData, users[3].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('non-member cannot access group expenses', async () => {
-            await expect(driver.getGroupExpenses(testGroup.id, users[3].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.getGroupExpenses(testGroup.id, users[3].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('non-member cannot change group settings', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${testGroup.id}/security/preset`,
                     'POST',
                     {
@@ -68,14 +61,14 @@ describe('Permission System Edge Cases', () => {
     describe('Invalid Parameter Handling', () => {
         let edgeGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Edge Parameters Test ${uuidv4()}`;
-            edgeGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
+            edgeGroup = await apiDriver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
         });
 
         test('invalid security preset rejected', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${edgeGroup.id}/security/preset`,
                     'POST',
                     {
@@ -88,7 +81,7 @@ describe('Permission System Edge Cases', () => {
 
         test('invalid member role rejected', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${edgeGroup.id}/members/${users[1].uid}/role`,
                     'PUT',
                     {
@@ -101,7 +94,7 @@ describe('Permission System Edge Cases', () => {
 
         test('changing role of non-existent member fails', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${edgeGroup.id}/members/non-existent-user/role`,
                     'PUT',
                     {
@@ -114,7 +107,7 @@ describe('Permission System Edge Cases', () => {
 
         test('empty permissions object rejected', async () => {
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${edgeGroup.id}/permissions`,
                     'PUT',
                     {
@@ -129,9 +122,9 @@ describe('Permission System Edge Cases', () => {
     describe('Permission Cache Invalidation', () => {
         let cacheGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Cache Test ${uuidv4()}`;
-            cacheGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
+            cacheGroup = await apiDriver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
         });
 
         test('role change invalidates permissions immediately', async () => {
@@ -145,11 +138,11 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
             expect(expense.id).toBeDefined();
 
             // Switch to managed group preset
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${cacheGroup.id}/security/preset`,
                 'POST',
                 {
@@ -159,7 +152,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Set users[1] as viewer
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${cacheGroup.id}/members/${users[1].uid}/role`,
                 'PUT',
                 {
@@ -178,16 +171,16 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('food')
                 .build();
 
-            await expect(driver.createExpense(newExpenseData, users[1].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.createExpense(newExpenseData, users[1].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('preset change affects permissions immediately', async () => {
             // Create new group starting with managed preset
             const managedGroupName = `Managed Cache Test ${uuidv4()}`;
-            const managedGroup = await driver.createGroupWithMembers(managedGroupName, users.slice(0, 2), users[0].token);
+            const managedGroup = await apiDriver.createGroupWithMembers(managedGroupName, users.slice(0, 2), users[0].token);
 
             // Apply managed preset
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${managedGroup.id}/security/preset`,
                 'POST',
                 {
@@ -206,13 +199,13 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('food')
                 .build();
 
-            const adminExpense = await driver.createExpense(adminExpenseData, users[0].token);
+            const adminExpense = await apiDriver.createExpense(adminExpenseData, users[0].token);
 
             // Member cannot edit admin's expense
-            await expect(driver.updateExpense(adminExpense.id, { description: 'Unauthorized edit' }, users[1].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.updateExpense(adminExpense.id, { description: 'Unauthorized edit' }, users[1].token)).rejects.toThrow(/failed with status 403/);
 
             // Switch to open collaboration
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${managedGroup.id}/security/preset`,
                 'POST',
                 {
@@ -222,7 +215,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Now member CAN edit admin's expense (permission immediately updated)
-            const updatedExpense = await driver.updateExpense(adminExpense.id, { description: 'Now allowed edit' }, users[1].token);
+            const updatedExpense = await apiDriver.updateExpense(adminExpense.id, { description: 'Now allowed edit' }, users[1].token);
             expect(updatedExpense.description).toBe('Now allowed edit');
         });
     });
@@ -230,14 +223,14 @@ describe('Permission System Edge Cases', () => {
     describe('Custom Permission Combinations', () => {
         let customGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Custom Permissions Test ${uuidv4()}`;
-            customGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
+            customGroup = await apiDriver.createGroupWithMembers(groupName, users.slice(0, 3), users[0].token);
         });
 
         test('custom permission combination works correctly', async () => {
             // Create custom permission set: anyone can edit, but only admins can delete
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${customGroup.id}/permissions`,
                 'PUT',
                 {
@@ -259,22 +252,22 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('food')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
 
             // Member can edit (expenseEditing: anyone)
-            const updatedExpense = await driver.updateExpense(expense.id, { description: 'Member edited' }, users[1].token);
+            const updatedExpense = await apiDriver.updateExpense(expense.id, { description: 'Member edited' }, users[1].token);
             expect(updatedExpense.description).toBe('Member edited');
 
             // But member cannot delete (expenseDeletion: admin-only)
-            await expect(driver.deleteExpense(expense.id, users[1].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.deleteExpense(expense.id, users[1].token)).rejects.toThrow(/failed with status 403/);
 
             // Admin can delete
-            await driver.deleteExpense(expense.id, users[0].token);
+            await apiDriver.deleteExpense(expense.id, users[0].token);
         });
 
         test('mixed permission levels work as expected', async () => {
             // Set mixed permissions: members can manage expenses but not settings
-            await driver.apiRequest(
+            await apiDriver.apiRequest(
                 `/groups/${customGroup.id}/permissions`,
                 'PUT',
                 {
@@ -297,12 +290,12 @@ describe('Permission System Edge Cases', () => {
                 .withCategory('entertainment')
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[1].token);
+            const expense = await apiDriver.createExpense(expenseData, users[1].token);
             expect(expense.id).toBeDefined();
 
             // But member cannot change settings
             await expect(
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${customGroup.id}/permissions`,
                     'PUT',
                     {
@@ -317,9 +310,9 @@ describe('Permission System Edge Cases', () => {
     describe('Concurrent Operations', () => {
         let concurrentGroup: Group;
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             const groupName = `Concurrent Test ${uuidv4()}`;
-            concurrentGroup = await driver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
+            concurrentGroup = await apiDriver.createGroupWithMembers(groupName, users.slice(0, 2), users[0].token);
         });
 
         test('concurrent expense operations work correctly', async () => {
@@ -334,7 +327,7 @@ describe('Permission System Edge Cases', () => {
                     .withCategory('food')
                     .build();
 
-                return driver.createExpense(expenseData, users[i % 2].token);
+                return apiDriver.createExpense(expenseData, users[i % 2].token);
             });
 
             const expenses = await Promise.all(expensePromises);
@@ -349,7 +342,7 @@ describe('Permission System Edge Cases', () => {
         test('concurrent permission changes are handled correctly', async () => {
             // Try to change multiple permissions at once
             const permissionPromises = [
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${concurrentGroup.id}/permissions`,
                     'PUT',
                     {
@@ -357,7 +350,7 @@ describe('Permission System Edge Cases', () => {
                     },
                     users[0].token,
                 ),
-                driver.apiRequest(
+                apiDriver.apiRequest(
                     `/groups/${concurrentGroup.id}/members/${users[1].uid}/role`,
                     'PUT',
                     {

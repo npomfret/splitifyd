@@ -3,65 +3,50 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 
 describe('Comments API Integration Tests', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
     let testExpense: any;
+    let users: User[];
 
-    // Set timeout for integration tests
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-
-        // Create test users
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
+    beforeEach(async () => {
+        users = await borrowTestUsers(3);
 
         // Create a test group with multiple members
+        const members = users.slice(0, 2);
         const groupData = new CreateGroupRequestBuilder()
             .withName(`Comments Test Group ${uuidv4()}`)
             .withDescription('Test group for comment API testing')
-            .withMembers([
-                {
-                    uid: users[0].uid,
-                    displayName: users[0].displayName,
-                    email: users[0].email,
-                },
-                {
-                    uid: users[1].uid,
-                    displayName: users[1].displayName,
-                    email: users[1].email,
-                },
-            ])
+            .withMembers(members)
             .build();
 
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, members[0].token);
 
         // Create a test expense
         const expenseData = new ExpenseBuilder()
             .withGroupId(testGroup.id)
             .withAmount(50.0)
             .withDescription('Test expense for comments')
-            .withPaidBy(users[0].uid)
-            .withParticipants([users[0].uid, users[1].uid])
+            .withPaidBy(members[0].uid)
+            .withParticipants([members[0].uid, members[1].uid])
             .build();
 
-        testExpense = await driver.createExpense(expenseData, users[0].token);
-    });
+        testExpense = await apiDriver.createExpense(expenseData, users[0].token);
+    })
 
     describe('Group Comments API', () => {
         describe('POST /groups/:groupId/comments', () => {
             test('should create a group comment successfully', async () => {
                 const commentText = `Test group comment ${uuidv4()}`;
 
-                const response = await driver.createGroupComment(testGroup.id, commentText, users[0].token);
+                const response = await apiDriver.createGroupComment(testGroup.id, commentText, users[0].token);
 
                 expect(response.success).toBe(true);
                 expect(response.data).toBeDefined();
@@ -74,37 +59,37 @@ describe('Comments API Integration Tests', () => {
             });
 
             test('should require authentication', async () => {
-                await expect(driver.createGroupComment(testGroup.id, 'Test comment', '')).rejects.toThrow(/401|unauthorized/i);
+                await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', '')).rejects.toThrow(/401|unauthorized/i);
             });
 
             test('should require group membership', async () => {
-                await expect(driver.createGroupComment(testGroup.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
+                await expect(apiDriver.createGroupComment(testGroup.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
             });
 
             test('should validate comment text length', async () => {
                 // Empty text
-                await expect(driver.createGroupComment(testGroup.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
+                await expect(apiDriver.createGroupComment(testGroup.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
 
                 // Text too long (501 characters)
                 const longText = 'a'.repeat(501);
-                await expect(driver.createGroupComment(testGroup.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
+                await expect(apiDriver.createGroupComment(testGroup.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
             });
 
             test('should reject non-existent group', async () => {
                 const fakeGroupId = uuidv4();
-                await expect(driver.createGroupComment(fakeGroupId, 'Test comment', users[0].token)).rejects.toThrow(/not found|group.*not.*exist/i);
+                await expect(apiDriver.createGroupComment(fakeGroupId, 'Test comment', users[0].token)).rejects.toThrow(/not found|group.*not.*exist/i);
             });
 
             test('should reject dangerous comment text', async () => {
                 const dangerousText = '<script>console.log("xss")</script>Safe text';
 
-                await expect(driver.createGroupComment(testGroup.id, dangerousText, users[0].token)).rejects.toThrow(/400|dangerous.*content|invalid.*input/i);
+                await expect(apiDriver.createGroupComment(testGroup.id, dangerousText, users[0].token)).rejects.toThrow(/400|dangerous.*content|invalid.*input/i);
             });
 
             test('should accept safe content with special characters', async () => {
                 const safeText = 'Price: $29.99 - café restaurant visit! Special chars: @#$%^*()[]{}';
 
-                const response = await driver.createGroupComment(testGroup.id, safeText, users[0].token);
+                const response = await apiDriver.createGroupComment(testGroup.id, safeText, users[0].token);
 
                 expect(response.success).toBe(true);
                 expect(response.data.text).toBe(safeText);
@@ -117,10 +102,10 @@ describe('Comments API Integration Tests', () => {
         describe('GET /groups/:groupId/comments', () => {
             test('should list group comments with pagination', async () => {
                 // Create multiple comments first
-                await driver.createGroupComment(testGroup.id, 'First comment', users[0].token);
-                await driver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
+                await apiDriver.createGroupComment(testGroup.id, 'First comment', users[0].token);
+                await apiDriver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
 
-                const response = await driver.listGroupComments(testGroup.id, users[0].token);
+                const response = await apiDriver.listGroupComments(testGroup.id, users[0].token);
 
                 expect(response.success).toBe(true);
                 expect(response.data).toBeDefined();
@@ -136,22 +121,22 @@ describe('Comments API Integration Tests', () => {
             });
 
             test('should respect pagination parameters', async () => {
-                const response = await driver.listGroupComments(testGroup.id, users[0].token, { limit: 1 });
+                const response = await apiDriver.listGroupComments(testGroup.id, users[0].token, { limit: 1 });
 
                 expect(response.success).toBe(true);
                 expect(response.data.comments.length).toBeLessThanOrEqual(1);
             });
 
             test('should enforce maximum limit', async () => {
-                await expect(driver.listGroupComments(testGroup.id, users[0].token, { limit: 101 })).rejects.toThrow(/limit|maximum/i);
+                await expect(apiDriver.listGroupComments(testGroup.id, users[0].token, { limit: 101 })).rejects.toThrow(/limit|maximum/i);
             });
 
             test('should require authentication', async () => {
-                await expect(driver.listGroupComments(testGroup.id, '')).rejects.toThrow(/401|unauthorized/i);
+                await expect(apiDriver.listGroupComments(testGroup.id, '')).rejects.toThrow(/401|unauthorized/i);
             });
 
             test('should require group membership', async () => {
-                await expect(driver.listGroupComments(testGroup.id, users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
+                await expect(apiDriver.listGroupComments(testGroup.id, users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
             });
         });
     });
@@ -161,7 +146,7 @@ describe('Comments API Integration Tests', () => {
             test('should create an expense comment successfully', async () => {
                 const commentText = `Test expense comment ${uuidv4()}`;
 
-                const response = await driver.createExpenseComment(testExpense.id, commentText, users[0].token);
+                const response = await apiDriver.createExpenseComment(testExpense.id, commentText, users[0].token);
 
                 expect(response.success).toBe(true);
                 expect(response.data).toBeDefined();
@@ -174,34 +159,34 @@ describe('Comments API Integration Tests', () => {
             });
 
             test('should require authentication', async () => {
-                await expect(driver.createExpenseComment(testExpense.id, 'Test comment', '')).rejects.toThrow(/401|unauthorized/i);
+                await expect(apiDriver.createExpenseComment(testExpense.id, 'Test comment', '')).rejects.toThrow(/401|unauthorized/i);
             });
 
             test('should require group membership for expense comments', async () => {
-                await expect(driver.createExpenseComment(testExpense.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
+                await expect(apiDriver.createExpenseComment(testExpense.id, 'Test comment', users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
             });
 
             test('should validate comment text', async () => {
                 // Empty text
-                await expect(driver.createExpenseComment(testExpense.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
+                await expect(apiDriver.createExpenseComment(testExpense.id, '', users[0].token)).rejects.toThrow(/comment.*required|text.*required/i);
 
                 // Text too long
                 const longText = 'a'.repeat(501);
-                await expect(driver.createExpenseComment(testExpense.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
+                await expect(apiDriver.createExpenseComment(testExpense.id, longText, users[0].token)).rejects.toThrow(/exceed.*500|too long/i);
             });
 
             test('should reject non-existent expense', async () => {
                 const fakeExpenseId = uuidv4();
-                await expect(driver.createExpenseComment(fakeExpenseId, 'Test comment', users[0].token)).rejects.toThrow(/not found|expense.*not.*exist/i);
+                await expect(apiDriver.createExpenseComment(fakeExpenseId, 'Test comment', users[0].token)).rejects.toThrow(/not found|expense.*not.*exist/i);
             });
         });
 
         describe('GET /expenses/:expenseId/comments', () => {
             test('should list expense comments', async () => {
                 // Create a test comment first
-                await driver.createExpenseComment(testExpense.id, 'Test expense comment', users[1].token);
+                await apiDriver.createExpenseComment(testExpense.id, 'Test expense comment', users[1].token);
 
-                const response = await driver.listExpenseComments(testExpense.id, users[0].token);
+                const response = await apiDriver.listExpenseComments(testExpense.id, users[0].token);
 
                 expect(response.success).toBe(true);
                 expect(response.data).toBeDefined();
@@ -215,25 +200,25 @@ describe('Comments API Integration Tests', () => {
             });
 
             test('should require authentication', async () => {
-                await expect(driver.listExpenseComments(testExpense.id, '')).rejects.toThrow(/401|unauthorized/i);
+                await expect(apiDriver.listExpenseComments(testExpense.id, '')).rejects.toThrow(/401|unauthorized/i);
             });
 
             test('should require group membership', async () => {
-                await expect(driver.listExpenseComments(testExpense.id, users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
+                await expect(apiDriver.listExpenseComments(testExpense.id, users[2].token)).rejects.toThrow(/403|forbidden|access denied/i);
             });
         });
     });
 
     describe('Comment Ordering and Timestamps', () => {
         test('comments should be ordered by creation date (newest first)', async () => {
-            await driver.createGroupComment(testGroup.id, 'First comment', users[0].token);
+            await apiDriver.createGroupComment(testGroup.id, 'First comment', users[0].token);
 
             // Small delay to ensure different timestamps
             await new Promise((resolve) => setTimeout(resolve, 100));
 
-            await driver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
+            await apiDriver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
 
-            const response = await driver.listGroupComments(testGroup.id, users[0].token);
+            const response = await apiDriver.listGroupComments(testGroup.id, users[0].token);
 
             expect(response.data.comments.length).toBeGreaterThanOrEqual(2);
 
@@ -252,7 +237,7 @@ describe('Comments API Integration Tests', () => {
         });
 
         test('timestamps should be valid ISO strings', async () => {
-            const response = await driver.createGroupComment(testGroup.id, 'Timestamp test', users[0].token);
+            const response = await apiDriver.createGroupComment(testGroup.id, 'Timestamp test', users[0].token);
 
             expect(response.data.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/);
             expect(response.data.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/);
@@ -265,8 +250,8 @@ describe('Comments API Integration Tests', () => {
 
     describe('Multi-User Comment Scenarios', () => {
         test('multiple group members should be able to comment', async () => {
-            const user1Comment = await driver.createGroupComment(testGroup.id, 'User 1 comment', users[0].token);
-            const user2Comment = await driver.createGroupComment(testGroup.id, 'User 2 comment', users[1].token);
+            const user1Comment = await apiDriver.createGroupComment(testGroup.id, 'User 1 comment', users[0].token);
+            const user2Comment = await apiDriver.createGroupComment(testGroup.id, 'User 2 comment', users[1].token);
 
             expect(user1Comment.data.authorId).toBe(users[0].uid);
             expect(user1Comment.data.authorName).toBe(users[0].displayName);
@@ -275,8 +260,8 @@ describe('Comments API Integration Tests', () => {
             expect(user2Comment.data.authorName).toBe(users[1].displayName);
 
             // Both users should see all comments
-            const response1 = await driver.listGroupComments(testGroup.id, users[0].token);
-            const response2 = await driver.listGroupComments(testGroup.id, users[1].token);
+            const response1 = await apiDriver.listGroupComments(testGroup.id, users[0].token);
+            const response2 = await apiDriver.listGroupComments(testGroup.id, users[1].token);
 
             expect(response1.data.comments.length).toBe(response2.data.comments.length);
 
@@ -303,7 +288,7 @@ describe('Comments API Integration Tests', () => {
             ];
 
             for (const requestBody of malformedRequests) {
-                const response = await fetch(`${(driver as any).baseUrl}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
+                const response = await fetch(`${apiDriver.getBaseUrl()}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -317,7 +302,7 @@ describe('Comments API Integration Tests', () => {
         });
 
         test('should handle invalid JSON gracefully', async () => {
-            const response = await fetch(`${(driver as any).baseUrl}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -330,7 +315,7 @@ describe('Comments API Integration Tests', () => {
         });
 
         test('should handle missing Content-Type header', async () => {
-            const response = await fetch(`${(driver as any).baseUrl}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/${FirestoreCollections.GROUPS}/${testGroup.id}/${FirestoreCollections.COMMENTS}`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${users[0].token}`,

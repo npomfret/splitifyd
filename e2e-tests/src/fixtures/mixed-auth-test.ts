@@ -121,7 +121,7 @@ export const mixedAuthTest = base.extend<MixedAuthFixtures>({
             await Promise.all(
                 users.map(async ({ context, user }) => {
                     if (user) {
-                        userPool.releaseUser(user);
+                        await userPool.releaseUser(user);
                     }
                     await context.close();
                 }),

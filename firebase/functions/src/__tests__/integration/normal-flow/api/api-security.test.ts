@@ -3,18 +3,14 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import {beforeAll, describe, expect, test} from 'vitest';
-import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {describe, expect, test} from 'vitest';
+import { ApiDriver } from '@splitifyd/test-support';
 
 describe('API Security & Headers', () => {
-    let driver: ApiDriver;
-
-    beforeAll(async () => {
-        ({driver} = await borrowTestUsers(6));
-    });
+    const apiDriver = new ApiDriver();
 
     test('should return proper CORS headers', async () => {
-        const url = `${driver.getBaseUrl()}/health`;
+        const url = `${apiDriver.getBaseUrl()}/health`;
 
         const response = await fetch(url, {
             method: 'OPTIONS',
@@ -32,7 +28,7 @@ describe('API Security & Headers', () => {
     });
 
     test('should return security headers', async () => {
-        const url = `${driver.getBaseUrl()}/health`;
+        const url = `${apiDriver.getBaseUrl()}/health`;
         const response = await fetch(url);
 
         expect(response.status).toBe(200);

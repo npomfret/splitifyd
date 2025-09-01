@@ -3,29 +3,26 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { UserBuilder, CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, User} from '@splitifyd/test-support';
 
 describe('GET /groups/balances - Group Balances', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(3);
+
         const groupData = new CreateGroupRequestBuilder().withName(`Balance Test Group ${uuidv4()}`).withDescription('Testing balance endpoint').build();
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
     test('should return correct response structure for empty group', async () => {
-        const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+        const balances = await apiDriver.getGroupBalances(testGroup.id, users[0].token);
 
         // Verify server response structure matches what server actually returns
         expect(balances).toHaveProperty('groupId', testGroup.id);
@@ -41,9 +38,9 @@ describe('GET /groups/balances - Group Balances', () => {
 
     test('should return balances for group with expenses', async () => {
         // Add multiple users to the group
-        const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
-        await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
-        await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
+        const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+        await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+        await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
         // Create an expense where user 0 pays for everyone
         const expenseData = new ExpenseBuilder()
@@ -53,10 +50,10 @@ describe('GET /groups/balances - Group Balances', () => {
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
             .build();
-        await driver.createExpense(expenseData, users[0].token);
+        await apiDriver.createExpense(expenseData, users[0].token);
 
         // Wait for balance calculation
-        const balances = await driver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length > 0, { timeout: 500 });
+        const balances = await apiDriver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length > 0, { timeout: 500 });
 
         // Verify response structure
         expect(balances.groupId).toBe(testGroup.id);
@@ -74,8 +71,8 @@ describe('GET /groups/balances - Group Balances', () => {
 
     test('should handle complex multi-expense scenarios', async () => {
         // Add another user
-        const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
-        await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+        const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+        await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
         // Create multiple expenses with different payers
         const expenseData1 = new ExpenseBuilder()
@@ -94,11 +91,11 @@ describe('GET /groups/balances - Group Balances', () => {
             .withParticipants([users[0].uid, users[1].uid])
             .build();
 
-        await driver.createExpense(expenseData1, users[0].token);
-        await driver.createExpense(expenseData2, users[0].token);
+        await apiDriver.createExpense(expenseData1, users[0].token);
+        await apiDriver.createExpense(expenseData2, users[0].token);
 
         // Wait for balance calculation
-        const balances = await driver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 2, { timeout: 500 });
+        const balances = await apiDriver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 2, { timeout: 500 });
 
         // Verify both users have balances
         expect(Object.keys(balances.userBalances)).toHaveLength(2);
@@ -112,22 +109,22 @@ describe('GET /groups/balances - Group Balances', () => {
     });
 
     test('should require authentication', async () => {
-        await expect(driver.getGroupBalances(testGroup.id, '')).rejects.toThrow(/401|unauthorized/i);
+        await expect(apiDriver.getGroupBalances(testGroup.id, '')).rejects.toThrow(/401|unauthorized/i);
     });
 
     test('should return 404 for non-existent group', async () => {
-        await expect(driver.getGroupBalances('non-existent-id', users[0].token)).rejects.toThrow(/404|not found/i);
+        await expect(apiDriver.getGroupBalances('non-existent-id', users[0].token)).rejects.toThrow(/404|not found/i);
     });
 
     test('should restrict access to group members only', async () => {
         // User 1 is not a member of the group
-        await expect(driver.getGroupBalances(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden/i);
+        await expect(apiDriver.getGroupBalances(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden/i);
     });
 
     test('should validate groupId parameter', async () => {
         // Test with missing groupId (should be handled by validation)
         try {
-            await driver.makeInvalidApiCall('/groups/balances', 'GET', null, users[0].token);
+            await apiDriver.makeInvalidApiCall('/groups/balances', 'GET', null, users[0].token);
             throw new Error('Should have thrown validation error');
         } catch (error) {
             expect((error as Error).message).toMatch(/validation|required|groupId/i);
@@ -135,7 +132,7 @@ describe('GET /groups/balances - Group Balances', () => {
     });
 
     test('should handle groups with no expenses gracefully', async () => {
-        const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+        const balances = await apiDriver.getGroupBalances(testGroup.id, users[0].token);
 
         expect(balances.groupId).toBe(testGroup.id);
         expect(balances.userBalances).toBeDefined();
@@ -145,7 +142,7 @@ describe('GET /groups/balances - Group Balances', () => {
     });
 
     test('should return updated timestamp', async () => {
-        const balances = await driver.getGroupBalances(testGroup.id, users[0].token);
+        const balances = await apiDriver.getGroupBalances(testGroup.id, users[0].token);
 
         expect(balances.lastUpdated).toBeDefined();
         expect(typeof balances.lastUpdated).toBe('string');
@@ -158,9 +155,9 @@ describe('GET /groups/balances - Group Balances', () => {
 
     test('should include simplified debts for complex scenarios', async () => {
         // Create a three-person group with circular debts
-        const shareLink = await driver.generateShareLink(testGroup.id, users[0].token);
-        await driver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
-        await driver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
+        const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+        await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+        await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
         // Create expenses that would benefit from debt simplification
         const expenseData1 = new ExpenseBuilder()
@@ -180,11 +177,11 @@ describe('GET /groups/balances - Group Balances', () => {
             .withCategory('transport')
             .build();
 
-        await driver.createExpense(expenseData1, users[0].token);
-        await driver.createExpense(expenseData2, users[0].token);
+        await apiDriver.createExpense(expenseData1, users[0].token);
+        await apiDriver.createExpense(expenseData2, users[0].token);
 
         // Wait for balance calculation
-        const balances = await driver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 3, { timeout: 500 });
+        const balances = await apiDriver.pollGroupBalancesUntil(testGroup.id, users[0].token, (b) => b.userBalances && Object.keys(b.userBalances).length >= 3, { timeout: 500 });
 
         // Should have simplified debts
         expect(Array.isArray(balances.simplifiedDebts)).toBe(true);

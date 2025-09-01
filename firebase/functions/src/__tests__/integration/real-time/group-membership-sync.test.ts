@@ -1,27 +1,24 @@
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, AppDriver, User} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
-import { borrowTestUsers } from '@splitifyd/test-support';
-import { getFirestore } from 'firebase-admin/firestore';
+import { afterAll, describe, it, expect } from 'vitest';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {firestoreDb} from "../../../firebase";
 
 // vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
 
 describe('Group Membership Real-Time Sync Tests', () => {
-    let driver: ApiDriver;
-    let appDriver: AppDriver;
-    let users: User[] = [];
-    const db = getFirestore();
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
     const activeListeners: Array<() => void> = [];
 
-    const _testUsers = (count: number) => users.slice(0, count);
+    let users: User[];
 
-    beforeAll(async () => {
-        ({ driver, users } = await borrowTestUsers(3));
-        appDriver = new AppDriver(driver, firestoreDb);
+    beforeEach(async () => {
+        users = await borrowTestUsers(4);
     });
+
+    const _testUsers = (count: number) => users.slice(0, count);
 
     afterAll(() => {
         // Clean up all listeners
@@ -41,7 +38,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
         // User 1 creates a group
         const groupData = new CreateGroupRequestBuilder().withName(`RT Test Group ${uuidv4()}`).withDescription('Testing real-time membership sync').build();
 
-        const group = await driver.createGroup(groupData, user1.token);
+        const group = await apiDriver.createGroup(groupData, user1.token);
         const groupId = group.id;
 
         // Set up a listener for User 1 to monitor group changes
@@ -51,7 +48,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
             resolvePromise = resolve;
         });
 
-        const groupRef = db.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
         const unsubscribe = groupRef.onSnapshot((snapshot) => {
             if (snapshot.exists) {
                 const data = snapshot.data();
@@ -92,11 +89,11 @@ describe('Group Membership Real-Time Sync Tests', () => {
         expect(membershipChanges[0].memberIds).toContain(user1.uid);
 
         // User 1 generates a share link
-        const shareResponse = await driver.generateShareLink(groupId, user1.token);
+        const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
         const linkId = shareResponse.linkId;
 
         // User 2 joins via the share link
-        await driver.joinGroupViaShareLink(linkId, user2.token);
+        await apiDriver.joinGroupViaShareLink(linkId, user2.token);
 
         // Use ApiDriver to wait for user2 to join the group
         await appDriver.waitForUserJoinGroup(groupId, user2.uid, user1.token, 5000);
@@ -114,11 +111,11 @@ describe('Group Membership Real-Time Sync Tests', () => {
         expect(finalChange.memberIds).toContain(user2.uid);
 
         // Verify both users can see each other via API
-        const membersFromUser1 = await driver.getGroupMembers(groupId, user1.token);
+        const membersFromUser1 = await apiDriver.getGroupMembers(groupId, user1.token);
         expect(membersFromUser1.members.length).toBe(2);
         expect(membersFromUser1.members.map((m: any) => m.uid)).toContain(user2.uid);
 
-        const membersFromUser2 = await driver.getGroupMembers(groupId, user2.token);
+        const membersFromUser2 = await apiDriver.getGroupMembers(groupId, user2.token);
         expect(membersFromUser2.members.length).toBe(2);
         expect(membersFromUser2.members.map((m: any) => m.uid)).toContain(user1.uid);
     });
@@ -134,12 +131,12 @@ describe('Group Membership Real-Time Sync Tests', () => {
         // User 1 creates a group
         const groupData = new CreateGroupRequestBuilder().withName(`Change Test Group ${uuidv4()}`).withDescription('Testing change detection').build();
 
-        const group = await driver.createGroup(groupData, user1.token);
+        const group = await apiDriver.createGroup(groupData, user1.token);
         const groupId = group.id;
 
         // Set up listener for group-changes collection
         const changeRecords: any[] = [];
-        const changesRef = db.collection('group-changes').where('id', '==', groupId).where('users', 'array-contains', user1.uid);
+        const changesRef = firestoreDb.collection('group-changes').where('id', '==', groupId).where('users', 'array-contains', user1.uid);
 
         const unsubscribeChanges = changesRef.onSnapshot((snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -155,8 +152,8 @@ describe('Group Membership Real-Time Sync Tests', () => {
         activeListeners.push(unsubscribeChanges);
 
         // Generate share link and have user2 join
-        const shareResponse = await driver.generateShareLink(groupId, user1.token);
-        await driver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+        const shareResponse = await apiDriver.generateShareLink(groupId, user1.token);
+        await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
         // Use ApiDriver to wait for change records to be created
         await appDriver.waitForGroupChangeRecords(groupId, user1.uid, 1, 3000);

@@ -3,21 +3,19 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, describe, expect, test } from 'vitest';
-
-import {  User, borrowTestUsers } from '@splitifyd/test-support';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {User, borrowTestUsers} from '@splitifyd/test-support';
 
 describe('User Authentication', () => {
-    let allUsers: User[] = [];
+    let users: User[];
 
-    // Helper to get users from pool
-    const getTestUsers = (count: number): User[] => {
-        return allUsers.slice(0, count);
-    };
-
-    beforeAll(async () => {
-        ({users: allUsers } = await borrowTestUsers(6));
+    beforeEach(async () => {
+        users = await borrowTestUsers(2);
     });
+
+    const getTestUsers = (count: number): User[] => {
+        return users.slice(0, count);
+    };
 
     test('should allow users to register and log in', () => {
         const users = getTestUsers(2);

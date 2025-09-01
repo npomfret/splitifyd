@@ -1,60 +1,31 @@
 // Test to reproduce the issue where settlements created via API don't generate realtime notifications
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-
-import {ApiDriver, User, borrowTestUsers, AppDriver} from '@splitifyd/test-support';
-import { SettlementBuilder } from '@splitifyd/test-support';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { firestoreDb } from '../../../firebase';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {ApiDriver, AppDriver, SettlementBuilder, User, borrowTestUsers} from '@splitifyd/test-support';
+import {firestoreDb} from '../../../firebase';
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
-    let driver: ApiDriver;
-    let appDriver: AppDriver;
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
 
-    let users: User[] = [];
-    let allUsers: User[] = [];
     let user1: User;
     let user2: User;
     let groupId: string;
 
-    // vi.setTimeout(10000); // Reduced from 20s to meet guideline maximum
-
-    beforeAll(async () => {
-        ({ driver, users: allUsers } = await borrowTestUsers(2));
-        appDriver = new AppDriver(driver, firestoreDb);
-        users = allUsers.slice(0, 2);
-    });
-
     beforeEach(async () => {
-        // Use users from pool
-        user1 = users[0];
-        user2 = users[1];
-    });
-
-    afterEach(async () => {
-        // Clean up test data
-        if (groupId) {
-            const collections = ['settlements', 'groups', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
-            for (const collection of collections) {
-                const snapshot = await firestoreDb.collection(collection).where('groupId', '==', groupId).get();
-
-                const batch = firestoreDb.batch();
-                snapshot.docs.forEach((doc) => batch.delete(doc.ref));
-                await batch.commit();
-            }
-        }
+        [user1, user2] = await borrowTestUsers(2); // Automatic cleanup after each test!
     });
 
     it('should generate transaction-change notification when settlement is created via API', async () => {
         // Create a group with both users as members using ApiDriver
-        const testGroup = await driver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
+        const testGroup = await apiDriver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
         groupId = testGroup.id;
 
         // Create a settlement via API (not direct Firestore)
         const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(user2.uid).withPayee(user1.uid).build();
 
-        const createdSettlement = await driver.createSettlement(settlementData, user1.token);
+        const createdSettlement = await apiDriver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();
         expect(createdSettlement.id).toBeDefined();
 

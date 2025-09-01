@@ -1,27 +1,19 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
+import {ApiDriver, User, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { borrowTestUsers } from '@splitifyd/test-support';
 
 describe('Additional Monetary Edge Cases', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
-
-    beforeAll(async () => {
-        // Borrow 4 users with automatic cleanup
-        ({ driver, users: allUsers } = await borrowTestUsers(4));
-        
-        // Use first 3 users for main tests (4th available for isolated tests)
-        users = allUsers.slice(0, 3);
-    });
+    let users: User[];
 
     beforeEach(async () => {
+        users = await borrowTestUsers(3);
+
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withMembers(users).build();
-        testGroup = await driver.createGroup(groupData, users[0].token);
+        testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
     test('should handle currency-style formatting for display', async () => {
@@ -32,10 +24,10 @@ describe('Additional Monetary Edge Cases', () => {
             .withParticipants([users[0].uid, users[1].uid])
             .build();
 
-        const response = await driver.createExpense(expenseData, users[0].token);
+        const response = await apiDriver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
 
-        const createdExpense = await driver.getExpense(response.id, users[0].token);
+        const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
         expect(createdExpense.amount).toBe(12.34);
 
         // Verify splits handle currency precision properly
@@ -51,10 +43,10 @@ describe('Additional Monetary Edge Cases', () => {
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
             .build();
 
-        const response = await driver.createExpense(expenseData, users[0].token);
+        const response = await apiDriver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
 
-        const createdExpense = await driver.getExpense(response.id, users[0].token);
+        const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
         expect(createdExpense.amount).toBe(10.0);
         expect(createdExpense.splits).toHaveLength(3);
 
@@ -77,10 +69,10 @@ describe('Additional Monetary Edge Cases', () => {
             .withParticipants([users[0].uid, users[1].uid])
             .build();
 
-        const response = await driver.createExpense(expenseData, users[0].token);
+        const response = await apiDriver.createExpense(expenseData, users[0].token);
         expect(response.id).toBeDefined();
 
-        const createdExpense = await driver.getExpense(response.id, users[0].token);
+        const createdExpense = await apiDriver.getExpense(response.id, users[0].token);
         expect(createdExpense.amount).toBe(0.999);
 
         // Verify splits handle fractional amounts reasonably (rounding may occur)

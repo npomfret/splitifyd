@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES, PLACEHOLDERS } from '../constants/selectors';
+import { SELECTORS, ARIA_ROLES } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
 import type { User as BaseUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
@@ -21,30 +21,27 @@ export class CreateGroupModalPage extends BasePage {
         // Wait for modal to be fully visible - use heading to avoid ambiguity
         await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'visible' });
 
-        // Get the modal/dialog container to scope our selectors
-        // This avoids conflicts with other elements on the page
-        const modal = this.page.locator('[role="dialog"], .fixed.inset-0').last();
-
-        // Get the input using a more specific selector - scoped to the modal
-        // Use placeholder to be more specific and avoid conflicts
-        const nameInput = modal.getByPlaceholder(translationEn.createGroupModal.groupNamePlaceholder);
-
-        // Wait for input to be visible and enabled
+        // Fill name input - get fresh locator each time to avoid DOM detachment issues
+        const nameInput = this.getGroupNameInput();
         await nameInput.waitFor({ state: 'visible' });
         await expect(nameInput).toBeEnabled();
-
-        // Use the new fillPreactInput utility
         await this.fillPreactInput(nameInput, name);
 
+        // Fill description input if provided - get fresh locator to avoid DOM detachment issues
         if (description) {
-            const descInput = modal.getByPlaceholder(PLACEHOLDERS.GROUP_DESCRIPTION);
+            const descInput = this.getDescriptionInput();
+            await descInput.waitFor({ state: 'visible' });
             await this.fillPreactInput(descInput, description);
         }
     }
 
     async submitForm() {
-        // Get the submit button
-        const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
+        // Get the submit button using the dedicated method for better scoping
+        const submitButton = this.getSubmitButton();
+
+        // Wait for button to be ready before clicking
+        await submitButton.waitFor({ state: 'visible' });
+        await expect(submitButton).toBeEnabled();
 
         // Use standardized button click with proper error handling
         await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
@@ -117,11 +114,19 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     getGroupNameInput() {
-        return this.page.getByLabel(translationEn.createGroupModal.groupNameLabel);
+        // Scope to the modal to avoid conflicts with other elements containing "Group Name" text
+        return this.page
+            .locator('[role="dialog"], .fixed.inset-0')
+            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByLabel(translationEn.createGroupModal.groupNameLabel);
     }
 
     getDescriptionInput() {
-        return this.page.getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
+        // Scope to the modal to avoid conflicts with other elements
+        return this.page
+            .locator('[role="dialog"], .fixed.inset-0')
+            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
     }
 
     getSubmitButton() {

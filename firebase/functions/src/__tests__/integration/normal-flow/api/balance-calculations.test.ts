@@ -3,48 +3,48 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, User, borrowTestUsers, AppDriver} from '@splitifyd/test-support';
+import {ApiDriver, User, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import { groupSize } from '@splitifyd/shared';
 import {firestoreDb} from "../../../../firebase";
 
 describe('Balance Calculations', () => {
-    let driver: ApiDriver;
-    let appDriver: AppDriver;
+    const apiDriver = new ApiDriver();
+    const appDriver = new AppDriver(apiDriver, firestoreDb);
     let balanceTestGroup: any;
-    let users: User[] = [];
-    let allUsers: User[] = [];
+
+    let users: User[];
+
+    beforeEach(async () => {
+        users = await borrowTestUsers(6);
+    });
 
     // Helper to get users from pool
     const getTestUsers = (count: number): User[] => {
-        return allUsers.slice(0, count);
+        return users.slice(0, count);
     };
 
-    beforeAll(async () => {
-        ({ driver, users: allUsers } = await borrowTestUsers(6));
-        appDriver = new AppDriver(driver, firestoreDb);
-    });
-
     beforeEach(async () => {
-        users = getTestUsers(2);
-        balanceTestGroup = await driver.createGroupWithMembers(`Balance Test Group ${uuidv4()}`, users, users[0].token);
+        const testUsers = getTestUsers(2);
+        balanceTestGroup = await apiDriver.createGroupWithMembers(`Balance Test Group ${uuidv4()}`, testUsers, testUsers[0].token);
     });
 
     test('should include balance information in group details', async () => {
+        const testUsers = getTestUsers(2);
         // Create an expense: User 0 pays 100, split equally between 2 users
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
             .withAmount(100)
-            .withPaidBy(users[0].uid)
-            .withParticipants(users.map((u) => u.uid))
+            .withPaidBy(testUsers[0].uid)
+            .withParticipants(testUsers.map((u) => u.uid))
             .build();
-        await driver.createExpense(expenseData, users[0].token);
+        await apiDriver.createExpense(expenseData, testUsers[0].token);
 
         // Get group details to check balance info
-        const groupDetails = await driver.getGroup(balanceTestGroup.id, users[0].token);
+        const groupDetails = await apiDriver.getGroup(balanceTestGroup.id, testUsers[0].token);
 
         // Verify the response structure includes balance info
         expect(groupDetails).toHaveProperty('id');
@@ -58,15 +58,15 @@ describe('Balance Calculations', () => {
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
             .withAmount(100)
-            .withPaidBy(users[0].uid)
-            .withParticipants(users.map((u) => u.uid))
+            .withPaidBy(getTestUsers(2)[0].uid)
+            .withParticipants(getTestUsers(2).map((u) => u.uid))
             .build();
-        await driver.createExpense(expenseData, users[0].token);
+        await apiDriver.createExpense(expenseData, getTestUsers(2)[0].token);
 
         // Get group list to check balance data
 
         // Test the listGroups endpoint (which dashboard uses)
-        const listResponse = await driver.listGroups(users[0].token);
+        const listResponse = await apiDriver.listGroups(getTestUsers(2)[0].token);
 
         expect(listResponse).toHaveProperty('groups');
         expect(Array.isArray(listResponse.groups)).toBe(true);
@@ -99,7 +99,7 @@ describe('Balance Calculations', () => {
     // NOTE: Expense metadata (expenseCount, lastExpense) removed in favor of on-demand calculation
     test('should show updated lastActivity after creating expenses', async () => {
         // First, verify the group starts with default lastActivity
-        const initialListResponse = await driver.listGroups(users[0].token);
+        const initialListResponse = await apiDriver.listGroups(getTestUsers(2)[0].token);
         const initialGroupInList = initialListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
 
         expect(initialGroupInList).toBeDefined();
@@ -111,10 +111,10 @@ describe('Balance Calculations', () => {
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
             .withAmount(75)
-            .withPaidBy(users[0].uid)
-            .withParticipants(users.map((u) => u.uid))
+            .withPaidBy(getTestUsers(2)[0].uid)
+            .withParticipants(getTestUsers(2).map((u) => u.uid))
             .build();
-        const expense = await driver.createExpense(expenseData, users[0].token);
+        const expense = await apiDriver.createExpense(expenseData, getTestUsers(2)[0].token);
 
         // Wait for the expense change to be processed
         await appDriver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
@@ -122,7 +122,7 @@ describe('Balance Calculations', () => {
         });
 
         // Check after creating expense
-        const updatedListResponse = await driver.listGroups(users[0].token);
+        const updatedListResponse = await apiDriver.listGroups(getTestUsers(2)[0].token);
         const updatedGroupInList = updatedListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
 
         expect(updatedGroupInList).toBeDefined();
@@ -142,10 +142,10 @@ describe('Balance Calculations', () => {
         const secondExpenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
             .withAmount(25)
-            .withPaidBy(users[1].uid)
-            .withParticipants(users.map((u) => u.uid))
+            .withPaidBy(getTestUsers(2)[1].uid)
+            .withParticipants(getTestUsers(2).map((u) => u.uid))
             .build();
-        const secondExpense = await driver.createExpense(secondExpenseData, users[1].token);
+        const secondExpense = await apiDriver.createExpense(secondExpenseData, getTestUsers(2)[1].token);
 
         // Wait for the second expense change to be processed
         await appDriver.waitForExpenseChanges(balanceTestGroup.id, (changes) => {
@@ -153,7 +153,7 @@ describe('Balance Calculations', () => {
         });
 
         // Check after second expense
-        const finalListResponse = await driver.listGroups(users[0].token);
+        const finalListResponse = await apiDriver.listGroups(getTestUsers(2)[0].token);
         const finalGroupInList = finalListResponse.groups.find((group: any) => group.id === balanceTestGroup.id);
 
         expect(finalGroupInList!.lastActivityRaw).toBeDefined();

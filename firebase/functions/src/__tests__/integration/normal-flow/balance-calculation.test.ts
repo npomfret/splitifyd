@@ -1,27 +1,19 @@
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { CreateGroupRequestBuilder, ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 
 describe('Balance Calculation Integration Test', () => {
-    let apiDriver: ApiDriver;
-    let user1: User;
-    let user2: User;
-    let user3: User;
+    let apiDriver = new ApiDriver()
     let groupId: string;
     let shareLinkId: string;
 
-    beforeAll(async () => {
-        apiDriver = new ApiDriver();
-    });
+    let user1: User;
+    let user2: User;
+    let user3: User;
 
     beforeEach(async () => {
-        // Create fresh test users using builders
-        user1 = await apiDriver.createUser(new UserBuilder().withEmail('user1.balance@test.com').withPassword('Password123!').withDisplayName('User One').build());
-
-        user2 = await apiDriver.createUser(new UserBuilder().withEmail('user2.balance@test.com').withPassword('Password123!').withDisplayName('User Two').build());
-
-        user3 = await apiDriver.createUser(new UserBuilder().withEmail('user3.balance@test.com').withPassword('Password123!').withDisplayName('User Three').build());
+        ([user1, user2, user3] = await borrowTestUsers(3));
     });
 
     it('should correctly calculate balances for multi-user expense sharing', async () => {

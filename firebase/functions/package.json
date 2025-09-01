@@ -11,7 +11,7 @@
     "copy:locales": "cp -r src/locales lib/ || mkdir -p lib/locales && cp -r src/locales/* lib/locales/",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "vitest run src/__tests__/unit/",
-    "test:integration": "vitest run src/__tests__/integration/",
+    "test:integration": "npm run build && node scripts/cleanup-test-data.js && vitest run src/__tests__/integration/",
     "test:integration:json": "vitest run src/__tests__/integration/ --reporter=json --outputFile=test-integration-results.json",
     "test:watch": "vitest watch src/__tests__/unit/",
     "test:coverage": "vitest run --coverage",

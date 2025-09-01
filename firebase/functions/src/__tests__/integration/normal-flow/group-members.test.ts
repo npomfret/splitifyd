@@ -1,19 +1,20 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User, borrowTestUsers } from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { beforeAll } from 'vitest';
+import {beforeEach} from "vitest";
 
 // vi.setTimeout(8000); // it takes about 4s
 
 describe('Group Members Integration Tests', () => {
-    let driver: ApiDriver;
-    let allUsers: User[] = [];
+    const apiDriver = new ApiDriver();
 
-    const _testUsers = (count: number) => allUsers.slice(0, count);
+    let users: User[];
 
-    beforeAll(async () => {
-        ({ driver, users: allUsers } = await borrowTestUsers(5));
+    beforeEach(async () => {
+        users = await borrowTestUsers(5);
     });
+
+    const _testUsers = (count: number) => users.slice(0, count);
 
     // Helper function to create a group with multiple members
     const createGroupWithMembers = async (driver: ApiDriver, users: User[]): Promise<string> => {
@@ -35,9 +36,9 @@ describe('Group Members Integration Tests', () => {
     describe('getGroupMembers', () => {
         it('should return all group members', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
 
-            const response = await driver.getGroupMembers(groupId, users[0].token);
+            const response = await apiDriver.getGroupMembers(groupId, users[0].token);
 
             expect(response).toMatchObject({
                 members: expect.arrayContaining([expect.objectContaining({ uid: users[0].uid }), expect.objectContaining({ uid: users[1].uid }), expect.objectContaining({ uid: users[2].uid })]),
@@ -48,9 +49,9 @@ describe('Group Members Integration Tests', () => {
 
         it('should return members sorted alphabetically', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
 
-            const response = await driver.getGroupMembers(groupId, users[0].token);
+            const response = await apiDriver.getGroupMembers(groupId, users[0].token);
 
             const displayNames = response.members.map((m: any) => m.displayName);
             const sortedNames = [...displayNames].sort((a, b) => a.localeCompare(b));
@@ -59,27 +60,27 @@ describe('Group Members Integration Tests', () => {
 
         it('should throw error if user is not authenticated', async () => {
             const users = _testUsers(1);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
 
-            await expect(driver.getGroupMembers(groupId, 'invalid-token')).rejects.toThrow();
+            await expect(apiDriver.getGroupMembers(groupId, 'invalid-token')).rejects.toThrow();
         });
 
         it('should throw FORBIDDEN if user is not a member', async () => {
             const users = _testUsers(2); // Need 2 users - one for group, one as non-member
-            const groupId = await createGroupWithMembers(driver, [users[0]]);
+            const groupId = await createGroupWithMembers(apiDriver, [users[0]]);
             const nonMember = users[1]; // Use second user as non-member
 
-            await expect(driver.getGroupMembers(groupId, nonMember.token)).rejects.toThrow();
+            await expect(apiDriver.getGroupMembers(groupId, nonMember.token)).rejects.toThrow();
         });
     });
 
     describe('leaveGroup', () => {
         it('should allow a member to leave the group', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const memberToLeave = users[1]; // Not the creator
 
-            const response = await driver.leaveGroup(groupId, memberToLeave.token);
+            const response = await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
             expect(response).toEqual({
                 success: true,
@@ -87,25 +88,25 @@ describe('Group Members Integration Tests', () => {
             });
 
             // Verify member was removed by checking group members via API
-            const membersResponse = await driver.getGroupMembers(groupId, users[0].token);
+            const membersResponse = await apiDriver.getGroupMembers(groupId, users[0].token);
             expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToLeave.uid);
             expect(membersResponse.members.length).toBe(2);
         });
 
         it('should prevent the creator from leaving', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
 
-            await expect(driver.leaveGroup(groupId, users[0].token)).rejects.toThrow(/Group creator cannot leave/);
+            await expect(apiDriver.leaveGroup(groupId, users[0].token)).rejects.toThrow(/Group creator cannot leave/);
         });
 
         it('should prevent leaving with outstanding balance', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const memberWithDebt = users[1];
 
             // Create an expense where member owes money
-            await driver.createExpense(
+            await apiDriver.createExpense(
                 {
                     groupId: groupId,
                     description: 'Test expense',
@@ -120,21 +121,21 @@ describe('Group Members Integration Tests', () => {
                 users[0].token,
             );
 
-            await expect(driver.leaveGroup(groupId, memberWithDebt.token)).rejects.toThrow(/Cannot leave group with outstanding balance/);
+            await expect(apiDriver.leaveGroup(groupId, memberWithDebt.token)).rejects.toThrow(/Cannot leave group with outstanding balance/);
         });
 
         it('should update timestamps when leaving', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const memberToLeave = users[1];
 
             // Get group info before leaving
-            const groupBefore = await driver.getGroup(groupId, users[0].token);
+            const groupBefore = await apiDriver.getGroup(groupId, users[0].token);
 
-            await driver.leaveGroup(groupId, memberToLeave.token);
+            await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
             // Verify timestamps were updated by checking group info
-            const groupAfter = await driver.getGroup(groupId, users[0].token);
+            const groupAfter = await apiDriver.getGroup(groupId, users[0].token);
             expect(new Date(groupAfter.updatedAt).getTime()).toBeGreaterThan(new Date(groupBefore.updatedAt).getTime());
         });
     });
@@ -142,11 +143,11 @@ describe('Group Members Integration Tests', () => {
     describe('removeGroupMember', () => {
         it('should allow creator to remove a member', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const creator = users[0];
             const memberToRemove = users[1];
 
-            const response = await driver.removeGroupMember(groupId, memberToRemove.uid, creator.token);
+            const response = await apiDriver.removeGroupMember(groupId, memberToRemove.uid, creator.token);
 
             expect(response).toEqual({
                 success: true,
@@ -154,36 +155,36 @@ describe('Group Members Integration Tests', () => {
             });
 
             // Verify member was removed by checking group members via API
-            const membersResponse = await driver.getGroupMembers(groupId, creator.token);
+            const membersResponse = await apiDriver.getGroupMembers(groupId, creator.token);
             expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
             expect(membersResponse.members.length).toBe(2);
         });
 
         it('should prevent non-creator from removing members', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const nonCreator = users[1];
             const memberToRemove = users[2];
 
-            await expect(driver.removeGroupMember(groupId, memberToRemove.uid, nonCreator.token)).rejects.toThrow(/FORBIDDEN/);
+            await expect(apiDriver.removeGroupMember(groupId, memberToRemove.uid, nonCreator.token)).rejects.toThrow(/FORBIDDEN/);
         });
 
         it('should prevent removing the creator', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const creator = users[0];
 
-            await expect(driver.removeGroupMember(groupId, creator.uid, creator.token)).rejects.toThrow(/Group creator cannot be removed/);
+            await expect(apiDriver.removeGroupMember(groupId, creator.uid, creator.token)).rejects.toThrow(/Group creator cannot be removed/);
         });
 
         it('should prevent removing member with outstanding balance', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const creator = users[0];
             const memberWithDebt = users[1];
 
             // Create expense where member owes money
-            await driver.createExpense(
+            await apiDriver.createExpense(
                 {
                     groupId: groupId,
                     description: 'Test expense',
@@ -198,65 +199,65 @@ describe('Group Members Integration Tests', () => {
                 creator.token,
             );
 
-            await expect(driver.removeGroupMember(groupId, memberWithDebt.uid, creator.token)).rejects.toThrow(/Cannot remove member with outstanding balance/);
+            await expect(apiDriver.removeGroupMember(groupId, memberWithDebt.uid, creator.token)).rejects.toThrow(/Cannot remove member with outstanding balance/);
         });
 
         it('should handle removing non-existent member', async () => {
             const users = _testUsers(1);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const creator = users[0];
             const nonExistentMember = 'non-existent-uid';
 
-            await expect(driver.removeGroupMember(groupId, nonExistentMember, creator.token)).rejects.toThrow(/User is not a member of this group/);
+            await expect(apiDriver.removeGroupMember(groupId, nonExistentMember, creator.token)).rejects.toThrow(/User is not a member of this group/);
         });
     });
 
     describe('Complex scenarios', () => {
         it('should handle multiple members leaving sequentially', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const member1 = users[1];
             const member2 = users[2];
 
             // First member leaves
-            await driver.leaveGroup(groupId, member1.token);
+            await apiDriver.leaveGroup(groupId, member1.token);
 
             // Second member leaves
-            await driver.leaveGroup(groupId, member2.token);
+            await apiDriver.leaveGroup(groupId, member2.token);
 
             // Verify only creator remains via API
-            const membersResponse = await driver.getGroupMembers(groupId, users[0].token);
+            const membersResponse = await apiDriver.getGroupMembers(groupId, users[0].token);
             expect(membersResponse.members.map((m: any) => m.uid)).toEqual([users[0].uid]);
             expect(membersResponse.members.length).toBe(1);
         });
 
         it('should prevent access after leaving group', async () => {
             const users = _testUsers(2);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const memberToLeave = users[1];
 
             // Member leaves
-            await driver.leaveGroup(groupId, memberToLeave.token);
+            await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
             // Try to access group members after leaving
-            await expect(driver.getGroupMembers(groupId, memberToLeave.token)).rejects.toThrow();
+            await expect(apiDriver.getGroupMembers(groupId, memberToLeave.token)).rejects.toThrow();
         });
 
         it('should handle mixed leave and remove operations', async () => {
             const users = _testUsers(3);
-            const groupId = await createGroupWithMembers(driver, users);
+            const groupId = await createGroupWithMembers(apiDriver, users);
             const creator = users[0];
             const member1 = users[1];
             const member2 = users[2];
 
             // Creator removes member1
-            await driver.removeGroupMember(groupId, member1.uid, creator.token);
+            await apiDriver.removeGroupMember(groupId, member1.uid, creator.token);
 
             // Member2 leaves voluntarily
-            await driver.leaveGroup(groupId, member2.token);
+            await apiDriver.leaveGroup(groupId, member2.token);
 
             // Verify only creator remains via API
-            const membersResponse = await driver.getGroupMembers(groupId, creator.token);
+            const membersResponse = await apiDriver.getGroupMembers(groupId, creator.token);
             expect(membersResponse.members.map((m: any) => m.uid)).toEqual([creator.uid]);
             expect(membersResponse.members.length).toBe(1);
         });

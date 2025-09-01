@@ -1,22 +1,18 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, User } from '@splitifyd/test-support';
-import { UserBuilder, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
+import {ApiDriver, ExpenseBuilder, SettlementBuilder, User} from '@splitifyd/test-support';
 
 describe('Negative Value Validation', () => {
-    let driver: ApiDriver;
-    let users: User[] = [];
+    const apiDriver = new ApiDriver();
     let testGroup: any;
 
-    // vi.setTimeout(10000);
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-        users = await Promise.all([driver.createUser(new UserBuilder().build()), driver.createUser(new UserBuilder().build())]);
-    });
+    let users: User[];
 
     beforeEach(async () => {
-        testGroup = await driver.createGroupWithMembers(`Negative Validation Test Group ${uuidv4()}`, users, users[0].token);
+        users = await borrowTestUsers(2);
+
+        testGroup = await apiDriver.createGroupWithMembers(`Negative Validation Test Group ${uuidv4()}`, users, users[0].token);
     });
 
     describe('Expense Validation', () => {
@@ -31,7 +27,7 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
         });
 
         it('should reject zero expense amounts', async () => {
@@ -45,7 +41,7 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
         });
 
         it('should reject negative amounts in expense splits', async () => {
@@ -63,7 +59,7 @@ describe('Negative Value Validation', () => {
                 ])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive/);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/positive/);
         });
 
         it('should reject negative amounts when updating expense', async () => {
@@ -78,14 +74,14 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            const expense = await driver.createExpense(expenseData, users[0].token);
+            const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Try to update with negative amount
             const updateData = {
                 amount: -50, // Negative amount
             };
 
-            await expect(driver.updateExpense(expense.id, updateData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
+            await expect(apiDriver.updateExpense(expense.id, updateData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
         });
     });
 
@@ -99,7 +95,7 @@ describe('Negative Value Validation', () => {
                 .withNote('Test negative settlement')
                 .build();
 
-            await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
+            await expect(apiDriver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
         });
 
         it('should reject zero settlement amounts', async () => {
@@ -111,21 +107,21 @@ describe('Negative Value Validation', () => {
                 .withNote('Test zero settlement')
                 .build();
 
-            await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
+            await expect(apiDriver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
         });
 
         it('should reject negative amounts when updating settlement', async () => {
             // First create a valid settlement
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100).withNote('Valid settlement').build();
 
-            const settlement = await driver.createSettlement(settlementData, users[0].token);
+            const settlement = await apiDriver.createSettlement(settlementData, users[0].token);
 
             // Try to update with negative amount
             const updateData = {
                 amount: -75, // Negative amount
             };
 
-            await expect(driver.updateSettlement(settlement.id, updateData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
+            await expect(apiDriver.updateSettlement(settlement.id, updateData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
         });
 
         it('should validate settlement amount does not exceed maximum', async () => {
@@ -137,7 +133,7 @@ describe('Negative Value Validation', () => {
                 .withNote('Test max amount')
                 .build();
 
-            await expect(driver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount cannot exceed 999,999.99/);
+            await expect(apiDriver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount cannot exceed 999,999.99/);
         });
     });
 
@@ -153,7 +149,7 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0/);
         });
 
         it('should reject negative infinity', async () => {
@@ -167,7 +163,7 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0|invalid/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0|invalid/i);
         });
 
         it('should handle NaN values gracefully', async () => {
@@ -181,7 +177,7 @@ describe('Negative Value Validation', () => {
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
 
-            await expect(driver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0|invalid/i);
+            await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/Amount must be a positive number|Amount must be greater than 0|invalid/i);
         });
     });
 });

@@ -3,8 +3,6 @@
  * Provides strongly typed errors with structured context for better debugging.
  */
 
-import { NavigationResult } from '../types';
-
 /**
  * Base error class for all E2E test errors
  */

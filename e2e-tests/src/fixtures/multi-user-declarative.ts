@@ -89,7 +89,7 @@ export const multiUserTest = base.extend<MultiUserFixtures>({
         } finally {
             await Promise.all(
                 users.map(async ({ context, user }, index) => {
-                    userPool.releaseUser(user);
+                    await userPool.releaseUser(user);
                     // Don't close the default context (index 0), Playwright will handle it
                     if (index > 0) {
                         await context.close();

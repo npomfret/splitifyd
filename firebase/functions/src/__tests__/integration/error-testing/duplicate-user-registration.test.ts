@@ -1,40 +1,34 @@
 // Tests for duplicate user registration handling
 
-import { beforeAll, describe, expect, test } from 'vitest';
+import { describe, expect, test } from 'vitest';
 
 import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
 
 describe('Duplicate User Registration Tests', () => {
-    let driver: ApiDriver;
-
-    // vi.setTimeout(4000); // it takes about 2s
-
-    beforeAll(async () => {
-        driver = new ApiDriver();
-    });
+    const apiDriver = new ApiDriver();
 
     describe('Sequential Registration', () => {
         test('should prevent duplicate email registration', async () => {
             const userData = new UserBuilder().build();
 
             // First registration should succeed
-            const firstResponse = await driver.register(userData);
+            const firstResponse = await apiDriver.register(userData);
             expect(firstResponse).toHaveProperty('user');
             expect(firstResponse.user.email).toBe(userData.email);
 
             // Second registration with same email should fail
-            await expect(driver.register(userData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
+            await expect(apiDriver.register(userData)).rejects.toThrow(/409|email.*exists|already.*registered/i);
         });
 
         test('should return consistent error message for duplicate emails', async () => {
             const userData = new UserBuilder().build();
 
             // Create user first
-            await driver.register(userData);
+            await apiDriver.register(userData);
 
             // Try to register again and check exact error
             try {
-                await driver.register(userData);
+                await apiDriver.register(userData);
                 throw 'Should have thrown an error';
             } catch (error: any) {
                 expect(error.message).toContain('409');
@@ -58,7 +52,7 @@ describe('Duplicate User Registration Tests', () => {
             // Attempt to register the same user concurrently
             const promises = Array(5)
                 .fill(null)
-                .map(() => driver.register(userData).catch((err) => err));
+                .map(() => apiDriver.register(userData).catch((err) => err));
 
             const results = await Promise.all(promises);
 
@@ -79,12 +73,12 @@ describe('Duplicate User Registration Tests', () => {
             const userData = new UserBuilder().build();
 
             // First registration
-            await driver.register(userData);
+            await apiDriver.register(userData);
 
             // Rapid sequential attempts
             const attempts = 3;
             for (let i = 0; i < attempts; i++) {
-                await expect(driver.register(userData)).rejects.toThrow(/409|email.*exists/i);
+                await expect(apiDriver.register(userData)).rejects.toThrow(/409|email.*exists/i);
             }
         });
     });
@@ -95,12 +89,12 @@ describe('Duplicate User Registration Tests', () => {
             const userData = new UserBuilder().withEmail(baseEmail.toLowerCase()).build();
 
             // Register with lowercase
-            await driver.register(userData);
+            await apiDriver.register(userData);
 
             // Try with uppercase - should fail
             const upperCaseData = new UserBuilder().withEmail(baseEmail.toUpperCase()).withPassword(userData.password).withDisplayName(userData.displayName).build();
 
-            await expect(driver.register(upperCaseData)).rejects.toThrow(/409|email.*exists/i);
+            await expect(apiDriver.register(upperCaseData)).rejects.toThrow(/409|email.*exists/i);
 
             // Try with mixed case - should also fail
             const mixedCaseData = new UserBuilder()
@@ -109,7 +103,7 @@ describe('Duplicate User Registration Tests', () => {
                 .withDisplayName(userData.displayName)
                 .build();
 
-            await expect(driver.register(mixedCaseData)).rejects.toThrow(/409|email.*exists/i);
+            await expect(apiDriver.register(mixedCaseData)).rejects.toThrow(/409|email.*exists/i);
         });
     });
 
@@ -119,13 +113,13 @@ describe('Duplicate User Registration Tests', () => {
             const userData = new UserBuilder().withEmail(baseEmail).build();
 
             // Register normally
-            await driver.register(userData);
+            await apiDriver.register(userData);
 
             // Try with spaces - Firebase validates email format first
             const spacedData = new UserBuilder().withEmail(`  ${baseEmail}  `).withPassword(userData.password).withDisplayName(userData.displayName).build();
 
             // Server correctly rejects emails with spaces as invalid format
-            await expect(driver.register(spacedData)).rejects.toThrow(/400|invalid.*email|validation/i);
+            await expect(apiDriver.register(spacedData)).rejects.toThrow(/400|invalid.*email|validation/i);
         });
 
         test('should allow different users with different emails', async () => {
@@ -133,8 +127,8 @@ describe('Duplicate User Registration Tests', () => {
             const user2 = new UserBuilder().build();
 
             // Both registrations should succeed
-            const response1 = await driver.register(user1);
-            const response2 = await driver.register(user2);
+            const response1 = await apiDriver.register(user1);
+            const response2 = await apiDriver.register(user2);
 
             expect(response1.user.email).toBe(user1.email);
             expect(response2.user.email).toBe(user2.email);
@@ -149,10 +143,10 @@ describe('Duplicate User Registration Tests', () => {
             // First attempt with invalid password
             const invalidData = { ...userData, password: '123' }; // Too weak
 
-            await expect(driver.register(invalidData)).rejects.toThrow(/400|password/i);
+            await expect(apiDriver.register(invalidData)).rejects.toThrow(/400|password/i);
 
             // Second attempt with valid data should succeed
-            const response = await driver.register(userData);
+            const response = await apiDriver.register(userData);
             expect(response.user.email).toBe(userData.email);
         });
     });
