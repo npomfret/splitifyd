@@ -1,11 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, AppDriver, borrowTestUsers, User} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { afterAll, describe, it, expect } from 'vitest';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {firestoreDb} from "../../../firebase";
-
-// vi.setTimeout(10000); // Reduced from 15s to meet guideline maximum
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Group Membership Real-Time Sync Tests', () => {
     const apiDriver = new ApiDriver();

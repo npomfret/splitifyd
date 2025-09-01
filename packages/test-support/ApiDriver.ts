@@ -43,12 +43,6 @@ const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
 
 /**
- * @deprecated use AuthenticatedFirebaseUser
- */
-export interface User extends AuthenticatedFirebaseUser {
-}
-
-/**
  * Helper functions for querying change collections in tests
  */
 

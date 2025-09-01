@@ -1,19 +1,20 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, User, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('ExpenseService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let expenseService: ExpenseService;
 
-    let alice: User;
-    let bob: User;
-    let charlie: User;
-    let outsider: User;
+    let alice: AuthenticatedFirebaseUser;
+    let bob: AuthenticatedFirebaseUser;
+    let charlie: AuthenticatedFirebaseUser;
+    let outsider: AuthenticatedFirebaseUser;
 
     let groupId: string;
 

@@ -6,9 +6,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, User, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import { groupSize } from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser, groupSize} from '@splitifyd/shared';
 import {firestoreDb} from "../../../../firebase";
 
 describe('Balance Calculations', () => {
@@ -23,7 +23,7 @@ describe('Balance Calculations', () => {
     });
 
     // Helper to get users from pool
-    const getTestUsers = (count: number): User[] => {
+    const getTestUsers = (count: number): AuthenticatedFirebaseUser[] => {
         return users.slice(0, count);
     };
 

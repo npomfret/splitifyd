@@ -4,13 +4,14 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder} from '@splitifyd/test-support';
 import { SecurityPresets } from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Comprehensive Security Test Suite', () => {
     const apiDriver = new ApiDriver();
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

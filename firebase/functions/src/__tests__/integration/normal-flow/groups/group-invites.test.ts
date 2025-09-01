@@ -7,7 +7,8 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Invite Tracking', () => {
     const apiDriver = new ApiDriver();

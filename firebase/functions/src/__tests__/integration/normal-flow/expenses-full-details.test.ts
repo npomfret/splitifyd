@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-
-import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Expenses Full Details API', () => {
     const apiDriver = new ApiDriver();
-    let alice: User;
-    let bob: User;
-    let charlie: User;
-    let outsider: User;
+    let alice: AuthenticatedFirebaseUser;
+    let bob: AuthenticatedFirebaseUser;
+    let charlie: AuthenticatedFirebaseUser;
+    let outsider: AuthenticatedFirebaseUser;
     let groupId: string;
     let expenseId: string;
 

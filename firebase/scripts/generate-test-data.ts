@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import type {User} from '@splitifyd/test-support';
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import type {Group} from '@splitifyd/shared';
 import {PREDEFINED_EXPENSE_CATEGORIES} from '@splitifyd/shared';
 import {UserRegistration} from "@splitifyd/shared/src";
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -308,7 +308,7 @@ async function createTestPoolUsers(): Promise<void> {
     console.log('✅ Test pool users ready');
 }
 
-async function createGroupWithInvite(name: string, description: string, createdBy: User): Promise<GroupWithInvite> {
+async function createGroupWithInvite(name: string, description: string, createdBy: AuthenticatedFirebaseUser): Promise<GroupWithInvite> {
     // Create group with just the creator initially
     const group = await driver.createGroupWithMembers(name, [createdBy], createdBy.token);
 
@@ -321,7 +321,7 @@ async function createGroupWithInvite(name: string, description: string, createdB
     } as GroupWithInvite;
 }
 
-async function createGroups(createdBy: User, config: TestDataConfig): Promise<GroupWithInvite[]> {
+async function createGroups(createdBy: AuthenticatedFirebaseUser, config: TestDataConfig): Promise<GroupWithInvite[]> {
     const groups: GroupWithInvite[] = [];
 
     // Create special "Empty Group" with NO expenses
@@ -366,7 +366,7 @@ async function createGroups(createdBy: User, config: TestDataConfig): Promise<Gr
     return groups;
 }
 
-async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Promise<void> {
+async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: GroupWithInvite[]): Promise<void> {
     // Each user (except test1 who created all groups) joins groups
     const otherUsers = users.slice(1); // Skip test1@test.com
 
@@ -407,7 +407,7 @@ async function joinGroupsRandomly(users: User[], groups: GroupWithInvite[]): Pro
     );
 }
 
-async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTemplate, participants: User[], createdBy: User): Promise<any> {
+async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
     const participantIds = participants.map((p) => p.uid);
 
     // Randomly choose between GBP and EUR
@@ -429,7 +429,7 @@ async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTe
     return await driver.createExpense(expenseData, createdBy.token);
 }
 
-async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
+async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[], config: TestDataConfig): Promise<void> {
     // Skip the special groups - only process regular groups
     const regularGroups = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group' && g.name !== 'Large Group');
 
@@ -482,7 +482,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: U
     }
 }
 
-async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], users: User[]): Promise<void> {
+async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
     const settledGroup = groups.find((g) => g.name === 'Settled Group');
     if (!settledGroup) return;
 
@@ -518,7 +518,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
         const payer = groupMembers[i % groupMembers.length];
 
         // Vary the participants - sometimes everyone, sometimes a subset
-        let participants: User[];
+        let participants: AuthenticatedFirebaseUser[];
         if (i % 3 === 0) {
             // Everyone participates
             participants = [...groupMembers];
@@ -570,8 +570,8 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
         if (!currencyBalances) continue;
 
         // Find who owes and who is owed
-        const debtors: { user: User; amount: number }[] = [];
-        const creditors: { user: User; amount: number }[] = [];
+        const debtors: { user: AuthenticatedFirebaseUser; amount: number }[] = [];
+        const creditors: { user: AuthenticatedFirebaseUser; amount: number }[] = [];
 
         for (const member of groupMembers) {
             const balance = currencyBalances[member.uid];
@@ -659,7 +659,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     console.log(`✓ Successfully created balanced multi-currency expenses and settlements for "Settled Group"`);
 }
 
-async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: User[], config: TestDataConfig): Promise<void> {
+async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[], config: TestDataConfig): Promise<void> {
     const largeGroup = groups.find((g) => g.name === 'Large Group');
     if (!largeGroup) return;
 
@@ -705,7 +705,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
     console.log(`Created ${totalExpenses} expenses for "Large Group"`);
 }
 
-async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
+async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
     // Skip empty group AND settled group (to preserve its settled state)
     const groupsWithPayments = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
@@ -785,7 +785,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Us
     console.log(`✓ Finished creating small payments for all groups`);
 }
 
-async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: User[]): Promise<void> {
+async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
     // Skip empty group and settled group (to preserve their states)
     const groupsWithExpenses = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
@@ -833,13 +833,6 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Us
     console.log(`✓ Finished deleting expenses. Total deleted: ${totalDeleted} expenses across all groups`);
 }
 
-interface EmulatorConfig {
-    projectId: string;
-    functionsPort: string;
-    firestorePort: string;
-    authPort: string;
-}
-
 export async function generateTestData(): Promise<void> {
     const testConfig = getTestConfig();
     const startTime = Date.now();
@@ -870,7 +863,7 @@ export async function generateTestData(): Promise<void> {
     const firstThreeUsers = TEST_USERS.slice(0, 3);
     const remainingUsers = TEST_USERS.slice(3);
     
-    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => (async function (userInfo: UserRegistration): Promise<User> {
+    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => (async function (userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
         return await driver.createUser(userInfo);
     })(userInfo)));
     console.log(`✓ Created ${parallelUsers.length} users in parallel`);

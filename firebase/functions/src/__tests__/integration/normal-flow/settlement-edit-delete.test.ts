@@ -2,18 +2,19 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, User, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Settlement Edit and Delete Operations', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, firestoreDb);
     let groupId: string;
 
-    let user1: User;
-    let user2: User;
-    let user3: User;
+    let user1: AuthenticatedFirebaseUser;
+    let user2: AuthenticatedFirebaseUser;
+    let user3: AuthenticatedFirebaseUser;
 
     beforeEach(async () => {
         ([user1, user2, user3] = await borrowTestUsers(3));

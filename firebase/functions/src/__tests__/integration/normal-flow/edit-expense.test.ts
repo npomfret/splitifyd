@@ -8,7 +8,8 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder, ExpenseUpdateBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, ExpenseUpdateBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Edit Expense Integration Tests', () => {
     const apiDriver = new ApiDriver();

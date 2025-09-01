@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, User, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Amount Validation Edge Cases', () => {
     const apiDriver = new ApiDriver();

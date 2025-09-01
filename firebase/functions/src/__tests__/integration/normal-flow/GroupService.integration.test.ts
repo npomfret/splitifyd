@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-import {ApiDriver, User, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { GroupService } from '../../../services/GroupService';
 import { MemberRoles, SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb } from '../../../firebase';
 import { registerAllServices, getGroupService } from '../../../services/serviceRegistration';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('GroupService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let groupService: GroupService;
-    let testUsers: User[] = [];
+    let testUsers: AuthenticatedFirebaseUser[] = [];
 
     beforeEach(async () => {
         testUsers = await borrowTestUsers(4);
@@ -130,9 +131,9 @@ describe('GroupService - Integration Tests', () => {
 
     describe('getGroup', () => {
         let testGroupId: string;
-        let creator: User;
-        let member: User;
-        let nonMember: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
+        let nonMember: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
             [creator, member, nonMember] = testUsers;
@@ -219,8 +220,8 @@ describe('GroupService - Integration Tests', () => {
 
     describe('updateGroup', () => {
         let testGroupId: string;
-        let creator: User;
-        let member: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
             [creator, member] = testUsers;
@@ -284,8 +285,8 @@ describe('GroupService - Integration Tests', () => {
 
     describe('deleteGroup', () => {
         let testGroupId: string;
-        let creator: User;
-        let member: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
             [creator, member] = testUsers;
@@ -342,8 +343,8 @@ describe('GroupService - Integration Tests', () => {
 
     describe('getGroupBalances', () => {
         let testGroupId: string;
-        let creator: User;
-        let member: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
             [creator, member] = testUsers;
@@ -430,8 +431,8 @@ describe('GroupService - Integration Tests', () => {
     });
 
     describe('listGroups', () => {
-        let creator: User;
-        let member: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
         let testGroupIds: string[] = [];
 
         beforeEach(async () => {
@@ -527,9 +528,9 @@ describe('GroupService - Integration Tests', () => {
 
     describe('access control and security', () => {
         let testGroupId: string;
-        let creator: User;
-        let member: User;
-        let nonMember: User;
+        let creator: AuthenticatedFirebaseUser;
+        let member: AuthenticatedFirebaseUser;
+        let nonMember: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
             [creator, member, nonMember] = testUsers;

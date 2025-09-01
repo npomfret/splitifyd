@@ -2,7 +2,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import { SplitTypes } from '@splitifyd/shared';
-import {ApiDriver, User} from "@splitifyd/test-support";
+import {ApiDriver} from "@splitifyd/test-support";
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Expense Locking Debug Test', () => {

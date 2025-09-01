@@ -6,7 +6,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Expense Management', () => {
     const apiDriver = new ApiDriver();

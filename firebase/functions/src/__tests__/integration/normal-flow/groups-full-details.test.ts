@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-
-import {ApiDriver, borrowTestUsers, ExpenseBuilder, SettlementBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, SettlementBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Groups Full Details API', () => {
     const apiDriver = new ApiDriver();
 
     let groupId: string;
 
-    let alice: User;
-    let bob: User;
-    let charlie: User;
-    let outsider: User;
+    let alice: AuthenticatedFirebaseUser;
+    let bob: AuthenticatedFirebaseUser;
+    let charlie: AuthenticatedFirebaseUser;
+    let outsider: AuthenticatedFirebaseUser;
 
     beforeEach(async () => {
         ([alice, bob, charlie, outsider] = await borrowTestUsers(4));

@@ -1,11 +1,12 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 
-import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('User Profile Management API Tests', () => {
     const apiDriver = new ApiDriver();
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

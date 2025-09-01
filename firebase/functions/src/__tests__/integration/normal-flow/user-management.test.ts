@@ -3,14 +3,15 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUser, generateTestEmail, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUser, generateTestEmail} from '@splitifyd/test-support';
 import { ExpenseBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('User Management Tests', () => {
     // Automatic user pool management - fresh user for each test, automatic cleanup!
     const apiDriver = new ApiDriver();
-    let user: User;
+    let user: AuthenticatedFirebaseUser;
 
     beforeEach(async () => {
         user = await borrowTestUser();

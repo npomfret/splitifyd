@@ -1,13 +1,14 @@
 import {describe, it, expect, beforeEach,} from 'vitest';
-import {ApiDriver, AppDriver, borrowTestUser, User} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUser} from '@splitifyd/test-support';
 import { firestoreDb } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Trigger Debug Tests', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, firestoreDb);
-    let user1: User;
+    let user1: AuthenticatedFirebaseUser;
     let groupId: string;
 
     beforeEach(async() => {

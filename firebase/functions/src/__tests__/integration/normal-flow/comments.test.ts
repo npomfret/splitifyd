@@ -7,8 +7,9 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Comments API Integration Tests', () => {
     const apiDriver = new ApiDriver();

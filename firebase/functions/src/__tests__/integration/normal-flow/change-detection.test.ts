@@ -1,6 +1,7 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, AppDriver, ApiDriver, User, borrowTestUsers} from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, ExpenseUpdateBuilder, GroupUpdateBuilder, AppDriver, ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();

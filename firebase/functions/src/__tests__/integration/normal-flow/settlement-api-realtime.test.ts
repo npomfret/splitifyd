@@ -2,15 +2,16 @@
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
 import {beforeEach, describe, expect, it} from 'vitest';
-import {ApiDriver, AppDriver, SettlementBuilder, User, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, SettlementBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import {firestoreDb} from '../../../firebase';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, firestoreDb);
 
-    let user1: User;
-    let user2: User;
+    let user1: AuthenticatedFirebaseUser;
+    let user2: AuthenticatedFirebaseUser;
     let groupId: string;
 
     beforeEach(async () => {

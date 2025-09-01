@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import {UserRegistrationBuilder, User, ApiDriver, borrowTestUsers, borrowTestUser} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, borrowTestUser, UserRegistrationBuilder} from '@splitifyd/test-support';
 import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
@@ -12,7 +12,7 @@ describe('UserService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let userService: UserService;
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3)
@@ -337,7 +337,7 @@ describe('UserService - Integration Tests', () => {
     });
 
     describe('changePassword', () => {
-        let testUser: User;
+        let testUser: AuthenticatedFirebaseUser;
 
         beforeEach(() => {
             testUser = users[0];

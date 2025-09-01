@@ -4,7 +4,8 @@
 // Run the emulator with: `firebase emulators:start`
 
 import {beforeEach, describe, expect, test} from 'vitest';
-import {User, borrowTestUsers} from '@splitifyd/test-support';
+import {borrowTestUsers} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('User Authentication', () => {
     let users: AuthenticatedFirebaseUser[];
@@ -13,7 +14,7 @@ describe('User Authentication', () => {
         users = await borrowTestUsers(2);
     });
 
-    const getTestUsers = (count: number): User[] => {
+    const getTestUsers = (count: number): AuthenticatedFirebaseUser[] => {
         return users.slice(0, count);
     };
 

@@ -70,7 +70,7 @@ describe('Group Permissions', () => {
     // (Tests for features that don't exist yet violate testing guidelines)
 
     // describe('Pending Members', () => {
-    //     let pendingUser: User;
+    //     let pendingUser: AuthenticatedFirebaseUser;
 
     //     beforeAll(async () => {
     //         // Set group to require admin approval

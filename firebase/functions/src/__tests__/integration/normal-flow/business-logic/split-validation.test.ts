@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Split Validation Edge Cases', () => {
     const apiDriver = new ApiDriver();

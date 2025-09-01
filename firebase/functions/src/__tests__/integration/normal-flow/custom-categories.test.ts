@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Custom Categories Feature Tests', () => {
     const apiDriver = new ApiDriver();
