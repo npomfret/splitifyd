@@ -13,7 +13,7 @@ import {
     CreateSettlementRequest,
     UpdateSettlementRequest,
     SettlementListItem,
-    User,
+    RegisteredUser,
     FirestoreCollections,
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
@@ -69,7 +69,7 @@ export class SettlementService {
     /**
      * Fetch user data with validation
      */
-    private async fetchUserData(userId: string): Promise<User> {
+    private async fetchUserData(userId: string): Promise<RegisteredUser> {
         const userDoc = await this.usersCollection.doc(userId).get();
 
         if (!userDoc.exists) {

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { User, CreateGroupRequest } from '@splitifyd/shared';
+import type { CreateGroupRequest } from '@splitifyd/shared';
+import {FirebaseUser} from "@splitifyd/shared";
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;
@@ -20,33 +21,13 @@ export class CreateGroupRequestBuilder {
         return this;
     }
 
-    withMembers(users: (User | { uid: string; displayName: string; email: string; [key: string]: any })[]): this {
+    withMembers(users: FirebaseUser[]): this {
         // Store full member details
         this.group.members = users.map((user) => ({
             uid: user.uid,
             displayName: user.displayName,
             email: user.email,
         }));
-        return this;
-    }
-
-    withMember(user: User | { uid: string; displayName: string; email: string; [key: string]: any }): this {
-        // Store full member details
-        if (!this.group.members) {
-            this.group.members = [];
-        }
-        const member: User = {
-            uid: user.uid,
-            displayName: user.displayName,
-            email: user.email,
-        };
-
-        const existingIndex = this.group.members.findIndex((m) => m.uid === user.uid);
-        if (existingIndex >= 0) {
-            this.group.members[existingIndex] = member;
-        } else {
-            this.group.members.push(member);
-        }
         return this;
     }
 

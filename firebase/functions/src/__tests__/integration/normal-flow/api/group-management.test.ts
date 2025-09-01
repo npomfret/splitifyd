@@ -106,7 +106,7 @@ describe('Group Management', () => {
         test('should allow new users to join group via share link', async () => {
             const users = await borrowTestUsers(2);
             // First, create a new group and generate a share link
-            const shareableGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
+            const shareableGroupData = new CreateGroupRequestBuilder().build();
 
             const shareableGroup = await apiDriver.createGroup(shareableGroupData, users[0].token);
 
@@ -132,7 +132,7 @@ describe('Group Management', () => {
         test('should not allow duplicate joining via share link', async () => {
             const users = await borrowTestUsers(2);
             // Create a group with a share link
-            const dupTestGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
+            const dupTestGroupData = new CreateGroupRequestBuilder().build();
 
             const dupTestGroup = await apiDriver.createGroup(dupTestGroupData, users[0].token);
             const shareResponse = await apiDriver.generateShareLink(dupTestGroup.id, users[0].token);
@@ -155,7 +155,7 @@ describe('Group Management', () => {
         test('should allow multiple users to join group using the same share link', async () => {
             const users = await borrowTestUsers(4); // Need 1 creator + 3 to join
             // Create a new group with only one member
-            const multiJoinGroupData = new CreateGroupRequestBuilder().withMember(users[0]).build();
+            const multiJoinGroupData = new CreateGroupRequestBuilder().build();
 
             const multiJoinGroup = await apiDriver.createGroup(multiJoinGroupData, users[0].token);
 

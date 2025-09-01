@@ -4,7 +4,7 @@ import { firestoreDb } from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
 import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, GroupMembersResponse, User } from '@splitifyd/shared';
+import { FirestoreCollections, GroupMembersResponse, RegisteredUser } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
@@ -26,7 +26,7 @@ export class GroupMemberService {
 
         const memberProfiles = await getUserService().getUsers(memberIds);
 
-        const members: User[] = memberIds.map((memberId: string) => {
+        const members: RegisteredUser[] = memberIds.map((memberId: string) => {
             const profile = memberProfiles.get(memberId);
             const memberInfo = membersMap[memberId];
 

@@ -136,11 +136,7 @@ describe('Comprehensive Security Test Suite', () => {
 
             test('should prevent non-members from generating share links', async () => {
                 // Create a user who is not a member of the group
-                const nonMemberUser = await apiDriver.createUser({
-                    email: `nonmember-${uuidv4()}@test.com`,
-                    password: 'testPass123!',
-                    displayName: 'Non Member User',
-                });
+                const nonMemberUser = await apiDriver.createUser();
 
                 // Non-member should not be able to generate share links
                 await expect(apiDriver.generateShareLink(testGroup.id, (nonMemberUser as any).token)).rejects.toThrow(/403|forbidden|member|not.*authorized/i);

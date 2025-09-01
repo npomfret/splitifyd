@@ -2,14 +2,14 @@
 
 import { describe, expect, test } from 'vitest';
 
-import { ApiDriver, generateTestEmail, UserBuilder } from '@splitifyd/test-support';
+import { ApiDriver, generateTestEmail, UserRegistrationBuilder } from '@splitifyd/test-support';
 
 describe('Duplicate User Registration Tests', () => {
     const apiDriver = new ApiDriver();
 
     describe('Sequential Registration', () => {
         test('should prevent duplicate email registration', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // First registration should succeed
             const firstResponse = await apiDriver.register(userData);
@@ -21,7 +21,7 @@ describe('Duplicate User Registration Tests', () => {
         });
 
         test('should return consistent error message for duplicate emails', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // Create user first
             await apiDriver.register(userData);
@@ -47,7 +47,7 @@ describe('Duplicate User Registration Tests', () => {
 
     describe('Concurrent Registration', () => {
         test('should handle concurrent registration attempts with same email', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // Attempt to register the same user concurrently
             const promises = Array(5)
@@ -70,7 +70,7 @@ describe('Duplicate User Registration Tests', () => {
         });
 
         test('should handle rapid sequential registrations with same email', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // First registration
             await apiDriver.register(userData);
@@ -86,18 +86,18 @@ describe('Duplicate User Registration Tests', () => {
     describe('Case Sensitivity', () => {
         test('should treat email addresses case-insensitively', async () => {
             const baseEmail = generateTestEmail();
-            const userData = new UserBuilder().withEmail(baseEmail.toLowerCase()).build();
+            const userData = new UserRegistrationBuilder().withEmail(baseEmail.toLowerCase()).build();
 
             // Register with lowercase
             await apiDriver.register(userData);
 
             // Try with uppercase - should fail
-            const upperCaseData = new UserBuilder().withEmail(baseEmail.toUpperCase()).withPassword(userData.password).withDisplayName(userData.displayName).build();
+            const upperCaseData = new UserRegistrationBuilder().withEmail(baseEmail.toUpperCase()).withPassword(userData.password).withDisplayName(userData.displayName).build();
 
             await expect(apiDriver.register(upperCaseData)).rejects.toThrow(/409|email.*exists/i);
 
             // Try with mixed case - should also fail
-            const mixedCaseData = new UserBuilder()
+            const mixedCaseData = new UserRegistrationBuilder()
                 .withEmail(baseEmail.charAt(0).toUpperCase() + baseEmail.slice(1).toLowerCase())
                 .withPassword(userData.password)
                 .withDisplayName(userData.displayName)
@@ -110,21 +110,21 @@ describe('Duplicate User Registration Tests', () => {
     describe('Edge Cases', () => {
         test('should handle registration with trimmed email addresses', async () => {
             const baseEmail = generateTestEmail();
-            const userData = new UserBuilder().withEmail(baseEmail).build();
+            const userData = new UserRegistrationBuilder().withEmail(baseEmail).build();
 
             // Register normally
             await apiDriver.register(userData);
 
             // Try with spaces - Firebase validates email format first
-            const spacedData = new UserBuilder().withEmail(`  ${baseEmail}  `).withPassword(userData.password).withDisplayName(userData.displayName).build();
+            const spacedData = new UserRegistrationBuilder().withEmail(`  ${baseEmail}  `).withPassword(userData.password).withDisplayName(userData.displayName).build();
 
             // Server correctly rejects emails with spaces as invalid format
             await expect(apiDriver.register(spacedData)).rejects.toThrow(/400|invalid.*email|validation/i);
         });
 
         test('should allow different users with different emails', async () => {
-            const user1 = new UserBuilder().build();
-            const user2 = new UserBuilder().build();
+            const user1 = new UserRegistrationBuilder().build();
+            const user2 = new UserRegistrationBuilder().build();
 
             // Both registrations should succeed
             const response1 = await apiDriver.register(user1);
@@ -138,7 +138,7 @@ describe('Duplicate User Registration Tests', () => {
 
     describe('Error Recovery', () => {
         test('should allow registration after previous failure', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // First attempt with invalid password
             const invalidData = { ...userData, password: '123' }; // Too weak

@@ -1,19 +1,13 @@
 #!/usr/bin/env tsx
 
-import type { User } from '@splitifyd/test-support';
-import { ApiDriver, ExpenseBuilder } from '@splitifyd/test-support';
-import type { Group } from '@splitifyd/shared';
-import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import type {User} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
+import type {Group} from '@splitifyd/shared';
+import {PREDEFINED_EXPENSE_CATEGORIES} from '@splitifyd/shared';
+import {UserRegistration} from "@splitifyd/shared/src";
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
-
-// Test user registration data (extends base User with password for registration)
-interface TestUserRegistration {
-    email: string;
-    password: string;
-    displayName: string;
-}
 
 // Simple expense template for test data generation
 interface TestExpenseTemplate {
@@ -59,14 +53,16 @@ const getTestConfig = (): TestDataConfig => {
     return TEST_CONFIGS[mode];
 };
 
-const generateTestUserRegistrations = (config: TestDataConfig): TestUserRegistration[] => {
-    const users: TestUserRegistration[] = [];
+const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration[] => {
+    const users: UserRegistration[] = [];
 
     // Keep test1@test.com as the first user for easy reference
     users.push({
         email: 'test1@test.com',
         password: 'rrRR44$$',
         displayName: 'Bill Splitter',
+        termsAccepted: true,
+        cookiePolicyAccepted: true
     });
 
     // More realistic test users with @example.com emails
@@ -98,6 +94,8 @@ const generateTestUserRegistrations = (config: TestDataConfig): TestUserRegistra
     for (let i = 0; i < remainingCount; i++) {
         users.push({
             ...testUsers[i],
+            termsAccepted: true,
+            cookiePolicyAccepted: true,
             password: 'rrRR44$$',
         });
     }
@@ -289,10 +287,6 @@ const generateRandomExpense = (): TestExpenseTemplate => {
     const amount = amountTypes[selectedIndex]();
     return { description, amount, category };
 };
-
-async function createTestUserRegistration(userInfo: TestUserRegistration): Promise<User> {
-    return await driver.createUser(userInfo);
-}
 
 async function createTestPoolUsers(): Promise<void> {
     console.log('🏊 Initializing test pool users...');
@@ -876,13 +870,15 @@ export async function generateTestData(): Promise<void> {
     const firstThreeUsers = TEST_USERS.slice(0, 3);
     const remainingUsers = TEST_USERS.slice(3);
     
-    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => createTestUserRegistration(userInfo)));
+    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => (async function (userInfo: UserRegistration): Promise<User> {
+        return await driver.createUser(userInfo);
+    })(userInfo)));
     console.log(`✓ Created ${parallelUsers.length} users in parallel`);
     
     // Create remaining users sequentially if any
     const sequentialUsers = [];
     for (const userInfo of remainingUsers) {
-        const user = await createTestUserRegistration(userInfo);
+        const user = await driver.createUser(userInfo);
         sequentialUsers.push(user);
         console.log(`✓ Created user: ${user.email}`);
     }

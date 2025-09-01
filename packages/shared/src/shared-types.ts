@@ -235,10 +235,26 @@ export interface UserThemeColor {
     colorIndex: number;
 }
 
-export interface User {
-    uid: string;
+export interface BaseUser {
     email: string;
     displayName: string;
+}
+
+export interface UserRegistration extends BaseUser {
+    password: string;
+    termsAccepted: boolean;
+    cookiePolicyAccepted: boolean;
+}
+
+export interface FirebaseUser extends BaseUser {
+    uid: string;
+}
+
+export interface AuthenticatedFirebaseUser extends FirebaseUser {
+    token: string;
+}
+
+export interface RegisteredUser extends FirebaseUser {
     role?: SystemUserRole; // Role field for admin access control
     termsAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
     cookiePolicyAcceptedAt?: Date | FirestoreTimestamp; // Legacy timestamp field
@@ -374,7 +390,7 @@ export interface Group {
 export interface CreateGroupRequest {
     name: string;
     description?: string;
-    members?: User[];
+    members?: RegisteredUser[];
 }
 
 // Permission-related request/response types
@@ -404,7 +420,7 @@ export interface PermissionCheckResult {
 
 export interface PendingMembersResponse {
     pendingMembers: Array<{
-        user: User;
+        user: RegisteredUser;
         requestedAt: string;
         invitedBy?: string;
     }>;
@@ -439,7 +455,7 @@ export interface ListGroupsResponse {
 
 // Group members response
 export interface GroupMembersResponse {
-    members: User[];
+    members: RegisteredUser[];
     hasMore: boolean;
     nextCursor?: string;
 }
@@ -539,8 +555,8 @@ export interface UpdateSettlementRequest {
 export interface SettlementListItem {
     id: string;
     groupId: string;
-    payer: User;
-    payee: User;
+    payer: RegisteredUser;
+    payee: RegisteredUser;
     amount: number;
     currency: string;
     date: string;
@@ -554,7 +570,7 @@ export interface SettlementListItem {
 
 export interface GroupFullDetails {
     group: Group;
-    members: { members: User[] };
+    members: { members: RegisteredUser[] };
     expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
     balances: GroupBalances;
     settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
@@ -563,7 +579,7 @@ export interface GroupFullDetails {
 export interface ExpenseFullDetails {
     expense: ExpenseData;
     group: Group;
-    members: { members: User[] };
+    members: { members: RegisteredUser[] };
 }
 
 // ========================================================================

@@ -4,7 +4,7 @@ import { DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage } from '../../
 import { GroupWorkflow } from '../../../workflows';
 import { DEFAULT_PASSWORD, generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
-import { User } from '@splitifyd/shared';
+import { RegisteredUser } from '@splitifyd/shared';
 
 setupMCPDebugOnFailure();
 
@@ -12,7 +12,7 @@ test.describe('Parallel Group Joining Edge Cases', () => {
     const userPool = getUserPool();
     const contexts: BrowserContext[] = [];
     const pages: Page[] = [];
-    const users: User[] = [];
+    const users: RegisteredUser[] = [];
 
     async function _prepareUsers(totalUsers: number, browser: Browser) {
         for (let i = 0; i < totalUsers; i++) {

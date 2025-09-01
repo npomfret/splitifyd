@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 
-import {ApiDriver, borrowTestUsers, User, UserBuilder} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('User Profile Management API Tests', () => {
@@ -12,7 +12,7 @@ describe('User Profile Management API Tests', () => {
     });
 
     async function _freshUserToMutate() {// we are mutating it, so don't use a pooled user as it can affect other tests
-        return await apiDriver.createUser(new UserBuilder().build());
+        return await apiDriver.createUser();
     }
 
     describe('GET /user/profile', () => {
@@ -219,7 +219,7 @@ describe('User Profile Management API Tests', () => {
 
     describe('DELETE /user/account', () => {
         it('should delete account when user has no groups', async () => {
-            const testUser = await apiDriver.createUser(new UserBuilder().build());// fresh user with no groups
+            const testUser = await apiDriver.createUser();// fresh user with no groups
             const response = await apiDriver.deleteUserAccount(testUser.token, true);
 
             expect(response.message).toBe('Account deleted successfully');
@@ -386,7 +386,7 @@ describe('User Profile Management API Tests', () => {
         it('should strip unknown fields from delete request', async () => {
             // This test would need actual delete, which we don't want to do
             // Just verify the validation would work by checking a non-member user
-            const userWithoutGroups = await apiDriver.createUser(new UserBuilder().build());
+            const userWithoutGroups = await apiDriver.createUser();
 
             try {
                 // This test specifically needs to send extra fields to test Joi stripping

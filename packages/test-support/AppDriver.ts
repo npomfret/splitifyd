@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
-import {ApiDriver, BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument, User} from "./ApiDriver";
+import {ApiDriver, BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./ApiDriver";
 import {Matcher, pollUntil} from "./Polling";
-import {FirestoreCollections, Group} from "@splitifyd/shared";
+import {FirestoreCollections, Group, AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 export class AppDriver {
     constructor(public apiDriver: ApiDriver, private readonly firestoreDb: admin.firestore.Firestore) {
@@ -56,23 +56,23 @@ export class AppDriver {
         return changes[0]; // they are most recent first
     }
 
-    async waitForGroupCreationEvent(groupId: string, creator: User) {
+    async waitForGroupCreationEvent(groupId: string, creator: AuthenticatedFirebaseUser) {
         await this.waitForGroupEvent('created', groupId, creator, 1);
     }
 
-    async waitForGroupUpdatedEvent(groupId: string, creator: User, expectedCount = 1) {
+    async waitForGroupUpdatedEvent(groupId: string, creator: AuthenticatedFirebaseUser, expectedCount = 1) {
         await this.waitForGroupEvent('updated', groupId, creator, expectedCount);
     }
 
-    async waitForExpenseCreationEvent(groupId: string, expenseId: string, participants: User[]) {
+    async waitForExpenseCreationEvent(groupId: string, expenseId: string, participants: AuthenticatedFirebaseUser[]) {
         await this.waitForExpenseEvent('created', groupId, expenseId, participants, 1);
     }
 
-    async waitForExpenseUpdatedEvent(groupId: string, expenseId: string, participants: User[], expectedCount = 1) {
+    async waitForExpenseUpdatedEvent(groupId: string, expenseId: string, participants: AuthenticatedFirebaseUser[], expectedCount = 1) {
         await this.waitForExpenseEvent('updated', groupId, expenseId, participants, expectedCount);
     }
 
-    async waitForExpenseEvent(action: string, groupId: string, expenseId: string, participants: User[], expectedCount: number) {
+    async waitForExpenseEvent(action: string, groupId: string, expenseId: string, participants: AuthenticatedFirebaseUser[], expectedCount: number) {
         await this.waitForExpenseChanges(groupId, (changes) => {
             const found = changes.filter((doc) => {
                 if (doc.type !== 'expense') throw Error('should not get here');
@@ -89,7 +89,7 @@ export class AppDriver {
         });
     }
 
-    async waitForBalanceRecalculationEvent(groupId: string, participants: User[], expectedCount = 1) {
+    async waitForBalanceRecalculationEvent(groupId: string, participants: AuthenticatedFirebaseUser[], expectedCount = 1) {
         await this.waitForBalanceChanges(groupId, (changes) => {
             const found = changes.filter((doc) => {
                 if (doc.type !== 'balance') throw Error('should not get here');
@@ -104,7 +104,7 @@ export class AppDriver {
         });
     }
 
-    async waitForGroupEvent(action: string, groupId: string, creator: User, expectedCount: number, timeout: number = 2000) {
+    async waitForGroupEvent(action: string, groupId: string, creator: AuthenticatedFirebaseUser, expectedCount: number, timeout: number = 2000) {
         await this.waitForGroupChanges(
             groupId,
             (changes) => {
@@ -204,28 +204,28 @@ export class AppDriver {
     /**
      * Wait for settlement creation event to be tracked
      */
-    async waitForSettlementCreationEvent(groupId: string, settlementId: string, participants: User[]) {
+    async waitForSettlementCreationEvent(groupId: string, settlementId: string, participants: AuthenticatedFirebaseUser[]) {
         return this.waitForSettlementEvent('created', groupId, settlementId, participants, 1);
     }
 
     /**
      * Wait for settlement updated event to be tracked
      */
-    async waitForSettlementUpdatedEvent(groupId: string, settlementId: string, participants: User[], expectedCount = 1) {
+    async waitForSettlementUpdatedEvent(groupId: string, settlementId: string, participants: AuthenticatedFirebaseUser[], expectedCount = 1) {
         return this.waitForSettlementEvent('updated', groupId, settlementId, participants, expectedCount);
     }
 
     /**
      * Wait for settlement deleted event to be tracked
      */
-    async waitForSettlementDeletedEvent(groupId: string, settlementId: string, participants: User[]) {
+    async waitForSettlementDeletedEvent(groupId: string, settlementId: string, participants: AuthenticatedFirebaseUser[]) {
         return this.waitForSettlementEvent('deleted', groupId, settlementId, participants, 1);
     }
 
     /**
      * Generic method to wait for settlement events
      */
-    async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: User[], expectedCount: number) {
+    async waitForSettlementEvent(action: string, groupId: string, settlementId: string, participants: AuthenticatedFirebaseUser[], expectedCount: number) {
         const participantUids = participants.map((p) => p.uid);
 
         return this.waitForSettlementChanges(groupId, (changes) => {

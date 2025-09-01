@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 /**

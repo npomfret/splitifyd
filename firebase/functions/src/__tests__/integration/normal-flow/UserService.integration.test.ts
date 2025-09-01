@@ -1,11 +1,12 @@
 import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
 
-import {UserBuilder, User, ApiDriver, borrowTestUsers, borrowTestUser} from '@splitifyd/test-support';
+import {UserRegistrationBuilder, User, ApiDriver, borrowTestUsers, borrowTestUser} from '@splitifyd/test-support';
 import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb, firebaseAuth } from '../../../firebase';
 import { registerAllServices, getUserService } from '../../../services/serviceRegistration';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared/src";
 
 describe('UserService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -25,7 +26,7 @@ describe('UserService - Integration Tests', () => {
 
     describe('registerUser', () => {
         test('should register a new user with Firebase Auth and Firestore', async () => {
-            const userData = new UserBuilder()
+            const userData = new UserRegistrationBuilder()
                 .withEmail('newuser@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('New User')
@@ -74,7 +75,7 @@ describe('UserService - Integration Tests', () => {
         test('should reject registration with existing email', async () => {
             const existingUser = users[0];
 
-            const duplicateData = new UserBuilder()
+            const duplicateData = new UserRegistrationBuilder()
                 .withEmail(existingUser.email)
                 .withPassword('DifferentPass123!')
                 .withDisplayName('Different Name')
@@ -90,7 +91,7 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should register with optional acceptance flags', async () => {
-            const userData = new UserBuilder()
+            const userData = new UserRegistrationBuilder()
                 .withEmail('noaccept@example.com')
                 .withPassword('SecurePass123!')
                 .withDisplayName('Test User')
@@ -119,7 +120,7 @@ describe('UserService - Integration Tests', () => {
         test('should cleanup auth user if Firestore creation fails', async () => {
             // This is hard to test directly without mocking, but we can test
             // that the service handles the cleanup correctly by testing edge cases
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             try {
                 // This should succeed normally
@@ -253,10 +254,11 @@ describe('UserService - Integration Tests', () => {
     });
 
     describe('updateProfile', () => {
-        let testUser: User;
 
-        beforeEach(() => {
-            testUser = users[0];
+        let testUser: AuthenticatedFirebaseUser;
+
+        beforeEach(async () => {
+            testUser = await apiDriver.createUser();// don't use a pooled user as we are modifiying it
         });
 
         test('should update display name in both Auth and Firestore', async () => {
@@ -311,7 +313,8 @@ describe('UserService - Integration Tests', () => {
 
         test('should clear cache after update', async () => {
             // Cache the user first
-            const originalProfile = await userService.getUser(testUser.uid);
+            const user = await apiDriver.createUser();// don't use a pooled user as we are modifiying it
+            const originalProfile = await userService.getUser(user.uid);
             
             // Update the profile
             await userService.updateProfile(testUser.uid, {
@@ -389,7 +392,7 @@ describe('UserService - Integration Tests', () => {
     describe('deleteAccount', () => {
         test('should delete user from both Auth and Firestore', async () => {
             // Create a dedicated user for deletion testing
-            const userData = new UserBuilder()
+            const userData = new UserRegistrationBuilder()
                 .withEmail('todelete@example.com')
                 .withPassword('DeleteMe123!')
                 .withDisplayName('To Delete User')

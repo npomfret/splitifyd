@@ -1,7 +1,7 @@
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import {Timestamp} from 'firebase-admin/firestore';
 import {firebaseAuth, firestoreDb} from '../firebase';
-import {AuthErrors, FirestoreCollections, SystemUserRoles, User, UserThemeColor} from '@splitifyd/shared';
+import {AuthErrors, FirestoreCollections, SystemUserRoles, RegisteredUser, UserThemeColor} from '@splitifyd/shared';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {ApiError, Errors} from '../utils/errors';
@@ -14,6 +14,8 @@ import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} f
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {UserDataSchema, UserDocumentSchema} from '../schemas/user';
 import {getFirestoreValidationService} from './serviceRegistration';
+import {UserRegistration} from "@splitifyd/shared/src";
+import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 
 /**
  * User profile interface for consistent user data across the application
@@ -425,7 +427,7 @@ export class UserService {
      * @returns A RegisterUserResult with the newly created user information
      * @throws ApiError if registration fails
      */
-    async registerUser(requestBody: unknown): Promise<RegisterUserResult> {
+    async registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
         return PerformanceMonitor.monitorServiceCall(
             'UserService2',
             'registerUser',
@@ -433,19 +435,13 @@ export class UserService {
         );
     }
 
-    private async _registerUser(requestBody: unknown): Promise<RegisterUserResult> {
+    private async _registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
         LoggerContext.update({operation: 'register-user'});
 
         // Validate the request body
-        const {email, password, displayName, termsAccepted, cookiePolicyAccepted} = validateRegisterRequest(requestBody);
+        const userRegistration = validateRegisterRequest(requestBody);
 
-        const user = await this.createUserDirect(
-            email,
-            password,
-            displayName,
-            termsAccepted,
-            cookiePolicyAccepted
-        );
+        const user = await this.createUserDirect(userRegistration);
 
         return {
             success: true,
@@ -454,16 +450,13 @@ export class UserService {
         }
     }
 
-    async createUserDirect(email: string, password: string, displayName: string, termsAccepted: boolean, cookiePolicyAccepted: boolean): Promise<User> {
+    async createUserDirect(userRegistration: UserRegistration): Promise<RegisteredUser> {
         let userRecord: UserRecord | null = null;
 
         try {
             // Create the user in Firebase Auth
-            userRecord = await firebaseAuth.createUser({
-                email,
-                password,
-                displayName,
-            });
+            const c: CreateRequest = userRegistration;
+            userRecord = await firebaseAuth.createUser(c);
 
             // Add userId to context now that user is created
             LoggerContext.update({userId: userRecord.uid});
@@ -476,8 +469,8 @@ export class UserService {
 
             // Create user document in Firestore
             const userDoc: FirestoreUserDocument = {
-                email,
-                displayName,
+                email: userRegistration.email,// todo: this looks like a security issue
+                displayName: userRegistration.displayName,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: createServerTimestamp(),
                 updatedAt: createServerTimestamp(),
@@ -486,10 +479,10 @@ export class UserService {
             };
 
             // Only set acceptance timestamps if the user actually accepted the terms
-            if (termsAccepted) {
+            if (userRegistration.termsAccepted) {
                 userDoc.termsAcceptedAt = createServerTimestamp();
             }
-            if (cookiePolicyAccepted) {
+            if (userRegistration.cookiePolicyAccepted) {
                 userDoc.cookiePolicyAcceptedAt = createServerTimestamp();
             }
 
@@ -520,7 +513,7 @@ export class UserService {
                 uid: userRecord.uid,
                 email: userRecord.email,
                 displayName: userRecord.displayName,
-            } as User;
+            } as RegisteredUser;
         } catch (error: unknown) {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {

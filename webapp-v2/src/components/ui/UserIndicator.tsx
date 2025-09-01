@@ -1,8 +1,8 @@
 import { themeStore } from '@/app/stores/theme-store.ts';
-import type { User, UserThemeColor } from '@splitifyd/shared';
+import type { RegisteredUser, UserThemeColor } from '@splitifyd/shared';
 
 interface UserIndicatorProps {
-    user?: User;
+    user?: RegisteredUser;
     userId?: string;
     userName?: string;
     themeColor?: UserThemeColor;
@@ -52,7 +52,7 @@ export function UserIndicator({ user, userId, userName, themeColor, size = 'sm',
  * UserIndicatorList - Shows multiple user indicators in a row
  */
 interface UserIndicatorListProps {
-    users: User[];
+    users: RegisteredUser[];
     maxVisible?: number;
     size?: 'sm' | 'md' | 'lg';
     className?: string;

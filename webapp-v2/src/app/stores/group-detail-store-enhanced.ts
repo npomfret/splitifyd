@@ -1,13 +1,13 @@
 import { signal, batch, ReadonlySignal } from '@preact/signals';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
-import type { ExpenseData, Group, GroupBalances, User, SettlementListItem } from '@splitifyd/shared';
+import type { ExpenseData, Group, GroupBalances, RegisteredUser, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 
 export interface EnhancedGroupDetailStore {
     // State
     group: Group | null;
-    members: User[];
+    members: RegisteredUser[];
     expenses: ExpenseData[];
     balances: GroupBalances | null;
     settlements: SettlementListItem[];
@@ -24,7 +24,7 @@ export interface EnhancedGroupDetailStore {
 
     // Readonly signal accessors for reactive components
     readonly groupSignal: ReadonlySignal<Group | null>;
-    readonly membersSignal: ReadonlySignal<User[]>;
+    readonly membersSignal: ReadonlySignal<RegisteredUser[]>;
     readonly expensesSignal: ReadonlySignal<ExpenseData[]>;
     readonly balancesSignal: ReadonlySignal<GroupBalances | null>;
     readonly settlementsSignal: ReadonlySignal<SettlementListItem[]>;
@@ -59,7 +59,7 @@ export interface EnhancedGroupDetailStore {
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Private signals - encapsulated within the class
     readonly #groupSignal = signal<Group | null>(null);
-    readonly #membersSignal = signal<User[]>([]);
+    readonly #membersSignal = signal<RegisteredUser[]>([]);
     readonly #expensesSignal = signal<ExpenseData[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
     readonly #settlementsSignal = signal<SettlementListItem[]>([]);
@@ -130,7 +130,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     get groupSignal(): ReadonlySignal<Group | null> {
         return this.#groupSignal;
     }
-    get membersSignal(): ReadonlySignal<User[]> {
+    get membersSignal(): ReadonlySignal<RegisteredUser[]> {
         return this.#membersSignal;
     }
     get expensesSignal(): ReadonlySignal<ExpenseData[]> {

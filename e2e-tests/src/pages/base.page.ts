@@ -1,6 +1,6 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 
 export abstract class BasePage {

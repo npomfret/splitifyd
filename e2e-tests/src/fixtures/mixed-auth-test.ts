@@ -3,7 +3,7 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { EMULATOR_URL } from '../helpers';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage, JoinGroupPage } from '../pages';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 
 export interface UnauthenticatedUserFixture {
     page: Page;

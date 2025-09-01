@@ -4,7 +4,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, borrowTestUser, generateTestEmail, User} from '@splitifyd/test-support';
-import { ExpenseBuilder, UserBuilder } from '@splitifyd/test-support';
+import { ExpenseBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('User Management Tests', () => {
@@ -18,7 +18,7 @@ describe('User Management Tests', () => {
 
     describe('User Registration', () => {
         test('should register a new user successfully', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             const response = await apiDriver.register(userData);
 
@@ -33,7 +33,7 @@ describe('User Management Tests', () => {
 
             for (const email of invalidEmails) {
                 try {
-                    await apiDriver.register(new UserBuilder().withEmail(email).build());
+                    await apiDriver.register(new UserRegistrationBuilder().withEmail(email).build());
                     // If registration succeeds, the email validation is too permissive
                     throw new Error(`Email validation is too permissive: "${email}" was accepted`);
                 } catch (error) {
@@ -59,7 +59,7 @@ describe('User Management Tests', () => {
             ];
 
             for (const password of weakPasswords) {
-                await expect(apiDriver.register(new UserBuilder().withPassword(password).build())).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
+                await expect(apiDriver.register(new UserRegistrationBuilder().withPassword(password).build())).rejects.toThrow(/400|weak.*password|password.*requirements|validation/i);
             }
         });
 
@@ -78,25 +78,25 @@ describe('User Management Tests', () => {
 
         test('should reject registration with duplicate email', async () => {
             // Create a user first to ensure it exists
-            const firstUser = new UserBuilder().build();
+            const firstUser = new UserRegistrationBuilder().build();
 
             // First registration should succeed
             await apiDriver.register(firstUser);
 
             // Second registration with same email should fail
-            await expect(apiDriver.register(new UserBuilder().withEmail(firstUser.email).build())).rejects.toThrow(/400|409|email.*exists|already.*registered/i);
+            await expect(apiDriver.register(new UserRegistrationBuilder().withEmail(firstUser.email).build())).rejects.toThrow(/400|409|email.*exists|already.*registered/i);
         });
 
         test('should reject excessively long display names', async () => {
             const longDisplayName = 'A'.repeat(256); // Very long name
 
-            await expect(apiDriver.register(new UserBuilder().withDisplayName(longDisplayName).build())).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
+            await expect(apiDriver.register(new UserRegistrationBuilder().withDisplayName(longDisplayName).build())).rejects.toThrow(/400|too.*long|exceeds.*limit|validation/i);
         });
 
         // Comprehensive invalid registration tests for terms and cookie policy
         describe('Invalid Registration Scenarios', () => {
             test('should reject registration with missing termsAccepted field', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -113,7 +113,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with missing cookiePolicyAccepted field', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -130,7 +130,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with both terms fields missing', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -146,7 +146,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with null termsAccepted', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -163,7 +163,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with null cookiePolicyAccepted', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -180,7 +180,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with string values for boolean fields', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -197,7 +197,7 @@ describe('User Management Tests', () => {
             });
 
             test('should reject registration with numeric values for boolean fields', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 try {
                     await apiDriver.makeInvalidApiCall('/register', 'POST', {
@@ -230,7 +230,7 @@ describe('User Management Tests', () => {
             });
 
             test('should provide specific error codes for terms and cookie policy failures', async () => {
-                const userData = new UserBuilder().build();
+                const userData = new UserRegistrationBuilder().build();
 
                 // Test specific error code for terms not accepted
                 try {
@@ -247,7 +247,7 @@ describe('User Management Tests', () => {
                 }
 
                 // Test specific error code for cookie policy not accepted
-                const userData2 = new UserBuilder().build();
+                const userData2 = new UserRegistrationBuilder().build();
                 try {
                     await apiDriver.register({
                         email: userData2.email,
@@ -355,7 +355,7 @@ describe('User Management Tests', () => {
         });
 
         test('should return empty array for user with no expenses', async () => {
-            const newUser = await apiDriver.createUser(new UserBuilder().build());// don't use the pool users - we need a clean one
+            const newUser = await apiDriver.createUser();// don't use the pool users - we need a clean one
 
             const response = await apiDriver.listUserExpenses(newUser.token);
 
@@ -465,7 +465,7 @@ describe('User Management Tests', () => {
 
     describe('Terms and Cookie Policy Acceptance', () => {
         test('should reject registration without terms acceptance', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             try {
                 await apiDriver.register({
@@ -483,7 +483,7 @@ describe('User Management Tests', () => {
         });
 
         test('should reject registration without cookie policy acceptance', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             try {
                 await apiDriver.register({
@@ -501,7 +501,7 @@ describe('User Management Tests', () => {
         });
 
         test('should reject registration without both acceptances', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             try {
                 await apiDriver.register({
@@ -520,7 +520,7 @@ describe('User Management Tests', () => {
         });
 
         test('should store acceptance timestamps in Firestore', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             // Register user with both acceptances
             const response = await apiDriver.register({
@@ -543,7 +543,7 @@ describe('User Management Tests', () => {
         });
 
         test('should allow registration with both acceptances', async () => {
-            const userData = new UserBuilder().build();
+            const userData = new UserRegistrationBuilder().build();
 
             const response = await apiDriver.register({
                 email: userData.email,

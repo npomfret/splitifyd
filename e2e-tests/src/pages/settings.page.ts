@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 
 export class SettingsPage extends BasePage {
     constructor(page: Page, userInfo?: BaseUser) {

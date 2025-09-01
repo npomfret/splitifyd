@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from '@splitifyd/test-support';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 
 /**
  * DashboardPage for webapp-v2 unit tests

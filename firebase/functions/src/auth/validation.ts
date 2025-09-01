@@ -2,6 +2,7 @@ import * as Joi from 'joi';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { displayNameSchema } from '../validation/validationSchemas';
+import {UserRegistration} from "@splitifyd/shared";
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
@@ -31,15 +32,8 @@ const registerSchema = Joi.object({
     }),
 });
 
-export interface RegisterRequest {
-    email: string;
-    password: string;
-    displayName: string;
-    termsAccepted: boolean;
-    cookiePolicyAccepted: boolean;
-}
 
-export const validateRegisterRequest = (body: any): RegisterRequest => {
+export const validateRegisterRequest = (body: UserRegistration): UserRegistration => {
     const { error, value } = registerSchema.validate(body, { abortEarly: false });
 
     if (error) {

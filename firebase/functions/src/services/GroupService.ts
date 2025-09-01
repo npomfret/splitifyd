@@ -495,14 +495,14 @@ export class GroupService {
         );
     }
 
-    private async _createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
+    private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<Group> {
         // Initialize group structure with server timestamps
         const docRef = this.getGroupsCollection().doc();
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
 
         // Create member list with theme assignments
-        const initialMemberIds = groupData.members ? groupData.members.map((m: any) => m.uid) : [userId];
+        const initialMemberIds = createGroupRequest.members ? createGroupRequest.members.map((m: any) => m.uid) : [userId];
         const members: Record<string, any> = {};
 
         // CRUCIAL: Ensure creator is always first with theme index 0 and gets ADMIN role
@@ -530,8 +530,8 @@ export class GroupService {
 
         const newGroup: Group = {
             id: docRef.id,
-            name: groupData.name,
-            description: groupData.description ?? '',
+            name: createGroupRequest.name,
+            description: createGroupRequest.description ?? '',
             createdBy: userId,
             members: members,
             createdAt: timestampToISO(now),

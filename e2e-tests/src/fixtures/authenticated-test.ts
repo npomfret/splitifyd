@@ -2,7 +2,7 @@ import { test as base } from './base-test';
 import { Page } from '@playwright/test';
 import { AuthenticationWorkflow } from '../workflows';
 import { getUserPool } from './user-pool.fixture';
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 
 export interface AuthenticatedFixtures {
     authenticatedPage: {

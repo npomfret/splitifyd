@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { GroupCard } from '@/components/dashboard/GroupCard.tsx';
-import type { Group, User } from '@splitifyd/shared';
+import type { Group, RegisteredUser } from '@splitifyd/shared';
 
 // Mock react-i18next
 vi.mock('react-i18next', () => ({
@@ -73,7 +73,7 @@ function createTestGroup(overrides: Partial<Group> = {}): Group {
 }
 
 // Helper to create test users
-function createTestUser(overrides: Partial<User> = {}): User {
+function createTestUser(overrides: Partial<RegisteredUser> = {}): RegisteredUser {
     const id = Math.random().toString(36).substring(2, 11);
     return {
         uid: `user-${id}`,
@@ -178,7 +178,7 @@ describe('GroupCard', () => {
     });
 
     it('shows member avatars when members are provided', () => {
-        const users: User[] = [createTestUser({ displayName: 'Alice Anderson' }), createTestUser({ displayName: 'Bob Brown' }), createTestUser({ displayName: 'Charlie Chen' })];
+        const users: RegisteredUser[] = [createTestUser({ displayName: 'Alice Anderson' }), createTestUser({ displayName: 'Bob Brown' }), createTestUser({ displayName: 'Charlie Chen' })];
 
         const members: Record<string, any> = {};
         users.forEach((user, index) => {
@@ -197,7 +197,7 @@ describe('GroupCard', () => {
     });
 
     it('limits member avatars to 5 and shows count for rest', () => {
-        const users: User[] = [];
+        const users: RegisteredUser[] = [];
         for (let i = 0; i < 8; i++) {
             users.push(
                 createTestUser({

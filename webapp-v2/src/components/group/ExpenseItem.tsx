@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { formatDistanceToNow, formatExpenseDateTime } from '@/utils/dateUtils.ts';
-import type { ExpenseData, User } from '@splitifyd/shared';
+import type { ExpenseData, RegisteredUser } from '@splitifyd/shared';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
 import { formatCurrency } from '@/utils/currency';
 import { Avatar } from '../ui/Avatar';
@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 interface ExpenseItemProps {
     expense: ExpenseData;
-    members: User[];
+    members: RegisteredUser[];
     onClick?: (expense: ExpenseData) => void;
     onCopy?: (expense: ExpenseData) => void;
 }

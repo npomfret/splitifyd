@@ -1,4 +1,4 @@
-import type { User as BaseUser } from '@splitifyd/shared';
+import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 
 /**

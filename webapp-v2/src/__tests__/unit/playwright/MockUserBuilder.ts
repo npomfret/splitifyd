@@ -1,4 +1,4 @@
-import { UserBuilder } from '@splitifyd/test-support';
+import { UserRegistrationBuilder } from '@splitifyd/test-support';
 import type { MockUser } from './setup';
 
 /**
@@ -6,12 +6,12 @@ import type { MockUser } from './setup';
  * Extends the existing UserBuilder to add UI-specific properties
  */
 export class MockUserBuilder {
-    private userBuilder: UserBuilder;
+    private userBuilder: UserRegistrationBuilder;
     private uid: string;
     private photoURL?: string;
 
     constructor() {
-        this.userBuilder = new UserBuilder();
+        this.userBuilder = new UserRegistrationBuilder();
         this.uid = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         this.photoURL = 'https://via.placeholder.com/150';
     }

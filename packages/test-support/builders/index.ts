@@ -1,4 +1,4 @@
-export { UserBuilder } from './UserBuilder';
+export { UserRegistrationBuilder } from './UserRegistrationBuilder';
 export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';
 export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { ExpenseBuilder } from './ExpenseBuilder';

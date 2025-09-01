@@ -25,24 +25,27 @@ import {
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
-    User as BaseUser,
     UserPoliciesResponse,
     UserProfileResponse,
+    UserRegistration,
+    AuthenticatedFirebaseUser
 } from '@splitifyd/shared';
 
 import type {DocumentData} from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 import {Matcher, PollOptions, pollUntil} from "./Polling";
+import {UserRegistrationBuilder} from "./builders";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
 
-// Test-specific extension of User to include auth token
-export interface User extends BaseUser {
-    token: string;
+/**
+ * @deprecated use AuthenticatedFirebaseUser
+ */
+export interface User extends AuthenticatedFirebaseUser {
 }
 
 /**
@@ -104,32 +107,26 @@ export class ApiDriver {
         return this.baseUrl;
     }
 
-    async createUser(userInfo: { email: string; password: string; displayName: string }): Promise<User> {
+    async createUser(userRegistration: UserRegistration = new UserRegistrationBuilder().build()): Promise<AuthenticatedFirebaseUser> {
         try {
             // Register user via API
-            await this.apiRequest('/register', 'POST', {
-                email: userInfo.email,
-                password: userInfo.password,
-                displayName: userInfo.displayName,
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-            });
+            await this.apiRequest('/register', 'POST', userRegistration);
         } catch (error) {
             // Ignore "already exists" errors
             if (!(error instanceof Error && error.message.includes('EMAIL_EXISTS'))) {
                 throw error;
             }
         }
-        return await this.firebaseSignIn(userInfo);
+        return await this.firebaseSignIn(userRegistration);
     }
 
-    async borrowTestUser(): Promise<User> {
+    async borrowTestUser(): Promise<AuthenticatedFirebaseUser> {
         const poolUser = await this.apiRequest('/test-pool/borrow', 'POST', {});
         const {user: {displayName, email, password}, token} = poolUser;
         return await this.firebaseSignIn({email, password, displayName, token})
     }
 
-    private async firebaseSignIn(userInfo: { email: string; password: string; displayName: string, token?: string }) {
+    private async firebaseSignIn(userInfo: { email: string; password: string; displayName: string, token?: string }): Promise<AuthenticatedFirebaseUser> {
         // Use Firebase Auth REST API to sign in
 
         let signInResponse: Response;
@@ -297,7 +294,7 @@ export class ApiDriver {
         return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
-    async createGroupWithMembers(name: string, members: User[], creatorToken: string): Promise<Group> {
+    async createGroupWithMembers(name: string, members: AuthenticatedFirebaseUser[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
         const groupData = {name, description: `Test group created at ${new Date().toISOString()}`};
 
@@ -540,7 +537,7 @@ export class ApiDriver {
         } catch (error) {
             // Check for connection errors that might indicate emulator restart
             if (error instanceof TypeError && error.message.includes('fetch')) {
-                throw new Error(`Cannot connect to emulator. Please ensure the Firebase emulator is running.`);
+                throw new Error(`Cannot connect to emulator at ${url}. Please ensure the Firebase emulator is running.`);
             }
             throw error;
         }
