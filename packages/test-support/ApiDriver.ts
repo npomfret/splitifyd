@@ -117,6 +117,9 @@ export class ApiDriver {
     async borrowTestUser(): Promise<AuthenticatedFirebaseUser> {
         const poolUser = await this.apiRequest('/test-pool/borrow', 'POST', {});
         const {user: {displayName, email, password}, token} = poolUser;
+        
+        // Always use the custom token approach - it's more reliable than caching ID tokens
+        // The custom token won't be revoked and can be exchanged for a fresh ID token each time
         return await this.firebaseSignIn({email, password, displayName, token})
     }
 
