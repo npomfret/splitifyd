@@ -22,22 +22,17 @@ export interface EnhancedGroupDetailStore {
     hasMoreSettlements: boolean;
     settlementsCursor: string | null;
 
-
     // Methods
     loadGroup(id: string): Promise<void>;
     subscribeToChanges(userId: string): void;
     dispose(): void;
     reset(): void;
-    fetchMembers(): Promise<void>;
-    fetchExpenses(cursor?: string, includeDeleted?: boolean): Promise<void>;
-    fetchBalances(): Promise<void>;
     fetchSettlements(cursor?: string, userId?: string): Promise<void>;
     loadMoreExpenses(): Promise<void>;
     loadMoreSettlements(): Promise<void>;
     refreshAll(): Promise<void>;
     leaveGroup(groupId: string): Promise<{ success: boolean; message: string }>;
     removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }>;
-    fetchGroup(id: string): Promise<void>;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
@@ -109,7 +104,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     get settlementsCursor() {
         return this.#settlementsCursorSignal.value;
     }
-
 
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
@@ -195,51 +189,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             hasExpenseListener: !!this.expenseChangeListener,
             hasGroupListener: !!this.groupChangeListener,
         });
-    }
-
-    async fetchMembers(): Promise<void> {
-        if (!this.currentGroupId) return;
-
-        logInfo('fetchMembers: refreshing all data to ensure consistency', { groupId: this.currentGroupId });
-        await this.refreshAll();
-    }
-
-    async fetchExpenses(cursor?: string, includeDeleted: boolean = false): Promise<void> {
-        if (!this.currentGroupId) return;
-
-        this.#loadingExpensesSignal.value = true;
-        try {
-            const response = await apiClient.getExpenses(this.currentGroupId, undefined, cursor, includeDeleted);
-
-            if (cursor) {
-                // Append to existing expenses
-                this.#expensesSignal.value = [...this.#expensesSignal.value, ...response.expenses];
-            } else {
-                // Replace expenses
-                this.#expensesSignal.value = response.expenses;
-            }
-
-            this.#hasMoreExpensesSignal.value = response.hasMore;
-            this.#expenseCursorSignal.value = response.nextCursor || null;
-        } catch (error) {
-            logWarning('Failed to fetch expenses', { error });
-        } finally {
-            this.#loadingExpensesSignal.value = false;
-        }
-    }
-
-    async fetchBalances(): Promise<void> {
-        if (!this.currentGroupId) return;
-
-        this.#loadingBalancesSignal.value = true;
-        try {
-            const balanceData = await apiClient.getGroupBalances(this.currentGroupId);
-            this.#balancesSignal.value = balanceData;
-        } catch (error) {
-            logWarning('Failed to fetch balances', { error });
-        } finally {
-            this.#loadingBalancesSignal.value = false;
-        }
     }
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
@@ -399,10 +348,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-    async fetchGroup(id: string): Promise<void> {
-        // Alias for loadGroup to maintain compatibility
-        return this.loadGroup(id);
-    }
 }
 
 // Export singleton instance

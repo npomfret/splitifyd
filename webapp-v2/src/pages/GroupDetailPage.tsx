@@ -239,7 +239,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                             showDeletedExpenses={showDeletedExpenses.value}
                             onShowDeletedChange={(show) => {
                                 showDeletedExpenses.value = show;
-                                enhancedGroupDetailStore.fetchExpenses(undefined, show);
+                                enhancedGroupDetailStore.refreshAll();
                             }}
                         />
 
@@ -297,8 +297,8 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                 editMode={!!modals.settlementToEdit.value}
                 settlementToEdit={modals.settlementToEdit.value || undefined}
                 onSuccess={() => {
-                    // Refresh balances after successful settlement
-                    enhancedGroupDetailStore.fetchBalances();
+                    // Refresh all data after successful settlement
+                    enhancedGroupDetailStore.refreshAll();
                     modals.closeSettlementForm();
                 }}
             />

@@ -131,7 +131,7 @@ export function useFormInitialization({
 
                 // Ensure group data is loaded
                 if (!group.value || group.value.id !== groupId) {
-                    await enhancedGroupDetailStore.fetchGroup(groupId);
+                    await enhancedGroupDetailStore.loadGroup(groupId);
                 }
 
                 if (isEditMode && expenseId) {

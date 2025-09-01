@@ -69,8 +69,7 @@ export function SettlementHistory({ groupId, userId, onEditSettlement }: Settlem
         setIsDeleting(true);
         try {
             await apiClient.deleteSettlement(settlementToDelete.id);
-            await enhancedGroupDetailStore.loadGroup(groupId);
-            await enhancedGroupDetailStore.fetchSettlements();
+            await enhancedGroupDetailStore.refreshAll();
             setSettlementToDelete(null);
         } catch (error) {
             console.error('Failed to delete settlement:', error);
