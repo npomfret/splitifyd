@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser, groupSize} from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser} from '@splitifyd/shared';
 import {firestoreDb} from "../../../../firebase";
 
 describe('Balance Calculations', () => {
@@ -44,13 +44,13 @@ describe('Balance Calculations', () => {
         await apiDriver.createExpense(expenseData, testUsers[0].token);
 
         // Get group details to check balance info
-        const groupDetails = await apiDriver.getGroup(balanceTestGroup.id, testUsers[0].token);
+        const {group: groupDetails, members} = await apiDriver.getGroupFullDetails(balanceTestGroup.id, testUsers[0].token);
 
         // Verify the response structure includes balance info
         expect(groupDetails).toHaveProperty('id');
         expect(groupDetails).toHaveProperty('name');
         expect(groupDetails).toHaveProperty('members');
-        expect(groupSize(groupDetails)).toBeGreaterThan(0);
+        expect(Object.keys(members).length).toBeGreaterThan(0);
     });
 
     test('should include balance data in listGroups response', async () => {

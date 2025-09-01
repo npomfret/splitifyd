@@ -7,7 +7,6 @@ import { describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, CreateGroupRequestBuilder, borrowTestUsers, borrowTestUser} from '@splitifyd/test-support';
-import { groupSize } from '@splitifyd/shared';
 
 describe('Group Management', () => {
     const apiDriver = new ApiDriver();
@@ -22,9 +21,9 @@ describe('Group Management', () => {
             expect(createdGroup.id).toBeDefined();
 
             // Verify the group was created
-            const fetchedGroup = await apiDriver.getGroup(createdGroup.id, user.token);
+            const {group: fetchedGroup, members} = await apiDriver.getGroupFullDetails(createdGroup.id, user.token);
             expect(fetchedGroup.name).toBe(groupData.name);
-            expect(groupSize(fetchedGroup)).toBe(1); // Only creator initially
+            expect(Object.keys(members).length).toBe(1); // Only creator initially
         });
     });
 
@@ -175,13 +174,13 @@ describe('Group Management', () => {
             }
 
             // Verify all users were added to the group
-            const updatedGroup = await apiDriver.getGroup(multiJoinGroup.id, users[0].token);
+            const {members} = await apiDriver.getGroupFullDetails(multiJoinGroup.id, users[0].token);
 
             // Should have original member + 3 new members = 4 total
-            expect(groupSize(updatedGroup)).toBe(4);
-            expect(updatedGroup.members).toHaveProperty(users[0].uid);
+            expect(Object.keys(members).length).toBe(4);
+            expect(members).toHaveProperty(users[0].uid);
             newUsers.forEach((user) => {
-                expect(updatedGroup.members).toHaveProperty(user.uid);
+                expect(members).toHaveProperty(user.uid);
             });
         });
     });

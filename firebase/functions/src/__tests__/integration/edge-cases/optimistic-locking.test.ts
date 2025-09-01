@@ -3,7 +3,6 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import { groupSize } from '@splitifyd/shared';
 import {ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, ApiDriver} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -53,11 +52,11 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state - both users should be members
-            const finalGroup = await apiDriver.getGroup(group.id, users[0].token);
+            const {group: finalGroup, members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
             expect(finalGroup.members).toHaveProperty(users[0].uid);
             expect(finalGroup.members).toHaveProperty(users[1].uid);
             expect(finalGroup.members).toHaveProperty(users[2].uid);
-            expect(groupSize(finalGroup)).toBe(3);
+            expect(Object.keys(members).length).toBe(3);
         });
 
         test('should prevent concurrent group updates', async () => {

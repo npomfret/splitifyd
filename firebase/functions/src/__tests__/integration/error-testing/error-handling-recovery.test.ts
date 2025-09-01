@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
-import { Group, groupSize } from '@splitifyd/shared';
+import { Group } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Error Handling and Recovery Testing', () => {
@@ -284,7 +284,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle data consistency after failed operations', async () => {
                 // Get initial state
                 const initialExpenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-                const initialGroupData = await apiDriver.getGroup(testGroup.id, users[0].token);
+                const {group: initialGroupData, members: initialMembers} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 const initialExpenseCount = initialExpenses.expenses.length;
 
                 // Attempt invalid operation that should fail
@@ -305,13 +305,13 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Verify state is unchanged after failed operation
                 const finalExpenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-                const finalGroupData = await apiDriver.getGroup(testGroup.id, users[0].token);
+                const {group: finalGroupData, members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
                 expect(finalExpenses.expenses.length).toBe(initialExpenseCount);
 
                 // Group data should remain unchanged
                 expect(finalGroupData.name).toBe(initialGroupData.name);
-                expect(groupSize(finalGroupData)).toBe(groupSize(initialGroupData));
+                expect(Object.keys(members).length).toBe(Object.keys(initialMembers).length);
             });
 
             it('should handle database transaction consistency', async () => {

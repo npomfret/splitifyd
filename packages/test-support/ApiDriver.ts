@@ -291,11 +291,9 @@ export class ApiDriver {
         return (await this.apiRequest('/groups', 'POST', groupData, token)) as Group;
     }
 
-    /**
-     * @deprecated use getGroupFullDetails()
-     */
     async getGroup(groupId: string, token: string): Promise<Group> {
-        return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
+        const res = await this.getGroupFullDetails(groupId, token)
+        return res.group;
     }
 
     async getGroupFullDetails(
