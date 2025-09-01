@@ -49,20 +49,7 @@ async function cleanupCollections() {
     if (!authResponse.ok) {
         throw new Error(`Failed to clear Auth data: ${authResponse.status} ${authResponse.statusText}`);
     }
-    
-    // Reset test user pool since all tokens are now invalid
-    try {
-        const poolResetUrl = `http://localhost:${functionsPort}/test-pool/reset`;
-        console.log(`🔄 Resetting test user pool at localhost:${functionsPort}`);
-        
-        const poolResponse = await fetch(poolResetUrl, { method: 'POST' });
-        if (!poolResponse.ok) {
-            console.warn(`Failed to reset test pool: ${poolResponse.status} ${poolResponse.statusText}`);
-        }
-    } catch (error) {
-        console.warn('Failed to reset test pool:', error);
-    }
-    
+
     console.log('🎉 [GLOBAL SETUP] All data cleared instantly');
 }
 
