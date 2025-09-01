@@ -9,7 +9,7 @@ describe('Custom Categories Feature Tests', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

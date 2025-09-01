@@ -13,7 +13,7 @@ import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitify
 describe('Permission System Integration Tests', () => {
     const apiDriver = new ApiDriver();
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

@@ -11,7 +11,7 @@ import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder
 
 describe('RESTful Group CRUD Operations', () => {
     const apiDriver = new ApiDriver();
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

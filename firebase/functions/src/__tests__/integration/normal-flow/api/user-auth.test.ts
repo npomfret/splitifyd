@@ -7,7 +7,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 import {User, borrowTestUsers} from '@splitifyd/test-support';
 
 describe('User Authentication', () => {
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

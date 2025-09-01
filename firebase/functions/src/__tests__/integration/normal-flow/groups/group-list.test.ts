@@ -11,7 +11,7 @@ import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, User} from '@split
 
 describe('GET /groups - List Groups', () => {
     const apiDriver = new ApiDriver();
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

@@ -6,7 +6,7 @@ import {ExpenseBuilder, CreateGroupRequestBuilder, ApiDriver, User, borrowTestUs
 describe('Group Lifecycle Edge Cases', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

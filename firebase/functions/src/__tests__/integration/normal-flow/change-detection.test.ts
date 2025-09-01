@@ -6,7 +6,7 @@ describe('Change Detection Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, firestoreDb);
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

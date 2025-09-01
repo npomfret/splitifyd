@@ -11,7 +11,7 @@ import {ApiDriver, borrowTestUsers, ExpenseBuilder, User} from '@splitifyd/test-
 describe('Expense Management', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

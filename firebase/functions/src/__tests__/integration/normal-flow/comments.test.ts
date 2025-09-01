@@ -14,7 +14,7 @@ describe('Comments API Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
     let testExpense: any;
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

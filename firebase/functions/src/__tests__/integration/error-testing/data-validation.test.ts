@@ -5,12 +5,13 @@ import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder, User} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('API Validation Smoke Tests', () => {
     const apiDriver = new ApiDriver();
     let testGroup: Group;
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

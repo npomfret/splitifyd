@@ -7,7 +7,7 @@ import { ExpenseBuilder, CreateGroupRequestBuilder } from '@splitifyd/test-suppo
 describe('Additional Monetary Edge Cases', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

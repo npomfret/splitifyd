@@ -9,7 +9,7 @@ describe('Error Handling and Recovery Testing', () => {
     const apiDriver = new ApiDriver();
     let testGroup: Group;
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

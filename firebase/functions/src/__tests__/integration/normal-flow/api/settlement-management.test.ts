@@ -12,7 +12,7 @@ describe('Settlement Management', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
     let settlementUsers: User[];
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(6);

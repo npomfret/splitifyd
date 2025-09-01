@@ -8,7 +8,7 @@ import {beforeEach} from "vitest";
 describe('Group Members Integration Tests', () => {
     const apiDriver = new ApiDriver();
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(5);

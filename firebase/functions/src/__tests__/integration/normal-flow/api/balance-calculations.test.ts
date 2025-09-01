@@ -16,7 +16,7 @@ describe('Balance Calculations', () => {
     const appDriver = new AppDriver(apiDriver, firestoreDb);
     let balanceTestGroup: any;
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(6);

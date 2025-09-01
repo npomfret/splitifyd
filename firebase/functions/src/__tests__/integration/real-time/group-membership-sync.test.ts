@@ -12,7 +12,7 @@ describe('Group Membership Real-Time Sync Tests', () => {
     const appDriver = new AppDriver(apiDriver, firestoreDb);
     const activeListeners: Array<() => void> = [];
 
-    let users: User[];
+    let users: AuthenticatedFirebaseUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

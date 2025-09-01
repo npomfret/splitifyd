@@ -1,4 +1,5 @@
-import { ApiDriver, User } from './ApiDriver';
+import { ApiDriver } from './ApiDriver';
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 /**
  * Borrows test users from the pool with automatic cleanup.
@@ -12,7 +13,7 @@ import { ApiDriver, User } from './ApiDriver';
  * import { borrowTestUsers } from '@splitifyd/test-support';
  * 
  * describe('My Test', () => {
- *   let users: User[];
+ *   let users: AuthenticatedFirebaseUser[];
  * 
  *   beforeEach(async () => {
  *     users = await borrowTestUsers(2); // Automatic cleanup after each test!
@@ -24,9 +25,9 @@ import { ApiDriver, User } from './ApiDriver';
  * });
  * ```
  */
-export async function borrowTestUsers(count: number): Promise<User[]> {
+export async function borrowTestUsers(count: number): Promise<AuthenticatedFirebaseUser[]> {
     const apiDriver = new ApiDriver();
-    const users: User[] = [];
+    const users: AuthenticatedFirebaseUser[] = [];
     
     // Borrow users sequentially to avoid Firebase emulator multi-instance issues
     for (let i = 0; i < count; i++) {
@@ -43,6 +44,6 @@ export async function borrowTestUsers(count: number): Promise<User[]> {
     return users;
 }
 
-export async function borrowTestUser(): Promise<User> {
+export async function borrowTestUser(): Promise<AuthenticatedFirebaseUser> {
     return (await borrowTestUsers(1))[0];
 }
