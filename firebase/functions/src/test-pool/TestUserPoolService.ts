@@ -2,17 +2,13 @@ import {admin, firestoreDb} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {RegisteredUser} from "@splitifyd/shared";
 
-interface PoolUser {
+export interface PoolUser {
     user: RegisteredUser,
     token: string
     password: string
 }
 
-interface FirestorePoolUser {
-    email: string;
-    user: RegisteredUser;
-    token: string;
-    password: string;
+interface FirestorePoolUser extends  PoolUser {
     status: 'available' | 'borrowed';
     createdAt: FirebaseFirestore.Timestamp;
 }
@@ -118,14 +114,15 @@ export class TestUserPoolService {
         const userService = getUserService();
 
         const user = await userService.createUserDirect({
-                email,
-                password: POOL_PASSWORD,
-                displayName:`pool user ${id}`,
+            email,
+            password: POOL_PASSWORD,
+            displayName:`pool user ${id}`,
             termsAccepted: true,
             cookiePolicyAccepted: true,
-    });
+        });
 
         const token = await admin.auth().createCustomToken(user.uid);
+
         return {user, password: POOL_PASSWORD, token};
     }
 
