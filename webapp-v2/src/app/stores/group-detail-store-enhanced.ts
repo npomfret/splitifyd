@@ -1,4 +1,4 @@
-import { signal, batch, ReadonlySignal } from '@preact/signals';
+import { signal, batch } from '@preact/signals';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
 import type { ExpenseData, Group, GroupBalances, RegisteredUser, SettlementListItem } from '@splitifyd/shared';
@@ -22,22 +22,6 @@ export interface EnhancedGroupDetailStore {
     hasMoreSettlements: boolean;
     settlementsCursor: string | null;
 
-    // Readonly signal accessors for reactive components
-    readonly groupSignal: ReadonlySignal<Group | null>;
-    readonly membersSignal: ReadonlySignal<RegisteredUser[]>;
-    readonly expensesSignal: ReadonlySignal<ExpenseData[]>;
-    readonly balancesSignal: ReadonlySignal<GroupBalances | null>;
-    readonly settlementsSignal: ReadonlySignal<SettlementListItem[]>;
-    readonly loadingSignal: ReadonlySignal<boolean>;
-    readonly loadingMembersSignal: ReadonlySignal<boolean>;
-    readonly loadingExpensesSignal: ReadonlySignal<boolean>;
-    readonly loadingBalancesSignal: ReadonlySignal<boolean>;
-    readonly loadingSettlementsSignal: ReadonlySignal<boolean>;
-    readonly errorSignal: ReadonlySignal<string | null>;
-    readonly hasMoreExpensesSignal: ReadonlySignal<boolean>;
-    readonly expenseCursorSignal: ReadonlySignal<string | null>;
-    readonly hasMoreSettlementsSignal: ReadonlySignal<boolean>;
-    readonly settlementsCursorSignal: ReadonlySignal<string | null>;
 
     // Methods
     loadGroup(id: string): Promise<void>;
@@ -126,52 +110,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         return this.#settlementsCursorSignal.value;
     }
 
-    // Signal accessors for reactive components - return readonly signals
-    get groupSignal(): ReadonlySignal<Group | null> {
-        return this.#groupSignal;
-    }
-    get membersSignal(): ReadonlySignal<RegisteredUser[]> {
-        return this.#membersSignal;
-    }
-    get expensesSignal(): ReadonlySignal<ExpenseData[]> {
-        return this.#expensesSignal;
-    }
-    get balancesSignal(): ReadonlySignal<GroupBalances | null> {
-        return this.#balancesSignal;
-    }
-    get settlementsSignal(): ReadonlySignal<SettlementListItem[]> {
-        return this.#settlementsSignal;
-    }
-    get loadingSignal(): ReadonlySignal<boolean> {
-        return this.#loadingSignal;
-    }
-    get loadingMembersSignal(): ReadonlySignal<boolean> {
-        return this.#loadingMembersSignal;
-    }
-    get loadingExpensesSignal(): ReadonlySignal<boolean> {
-        return this.#loadingExpensesSignal;
-    }
-    get loadingBalancesSignal(): ReadonlySignal<boolean> {
-        return this.#loadingBalancesSignal;
-    }
-    get loadingSettlementsSignal(): ReadonlySignal<boolean> {
-        return this.#loadingSettlementsSignal;
-    }
-    get errorSignal(): ReadonlySignal<string | null> {
-        return this.#errorSignal;
-    }
-    get hasMoreExpensesSignal(): ReadonlySignal<boolean> {
-        return this.#hasMoreExpensesSignal;
-    }
-    get expenseCursorSignal(): ReadonlySignal<string | null> {
-        return this.#expenseCursorSignal;
-    }
-    get hasMoreSettlementsSignal(): ReadonlySignal<boolean> {
-        return this.#hasMoreSettlementsSignal;
-    }
-    get settlementsCursorSignal(): ReadonlySignal<string | null> {
-        return this.#settlementsCursorSignal;
-    }
 
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
