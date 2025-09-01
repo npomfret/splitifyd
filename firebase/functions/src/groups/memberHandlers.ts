@@ -14,25 +14,6 @@ export const _getGroupMembersData = async (groupId: string, membersMap: Record<s
     return await getGroupMemberService().getGroupMembersData(groupId, membersMap);
 };
 
-/**
- * Get members of a group
- * Returns member profiles for all users in the group
- */
-export const getGroupMembers = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = req.user?.uid;
-    const groupId = validateGroupId(req.params.id);
-
-    try {
-        const response = await getGroupMemberService().getGroupMembers(userId!, groupId);
-        res.json(response);
-    } catch (error) {
-        logger.error('Error in getGroupMembers', error, {
-            groupId,
-            userId,
-        });
-        throw error;
-    }
-};
 
 /**
  * Leave a group

@@ -110,13 +110,13 @@ describe('Group Membership Real-Time Sync Tests', () => {
         expect(finalChange.memberIds).toContain(user2.uid);
 
         // Verify both users can see each other via API
-        const membersFromUser1 = await apiDriver.getGroupMembers(groupId, user1.token);
-        expect(membersFromUser1.members.length).toBe(2);
-        expect(membersFromUser1.members.map((m: any) => m.uid)).toContain(user2.uid);
+        const fullDetailsFromUser1 = await apiDriver.getGroupFullDetails(groupId, user1.token);
+        expect(fullDetailsFromUser1.members.members.length).toBe(2);
+        expect(fullDetailsFromUser1.members.members.map((m: any) => m.uid)).toContain(user2.uid);
 
-        const membersFromUser2 = await apiDriver.getGroupMembers(groupId, user2.token);
-        expect(membersFromUser2.members.length).toBe(2);
-        expect(membersFromUser2.members.map((m: any) => m.uid)).toContain(user1.uid);
+        const fullDetailsFromUser2 = await apiDriver.getGroupFullDetails(groupId, user2.token);
+        expect(fullDetailsFromUser2.members.members.length).toBe(2);
+        expect(fullDetailsFromUser2.members.members.map((m: any) => m.uid)).toContain(user1.uid);
     });
 
     /**

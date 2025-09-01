@@ -32,27 +32,26 @@ describe('Group Members Integration Tests', () => {
         return group.id;
     };
 
-    describe('getGroupMembers', () => {
+    describe('group member information via getGroupFullDetails', () => {
         it('should return all group members', async () => {
             const users = _testUsers(3);
             const groupId = await createGroupWithMembers(apiDriver, users);
 
-            const response = await apiDriver.getGroupMembers(groupId, users[0].token);
+            const response = await apiDriver.getGroupFullDetails(groupId, users[0].token);
 
-            expect(response).toMatchObject({
+            expect(response.members).toMatchObject({
                 members: expect.arrayContaining([expect.objectContaining({ uid: users[0].uid }), expect.objectContaining({ uid: users[1].uid }), expect.objectContaining({ uid: users[2].uid })]),
-                hasMore: false,
             });
-            expect(response.members.length).toBe(3);
+            expect(response.members.members.length).toBe(3);
         });
 
         it('should return members sorted alphabetically', async () => {
             const users = _testUsers(3);
             const groupId = await createGroupWithMembers(apiDriver, users);
 
-            const response = await apiDriver.getGroupMembers(groupId, users[0].token);
+            const response = await apiDriver.getGroupFullDetails(groupId, users[0].token);
 
-            const displayNames = response.members.map((m: any) => m.displayName);
+            const displayNames = response.members.members.map((m: any) => m.displayName);
             const sortedNames = [...displayNames].sort((a, b) => a.localeCompare(b));
             expect(displayNames).toEqual(sortedNames);
         });
@@ -61,7 +60,7 @@ describe('Group Members Integration Tests', () => {
             const users = _testUsers(1);
             const groupId = await createGroupWithMembers(apiDriver, users);
 
-            await expect(apiDriver.getGroupMembers(groupId, 'invalid-token')).rejects.toThrow();
+            await expect(apiDriver.getGroupFullDetails(groupId, 'invalid-token')).rejects.toThrow();
         });
 
         it('should throw FORBIDDEN if user is not a member', async () => {
@@ -69,7 +68,7 @@ describe('Group Members Integration Tests', () => {
             const groupId = await createGroupWithMembers(apiDriver, [users[0]]);
             const nonMember = users[1]; // Use second user as non-member
 
-            await expect(apiDriver.getGroupMembers(groupId, nonMember.token)).rejects.toThrow();
+            await expect(apiDriver.getGroupFullDetails(groupId, nonMember.token)).rejects.toThrow();
         });
     });
 
@@ -87,9 +86,9 @@ describe('Group Members Integration Tests', () => {
             });
 
             // Verify member was removed by checking group members via API
-            const membersResponse = await apiDriver.getGroupMembers(groupId, users[0].token);
-            expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToLeave.uid);
-            expect(membersResponse.members.length).toBe(2);
+            const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, users[0].token);
+            expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).not.toContain(memberToLeave.uid);
+            expect(fullDetailsResponse.members.members.length).toBe(2);
         });
 
         it('should prevent the creator from leaving', async () => {
@@ -154,9 +153,9 @@ describe('Group Members Integration Tests', () => {
             });
 
             // Verify member was removed by checking group members via API
-            const membersResponse = await apiDriver.getGroupMembers(groupId, creator.token);
-            expect(membersResponse.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
-            expect(membersResponse.members.length).toBe(2);
+            const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, creator.token);
+            expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
+            expect(fullDetailsResponse.members.members.length).toBe(2);
         });
 
         it('should prevent non-creator from removing members', async () => {
@@ -225,9 +224,9 @@ describe('Group Members Integration Tests', () => {
             await apiDriver.leaveGroup(groupId, member2.token);
 
             // Verify only creator remains via API
-            const membersResponse = await apiDriver.getGroupMembers(groupId, users[0].token);
-            expect(membersResponse.members.map((m: any) => m.uid)).toEqual([users[0].uid]);
-            expect(membersResponse.members.length).toBe(1);
+            const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, users[0].token);
+            expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).toEqual([users[0].uid]);
+            expect(fullDetailsResponse.members.members.length).toBe(1);
         });
 
         it('should prevent access after leaving group', async () => {
@@ -238,8 +237,8 @@ describe('Group Members Integration Tests', () => {
             // Member leaves
             await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
-            // Try to access group members after leaving
-            await expect(apiDriver.getGroupMembers(groupId, memberToLeave.token)).rejects.toThrow();
+            // Try to access group details after leaving
+            await expect(apiDriver.getGroupFullDetails(groupId, memberToLeave.token)).rejects.toThrow();
         });
 
         it('should handle mixed leave and remove operations', async () => {
@@ -256,9 +255,9 @@ describe('Group Members Integration Tests', () => {
             await apiDriver.leaveGroup(groupId, member2.token);
 
             // Verify only creator remains via API
-            const membersResponse = await apiDriver.getGroupMembers(groupId, creator.token);
-            expect(membersResponse.members.map((m: any) => m.uid)).toEqual([creator.uid]);
-            expect(membersResponse.members.length).toBe(1);
+            const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, creator.token);
+            expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).toEqual([creator.uid]);
+            expect(fullDetailsResponse.members.members.length).toBe(1);
         });
     });
 });

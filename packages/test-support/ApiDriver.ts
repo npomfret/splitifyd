@@ -9,7 +9,6 @@ import {
     Group,
     GroupBalances,
     GroupFullDetails,
-    GroupMembersResponse,
     GroupPermissions,
     JoinGroupResponse,
     LeaveGroupResponse,
@@ -322,9 +321,6 @@ export class ApiDriver {
         return (await this.apiRequest(`/groups/${groupId}`, 'GET', null, token)) as Group;
     }
 
-    async getGroupMembers(groupId: string, token: string): Promise<GroupMembersResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members`, 'GET', null, token);
-    }
 
     async getGroupFullDetails(
         groupId: string,

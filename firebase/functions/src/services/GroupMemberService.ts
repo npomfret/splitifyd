@@ -59,38 +59,6 @@ export class GroupMemberService {
         };
     }
 
-    async getGroupMembers(userId: string, groupId: string): Promise<GroupMembersResponse> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupMemberService',
-            'getGroupMembers',
-            async () => this._getGroupMembers(userId, groupId),
-            { userId, groupId }
-        );
-    }
-
-    private async _getGroupMembers(userId: string, groupId: string): Promise<GroupMembersResponse> {
-        LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ userId, operation: 'get-group-members' });
-        
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const docRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        const group = transformGroupDocument(doc);
-
-        if (!(userId in group.members)) {
-            throw Errors.FORBIDDEN();
-        }
-
-        return await this.getGroupMembersData(groupId, group.members);
-    }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
         return PerformanceMonitor.monitorServiceCall(

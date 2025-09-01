@@ -297,10 +297,10 @@ describe('User Profile Management API Tests', () => {
             // Check if the display name is reflected in group members
             // Note: Firebase Auth updates may not be immediately reflected in the emulator
             // This is a known limitation of the Firebase emulator
-            const membersResponse = await apiDriver.getGroupMembers(groupId, user.token);
+            const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, user.token);
 
-            // The API returns a GroupMembersResponse object with a 'members' array
-            const members = membersResponse.members || [];
+            // The API returns a GroupFullDetails object with a 'members' property containing a 'members' array
+            const members = fullDetailsResponse.members.members || [];
             const updatedMember = members.find((m: any) => m.uid === user.uid);
             expect(updatedMember).toBeDefined();
 

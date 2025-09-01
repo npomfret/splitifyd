@@ -177,10 +177,9 @@ describe('Groups Full Details API', () => {
             await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).build(), alice.token);
 
             // Get data from both consolidated and individual endpoints
-            const [fullDetails, group, members, expenses, balances] = await Promise.all([
+            const [fullDetails, group, expenses, balances] = await Promise.all([
                 apiDriver.getGroupFullDetails(groupId, alice.token),
                 apiDriver.getGroup(groupId, alice.token),
-                apiDriver.getGroupMembers(groupId, alice.token),
                 apiDriver.getGroupExpenses(groupId, alice.token),
                 apiDriver.getGroupBalances(groupId, alice.token),
             ]);
@@ -188,9 +187,14 @@ describe('Groups Full Details API', () => {
             // Verify consistency
             expect(fullDetails.group.id).toBe(group.id);
             expect(fullDetails.group.name).toBe(group.name);
-            expect(fullDetails.members.members).toEqual(members.members);
             expect(fullDetails.expenses.expenses).toEqual(expenses.expenses);
             expect(fullDetails.balances.groupId).toBe(balances.groupId);
+            
+            // Verify members data is properly populated in consolidated endpoint
+            expect(fullDetails.members.members).toHaveLength(3);
+            expect(fullDetails.members.members.map(m => m.uid)).toEqual(
+                expect.arrayContaining([alice.uid, bob.uid])
+            );
         });
 
         it('should handle invalid group ID', async () => {
