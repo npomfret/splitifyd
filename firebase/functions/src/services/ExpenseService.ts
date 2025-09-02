@@ -162,7 +162,7 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expenseData.groupId);
         const members = membersData.members;
 
         if (!isMemberInArray(members, expenseData.paidBy)) {
@@ -287,7 +287,7 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expense.groupId);
         const members = membersData.members;
 
         if (updateData.paidBy && !isMemberInArray(members, updateData.paidBy)) {

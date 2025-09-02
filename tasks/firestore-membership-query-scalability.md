@@ -407,13 +407,13 @@ This avoids having `GroupMemberService` and `GroupMemberSubcollectionService` ca
 - Documented migration strategy for each file
 - Ready for systematic replacement
 
-**15. 🔄 Update Production Services**: Replace all embedded member references
-- **GroupPermissionService.ts**: Remove `group.members` parameters from method calls
-- **GroupShareService.ts**: Replace member count calculation with subcollection count
-- **GroupMemberService.ts**: Replace membership checks with subcollection queries
-- **ExpenseService.ts**: Remove `group.members` parameters from validation calls
-- **permission-engine.ts**: Make permission checks fully async using subcollections
-- **utils/groupHelpers.ts**: Switch to async helper functions
+**15. ✅ Update Production Services**: Successfully replaced all embedded member references
+- **✅ GroupPermissionService.ts**: Removed `group.members` parameters, now uses `getGroupMembersResponseFromSubcollection()`
+- **✅ GroupShareService.ts**: Replaced member count with `getMembersFromSubcollection().length` 
+- **✅ GroupMemberService.ts**: Replaced membership checks with `getMemberFromSubcollection()` queries
+- **✅ ExpenseService.ts**: Removed `group.members` parameters, now uses subcollection for validation
+- **✅ permission-engine.ts**: Added deprecation warnings, production code uses PermissionEngineAsync
+- **✅ utils/groupHelpers.ts**: Added deprecation warnings, `verifyGroupMembership` uses subcollection
 
 **16. 📋 Update API Responses**: Maintain backward compatibility while using subcollection data
 - `getGroupFullDetails()`: Already uses `getGroupMembersResponseFromSubcollection()`

@@ -7,9 +7,13 @@ export interface PermissionCheckOptions {
     targetUserId?: string;
 }
 
+/**
+ * @deprecated Use PermissionEngineAsync instead for scalable subcollection-based permissions
+ */
 export class PermissionEngine {
     /**
      * Check if a user has permission to perform an action in a group
+     * @deprecated Use PermissionEngineAsync.checkPermission instead for scalable subcollection queries
      */
     static checkPermission(group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): boolean {
         // Validate group has required permission structure
@@ -114,6 +118,7 @@ export class PermissionEngine {
 
     /**
      * Check if user can change another user's role
+     * @deprecated Use PermissionEngineAsync.canChangeRole instead for scalable subcollection queries
      */
     static canChangeRole(members: Record<string, GroupMember>, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): { allowed: boolean; reason?: string } {
         const actorMember = members[actorUserId];
@@ -153,6 +158,7 @@ export class PermissionEngine {
 
     /**
      * Get user's effective permissions in a group (for UI display)
+     * @deprecated Use PermissionEngineAsync.getUserPermissions instead for scalable subcollection queries
      */
     static getUserPermissions(group: Group, userId: string): Record<string, boolean> {
         return {

@@ -85,7 +85,7 @@ export class GroupPermissionService {
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check permissions
-        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
         const members = membersData.members;
         
         if (!isAdminInArray(members, userId)) {
@@ -304,8 +304,7 @@ export class GroupPermissionService {
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check target user exists
-        const members = group.members;
-        const groupMembersResponse = await getGroupMemberService().getGroupMembersResponse(members);
+        const groupMembersResponse = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
 
         if (!getMemberFromArray(groupMembersResponse.members, targetUserId)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
@@ -411,14 +410,14 @@ export class GroupPermissionService {
         const group = transformGroupDocument(groupDoc);
 
         // Get members to check user membership
-        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
         const members = membersData.members;
         
         if (!getMemberFromArray(members, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
         }
 
-        const permissions = PermissionEngine.getUserPermissions(group, userId);
+        const permissions = await PermissionEngineAsync.getUserPermissions(group, userId);
         const userMember = getMemberFromArray(members, userId)!;
         const userRole = userMember.memberRole;
 

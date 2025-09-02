@@ -100,7 +100,8 @@ export class GroupMemberService {
 
         const group = transformGroupDocument(doc);
 
-        if (!(userId in group.members)) {
+        const memberDoc = await this.getMemberFromSubcollection(groupId, userId);
+        if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
         }
 
@@ -108,8 +109,8 @@ export class GroupMemberService {
             throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
         }
 
-        const memberIds = Object.keys(group.members);
-        if (memberIds.length === 1) {
+        const memberDocs = await this.getMembersFromSubcollection(groupId);
+        if (memberDocs.length === 1) {
             throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
         }
 
@@ -145,12 +146,8 @@ export class GroupMemberService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        const updatedMembers = { ...group.members };
-        delete updatedMembers[userId];
-
-        // Dual-write: Update both embedded map and subcollection
+        // Remove from subcollection only (no longer dual-write)
         await docRef.update({
-            members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 
@@ -200,7 +197,8 @@ export class GroupMemberService {
             throw Errors.FORBIDDEN();
         }
 
-        if (!(memberId in group.members)) {
+        const memberDoc = await this.getMemberFromSubcollection(groupId, memberId);
+        if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
         }
 
@@ -241,12 +239,8 @@ export class GroupMemberService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        const updatedMembers = { ...group.members };
-        delete updatedMembers[memberId];
-
-        // Dual-write: Update both embedded map and subcollection
+        // Remove from subcollection only (no longer dual-write)
         await docRef.update({
-            members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
 

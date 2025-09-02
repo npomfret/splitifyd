@@ -7,6 +7,7 @@ import { getGroupMemberService } from '../services/serviceRegistration';
 /**
  * Check if a user is the owner of a group
  * Checks if user has admin role
+ * @deprecated Use isGroupOwnerAsync instead for scalable subcollection queries
  */
 export const isGroupOwner = (group: Group, userId: string): boolean => {
     const member = group.members[userId];
@@ -15,6 +16,7 @@ export const isGroupOwner = (group: Group, userId: string): boolean => {
 
 /**
  * Check if a user is a member of a group (any role)
+ * @deprecated Use isGroupMemberAsync instead for scalable subcollection queries
  */
 export const isGroupMember = (group: Group, userId: string): boolean => {
     return userId in group.members;
@@ -59,8 +61,9 @@ export const verifyGroupMembership = async (groupId: string, userId: string): Pr
         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
     }
 
-    // Check if user is a member (including owner)
-    if (userId in groupData.members) {
+    // Check if user is a member using subcollection
+    const isMember = await isGroupMemberAsync(groupId, userId);
+    if (isMember) {
         return;
     }
 

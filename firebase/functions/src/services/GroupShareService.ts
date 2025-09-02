@@ -173,12 +173,15 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
         const isAlreadyMember = await isGroupMemberAsync(group.id, userId);
+        
+        // Get member count from subcollection
+        const memberDocs = await getGroupMemberService().getMembersFromSubcollection(group.id);
 
         return {
             groupId: groupDoc.id,
             groupName: group.name,
             groupDescription: group.description || '',
-            memberCount: Object.keys(group.members).length,
+            memberCount: memberDocs.length,
             isAlreadyMember,
         };
     }
