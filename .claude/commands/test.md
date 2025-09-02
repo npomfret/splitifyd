@@ -6,7 +6,7 @@ description: intelligently chose tests to run
 
 > The full test suite is very slow.  Be smart: find and pick out the tests that need running based on your changes. The firebase integration tests are particularly useful.
 
-- [ ] read docs/guides/*.md
+- [ ] you **MUST** read docs/guides/*.md
 - [ ] inspcet your changes, and search for test cases
 - [ ] run appropriate **individual** test cases
 
