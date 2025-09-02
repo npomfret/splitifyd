@@ -10,6 +10,8 @@ import { GroupMemberService } from './GroupMemberService';
 import { GroupPermissionService } from './GroupPermissionService';
 import { GroupShareService } from './GroupShareService';
 import { FirestoreValidationService } from './FirestoreValidationService';
+import { FirestoreReader } from './firestore/FirestoreReader';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
  * Register all services with the ServiceRegistry
@@ -30,6 +32,7 @@ let groupMemberServiceInstance: GroupMemberService | null = null;
 let groupPermissionServiceInstance: GroupPermissionService | null = null;
 let groupShareServiceInstance: GroupShareService | null = null;
 let firestoreValidationServiceInstance: FirestoreValidationService | null = null;
+let firestoreReaderInstance: IFirestoreReader | null = null;
 
 /**
  * Initialize all service registrations
@@ -114,6 +117,13 @@ export function registerAllServices(): void {
         }
         return firestoreValidationServiceInstance;
     });
+
+    registry.registerService('FirestoreReader', () => {
+        if (!firestoreReaderInstance) {
+            firestoreReaderInstance = new FirestoreReader();
+        }
+        return firestoreReaderInstance;
+    });
 }
 
 /**
@@ -130,7 +140,8 @@ export const SERVICE_NAMES = {
     GROUP_MEMBER_SERVICE: 'GroupMemberService',
     GROUP_PERMISSION_SERVICE: 'GroupPermissionService',
     GROUP_SHARE_SERVICE: 'GroupShareService',
-    FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService'
+    FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService',
+    FIRESTORE_READER: 'FirestoreReader'
 } as const;
 
 /**
@@ -178,4 +189,8 @@ export function getGroupShareService(): GroupShareService {
 
 export function getFirestoreValidationService(): FirestoreValidationService {
     return ServiceRegistry.getInstance().getService<FirestoreValidationService>(SERVICE_NAMES.FIRESTORE_VALIDATION_SERVICE);
+}
+
+export function getFirestoreReader(): IFirestoreReader {
+    return ServiceRegistry.getInstance().getService<IFirestoreReader>(SERVICE_NAMES.FIRESTORE_READER);
 }
