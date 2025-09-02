@@ -43,7 +43,8 @@ export function registerAllServices(): void {
     // Register services with factory functions for lazy initialization
     registry.registerService('UserService', () => {
         if (!userServiceInstance) {
-            userServiceInstance = new UserService();
+            const firestoreReader = getFirestoreReader();
+            userServiceInstance = new UserService(firestoreReader);
         }
         return userServiceInstance;
     });

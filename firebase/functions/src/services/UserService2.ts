@@ -16,6 +16,8 @@ import {UserDataSchema, UserDocumentSchema} from '../schemas/user';
 import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
 import {UserRegistration} from "@splitifyd/shared/src";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { UserDocument } from '../schemas';
 
 /**
  * User profile interface for consistent user data across the application
@@ -65,6 +67,8 @@ interface FirestoreUserDocument {
  */
 export class UserService {
     private cache = new Map<string, UserProfile>();
+
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
 
     /**
      * Validates that a user record has all required fields
@@ -123,30 +127,10 @@ export class UserService {
             // Ensure required fields are present
             this.validateUserRecord(userRecord);
 
-            // Get additional user data from Firestore
-            const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).get();
-            const userData = userDoc.data();
+            // Get additional user data from Firestore via reader
+            const userData = await this.firestoreReader.getUser(userId);
 
-            // Validate user data structure using centralized validation service
-            if (userData) {
-                try {
-                    const validationService = getFirestoreValidationService();
-                    validationService.validateDocument(
-                        UserDocumentSchema,
-                        userDoc,
-                        'UserDocument',
-                        {
-                            userId,
-                            operation: 'getUser',
-                        }
-                    );
-                } catch (error) {
-                    logger.error('User document validation failed', error as Error, {
-                        userData: JSON.stringify(userData),
-                    });
-                    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document structure is invalid');
-                }
-            }
+            // User data is already validated by FirestoreReader
 
             const profile = this.createUserProfile(userRecord, userData);
 
@@ -216,9 +200,8 @@ export class UserService {
             // Ensure required fields are present
             this.validateUserRecord(userRecord);
 
-            // Fetch Firestore data for this user
-            const userDoc = await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).get();
-            const userData = userDoc.data();
+            // Fetch Firestore data for this user via reader
+            const userData = await this.firestoreReader.getUser(userRecord.uid);
 
             const profile = this.createUserProfile(userRecord, userData);
 
