@@ -363,18 +363,83 @@ This avoids having `GroupMemberService` and `GroupMemberSubcollectionService` ca
 - **✅ Batch Operations**: Optimized member fetching prevents N+1 query problems
 - **✅ Balance Calculation Optimized**: Uses subcollection data without performance impact
 
-### Phase 4: API and Frontend Integration (READY FOR IMPLEMENTATION)
-12. **Update API Responses**: Can now fetch members from subcollections using new methods
-13. **Maintain GroupFullDetails**: `getGroupMembersResponseFromSubcollection()` method ready
-14. **Update Frontend Stores**: Infrastructure supports seamless transition
-15. **✅ Update All Tests**: Comprehensive test suite implemented and passing
+### 🎯 Phase 4: Complete Group.members Removal (IN PROGRESS)
+
+**📅 Implementation Started**: September 2, 2025  
+**🎯 Goal**: Remove all remaining usages of the deprecated `Group.members` field and complete migration to subcollection-only architecture
+
+#### Deprecated Group.members Usage Analysis
+**Total Usages Found**: 19 locations across 9 production files + 10 test files
+
+**Production Code Files to Update**:
+1. **`GroupPermissionService.ts`** (3 usages):
+   - Line 88: `getGroupMembersResponse(group.members)` → Remove members parameter
+   - Line 307: `group.members` → Replace with `getMembersFromSubcollection(groupId)`
+   - Line 414: `getGroupMembersResponse(group.members)` → Remove members parameter
+
+2. **`GroupShareService.ts`** (1 usage):
+   - Line 181: `Object.keys(group.members).length` → Replace with subcollection count
+
+3. **`GroupMemberService.ts`** (4 usages):
+   - Lines 103, 203: Membership checks → Use `getMemberFromSubcollection()`
+   - Lines 111, 148, 244: Member operations → Use subcollection methods
+
+4. **`ExpenseService.ts`** (2 usages):
+   - Lines 165, 290: `getGroupMembersResponse(group.members)` → Remove members parameter
+
+5. **`permission-engine.ts`** (1 usage):
+   - Line 21: `group.members[userId]` → Replace with async subcollection lookup
+
+6. **`utils/groupHelpers.ts`** (2 usages):
+   - Lines 12, 20: `group.members[userId]` → Use async versions
+
+7. **Additional cleanup files**: `utils/memberHelpers.ts`, `GroupService.ts` (comments only)
+
+**Test Files to Update** (10 files):
+- Update test mocks and assertions to use subcollection data
+- Remove references to embedded member maps in test data
+- Update integration tests to verify subcollection behavior
+
+#### Phase 4 Implementation Tasks
+
+**14. ✅ Complete Group.members Usage Analysis**: Comprehensive search completed
+- Found 19 total usages across production and test code  
+- Documented migration strategy for each file
+- Ready for systematic replacement
+
+**15. 🔄 Update Production Services**: Replace all embedded member references
+- **GroupPermissionService.ts**: Remove `group.members` parameters from method calls
+- **GroupShareService.ts**: Replace member count calculation with subcollection count
+- **GroupMemberService.ts**: Replace membership checks with subcollection queries
+- **ExpenseService.ts**: Remove `group.members` parameters from validation calls
+- **permission-engine.ts**: Make permission checks fully async using subcollections
+- **utils/groupHelpers.ts**: Switch to async helper functions
+
+**16. 📋 Update API Responses**: Maintain backward compatibility while using subcollection data
+- `getGroupFullDetails()`: Already uses `getGroupMembersResponseFromSubcollection()`
+- Other endpoints: Remove embedded member dependencies
+
+**17. 🧪 Update Test Suite**: Migrate all tests to subcollection-only approach
+- Remove embedded member map references from test builders
+- Update mocks to return subcollection data format
+- Verify all integration tests pass with subcollection-only architecture
+
+**18. 📚 Update Documentation**: Document Phase 4 completion
+- Record all files modified and migration patterns used
+- Update architecture documentation to reflect subcollection-only approach
+
+#### Expected Benefits After Phase 4
+- **Complete scalability**: No remaining embedded member dependencies
+- **Simplified architecture**: Single source of truth for member data (subcollections)
+- **Ready for cleanup**: Prepared for Phase 5 removal of deprecated fields
+- **Performance optimized**: All member queries use efficient subcollection approach
 
 ### Phase 5: Cleanup and Deployment (FUTURE PHASE)  
-16. **Remove Embedded Members**: Clean up deprecated Group.members field
-17. **Remove Dual-Write Logic**: Eliminate transition code after full migration
-18. **✅ Comprehensive Testing**: Test suite ensures all functionality works
-19. **✅ Update Documentation**: Architecture documentation updated
-20. **Deploy with Monitoring**: Ready for careful production rollout
+19. **Remove Embedded Members Field**: Clean up deprecated Group.members field from interfaces
+20. **Remove Dual-Write Logic**: Eliminate transition code after full migration  
+21. **✅ Comprehensive Testing**: Test suite ensures all functionality works
+22. **✅ Update Documentation**: Architecture documentation updated
+23. **Deploy with Monitoring**: Ready for careful production rollout
 
 ## 📊 Current Status: Critical Issues Resolved vs Pending
 
