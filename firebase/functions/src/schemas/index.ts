@@ -115,3 +115,27 @@ export {
     type TransactionChangeDocument,
     type BalanceChangeDocument,
 } from './change-documents';
+
+// Balance calculation schemas
+export {
+    BalanceCalculationResultSchema,
+    BalanceCalculationInputSchema,
+    CurrencyBalancesSchema,
+    UserBalanceSchema,
+    SimplifiedDebtSchema,
+    BalanceDisplaySchema,
+    CurrencyBalanceDisplaySchema,
+    ExpenseBalanceSchema,
+    SettlementBalanceSchema,
+    GroupDataBalanceSchema,
+    type ParsedBalanceCalculationResult,
+    type ParsedBalanceCalculationInput,
+    type ParsedCurrencyBalances,
+    type ParsedUserBalance,
+    type ParsedSimplifiedDebt,
+    type ParsedBalanceDisplay,
+    type ParsedCurrencyBalanceDisplay,
+    type ParsedExpenseBalance,
+    type ParsedSettlementBalance,
+    type ParsedGroupDataBalance,
+} from './balance';

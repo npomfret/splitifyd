@@ -1,10 +1,11 @@
-import {DocumentReference, QueryDocumentSnapshot, QuerySnapshot} from 'firebase-admin/firestore';
+import {DocumentReference, QueryDocumentSnapshot, QuerySnapshot, Timestamp} from 'firebase-admin/firestore';
 import {z} from 'zod';
 import {firestoreDb} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, GroupWithBalance, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
 import {calculateGroupBalances} from './balanceCalculator';
+import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {calculateExpenseMetadata} from './expenseMetadataService';
 import {transformGroupDocument} from '../groups/handlers';
 import {GroupDataSchema, GroupDocumentSchema} from '../schemas';
@@ -37,30 +38,45 @@ export class GroupService {
         // Calculate real balance for the user
         const groupBalances = await calculateGroupBalances(group.id);
 
+        // Validate the balance calculation result for type safety
+        const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+
         // Calculate expense metadata on-demand
         const expenseMetadata = await calculateExpenseMetadata(group.id);
 
-        // Calculate currency-specific balances
-        const balancesByCurrency: Record<string, any> = {};
-        if (groupBalances.balancesByCurrency) {
-            for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
+        // Calculate currency-specific balances with proper typing
+        const balancesByCurrency: Record<string, {
+            currency: string;
+            netBalance: number;
+            totalOwed: number;
+            totalOwing: number;
+        }> = {};
+        
+        if (validatedBalances.balancesByCurrency) {
+            for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                    balancesByCurrency[currency] = {
+                    const currencyDisplayData = {
                         currency,
                         netBalance: currencyUserBalance.netBalance,
                         totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
                         totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
                     };
+                    
+                    // Validate the currency display data structure
+                    const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                    balancesByCurrency[currency] = validatedCurrencyData;
                 }
             }
         }
 
+        // Create and validate the complete balance display data
+        const balanceDisplay = { balancesByCurrency };
+        const validatedBalanceDisplay = BalanceDisplaySchema.parse(balanceDisplay);
+
         return {
             ...group,
-            balance: {
-                balancesByCurrency,
-            },
+            balance: validatedBalanceDisplay,
             lastActivity: expenseMetadata.lastExpenseTime ? `Last expense ${expenseMetadata.lastExpenseTime.toLocaleDateString()}` : 'No recent activity',
             lastActivityRaw: expenseMetadata.lastExpenseTime ? expenseMetadata.lastExpenseTime.toISOString() : group.createdAt,
         };
@@ -296,15 +312,17 @@ export class GroupService {
             calculateGroupBalances(group.id).catch(error => {
                 logger.error('Error calculating balances', error, { groupId: group.id });
                 return {
+                    groupId: group.id,
                     balancesByCurrency: {},
                     userBalances: {},
-                    simplifiedDebts: {},
+                    simplifiedDebts: [],
+                    lastUpdated: Timestamp.now(),
                 };
             })
         );
 
         const balanceResults = await Promise.all(balancePromises);
-        const balanceMap = new Map<string, any>();
+        const balanceMap = new Map<string, import('./balance').BalanceCalculationResult>();
         groupsWithExpenses.forEach((group, index) => {
             balanceMap.set(group.id, balanceResults[index]);
         });
@@ -316,7 +334,7 @@ export class GroupService {
 
             // Get member profiles for this group
             const memberIds = Object.keys(group.members);
-            const memberProfiles = new Map<string, any>();
+            const memberProfiles = new Map<string, import('../services/UserService2').UserProfile>();
             for (const memberId of memberIds) {
                 const profile = allMemberProfiles.get(memberId);
                 if (profile) {
@@ -326,23 +344,38 @@ export class GroupService {
 
             // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
             const groupBalances = balanceMap.get(group.id) || {
+                groupId: group.id,
                 balancesByCurrency: {},
                 userBalances: {},
-                simplifiedDebts: {},
+                simplifiedDebts: [],
+                lastUpdated: Timestamp.now(),
             };
 
-            // Calculate currency-specific balances
-            const balancesByCurrency: Record<string, any> = {};
+            // Calculate currency-specific balances with proper typing
+            const balancesByCurrency: Record<string, {
+                currency: string;
+                netBalance: number;
+                totalOwed: number;
+                totalOwing: number;
+            }> = {};
+            
             if (groupBalances.balancesByCurrency) {
-                for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
-                    const currencyUserBalance = (currencyBalances as any)[userId];
+                // Validate the balance data with schema first
+                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+                
+                for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
+                    const currencyUserBalance = currencyBalances[userId];
                     if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                        balancesByCurrency[currency] = {
+                        const currencyDisplayData = {
                             currency,
                             netBalance: currencyUserBalance.netBalance,
                             totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
                             totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
                         };
+                        
+                        // Validate the currency display data structure
+                        const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                        balancesByCurrency[currency] = validatedCurrencyData;
                     }
                 }
             }
@@ -351,23 +384,32 @@ export class GroupService {
             const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
             const lastActivity = this.formatRelativeTime(lastActivityDate.toISOString());
 
-            // Get user's balance from first available currency
-            let userBalance: any = {
+            // Get user's balance from first available currency with proper typing
+            let userBalance: {
+                netBalance: number;
+                totalOwed: number;
+                totalOwing: number;
+            } = {
                 netBalance: 0,
                 totalOwed: 0,
                 totalOwing: 0,
             };
             
             if (groupBalances.balancesByCurrency) {
-                const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0] as any;
-
-                if (currencyBalances && currencyBalances[userId]) {
-                    const balance = currencyBalances[userId];
-                    userBalance = {
-                        netBalance: balance.netBalance,
-                        totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
-                        totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
-                    };
+                // Use validated balance data from above
+                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+                const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
+                
+                if (currencyBalancesArray.length > 0) {
+                    const firstCurrencyBalances = currencyBalancesArray[0];
+                    if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
+                        const balance = firstCurrencyBalances[userId];
+                        userBalance = {
+                            netBalance: balance.netBalance,
+                            totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+                            totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+                        };
+                    }
                 }
             }
 
@@ -706,12 +748,15 @@ export class GroupService {
             }),
         ]);
 
+        // Validate balance data before returning
+        const validatedBalances = BalanceCalculationResultSchema.parse(balancesData);
+
         // Construct response using existing patterns
         return {
             group,
             members: membersData,
             expenses: expensesData,
-            balances: balancesData as any, // Type conversion - GroupBalance from models matches GroupBalances structure
+            balances: validatedBalances, // Now properly validated instead of unsafe cast
             settlements: settlementsData,
         };
     }

@@ -5,6 +5,7 @@ import { DataFetcher } from './DataFetcher';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
+import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas/balance';
 
 export class BalanceCalculationService {
     private dataFetcher: DataFetcher;
@@ -30,14 +31,17 @@ export class BalanceCalculationService {
      * Calculate group balances using pre-fetched data (optimized for batch operations)
      */
     calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
+        // Validate input data for type safety
+        const validatedInput = BalanceCalculationInputSchema.parse(input);
+        
         // 1. Extract member IDs for initialization
-        const memberIds = Object.keys(input.groupData.members);
+        const memberIds = Object.keys(validatedInput.groupData.members);
 
         // 2. Process expenses to calculate initial balances by currency
-        const balancesByCurrency = this.expenseProcessor.processExpenses(input.expenses, memberIds);
+        const balancesByCurrency = this.expenseProcessor.processExpenses(validatedInput.expenses, memberIds);
 
         // 3. Apply settlements to modify balances
-        this.settlementProcessor.processSettlements(input.settlements, balancesByCurrency);
+        this.settlementProcessor.processSettlements(validatedInput.settlements, balancesByCurrency);
 
         // 4. Simplify debts for all currencies
         const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
@@ -45,14 +49,17 @@ export class BalanceCalculationService {
         // 5. Create legacy userBalances field from first currency (for backward compatibility)
         const userBalances = this.createLegacyUserBalances(balancesByCurrency);
 
-        // 6. Return consolidated result
-        return {
-            groupId: input.groupId,
+        // 6. Create and validate result
+        const result = {
+            groupId: validatedInput.groupId,
             userBalances,
             simplifiedDebts,
             lastUpdated: Timestamp.now(),
             balancesByCurrency,
         };
+
+        // Validate output for type safety
+        return BalanceCalculationResultSchema.parse(result);
     }
 
     private createLegacyUserBalances(balancesByCurrency: CurrencyBalances): Record<string, UserBalance> {
