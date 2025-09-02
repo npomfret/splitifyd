@@ -1,5 +1,5 @@
 import { firestoreDb } from '../../firebase';
-import { getUserService } from '../serviceRegistration';
+import { getUserService, getGroupMemberService } from '../serviceRegistration';
 import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
 import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
 import { ExpenseDocumentSchema } from '../../schemas/expense';
@@ -123,19 +123,27 @@ export class DataFetcher {
 
         // Use proper validation for group document
         const group = transformGroupDocument(groupDoc);
-        if (!group.members) {
-            throw new Error('Group missing members - invalid data structure');
+
+        // Fetch members from subcollection
+        const memberDocs = await getGroupMemberService().getMembersFromSubcollection(groupId);
+        if (memberDocs.length === 0) {
+            throw new Error(`Group ${groupId} has no members for balance calculation`);
         }
 
-        const memberIds = Object.keys(group.members);
-        if (memberIds.length === 0) {
-            throw new Error(`Group ${groupId} has no members for balance calculation`);
+        // Convert GroupMemberDocument[] to Record<string, GroupMember> for compatibility
+        const members: Record<string, import('./types').GroupMember> = {};
+        for (const memberDoc of memberDocs) {
+            members[memberDoc.userId] = {
+                role: memberDoc.role,
+                status: memberDoc.status,
+                joinedAt: memberDoc.joinedAt,
+            };
         }
 
         return {
             id: groupId,
             name: group.name,
-            members: group.members,
+            members,
         };
     }
 }

@@ -13,10 +13,14 @@ vi.mock('../../firebase', () => ({
 }));
 
 const mockGetUsers = vi.fn();
+const mockGetMembersFromSubcollection = vi.fn();
 
 vi.mock('../../services/serviceRegistration', () => ({
     getUserService: () => ({
         getUsers: mockGetUsers,
+    }),
+    getGroupMemberService: () => ({
+        getMembersFromSubcollection: mockGetMembersFromSubcollection,
     }),
 }));
 
@@ -61,6 +65,28 @@ describe('calculateGroupBalances', () => {
         const userMap = new Map<string, UserProfile>();
         mockUsers.forEach((user) => userMap.set(user.uid, user));
         mockGetUsers.mockResolvedValue(userMap);
+        
+        // Setup default member subcollection data to match the users
+        const mockMembers = [
+            {
+                userId: 'user-1',
+                groupId: 'group-1',
+                role: 'admin',
+                status: 'active',
+                joinedAt: '2023-01-01T00:00:00.000Z',
+                theme: 'blue'
+            },
+            {
+                userId: 'user-2', 
+                groupId: 'group-1',
+                role: 'member',
+                status: 'active',
+                joinedAt: '2023-01-01T00:00:00.000Z',
+                theme: 'green'
+            }
+        ];
+        mockGetMembersFromSubcollection.mockResolvedValue(mockMembers);
+        
         vi.mocked(mockSimplifyDebts).mockImplementation(() => []);
     });
 

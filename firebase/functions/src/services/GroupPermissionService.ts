@@ -345,8 +345,6 @@ export class GroupPermissionService {
 
                 // Perform the update
                 const updateData: any = {
-                    [`members.${targetUserId}.role`]: role,
-                    [`members.${targetUserId}.lastPermissionChange`]: now,
                     updatedAt: createServerTimestamp(),
                 };
 
