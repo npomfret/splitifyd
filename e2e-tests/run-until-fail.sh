@@ -11,6 +11,10 @@
 #
 # The script will stop on the first failure or after max_runs successful runs.
 # In headed mode, workers are automatically set to 1 for better visibility.
+#
+# This script generates a Playwright trace file for each run, which can be
+# used to analyze test performance. To view the trace, open the report in Chrome:
+#   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
 TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/add-expense-happy-path.e2e.test.ts"
@@ -78,9 +82,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     
     # Run the test
     if [ -n "$TEST_FILTER" ]; then
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE" --grep "$TEST_FILTER"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE" --grep "$TEST_FILTER"
     else
-        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html "$TEST_FILE"
+        PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
     fi
     
     # Check exit code
@@ -92,6 +96,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "⏱️  Total time: ${TOTAL_ELAPSED}s"
         echo "📊 Average time per run: $((TOTAL_ELAPSED / RUN_COUNT))s"
         echo "🏁 Stopped at: $(date)"
+        echo ""
+        echo "To view the report and trace, run the following command:"
+        echo "open -a \"Google Chrome\" \"e2e-tests/playwright-report/ad-hoc/index.html\""
         exit 1
     fi
     
@@ -107,6 +114,9 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
         echo "⏱️  Total time: ${TOTAL_ELAPSED}s"
         echo "📊 Average time per run: $((TOTAL_ELAPSED / RUN_COUNT))s"
         echo "🏁 Stopped at: $(date)"
+        echo ""
+        echo "To view the report and trace of the last successful run, run the following command:"
+        echo "open -a \"Google Chrome\" \"e2e-tests/playwright-report/ad-hoc/index.html\""
         exit 0
     fi
     
@@ -115,3 +125,4 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     # Small delay to avoid overwhelming the system
     sleep 2
 done
+
