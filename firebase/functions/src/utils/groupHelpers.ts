@@ -2,6 +2,7 @@ import { Group, FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, 
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';
+import { getGroupMemberService } from '../services/serviceRegistration';
 
 /**
  * Check if a user is the owner of a group
@@ -17,6 +18,24 @@ export const isGroupOwner = (group: Group, userId: string): boolean => {
  */
 export const isGroupMember = (group: Group, userId: string): boolean => {
     return userId in group.members;
+};
+
+/**
+ * Check if a user is the owner of a group (async version)
+ * Checks if user has admin role using subcollection lookup
+ */
+export const isGroupOwnerAsync = async (groupId: string, userId: string): Promise<boolean> => {
+    const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+    return member?.role === MemberRoles.ADMIN || false;
+};
+
+/**
+ * Check if a user is a member of a group (async version)
+ * Uses subcollection lookup for scalable membership checks
+ */
+export const isGroupMemberAsync = async (groupId: string, userId: string): Promise<boolean> => {
+    const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+    return member !== null;
 };
 
 const getGroupsCollection = () => {

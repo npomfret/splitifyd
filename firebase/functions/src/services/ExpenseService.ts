@@ -11,6 +11,7 @@ import {verifyGroupMembership} from '../utils/groupHelpers';
 import {isMemberInArray} from '../utils/memberHelpers';
 import {getGroupMemberService} from './serviceRegistration';
 import {PermissionEngine} from '../permissions';
+import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {transformGroupDocument} from '../groups/handlers';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import {PerformanceMonitor} from '../utils/performance-monitor';
@@ -155,7 +156,7 @@ export class ExpenseService {
         const group = transformGroupDocument(groupDoc);
 
         // Check if user can create expenses in this group
-        const canCreateExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing');
+        const canCreateExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
@@ -280,7 +281,7 @@ export class ExpenseService {
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canEditExpense = PermissionEngine.checkPermission(group, userId, 'expenseEditing', { expense: expenseData });
+        const canEditExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseEditing', { expense: expenseData });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
@@ -595,7 +596,7 @@ export class ExpenseService {
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canDeleteExpense = PermissionEngine.checkPermission(group, userId, 'expenseDeletion', { expense: expenseData });
+        const canDeleteExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseDeletion', { expense: expenseData });
         if (!canDeleteExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }

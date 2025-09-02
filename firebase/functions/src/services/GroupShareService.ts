@@ -6,7 +6,7 @@ import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
-import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
+import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
@@ -98,7 +98,7 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
 
-        if (!checkIsGroupOwner(group, userId) && !isGroupMember(group, userId)) {
+        if (!(await isGroupOwnerAsync(group.id, userId)) && !(await isGroupMemberAsync(group.id, userId))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
@@ -172,7 +172,7 @@ export class GroupShareService {
             });
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
-        const isAlreadyMember = isGroupMember(group, userId);
+        const isAlreadyMember = await isGroupMemberAsync(group.id, userId);
 
         return {
             groupId: groupDoc.id,
@@ -235,7 +235,7 @@ export class GroupShareService {
         if (userId in preCheckGroup.members) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
-        if (checkIsGroupOwner(preCheckGroup, userId)) {
+        if (await isGroupOwnerAsync(preCheckGroup.id, userId)) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
         }
 

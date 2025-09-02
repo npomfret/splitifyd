@@ -5,6 +5,7 @@ import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets} from '@splitifyd/shared';
 import {permissionCache, PermissionEngine} from '../permissions';
+import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {transformGroupDocument} from '../groups/handlers';
 import {GroupDocumentSchema} from '../schemas';
 import {createServerTimestamp} from '../utils/dateHelpers';
@@ -194,7 +195,7 @@ export class GroupPermissionService {
         const group = transformGroupDocument(groupDoc);
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
-        if (!PermissionEngine.checkPermission(group, userId, 'settingsManagement')) {
+        if (!(await PermissionEngineAsync.checkPermission(group, userId, 'settingsManagement'))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
         }
 
@@ -310,7 +311,7 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
         }
 
-        const roleChangeResult = PermissionEngine.canChangeRole(members, group.createdBy, userId, targetUserId, role);
+        const roleChangeResult = await PermissionEngineAsync.canChangeRole(groupId, group.createdBy, userId, targetUserId, role);
         if (!roleChangeResult.allowed) {
             const isLastAdminError = roleChangeResult.reason?.includes('last admin');
             const statusCode = isLastAdminError ? HTTP_STATUS.BAD_REQUEST : HTTP_STATUS.FORBIDDEN;
@@ -374,6 +375,12 @@ export class GroupPermissionService {
         
         // Validate the group document after update
         await this.validateUpdatedGroupDocument(groupDocRef, 'member role change');
+
+        // Dual-write: Also update the subcollection for scalable architecture
+        await getGroupMemberService().updateMemberInSubcollection(groupId, targetUserId, {
+            role: role,
+            lastPermissionChange: now,
+        });
 
         permissionCache.invalidateGroup(groupId);
         permissionCache.invalidateUser(targetUserId);

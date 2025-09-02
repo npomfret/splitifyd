@@ -9,7 +9,7 @@ import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDis
 import {calculateExpenseMetadata} from './expenseMetadataService';
 import {transformGroupDocument} from '../groups/handlers';
 import {GroupDataSchema, GroupDocumentSchema} from '../schemas';
-import {getThemeColorForMember, isGroupMember, isGroupOwner} from '../utils/groupHelpers';
+import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
 import {getExpenseService, getGroupMemberService, getSettlementService, getUserService} from './serviceRegistration';
 import {buildPaginatedQuery, encodeCursor} from '../utils/pagination';
 import {DOCUMENT_CONFIG} from '../constants';
@@ -96,7 +96,7 @@ export class GroupService {
         const group = transformGroupDocument(doc);
 
         // Check if user is the owner
-        if (isGroupOwner(group, userId)) {
+        if (await isGroupOwnerAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
             return { docRef, group: groupWithComputed };
         }
@@ -107,7 +107,7 @@ export class GroupService {
         }
 
         // For read operations, check if user is a member
-        if (isGroupMember(group, userId)) {
+        if (await isGroupMemberAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
             return { docRef, group: groupWithComputed };
         }

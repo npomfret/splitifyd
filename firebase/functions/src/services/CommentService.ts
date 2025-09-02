@@ -15,7 +15,7 @@ import {
     CreateCommentRequest,
     ListCommentsResponse,
 } from '@splitifyd/shared';
-import { isGroupMember } from '../utils/groupHelpers';
+import { isGroupMemberAsync } from '../utils/groupHelpers';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { CommentDocumentSchema, CommentDataSchema } from '../schemas/comment';
@@ -59,7 +59,7 @@ export class CommentService {
             }
 
             const group = transformGroupDocument(groupDoc);
-            if (!isGroupMember(group, userId)) {
+            if (!(await isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
         } else if (targetType === CommentTargetTypes.EXPENSE) {
@@ -85,7 +85,7 @@ export class CommentService {
             }
 
             const group = transformGroupDocument(groupDoc);
-            if (!isGroupMember(group, userId)) {
+            if (!(await isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
 
