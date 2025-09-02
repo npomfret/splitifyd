@@ -8,6 +8,7 @@ import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@s
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
 import { transformGroupDocument } from '../groups/handlers';
 
@@ -206,68 +207,100 @@ export class GroupShareService {
         }
 
         const userName = userEmail.split('@')[0];
+        
+        // Performance optimization: Find shareLink outside transaction
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
+        
+        // Pre-validate group exists outside transaction to fail fast
+        const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const preCheckSnapshot = await groupRef.get();
+        
+        if (!preCheckSnapshot.exists) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
 
-        const result = await firestoreDb.runTransaction(async (transaction) => {
-            const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-            const groupSnapshot = await transaction.get(groupRef);
+        // Pre-validate and transform group document outside transaction
+        let preCheckGroup;
+        try {
+            preCheckGroup = transformGroupDocument(preCheckSnapshot);
+        } catch (error) {
+            logger.error('Group document validation failed', error as Error, {
+                groupId,
+            });
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
+        }
 
-            if (!groupSnapshot.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-            }
+        // Early membership check to avoid transaction if user is already a member
+        if (userId in preCheckGroup.members) {
+            throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+        }
+        if (checkIsGroupOwner(preCheckGroup, userId)) {
+            throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
+        }
 
-            let group;
-            try {
-                group = transformGroupDocument(groupSnapshot);
-            } catch (error) {
-                logger.error('Group document validation failed', error as Error, {
+        // Pre-compute all member data outside transaction
+        const joinedAt = new Date().toISOString();
+        const memberIndex = Object.keys(preCheckGroup.members).length;
+        const newMemberTemplate = {
+            role: MemberRoles.MEMBER,
+            status: MemberStatuses.ACTIVE,
+            theme: getThemeColorForMember(memberIndex),
+            joinedAt,
+            invitedBy: shareLink.createdBy,
+        };
+
+        // Ultra-minimal transaction with retry for emulator lock contention
+        const result = await runTransactionWithRetry(
+            async (transaction) => {
+                const groupSnapshot = await transaction.get(groupRef);
+
+                if (!groupSnapshot.exists) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+                }
+
+                const rawData = groupSnapshot.data();
+                if (!rawData) {
+                    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DATA_NULL', 'Group document data is null');
+                }
+
+                // Critical section: Only essential checks and updates
+                const currentMembers = rawData.members || {};
+                if (userId in currentMembers) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
+                }
+
+                // Fast update with pre-computed data
+                const updatedMembers = {
+                    ...currentMembers,
+                    [userId]: newMemberTemplate,
+                };
+
+                // Single atomic write
+                await checkAndUpdateWithTimestamp(
+                    transaction,
+                    groupRef,
+                    {
+                        members: updatedMembers,
+                    },
+                    getUpdatedAtTimestamp(rawData),
+                );
+
+                return {
+                    groupName: preCheckGroup.name,
+                    invitedBy: shareLink.createdBy,
+                };
+            },
+            {
+                maxAttempts: 3,
+                baseDelayMs: 100,
+                context: {
+                    operation: 'joinGroupByLink',
+                    userId,
                     groupId,
-                });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
+                    linkId: linkId.substring(0, 4) + '...',
+                }
             }
-
-            const rawData = groupSnapshot.data();
-            if (!rawData) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DATA_NULL', 'Group document data is null');
-            }
-            const originalUpdatedAt = getUpdatedAtTimestamp(rawData);
-
-            if (userId in group.members) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
-            }
-            if (checkIsGroupOwner(group, userId)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
-            }
-
-            const memberIndex = Object.keys(group.members).length;
-
-            const newMember = {
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
-                theme: getThemeColorForMember(memberIndex),
-                joinedAt: new Date().toISOString(),
-                invitedBy: shareLink.createdBy,
-            };
-
-            const updatedMembers = {
-                ...group.members,
-                [userId]: newMember,
-            };
-
-            await checkAndUpdateWithTimestamp(
-                transaction,
-                groupRef,
-                {
-                    members: updatedMembers,
-                },
-                originalUpdatedAt,
-            );
-
-            return {
-                groupName: group.name,
-                invitedBy: shareLink.createdBy,
-            };
-        });
+        );
 
         logger.info('User joined group via share link', {
             groupId,
