@@ -343,6 +343,10 @@ export interface GroupMember {
 }
 
 export interface GroupMemberWithProfile extends RegisteredUser {
+    // Additional user display properties for UI
+    name?: string; // Deprecated - use displayName instead
+    initials: string; // Auto-generated from displayName
+    
     // Group membership metadata
     joinedAt: string; // ISO string
     memberRole: MemberRole; // Renamed to avoid conflict with RegisteredUser.role (SystemUserRole)
@@ -350,6 +354,21 @@ export interface GroupMemberWithProfile extends RegisteredUser {
     memberStatus: MemberStatus; // Renamed for clarity
     lastPermissionChange?: string; // ISO string - Track permission updates
     // Note: theme is inherited from RegisteredUser.themeColor, not duplicated
+}
+
+/**
+ * Document structure for storing members in the subcollection: groups/{groupId}/members/{userId}
+ * This replaces the embedded members map for scalable queries
+ */
+export interface GroupMemberDocument {
+    userId: string;
+    groupId: string; // For collectionGroup queries
+    role: MemberRole;
+    theme: UserThemeColor;
+    joinedAt: string; // ISO string
+    status: MemberStatus;
+    invitedBy?: string; // UID of the user who created the share link that was used to join
+    lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
 export interface ShareLink {

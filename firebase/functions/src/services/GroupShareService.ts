@@ -4,13 +4,14 @@ import { firestoreDb } from '../firebase';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { isGroupOwner as checkIsGroupOwner, isGroupMember, getThemeColorForMember } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
 import { transformGroupDocument } from '../groups/handlers';
+import { getGroupMemberService } from './serviceRegistration';
 
 export class GroupShareService {
     private generateShareToken(): string {
@@ -275,7 +276,7 @@ export class GroupShareService {
                     [userId]: newMemberTemplate,
                 };
 
-                // Single atomic write
+                // Single atomic write to embedded members
                 await checkAndUpdateWithTimestamp(
                     transaction,
                     groupRef,
@@ -301,6 +302,18 @@ export class GroupShareService {
                 }
             }
         );
+
+        // Dual-write: Add member to subcollection AFTER successful transaction
+        const memberDoc: GroupMemberDocument = {
+            userId: userId,
+            groupId: groupId,
+            role: newMemberTemplate.role,
+            theme: newMemberTemplate.theme,
+            joinedAt: newMemberTemplate.joinedAt,
+            status: newMemberTemplate.status,
+            invitedBy: newMemberTemplate.invitedBy,
+        };
+        await getGroupMemberService().createMemberSubcollection(groupId, memberDoc);
 
         logger.info('User joined group via share link', {
             groupId,

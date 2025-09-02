@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {firestoreDb} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, GroupWithBalance, UpdateGroupRequest} from '../types/group-types';
-import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
+import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
 import {calculateGroupBalances} from './balanceCalculator';
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {calculateExpenseMetadata} from './expenseMetadataService';
@@ -523,6 +523,17 @@ export class GroupService {
 
         // Store in Firestore with flat structure (no data wrapper)
         await docRef.set(documentToWrite);
+
+        // Dual-write: Also create the creator as a member in the subcollection
+        const memberDoc: GroupMemberDocument = {
+            userId: userId,
+            groupId: docRef.id,
+            role: MemberRoles.ADMIN,
+            theme: getThemeColorForMember(0),
+            joinedAt: now.toDate().toISOString(),
+            status: MemberStatuses.ACTIVE,
+        };
+        await getGroupMemberService().createMemberSubcollection(docRef.id, memberDoc);
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });

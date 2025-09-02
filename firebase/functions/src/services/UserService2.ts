@@ -13,7 +13,7 @@ import {validateRegisterRequest} from '../auth/validation';
 import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {UserDataSchema, UserDocumentSchema} from '../schemas/user';
-import {getFirestoreValidationService} from './serviceRegistration';
+import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
 import {UserRegistration} from "@splitifyd/shared/src";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 
@@ -390,11 +390,11 @@ export class UserService {
         validateDeleteUser(requestBody);
 
         try {
-            // Check if user has any groups or outstanding balances
+            // Check if user has any groups or outstanding balances using scalable query
             // This is a simplified check - in production you'd want more thorough validation
-            const groupsSnapshot = await firestoreDb.collection(FirestoreCollections.GROUPS).where(`members.${userId}`, '!=', null).get();
+            const userGroupIds = await getGroupMemberService().getUserGroupsViaSubcollection(userId);
 
-            if (!groupsSnapshot.empty) {
+            if (userGroupIds.length > 0) {
                 throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
             }
 

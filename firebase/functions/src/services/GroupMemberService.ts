@@ -4,10 +4,11 @@ import { firestoreDb } from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
 import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared';
+import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, GroupMemberDocument, UserThemeColor } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { createServerTimestamp } from '../utils/dateHelpers';
 
 export class GroupMemberService {
 
@@ -147,10 +148,14 @@ export class GroupMemberService {
         const updatedMembers = { ...group.members };
         delete updatedMembers[userId];
 
+        // Dual-write: Update both embedded map and subcollection
         await docRef.update({
             members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // Also remove from subcollection
+        await this.deleteMemberFromSubcollection(groupId, userId);
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-left', { id: userId, groupId });
@@ -239,10 +244,14 @@ export class GroupMemberService {
         const updatedMembers = { ...group.members };
         delete updatedMembers[memberId];
 
+        // Dual-write: Update both embedded map and subcollection
         await docRef.update({
             members: updatedMembers,
             updatedAt: FieldValue.serverTimestamp(),
         });
+
+        // Also remove from subcollection
+        await this.deleteMemberFromSubcollection(groupId, memberId);
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-removed', { id: memberId, groupId });
@@ -250,6 +259,171 @@ export class GroupMemberService {
         return {
             success: true,
             message: 'Member removed successfully',
+        };
+    }
+
+    // ========================================================================
+    // NEW SUBCOLLECTION METHODS - For Scalable Architecture
+    // ========================================================================
+
+    /**
+     * Create a member document in the subcollection
+     * Path: groups/{groupId}/members/{userId}
+     */
+    async createMemberSubcollection(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(memberDoc.userId);
+
+        await memberRef.set({
+            ...memberDoc,
+            createdAt: createServerTimestamp(),
+            updatedAt: createServerTimestamp(),
+        });
+
+        logger.info('Member added to subcollection', { 
+            groupId, 
+            userId: memberDoc.userId,
+            role: memberDoc.role 
+        });
+    }
+
+    /**
+     * Get a single member from subcollection
+     */
+    async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+
+        const memberDoc = await memberRef.get();
+        if (!memberDoc.exists) {
+            return null;
+        }
+
+        return memberDoc.data() as GroupMemberDocument;
+    }
+
+    /**
+     * Get all members for a group from subcollection
+     */
+    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
+        const membersRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members');
+
+        const snapshot = await membersRef.get();
+        return snapshot.docs.map(doc => doc.data() as GroupMemberDocument);
+    }
+
+    /**
+     * Update a member in the subcollection
+     */
+    async updateMemberInSubcollection(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+
+        await memberRef.update({
+            ...updates,
+            updatedAt: createServerTimestamp(),
+        });
+
+        logger.info('Member updated in subcollection', { 
+            groupId, 
+            userId,
+            updates: Object.keys(updates)
+        });
+    }
+
+    /**
+     * Delete a member from the subcollection
+     */
+    async deleteMemberFromSubcollection(groupId: string, userId: string): Promise<void> {
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+
+        await memberRef.delete();
+
+        logger.info('Member deleted from subcollection', { groupId, userId });
+    }
+
+    /**
+     * Get all groups for a user using scalable collectionGroup query
+     * This replaces the problematic query in UserService2.ts line 395
+     */
+    async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
+        const membersSnapshot = await firestoreDb
+            .collectionGroup('members')
+            .where('userId', '==', userId)
+            .get();
+
+        return membersSnapshot.docs.map(doc => {
+            const data = doc.data() as GroupMemberDocument;
+            return data.groupId;
+        });
+    }
+
+    /**
+     * Get GroupMembersResponse using subcollection data
+     * This maintains compatibility with existing API consumers
+     */
+    async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
+        const memberDocs = await this.getMembersFromSubcollection(groupId);
+        const memberIds = memberDocs.map(doc => doc.userId);
+
+        const memberProfiles = await getUserService().getUsers(memberIds);
+
+        const members: GroupMemberWithProfile[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberWithProfile => {
+            const profile = memberProfiles.get(memberDoc.userId);
+
+            if (!profile) {
+                return {
+                    uid: memberDoc.userId,
+                    initials: '?',
+                    email: '',
+                    displayName: 'Unknown User',
+                    themeColor: memberDoc.theme,
+                    // Group membership metadata
+                    joinedAt: memberDoc.joinedAt,
+                    memberRole: memberDoc.role,
+                    invitedBy: memberDoc.invitedBy,
+                    memberStatus: memberDoc.status,
+                    lastPermissionChange: memberDoc.lastPermissionChange,
+                };
+            }
+
+            return {
+                uid: memberDoc.userId,
+                initials: this.getInitials(profile.displayName),
+                email: profile.email,
+                displayName: profile.displayName,
+                themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
+                preferredLanguage: profile.preferredLanguage,
+                // Group membership metadata
+                joinedAt: memberDoc.joinedAt,
+                memberRole: memberDoc.role,
+                invitedBy: memberDoc.invitedBy,
+                memberStatus: memberDoc.status,
+                lastPermissionChange: memberDoc.lastPermissionChange,
+            };
+        });
+
+        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        return {
+            members,
+            hasMore: false,
         };
     }
 }
