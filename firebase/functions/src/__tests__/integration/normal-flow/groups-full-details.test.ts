@@ -40,9 +40,7 @@ describe('Groups Full Details API', () => {
             // Verify group data
             expect(fullDetails.group.id).toBe(groupId);
             expect(fullDetails.group.name).toBe('Full Details Test Group');
-            expect(fullDetails.group.members).toHaveProperty(alice.uid);
-            expect(fullDetails.group.members).toHaveProperty(bob.uid);
-            expect(fullDetails.group.members).toHaveProperty(charlie.uid);
+            expect(fullDetails.group.createdBy).toBeDefined();
 
             // Verify members data
             expect(fullDetails.members.members).toHaveLength(3);

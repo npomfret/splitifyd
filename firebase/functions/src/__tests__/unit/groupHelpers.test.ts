@@ -1,7 +1,8 @@
-import { getGroupOwner, isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
+import { isGroupOwner, isGroupMember } from '../../utils/groupHelpers';
 import { Group, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 describe('Group Helpers', () => {
+    // Note: These helpers operate on the raw Group interface which still uses group.members object format
     const mockGroup: Group = {
         id: 'test-group-id',
         name: 'Test Group',
@@ -47,27 +48,6 @@ describe('Group Helpers', () => {
         },
     };
 
-    describe('getGroupOwner', () => {
-        it('should return the owner user ID', () => {
-            const owner = getGroupOwner(mockGroup);
-            expect(owner).toBe('user-alice');
-        });
-
-        it('should throw error when no admins exist (invalid state)', () => {
-            const groupWithNoOwner: Group = {
-                ...mockGroup,
-                members: {
-                    'user-bob': {
-                        role: MemberRoles.MEMBER,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: '2024-01-02T00:00:00Z',
-                        theme: mockGroup.members['user-bob'].theme,
-                    },
-                },
-            };
-            expect(() => getGroupOwner(groupWithNoOwner)).toThrow('Group test-group-id has no admin - invalid state');
-        });
-    });
 
     describe('isGroupOwner', () => {
         it('should return true for group owner', () => {

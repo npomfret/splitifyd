@@ -28,10 +28,6 @@ describe('RESTful Group CRUD Operations', () => {
             expect(response.name).toBe(groupData.name);
             expect(response.description).toBe(groupData.description);
             expect(response.createdBy).toBe(users[0].uid);
-            expect(Object.keys(response.members)).toHaveLength(1);
-            expect(response.members).toHaveProperty(users[0].uid);
-            // members is a map of member UIDs to member info
-            // expenseCount removed - calculated on demand
         });
 
         test('should create a group with member objects', async () => {
@@ -41,7 +37,6 @@ describe('RESTful Group CRUD Operations', () => {
 
             const response = await apiDriver.createGroup(groupData, users[0].token);
 
-            expect(Object.keys(response.members)).toHaveLength(1);
             expect(response.id).toBeDefined();
             expect(response.name).toBe(groupData.name);
         });
@@ -95,12 +90,12 @@ describe('RESTful Group CRUD Operations', () => {
         });
 
         test('should retrieve a group by ID', async () => {
-            const {group, balances} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const {group, members, balances} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
             expect(group.id).toBe(testGroup.id);
             expect(group.name).toBe(testGroup.name);
             expect(group.description).toBe(testGroup.description);
-            expect(Object.keys(group.members)).toHaveLength(1);
+            expect(members.members).toHaveLength(1);
             expect(balances).toBeDefined();
             expect(balances.balancesByCurrency).toBeDefined();
             expect(Object.keys(balances.balancesByCurrency).length).toBe(0);

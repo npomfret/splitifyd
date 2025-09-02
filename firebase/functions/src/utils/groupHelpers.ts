@@ -4,29 +4,6 @@ import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';
 
 /**
- * Get the group owner's user ID from the members map
- * Returns the first admin found, prioritizing the creator if they're an admin
- * @throws Error if no admin exists (invalid state)
- */
-export const getGroupOwner = (group: Group): string => {
-    // First check if the creator is still an admin
-    const creator = group.members[group.createdBy];
-    if (creator && creator.role === MemberRoles.ADMIN) {
-        return group.createdBy;
-    }
-
-    // Otherwise, find any admin
-    for (const [userId, member] of Object.entries(group.members)) {
-        if (member.role === MemberRoles.ADMIN) {
-            return userId;
-        }
-    }
-
-    // Groups must have at least one admin - this is an invalid state
-    throw new Error(`Group ${group.id} has no admin - invalid state`);
-};
-
-/**
  * Check if a user is the owner of a group
  * Checks if user has admin role
  */
