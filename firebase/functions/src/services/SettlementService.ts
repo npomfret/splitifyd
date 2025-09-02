@@ -18,6 +18,7 @@ import {
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { GroupData } from '../types/group-types';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 
@@ -326,15 +327,26 @@ export class SettlementService {
         }
 
         // Update with optimistic locking
-        await firestoreDb.runTransaction(async (transaction) => {
-            const freshDoc = await transaction.get(settlementRef);
-            if (!freshDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-            }
+        await runTransactionWithRetry(
+            async (transaction) => {
+                const freshDoc = await transaction.get(settlementRef);
+                if (!freshDoc.exists) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+                }
 
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
-            await updateWithTimestamp(transaction, settlementRef, updates, originalUpdatedAt);
-        });
+                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+                await updateWithTimestamp(transaction, settlementRef, updates, originalUpdatedAt);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'updateSettlement',
+                    userId,
+                    groupId: settlement.groupId,
+                    settlementId
+                }
+            }
+        );
 
         const updatedDoc = await settlementRef.get();
         const updatedSettlement = updatedDoc.data();
@@ -401,25 +413,36 @@ export class SettlementService {
         }
 
         // Delete with optimistic locking to prevent concurrent modifications
-        await firestoreDb.runTransaction(async (transaction) => {
-            // Step 1: Do ALL reads first
-            const freshDoc = await transaction.get(settlementRef);
-            if (!freshDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Step 1: Do ALL reads first
+                const freshDoc = await transaction.get(settlementRef);
+                if (!freshDoc.exists) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
+                }
+
+                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+
+                // Step 2: Check for concurrent updates inline (no additional reads needed)
+                const currentTimestamp = freshDoc.data()?.updatedAt;
+                if (!currentTimestamp || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
+                }
+
+                // Step 3: Now do ALL writes
+                // Delete the settlement
+                transaction.delete(settlementRef);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'deleteSettlement',
+                    userId,
+                    groupId: settlement.groupId,
+                    settlementId
+                }
             }
-
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
-
-            // Step 2: Check for concurrent updates inline (no additional reads needed)
-            const currentTimestamp = freshDoc.data()?.updatedAt;
-            if (!currentTimestamp || !currentTimestamp.isEqual(originalUpdatedAt)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Document was modified concurrently');
-            }
-
-            // Step 3: Now do ALL writes
-            // Delete the settlement
-            transaction.delete(settlementRef);
-        });
+        );
     }
 
     /**

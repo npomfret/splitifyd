@@ -1,28 +1,38 @@
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { COLOR_PATTERNS, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { runTransactionWithRetry } from '../utils/firestore-helpers';
 
 export async function assignThemeColor(userId: string): Promise<UserThemeColor> {
     const db = getFirestore();
     const systemDoc = db.collection('system').doc('colorAssignment');
 
     // Atomic counter increment with transaction
-    const result = await db.runTransaction(async (transaction) => {
-        const doc = await transaction.get(systemDoc);
-        const currentIndex = doc.exists ? doc.data()?.lastColorIndex || 0 : 0;
-        const nextIndex = (currentIndex + 1) % USER_COLORS.length;
+    const result = await runTransactionWithRetry(
+        async (transaction) => {
+            const doc = await transaction.get(systemDoc);
+            const currentIndex = doc.exists ? doc.data()?.lastColorIndex || 0 : 0;
+            const nextIndex = (currentIndex + 1) % USER_COLORS.length;
 
-        transaction.set(
-            systemDoc,
-            {
-                lastColorIndex: nextIndex,
-                totalAssigned: FieldValue.increment(1),
-                lastAssignedAt: FieldValue.serverTimestamp(),
-            },
-            { merge: true },
-        );
+            transaction.set(
+                systemDoc,
+                {
+                    lastColorIndex: nextIndex,
+                    totalAssigned: FieldValue.increment(1),
+                    lastAssignedAt: FieldValue.serverTimestamp(),
+                },
+                { merge: true },
+            );
 
-        return nextIndex;
-    });
+            return nextIndex;
+        },
+        {
+            maxAttempts: 3,
+            context: {
+                operation: 'assignThemeColor',
+                userId
+            }
+        }
+    );
 
     const colorIndex = result;
     const systemData = (await systemDoc.get()).data();

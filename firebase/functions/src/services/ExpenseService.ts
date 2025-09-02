@@ -14,6 +14,7 @@ import {PermissionEngine} from '../permissions';
 import {transformGroupDocument} from '../groups/handlers';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import {PerformanceMonitor} from '../utils/performance-monitor';
+import {runTransactionWithRetry} from '../utils/firestore-helpers';
 
 // Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
@@ -215,23 +216,34 @@ export class ExpenseService {
         }
 
         // Use transaction to create expense atomically
-        await firestoreDb.runTransaction(async (transaction) => {
-            // Re-verify group exists within transaction
-            const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
-            const groupDocInTx = await transaction.get(groupDocRef);
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Re-verify group exists within transaction
+                const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
+                const groupDocInTx = await transaction.get(groupDocRef);
 
-            if (!groupDocInTx.exists) {
-                throw Errors.NOT_FOUND('Group');
+                if (!groupDocInTx.exists) {
+                    throw Errors.NOT_FOUND('Group');
+                }
+
+                const groupDataInTx = groupDocInTx.data();
+                if (!groupDataInTx) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+                }
+
+                // Create the expense
+                transaction.set(docRef, expense);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'createExpense',
+                    userId,
+                    groupId: expenseData.groupId,
+                    expenseId: docRef.id
+                }
             }
-
-            const groupDataInTx = groupDocInTx.data();
-            if (!groupDataInTx) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
-            }
-
-            // Create the expense
-            transaction.set(docRef, expense);
-        });
+        );
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
@@ -325,46 +337,57 @@ export class ExpenseService {
         }
 
         // Use transaction to update expense atomically with optimistic locking
-        await firestoreDb.runTransaction(async (transaction) => {
-            // Re-fetch expense within transaction to check for concurrent updates
-            const expenseDocInTx = await transaction.get(docRef);
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Re-fetch expense within transaction to check for concurrent updates
+                const expenseDocInTx = await transaction.get(docRef);
 
-            if (!expenseDocInTx.exists) {
-                throw Errors.NOT_FOUND('Expense');
+                if (!expenseDocInTx.exists) {
+                    throw Errors.NOT_FOUND('Expense');
+                }
+
+                const currentData = expenseDocInTx.data();
+                if (!currentData) {
+                    throw Errors.NOT_FOUND('Expense');
+                }
+
+                // Check if expense was updated since we fetched it
+                const originalTimestamp = expense.updatedAt;
+                const currentTimestamp = currentData.updatedAt;
+
+                if (!currentTimestamp || !originalTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
+                }
+
+                // Create history entry
+                // Filter out undefined values for Firestore compatibility
+                const cleanExpenseData = Object.fromEntries(
+                    Object.entries(expense).filter(([, value]) => value !== undefined)
+                );
+
+                const historyEntry = {
+                    ...cleanExpenseData,
+                    modifiedAt: createServerTimestamp(),
+                    modifiedBy: userId,
+                    changeType: 'update' as const,
+                    changes: Object.keys(updateData),
+                };
+
+                // Save history and update expense
+                const historyRef = docRef.collection('history').doc();
+                transaction.set(historyRef, historyEntry);
+                transaction.update(docRef, updates);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'updateExpense',
+                    userId,
+                    groupId: expense.groupId,
+                    expenseId: expenseId
+                }
             }
-
-            const currentData = expenseDocInTx.data();
-            if (!currentData) {
-                throw Errors.NOT_FOUND('Expense');
-            }
-
-            // Check if expense was updated since we fetched it
-            const originalTimestamp = expense.updatedAt;
-            const currentTimestamp = currentData.updatedAt;
-
-            if (!currentTimestamp || !originalTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
-                throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Expense was modified by another user. Please refresh and try again.');
-            }
-
-            // Create history entry
-            // Filter out undefined values for Firestore compatibility
-            const cleanExpenseData = Object.fromEntries(
-                Object.entries(expense).filter(([, value]) => value !== undefined)
-            );
-
-            const historyEntry = {
-                ...cleanExpenseData,
-                modifiedAt: createServerTimestamp(),
-                modifiedBy: userId,
-                changeType: 'update' as const,
-                changes: Object.keys(updateData),
-            };
-
-            // Save history and update expense
-            const historyRef = docRef.collection('history').doc();
-            transaction.set(historyRef, historyEntry);
-            transaction.update(docRef, updates);
-        });
+        );
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expense.groupId, expenseId });
@@ -579,43 +602,54 @@ export class ExpenseService {
 
         try {
             // Use transaction to soft delete expense atomically
-            await firestoreDb.runTransaction(async (transaction) => {
-                // IMPORTANT: All reads must happen before any writes in Firestore transactions
+            await runTransactionWithRetry(
+                async (transaction) => {
+                    // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
-                // Step 1: Do ALL reads first
-                const expenseDoc = await transaction.get(docRef);
-                if (!expenseDoc.exists) {
-                    throw Errors.NOT_FOUND('Expense');
+                    // Step 1: Do ALL reads first
+                    const expenseDoc = await transaction.get(docRef);
+                    if (!expenseDoc.exists) {
+                        throw Errors.NOT_FOUND('Expense');
+                    }
+
+                    // Get the current timestamp for optimistic locking
+                    const originalTimestamp = expenseDoc.data()?.updatedAt;
+                    if (!originalTimestamp) {
+                        throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense is missing updatedAt timestamp');
+                    }
+
+                    // Get group doc to ensure it exists (though we already checked above)
+                    const groupDocRef = this.groupsCollection.doc(expense.groupId);
+                    const groupDocInTx = await transaction.get(groupDocRef);
+                    if (!groupDocInTx.exists) {
+                        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
+                    }
+
+                    // Step 2: Check for concurrent updates
+                    const currentTimestamp = expenseDoc.data()?.updatedAt;
+                    if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
+                        throw Errors.CONCURRENT_UPDATE();
+                    }
+
+                    // Step 3: Now do ALL writes - soft delete the expense
+                    transaction.update(docRef, {
+                        [DELETED_AT_FIELD]: createServerTimestamp(),
+                        deletedBy: userId,
+                        updatedAt: createServerTimestamp(), // Update the timestamp for optimistic locking
+                    });
+
+                    // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
+                },
+                {
+                    maxAttempts: 3,
+                    context: {
+                        operation: 'deleteExpense',
+                        userId,
+                        groupId: expense.groupId,
+                        expenseId
+                    }
                 }
-
-                // Get the current timestamp for optimistic locking
-                const originalTimestamp = expenseDoc.data()?.updatedAt;
-                if (!originalTimestamp) {
-                    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Expense is missing updatedAt timestamp');
-                }
-
-                // Get group doc to ensure it exists (though we already checked above)
-                const groupDocRef = this.groupsCollection.doc(expense.groupId);
-                const groupDocInTx = await transaction.get(groupDocRef);
-                if (!groupDocInTx.exists) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
-                }
-
-                // Step 2: Check for concurrent updates
-                const currentTimestamp = expenseDoc.data()?.updatedAt;
-                if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
-                    throw Errors.CONCURRENT_UPDATE();
-                }
-
-                // Step 3: Now do ALL writes - soft delete the expense
-                transaction.update(docRef, {
-                    [DELETED_AT_FIELD]: createServerTimestamp(),
-                    deletedBy: userId,
-                    updatedAt: createServerTimestamp(), // Update the timestamp for optimistic locking
-                });
-
-                // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
-            });
+            );
 
             LoggerContext.setBusinessContext({ expenseId });
             logger.info('expense-deleted', { id: expenseId });

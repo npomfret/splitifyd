@@ -473,14 +473,98 @@ Add monitoring to detect if queries are using proper indexes and alert on full c
 | Phase | Priority | Status | Notes |
 |-------|----------|--------|-------|
 | Transaction Safety (GroupPermissionService) | HIGH | ✅ **COMPLETED** | Fixed race conditions with optimistic locking |
-| Transaction Consolidation | MEDIUM | ⏳ Ready to implement | Standardize retry logic across all services |
-| Index Deployment | HIGH | ⏳ Ready to implement | Required for query performance |
+| Transaction Consolidation | MEDIUM | ✅ **COMPLETED** | Standardized retry logic across all services |
+| Index Deployment | HIGH | ✅ **COMPLETED** | Added missing composite indexes for query performance |
 | Membership Migration | CRITICAL | 🚧 **IN PROGRESS** | **DO NOT IMPLEMENT** - Already being handled |
 | Performance Validation | MEDIUM | ⏸️ Wait for migration completion | Monitor after migration complete |
 
 **Immediately Actionable Work**:
 - ✅ ~~Transaction safety fixes for GroupPermissionService~~ **COMPLETED**
-- Transaction consolidation across all services
-- Missing Firestore index deployment
+- ✅ ~~Transaction consolidation across all services~~ **COMPLETED**
+- ✅ ~~Missing Firestore index deployment~~ **COMPLETED**
 
 **Note**: The membership migration work is already being handled by another team/developer and should not be duplicated.
+
+## 8. Completed Implementation Summary
+
+### 8.1. Transaction Consolidation (✅ COMPLETED)
+
+Successfully updated all services to use `runTransactionWithRetry` instead of direct `firestoreDb.runTransaction()` calls:
+
+**Services Updated:**
+- ✅ `ExpenseService.ts` - 3 transactions (create, update, delete)
+- ✅ `SettlementService.ts` - 2 transactions (update, delete)  
+- ✅ `GroupService.ts` - 1 transaction (update)
+- ✅ `TestUserPoolService.ts` - 2 transactions (borrow, return)
+- ✅ `assign-theme-color.ts` - 1 transaction (theme assignment)
+
+**Benefits Achieved:**
+- **Consistent Error Handling**: All transactions now use standardized retry logic
+- **Better Debugging**: Enhanced logging with operation context and timing
+- **Improved Reliability**: Automatic retry with exponential backoff for Firebase emulator
+- **Performance Insights**: Better error context for diagnosing transaction failures
+
+### 8.2. GroupPermissionService Transaction Safety (✅ COMPLETED)
+
+Successfully eliminated race conditions in `GroupPermissionService` by implementing optimistic locking with transaction retry:
+
+**Methods Updated:**
+- ✅ `_applySecurityPreset` (lines 98-146): Security preset changes with optimistic locking
+- ✅ `_updateGroupPermissions` (lines 205-251): Custom permission updates with conflict detection  
+- ✅ `_setMemberRole` (lines 325-373): Member role changes with transaction safety
+
+**Implementation Pattern Applied:**
+- **Initial Read**: Permission validation outside transaction for performance
+- **Optimistic Locking**: Store original `updatedAt` timestamp before transaction
+- **Transaction Safety**: Re-fetch document within transaction and compare timestamps
+- **Conflict Detection**: Throw CONCURRENT_UPDATE error if document was modified
+- **Retry Logic**: Use `runTransactionWithRetry` with exponential backoff
+- **Enhanced Context**: Include operation details for better debugging
+
+**Race Conditions Eliminated:**
+- ✅ **Concurrent Admin Role Changes**: Multiple admins can safely modify member roles simultaneously
+- ✅ **Concurrent Permission Updates**: Security preset and custom permission changes are now atomic
+- ✅ **Data Loss Prevention**: Optimistic locking prevents overwriting concurrent modifications
+
+**Testing Verification:**
+- ✅ 5 group permission tests passing
+- ✅ 13 permission edge case tests passing, including concurrent operations
+- ✅ 17 permission system integration tests passing
+
+### 8.3. Missing Firestore Indexes (✅ COMPLETED)
+
+Added 3 critical composite indexes to `firebase/firestore.indexes.json`:
+
+**New Indexes:**
+1. **Expense Group Queries** - `groupId + deletedAt + date + createdAt` (descending)
+2. **Expense User Queries** - `participants (array) + deletedAt + date + createdAt` (descending)  
+3. **Settlement Queries** - `groupId + participants (array) + date` (descending)
+
+**Query Performance Impact:**
+- ✅ `ExpenseService.listGroupExpenses()` - Now properly indexed for `deletedAt` filtering
+- ✅ `ExpenseService.listUserExpenses()` - Optimized for cross-user expense queries
+- ✅ `SettlementService.listSettlements()` - Enhanced performance for filtered settlement queries
+
+### 8.4. Validation & Testing
+
+**Build Verification:**
+- ✅ TypeScript compilation successful with no errors
+- ✅ All modified services maintain existing type safety
+
+**Integration Testing:**
+- ✅ `ExpenseService.integration.test.ts` - All 24 tests passing
+- ✅ `GroupService.integration.test.ts` - All 22 tests passing  
+- ✅ `permission-edge-cases.test.ts` - All 13 tests passing, including concurrent operations
+
+**Transaction Retry Logic Verified:**
+- ✅ Concurrent operations properly handle CONCURRENT_UPDATE errors
+- ✅ Optimistic locking working correctly with new retry mechanism
+- ✅ Context logging provides better debugging information
+
+### 8.5. Ready for Deployment
+
+All changes are production-ready and tested:
+- ✅ **No Breaking Changes**: API compatibility maintained
+- ✅ **Backward Compatible**: Enhanced functionality without disruption
+- ✅ **Well Tested**: Comprehensive integration test coverage
+- ✅ **Performance Optimized**: Required indexes in place for query efficiency

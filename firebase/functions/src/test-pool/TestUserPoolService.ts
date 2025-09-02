@@ -1,6 +1,7 @@
 import {admin, firestoreDb} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {RegisteredUser} from "@splitifyd/shared";
+import {runTransactionWithRetry} from '../utils/firestore-helpers';
 
 export interface PoolUser {
     user: RegisteredUser,
@@ -35,30 +36,39 @@ export class TestUserPoolService {
         const poolRef = firestoreDb.collection(POOL_COLLECTION);
         
         // Use transaction to atomically claim an available user
-        const result = await firestoreDb.runTransaction(async (transaction) => {
-            // Query for available users
-            const availableQuery = await transaction.get(
-                poolRef.where('status', '==', 'available').limit(1)
-            );
-            
-            if (!availableQuery.empty) {
-                // Found an available user - claim it atomically
-                const doc = availableQuery.docs[0];
-                const data = doc.data() as FirestorePoolUser;
+        const result = await runTransactionWithRetry(
+            async (transaction) => {
+                // Query for available users
+                const availableQuery = await transaction.get(
+                    poolRef.where('status', '==', 'available').limit(1)
+                );
                 
-                // Update status to borrowed within transaction
-                transaction.update(doc.ref, { status: 'borrowed' });
+                if (!availableQuery.empty) {
+                    // Found an available user - claim it atomically
+                    const doc = availableQuery.docs[0];
+                    const data = doc.data() as FirestorePoolUser;
+                    
+                    // Update status to borrowed within transaction
+                    transaction.update(doc.ref, { status: 'borrowed' });
+                    
+                    return {
+                        user: data.user,
+                        token: data.token,
+                        password: data.password
+                    };
+                }
                 
-                return {
-                    user: data.user,
-                    token: data.token,
-                    password: data.password
-                };
+                // No available users - return null to create new one outside transaction
+                return null;
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'borrowTestUser',
+                    poolCollection: POOL_COLLECTION
+                }
             }
-            
-            // No available users - return null to create new one outside transaction
-            return null;
-        });
+        );
         
         if (result) {
             return result;
@@ -82,27 +92,37 @@ export class TestUserPoolService {
         const poolRef = firestoreDb.collection(POOL_COLLECTION);
         
         // Use transaction to atomically return user
-        await firestoreDb.runTransaction(async (transaction) => {
-            const doc = await transaction.get(poolRef.doc(email));
-            
-            if (!doc.exists) {
-                throw Error(`User ${email} not found in pool`);
-            }
-            
-            const data = doc.data() as FirestorePoolUser;
-            if (data.status !== 'borrowed') {
-                // This could be a duplicate return attempt - make it idempotent
-                if (data.status === 'available') {
-                    // User is already available - this is fine, just log it
-                    console.log(`⚠️ User ${email} was already returned to pool`);
-                    return;
+        await runTransactionWithRetry(
+            async (transaction) => {
+                const doc = await transaction.get(poolRef.doc(email));
+                
+                if (!doc.exists) {
+                    throw Error(`User ${email} not found in pool`);
                 }
-                throw Error(`User ${email} is not borrowed (status: ${data.status})`);
+                
+                const data = doc.data() as FirestorePoolUser;
+                if (data.status !== 'borrowed') {
+                    // This could be a duplicate return attempt - make it idempotent
+                    if (data.status === 'available') {
+                        // User is already available - this is fine, just log it
+                        console.log(`⚠️ User ${email} was already returned to pool`);
+                        return;
+                    }
+                    throw Error(`User ${email} is not borrowed (status: ${data.status})`);
+                }
+                
+                // Update status to available within transaction
+                transaction.update(doc.ref, { status: 'available' });
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'returnTestUser',
+                    email,
+                    poolCollection: POOL_COLLECTION
+                }
             }
-            
-            // Update status to available within transaction
-            transaction.update(doc.ref, { status: 'available' });
-        });
+        );
     }
 
     private async createUser(): Promise<PoolUser> {

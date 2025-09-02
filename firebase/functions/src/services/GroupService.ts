@@ -17,6 +17,7 @@ import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, p
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
 import {PerformanceMonitor} from '../utils/performance-monitor';
+import {runTransactionWithRetry} from '../utils/firestore-helpers';
 
 /**
  * Service for managing group operations
@@ -501,34 +502,44 @@ export class GroupService {
         const { docRef, group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
-        await firestoreDb.runTransaction(async (transaction) => {
-            const freshDoc = await transaction.get(docRef);
-            if (!freshDoc.exists) {
-                throw Errors.NOT_FOUND('Group');
+        await runTransactionWithRetry(
+            async (transaction) => {
+                const freshDoc = await transaction.get(docRef);
+                if (!freshDoc.exists) {
+                    throw Errors.NOT_FOUND('Group');
+                }
+
+                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
+
+                // Create updated data with current timestamp (will be converted to ISO in the data field)
+                const now = createOptimisticTimestamp();
+                const updatedData = {
+                    ...group,
+                    ...updates,
+                    updatedAt: now.toDate(),
+                };
+
+                // Use existing pattern since we already have the fresh document from transaction read
+                await updateWithTimestamp(
+                    transaction,
+                    docRef,
+                    {
+                        name: updatedData.name,
+                        description: updatedData.description,
+                        updatedAt: updatedData.updatedAt.toISOString(),
+                    },
+                    originalUpdatedAt,
+                );
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'updateGroup',
+                    userId,
+                    groupId
+                }
             }
-
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
-
-            // Create updated data with current timestamp (will be converted to ISO in the data field)
-            const now = createOptimisticTimestamp();
-            const updatedData = {
-                ...group,
-                ...updates,
-                updatedAt: now.toDate(),
-            };
-
-            // Use existing pattern since we already have the fresh document from transaction read
-            await updateWithTimestamp(
-                transaction,
-                docRef,
-                {
-                    name: updatedData.name,
-                    description: updatedData.description,
-                    updatedAt: updatedData.updatedAt.toISOString(),
-                },
-                originalUpdatedAt,
-            );
-        });
+        );
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });
