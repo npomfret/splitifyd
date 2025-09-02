@@ -14,21 +14,19 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         // Open create group modal
         await dashboardPage.openCreateGroupModal();
 
-        // Test empty group name
+        // Test empty group name - should throw error due to validation
         await createGroupModalPage.fillGroupForm('');
-        const emptySubmitSucceeded = await createGroupModalPage.trySubmitForm();
+        await expect(createGroupModalPage.trySubmitForm()).rejects.toThrow(/validation errors|disabled/i);
 
-        // Form validation should prevent submission
-        expect(emptySubmitSucceeded).toBe(false);
+        // Modal should still be open after validation error
         expect(await createGroupModalPage.isOpen()).toBe(true);
 
-        // Test extremely long group name
+        // Test extremely long group name - should also throw validation error
         const longName = 'A'.repeat(1000);
         await createGroupModalPage.fillGroupForm(longName);
-        const longSubmitSucceeded = await createGroupModalPage.trySubmitForm();
+        await expect(createGroupModalPage.trySubmitForm()).rejects.toThrow(/validation errors|disabled/i);
 
-        // The form should show validation error and stay open
-        expect(longSubmitSucceeded).toBe(false);
+        // Modal should still be open after validation error
         expect(await createGroupModalPage.isOpen()).toBe(true);
 
         // Check for validation error message (may be slightly different text)
@@ -49,8 +47,17 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         await createGroupModalPage.fillGroupForm(specialName, 'Test group');
         await createGroupModalPage.submitForm();
 
-        // Wait for group creation - may redirect or stay on same page
-        await page.waitForTimeout(1000);
+        // Wait for group creation to complete - check for expected navigation or modal closure
+        await expect(async () => {
+            const isModalOpen = await createGroupModalPage.isOpen();
+            const isDashboardUrl = page.url().includes('/dashboard');
+            const isGroupUrl = page.url().includes('/groups/');
+            
+            // Either modal should close OR we should navigate to a group page
+            if (isModalOpen && !isDashboardUrl && !isGroupUrl) {
+                throw new Error('Group creation not yet completed');
+            }
+        }).toPass({ timeout: 2000, intervals: [100, 250] });
 
         // Check that the script tags are properly escaped/sanitized
         const pageContent = await page.textContent('body');
@@ -77,8 +84,20 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         // Try to submit - the key test is that malicious script shouldn't execute
         await createGroupModalPage.submitForm();
 
-        // Wait a moment for any potential redirect (if script executed)
-        await page.waitForTimeout(1000);
+        // Wait for form submission to complete and check for any malicious redirects
+        await expect(async () => {
+            const currentUrl = page.url();
+            // If we're being redirected to evil.com, that indicates XSS execution
+            if (currentUrl.includes('evil.com') || currentUrl.includes('javascript:')) {
+                throw new Error('Malicious redirect detected - XSS vulnerability!');
+            }
+            
+            // Check that we're in a legitimate state (either still on dashboard or on a group page)
+            const isLegitimate = currentUrl.includes('/dashboard') || currentUrl.includes('/groups/');
+            if (!isLegitimate) {
+                throw new Error('Unexpected navigation state');
+            }
+        }).toPass({ timeout: 2000, intervals: [100, 250] });
 
         // Check that we're still on the legitimate site, not redirected to evil.com
         // This is the key security test - script shouldn't have executed

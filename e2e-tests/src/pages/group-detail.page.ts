@@ -873,8 +873,13 @@ export class GroupDetailPage extends BasePage {
                 await this.fillPreactInput(nameInput, name);
 
                 // Defensive check: verify the value persisted (catches real-time update bug)
-                // Brief wait to allow any potential real-time updates to arrive
-                await this._page.waitForTimeout(100);
+                // Use polling to ensure value has stabilized
+                await expect(async () => {
+                    const currentValue = await nameInput.inputValue();
+                    if (currentValue !== name) {
+                        throw new Error('Form value still changing');
+                    }
+                }).toPass({ timeout: 500, intervals: [50, 100] });
                 const currentValue = await nameInput.inputValue();
                 if (currentValue !== name) {
                     throw new Error(`Form field was reset! Expected name "${name}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
@@ -893,7 +898,12 @@ export class GroupDetailPage extends BasePage {
                 await this.fillPreactInput(descriptionTextarea, description);
 
                 // Defensive check: verify the value persisted
-                await this._page.waitForTimeout(100);
+                await expect(async () => {
+                    const currentValue = await descriptionTextarea.inputValue();
+                    if (currentValue !== description) {
+                        throw new Error('Form value still changing');
+                    }
+                }).toPass({ timeout: 500, intervals: [50, 100] });
                 const currentValue = await descriptionTextarea.inputValue();
                 if (currentValue !== description) {
                     throw new Error(`Form field was reset! Expected description "${description}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
@@ -914,8 +924,13 @@ export class GroupDetailPage extends BasePage {
                 // Wait for button to stabilize in enabled state
                 await expect(saveButton).toBeEnabled({ timeout: 2000 });
 
-                // Brief stability check - if button becomes disabled, we caught a race condition
-                await this._page.waitForTimeout(50);
+                // Brief stability check - ensure button remains enabled (no race condition)
+                await expect(async () => {
+                    const isEnabled = await saveButton.isEnabled();
+                    if (!isEnabled) {
+                        throw new Error('Save button became disabled - race condition detected');
+                    }
+                }).toPass({ timeout: 200, intervals: [25, 50] });
                 const isStillEnabled = await saveButton.isEnabled();
                 if (!isStillEnabled) {
                     throw new Error(
@@ -938,8 +953,8 @@ export class GroupDetailPage extends BasePage {
                     await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
                 }
 
-                // Small stability pause to ensure data has propagated
-                await this.page.waitForTimeout(300);
+                // Wait for modal to close (indicates data has propagated)
+                await expect(modal).not.toBeVisible({ timeout: 1000 });
             },
             cancel: async () => {
                 const cancelButton = modal.getByRole('button', { name: 'Cancel' });

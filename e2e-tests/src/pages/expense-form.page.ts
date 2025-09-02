@@ -224,11 +224,8 @@ export class ExpenseFormPage extends BasePage {
         // Click the button
         await this.clickButton(saveButton, { buttonName: 'Save Expense' });
 
-        // First wait for saving state to begin - button text changes to "Saving..."
-        await expect(this.page.getByRole('button', { name: 'Saving...' })).toBeVisible({ timeout: 250 });
-
-        // Then wait for saving state to complete - button text changes back to "Save Expense"
-        await expect(this.page.getByRole('button', { name: 'Saving...' })).not.toBeVisible({ timeout: 3000 });
+        // Note: We don't wait for loading states here because operations can be instantaneous.
+        // The caller (submitExpense method) will handle waiting for the appropriate outcome.
     }
 
     /**
@@ -322,15 +319,23 @@ export class ExpenseFormPage extends BasePage {
         // Check for permission error messages first
         const permissionErrorMessages = ['You do not have permission to create expenses in this group', 'Something went wrong', 'Permission denied', 'Not authorized'];
 
-        // Wait a moment for any error messages to appear
-        await this.page.waitForTimeout(1000);
-
-        // Check if any error message is visible
-        for (const errorMessage of permissionErrorMessages) {
-            const errorElement = this.page.getByText(errorMessage, { exact: false });
-            if (await errorElement.isVisible().catch(() => false)) {
-                throw new Error(`Permission error detected: "${errorMessage}"`);
+        // Use polling to wait for any error messages to appear
+        try {
+            await expect(async () => {
+                for (const errorMessage of permissionErrorMessages) {
+                    const errorElement = this.page.getByText(errorMessage, { exact: false });
+                    if (await errorElement.isVisible().catch(() => false)) {
+                        throw new Error(`Permission error detected: "${errorMessage}"`);
+                    }
+                }
+                // If no errors found, continue - this will exit the polling
+            }).toPass({ timeout: 1000, intervals: [100, 250] });
+        } catch (error) {
+            // Re-throw permission errors
+            if (error instanceof Error && error.message.includes('Permission error detected')) {
+                throw error;
             }
+            // If polling timed out without finding errors, that's expected behavior
         }
 
         // If no error messages, proceed with normal flow

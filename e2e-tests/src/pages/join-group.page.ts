@@ -241,15 +241,31 @@ export class JoinGroupPage extends BasePage {
                 throw new Error(`Join failed: ${errorText}`);
             })(),
 
-            // Timeout: Button stuck in joining state
+            // Timeout: Button stuck in joining state - use polling instead of fixed timeout
             (async () => {
-                await this.page.waitForTimeout(10000);
-                // Check if button is still showing "Joining..."
-                const buttonText = await joinButton.textContent().catch(() => null);
-                if (buttonText?.includes('Joining...')) {
-                    throw new Error('Join operation timed out - button stuck in joining state');
+                await expect(async () => {
+                    // Check if button is still showing "Joining..."
+                    const buttonText = await joinButton.textContent().catch(() => null);
+                    if (buttonText?.includes('Joining...')) {
+                        throw new Error('Button still stuck in joining state');
+                    }
+                    // If button text has changed, check for other completion indicators
+                    const currentUrl = this.page.url();
+                    const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
+                    const hasError = await errorMessage.isVisible().catch(() => false);
+                    const hasSuccess = await joinSuccessIndicator.isVisible().catch(() => false);
+                    
+                    if (!isOnGroupPage && !hasError && !hasSuccess) {
+                        throw new Error('Join operation in unknown state - no completion indicators found');
+                    }
+                    // If we reach here, one of the expected outcomes occurred
+                }).toPass({ timeout: 10000 });
+                
+                // Final state check
+                const currentUrl = this.page.url();
+                if (!currentUrl.match(groupDetailUrlPattern())) {
+                    throw new Error('Join operation completed but not on group page');
                 }
-                throw new Error('Join operation timed out - unknown state');
             })(),
         ]).catch((error) => {
             // If we got here due to success conditions, check if we're actually on the group page

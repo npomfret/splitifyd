@@ -46,55 +46,55 @@ export class CreateGroupModalPage extends BasePage {
         // Use standardized button click with proper error handling
         await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
 
-        // Check if modal has already closed (instant group creation)
-        const modalStillOpen = await this.isOpen();
-        
-        if (modalStillOpen) {
-            // Modal is still open, wait for button to enter loading state
-            await expect(async () => {
-                // Check if modal is still open inside the polling loop
-                const modalStillOpenNow = await this.isOpen();
-                if (!modalStillOpenNow) {
-                    // Modal closed during polling, no need to check for loading state
-                    return;
-                }
-
-                const hasSpinner = await submitButton.locator('.animate-spin').count() > 0;
-                const ariaBusy = await submitButton.getAttribute('aria-busy');
-                const isDisabled = await submitButton.isDisabled();
-                
-                // Button should either show loading spinner, be marked as busy, or be disabled during submission
-                if (!hasSpinner && ariaBusy !== 'true' && !isDisabled) {
-                    throw new Error('Button has not entered loading state yet');
-                }
-            }).toPass({ timeout: 1000 });
-        }
-        // If modal is already closed, skip the loading state check
+        // Note: We don't wait for loading states here because operations can be instantaneous.
+        // The caller (createGroup method) will handle waiting for the appropriate outcome.
     }
 
-    async trySubmitForm(): Promise<boolean> {
-        // Attempt to submit form - returns true if successful (modal closes), false if validation prevented submission
+    async trySubmitForm(): Promise<void> {
+        // Attempt to submit form - throws descriptive errors if submission fails
         const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
 
         // Check if button is enabled before attempting to click
         const isEnabled = await submitButton.isEnabled();
         if (!isEnabled) {
-            return false; // Form validation prevented submission
+            throw new Error('Submit button is disabled - form validation errors likely present');
         }
 
         // Button is enabled, attempt to click it
-        try {
-            await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
+        await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
 
-            // Wait a moment for either form submission or validation errors to appear
-            await this.page.waitForTimeout(1000);
-
-            // If modal is still open, form validation prevented submission
+        // Give a brief moment for either modal closure or validation errors to appear
+        await expect(async () => {
             const modalStillOpen = await this.isOpen();
-            return !modalStillOpen; // Return true if modal closed (successful submission)
-        } catch {
-            return false; // Click failed for some other reason
+            const hasValidationErrors = await this.getErrorMessage().count() > 0;
+            
+            // Either modal should close OR validation errors should appear OR operation is still in progress
+            if (modalStillOpen && !hasValidationErrors) {
+                // Check if button is in loading state (indicates operation in progress)
+                const isLoading = await submitButton.isDisabled() || 
+                                await submitButton.locator('.animate-spin').count() > 0 ||
+                                await submitButton.getAttribute('aria-busy') === 'true';
+                
+                if (!isLoading) {
+                    throw new Error('No completion indicators detected yet');
+                }
+            }
+        }).toPass({ timeout: 500, intervals: [50, 100] });
+
+        // Check final state - if modal is still open, form validation prevented submission
+        const modalStillOpen = await this.isOpen();
+        if (modalStillOpen) {
+            // Check if there are validation errors to provide better error message
+            const errorCount = await this.getErrorMessage().count();
+            if (errorCount > 0) {
+                const errorText = await this.getErrorMessage().first().textContent();
+                throw new Error(`Form submission failed due to validation errors: ${errorText}`);
+            } else {
+                throw new Error('Form submission failed - modal still open but no validation errors detected');
+            }
         }
+        
+        // If we reach here, modal closed successfully (form submitted)
     }
 
     async cancel() {
@@ -129,52 +129,15 @@ export class CreateGroupModalPage extends BasePage {
         await this.waitForModalToClose();
     }
 
-    private async waitForButtonSpinnerToDisappear() {
-        // First check if modal is still open
-        const isModalOpen = await this.isOpen();
-        if (!isModalOpen) {
-            // Modal already closed, no need to wait for spinner
-            return;
-        }
-
-        // Wait for spinner to disappear OR modal to close
-        await expect(async () => {
-            // Check if modal is still open inside the polling loop
-            const modalStillOpen = await this.isOpen();
-            if (!modalStillOpen) {
-                // Modal closed, no need to check for spinner
-                return;
-            }
-
-            // Modal is still open, check for spinner
-            const button = this.getSubmitButton();
-            const hasSpinner = await button.locator('.animate-spin').count() > 0;
-            const ariaBusy = await button.getAttribute('aria-busy');
-            
-            if (hasSpinner || ariaBusy === 'true') {
-                throw new Error('Button still has spinner/loading state');
-            }
-        }).toPass({ timeout: 5000 });
-    }
 
     async waitForModalToClose() {
-        const isVisible = await this.isOpen();
-
-        if (isVisible) {
-            // Wait for any loading spinner to disappear first
-            try {
-                await this.waitForButtonSpinnerToDisappear();
-            } catch {
-                // Spinner might have already disappeared if creation was instant
+        // Simply wait for the modal to close - don't worry about intermediate states
+        await expect(async () => {
+            const isOpen = await this.isOpen();
+            if (isOpen) {
+                throw new Error('Modal still open');
             }
-
-            // Check again if modal is still open after waiting for spinner
-            const stillVisible = await this.isOpen();
-            if (stillVisible) {
-                // Modal is still open, wait for it to close
-                await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 5000 });
-            }
-        }
+        }).toPass({ timeout: 5000, intervals: [100, 250] });
     }
 
     // Element accessors

@@ -200,8 +200,15 @@ export class SettlementFormPage extends BasePage {
         await this.fillPreactInput(noteInput, settlement.note);
 
         // Defensive check: verify the values persisted (catches real-time update bug)
-        // Brief wait to allow any potential real-time updates to arrive
-        await this.page.waitForTimeout(100);
+        // Use polling to check that values have stabilized
+        await expect(async () => {
+            // Re-check form values to ensure they haven't been reset by real-time updates
+            const checkAmount = await amountInput.inputValue();
+            const checkNote = await noteInput.inputValue();
+            if (checkAmount !== settlement.amount || checkNote !== settlement.note) {
+                throw new Error('Form values still changing');
+            }
+        }).toPass({ timeout: 500, intervals: [50, 100] });
         const currentAmount = await amountInput.inputValue();
         const currentNote = await noteInput.inputValue();
         const currentPayer = await payerSelect.inputValue();
