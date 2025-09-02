@@ -24,7 +24,7 @@ export default defineConfig({
                 'src/index.ts', // Entry point
             ],
         },
-        testTimeout: 10000, // Increased for integration tests
+        testTimeout: 20000, // Increased for integration tests
         hookTimeout: 10000, // Increased for integration tests setup/teardown
         // Force sequential execution for Firebase integration tests
         pool: 'forks',
