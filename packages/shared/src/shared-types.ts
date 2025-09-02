@@ -267,6 +267,18 @@ export interface RegisteredUser extends FirebaseUser {
 // Policy Types - For versioned terms and cookie policy acceptance
 // ========================================================================
 
+// Base interface for document types with common timestamp fields
+export interface BaseDocument {
+    id: string;
+    createdAt: string; // ISO string
+    updatedAt: string; // ISO string
+}
+
+// Utility type to convert FirestoreTimestamp fields to string for API responses
+export type WithStringTimestamps<T> = {
+    [K in keyof T]: T[K] extends FirestoreTimestamp ? string : T[K];
+};
+
 export interface PolicyVersion {
     text: string;
     createdAt: string; // ISO string
@@ -278,14 +290,7 @@ export interface Policy {
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
 
-export interface PolicyDocument {
-    id: string;
-    policyName: string;
-    currentVersionHash: string;
-    versions: Record<string, PolicyVersion>;
-    createdAt: string; // ISO string
-    updatedAt: string; // ISO string
-}
+export interface PolicyDocument extends Policy, BaseDocument {}
 
 // Admin Policy Management Types
 export interface CreatePolicyRequest {
@@ -342,19 +347,17 @@ export interface GroupMember {
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
-export interface GroupMemberWithProfile extends RegisteredUser {
-    // Additional user display properties for UI
-    name?: string; // Deprecated - use displayName instead
-    initials: string; // Auto-generated from displayName
+export type GroupMemberWithProfile = RegisteredUser & 
+    Omit<GroupMember, 'theme' | 'role' | 'status'> & {
+    // Renamed fields to avoid conflicts with RegisteredUser
+    memberRole: MemberRole;      // Renamed from GroupMember.role
+    memberStatus: MemberStatus;  // Renamed from GroupMember.status
     
-    // Group membership metadata
-    joinedAt: string; // ISO string
-    memberRole: MemberRole; // Renamed to avoid conflict with RegisteredUser.role (SystemUserRole)
-    invitedBy?: string; // UID of the user who created the share link that was used to join
-    memberStatus: MemberStatus; // Renamed for clarity
-    lastPermissionChange?: string; // ISO string - Track permission updates
+    // Additional user display properties for UI
+    name?: string;      // Deprecated - use displayName instead  
+    initials: string;   // Auto-generated from displayName
     // Note: theme is inherited from RegisteredUser.themeColor, not duplicated
-}
+};
 
 /**
  * Document structure for storing members in the subcollection: groups/{groupId}/members/{userId}
@@ -533,18 +536,7 @@ export interface CreateExpenseRequest {
     receiptUrl?: string;
 }
 
-export interface UpdateExpenseRequest {
-    description?: string;
-    amount?: number;
-    currency?: string;
-    paidBy?: string;
-    category?: string;
-    date?: string;
-    splitType?: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE;
-    participants?: string[];
-    splits?: ExpenseSplit[];
-    receiptUrl?: string;
-}
+export type UpdateExpenseRequest = Partial<Omit<CreateExpenseRequest, 'groupId'>>;
 
 // ========================================================================
 // Settlement Types
@@ -574,12 +566,7 @@ export interface CreateSettlementRequest {
     note?: string;
 }
 
-export interface UpdateSettlementRequest {
-    amount?: number;
-    currency?: string;
-    date?: string;
-    note?: string;
-}
+export type UpdateSettlementRequest = Partial<Omit<CreateSettlementRequest, 'groupId' | 'payerId' | 'payeeId'>>;
 
 export interface SettlementListItem {
     id: string;
@@ -845,15 +832,7 @@ export interface Comment {
     updatedAt: FirestoreTimestamp;
 }
 
-export interface CommentApiResponse {
-    id: string;
-    authorId: string;
-    authorName: string;
-    authorAvatar?: string;
-    text: string;
-    createdAt: string; // ISO string for API responses
-    updatedAt: string; // ISO string for API responses
-}
+export type CommentApiResponse = WithStringTimestamps<Comment>;
 
 export interface CreateCommentRequest {
     text: string;

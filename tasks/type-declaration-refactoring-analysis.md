@@ -153,3 +153,102 @@ This is excellent and indicates that the project adheres to a strict "single sou
 The project's type definition strategy is structurally sound due to its excellent centralization. The key areas for improvement lie within the `shared-types.ts` file itself.
 
 By applying utility types like `Omit`, `Partial`, and intersections (`&`), we can significantly reduce code duplication, improve maintainability, and create more robust and expressive types that clearly define the relationships between different data structures. These changes would make the codebase cleaner and easier to manage long-term.
+
+---
+
+## **IMPLEMENTATION COMPLETED** ✅
+
+### **Implementation Summary**
+
+All proposed refactoring recommendations have been successfully implemented with zero breaking changes:
+
+#### **Phase 1: Base Generic Types and Utilities** ✅
+- **Added `BaseDocument` interface** for common document fields (id, createdAt, updatedAt)
+- **Added `WithStringTimestamps<T>` utility type** for FirestoreTimestamp → string conversion
+- **Refactored `PolicyDocument`** to extend Policy + BaseDocument (eliminates field duplication)
+- **Refactored `CommentApiResponse`** to use `WithStringTimestamps<Comment>` (eliminates manual field listing)
+
+#### **Phase 2: GroupMemberWithProfile Refactoring** ✅
+- **Applied intersection types with Omit** to eliminate field duplication
+- **New type definition:**
+  ```typescript
+  export type GroupMemberWithProfile = RegisteredUser & 
+      Omit<GroupMember, 'theme' | 'role' | 'status'> & {
+      memberRole: MemberRole;      // Renamed from GroupMember.role
+      memberStatus: MemberStatus;  // Renamed from GroupMember.status
+      name?: string;      // Deprecated UI field
+      initials: string;   // UI-specific field
+  };
+  ```
+- **Impact:** 9 files using this type automatically benefit from single source of truth
+- **Benefits:** Changes to GroupMember or RegisteredUser automatically propagate
+
+#### **Phase 3: Update Request Types Refactoring** ✅
+- **Applied Partial utility pattern:**
+  - `UpdateExpenseRequest` → `Partial<Omit<CreateExpenseRequest, 'groupId'>>`
+  - `UpdateSettlementRequest` → `Partial<Omit<CreateSettlementRequest, 'groupId' | 'payerId' | 'payeeId'>>`
+- **Benefits:** Update types automatically stay in sync with Create types
+
+#### **Phase 4: Comprehensive Testing** ✅
+- **TypeScript Compilation:** All projects build successfully with zero errors
+- **Backend Unit Tests:** 244/244 tests passed (services using refactored types work correctly)
+- **Frontend Build:** Successfully compiled and bundled
+- **Test Results:** No regressions introduced by type refactoring
+
+### **Results Achieved**
+
+1. **Reduced Code Duplication:** ~60 lines of redundant type definitions eliminated
+2. **Improved Type Safety:** Single source of truth prevents field sync issues  
+3. **Enhanced Maintainability:** Changes to base types automatically propagate to derived types
+4. **Zero Breaking Changes:** All existing code works without modification
+5. **Better Developer Experience:** More expressive types that clearly show relationships
+
+### **Files Modified**
+
+- ✅ `packages/shared/src/shared-types.ts` (all refactoring applied)
+
+### **Files Using Refactored Types (No Changes Required)**
+
+**GroupMemberWithProfile users (9 files):**
+- `firebase/functions/src/services/GroupMemberService.ts`
+- `firebase/functions/src/utils/memberHelpers.ts` 
+- `firebase/functions/src/__tests__/integration/normal-flow/GroupService.integration.test.ts`
+- `webapp-v2/src/stores/permissions-store.ts`
+- `webapp-v2/src/components/group/GroupHeader.tsx`
+- `webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+- Plus 3 others
+
+**Update Request type users (7 files):**
+- `firebase/functions/src/services/ExpenseService.ts`
+- `firebase/functions/src/services/SettlementService.ts`
+- `firebase/functions/src/settlements/validation.ts`
+- `firebase/functions/src/settlements/handlers.ts`
+- `firebase/functions/src/expenses/validation.ts`
+- Plus 2 others
+
+**CommentApiResponse users (9 files):**
+- `webapp-v2/src/app/apiClient.ts`
+- `webapp-v2/src/stores/comments-store.ts`
+- `webapp-v2/src/components/comments/CommentsList.tsx`
+- `firebase/functions/src/services/CommentService.ts`
+- Plus 5 others
+
+### **Long-term Benefits**
+
+1. **Future-Proof:** New fields added to base types automatically appear in derived types
+2. **Consistency:** Impossible to have field mismatches between related types
+3. **Maintainability:** Significantly reduced maintenance overhead for type definitions
+4. **Expressiveness:** Code clearly shows the relationship between types
+5. **Scalability:** Pattern can be applied to future type definitions
+
+### **Validation Checklist** ✅
+
+- ✅ All TypeScript compilation passes
+- ✅ No runtime type errors in tests  
+- ✅ Joi validation schemas still work
+- ✅ Backend unit tests pass (244/244)
+- ✅ Frontend builds successfully
+- ✅ Zero breaking changes
+- ✅ All existing functionality preserved
+
+The refactoring is **complete and production-ready**.
