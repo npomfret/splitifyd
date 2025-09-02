@@ -26,7 +26,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Lunch')
             .withAmount(25.0)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(lunchExpense);
@@ -41,7 +41,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Dinner')
             .withAmount(30.0)
             .withCurrency('EUR')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(dinnerExpense);
@@ -75,7 +75,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Coffee')
             .withAmount(5.5)
             .withCurrency('EUR')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(coffeeExpense);
@@ -89,7 +89,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Snack')
             .withAmount(3.25)
             .withCurrency('EUR') // Should be remembered by the system
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(snackExpense);
@@ -116,7 +116,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Taxi')
             .withAmount(20.0)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(taxiExpense);
@@ -127,7 +127,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('Museum')
             .withAmount(15.0)
             .withCurrency('EUR')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(museumExpense);
@@ -168,7 +168,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('USD Test')
             .withAmount(50.0)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(usdTestExpense);
@@ -178,7 +178,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('EUR Test')
             .withAmount(40.0)
             .withCurrency('EUR')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(eurTestExpense);
@@ -188,7 +188,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .withDescription('GBP Test')
             .withAmount(30.0)
             .withCurrency('GBP')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage3.submitExpense(gbpTestExpense);
@@ -243,7 +243,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
                 .withDescription(`Test ${currency}`)
                 .withAmount(amount)
                 .withCurrency(currency)
-                .withPaidBy(user.displayName)
+                .withPaidBy(user.uid)
                 .withSplitType('equal')
                 .build();
             await expenseFormPage.submitExpense(currencyTestExpense);

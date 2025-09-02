@@ -21,7 +21,7 @@ test.describe('Basic Expense Operations E2E', () => {
             .withDescription('Test Expense Lifecycle')
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(groupInfo.user.displayName)
+            .withPaidBy(groupInfo.user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(testExpense);

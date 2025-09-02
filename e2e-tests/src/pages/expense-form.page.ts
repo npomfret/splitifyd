@@ -164,6 +164,49 @@ export class ExpenseFormPage extends BasePage {
         await this.getSelectAllButton().click();
     }
 
+    /**
+     * Select a payer by either UID or display name.
+     * This method handles cases where display names may have changed due to other tests.
+     * @param payerIdentifier - Either the user's UID or display name
+     */
+    async selectPayer(payerIdentifier: string): Promise<void> {
+        // First, try to find by UID (radio button value)
+        const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${payerIdentifier}"]`);
+        
+        if (await radioByUid.isVisible().catch(() => false)) {
+            // Found by UID - click the associated label
+            const labelForUid = this.page.locator(`label:has(input[type="radio"][name="paidBy"][value="${payerIdentifier}"])`);
+            await expect(labelForUid).toBeVisible();
+            await labelForUid.click();
+            return;
+        }
+
+        // Fallback: try to find by display name in label text
+        const labelByText = this.page
+            .locator('label')
+            .filter({
+                has: this.page.locator('input[type="radio"][name="paidBy"]'),
+            })
+            .filter({
+                hasText: payerIdentifier,
+            })
+            .first();
+
+        if (await labelByText.isVisible().catch(() => false)) {
+            await labelByText.click();
+            return;
+        }
+
+        // If we get here, we couldn't find the payer
+        const availableOptions = await this.page
+            .locator('label:has(input[type="radio"][name="paidBy"])')
+            .allTextContents();
+        
+        throw new Error(
+            `Could not find payer "${payerIdentifier}". Available options: ${availableOptions.join(', ')}`
+        );
+    }
+
     async switchToExactAmounts(): Promise<void> {
         await this.getExactAmountsText().click();
     }
@@ -259,19 +302,8 @@ export class ExpenseFormPage extends BasePage {
             await expect(searchInput).not.toBeVisible();
         }
 
-        // Select who paid - find the payer radio button by display name
-        const payerLabel = this.page
-            .locator('label')
-            .filter({
-                has: this.page.locator('input[type="radio"][name="paidBy"]'),
-            })
-            .filter({
-                hasText: expense.paidBy,
-            })
-            .first();
-
-        await expect(payerLabel).toBeVisible();
-        await payerLabel.click();
+        // Select who paid - handle both UID and display name
+        await this.selectPayer(expense.paidBy);
 
         // Handle split type
         if (expense.splitType === 'equal') {

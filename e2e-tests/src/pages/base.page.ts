@@ -458,15 +458,29 @@ export abstract class BasePage {
 
     /**
      * Get the displayed user name from the user menu button.
+     * This returns the current display name as shown in the UI, which may have been
+     * modified by other tests (e.g., user profile management tests).
      */
-    async getUserDisplayName(): Promise<string> {
+    async getCurrentUserDisplayName(): Promise<string> {
         const userMenuButton = this.getUserMenuButton();
         await expect(userMenuButton).toBeVisible();
 
-        // The user name is displayed in the menu button
+        // The user name is displayed in the menu button with specific classes
         const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
         const textContent = await nameElement.textContent();
-        return textContent ?? '';
+        
+        if (!textContent) {
+            throw new Error('Could not extract user display name from user menu button');
+        }
+        
+        return textContent.trim();
+    }
+
+    /**
+     * @deprecated Use getCurrentUserDisplayName() instead for clarity
+     */
+    async getUserDisplayName(): Promise<string> {
+        return this.getCurrentUserDisplayName();
     }
 
     /**

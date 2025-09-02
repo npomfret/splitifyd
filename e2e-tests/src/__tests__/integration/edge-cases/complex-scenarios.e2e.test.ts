@@ -43,7 +43,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         const beachHouseExpense = new ExpenseBuilder()
             .withDescription('Beach House Rental')
             .withAmount(800.0)
-            .withPaidBy(alice.displayName)
+            .withPaidBy(alice.uid)
             .withCurrency('USD')
             .withSplitType('equal')
             .build();
@@ -55,7 +55,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         const restaurantExpense = new ExpenseBuilder()
             .withDescription('Restaurant Dinner')
             .withAmount(120.0)
-            .withPaidBy(bob.displayName)
+            .withPaidBy(bob.uid)
             .withCurrency('USD')
             .withSplitType('equal')
             .build();

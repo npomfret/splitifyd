@@ -70,7 +70,7 @@ test.describe('Multi-User Collaboration E2E', () => {
             .withDescription('User 1 Lunch')
             .withAmount(25)
             .withCurrency('USD')
-            .withPaidBy(user1.displayName)
+            .withPaidBy(user1.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(user1Expense);
@@ -89,7 +89,7 @@ test.describe('Multi-User Collaboration E2E', () => {
             .withDescription('User 2 Dinner')
             .withAmount(40)
             .withCurrency('USD')
-            .withPaidBy(user2.displayName)
+            .withPaidBy(user2.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(user2Expense);
@@ -132,7 +132,7 @@ test.describe('Multi-User Collaboration E2E', () => {
                 .withDescription(expenseInfo.description)
                 .withAmount(expenseInfo.amount)
                 .withCurrency('USD')
-                .withPaidBy(user.displayName)
+                .withPaidBy(user.uid)
                 .withSplitType('equal')
                 .build();
             await expenseFormPage.submitExpense(expense);
@@ -194,7 +194,7 @@ test.describe('Multi-User Collaboration E2E', () => {
             .withDescription('Shared Meal')
             .withAmount(100)
             .withCurrency('USD')
-            .withPaidBy(user1.displayName)
+            .withPaidBy(user1.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(sharedExpense);

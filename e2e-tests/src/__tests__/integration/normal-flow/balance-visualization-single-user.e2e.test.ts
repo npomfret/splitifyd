@@ -50,7 +50,7 @@ test.describe('Single User Balance Visualization', () => {
             .withDescription('Dinner')
             .withAmount(120)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage1.submitExpense(dinnerExpense);
@@ -60,7 +60,7 @@ test.describe('Single User Balance Visualization', () => {
             .withDescription('Groceries')
             .withAmount(80)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage2.submitExpense(groceriesExpense);
@@ -107,7 +107,7 @@ test.describe('Single User Balance Visualization', () => {
             .withDescription('International expense')
             .withAmount(250)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(internationalExpense);

@@ -52,6 +52,13 @@ export class CreateGroupModalPage extends BasePage {
         if (modalStillOpen) {
             // Modal is still open, wait for button to enter loading state
             await expect(async () => {
+                // Check if modal is still open inside the polling loop
+                const modalStillOpenNow = await this.isOpen();
+                if (!modalStillOpenNow) {
+                    // Modal closed during polling, no need to check for loading state
+                    return;
+                }
+
                 const hasSpinner = await submitButton.locator('.animate-spin').count() > 0;
                 const ariaBusy = await submitButton.getAttribute('aria-busy');
                 const isDisabled = await submitButton.isDisabled();

@@ -22,7 +22,7 @@ test.describe('Add Expense E2E', () => {
             .withDescription('Test Dinner')
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(testDinnerExpense);
@@ -53,7 +53,7 @@ test.describe('Add Expense E2E', () => {
             .withDescription('Dinner with category')
             .withAmount(45)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(categoryExpense);
@@ -86,7 +86,7 @@ test.describe('Add Expense E2E', () => {
             .withDescription('Movie Tickets')
             .withAmount(25)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(movieTicketsExpense);
@@ -118,7 +118,7 @@ test.describe('Add Expense E2E', () => {
             .withDescription('Custom category expense')
             .withAmount(16)
             .withCurrency('USD')
-            .withPaidBy(user.displayName)
+            .withPaidBy(user.uid)
             .withSplitType('equal')
             .build();
         await expenseFormPage.submitExpense(customCategoryExpense);
