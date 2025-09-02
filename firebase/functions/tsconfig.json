@@ -3,7 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "outDir": "lib",
     "rootDir": "src",
     "sourceMap": true,
