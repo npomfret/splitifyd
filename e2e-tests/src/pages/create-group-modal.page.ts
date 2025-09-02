@@ -118,12 +118,28 @@ export class CreateGroupModalPage extends BasePage {
 
         await this.fillGroupForm(name, description);
         await this.submitForm();
+
         await this.waitForModalToClose();
     }
 
-    async waitForButtonSpinnerToDisappear() {
-        // Wait for button to not have spinner (loading complete)
+    private async waitForButtonSpinnerToDisappear() {
+        // First check if modal is still open
+        const isModalOpen = await this.isOpen();
+        if (!isModalOpen) {
+            // Modal already closed, no need to wait for spinner
+            return;
+        }
+
+        // Wait for spinner to disappear OR modal to close
         await expect(async () => {
+            // Check if modal is still open inside the polling loop
+            const modalStillOpen = await this.isOpen();
+            if (!modalStillOpen) {
+                // Modal closed, no need to check for spinner
+                return;
+            }
+
+            // Modal is still open, check for spinner
             const button = this.getSubmitButton();
             const hasSpinner = await button.locator('.animate-spin').count() > 0;
             const ariaBusy = await button.getAttribute('aria-busy');
@@ -135,9 +151,8 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     async waitForModalToClose() {
-        // First check if modal is still visible
         const isVisible = await this.isOpen();
-        
+
         if (isVisible) {
             // Wait for any loading spinner to disappear first
             try {
@@ -145,10 +160,14 @@ export class CreateGroupModalPage extends BasePage {
             } catch {
                 // Spinner might have already disappeared if creation was instant
             }
+
+            // Check again if modal is still open after waiting for spinner
+            const stillVisible = await this.isOpen();
+            if (stillVisible) {
+                // Modal is still open, wait for it to close
+                await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 5000 });
+            }
         }
-        
-        // Now wait for modal to actually close
-        await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'hidden', timeout: 5000 });
     }
 
     // Element accessors
