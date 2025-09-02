@@ -8,18 +8,16 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
-import * as admin from 'firebase-admin';
+import {firestoreDb as db, admin} from '../../../firebase';
 
 describe('Comments Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
     let testExpense: any;
     let users: AuthenticatedFirebaseUser[];
-    let db: admin.firestore.Firestore;
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);
-        db = admin.firestore();
 
         // Create a test group with multiple members
         const members = users.slice(0, 2);
@@ -289,8 +287,8 @@ describe('Comments Integration Tests', () => {
         test('timestamps should be valid ISO strings or Firestore Timestamps', async () => {
             const response = await apiDriver.createGroupComment(testGroup.id, 'Timestamp test', users[0].token);
 
-            expect(response.data.createdAt).toMatch(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$|^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/);
-            expect(response.data.updatedAt).toMatch(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$|^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$/);
+            expect(response.data.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
+            expect(response.data.updatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$|^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/);
 
             // Parse dates to ensure they're valid
             expect(() => new Date(response.data.createdAt)).not.toThrow();

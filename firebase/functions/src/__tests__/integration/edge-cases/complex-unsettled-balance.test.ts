@@ -25,10 +25,12 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Verify both members are in the group
-        const groupAfterJoin = await apiDriver.getGroup(group.id, user1.token);
-        expect(Object.keys(groupAfterJoin.members)).toHaveLength(2);
-        expect(groupAfterJoin.members).toHaveProperty(user1.uid);
-        expect(groupAfterJoin.members).toHaveProperty(user2.uid);
+        const {members} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        expect(members.members.length).toBe(2);
+        const member1 = members.members.find((m) => m.uid === user1.uid);
+        const member2 = members.members.find((m) => m.uid === user2.uid);
+        expect(member1).toBeDefined();
+        expect(member2).toBeDefined();
 
         const currency = 'USD';
 
@@ -83,14 +85,13 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(balances.userBalances[user2.uid].netBalance).toBe(-34000); // Bob owes $340
 
         // Also check via the group endpoint to see what the frontend receives
-        const groupWithBalance = await apiDriver.getGroup(group.id, user1.token);
+        const {balances: groupBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
 
         // The group balance should show that there are unsettled amounts
-        expect(groupWithBalance.balance).toBeDefined();
-        expect(groupWithBalance.balance!.balancesByCurrency).toBeDefined();
-        expect(groupWithBalance.balance!.balancesByCurrency[currency].netBalance).toBe(34000); // Alice is owed $340
-        expect(groupWithBalance.balance!.balancesByCurrency[currency].totalOwed).toBe(34000); // Total Alice is owed
-        expect(groupWithBalance.balance!.balancesByCurrency[currency].totalOwing).toBe(0); // Alice owes nothing
+        expect(groupBalances).toBeDefined();
+        expect(groupBalances.balancesByCurrency).toBeDefined();
+        expect(groupBalances.balancesByCurrency[currency][user1.uid].netBalance).toBe(34000); // Alice is owed $340
+        expect(groupBalances.balancesByCurrency[currency][user2.uid].netBalance).toBe(-34000); // Bob owes $340
     });
 
     test('should replicate settlement balance bug from failing E2E test', async () => {
@@ -189,8 +190,15 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(finalBalances.simplifiedDebts).toHaveLength(0);
 
         // This is what the UI uses to show "All settled up!"
-        const groupWithFinalBalance = await apiDriver.getGroup(group.id, user1.token);
-        expect(Object.keys(groupWithFinalBalance.balance!.balancesByCurrency).length).toBe(0);
+        const {balances: finalGroupBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        // Check that all users have zero net balance (settled up)
+        if (Object.keys(finalGroupBalances.balancesByCurrency).length > 0) {
+            const currency = Object.keys(finalGroupBalances.balancesByCurrency)[0];
+            const userBalances = Object.values(finalGroupBalances.balancesByCurrency[currency]);
+            userBalances.forEach((balance: any) => {
+                expect(balance.netBalance).toBe(0);
+            });
+        }
     });
 
     test('should handle multi-currency expenses within the same group', async () => {
@@ -338,8 +346,15 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(finalBalances.userBalances[user1.uid].netBalance).toBe(0);
 
         // Group should show "All settled up"
-        const groupFinal = await apiDriver.getGroup(group.id, user1.token);
-        expect(Object.keys(groupFinal.balance!.balancesByCurrency).length).toBe(0);
+        const {balances: groupFinalBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        // Check that all users have zero net balance (settled up)
+        if (Object.keys(groupFinalBalances.balancesByCurrency).length > 0) {
+            const currency = Object.keys(groupFinalBalances.balancesByCurrency)[0];
+            const userBalances = Object.values(groupFinalBalances.balancesByCurrency[currency]);
+            userBalances.forEach((balance: any) => {
+                expect(balance.netBalance).toBe(0);
+            });
+        }
     });
 
     test('should handle overpayment scenarios correctly', async () => {

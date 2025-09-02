@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
 import {ApiDriver, BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./ApiDriver";
 import {Matcher, pollUntil} from "./Polling";
-import {FirestoreCollections, Group, AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {FirestoreCollections, Group, AuthenticatedFirebaseUser, GroupFullDetails} from "@splitifyd/shared";
 
 export class AppDriver {
     constructor(public apiDriver: ApiDriver, private readonly firestoreDb: admin.firestore.Firestore) {
@@ -176,10 +176,17 @@ export class AppDriver {
     /**
      * Wait for a specific user to be a member of a group
      */
-    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<Group> {
+    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<GroupFullDetails> {
         return pollUntil(
-            () => this.apiDriver.getGroup(groupId, token),
-            (group) => group.members.hasOwnProperty(userId),
+            () => this.apiDriver.getGroupFullDetails(groupId, token),
+            (gfd: GroupFullDetails) => {
+                const found = gfd.members.members.find((m) => m.uid === userId);
+                if(found) {
+                    return true
+                } else {
+                    return false;
+                }
+            },
             {
                 timeout,
                 errorMsg: `User ${userId} did not join group ${groupId}`,

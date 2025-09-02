@@ -23,7 +23,7 @@ describe('Group Management', () => {
             // Verify the group was created
             const {group: fetchedGroup, members} = await apiDriver.getGroupFullDetails(createdGroup.id, user.token);
             expect(fetchedGroup.name).toBe(groupData.name);
-            expect(Object.keys(members).length).toBe(1); // Only creator initially
+            expect(members.members.length).toBe(1); // Only creator initially
         });
     });
 
@@ -33,7 +33,7 @@ describe('Group Management', () => {
             // Try to access a group that doesn't exist
             const fakeGroupId = 'non-existent-group-id-12345';
 
-            await expect(apiDriver.getGroup(fakeGroupId, user.token)).rejects.toThrow(/status 404.*NOT_FOUND/);
+            await expect(apiDriver.getGroupFullDetails(fakeGroupId, user.token)).rejects.toThrow(/status 404.*NOT_FOUND/);
         });
 
         test('should return 404 for valid group when user is not a member (security: hide existence)', async () => {
@@ -47,7 +47,7 @@ describe('Group Management', () => {
 
             // Try to access group as non-member
             // NOTE: Returns 404 instead of 403 for security - doesn't reveal group existence
-            await expect(apiDriver.getGroup(testGroup.id, outsiderUser.token)).rejects.toThrow(/status 404.*NOT_FOUND/);
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, outsiderUser.token)).rejects.toThrow(/status 404.*NOT_FOUND/);
         });
 
         test('should allow group members to access group details', async () => {
@@ -57,10 +57,10 @@ describe('Group Management', () => {
             const testGroup = await apiDriver.createGroupWithMembers(groupData.name, users, users[0].token);
 
             // Both members should be able to access the group
-            const groupFromUser0 = await apiDriver.getGroup(testGroup.id, users[0].token);
+            const {group: groupFromUser0} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
             expect(groupFromUser0.id).toBe(testGroup.id);
 
-            const groupFromUser1 = await apiDriver.getGroup(testGroup.id, users[1].token);
+            const {group: groupFromUser1} = await apiDriver.getGroupFullDetails(testGroup.id, users[1].token);
             expect(groupFromUser1.id).toBe(testGroup.id);
         });
 
@@ -124,8 +124,9 @@ describe('Group Management', () => {
             expect(joinResponse).toHaveProperty('groupName');
 
             // Verify the user was added to the group
-            const updatedGroup = await apiDriver.getGroup(shareableGroup.id, newUser.token);
-            expect(updatedGroup.members).toHaveProperty(newUser.uid);
+            const {members} = await apiDriver.getGroupFullDetails(shareableGroup.id, newUser.token);
+            const addedMember = members.members.find((m) => m.uid === newUser.uid);
+            expect(addedMember).toBeDefined();
         });
 
         test('should not allow duplicate joining via share link', async () => {
@@ -177,10 +178,12 @@ describe('Group Management', () => {
             const {members} = await apiDriver.getGroupFullDetails(multiJoinGroup.id, users[0].token);
 
             // Should have original member + 3 new members = 4 total
-            expect(Object.keys(members).length).toBe(4);
-            expect(members).toHaveProperty(users[0].uid);
+            expect(members.members.length).toBe(4);
+            const originalMember = members.members.find((m) => m.uid === users[0].uid);
+            expect(originalMember).toBeDefined();
             newUsers.forEach((user) => {
-                expect(members).toHaveProperty(user.uid);
+                const addedMember = members.members.find((m) => m.uid === user.uid);
+                expect(addedMember).toBeDefined();
             });
         });
     });

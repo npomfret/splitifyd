@@ -53,10 +53,13 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Verify final state - both users should be members
             const {group: finalGroup, members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
-            expect(finalGroup.members).toHaveProperty(users[0].uid);
-            expect(finalGroup.members).toHaveProperty(users[1].uid);
-            expect(finalGroup.members).toHaveProperty(users[2].uid);
-            expect(Object.keys(members).length).toBe(3);
+            const member0 = members.members.find((m) => m.uid === users[0].uid);
+            const member1 = members.members.find((m) => m.uid === users[1].uid);
+            const member2 = members.members.find((m) => m.uid === users[2].uid);
+            expect(member0).toBeDefined();
+            expect(member1).toBeDefined();
+            expect(member2).toBeDefined();
+            expect(members.members.length).toBe(3);
         });
 
         test('should prevent concurrent group updates', async () => {
@@ -94,7 +97,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state - should have one of the update names
-            const finalGroup = await apiDriver.getGroup(group.id, users[0].token);
+            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
             expect(['First Update', 'Second Update']).toContain(finalGroup.name);
         });
     });
@@ -275,8 +278,9 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state
-            const finalGroup = await apiDriver.getGroup(group.id, users[0].token);
-            expect(finalGroup.members).toHaveProperty(users[1].uid);
+            const {members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const member1 = members.members.find((m) => m.uid === users[1].uid);
+            expect(member1).toBeDefined();
 
             const expenses = await apiDriver.getGroupExpenses(group.id, users[0].token);
             expect(expenses.expenses.length).toBe(1);
@@ -315,7 +319,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state integrity
-            const finalGroup = await apiDriver.getGroup(group.id, users[0].token);
+            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
 
             // Group should have been updated by at least one operation
             expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || finalGroup.description === 'Updated description').toBeTruthy();

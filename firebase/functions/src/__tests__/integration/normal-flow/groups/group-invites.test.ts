@@ -20,7 +20,10 @@ describe('Invite Tracking', () => {
     });
     
     beforeEach(async () => {
-        const groupData = new CreateGroupRequestBuilder().withName(`Invite Test Group ${uuidv4()}`).withDescription('Testing invite tracking').build();
+        const groupData = new CreateGroupRequestBuilder()
+            .withName(`Invite Test Group ${uuidv4()}`)
+            .withDescription('Testing invite tracking')
+            .build();
         testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
@@ -35,14 +38,17 @@ describe('Invite Tracking', () => {
         expect(joinResponse.success).toBe(true);
 
         // Get the updated group to verify invite tracking
-        const updatedGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
+        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        console.log(members.members)
+        console.log(users[1].uid)
+
+        const found = members.members.find((m) => m.uid === users[1].uid)!;
 
         // Verify that user 1 has invitedBy field set to user 0
-        expect(updatedGroup.members).toHaveProperty(users[1].uid);
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('invitedBy', users[0].uid);
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('role', 'member');
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('joinedAt');
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('theme');
+        expect(found).toHaveProperty('invitedBy', users[0].uid);
+        expect(found).toHaveProperty('memberRole', 'member');
+        expect(found).toHaveProperty('joinedAt');
+        expect(found).toHaveProperty('themeColor');
     });
 
     test('should track different inviters for different members', async () => {
@@ -55,11 +61,13 @@ describe('Invite Tracking', () => {
         await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
 
         // Get the updated group
-        const updatedGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
+        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
-        // Verify different invite attributions
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('invitedBy', users[0].uid);
-        expect(updatedGroup.members[users[2].uid]).toHaveProperty('invitedBy', users[1].uid);
+        const found1 = members.members.find((m) => m.uid === users[1].uid)!;
+        expect(found1).toHaveProperty('invitedBy', users[0].uid);
+
+        const found2 = members.members.find((m) => m.uid === users[2].uid)!;
+        expect(found2).toHaveProperty('invitedBy', users[1].uid);
     });
 
     test('should track invite attribution when joining groups', async () => {
@@ -71,10 +79,10 @@ describe('Invite Tracking', () => {
         expect(joinResponse.success).toBe(true);
 
         // Verify the user was added with proper invite attribution
-        const updatedGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
-        expect(updatedGroup.members).toHaveProperty(users[1].uid);
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('role', 'member');
-        expect(updatedGroup.members[users[1].uid]).toHaveProperty('invitedBy', users[0].uid);
+        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const found = members.members.find((m) => m.uid === users[1].uid)!;
+        expect(found).toHaveProperty('memberRole', 'member');
+        expect(found).toHaveProperty('invitedBy', users[0].uid);
     });
 
     test('should support multiple concurrent share links from different users', async () => {
@@ -93,7 +101,8 @@ describe('Invite Tracking', () => {
         await apiDriver.joinGroupViaShareLink(shareLink1_new.linkId, users[2].token);
 
         // Verify invite attribution
-        const updatedGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
-        expect(updatedGroup.members[users[2].uid]).toHaveProperty('invitedBy', users[1].uid);
+        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const found = members.members.find((m) => m.uid === users[2].uid)!;
+        expect(found).toHaveProperty('invitedBy', users[1].uid);
     });
 });

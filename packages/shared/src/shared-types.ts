@@ -342,6 +342,16 @@ export interface GroupMember {
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
+export interface GroupMemberWithProfile extends RegisteredUser {
+    // Group membership metadata
+    joinedAt: string; // ISO string
+    memberRole: MemberRole; // Renamed to avoid conflict with RegisteredUser.role (SystemUserRole)
+    invitedBy?: string; // UID of the user who created the share link that was used to join
+    memberStatus: MemberStatus; // Renamed for clarity
+    lastPermissionChange?: string; // ISO string - Track permission updates
+    // Note: theme is inherited from RegisteredUser.themeColor, not duplicated
+}
+
 export interface ShareLink {
     id: string;
     token: string; // The actual share token used in URLs
@@ -459,7 +469,7 @@ export interface ListGroupsResponse {
 
 // Group members response
 export interface GroupMembersResponse {
-    members: RegisteredUser[];
+    members: GroupMemberWithProfile[];
     hasMore: boolean;
     nextCursor?: string;
 }
@@ -574,7 +584,7 @@ export interface SettlementListItem {
 
 export interface GroupFullDetails {
     group: Group;
-    members: { members: RegisteredUser[] };
+    members: { members: GroupMemberWithProfile[] };
     expenses: { expenses: ExpenseData[]; hasMore: boolean; nextCursor?: string };
     balances: GroupBalances;
     settlements: { settlements: SettlementListItem[]; hasMore: boolean; nextCursor?: string };
@@ -583,7 +593,7 @@ export interface GroupFullDetails {
 export interface ExpenseFullDetails {
     expense: ExpenseData;
     group: Group;
-    members: { members: RegisteredUser[] };
+    members: { members: GroupMemberWithProfile[] };
 }
 
 // ========================================================================

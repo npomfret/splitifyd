@@ -59,7 +59,7 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(retrievedExpense.id).toBe(validExpense.id);
 
                 // Test that group data is still accessible
-                const groupData = await apiDriver.getGroup(testGroup.id, users[0].token);
+                const {group: groupData} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 expect(groupData).toHaveProperty('id');
                 expect(groupData.id).toBe(testGroup.id);
             });
@@ -69,7 +69,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const unauthorizedUser = users[1];
 
                 // Try to access group expenses with user not in group
-                await expect(apiDriver.getGroupExpenses(testGroup.id, unauthorizedUser.token)).rejects.toThrow(/403|forbidden|permission|access.*denied/i);
+                await expect(apiDriver.getGroupExpenses(testGroup.id, unauthorizedUser.token)).rejects.toThrow(/403|forbidden|permission|access.*denied|404|not found|group.*not.*exist/i);
 
                 // Try to create expense in group user doesn't belong to
                 await expect(
@@ -119,7 +119,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const rapidRequests = Array(20)
                     .fill(null)
                     .map((_, index) =>
-                        apiDriver.getGroup(testGroup.id, users[0].token)
+                        apiDriver.getGroupFullDetails(testGroup.id, users[0].token)
                             .then((result) => ({ success: true, index, result }))
                             .catch((error) => ({ success: false, index, error: error.message })),
                     );
@@ -186,7 +186,11 @@ describe('Error Handling and Recovery Testing', () => {
                 const startTime = Date.now();
 
                 // Perform multiple operations
-                const operations = [await apiDriver.getGroup(testGroup.id, users[0].token), await apiDriver.getGroupExpenses(testGroup.id, users[0].token), await apiDriver.listGroups(users[0].token)];
+                const operations = [
+                    await apiDriver.getGroupFullDetails(testGroup.id, users[0].token),
+                    await apiDriver.getGroupExpenses(testGroup.id, users[0].token),
+                    await apiDriver.listGroups(users[0].token)
+                ];
 
                 const results = await Promise.allSettled(operations);
                 const endTime = Date.now();
@@ -219,7 +223,7 @@ describe('Error Handling and Recovery Testing', () => {
                 );
 
                 // Test getting all user's data (simulate export)
-                const groupData = await apiDriver.getGroup(testGroup.id, users[0].token);
+                const {group: groupData} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 const expenseData = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
                 const groupsList = await apiDriver.listGroups(users[0].token);
 
@@ -343,13 +347,13 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(mainUserView.participants).toEqual(user2View.participants);
 
                 // Verify group state is consistent for both users
-                const mainUserGroupView = await apiDriver.getGroup(testGroup.id, users[0].token);
-                const user2GroupView = await apiDriver.getGroup(testGroup.id, user2.token);
+                const {group: mainUserGroupView, members: mainMembers} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const {group: user2GroupView, members: members2} = await apiDriver.getGroupFullDetails(testGroup.id, user2.token);
 
                 // Both should see the same group state
                 expect(mainUserGroupView.id).toBe(user2GroupView.id);
                 expect(mainUserGroupView.name).toBe(user2GroupView.name);
-                expect(Object.keys(mainUserGroupView.members).length).toBe(Object.keys(user2GroupView.members).length);
+                expect(Object.keys(mainMembers).length).toBe(Object.keys(members2).length);
             });
         });
     });

@@ -10,6 +10,7 @@ import type { Group } from '@splitifyd/shared';
 
 // Signals for join group state
 const groupSignal = signal<Group | null>(null);
+const memberCountSignal = signal<number>(0);
 const loadingPreviewSignal = signal<boolean>(false);
 const joiningSignal = signal<boolean>(false);
 const joinSuccessSignal = signal<boolean>(false);
@@ -20,6 +21,9 @@ class JoinGroupStore {
     // State getters
     get group() {
         return groupSignal.value;
+    }
+    get memberCount() {
+        return memberCountSignal.value;
     }
     get loadingPreview() {
         return loadingPreviewSignal.value;
@@ -71,6 +75,7 @@ class JoinGroupStore {
             };
 
             groupSignal.value = group;
+            memberCountSignal.value = preview.memberCount;
             loadingPreviewSignal.value = false;
 
             // If user is already a member, redirect them to the group
@@ -123,6 +128,7 @@ class JoinGroupStore {
 
     reset() {
         groupSignal.value = null;
+        memberCountSignal.value = 0;
         loadingPreviewSignal.value = false;
         joiningSignal.value = false;
         joinSuccessSignal.value = false;

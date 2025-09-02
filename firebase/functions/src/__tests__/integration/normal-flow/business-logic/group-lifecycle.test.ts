@@ -24,11 +24,11 @@ describe('Group Lifecycle Edge Cases', () => {
         const emptyGroup = await apiDriver.createGroup(groupData, users[0].token);
 
         // Verify the group was created
-        const createdGroup = await apiDriver.getGroup(emptyGroup.id, users[0].token);
+        const {group: createdGroup} = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
         expect(createdGroup.id).toBe(emptyGroup.id);
 
         // Should be able to get group details and verify no expenses
-        const groupDetails = await apiDriver.getGroup(emptyGroup.id, users[0].token);
+        const {group: groupDetails} = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
         expect(groupDetails).toHaveProperty('id');
         expect(groupDetails).toHaveProperty('members');
 

@@ -70,4 +70,4 @@ async function cleanupTestData() {
 }
 
 // Run the cleanup
-cleanupTestData();
+// cleanupTestData();

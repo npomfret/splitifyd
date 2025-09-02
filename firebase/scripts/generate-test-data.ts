@@ -900,7 +900,7 @@ export async function generateTestData(): Promise<void> {
     const refreshStart = Date.now();
     const refreshedGroups = await Promise.all(
         groupsWithInvites.map(async (group) => {
-            const groupData = await driver.getGroup(group.id, test1User.token);
+            const {group: groupData} = await driver.getGroupFullDetails(group.id, test1User.token);
             return {
                 ...groupData,
                 inviteLink: group.inviteLink,

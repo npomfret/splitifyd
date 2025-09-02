@@ -1,4 +1,4 @@
-import {test, describe, afterAll, expect, beforeEach} from 'vitest';
+import {test, describe, expect, beforeEach} from 'vitest';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import { Group, MemberRoles, SecurityPresets } from '@splitifyd/shared';
 import {ApiDriver} from "@splitifyd/test-support";
@@ -21,18 +21,14 @@ describe('Group Permissions', () => {
         await apiDriver.setMemberRole(group.id, adminUser.token, adminUser.uid, MemberRoles.ADMIN);
 
         // Re-fetch group to get updated member roles
-        group = await apiDriver.getGroup(group.id, adminUser.token);
-    });
-
-    afterAll(async () => {
-        // Cleanup logic if needed
+        group = (await apiDriver.getGroupFullDetails(group.id, adminUser.token)).group;
     });
 
     describe('Security Presets', () => {
         test('Admin can apply a security preset', async () => {
             await apiDriver.applySecurityPreset(group.id, adminUser.token, SecurityPresets.MANAGED);
 
-            const updatedGroup = await apiDriver.getGroup(group.id, adminUser.token);
+            const {group: updatedGroup} = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
             expect(updatedGroup.securityPreset).toBe(SecurityPresets.MANAGED);
             expect(updatedGroup.permissions.expenseEditing).toBe('owner-and-admin');
         });
@@ -46,8 +42,9 @@ describe('Group Permissions', () => {
         test('Admin can change a member role', async () => {
             await apiDriver.setMemberRole(group.id, adminUser.token, memberUser.uid, MemberRoles.ADMIN);
 
-            const updatedGroup = await apiDriver.getGroup(group.id, adminUser.token);
-            expect(updatedGroup.members[memberUser.uid].role).toBe(MemberRoles.ADMIN);
+            const {members} = await apiDriver.getGroupFullDetails(group.id, adminUser.token);
+            const member = members.members.find((m) => m.uid === memberUser.uid);
+            expect(member!.memberRole).toBe(MemberRoles.ADMIN);
 
             // Change back to member for other tests
             await apiDriver.setMemberRole(group.id, adminUser.token, memberUser.uid, MemberRoles.MEMBER);

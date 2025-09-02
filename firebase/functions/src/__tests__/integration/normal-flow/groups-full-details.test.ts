@@ -177,16 +177,13 @@ describe('Groups Full Details API', () => {
             await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).build(), alice.token);
 
             // Get data from both consolidated and individual endpoints
-            const [fullDetails, group, expenses, balances] = await Promise.all([
+            const [fullDetails, expenses, balances] = await Promise.all([
                 apiDriver.getGroupFullDetails(groupId, alice.token),
-                apiDriver.getGroup(groupId, alice.token),
                 apiDriver.getGroupExpenses(groupId, alice.token),
                 apiDriver.getGroupBalances(groupId, alice.token),
             ]);
 
             // Verify consistency
-            expect(fullDetails.group.id).toBe(group.id);
-            expect(fullDetails.group.name).toBe(group.name);
             expect(fullDetails.expenses.expenses).toEqual(expenses.expenses);
             expect(fullDetails.balances.groupId).toBe(balances.groupId);
             

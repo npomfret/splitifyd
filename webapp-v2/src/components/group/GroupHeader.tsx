@@ -2,16 +2,17 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { CogIcon } from '@heroicons/react/24/outline';
 import { formatDistanceToNow } from '@/utils/dateUtils.ts';
-import { Group, groupSize } from '@splitifyd/shared';
+import { Group, GroupMemberWithProfile } from '@splitifyd/shared';
 import { useTranslation } from 'react-i18next';
 
 interface GroupHeaderProps {
     group: Group;
+    members: GroupMemberWithProfile[];
     onSettings?: () => void;
     isGroupOwner?: boolean;
 }
 
-export function GroupHeader({ group, onSettings, isGroupOwner }: GroupHeaderProps) {
+export function GroupHeader({ group, members, onSettings, isGroupOwner }: GroupHeaderProps) {
     const { t } = useTranslation();
     return (
         <Card className="p-6">
@@ -28,7 +29,7 @@ export function GroupHeader({ group, onSettings, isGroupOwner }: GroupHeaderProp
             </div>
 
             <div className="flex gap-6 text-sm text-gray-600">
-                <div>{t('groupHeader.membersCount', { count: groupSize(group) })}</div>
+                <div>{t('groupHeader.membersCount', { count: members.length })}</div>
                 <div>
                     <span className="font-medium">{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}
                 </div>

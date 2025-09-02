@@ -5,14 +5,12 @@
  * (Members are now fetched separately via /groups/:id/members endpoint)
  */
 
-import { Group, groupSize } from '@splitifyd/shared';
-
 interface MembersPreviewProps {
-    group: Group;
+    memberCount: number;
 }
 
-export function MembersPreview({ group }: MembersPreviewProps) {
-    if (groupSize(group) === 0) {
+export function MembersPreview({ memberCount }: MembersPreviewProps) {
+    if (memberCount === 0) {
         return null;
     }
 
@@ -21,7 +19,7 @@ export function MembersPreview({ group }: MembersPreviewProps) {
             <h3 className="text-sm font-medium text-gray-900 mb-3">Group Size</h3>
 
             <div className="text-sm text-gray-700">
-                {groupSize(group)} {groupSize(group) === 1 ? 'member' : 'members'}
+                {memberCount} {memberCount === 1 ? 'member' : 'members'}
             </div>
         </div>
     );

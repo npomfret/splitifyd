@@ -1,13 +1,14 @@
 import { signal, batch } from '@preact/signals';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
-import type { ExpenseData, Group, GroupBalances, RegisteredUser, SettlementListItem } from '@splitifyd/shared';
+import type { ExpenseData, Group, GroupBalances, GroupMemberWithProfile, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
+import { permissionsStore } from '../../stores/permissions-store';
 
 export interface EnhancedGroupDetailStore {
     // State
     group: Group | null;
-    members: RegisteredUser[];
+    members: GroupMemberWithProfile[];
     expenses: ExpenseData[];
     balances: GroupBalances | null;
     settlements: SettlementListItem[];
@@ -38,7 +39,7 @@ export interface EnhancedGroupDetailStore {
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     // Private signals - encapsulated within the class
     readonly #groupSignal = signal<Group | null>(null);
-    readonly #membersSignal = signal<RegisteredUser[]>([]);
+    readonly #membersSignal = signal<GroupMemberWithProfile[]>([]);
     readonly #expensesSignal = signal<ExpenseData[]>([]);
     readonly #balancesSignal = signal<GroupBalances | null>(null);
     readonly #settlementsSignal = signal<SettlementListItem[]>([]);
@@ -136,6 +137,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 // CRITICAL: Only set loading to false AFTER all data is populated
                 this.#loadingSignal.value = false;
             });
+            
+            // Update permissions store with the new group data and members
+            permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
         } catch (error) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
             this.#loadingSignal.value = false;
@@ -148,6 +152,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             logWarning('Cannot subscribe to changes - no currentGroupId', { userId });
             return;
         }
+
+        // Initialize permissions store with current user
+        permissionsStore.setCurrentUser(userId);
 
         logInfo('Setting up change subscriptions', {
             groupId: this.currentGroupId,
@@ -297,6 +304,9 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
 
         this.changeDetector.dispose();
+        
+        // Clean up permissions store
+        permissionsStore.dispose();
     }
 
     reset(): void {

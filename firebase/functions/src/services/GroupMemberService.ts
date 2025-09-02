@@ -4,7 +4,7 @@ import { firestoreDb } from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
 import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, GroupMembersResponse, RegisteredUser } from '@splitifyd/shared';
+import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
 import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
@@ -26,7 +26,7 @@ export class GroupMemberService {
 
         const memberProfiles = await getUserService().getUsers(memberIds);
 
-        const members: RegisteredUser[] = memberIds.map((memberId: string) => {
+        const members: GroupMemberWithProfile[] = memberIds.map((memberId: string) => {
             const profile = memberProfiles.get(memberId);
             const memberInfo = membersMap[memberId];
 
@@ -38,6 +38,12 @@ export class GroupMemberService {
                     email: '',
                     displayName: 'Unknown User',
                     themeColor: memberInfo.theme,
+                    // Group membership metadata
+                    joinedAt: memberInfo.joinedAt,
+                    memberRole: memberInfo.role,
+                    invitedBy: memberInfo.invitedBy,
+                    memberStatus: memberInfo.status,
+                    lastPermissionChange: memberInfo.lastPermissionChange,
                 };
             }
 
@@ -47,7 +53,14 @@ export class GroupMemberService {
                 initials: this.getInitials(profile.displayName),
                 email: profile.email,
                 displayName: profile.displayName,
-                themeColor: memberInfo.theme,
+                themeColor: profile.themeColor || memberInfo.theme,
+                preferredLanguage: profile.preferredLanguage,
+                // Group membership metadata
+                joinedAt: memberInfo.joinedAt,
+                memberRole: memberInfo.role,
+                invitedBy: memberInfo.invitedBy,
+                memberStatus: memberInfo.status,
+                lastPermissionChange: memberInfo.lastPermissionChange,
             };
         });
 

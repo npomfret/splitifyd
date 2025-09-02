@@ -6,13 +6,14 @@
 
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
-import { Group, groupSize } from '@splitifyd/shared';
+import { Group } from '@splitifyd/shared';
 
 interface GroupPreviewProps {
     group: Group;
+    memberCount: number;
 }
 
-export function GroupPreview({ group }: GroupPreviewProps) {
+export function GroupPreview({ group, memberCount }: GroupPreviewProps) {
     return (
         <Card className="w-full">
             <div className="p-6">
@@ -27,8 +28,8 @@ export function GroupPreview({ group }: GroupPreviewProps) {
                     <div className="bg-gray-50 rounded-lg p-4">
                         <div className="grid grid-cols-2 gap-4 text-center">
                             <div>
-                                <div className="text-2xl font-semibold text-primary-600">{groupSize(group)}</div>
-                                <div className="text-sm text-gray-600">{groupSize(group) === 1 ? 'Member' : 'Members'}</div>
+                                <div className="text-2xl font-semibold text-primary-600">{memberCount}</div>
+                                <div className="text-sm text-gray-600">{memberCount === 1 ? 'Member' : 'Members'}</div>
                             </div>
                             <div>
                                 <div className="text-2xl font-semibold text-primary-600">Active</div>

@@ -414,7 +414,7 @@ describe('User Management Tests', () => {
 
             await apiDriver.updateGroup(userGroup.id, updatedData, user.token);
 
-            const retrievedGroup = await apiDriver.getGroup(userGroup.id, user.token);
+            const {group: retrievedGroup} = await apiDriver.getGroupFullDetails(userGroup.id, user.token);
             expect(retrievedGroup.name).toBe(`Updated Profile Group ${user.displayName}`);
         });
 

@@ -132,7 +132,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Refresh group data to get updated permissions
-            managedGroup = await apiDriver.getGroup(managedGroup.id, users[0].token);
+            managedGroup = (await apiDriver.getGroupFullDetails(managedGroup.id, users[0].token)).group;
         });
 
         test('members can create expenses', async () => {
@@ -298,7 +298,7 @@ describe('Permission System Integration Tests', () => {
             roleTestGroup = await apiDriver.createGroupWithMembers(groupName, members, members[0].token);
 
             // sanity check
-            const group = await apiDriver.getGroup(roleTestGroup.id, members[0].token);
+            const {group} = await apiDriver.getGroupFullDetails(roleTestGroup.id, members[0].token);
             console.log(group.id)
         });
 
@@ -313,8 +313,9 @@ describe('Permission System Integration Tests', () => {
                 users[0].token,
             );
 
-            const updatedGroup = await apiDriver.getGroup(roleTestGroup.id, users[0].token);
-            expect(updatedGroup.members[users[1].uid].role).toBe(MemberRoles.VIEWER);
+            const {members} = await apiDriver.getGroupFullDetails(roleTestGroup.id, users[0].token);
+            const member = members.members.find((m) => m.uid === users[1].uid)
+            expect(member!.memberRole).toBe(MemberRoles.VIEWER);
         });
 
         test('members cannot change roles', async () => {
@@ -375,7 +376,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Verify change
-            const updatedGroup = await apiDriver.getGroup(presetGroup.id, users[0].token);
+            const {group: updatedGroup} = await apiDriver.getGroupFullDetails(presetGroup.id, users[0].token);
             expect(updatedGroup.securityPreset).toBe(SecurityPresets.MANAGED);
             expect(updatedGroup.permissions.expenseEditing).toBe(PermissionLevels.OWNER_AND_ADMIN);
         });
@@ -392,7 +393,7 @@ describe('Permission System Integration Tests', () => {
             );
 
             // Verify change
-            const updatedGroup = await apiDriver.getGroup(presetGroup.id, users[0].token);
+            const {group: updatedGroup} = await apiDriver.getGroupFullDetails(presetGroup.id, users[0].token);
             expect(updatedGroup.securityPreset).toBe(SecurityPresets.OPEN);
             expect(updatedGroup.permissions.expenseEditing).toBe(PermissionLevels.ANYONE);
         });

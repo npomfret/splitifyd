@@ -1,7 +1,5 @@
 import { signal, computed } from '@preact/signals';
-import { onSnapshot, doc } from 'firebase/firestore';
-import { Group, MemberRole, GroupPermissions } from '@splitifyd/shared';
-import { getDb } from '../app/firebase';
+import { Group, MemberRole, GroupPermissions, GroupMemberWithProfile } from '@splitifyd/shared';
 
 /**
  * Permission cache with TTL
@@ -50,29 +48,35 @@ class PermissionCache {
  * Mirrors the backend permission logic for immediate UI feedback
  */
 class ClientPermissionEngine {
-    static checkPermission(group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
-        const member = group.members[userId];
+    static checkPermission(
+        group: Group, 
+        members: GroupMemberWithProfile[], 
+        userId: string, 
+        action: keyof GroupPermissions | 'viewGroup', 
+        options: { expense?: any } = {}
+    ): boolean {
+        const member = members.find(m => m.uid === userId);
         if (!member) {
             return false;
         }
 
         // Inactive members can't do anything except view
-        if (member.status !== 'active' && action !== 'viewGroup') {
+        if (member.memberStatus !== 'active' && action !== 'viewGroup') {
             return false;
         }
 
         // Handle view permission
         if (action === 'viewGroup') {
-            return member.status === 'active';
+            return member.memberStatus === 'active';
         }
 
         // Viewer role can only read
-        if (member.role === 'viewer' && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action as string)) {
+        if (member.memberRole === 'viewer' && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action as string)) {
             return false;
         }
 
         const permission = group.permissions[action];
-        return this.evaluatePermission(permission, member.role, userId, options);
+        return this.evaluatePermission(permission, member.memberRole, userId, options);
     }
 
     private static evaluatePermission(permission: string, userRole: MemberRole, userId: string, options: { expense?: any }): boolean {
@@ -99,14 +103,14 @@ class ClientPermissionEngine {
         }
     }
 
-    static getUserPermissions(group: Group, userId: string): Record<string, boolean> {
+    static getUserPermissions(group: Group, members: GroupMemberWithProfile[], userId: string): Record<string, boolean> {
         return {
-            canEditAnyExpense: this.checkPermission(group, userId, 'expenseEditing'),
-            canDeleteAnyExpense: this.checkPermission(group, userId, 'expenseDeletion'),
-            canInviteMembers: this.checkPermission(group, userId, 'memberInvitation'),
-            canManageSettings: this.checkPermission(group, userId, 'settingsManagement'),
-            canApproveMembers: this.checkPermission(group, userId, 'memberApproval'),
-            canViewGroup: this.checkPermission(group, userId, 'viewGroup'),
+            canEditAnyExpense: this.checkPermission(group, members, userId, 'expenseEditing'),
+            canDeleteAnyExpense: this.checkPermission(group, members, userId, 'expenseDeletion'),
+            canInviteMembers: this.checkPermission(group, members, userId, 'memberInvitation'),
+            canManageSettings: this.checkPermission(group, members, userId, 'settingsManagement'),
+            canApproveMembers: this.checkPermission(group, members, userId, 'memberApproval'),
+            canViewGroup: this.checkPermission(group, members, userId, 'viewGroup'),
         };
     }
 }
@@ -117,21 +121,22 @@ class ClientPermissionEngine {
 export class PermissionsStore {
     private currentUserId: string | null = null;
     private currentGroup: Group | null = null;
+    private currentMembers: GroupMemberWithProfile[] = [];
     private cache = new PermissionCache();
-    private unsubscribe: (() => void) | null = null;
 
     // Reactive signals
     private groupSignal = signal<Group | null>(null);
+    private membersSignal = signal<GroupMemberWithProfile[]>([]);
     private userIdSignal = signal<string | null>(null);
     private permissionsSignal = signal<Record<string, boolean>>({});
 
     // Computed permissions
     permissions = computed(() => this.permissionsSignal.value);
     userRole = computed(() => {
-        const group = this.groupSignal.value;
+        const members = this.membersSignal.value;
         const userId = this.userIdSignal.value;
-        if (!group || !userId) return null;
-        return group.members[userId]?.role || null;
+        if (!members.length || !userId) return null;
+        return members.find(m => m.uid === userId)?.memberRole || null;
     });
 
     // Initialize with user ID
@@ -141,58 +146,47 @@ export class PermissionsStore {
         this.updatePermissions();
     }
 
-    // Subscribe to group permission changes
-    subscribeToGroup(groupId: string): void {
-        // Cleanup previous subscription
-        if (this.unsubscribe) {
-            this.unsubscribe();
+    // Update group data (called by group detail store)
+    updateGroupData(group: Group, members?: GroupMemberWithProfile[]): void {
+        this.groupSignal.value = group;
+        this.currentGroup = group;
+        
+        if (members) {
+            this.membersSignal.value = members;
+            this.currentMembers = members;
         }
 
-        this.unsubscribe = onSnapshot(
-            doc(getDb(), 'groups', groupId),
-            (snapshot) => {
-                if (snapshot.exists()) {
-                    const group = snapshot.data() as Group;
-                    this.groupSignal.value = group;
-                    this.currentGroup = group;
+        // Invalidate cache for this group
+        this.cache.invalidate(group.id);
 
-                    // Invalidate cache for this group
-                    this.cache.invalidate(groupId);
+        // Update computed permissions
+        this.updatePermissions();
 
-                    // Update computed permissions
-                    this.updatePermissions();
-
-                    // Notify UI if user's permissions changed
-                    this.notifyPermissionChanges();
-                }
-            },
-            (error) => {
-                console.error('Error subscribing to group permissions:', error);
-            },
-        );
+        // Notify UI if user's permissions changed
+        this.notifyPermissionChanges();
     }
 
     // Check specific permission with caching
     checkPermission(action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
-        if (!this.currentGroup || !this.currentUserId) {
+        if (!this.currentGroup || !this.currentUserId || !this.currentMembers.length) {
             return false;
         }
 
         const cacheKey = this.cache.generateKey(this.currentGroup.id, this.currentUserId, action as string, options.expense?.id);
 
         return this.cache.check(cacheKey, () => {
-            return ClientPermissionEngine.checkPermission(this.currentGroup!, this.currentUserId!, action, options);
+            return ClientPermissionEngine.checkPermission(this.currentGroup!, this.currentMembers, this.currentUserId!, action, options);
         });
     }
 
     // Update all computed permissions
     private updatePermissions(): void {
-        if (!this.currentGroup || !this.currentUserId) {
+        if (!this.currentGroup || !this.currentUserId || !this.currentMembers.length) {
             this.permissionsSignal.value = {};
             return;
         }
 
-        const permissions = ClientPermissionEngine.getUserPermissions(this.currentGroup, this.currentUserId);
+        const permissions = ClientPermissionEngine.getUserPermissions(this.currentGroup, this.currentMembers, this.currentUserId);
 
         this.permissionsSignal.value = permissions;
     }
@@ -209,12 +203,10 @@ export class PermissionsStore {
         }
     }
 
-    // Cleanup subscriptions
+    // Cleanup
     dispose(): void {
-        if (this.unsubscribe) {
-            this.unsubscribe();
-            this.unsubscribe = null;
-        }
+        this.currentGroup = null;
+        this.cache.invalidate();
     }
 
     // Get current group data

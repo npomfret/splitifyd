@@ -25,7 +25,7 @@ interface JoinGroupPageProps {
 export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // const authStore = useAuthRequired();
     // Note: Since this route is now protected by ProtectedRoute, user is guaranteed to be authenticated
-    const { group, loadingPreview, joining, joinSuccess, error } = joinGroupStore;
+    const { group, memberCount, loadingPreview, joining, joinSuccess, error } = joinGroupStore;
 
     // Get linkId from URL query parameters if not provided as prop
     const urlParams = new URLSearchParams(window.location.search);
@@ -150,10 +150,10 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
                         <Stack spacing="lg">
                             {/* Group Preview */}
-                            <GroupPreview group={group} />
+                            <GroupPreview group={group} memberCount={memberCount} />
 
                             {/* Members Preview */}
-                            <MembersPreview group={group} />
+                            <MembersPreview memberCount={memberCount} />
 
                             {/* Error message if any */}
                             {error && (

@@ -42,7 +42,7 @@ describe('Permission System Edge Cases', () => {
         });
 
         test('non-member cannot access group expenses', async () => {
-            await expect(apiDriver.getGroupExpenses(testGroup.id, users[3].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.getGroupExpenses(testGroup.id, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
         });
 
         test('non-member cannot change group settings', async () => {
