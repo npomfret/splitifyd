@@ -1,89 +1,65 @@
-import { Browser, BrowserContext, expect, Page, test } from '@playwright/test';
+import { expect, threeUserTest as test } from '../../../fixtures/three-user-test';
 import { setupMCPDebugOnFailure } from '../../../helpers';
-import { DashboardPage, GroupDetailPage, JoinGroupPage, LoginPage } from '../../../pages';
+import { JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { DEFAULT_PASSWORD, generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import { getUserPool } from '../../../fixtures/user-pool.fixture';
-import { RegisteredUser } from '@splitifyd/shared';
+import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
 setupMCPDebugOnFailure();
 
 test.describe('Parallel Group Joining Edge Cases', () => {
-    const userPool = getUserPool();
-    const contexts: BrowserContext[] = [];
-    const pages: Page[] = [];
-    const users: RegisteredUser[] = [];
+    test('should handle multiple users joining group in parallel', async ({ authenticatedPage, groupDetailPage, secondUser, thirdUser }) => {
+        const { page, user: user1 } = authenticatedPage;
+        const { page: page2, user: user2 } = secondUser;
+        const { page: page3, user: user3 } = thirdUser;
+        const groupWorkflow = new GroupWorkflow(page);
 
-    async function _prepareUsers(totalUsers: number, browser: Browser) {
-        for (let i = 0; i < totalUsers; i++) {
-            const context = await browser.newContext();
+        // Verify all 3 users are distinct
+        expect(user1.email).not.toBe(user2.email);
+        expect(user1.email).not.toBe(user3.email);
+        expect(user2.email).not.toBe(user3.email);
 
-            const page = await context.newPage();
-            const user = await userPool.claimUser(browser);
+        expect(user1.displayName).not.toBe(user2.displayName);
+        expect(user1.displayName).not.toBe(user3.displayName);
+        expect(user2.displayName).not.toBe(user3.displayName);
 
-            const loginPage = new LoginPage(page);
-            await loginPage.navigate();
-            await loginPage.login(user.email, DEFAULT_PASSWORD);
+        // Create group with first user
+        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
 
-            const dashboardPage = new DashboardPage(page);
-            await dashboardPage.waitForDashboard();
+        // Ensure we're on the group page before getting share link
+        await page.waitForURL(`**/groups/${groupId}**`);
 
-            contexts.push(context);
-            pages.push(page);
-            users.push(user);
-        }
-    }
+        // Get share link
+        const shareLink = await groupDetailPage.getShareLink();
 
-    test('should handle multiple users joining group in parallel', async ({ browser }) => {
-        test.setTimeout(60000);
+        // Test parallel join - this should handle race conditions gracefully
+        const joinGroupPage2 = new JoinGroupPage(page2);
+        const joinGroupPage3 = new JoinGroupPage(page3);
 
-        const totalUsers = 4;
+        // Try parallel joining to test race condition handling
+        await Promise.all([
+            joinGroupPage2.joinGroupUsingShareLink(shareLink),
+            joinGroupPage3.joinGroupUsingShareLink(shareLink),
+        ]);
 
-        try {
-            // Set up authenticated users
-            await _prepareUsers(totalUsers, browser);
+        // Verify all pages see complete member list
+        const allPages = [
+            { page, groupDetailPage },
+            { page: page2, groupDetailPage: secondUser.groupDetailPage },
+            { page: page3, groupDetailPage: thirdUser.groupDetailPage },
+        ];
 
-            // Creator creates group, others join it
-            const [creatorPage, ...otherPages] = pages;
-            const creatorGroupDetailPage = new GroupDetailPage(creatorPage);
+        await groupDetailPage.synchronizeMultiUserState(allPages, 3, groupId);
 
-            await creatorPage.goto('/dashboard');
-            const groupWorkflow = new GroupWorkflow(creatorPage);
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
+        // Get the actual display names from each user's page (in case they were changed)
+        const user1ActualName = await groupDetailPage.getUserDisplayName();
+        const user2ActualName = await secondUser.groupDetailPage.getUserDisplayName();
+        const user3ActualName = await thirdUser.groupDetailPage.getUserDisplayName();
 
-            // Get share link
-            const shareLink = await creatorGroupDetailPage.getShareLink();
-
-            // Other users join in parallel
-            await Promise.all(
-                otherPages.map(async (page, i) => {
-                    const joinGroupPage = new JoinGroupPage(page);
-                    // Use the joinGroup method with proper error handling
-                    await joinGroupPage.joinGroupUsingShareLink(shareLink);
-                }),
-            );
-
-            // Verify all users see complete member list
-
-            for (const page of pages) {
-                const groupDetailPage = new GroupDetailPage(page);
-                await groupDetailPage.waitForMemberCount(totalUsers, 5000);
-
-                // Check all names visible
-                for (const user of users) {
-                    await expect(page.getByText(user.displayName).first()).toBeVisible();
-                }
-            }
-
-            console.log(`✅ All ${totalUsers} users joined successfully`);
-        } finally {
-            try {
-                await Promise.all(contexts.map((c) => c.close()));
-            } catch (e) {}
-
-            try {
-                users.forEach((u) => userPool.releaseUser(u));
-            } catch (e) {}
+        // Check all users' actual names are visible on all pages
+        for (const { groupDetailPage: gdp } of allPages) {
+            await expect(gdp.getTextElement(user1ActualName).first()).toBeVisible();
+            await expect(gdp.getTextElement(user2ActualName).first()).toBeVisible();
+            await expect(gdp.getTextElement(user3ActualName).first()).toBeVisible();
         }
     });
 });

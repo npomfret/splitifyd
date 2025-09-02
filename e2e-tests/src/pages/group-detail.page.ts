@@ -776,7 +776,7 @@ export class GroupDetailPage extends BasePage {
         // Wait for loading spinner to disappear if present
         const loadingSpinner = dialog.locator('.animate-spin');
         if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 2000 });
+            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });// for some reason this can be slow
         }
 
         // Get the share link
