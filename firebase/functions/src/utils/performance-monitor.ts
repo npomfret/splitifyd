@@ -1,4 +1,5 @@
 import { logger } from '../logger';
+import { performanceMetricsCollector } from './performance-metrics-collector';
 
 /**
  * Context for performance monitoring operations
@@ -27,6 +28,30 @@ export interface SyncValidationContext extends PerformanceContext {
     collection?: string;
     fieldName?: string;
     userId?: string;
+}
+
+/**
+ * Context for query performance monitoring
+ */
+export interface QueryContext extends PerformanceContext {
+    collection?: string;
+    collectionGroup?: string;
+    queryType?: 'single' | 'collection' | 'collection-group' | 'indexed' | 'scan';
+    filterCount?: number;
+    orderByCount?: number;
+    resultCount?: number;
+    indexUsed?: boolean;
+    operation?: string;
+}
+
+/**
+ * Context for batch operation monitoring  
+ */
+export interface BatchOperationContext extends PerformanceContext {
+    batchSize?: number;
+    stepCount?: number;
+    currentStep?: string;
+    totalOperations?: number;
 }
 
 /**
@@ -89,10 +114,30 @@ export class PerformanceMonitor {
         
         try {
             const result = await operation();
-            monitor.end({ success: true });
+            const duration = monitor.end({ success: true });
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordMetric(operationName, {
+                timestamp: new Date(),
+                duration,
+                success: true,
+                operationType: 'general',
+                context
+            });
+            
             return result;
         } catch (error) {
-            monitor.end({ success: false, error: error instanceof Error ? error.message : String(error) });
+            const duration = monitor.end({ success: false, error: error instanceof Error ? error.message : String(error) });
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordMetric(operationName, {
+                timestamp: new Date(),
+                duration,
+                success: false,
+                operationType: 'general',
+                context
+            });
+            
             throw error;
         }
     }
@@ -106,15 +151,50 @@ export class PerformanceMonitor {
         operation: () => Promise<T>,
         additionalContext: PerformanceContext = {}
     ): Promise<T> {
-        return this.monitor(
-            `db-${operationType}`,
-            operation,
-            { 
-                collection,
-                operationType,
-                ...additionalContext 
+        const startTime = Date.now();
+        
+        try {
+            const result = await operation();
+            const duration = Date.now() - startTime;
+            
+            // Extract result count if possible
+            let resultCount: number | undefined;
+            if (result && typeof result === 'object') {
+                if ('size' in result) {
+                    resultCount = (result as any).size;
+                } else if ('length' in result) {
+                    resultCount = (result as any).length;
+                } else if ('docs' in result && Array.isArray((result as any).docs)) {
+                    resultCount = (result as any).docs.length;
+                }
             }
-        );
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordDbOperation(
+                operationType,
+                collection,
+                duration,
+                true,
+                resultCount,
+                additionalContext
+            );
+            
+            return result;
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordDbOperation(
+                operationType,
+                collection,
+                duration,
+                false,
+                undefined,
+                additionalContext
+            );
+            
+            throw error;
+        }
     }
 
     /**
@@ -126,15 +206,36 @@ export class PerformanceMonitor {
         operation: () => Promise<T>,
         additionalContext: PerformanceContext = {}
     ): Promise<T> {
-        return this.monitor(
-            `service-call`,
-            operation,
-            { 
-                service: serviceName,
-                method: methodName,
-                ...additionalContext 
-            }
-        );
+        const startTime = Date.now();
+        
+        try {
+            const result = await operation();
+            const duration = Date.now() - startTime;
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordServiceCall(
+                serviceName,
+                methodName,
+                duration,
+                true,
+                additionalContext
+            );
+            
+            return result;
+        } catch (error) {
+            const duration = Date.now() - startTime;
+            
+            // Record in metrics collector
+            performanceMetricsCollector.recordServiceCall(
+                serviceName,
+                methodName,
+                duration,
+                false,
+                additionalContext
+            );
+            
+            throw error;
+        }
     }
 
     /**
@@ -238,5 +339,175 @@ export class PerformanceMonitor {
 
             throw error;
         }
+    }
+
+    /**
+     * Monitor Firestore query operations with detailed performance tracking
+     */
+    static async monitorQuery<T>(
+        queryType: 'single' | 'collection' | 'collection-group' | 'indexed' | 'scan',
+        operation: () => Promise<T>,
+        context: QueryContext = {}
+    ): Promise<T> {
+        const monitor = new PerformanceMonitor(`firestore-query-${queryType}`, {
+            queryType,
+            ...context,
+        });
+        
+        try {
+            const result = await operation();
+            const duration = monitor.end({ 
+                success: true,
+                queryResult: 'completed'
+            });
+
+            // Enhanced slow query detection with different thresholds by query type
+            const slowThreshold = queryType === 'single' ? 100 : 
+                                 queryType === 'indexed' ? 200 :
+                                 queryType === 'scan' ? 1000 : 500;
+
+            if (duration > slowThreshold) {
+                logger.warn(`Slow ${queryType} query detected`, {
+                    queryType,
+                    collection: context.collection,
+                    collectionGroup: context.collectionGroup,
+                    duration_ms: duration,
+                    resultCount: context.resultCount,
+                    filterCount: context.filterCount,
+                    indexUsed: context.indexUsed,
+                    slowThreshold,
+                    operation: context.operation
+                });
+            }
+
+            // Alert on potential full collection scans
+            if (queryType === 'scan' && context.resultCount !== undefined && context.resultCount > 100) {
+                logger.warn(`Large collection scan detected`, {
+                    collection: context.collection,
+                    resultCount: context.resultCount,
+                    duration_ms: duration,
+                    operation: context.operation,
+                    recommendation: 'Consider adding composite index'
+                });
+            }
+
+            return result;
+        } catch (error) {
+            monitor.end({ 
+                success: false, 
+                queryResult: 'error',
+                error: error instanceof Error ? error.message : String(error) 
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Monitor batch operations with step-by-step tracking
+     */
+    static async monitorBatchOperation<T>(
+        operationName: string,
+        operation: (stepTracker: (stepName: string, stepOperation: () => Promise<any>) => Promise<any>) => Promise<T>,
+        context: BatchOperationContext = {}
+    ): Promise<T> {
+        const overallMonitor = new PerformanceMonitor(`batch-${operationName}`, {
+            operationName,
+            ...context,
+        });
+
+        const stepTimings: { [stepName: string]: number } = {};
+        let stepCount = 0;
+
+        const stepTracker = async <S>(stepName: string, stepOperation: () => Promise<S>): Promise<S> => {
+            stepCount++;
+            const stepMonitor = new PerformanceMonitor(`batch-step-${stepName}`, {
+                batchOperation: operationName,
+                stepName,
+                stepIndex: stepCount,
+            });
+
+            try {
+                const result = await stepOperation();
+                const stepDuration = stepMonitor.end({ success: true });
+                stepTimings[stepName] = stepDuration;
+                return result;
+            } catch (error) {
+                stepMonitor.end({ 
+                    success: false, 
+                    error: error instanceof Error ? error.message : String(error) 
+                });
+                throw error;
+            }
+        };
+
+        try {
+            const result = await operation(stepTracker);
+            const totalDuration = overallMonitor.end({ 
+                success: true,
+                stepCount,
+                stepTimings: JSON.stringify(stepTimings)
+            });
+
+            // Log detailed batch operation performance
+            logger.info(`Batch operation completed`, {
+                operationName,
+                totalDuration_ms: totalDuration,
+                stepCount,
+                stepTimings,
+                batchSize: context.batchSize,
+                averageStepTime: stepCount > 0 ? totalDuration / stepCount : 0
+            });
+
+            return result;
+        } catch (error) {
+            overallMonitor.end({ 
+                success: false,
+                stepCount,
+                error: error instanceof Error ? error.message : String(error),
+                stepTimings: JSON.stringify(stepTimings)
+            });
+            throw error;
+        }
+    }
+
+    /**
+     * Monitor transaction operations with conflict tracking
+     */
+    static async monitorTransaction<T>(
+        transactionName: string,
+        operation: () => Promise<T>,
+        context: PerformanceContext = {}
+    ): Promise<T> {
+        return this.monitor(
+            `transaction-${transactionName}`,
+            async () => {
+                try {
+                    const result = await operation();
+                    return result;
+                } catch (error) {
+                    // Track transaction-specific errors
+                    const isConflictError = error instanceof Error && (
+                        error.message.includes('CONCURRENT_UPDATE') ||
+                        error.message.includes('transaction failed') ||
+                        error.message.includes('aborted')
+                    );
+
+                    if (isConflictError) {
+                        logger.warn(`Transaction conflict detected`, {
+                            transactionName,
+                            error: error.message,
+                            context,
+                            recommendation: 'Consider optimistic locking or retry logic'
+                        });
+                    }
+
+                    throw error;
+                }
+            },
+            {
+                transactionName,
+                ...context
+            }
+        );
     }
 }

@@ -590,11 +590,116 @@ Successfully eliminated all unsafe type casts and implemented comprehensive runt
 - ✅ **Production Ready** - Comprehensive validation and error handling for balance calculations
 - ✅ **Maintainable** - Clear type definitions throughout balance calculation system
 
-### 8.6. Ready for Deployment
+## 9. Phase 3: Performance Monitoring & Validation (✅ COMPLETED)
 
-All changes are production-ready and tested:
-- ✅ **No Breaking Changes**: API compatibility maintained
-- ✅ **Backward Compatible**: Enhanced functionality without disruption
-- ✅ **Well Tested**: Comprehensive integration test coverage
-- ✅ **Performance Optimized**: Required indexes in place for query efficiency
+**Status**: COMPLETED  
+**Priority**: MEDIUM  
+**Effort**: 1-2 days  
+
+Enhanced performance monitoring to track query performance, validate optimizations, and detect issues proactively.
+
+### 9.1. Performance Monitor Enhancements
+
+**Core Infrastructure Additions:**
+- ✅ **Enhanced PerformanceMonitor Class** - Added query-specific and batch operation monitoring methods
+- ✅ **New Monitoring Methods**:
+  - `monitorQuery()` - Detailed Firestore query performance tracking with query-type-specific thresholds
+  - `monitorBatchOperation()` - Step-by-step tracking of multi-step operations
+  - `monitorTransaction()` - Transaction-specific monitoring with conflict detection
+- ✅ **Context-Aware Logging** - Rich contextual information for performance analysis
+
+### 9.2. Critical Operation Monitoring
+
+**Balance Calculation Monitoring:**
+- ✅ **Batch Operation Tracking** - `calculateGroupBalances()` now tracks multi-step operations
+- ✅ **Performance Breakdown** - Individual step timing for data-fetch, expense processing, settlement processing, and debt simplification
+- ✅ **Detailed Performance Metrics** - Logs performance breakdown when operations exceed 100ms
+
+**Problematic Query Monitoring:**
+- ✅ **UserService2 Membership Query** - Enhanced monitoring for scalability-problematic membership queries
+- ✅ **Full Collection Scan Detection** - Alerts when queries not using indexes are detected
+- ✅ **Scalability Warnings** - Proactive alerts for queries that don't scale well
+
+**GroupService.listGroups Batch Monitoring:**
+- ✅ **7-Step Batch Operation Tracking** - Complete breakdown of the complex listGroups operation:
+  1. Query groups and metadata
+  2. Process group documents  
+  3. Batch fetch group data
+  4. Batch fetch user profiles
+  5. Calculate group balances
+  6. Process groups with balances
+  7. Generate response
+- ✅ **Step-by-Step Performance Analysis** - Individual timing for each operation step
+
+### 9.3. Query Performance Analysis System
+
+**QueryPerformanceTracker:**
+- ✅ **Comprehensive Query Tracking** - Singleton service tracking all Firestore queries
+- ✅ **Performance Threshold Analysis** - Query-type-specific thresholds (single: 100ms, indexed: 200ms, scan: 1000ms)
+- ✅ **Index Usage Detection** - Alerts on potential full collection scans
+- ✅ **Performance Trend Analysis** - Detects performance degradation over time
+- ✅ **Query Statistics** - P50, P95, P99 percentiles for query performance analysis
+
+### 9.4. Aggregated Metrics Collection
+
+**PerformanceMetricsCollector:**
+- ✅ **Comprehensive Metrics Aggregation** - Singleton service collecting performance data over time
+- ✅ **Real-time Alert System** - Immediate alerts for slow operations, high failure rates, and performance degradation
+- ✅ **Periodic Performance Reporting** - Automated 5-minute performance summaries
+- ✅ **Service Performance Tracking** - Individual tracking for database operations, service calls, and batch operations
+
+### 9.5. Transaction Retry & Conflict Monitoring
+
+**Enhanced runTransactionWithRetry:**
+- ✅ **Detailed Transaction Monitoring** - Comprehensive tracking of transaction attempts, conflicts, and retry patterns
+- ✅ **Error Classification** - Smart categorization of transaction errors (concurrency, timeout, aborted, etc.)
+- ✅ **Retry Pattern Analysis** - Detailed logging of retry attempts with timing and error classification
+- ✅ **Performance Recommendations** - Context-aware recommendations based on error patterns
+
+### 9.6. Integration & Testing
+
+**Monitoring Integration:**
+- ✅ **PerformanceMonitor Integration** - All existing monitoring methods enhanced with metrics collection
+- ✅ **Service Call Monitoring** - All `monitorServiceCall()` usage now feeds into aggregated metrics
+- ✅ **Database Operation Monitoring** - Enhanced `monitorDbOperation()` with result count tracking
+
+**Validation & Testing:**
+- ✅ **TypeScript Compilation** - All new monitoring code compiles without errors
+- ✅ **Integration Tests Passing** - GroupService integration tests validate monitoring functionality
+- ✅ **Performance Data Collection** - Verified batch operation monitoring works in test environment
+- ✅ **Test Output Analysis** - Can see detailed step timings in test logs:
+  ```
+  Batch operation completed {
+    operationName: 'balance-calculation',
+    totalDuration_ms: 20,
+    stepCount: 2,
+    stepTimings: { 'data-fetch': 20, 'balance-computation': 0 },
+    averageStepTime: 10
+  }
+  ```
+
+### 9.7. Production Benefits
+
+**Proactive Issue Detection:**
+- ✅ **Early Warning System** - Detects performance issues before they impact users
+- ✅ **Scalability Monitoring** - Identifies queries that won't scale with data growth
+- ✅ **Transaction Conflict Tracking** - Monitors optimistic locking effectiveness
+
+**Data-Driven Optimization:**
+- ✅ **Performance Baseline** - Establishes baseline metrics for all operations
+- ✅ **Optimization Validation** - Validates effectiveness of previous optimization work
+- ✅ **Future Planning** - Rich data for making informed optimization decisions
+
+**Operational Excellence:**
+- ✅ **Production Monitoring Ready** - Comprehensive monitoring for production deployment
+- ✅ **Performance Debugging** - Detailed logs for investigating performance issues
+- ✅ **Capacity Planning** - Data for understanding system performance characteristics
+
+### 9.8. Ready for Deployment
+
+All Phase 3 changes are production-ready and tested:
+- ✅ **No Breaking Changes**: API compatibility maintained - monitoring is purely additive
+- ✅ **Backward Compatible**: Enhanced functionality without disruption  
+- ✅ **Well Tested**: Integration tests validate monitoring works correctly
+- ✅ **Performance Optimized**: Monitoring itself adds minimal overhead
 - ✅ **Type Safe**: Complete elimination of unsafe type casts across the codebase

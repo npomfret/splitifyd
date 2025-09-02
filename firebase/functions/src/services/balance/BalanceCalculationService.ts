@@ -6,6 +6,8 @@ import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
 import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas/balance';
+import { PerformanceMonitor } from '../../utils/performance-monitor';
+import { logger } from '../../logger';
 
 export class BalanceCalculationService {
     private dataFetcher: DataFetcher;
@@ -21,45 +23,97 @@ export class BalanceCalculationService {
     }
 
     async calculateGroupBalances(groupId: string): Promise<BalanceCalculationResult> {
-        // 1. Fetch all required data
-        const input = await this.dataFetcher.fetchBalanceCalculationData(groupId);
+        return PerformanceMonitor.monitorBatchOperation(
+            'balance-calculation',
+            async (stepTracker) => {
+                // Step 1: Fetch all required data
+                const input = await stepTracker('data-fetch', async () => {
+                    return this.dataFetcher.fetchBalanceCalculationData(groupId);
+                });
 
-        return this.calculateGroupBalancesWithData(input);
+                // Step 2: Calculate balances with the fetched data
+                const result = await stepTracker('balance-computation', async () => {
+                    return this.calculateGroupBalancesWithData(input);
+                });
+
+                return result;
+            },
+            { 
+                groupId,
+                stepCount: 2,
+                operation: 'calculateGroupBalances'
+            }
+        );
     }
 
     /**
      * Calculate group balances using pre-fetched data (optimized for batch operations)
      */
     calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
-        // Validate input data for type safety
-        const validatedInput = BalanceCalculationInputSchema.parse(input);
-        
-        // 1. Extract member IDs for initialization
-        const memberIds = Object.keys(validatedInput.groupData.members);
+        return PerformanceMonitor.monitorSyncValidation(
+            'schema',
+            'balance-calculation-input',
+            () => {
+                // Validate input data for type safety
+                const validatedInput = BalanceCalculationInputSchema.parse(input);
+                
+                const startTime = Date.now();
+                
+                // 1. Extract member IDs for initialization
+                const memberIds = Object.keys(validatedInput.groupData.members);
 
-        // 2. Process expenses to calculate initial balances by currency
-        const balancesByCurrency = this.expenseProcessor.processExpenses(validatedInput.expenses, memberIds);
+                // 2. Process expenses to calculate initial balances by currency
+                const expenseProcessingStart = Date.now();
+                const balancesByCurrency = this.expenseProcessor.processExpenses(validatedInput.expenses, memberIds);
+                const expenseProcessingTime = Date.now() - expenseProcessingStart;
 
-        // 3. Apply settlements to modify balances
-        this.settlementProcessor.processSettlements(validatedInput.settlements, balancesByCurrency);
+                // 3. Apply settlements to modify balances
+                const settlementProcessingStart = Date.now();
+                this.settlementProcessor.processSettlements(validatedInput.settlements, balancesByCurrency);
+                const settlementProcessingTime = Date.now() - settlementProcessingStart;
 
-        // 4. Simplify debts for all currencies
-        const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
+                // 4. Simplify debts for all currencies
+                const debtSimplificationStart = Date.now();
+                const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
+                const debtSimplificationTime = Date.now() - debtSimplificationStart;
 
-        // 5. Create legacy userBalances field from first currency (for backward compatibility)
-        const userBalances = this.createLegacyUserBalances(balancesByCurrency);
+                // 5. Create legacy userBalances field from first currency (for backward compatibility)
+                const userBalances = this.createLegacyUserBalances(balancesByCurrency);
 
-        // 6. Create and validate result
-        const result = {
-            groupId: validatedInput.groupId,
-            userBalances,
-            simplifiedDebts,
-            lastUpdated: Timestamp.now(),
-            balancesByCurrency,
-        };
+                // 6. Create and validate result
+                const result = {
+                    groupId: validatedInput.groupId,
+                    userBalances,
+                    simplifiedDebts,
+                    lastUpdated: Timestamp.now(),
+                    balancesByCurrency,
+                };
 
-        // Validate output for type safety
-        return BalanceCalculationResultSchema.parse(result);
+                const totalComputationTime = Date.now() - startTime;
+
+                // Log detailed performance metrics
+                if (totalComputationTime > 100) {
+                    logger.info('Balance calculation performance breakdown', {
+                        groupId: validatedInput.groupId,
+                        totalTime_ms: totalComputationTime,
+                        expenseProcessingTime_ms: expenseProcessingTime,
+                        settlementProcessingTime_ms: settlementProcessingTime,
+                        debtSimplificationTime_ms: debtSimplificationTime,
+                        expenseCount: validatedInput.expenses.length,
+                        settlementCount: validatedInput.settlements.length,
+                        memberCount: memberIds.length,
+                        currencyCount: Object.keys(balancesByCurrency).length
+                    });
+                }
+
+                // Validate output for type safety
+                return BalanceCalculationResultSchema.parse(result);
+            },
+            {
+                documentId: input.groupId,
+                collection: 'balance-calculations'
+            }
+        );
     }
 
     private createLegacyUserBalances(balancesByCurrency: CurrencyBalances): Record<string, UserBalance> {

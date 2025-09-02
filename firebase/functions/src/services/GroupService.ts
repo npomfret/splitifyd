@@ -251,84 +251,130 @@ export class GroupService {
             includeMetadata?: boolean;
         } = {},
     ): Promise<ListGroupsResponse> {
+        return PerformanceMonitor.monitorBatchOperation(
+            'list-groups',
+            async (stepTracker) => {
+                return this._executeListGroups(userId, options, stepTracker);
+            },
+            {
+                userId,
+                limit: options.limit,
+                includeMetadata: options.includeMetadata
+            }
+        );
+    }
+
+    private async _executeListGroups(
+        userId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            order?: 'asc' | 'desc';
+            includeMetadata?: boolean;
+        } = {},
+        stepTracker: (stepName: string, stepOperation: () => Promise<any>) => Promise<any>
+    ): Promise<ListGroupsResponse> {
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
         const cursor = options.cursor;
         const order = options.order ?? 'desc';
         const includeMetadata = options.includeMetadata === true;
 
-        // Build base query - groups where user is a member
-        const baseQuery = this.getGroupsCollection().where(`members.${userId}`, '!=', null);
+        // Step 1: Query groups and metadata
+        const { snapshot, changesSnapshot } = await stepTracker('query-groups-and-metadata', async () => {
+            // Build base query - groups where user is a member
+            const baseQuery = this.getGroupsCollection().where(`members.${userId}`, '!=', null);
 
-        // Build paginated query
-        const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
+            // Build paginated query
+            const paginatedQuery = buildPaginatedQuery(baseQuery, cursor, order, limit + 1);
 
-        // Execute parallel queries for performance
-        const queries: Promise<any>[] = [paginatedQuery.get()];
+            // Execute parallel queries for performance
+            const queries: Promise<any>[] = [paginatedQuery.get()];
 
-        // Include metadata query if requested
-        if (includeMetadata) {
-            // Get recent changes (last 60 seconds)
-            const changesQuery = firestoreDb
-                .collection(FirestoreCollections.GROUP_CHANGES)
-                .where('timestamp', '>', new Date(Date.now() - 60000))
-                .where('metadata.affectedUsers', 'array-contains', userId)
-                .orderBy('timestamp', 'desc')
-                .limit(10)
-                .get();
-            queries.push(changesQuery);
-        }
+            // Include metadata query if requested
+            if (includeMetadata) {
+                // Get recent changes (last 60 seconds)
+                const changesQuery = firestoreDb
+                    .collection(FirestoreCollections.GROUP_CHANGES)
+                    .where('timestamp', '>', new Date(Date.now() - 60000))
+                    .where('metadata.affectedUsers', 'array-contains', userId)
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                queries.push(changesQuery);
+            }
 
-        const results = await Promise.all(queries);
-        const snapshot = results[0] as QuerySnapshot;
-        const changesSnapshot = includeMetadata ? (results[1] as QuerySnapshot) : null;
+            const results = await Promise.all(queries);
+            return {
+                snapshot: results[0] as QuerySnapshot,
+                changesSnapshot: includeMetadata ? (results[1] as QuerySnapshot) : null
+            };
+        });
+
         const documents = snapshot.docs;
 
-        // Determine if there are more results
-        const hasMore = documents.length > limit;
-        const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
+        // Step 2: Process group documents
+        const { groups, groupIds } = await stepTracker('process-group-documents', async () => {
+            // Determine if there are more results
+            const hasMore = documents.length > limit;
+            const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
-        // Transform documents to groups and extract group IDs
-        const groups: Group[] = returnedDocs.map((doc: QueryDocumentSnapshot) => transformGroupDocument(doc));
-        const groupIds = groups.map((group) => group.id);
-
-        // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
-        const { expenseMetadataByGroup } = await this.batchFetchGroupData(groupIds);
-
-        // Batch fetch user profiles for all members across all groups
-        const allMemberIds = new Set<string>();
-        for (const group of groups) {
-            Object.keys(group.members).forEach((memberId) => allMemberIds.add(memberId));
-        }
-        const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
-
-        // Calculate balances for groups that have expenses
-        const groupsWithExpenses = groups.filter(group => {
-            const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
-            return expenseMetadata.count > 0;
+            // Transform documents to groups and extract group IDs
+            const groups: Group[] = returnedDocs.map((doc: QueryDocumentSnapshot) => transformGroupDocument(doc));
+            const groupIds = groups.map((group) => group.id);
+            
+            return { groups, groupIds };
         });
 
-        const balancePromises = groupsWithExpenses.map(group => 
-            calculateGroupBalances(group.id).catch(error => {
-                logger.error('Error calculating balances', error, { groupId: group.id });
-                return {
-                    groupId: group.id,
-                    balancesByCurrency: {},
-                    userBalances: {},
-                    simplifiedDebts: [],
-                    lastUpdated: Timestamp.now(),
-                };
-            })
-        );
-
-        const balanceResults = await Promise.all(balancePromises);
-        const balanceMap = new Map<string, import('./balance').BalanceCalculationResult>();
-        groupsWithExpenses.forEach((group, index) => {
-            balanceMap.set(group.id, balanceResults[index]);
+        // Step 3: Batch fetch group data
+        const { expenseMetadataByGroup } = await stepTracker('batch-fetch-group-data', async () => {
+            // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
+            return this.batchFetchGroupData(groupIds);
         });
 
-        // Process each group using batched data - no more database calls!
-        const groupsWithBalances: Group[] = groups.map((group) => {
+        // Step 4: Batch fetch user profiles
+        const allMemberProfiles = await stepTracker('batch-fetch-user-profiles', async () => {
+            // Batch fetch user profiles for all members across all groups
+            const allMemberIds = new Set<string>();
+            for (const group of groups) {
+                Object.keys(group.members).forEach((memberId) => allMemberIds.add(memberId));
+            }
+            return getUserService().getUsers(Array.from(allMemberIds));
+        });
+
+        // Step 5: Calculate balances for groups with expenses
+        const balanceMap = await stepTracker('calculate-group-balances', async () => {
+            // Calculate balances for groups that have expenses
+            const groupsWithExpenses = groups.filter((group: Group) => {
+                const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
+                return expenseMetadata.count > 0;
+            });
+
+            const balancePromises = groupsWithExpenses.map((group: Group) => 
+                calculateGroupBalances(group.id).catch((error: Error) => {
+                    logger.error('Error calculating balances', error, { groupId: group.id });
+                    return {
+                        groupId: group.id,
+                        balancesByCurrency: {},
+                        userBalances: {},
+                        simplifiedDebts: [],
+                        lastUpdated: Timestamp.now(),
+                    };
+                })
+            );
+
+            const balanceResults = await Promise.all(balancePromises);
+            const balanceMap = new Map<string, import('./balance').BalanceCalculationResult>();
+            groupsWithExpenses.forEach((group: Group, index: number) => {
+                balanceMap.set(group.id, balanceResults[index]);
+            });
+
+            return balanceMap;
+        });
+
+        // Step 6: Process each group using batched data - no more database calls!
+        const groupsWithBalances: Group[] = await stepTracker('process-groups-with-balances', async () => {
+            return groups.map((group: Group) => {
             // Get pre-fetched data for this group (no database calls)
             const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
@@ -422,42 +468,49 @@ export class GroupService {
                 lastActivity,
                 lastActivityRaw: lastActivityDate.toISOString(),
             };
+            });
         });
 
-        // Generate nextCursor if there are more results
-        let nextCursor: string | undefined;
-        if (hasMore && returnedDocs.length > 0) {
-            const lastDoc = returnedDocs[returnedDocs.length - 1];
-            const lastGroup = transformGroupDocument(lastDoc);
-            nextCursor = encodeCursor({
-                updatedAt: lastGroup.updatedAt,
-                id: lastGroup.id,
-            });
-        }
+        // Step 7: Generate pagination and response
+        return await stepTracker('generate-response', async () => {
+            // Determine if there are more results  
+            const hasMore = documents.length > limit;
+            const returnedDocs = hasMore ? documents.slice(0, limit) : documents;
 
-        const response: ListGroupsResponse = {
-            groups: groupsWithBalances,
-            count: groupsWithBalances.length,
-            hasMore,
-            ...(nextCursor && { nextCursor }),
-            pagination: {
-                limit,
-                order,
-            },
-        };
+            let nextCursor: string | undefined;
+            if (hasMore && returnedDocs.length > 0) {
+                const lastDoc = returnedDocs[returnedDocs.length - 1];
+                const lastGroup = transformGroupDocument(lastDoc);
+                nextCursor = encodeCursor({
+                    updatedAt: lastGroup.updatedAt,
+                    id: lastGroup.id,
+                });
+            }
 
-        // Add metadata if requested
-        if (includeMetadata && changesSnapshot) {
-            const lastChange = changesSnapshot.docs[0];
-            response.metadata = {
-                lastChangeTimestamp: lastChange?.data().timestamp?.toMillis() || 0,
-                changeCount: changesSnapshot.size,
-                serverTime: Date.now(),
-                hasRecentChanges: changesSnapshot.size > 0,
+            const response: ListGroupsResponse = {
+                groups: groupsWithBalances,
+                count: groupsWithBalances.length,
+                hasMore,
+                ...(nextCursor && { nextCursor }),
+                pagination: {
+                    limit,
+                    order,
+                },
             };
-        }
 
-        return response;
+            // Add metadata if requested
+            if (includeMetadata && changesSnapshot) {
+                const lastChange = changesSnapshot.docs[0];
+                response.metadata = {
+                    lastChangeTimestamp: lastChange?.data().timestamp?.toMillis() || 0,
+                    changeCount: changesSnapshot.size,
+                    serverTime: Date.now(),
+                    hasRecentChanges: changesSnapshot.size > 0,
+                };
+            }
+
+            return response;
+        });
     }
 
     /**
