@@ -6,6 +6,7 @@ description: intelligently chose tests to run
 
 > The full test suite is very slow.  Be smart: find and pick out the tests that need running based on your changes. The firebase integration tests are particularly useful.
 
+- [ ] does it compile? run `npm run build` fromthe root.
 - [ ] you **MUST** read docs/guides/*.md
 - [ ] inspect your changes and search for candidate test cases
 - [ ] run appropriate **individual** tests (not the full suite!)
