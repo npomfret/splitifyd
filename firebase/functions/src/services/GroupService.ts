@@ -677,7 +677,7 @@ export class GroupService {
         // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
             // Get members using service layer
-            getGroupMemberService().getGroupMembersData(group.members),
+            getGroupMemberService().getGroupMembersResponse(group.members),
 
             // Get expenses using service layer with pagination
             getExpenseService().listGroupExpenses(groupId, userId, {

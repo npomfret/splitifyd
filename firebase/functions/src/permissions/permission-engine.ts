@@ -1,5 +1,6 @@
 import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
+import {GroupMember} from "@splitifyd/shared/src";
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;
@@ -114,9 +115,9 @@ export class PermissionEngine {
     /**
      * Check if user can change another user's role
      */
-    static canChangeRole(group: Group, actorUserId: string, targetUserId: string, newRole: MemberRole): { allowed: boolean; reason?: string } {
-        const actorMember = group.members[actorUserId];
-        const targetMember = group.members[targetUserId];
+    static canChangeRole(members: Record<string, GroupMember>, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): { allowed: boolean; reason?: string } {
+        const actorMember = members[actorUserId];
+        const targetMember = members[targetUserId];
 
         if (!actorMember || !targetMember) {
             return { allowed: false, reason: 'User not found in group' };
@@ -129,7 +130,7 @@ export class PermissionEngine {
 
         // Prevent last admin from demoting themselves
         if (actorUserId === targetUserId && actorMember.role === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-            const adminCount = Object.values(group.members).filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
+            const adminCount = Object.values(members).filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
 
             if (adminCount === 1) {
                 return {
@@ -140,7 +141,7 @@ export class PermissionEngine {
         }
 
         // Prevent changing group creator to viewer without explicit confirmation
-        if (targetUserId === group.createdBy && newRole === MemberRoles.VIEWER) {
+        if (targetUserId === createdBy && newRole === MemberRoles.VIEWER) {
             return {
                 allowed: false,
                 reason: 'Changing creator permissions requires explicit confirmation',

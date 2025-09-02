@@ -158,7 +158,7 @@ describe('Service Registration', () => {
         expect(typeof commentService.createComment).toBe('function');
         expect(typeof policyService.getPolicy).toBe('function');
         expect(typeof userPolicyService.acceptPolicy).toBe('function');
-        expect(typeof groupMemberService.getGroupMembersData).toBe('function');
+        expect(typeof groupMemberService.getGroupMembersResponse).toBe('function');
         expect(typeof groupPermissionService.applySecurityPreset).toBe('function');
         expect(typeof groupShareService.generateShareableLink).toBe('function');
     });

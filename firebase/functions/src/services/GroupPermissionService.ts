@@ -1,17 +1,17 @@
-import { FieldValue } from 'firebase-admin/firestore';
-import { firestoreDb } from '../firebase';
-import { Errors, ApiError } from '../utils/errors';
-import { logger } from '../logger';
-import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections, SecurityPresets, MemberRoles, PermissionChangeLog } from '@splitifyd/shared';
-import { PermissionEngine, permissionCache } from '../permissions';
-import { transformGroupDocument } from '../groups/handlers';
-import { GroupDocumentSchema } from '../schemas';
-import { createServerTimestamp } from '../utils/dateHelpers';
-import { z } from 'zod';
-import { PerformanceMonitor } from '../utils/performance-monitor';
-import { getMemberFromArray, isAdminInArray } from '../utils/memberHelpers';
-import { getGroupMemberService } from './serviceRegistration';
+import {FieldValue} from 'firebase-admin/firestore';
+import {firestoreDb} from '../firebase';
+import {ApiError, Errors} from '../utils/errors';
+import {logger} from '../logger';
+import {HTTP_STATUS} from '../constants';
+import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets} from '@splitifyd/shared';
+import {permissionCache, PermissionEngine} from '../permissions';
+import {transformGroupDocument} from '../groups/handlers';
+import {GroupDocumentSchema} from '../schemas';
+import {createServerTimestamp} from '../utils/dateHelpers';
+import {z} from 'zod';
+import {PerformanceMonitor} from '../utils/performance-monitor';
+import {getMemberFromArray, isAdminInArray} from '../utils/memberHelpers';
+import {getGroupMemberService} from './serviceRegistration';
 
 export class GroupPermissionService {
     private getGroupsCollection() {
@@ -79,7 +79,7 @@ export class GroupPermissionService {
         const group = transformGroupDocument(groupDoc);
 
         // Get members to check permissions
-        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
         const members = membersData.members;
         
         if (!isAdminInArray(members, userId)) {
@@ -225,14 +225,14 @@ export class GroupPermissionService {
         const group = transformGroupDocument(groupDoc);
 
         // Get members to check target user exists
-        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
-        const members = membersData.members;
-        
-        if (!getMemberFromArray(members, targetUserId)) {
+        const members = group.members;
+        const groupMembersResponse = await getGroupMemberService().getGroupMembersResponse(members);
+
+        if (!getMemberFromArray(groupMembersResponse.members, targetUserId)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
         }
 
-        const roleChangeResult = PermissionEngine.canChangeRole(group, userId, targetUserId, role);
+        const roleChangeResult = PermissionEngine.canChangeRole(members, group.createdBy, userId, targetUserId, role);
         if (!roleChangeResult.allowed) {
             const isLastAdminError = roleChangeResult.reason?.includes('last admin');
             const statusCode = isLastAdminError ? HTTP_STATUS.BAD_REQUEST : HTTP_STATUS.FORBIDDEN;
@@ -240,7 +240,7 @@ export class GroupPermissionService {
         }
 
         const now = new Date().toISOString();
-        const targetMember = getMemberFromArray(members, targetUserId)!;
+        const targetMember = getMemberFromArray(groupMembersResponse.members, targetUserId)!;
         const oldRole = targetMember.memberRole;
 
         const updateData: any = {
@@ -294,7 +294,7 @@ export class GroupPermissionService {
         const group = transformGroupDocument(groupDoc);
 
         // Get members to check user membership
-        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
         const members = membersData.members;
         
         if (!getMemberFromArray(members, userId)) {

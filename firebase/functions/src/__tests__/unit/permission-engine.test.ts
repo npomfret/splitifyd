@@ -192,12 +192,12 @@ describe('PermissionEngine', () => {
         });
 
         it('should allow admins to change member roles', () => {
-            const result = PermissionEngine.canChangeRole(group, 'user-admin1', 'user-1', MemberRoles.ADMIN);
+            const result = PermissionEngine.canChangeRole(group.members, group.createdBy, 'user-admin1', 'user-1', MemberRoles.ADMIN);
             expect(result.allowed).toBe(true);
         });
 
         it('should not allow members to change roles', () => {
-            const result = PermissionEngine.canChangeRole(group, 'user-1', 'user-admin1', MemberRoles.MEMBER);
+            const result = PermissionEngine.canChangeRole(group.members, group.createdBy, 'user-1', 'user-admin1', MemberRoles.MEMBER);
             expect(result.allowed).toBe(false);
             expect(result.reason).toBe('Only admins can change member roles');
         });
@@ -209,19 +209,19 @@ describe('PermissionEngine', () => {
                 'user-1': createMember(MemberRoles.MEMBER),
             };
 
-            const result = PermissionEngine.canChangeRole(group, 'user-admin1', 'user-admin1', MemberRoles.MEMBER);
+            const result = PermissionEngine.canChangeRole(group.members, group.createdBy, 'user-admin1', 'user-admin1', MemberRoles.MEMBER);
             expect(result.allowed).toBe(false);
             expect(result.reason).toBe('Cannot remove last admin. Promote another member first.');
         });
 
         it('should prevent changing creator to viewer without confirmation', () => {
-            const result = PermissionEngine.canChangeRole(group, 'user-admin1', 'user-admin1', MemberRoles.VIEWER);
+            const result = PermissionEngine.canChangeRole(group.members, group.createdBy, 'user-admin1', 'user-admin1', MemberRoles.VIEWER);
             expect(result.allowed).toBe(false);
             expect(result.reason).toBe('Changing creator permissions requires explicit confirmation');
         });
 
         it('should allow demoting admin when multiple admins exist', () => {
-            const result = PermissionEngine.canChangeRole(group, 'user-admin1', 'user-admin2', MemberRoles.MEMBER);
+            const result = PermissionEngine.canChangeRole(group.members, group.createdBy, 'user-admin1', 'user-admin2', MemberRoles.MEMBER);
             expect(result.allowed).toBe(true);
         });
     });
