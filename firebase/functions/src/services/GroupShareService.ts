@@ -235,7 +235,8 @@ export class GroupShareService {
         }
 
         // Early membership check to avoid transaction if user is already a member
-        if (userId in preCheckGroup.members) {
+        const existingMember = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+        if (existingMember) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
         if (await isGroupOwnerAsync(preCheckGroup.id, userId)) {
@@ -244,7 +245,8 @@ export class GroupShareService {
 
         // Pre-compute all member data outside transaction
         const joinedAt = new Date().toISOString();
-        const memberIndex = Object.keys(preCheckGroup.members).length;
+        const existingMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
+        const memberIndex = existingMembers.length;
         const newMemberTemplate = {
             role: MemberRoles.MEMBER,
             status: MemberStatuses.ACTIVE,

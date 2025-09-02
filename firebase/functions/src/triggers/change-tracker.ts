@@ -32,17 +32,26 @@ export const trackGroupChanges = onDocumentWritten(
             // Calculate priority (not currently used)
             calculatePriority(changeType, changedFields, 'group');
 
-            // Get affected users from the group (flat structure)
-            const afterData = after?.data();
-            const beforeData = before?.data();
-
-            // Members are stored as a map, not an array of IDs
-            const afterMembers = afterData?.members || {};
-            const beforeMembers = beforeData?.members || {};
-
-            // Combine all member IDs from both before and after states
-            const allMemberIds = new Set([...Object.keys(afterMembers), ...Object.keys(beforeMembers)]);
-            const affectedUsers = Array.from(allMemberIds);
+            // Get affected users from the group subcollection
+            const affectedUsers: string[] = [];
+            
+            // Since members are now stored in subcollections, we need to query for them
+            // For performance, we'll get members from the current state only
+            try {
+                const membersSnapshot = await firestoreDb
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .get();
+                
+                membersSnapshot.forEach(memberDoc => {
+                    affectedUsers.push(memberDoc.id);
+                });
+            } catch (error) {
+                logger.warn('Could not fetch group members for change tracking', { groupId, error });
+                // If we can't get members, we still create the change document but with empty users array
+                // This ensures change detection still works at the group level
+            }
 
             // Create minimal change document for client notifications
             const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);

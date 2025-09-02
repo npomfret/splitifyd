@@ -5,22 +5,12 @@ import { firestoreDb } from '../firebase';
 import { getGroupMemberService } from '../services/serviceRegistration';
 
 /**
- * Check if a user is the owner of a group
- * Checks if user has admin role
- * @deprecated Use isGroupOwnerAsync instead for scalable subcollection queries
+ * @deprecated Removed in Phase 5 cleanup - Use isGroupOwnerAsync instead for scalable subcollection queries
  */
-export const isGroupOwner = (group: Group, userId: string): boolean => {
-    const member = group.members[userId];
-    return member?.role === MemberRoles.ADMIN || false;
-};
 
 /**
- * Check if a user is a member of a group (any role)
- * @deprecated Use isGroupMemberAsync instead for scalable subcollection queries
+ * @deprecated Removed in Phase 5 cleanup - Use isGroupMemberAsync instead for scalable subcollection queries  
  */
-export const isGroupMember = (group: Group, userId: string): boolean => {
-    return userId in group.members;
-};
 
 /**
  * Check if a user is the owner of a group (async version)

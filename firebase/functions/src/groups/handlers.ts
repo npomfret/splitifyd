@@ -39,15 +39,6 @@ export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
 
     const groupData = data;
 
-    // Transform members to ensure joinedAt follows the same pattern as createdAt/updatedAt
-    const transformedMembers: Record<string, any> = {};
-    for (const [userId, member] of Object.entries(groupData.members)) {
-        const memberData = member as any;
-        transformedMembers[userId] = {
-            ...memberData,
-        };
-    }
-
     // Ensure required permission fields are always present
     const securityPreset = groupData.securityPreset || SecurityPresets.OPEN;
     const permissions = groupData.permissions || PermissionEngine.getDefaultPermissions(securityPreset);
@@ -57,7 +48,6 @@ export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
         name: groupData.name!,
         description: groupData.description ?? '',
         createdBy: groupData.createdBy!,
-        members: transformedMembers,
         createdAt: groupData.createdAt!.toDate().toISOString(),
         updatedAt: groupData.updatedAt!.toDate().toISOString(),
 

@@ -30,7 +30,6 @@ describe('Group Lifecycle Edge Cases', () => {
         // Should be able to get group details and verify no expenses
         const {group: groupDetails} = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
         expect(groupDetails).toHaveProperty('id');
-        expect(groupDetails).toHaveProperty('members');
 
         // Verify no expenses exist
         const expenses = await apiDriver.getGroupExpenses(emptyGroup.id, users[0].token);

@@ -6,7 +6,6 @@ describe('PermissionEngine', () => {
     const createGroup = (preset: any = SecurityPresets.OPEN, customPermissions = {}): Group => ({
         id: 'group-1',
         name: 'Test Group',
-        members: {},
         createdBy: 'user-creator',
         createdAt: '2023-01-01T00:00:00.000Z',
         updatedAt: '2023-01-01T00:00:00.000Z',

@@ -846,8 +846,8 @@ export class ExpenseService {
         // Check if user is a participant in this expense or a group member (access control for viewing)
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
-            const groupData = groupDoc.data();
-            if (!groupData?.members?.[userId]) {
+            const member = await getGroupMemberService().getMemberFromSubcollection(expense.groupId, userId);
+            if (!member) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }
         }
@@ -857,19 +857,18 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
         }
 
-        // Transform group data using same pattern as groups handler
+        // Transform group data using same pattern as groups handler (without deprecated members field)
         const group = {
             id: groupDoc.id,
             name: groupData.name,
             description: groupData.description || '',
             createdBy: groupData.createdBy,
-            members: groupData.members,
             createdAt: groupData.createdAt.toDate().toISOString(),
             updatedAt: groupData.updatedAt.toDate().toISOString(),
         };
 
-        // Get members data using the proper helper function
-        const members = await getGroupMemberService().getGroupMembersResponse(groupData.members || {});
+        // Get members data from subcollection
+        const members = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expense.groupId);
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);

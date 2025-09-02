@@ -572,24 +572,14 @@ export class GroupService {
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
 
-        // Create member list with theme assignments
-        const members: Record<string, any> = {};
-
-        // CRUCIAL: Ensure creator is always first with theme index 0 and gets ADMIN role
+        // CRUCIAL: Ensure creator gets ADMIN role with theme index 0 in subcollection
         // This ensures the integration test "should create a new group with minimal data" passes
-        members[userId] = {
-            role: MemberRoles.ADMIN,
-            status: MemberStatuses.ACTIVE,
-            theme: getThemeColorForMember(0),
-            joinedAt: now.toDate().toISOString(),
-        };
 
         const newGroup: Group = {
             id: docRef.id,
             name: createGroupRequest.name,
             description: createGroupRequest.description ?? '',
             createdBy: userId,
-            members: members,
             createdAt: timestampToISO(now),
             updatedAt: timestampToISO(now),
             securityPreset: SecurityPresets.OPEN,
@@ -781,13 +771,15 @@ export class GroupService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        if (!validatedGroup.members || Object.keys(validatedGroup.members).length === 0) {
+        // Validate group has members using subcollection
+        const groupMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
+        if (groupMembers.length === 0) {
             throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
         }
 
-        // Get members to validate user access
-        const membersData = await getUserService().getUsers([userId]);
-        if (!membersData.has(userId) || !(userId in validatedGroup.members)) {
+        // Get members to validate user access using subcollection
+        const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+        if (!member) {
             throw Errors.FORBIDDEN();
         }
 

@@ -366,7 +366,16 @@ async function createGroups(createdBy: AuthenticatedFirebaseUser, config: TestDa
     return groups;
 }
 
-async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: GroupWithInvite[]): Promise<void> {
+async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: GroupWithInvite[]): Promise<Map<string, AuthenticatedFirebaseUser[]>> {
+    // Track which users are in which groups
+    const groupMemberships = new Map<string, AuthenticatedFirebaseUser[]>();
+    
+    // Initialize with the creator (test1@test.com) in all groups
+    const creator = users[0];
+    for (const group of groups) {
+        groupMemberships.set(group.id, [creator]);
+    }
+
     // Each user (except test1 who created all groups) joins groups
     const otherUsers = users.slice(1); // Skip test1@test.com
 
@@ -397,7 +406,15 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
                 }
 
                 if (shouldJoin) {
-                    joinPromises.push(driver.joinGroupViaShareLink(group.inviteLink, user.token).then(() => joinedCount++));
+                    joinPromises.push(
+                        driver.joinGroupViaShareLink(group.inviteLink, user.token).then(() => {
+                            joinedCount++;
+                            // Track membership
+                            const members = groupMemberships.get(group.id) || [];
+                            members.push(user);
+                            groupMemberships.set(group.id, members);
+                        })
+                    );
                 }
             }
 
@@ -405,6 +422,8 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
             console.log(`${user.email} joined ${joinedCount} out of ${groups.length} groups`);
         }),
     );
+
+    return groupMemberships;
 }
 
 async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTemplate, participants: AuthenticatedFirebaseUser[], createdBy: AuthenticatedFirebaseUser): Promise<any> {
@@ -429,7 +448,7 @@ async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTe
     return await driver.createExpense(expenseData, createdBy.token);
 }
 
-async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[], config: TestDataConfig): Promise<void> {
+async function createRandomExpensesForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>, config: TestDataConfig): Promise<void> {
     // Skip the special groups - only process regular groups
     const regularGroups = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group' && g.name !== 'Large Group');
 
@@ -443,10 +462,13 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: A
 
         await Promise.all(
             groupBatch.map(async (group) => {
-                // Get all members of this group
-                const groupMembers = users.filter((user) => user.uid in group.members);
+                // Get actual members of this group from tracked memberships
+                const groupMembers = groupMemberships.get(group.id) || [];
 
-                if (groupMembers.length === 0) return;
+                if (groupMembers.length === 0) {
+                    console.log(`No members found for group ${group.name}, skipping expense creation`);
+                    return;
+                }
 
                 const expensePromises = [];
 
@@ -459,7 +481,7 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: A
                         const expense = generateRandomExpense();
 
                         // Random subset of group members participate (at least 2, including payer)
-                        const minParticipants = 2;
+                        const minParticipants = Math.min(2, groupMembers.length);
                         const maxParticipants = Math.min(groupMembers.length, 5);
                         const participantCount = Math.floor(Math.random() * (maxParticipants - minParticipants + 1)) + minParticipants;
 
@@ -482,14 +504,14 @@ async function createRandomExpensesForGroups(groups: GroupWithInvite[], users: A
     }
 }
 
-async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
+async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
     const settledGroup = groups.find((g) => g.name === 'Settled Group');
     if (!settledGroup) return;
 
     console.log('Creating balanced expenses and settlements for "Settled Group" so no one owes anything');
 
-    // Get all members of this group from the refreshed data
-    const groupMembers = users.filter((user) => user.uid in settledGroup.members);
+    // Get actual members of this group from tracked memberships
+    const groupMembers = groupMemberships.get(settledGroup.id) || [];
 
     if (groupMembers.length < 2) return;
 
@@ -659,14 +681,14 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
     console.log(`✓ Successfully created balanced multi-currency expenses and settlements for "Settled Group"`);
 }
 
-async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[], config: TestDataConfig): Promise<void> {
+async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>, config: TestDataConfig): Promise<void> {
     const largeGroup = groups.find((g) => g.name === 'Large Group');
     if (!largeGroup) return;
 
     console.log('Creating many expenses for "Large Group" to test pagination');
 
-    // Get all members of this group from the refreshed data
-    const groupMembers = users.filter((user) => user.uid in largeGroup.members);
+    // Get actual members of this group from tracked memberships
+    const groupMembers = groupMemberships.get(largeGroup.id) || [];
 
     if (groupMembers.length === 0) return;
 
@@ -705,7 +727,7 @@ async function createManyExpensesForLargeGroup(groups: GroupWithInvite[], users:
     console.log(`Created ${totalExpenses} expenses for "Large Group"`);
 }
 
-async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
+async function createSmallPaymentsForGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
     // Skip empty group AND settled group (to preserve its settled state)
     const groupsWithPayments = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
@@ -719,8 +741,8 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Au
 
         await Promise.all(
             groupBatch.map(async (group) => {
-                // Get all members of this group
-                const groupMembers = users.filter((user) => user.uid in group.members);
+                // Get actual members of this group from tracked memberships
+                const groupMembers = groupMemberships.get(group.id) || [];
 
                 if (groupMembers.length < 2) return;
 
@@ -785,7 +807,7 @@ async function createSmallPaymentsForGroups(groups: GroupWithInvite[], users: Au
     console.log(`✓ Finished creating small payments for all groups`);
 }
 
-async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: AuthenticatedFirebaseUser[]): Promise<void> {
+async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], groupMemberships: Map<string, AuthenticatedFirebaseUser[]>): Promise<void> {
     // Skip empty group and settled group (to preserve their states)
     const groupsWithExpenses = groups.filter((g) => g.name !== 'Empty Group' && g.name !== 'Settled Group');
 
@@ -794,8 +816,9 @@ async function deleteSomeExpensesFromGroups(groups: GroupWithInvite[], users: Au
     let totalDeleted = 0;
 
     for (const group of groupsWithExpenses) {
-        // Get a group member to perform the deletion (preferably the creator)
-        const deleter = users.find((u) => u.uid === group.createdBy) || users.find((u) => u.uid in group.members);
+        // Get actual members of this group from tracked memberships and pick one to perform deletion
+        const groupMembers = groupMemberships.get(group.id) || [];
+        const deleter = groupMembers.find((u) => u.uid === group.createdBy) || groupMembers[0];
         if (!deleter) {
             console.warn(`No valid user found to delete expenses from group: ${group.name}`);
             continue;
@@ -888,12 +911,19 @@ export async function generateTestData(): Promise<void> {
     console.log(`✓ Created ${groupsWithInvites.length} groups with invite links`);
     logTiming('Group creation', groupCreationStart);
 
-    // Other users randomly join ~70% of groups
+    // Other users randomly join ~70% of groups and track memberships
     console.log('Having users randomly join groups...');
     const joinGroupsStart = Date.now();
-    await joinGroupsRandomly(users, groupsWithInvites);
+    const groupMemberships = await joinGroupsRandomly(users, groupsWithInvites);
     console.log('✓ Users have joined groups randomly');
     logTiming('Group joining', joinGroupsStart);
+
+    // Log membership summary
+    console.log('Group membership summary:');
+    for (const [groupId, members] of groupMemberships.entries()) {
+        const group = groupsWithInvites.find(g => g.id === groupId);
+        console.log(`  ${group?.name || groupId}: ${members.length} members`);
+    }
 
     // IMPORTANT: Refresh group data after joins to get updated member lists
     console.log('Refreshing group data to get updated member lists...');
@@ -913,35 +943,35 @@ export async function generateTestData(): Promise<void> {
     // Create random expenses for regular groups (excluding special ones)
     console.log('Creating random expenses for regular groups...');
     const regularExpensesStart = Date.now();
-    await createRandomExpensesForGroups(refreshedGroups, users, testConfig);
+    await createRandomExpensesForGroups(refreshedGroups, groupMemberships, testConfig);
     console.log('✓ Created random expenses for regular groups');
     logTiming('Regular expenses creation', regularExpensesStart);
 
     // Create special balanced expenses for "Settled Group"
     console.log('Creating balanced expenses for "Settled Group"...');
     const balancedExpensesStart = Date.now();
-    await createBalancedExpensesForSettledGroup(refreshedGroups, users);
+    await createBalancedExpensesForSettledGroup(refreshedGroups, groupMemberships);
     console.log('✓ Created balanced expenses');
     logTiming('Balanced expenses creation', balancedExpensesStart);
 
     // Create many expenses for "Large Group" for pagination testing
     console.log('Creating many expenses for "Large Group"...');
     const largeGroupExpensesStart = Date.now();
-    await createManyExpensesForLargeGroup(refreshedGroups, users, testConfig);
+    await createManyExpensesForLargeGroup(refreshedGroups, groupMemberships, testConfig);
     console.log('✓ Created many expenses for pagination testing');
     logTiming('Large group expenses creation', largeGroupExpensesStart);
 
     // Create small payments/settlements for groups to demonstrate payment functionality
     console.log('Creating small payments/settlements for groups...');
     const smallPaymentsStart = Date.now();
-    await createSmallPaymentsForGroups(refreshedGroups, users);
+    await createSmallPaymentsForGroups(refreshedGroups, groupMemberships);
     console.log('✓ Created small payments/settlements');
     logTiming('Small payments creation', smallPaymentsStart);
 
     // Delete some expenses to test deletion functionality and show deleted state
     console.log('Deleting some expenses to test deletion functionality...');
     const deletionStart = Date.now();
-    await deleteSomeExpensesFromGroups(refreshedGroups, users);
+    await deleteSomeExpensesFromGroups(refreshedGroups, groupMemberships);
     console.log('✓ Deleted some expenses from groups');
     logTiming('Expense deletion', deletionStart);
 

@@ -712,10 +712,17 @@ export class ApiClient {
             id: response.groupId,
             name: response.groupName,
             description: '',
-            members: {}, // Will be populated from server after join
             createdBy: '', // Will be populated from server
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            securityPreset: 'open',
+            permissions: {
+                expenseEditing: 'anyone',
+                expenseDeletion: 'owner-and-admin',
+                memberInvitation: 'anyone',
+                memberApproval: 'automatic',
+                settingsManagement: 'admin-only'
+            },
             balance: {
                 balancesByCurrency: {},
             },

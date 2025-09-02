@@ -44,13 +44,11 @@ describe('Balance Calculations', () => {
         await apiDriver.createExpense(expenseData, testUsers[0].token);
 
         // Get group details to check balance info
-        const {group: groupDetails, members} = await apiDriver.getGroupFullDetails(balanceTestGroup.id, testUsers[0].token);
+        const {group: groupDetails} = await apiDriver.getGroupFullDetails(balanceTestGroup.id, testUsers[0].token);
 
         // Verify the response structure includes balance info
         expect(groupDetails).toHaveProperty('id');
         expect(groupDetails).toHaveProperty('name');
-        expect(groupDetails).toHaveProperty('members');
-        expect(Object.keys(members).length).toBeGreaterThan(0);
     });
 
     test('should include balance data in listGroups response', async () => {

@@ -71,7 +71,6 @@ export const GroupSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     description: z.string().optional(),
-    members: z.record(z.string(), GroupMemberSchema), // Map of userId -> GroupMember (required now)
     balance: z.object({
         balancesByCurrency: z.record(
             z.string(),

@@ -36,14 +36,13 @@ export const GroupMemberSchema = z
  * Base Group schema without document ID
  * 
  * Groups contain metadata about the expense-sharing group including
- * members, permissions, and security settings.
+ * permissions and security settings. Members are stored in subcollections.
  */
 const BaseGroupSchema = z
     .object({
         name: z.string().min(1, 'Group name is required'),
         description: z.string().optional(),
         createdBy: UserIdSchema,
-        members: z.record(z.string(), GroupMemberSchema),
         securityPreset: z.nativeEnum(SecurityPresets).optional(),
         permissions: z
             .object({

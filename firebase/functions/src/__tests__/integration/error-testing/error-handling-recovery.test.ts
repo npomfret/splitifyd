@@ -230,7 +230,6 @@ describe('Error Handling and Recovery Testing', () => {
                 // Verify all data is accessible for export
                 expect(groupData).toBeDefined();
                 expect(groupData).toHaveProperty('name');
-                expect(groupData).toHaveProperty('members');
 
                 expect(expenseData).toHaveProperty('expenses');
                 expect(expenseData.expenses.length).toBeGreaterThan(0);

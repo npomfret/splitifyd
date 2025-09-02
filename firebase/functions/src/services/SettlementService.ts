@@ -18,6 +18,7 @@ import {
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { getGroupMemberService } from './serviceRegistration';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { GroupData } from '../types/group-types';
 import { SettlementDocumentSchema } from '../schemas/settlement';
@@ -46,7 +47,7 @@ export class SettlementService {
 
 
     /**
-     * Verify that specified users are members of the group
+     * Verify that specified users are members of the group using subcollection
      */
     private async verifyUsersInGroup(groupId: string, userIds: string[]): Promise<void> {
         const groupDoc = await this.groupsCollection.doc(groupId).get();
@@ -55,13 +56,10 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        const groupData = groupDoc.data();
-        const groupDataTyped = groupData as GroupData;
-
-        const allMemberIds = Object.keys(groupDataTyped.members || {});
-
+        // Verify each user is a member using subcollection
         for (const userId of userIds) {
-            if (!allMemberIds.includes(userId)) {
+            const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+            if (!member) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${userId} is not a member of this group`);
             }
         }

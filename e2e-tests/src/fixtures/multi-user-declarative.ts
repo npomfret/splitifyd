@@ -92,7 +92,16 @@ export const multiUserTest = base.extend<MultiUserFixtures>({
                     await userPool.releaseUser(user);
                     // Don't close the default context (index 0), Playwright will handle it
                     if (index > 0) {
-                        await context.close();
+                        try {
+                            await context.close();
+                        } catch (error) {
+                            // Ignore trace file cleanup errors - they don't affect test results
+                            if (error instanceof Error && error.message?.includes('ENOENT') && error.message?.includes('.trace')) {
+                                console.warn(`Ignoring trace cleanup error for context ${index}:`, error.message);
+                            } else {
+                                throw error;
+                            }
+                        }
                     }
                 }),
             );

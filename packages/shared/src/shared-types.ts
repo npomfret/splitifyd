@@ -389,11 +389,6 @@ export interface Group {
     name: string;
     description?: string;
 
-    /**
-     * @deprecated
-     */
-    members: Record<string, GroupMember>; // Map of userId -> member info with theme
-
     createdBy: string;
     createdAt: string; // ISO string
     updatedAt: string; // ISO string
