@@ -12,7 +12,6 @@ export interface PermissionCheckOptions {
  */
 export class PermissionEngine {
 
-
     /**
      * Get default permissions for a security preset
      */
@@ -41,46 +40,6 @@ export class PermissionEngine {
                 // Return open permissions as default fallback
                 return this.getDefaultPermissions(SecurityPresets.OPEN);
         }
-    }
-
-    /**
-     * Check if user can change another user's role
-     * @deprecated Use PermissionEngineAsync.canChangeRole instead for scalable subcollection queries
-     */
-    static canChangeRole(members: Record<string, GroupMember>, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): { allowed: boolean; reason?: string } {
-        const actorMember = members[actorUserId];
-        const targetMember = members[targetUserId];
-
-        if (!actorMember || !targetMember) {
-            return { allowed: false, reason: 'User not found in group' };
-        }
-
-        // Only admins can change roles
-        if (actorMember.role !== MemberRoles.ADMIN) {
-            return { allowed: false, reason: 'Only admins can change member roles' };
-        }
-
-        // Prevent last admin from demoting themselves
-        if (actorUserId === targetUserId && actorMember.role === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-            const adminCount = Object.values(members).filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
-
-            if (adminCount === 1) {
-                return {
-                    allowed: false,
-                    reason: 'Cannot remove last admin. Promote another member first.',
-                };
-            }
-        }
-
-        // Prevent changing group creator to viewer without explicit confirmation
-        if (targetUserId === createdBy && newRole === MemberRoles.VIEWER) {
-            return {
-                allowed: false,
-                reason: 'Changing creator permissions requires explicit confirmation',
-            };
-        }
-
-        return { allowed: true };
     }
 
 }
