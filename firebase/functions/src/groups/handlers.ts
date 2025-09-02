@@ -90,20 +90,6 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
 };
 
 /**
- * Get a single group by ID
- */
-export const getGroup = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = req.user?.uid;
-    if (!userId) {
-        throw Errors.UNAUTHORIZED();
-    }
-    const groupId = validateGroupId(req.params.id);
-
-    const groupWithBalance = await getGroupService().getGroup(groupId, userId);
-    res.json(groupWithBalance);
-};
-
-/**
  * Update an existing group
  */
 export const updateGroup = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

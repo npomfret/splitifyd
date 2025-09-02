@@ -102,71 +102,6 @@ export class GroupService {
     }
 
     /**
-     * Get a single group by ID with user-specific balance information
-     */
-    async getGroup(groupId: string, userId: string): Promise<GroupWithBalance> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupService',
-            'getGroup',
-            async () => this._getGroup(groupId, userId),
-            { groupId, userId }
-        );
-    }
-
-    private async _getGroup(groupId: string, userId: string): Promise<GroupWithBalance> {
-        const { group } = await this.fetchGroupWithAccess(groupId, userId);
-
-        // Calculate balance information on-demand
-        const groupBalances = await calculateGroupBalances(groupId);
-
-        // Calculate currency-specific balances
-        const balancesByCurrency: Record<string, any> = {};
-        if (groupBalances.balancesByCurrency) {
-            for (const [currency, currencyBalances] of Object.entries(groupBalances.balancesByCurrency)) {
-                const currencyUserBalance = currencyBalances[userId];
-                if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                    balancesByCurrency[currency] = {
-                        currency,
-                        netBalance: currencyUserBalance.netBalance,
-                        totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                        totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
-                    };
-                }
-            }
-        }
-
-        // Get user's balance from first available currency
-        let userBalance: any = {
-            netBalance: 0,
-            totalOwed: 0,
-            totalOwing: 0,
-        };
-        
-        if (groupBalances.balancesByCurrency) {
-            const currencyBalances = Object.values(groupBalances.balancesByCurrency)[0];
-
-            if (currencyBalances && currencyBalances[userId]) {
-                const balance = currencyBalances[userId];
-                userBalance = {
-                    netBalance: balance.netBalance,
-                    totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
-                    totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
-                };
-            }
-        }
-
-        const groupWithBalance: GroupWithBalance = {
-            ...group,
-            balance: {
-                userBalance,
-                balancesByCurrency,
-            },
-        };
-
-        return groupWithBalance;
-    }
-
-    /**
      * Batch fetch all expenses and settlements for multiple groups
      * PERFORMANCE OPTIMIZED: Reduces N database queries to just 2-3
      */
@@ -737,21 +672,7 @@ export class GroupService {
         const settlementLimit = Math.min(options.settlementLimit || 20, 100);
 
         // Get group with access check (this will throw if user doesn't have access)
-        const groupWithBalance = await this.getGroup(groupId, userId);
-        
-        // Extract the base group data (without the balance field added by getGroup)
-        const group: Group = {
-            id: groupWithBalance.id,
-            name: groupWithBalance.name,
-            description: groupWithBalance.description,
-            createdBy: groupWithBalance.createdBy,
-            members: groupWithBalance.members,
-            createdAt: groupWithBalance.createdAt,
-            updatedAt: groupWithBalance.updatedAt,
-            securityPreset: groupWithBalance.securityPreset,
-            permissions: groupWithBalance.permissions,
-            presetAppliedAt: groupWithBalance.presetAppliedAt,
-        };
+        const { group } = await this.fetchGroupWithAccess(groupId, userId);
 
         // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([

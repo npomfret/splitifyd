@@ -117,7 +117,6 @@ describe('Service Registration', () => {
         expect(userService).toBeDefined();
         expect(groupService).toBeDefined();
         expect(typeof userService.getUser).toBe('function');
-        expect(typeof groupService.getGroup).toBe('function');
     });
 
     it('should return same instance on multiple calls', () => {
@@ -154,7 +153,6 @@ describe('Service Registration', () => {
 
         // Verify key methods exist
         expect(typeof userService.getUser).toBe('function');
-        expect(typeof groupService.getGroup).toBe('function');
         expect(typeof expenseService.getExpense).toBe('function');
         expect(typeof settlementService.getSettlement).toBe('function');
         expect(typeof commentService.createComment).toBe('function');
