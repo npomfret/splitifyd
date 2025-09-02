@@ -8,13 +8,29 @@ This document now serves as the **implementation plan** for solving the critical
 
 ---
 
-## Historical Context: Lessons Learned from the Q3 2025 Membership Refactor
+## Why This Inconsistency Exists: Partial Refactoring Analysis
 
-Initially, fixing a single non-scalable query (`.where('data.members.${userId}', '!=', null)`) was planned as a small task. However, it evolved into a major refactoring effort. The "lessons learned" from this effort are preserved here as they provide invaluable insight into the complexities of our codebase and serve as a guide for future architectural changes.
+Recent commits show evidence of **partial refactoring attempts** that addressed API response structure but never tackled the underlying storage scalability issue. This created a facade of improvement while leaving the core problem unsolved.
 
-### What We Learned (54 files changed, 1,338 insertions, 814 deletions)
+### What Actually Happened:
+- **API Consolidation**: `getGroupFullDetails()` was created to reduce endpoint count
+- **Response Structure Changes**: `GroupMemberWithProfile` interface was introduced
+- **Property Renaming**: Fixed conflicts (`role` → `memberRole`, `theme` → `themeColor`)
+- **Frontend Updates**: Stores were updated to work with new response format
 
-The attempt to fix one query cascaded into a full-stack migration due to several underestimated dependencies:
+### What Was MISSED:
+- **Storage Architecture**: Members still stored in embedded map
+- **Scalability Query**: Line 395 in UserService2.ts remains problematic
+- **Permission System**: Still synchronous, using embedded member checks
+- **Firestore Indexes**: No subcollection indexes added
+
+## Projected Complexities: What We've Learned from Recent Refactoring Attempts
+
+Analysis of recent commits (18e9c65f, e3fa0fbe, etc.) reveals the true scope of what a complete subcollection migration would require. These insights come from observing what was needed for just the API layer changes:
+
+### Projected Cascading Effects (Based on Recent Partial Changes)
+
+If we had attempted to fix the storage layer during the recent refactoring, these are the cascading effects we would have encountered:
 
 #### 1. **API Contract Cascade**
 - Changing the `Group` interface to remove the embedded `members` map was a breaking change.
@@ -33,8 +49,8 @@ The attempt to fix one query cascaded into a full-stack migration due to several
 #### 4. **Member Profile Merging Complexity**
 - The new `GroupMemberWithProfile` type, which combines a user's profile with their group membership role, required new and complex data-merging logic in the `GroupMemberService`.
 
-#### 5. **The "No Backward Compatibility" Rule Held Firm**
-- Unlike the hypothetical plan, the final implementation correctly avoided adding legacy fields or re-exports, adhering to our "no backward-compatible code" principle. This made the change cleaner but also required the frontend and backend to be deployed in sync.
+#### 5. **The "No Backward Compatibility" Rule Challenge**
+- A complete subcollection migration would need to adhere to our "no backward-compatible code" principle, requiring synchronized deployment of frontend and backend changes across all services.
 
 ---
 
@@ -158,9 +174,21 @@ This single index handles ALL users efficiently.
 
 ## 📋 Implementation Plan: 5-Phase Migration Strategy
 
+### Service Architecture Strategy
+
+**Key Decision**: We'll **refactor the existing `GroupMemberService`** rather than create a new parallel service to avoid confusion and maintain clear service boundaries.
+
+**Approach**:
+- Add new async subcollection methods alongside existing embedded-map methods
+- Use feature flags or dual-write logic during transition
+- Gradually migrate callers from old to new methods
+- Remove embedded-map methods once migration is complete
+
+This avoids having `GroupMemberService` and `GroupMemberSubcollectionService` causing developer confusion.
+
 ### Phase 1: Infrastructure Setup (2-3 days)
 1. **Add Firestore Index**: Add the members collectionGroup index
-2. **Create GroupMemberSubcollectionService**: New service for subcollection operations
+2. **Extend GroupMemberService**: Add async subcollection methods to existing service (avoid creating confusing parallel services)
 3. **Create Migration Script**: Copy existing embedded members to subcollections  
 4. **Implement Dual-Write Logic**: Write to both structures during transition
 
@@ -172,7 +200,7 @@ This single index handles ALL users efficiently.
 ### Phase 3: Core Service Migration (2-3 days)
 8. **Update GroupService**: Use subcollections for member operations
 9. **Update GroupShareService**: Async member addition for group joining
-10. **Update GroupMemberService**: Migrate to subcollection-based operations
+10. **Migrate GroupMemberService Methods**: Replace embedded map operations with subcollection queries
 11. **Fix UserService2**: Replace problematic query with collectionGroup
 
 ### Phase 4: API and Frontend Integration (2-3 days)
