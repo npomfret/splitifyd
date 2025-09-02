@@ -10,6 +10,7 @@ import {GroupDocumentSchema} from '../schemas';
 import {createServerTimestamp} from '../utils/dateHelpers';
 import {z} from 'zod';
 import {PerformanceMonitor} from '../utils/performance-monitor';
+import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {getMemberFromArray, isAdminInArray} from '../utils/memberHelpers';
 import {getGroupMemberService} from './serviceRegistration';
 
@@ -71,12 +72,16 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PRESET', 'Valid security preset is required');
         }
 
-        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
+        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        
+        // Initial read outside transaction for permission checks
+        const groupDoc = await groupDocRef.get();
         if (!groupDoc.exists) {
             throw Errors.NOT_FOUND('Group');
         }
 
         const group = transformGroupDocument(groupDoc);
+        const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check permissions
         const membersData = await getGroupMemberService().getGroupMembersResponse(group.members);
@@ -89,26 +94,59 @@ export class GroupPermissionService {
         const newPermissions = PermissionEngine.getDefaultPermissions(preset);
         const now = new Date().toISOString();
 
-        const updateData: any = {
-            securityPreset: preset,
-            presetAppliedAt: now,
-            permissions: newPermissions,
-            updatedAt: createServerTimestamp(),
-        };
+        // Use transaction with optimistic locking
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Re-fetch within transaction
+                const groupDocInTx = await transaction.get(groupDocRef);
+                if (!groupDocInTx.exists) {
+                    throw Errors.NOT_FOUND('Group');
+                }
 
-        const changeLog: PermissionChangeLog = {
-            timestamp: now,
-            changedBy: userId,
-            changeType: 'preset',
-            changes: { preset, permissions: newPermissions },
-        };
+                const currentData = groupDocInTx.data();
+                if (!currentData) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+                }
 
-        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+                // Optimistic locking check
+                const currentTimestamp = currentData.updatedAt;
+                if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
+                        'Group was modified by another user. Please refresh and try again.');
+                }
 
-        await groupDoc.ref.update(updateData);
+                // Perform the update
+                const updateData: any = {
+                    securityPreset: preset,
+                    presetAppliedAt: now,
+                    permissions: newPermissions,
+                    updatedAt: createServerTimestamp(),
+                };
+
+                const changeLog: PermissionChangeLog = {
+                    timestamp: now,
+                    changedBy: userId,
+                    changeType: 'preset',
+                    changes: { preset, permissions: newPermissions },
+                };
+
+                updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+
+                transaction.update(groupDocRef, updateData);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'applySecurityPreset',
+                    userId,
+                    groupId,
+                    preset
+                }
+            }
+        );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDoc.ref, 'security preset application');
+        await this.validateUpdatedGroupDocument(groupDocRef, 'security preset application');
 
         permissionCache.invalidateGroup(groupId);
 
@@ -145,12 +183,16 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERMISSIONS', 'Valid permissions object is required');
         }
 
-        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
+        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        
+        // Initial read outside transaction for permission checks
+        const groupDoc = await groupDocRef.get();
         if (!groupDoc.exists) {
             throw Errors.NOT_FOUND('Group');
         }
 
         const group = transformGroupDocument(groupDoc);
+        const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         if (!PermissionEngine.checkPermission(group, userId, 'settingsManagement')) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
@@ -159,25 +201,57 @@ export class GroupPermissionService {
         const now = new Date().toISOString();
         const updatedPermissions = { ...group.permissions, ...permissions };
 
-        const updateData: any = {
-            securityPreset: SecurityPresets.CUSTOM,
-            permissions: updatedPermissions,
-            updatedAt: createServerTimestamp(),
-        };
+        // Use transaction with optimistic locking
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Re-fetch within transaction
+                const groupDocInTx = await transaction.get(groupDocRef);
+                if (!groupDocInTx.exists) {
+                    throw Errors.NOT_FOUND('Group');
+                }
 
-        const changeLog: PermissionChangeLog = {
-            timestamp: now,
-            changedBy: userId,
-            changeType: 'custom',
-            changes: { permissions },
-        };
+                const currentData = groupDocInTx.data();
+                if (!currentData) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+                }
 
-        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+                // Optimistic locking check
+                const currentTimestamp = currentData.updatedAt;
+                if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
+                        'Group was modified by another user. Please refresh and try again.');
+                }
 
-        await groupDoc.ref.update(updateData);
+                // Perform the update
+                const updateData: any = {
+                    securityPreset: SecurityPresets.CUSTOM,
+                    permissions: updatedPermissions,
+                    updatedAt: createServerTimestamp(),
+                };
+
+                const changeLog: PermissionChangeLog = {
+                    timestamp: now,
+                    changedBy: userId,
+                    changeType: 'custom',
+                    changes: { permissions },
+                };
+
+                updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+
+                transaction.update(groupDocRef, updateData);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'updateGroupPermissions',
+                    userId,
+                    groupId
+                }
+            }
+        );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDoc.ref, 'group permissions update');
+        await this.validateUpdatedGroupDocument(groupDocRef, 'group permissions update');
 
         permissionCache.invalidateGroup(groupId);
 
@@ -217,12 +291,16 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ROLE', 'Valid member role is required');
         }
 
-        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
+        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        
+        // Initial read outside transaction for permission checks
+        const groupDoc = await groupDocRef.get();
         if (!groupDoc.exists) {
             throw Errors.NOT_FOUND('Group');
         }
 
         const group = transformGroupDocument(groupDoc);
+        const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check target user exists
         const members = group.members;
@@ -243,25 +321,59 @@ export class GroupPermissionService {
         const targetMember = getMemberFromArray(groupMembersResponse.members, targetUserId)!;
         const oldRole = targetMember.memberRole;
 
-        const updateData: any = {
-            [`members.${targetUserId}.role`]: role,
-            [`members.${targetUserId}.lastPermissionChange`]: now,
-            updatedAt: createServerTimestamp(),
-        };
+        // Use transaction with optimistic locking
+        await runTransactionWithRetry(
+            async (transaction) => {
+                // Re-fetch within transaction
+                const groupDocInTx = await transaction.get(groupDocRef);
+                if (!groupDocInTx.exists) {
+                    throw Errors.NOT_FOUND('Group');
+                }
 
-        const changeLog: PermissionChangeLog = {
-            timestamp: now,
-            changedBy: userId,
-            changeType: 'role',
-            changes: { userId: targetUserId, oldRole, newRole: role },
-        };
+                const currentData = groupDocInTx.data();
+                if (!currentData) {
+                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+                }
 
-        updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+                // Optimistic locking check
+                const currentTimestamp = currentData.updatedAt;
+                if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
+                        'Group was modified by another user. Please refresh and try again.');
+                }
 
-        await groupDoc.ref.update(updateData);
+                // Perform the update
+                const updateData: any = {
+                    [`members.${targetUserId}.role`]: role,
+                    [`members.${targetUserId}.lastPermissionChange`]: now,
+                    updatedAt: createServerTimestamp(),
+                };
+
+                const changeLog: PermissionChangeLog = {
+                    timestamp: now,
+                    changedBy: userId,
+                    changeType: 'role',
+                    changes: { userId: targetUserId, oldRole, newRole: role },
+                };
+
+                updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
+
+                transaction.update(groupDocRef, updateData);
+            },
+            {
+                maxAttempts: 3,
+                context: {
+                    operation: 'setMemberRole',
+                    userId,
+                    groupId,
+                    targetUserId,
+                    role
+                }
+            }
+        );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDoc.ref, 'member role change');
+        await this.validateUpdatedGroupDocument(groupDocRef, 'member role change');
 
         permissionCache.invalidateGroup(groupId);
         permissionCache.invalidateUser(targetUserId);

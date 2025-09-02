@@ -361,11 +361,19 @@ describe('Permission System Edge Cases', () => {
                 ),
             ];
 
-            // Both operations should succeed (order may vary)
-            const results = await Promise.all(permissionPromises);
-            results.forEach((result) => {
-                expect(result.message).toBeDefined();
-            });
+            // With optimistic locking, one operation should succeed and one should fail with CONCURRENT_UPDATE
+            const results = await Promise.allSettled(permissionPromises);
+            
+            // One should succeed, one should fail with concurrent update error
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
+            
+            expect(succeeded).toBe(1);
+            expect(failed).toBe(1);
+            
+            // The failed one should be a concurrent update error
+            const failedResult = results.find(r => r.status === 'rejected') as PromiseRejectedResult;
+            expect(failedResult.reason.message).toContain('CONCURRENT_UPDATE');
         });
     });
 });
