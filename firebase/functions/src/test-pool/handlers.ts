@@ -15,12 +15,6 @@ export async function borrowTestUser(req: Request, res: Response): Promise<void>
     try {
         const poolUser = await pool.borrowUser();
 
-        const poolStatus = await pool.getPoolStatus();
-        logger.info('pool user borrowed', {
-            email: poolUser.user.email,
-            poolStatus,
-        });
-
         res.json(poolUser);
     } catch (error: any) {
         logger.error('Failed to borrow test user', error);
@@ -47,12 +41,6 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
     try {
         await pool.returnUser(email);
         
-        const poolStatus = await pool.getPoolStatus();
-        logger.info('Test user return attempt', {
-            email,
-            poolStatus
-        });
-
         res.json({
             message: 'User returned to pool',
             email
