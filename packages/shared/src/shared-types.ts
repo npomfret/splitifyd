@@ -361,10 +361,6 @@ export interface ShareLink {
     isActive: boolean; // For soft deletion/deactivation
 }
 
-export function groupSize(group: Group) {
-    return group.members ? Object.keys(group.members).length : 0;
-}
-
 export interface Group {
     // Always present
     id: string;

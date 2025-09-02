@@ -28,7 +28,16 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
 
     emulatorProcess.stdout.on('data', (data: Buffer) => {
         const output = data.toString();
-        process.stdout.write(output);
+
+        // Filter out noisy hosting logs for static assets.
+        const staticAssetLogPattern = /hosting: GET \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest)/;
+
+        const lines = output.split('\n');
+        const filteredLines = lines.filter(line => !staticAssetLogPattern.test(line));
+
+        if (filteredLines.join('').trim().length > 0) {
+            process.stdout.write(filteredLines.join('\n'));
+        }
 
         if (output.includes('All emulators ready!')) {
             emulatorsReady = true;
