@@ -7,15 +7,6 @@ import { getGroupMemberService } from '../services/serviceRegistration';
 
 
 /**
- * Internal function to get group members data
- * Used by both the HTTP handler and consolidated endpoints
- */
-export const _getGroupMembersData = async (groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> => {
-    return await getGroupMemberService().getGroupMembersData(groupId, membersMap);
-};
-
-
-/**
  * Leave a group
  * Removes the current user from the group
  */

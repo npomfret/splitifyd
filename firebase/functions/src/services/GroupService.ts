@@ -9,7 +9,7 @@ import {calculateExpenseMetadata} from './expenseMetadataService';
 import {transformGroupDocument} from '../groups/handlers';
 import {GroupDataSchema, GroupDocumentSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMember, isGroupOwner} from '../utils/groupHelpers';
-import {getUserService} from './serviceRegistration';
+import {getExpenseService, getGroupMemberService, getSettlementService, getUserService} from './serviceRegistration';
 import {buildPaginatedQuery, encodeCursor} from '../utils/pagination';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
@@ -693,7 +693,9 @@ export class GroupService {
             throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
         }
 
-        if (!(userId in validatedGroup.members)) {
+        // Get members to validate user access
+        const membersData = await getUserService().getUsers([userId]);
+        if (!membersData.has(userId) || !(userId in validatedGroup.members)) {
             throw Errors.FORBIDDEN();
         }
 
@@ -751,18 +753,13 @@ export class GroupService {
             presetAppliedAt: groupWithBalance.presetAppliedAt,
         };
 
-        // Import the helper functions dynamically to avoid circular dependencies
-        const { _getGroupMembersData } = await import('../groups/memberHandlers');
-        const { _getGroupExpensesData } = await import('../expenses/handlers');
-        const { SettlementService } = await import('./SettlementService');
-
-        // Fetch all data in parallel
+        // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
-            // Get members using extracted function with theme information
-            _getGroupMembersData(groupId, group.members),
+            // Get members using service layer
+            getGroupMemberService().getGroupMembersData(group.members),
 
-            // Get expenses using extracted function with pagination
-            _getGroupExpensesData(groupId, {
+            // Get expenses using service layer with pagination
+            getExpenseService().listGroupExpenses(groupId, userId, {
                 limit: expenseLimit,
                 cursor: options.expenseCursor,
             }),
@@ -770,8 +767,8 @@ export class GroupService {
             // Get balances using existing calculator
             calculateGroupBalances(groupId),
 
-            // Get settlements using extracted function with pagination
-            new SettlementService()._getGroupSettlementsData(groupId, {
+            // Get settlements using service layer with pagination
+            getSettlementService()._getGroupSettlementsData(groupId, {
                 limit: settlementLimit,
                 cursor: options.settlementCursor,
             }),

@@ -10,6 +10,8 @@ import { GroupDocumentSchema } from '../schemas';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import { z } from 'zod';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { getMemberFromArray, isAdminInArray } from '../utils/memberHelpers';
+import { getGroupMemberService } from './serviceRegistration';
 
 export class GroupPermissionService {
     private getGroupsCollection() {
@@ -76,8 +78,11 @@ export class GroupPermissionService {
 
         const group = transformGroupDocument(groupDoc);
 
-        const member = group.members[userId];
-        if (!member || member.role !== MemberRoles.ADMIN) {
+        // Get members to check permissions
+        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const members = membersData.members;
+        
+        if (!isAdminInArray(members, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to change security presets');
         }
 
@@ -219,7 +224,11 @@ export class GroupPermissionService {
 
         const group = transformGroupDocument(groupDoc);
 
-        if (!group.members[targetUserId]) {
+        // Get members to check target user exists
+        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const members = membersData.members;
+        
+        if (!getMemberFromArray(members, targetUserId)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
         }
 
@@ -231,7 +240,8 @@ export class GroupPermissionService {
         }
 
         const now = new Date().toISOString();
-        const oldRole = group.members[targetUserId].role;
+        const targetMember = getMemberFromArray(members, targetUserId)!;
+        const oldRole = targetMember.memberRole;
 
         const updateData: any = {
             [`members.${targetUserId}.role`]: role,
@@ -283,12 +293,17 @@ export class GroupPermissionService {
 
         const group = transformGroupDocument(groupDoc);
 
-        if (!group.members[userId]) {
+        // Get members to check user membership
+        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const members = membersData.members;
+        
+        if (!getMemberFromArray(members, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
         }
 
         const permissions = PermissionEngine.getUserPermissions(group, userId);
-        const userRole = group.members[userId].role;
+        const userMember = getMemberFromArray(members, userId)!;
+        const userRole = userMember.memberRole;
 
         return {
             userId,

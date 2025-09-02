@@ -21,7 +21,7 @@ export class GroupMemberService {
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
-    async getGroupMembersData(groupId: string, membersMap: Record<string, any>): Promise<GroupMembersResponse> {
+    async getGroupMembersData(membersMap: Record<string, any>): Promise<GroupMembersResponse> {
         const memberIds = Object.keys(membersMap);
 
         const memberProfiles = await getUserService().getUsers(memberIds);

@@ -1,19 +1,19 @@
-
-import { DocumentReference } from 'firebase-admin/firestore';
-import { z } from 'zod';
-import { firestoreDb } from '../firebase';
-import { ApiError, Errors } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { timestampToISO, createServerTimestamp, parseISOToTimestamp } from '../utils/dateHelpers';
-import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, DELETED_AT_FIELD, SplitTypes, CreateExpenseRequest, UpdateExpenseRequest } from '@splitifyd/shared';
-import { Expense, calculateSplits } from '../expenses/validation';
-import { verifyGroupMembership } from '../utils/groupHelpers';
-import { PermissionEngine } from '../permissions';
-import { _getGroupMembersData } from '../groups/memberHandlers';
-import { transformGroupDocument } from '../groups/handlers';
-import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas/expense';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import {DocumentReference} from 'firebase-admin/firestore';
+import {z} from 'zod';
+import {firestoreDb} from '../firebase';
+import {ApiError, Errors} from '../utils/errors';
+import {HTTP_STATUS} from '../constants';
+import {createServerTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {logger, LoggerContext} from '../logger';
+import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
+import {calculateSplits, Expense} from '../expenses/validation';
+import {verifyGroupMembership} from '../utils/groupHelpers';
+import {isMemberInArray} from '../utils/memberHelpers';
+import {getGroupMemberService} from './serviceRegistration';
+import {PermissionEngine} from '../permissions';
+import {transformGroupDocument} from '../groups/handlers';
+import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
+import {PerformanceMonitor} from '../utils/performance-monitor';
 
 // Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
@@ -159,15 +159,16 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
 
-        // Validate that paidBy and all participants are group members
-        const memberIds = Object.keys(group.members);
+        // Get current members to validate participants
+        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const members = membersData.members;
 
-        if (!memberIds.includes(expenseData.paidBy)) {
+        if (!isMemberInArray(members, expenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         for (const participantId of expenseData.participants) {
-            if (!memberIds.includes(participantId)) {
+            if (!isMemberInArray(members, participantId)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
             }
         }
@@ -273,15 +274,16 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const memberIds = Object.keys(group.members);
+        const membersData = await getGroupMemberService().getGroupMembersData(group.members);
+        const members = membersData.members;
 
-        if (updateData.paidBy && !memberIds.includes(updateData.paidBy)) {
+        if (updateData.paidBy && !isMemberInArray(members, updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         if (updateData.participants) {
             for (const participantId of updateData.participants) {
-                if (!memberIds.includes(participantId)) {
+                if (!isMemberInArray(members, participantId)) {
                     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
                 }
             }
@@ -833,7 +835,7 @@ export class ExpenseService {
         };
 
         // Get members data using the proper helper function
-        const members = await _getGroupMembersData(expense.groupId, groupData.members || {});
+        const members = await getGroupMemberService().getGroupMembersData(groupData.members || {});
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);
