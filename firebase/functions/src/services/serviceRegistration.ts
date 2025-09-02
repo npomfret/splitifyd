@@ -51,7 +51,8 @@ export function registerAllServices(): void {
 
     registry.registerService('GroupService', () => {
         if (!groupServiceInstance) {
-            groupServiceInstance = new GroupService();
+            const firestoreReader = getFirestoreReader();
+            groupServiceInstance = new GroupService(firestoreReader);
         }
         return groupServiceInstance;
     });

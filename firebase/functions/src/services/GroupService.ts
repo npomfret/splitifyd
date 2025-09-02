@@ -19,11 +19,31 @@ import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
  * Service for managing group operations
  */
 export class GroupService {
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    
+    /**
+     * Helper to safely convert any date-like value to ISO string
+     */
+    private safeDateToISO(value: any): string {
+        if (value instanceof Timestamp) {
+            return timestampToISO(value);
+        }
+        if (value instanceof Date) {
+            return timestampToISO(value);
+        }
+        if (typeof value === 'string') {
+            return value;
+        }
+        // Fallback for unknown types - use current timestamp
+        return new Date().toISOString();
+    }
+    
     /**
      * Get the groups collection reference
      */
@@ -87,13 +107,24 @@ export class GroupService {
      */
     private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: DocumentReference; group: Group }> {
         const docRef = this.getGroupsCollection().doc(groupId);
-        const doc = await docRef.get();
+        const groupData = await this.firestoreReader.getGroup(groupId);
 
-        if (!doc.exists) {
+        if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(doc);
+        // Convert GroupDocument to Group format (the reader returns validated data)
+        const group: Group = {
+            id: groupData.id,
+            name: groupData.name,
+            description: groupData.description ?? '',
+            createdBy: groupData.createdBy,
+            createdAt: this.safeDateToISO(groupData.createdAt),
+            updatedAt: this.safeDateToISO(groupData.updatedAt),
+            securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
+            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
+            permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+        };
 
         // Check if user is the owner
         if (await isGroupOwnerAsync(group.id, userId)) {
@@ -141,10 +172,24 @@ export class GroupService {
             chunks.push(groupIds.slice(i, i + 10));
         }
 
-        // Batch fetch all expenses and settlements for all groups
-        const expenseQueries = chunks.map((chunk) => firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', 'in', chunk).get());
+        // Batch fetch all expenses and settlements for all groups using FirestoreReader
+        const expenseQueries = chunks.map(async (chunk) => {
+            const allExpenses = [];
+            for (const groupId of chunk) {
+                const expenses = await this.firestoreReader.getExpensesForGroup(groupId);
+                allExpenses.push(...expenses.map(expense => ({ ...expense, groupId })));
+            }
+            return allExpenses;
+        });
 
-        const settlementQueries = chunks.map((chunk) => firestoreDb.collection(FirestoreCollections.SETTLEMENTS).where('groupId', 'in', chunk).get());
+        const settlementQueries = chunks.map(async (chunk) => {
+            const allSettlements = [];
+            for (const groupId of chunk) {
+                const settlements = await this.firestoreReader.getSettlementsForGroup(groupId);
+                allSettlements.push(...settlements.map(settlement => ({ ...settlement, groupId })));
+            }
+            return allSettlements;
+        });
 
         // Execute all queries in parallel
         const [expenseResults, settlementResults] = await Promise.all([Promise.all(expenseQueries), Promise.all(settlementQueries)]);
@@ -153,10 +198,8 @@ export class GroupService {
         const expensesByGroup = new Map<string, any[]>();
         const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date }>();
 
-        for (const snapshot of expenseResults) {
-            for (const doc of snapshot.docs) {
-                const expenseData = doc.data();
-                const expense = { id: doc.id, groupId: expenseData.groupId, ...expenseData };
+        for (const expenseArray of expenseResults) {
+            for (const expense of expenseArray) {
                 const groupId = expense.groupId;
 
                 if (!expensesByGroup.has(groupId)) {
@@ -170,14 +213,19 @@ export class GroupService {
         for (const [groupId, expenses] of expensesByGroup.entries()) {
             const nonDeletedExpenses = expenses.filter((expense) => !expense[DELETED_AT_FIELD]);
             const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
-                const aTime = a.createdAt?.toMillis() || 0;
-                const bTime = b.createdAt?.toMillis() || 0;
+                // Handle both Firestore Timestamps and ISO strings
+                const aTime = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : (a.createdAt?.toMillis() || 0);
+                const bTime = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : (b.createdAt?.toMillis() || 0);
                 return bTime - aTime; // DESC order
             });
 
             expenseMetadataByGroup.set(groupId, {
                 count: nonDeletedExpenses.length,
-                lastExpenseTime: sortedExpenses.length > 0 ? sortedExpenses[0].createdAt?.toDate() : undefined,
+                lastExpenseTime: sortedExpenses.length > 0 ? (
+                    typeof sortedExpenses[0].createdAt === 'string' 
+                        ? new Date(sortedExpenses[0].createdAt) 
+                        : sortedExpenses[0].createdAt?.toDate()
+                ) : undefined,
             });
         }
 
@@ -190,10 +238,8 @@ export class GroupService {
 
         // Organize settlements by group ID
         const settlementsByGroup = new Map<string, any[]>();
-        for (const snapshot of settlementResults) {
-            for (const doc of snapshot.docs) {
-                const settlementData = doc.data();
-                const settlement = { id: doc.id, groupId: settlementData.groupId, ...settlementData };
+        for (const settlementArray of settlementResults) {
+            for (const settlement of settlementArray) {
                 const groupId = settlement.groupId;
 
                 if (!settlementsByGroup.has(groupId)) {
@@ -280,60 +326,22 @@ export class GroupService {
         const order = options.order ?? 'desc';
         const includeMetadata = options.includeMetadata === true;
 
-        // Step 1: Get user's groups using scalable subcollection query
-        const { groups, hasMore, changesSnapshot } = await stepTracker('fetch-user-groups-and-metadata', async () => {
-            // Get groups for user using scalable subcollection query
-            const groupIds = await getGroupMemberService().getUserGroupsViaSubcollection(userId);
-            
-            if (groupIds.length === 0) {
-                return { groups: [], hasMore: false, changesSnapshot: null };
-            }
-
-            // Fetch all group documents
-            const groupDocs = await Promise.all(
-                groupIds.map(groupId => this.getGroupsCollection().doc(groupId).get())
-            );
-
-            // Filter existing groups and transform to Group objects
-            const allGroups: Group[] = groupDocs
-                .filter(doc => doc.exists)
-                .map(doc => transformGroupDocument(doc));
-
-            // Sort groups by updatedAt in memory
-            allGroups.sort((a, b) => {
-                const aTime = new Date(a.updatedAt).getTime();
-                const bTime = new Date(b.updatedAt).getTime();
-                return order === 'desc' ? bTime - aTime : aTime - bTime;
+        // Step 1: Query groups and metadata using FirestoreReader
+        const { groupsData, changesSnapshot } = await stepTracker('query-groups-and-metadata', async () => {
+            // Get groups for user using FirestoreReader
+            const groupsData = await this.firestoreReader.getGroupsForUser(userId, {
+                limit: limit + 1,
+                cursor: cursor,
+                orderBy: {
+                    field: 'updatedAt',
+                    direction: order
+                }
             });
 
-            // Apply cursor-based pagination in memory
-            let filteredGroups = allGroups;
-            if (cursor) {
-                try {
-                    const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
-                    const cursorTime = new Date(cursorData.updatedAt).getTime();
-                    const cursorId = cursorData.id;
-                    
-                    filteredGroups = allGroups.filter(group => {
-                        const groupTime = new Date(group.updatedAt).getTime();
-                        if (order === 'desc') {
-                            return groupTime < cursorTime || (groupTime === cursorTime && group.id < cursorId);
-                        } else {
-                            return groupTime > cursorTime || (groupTime === cursorTime && group.id > cursorId);
-                        }
-                    });
-                } catch (error) {
-                    logger.warn('Invalid cursor provided, ignoring pagination', { cursor, userId });
-                }
-            }
-
-            // Apply limit and determine if there are more results
-            const hasMore = filteredGroups.length > limit;
-            const groups = hasMore ? filteredGroups.slice(0, limit) : filteredGroups;
-
-            // Fetch metadata if requested
             let changesSnapshot = null;
+            // Include metadata query if requested
             if (includeMetadata) {
+                // Get recent changes (last 60 seconds) - still need direct Firestore for this
                 changesSnapshot = await firestoreDb
                     .collection(FirestoreCollections.GROUP_CHANGES)
                     .where('timestamp', '>', new Date(Date.now() - 60000))
@@ -343,50 +351,67 @@ export class GroupService {
                     .get();
             }
 
-            return { groups, hasMore, changesSnapshot };
+            return {
+                groupsData,
+                changesSnapshot
+            };
         });
 
-        if (groups.length === 0) {
-            return {
-                groups: [],
-                count: 0,
-                hasMore: false,
-                pagination: {
-                    limit,
-                    order,
-                },
-            };
-        }
+        // Step 2: Process group documents
+        const { groups, groupIds } = await stepTracker('process-group-documents', async () => {
+            // Determine if there are more results
+            const hasMore = groupsData.length > limit;
+            const returnedGroups = hasMore ? groupsData.slice(0, limit) : groupsData;
 
-        const groupIds = groups.map((group: Group) => group.id);
+            // Convert GroupDocument to Group format (the reader returns validated data)
+            const groups: Group[] = returnedGroups.map((groupData: any) => ({
+                id: groupData.id,
+                name: groupData.name,
+                description: groupData.description ?? '',
+                createdBy: groupData.createdBy,
+                createdAt: this.safeDateToISO(groupData.createdAt),
+                updatedAt: this.safeDateToISO(groupData.updatedAt),
+                securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
+                presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
+                permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+            }));
+            const groupIds = groups.map((group) => group.id);
+            
+            return { groups, groupIds };
+        });
 
-        // Step 2: Batch fetch group data
+        // Step 3: Batch fetch group data
         const { expenseMetadataByGroup } = await stepTracker('batch-fetch-group-data', async () => {
+            // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
             return this.batchFetchGroupData(groupIds);
         });
 
-        // Step 3: Batch fetch member profiles
-        const { membersByGroupId, allMemberProfiles } = await stepTracker('batch-fetch-member-profiles', async () => {
-            // Batch fetch all member data for all groups to avoid N+1 queries
-            const membersByGroupId = new Map<string, GroupMemberDocument[]>();
-            await Promise.all(
-                groups.map(async (group: Group) => {
-                    const members = await getGroupMemberService().getMembersFromSubcollection(group.id);
-                    membersByGroupId.set(group.id, members);
-                })
-            );
-
-            // Collect all unique member IDs for batch user profile fetch
+        // Step 4: Batch fetch user profiles and create member mapping
+        const { allMemberProfiles, membersByGroup } = await stepTracker('batch-fetch-user-profiles', async () => {
+            // Batch fetch user profiles for all members across all groups using subcollections
             const allMemberIds = new Set<string>();
-            membersByGroupId.forEach(members => {
-                members.forEach(member => allMemberIds.add(member.userId));
+            const membersByGroup = new Map<string, string[]>();
+            
+            // Fetch members for each group from subcollections
+            const memberPromises = groups.map((group: Group) => 
+                getGroupMemberService().getMembersFromSubcollection(group.id)
+            );
+            const membersArrays = await Promise.all(memberPromises);
+            
+            // Collect all member IDs and create mapping
+            groups.forEach((group: Group, index: number) => {
+                const memberDocs = membersArrays[index];
+                const memberIds = memberDocs.map((memberDoc: GroupMemberDocument) => memberDoc.userId);
+                membersByGroup.set(group.id, memberIds);
+                memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
+            
             const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
-
-            return { membersByGroupId, allMemberProfiles };
+            
+            return { allMemberProfiles, membersByGroup };
         });
 
-        // Step 4: Calculate balances for groups with expenses
+        // Step 5: Calculate balances for groups with expenses
         const balanceMap = await stepTracker('calculate-group-balances', async () => {
             // Calculate balances for groups that have expenses
             const groupsWithExpenses = groups.filter((group: Group) => {
@@ -416,111 +441,137 @@ export class GroupService {
             return balanceMap;
         });
 
-        // Step 5: Process each group using batched data - no more database calls!
+        // Step 6: Process each group using batched data - no more database calls!
         const groupsWithBalances: Group[] = await stepTracker('process-groups-with-balances', async () => {
             return groups.map((group: Group) => {
-                // Get pre-fetched data for this group (no database calls)
-                const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
+            // Get pre-fetched data for this group (no database calls)
+            const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
-                // Get member profiles for this group using subcollection data
-                const groupMembers = membersByGroupId.get(group.id) || [];
-                const memberProfiles = new Map<string, import('../services/UserService2').UserProfile>();
-                for (const member of groupMembers) {
-                    const profile = allMemberProfiles.get(member.userId);
-                    if (profile) {
-                        memberProfiles.set(member.userId, profile);
-                    }
+            // Get member profiles for this group
+            const memberIds = membersByGroup.get(group.id) || [];
+            const memberProfiles = new Map<string, import('../services/UserService2').UserProfile>();
+            for (const memberId of memberIds) {
+                const profile = allMemberProfiles.get(memberId);
+                if (profile) {
+                    memberProfiles.set(memberId, profile);
                 }
+            }
 
-                // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
-                const groupBalances = balanceMap.get(group.id) || {
-                    groupId: group.id,
-                    balancesByCurrency: {},
-                    userBalances: {},
-                    simplifiedDebts: [],
-                    lastUpdated: Timestamp.now(),
-                };
+            // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
+            const groupBalances = balanceMap.get(group.id) || {
+                groupId: group.id,
+                balancesByCurrency: {},
+                userBalances: {},
+                simplifiedDebts: [],
+                lastUpdated: Timestamp.now(),
+            };
 
-                // Calculate currency-specific balances with proper typing
-                const balancesByCurrency: Record<string, {
-                    currency: string;
-                    netBalance: number;
-                    totalOwed: number;
-                    totalOwing: number;
-                }> = {};
+            // Calculate currency-specific balances with proper typing
+            const balancesByCurrency: Record<string, {
+                currency: string;
+                netBalance: number;
+                totalOwed: number;
+                totalOwing: number;
+            }> = {};
+            
+            if (groupBalances.balancesByCurrency) {
+                // Validate the balance data with schema first
+                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
                 
-                if (groupBalances.balancesByCurrency) {
-                    // Validate the balance data with schema first
-                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-                    
-                    for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
-                        const currencyUserBalance = currencyBalances[userId];
-                        if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                            const currencyDisplayData = {
-                                currency,
-                                netBalance: currencyUserBalance.netBalance,
-                                totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                                totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
-                            };
-                            
-                            // Validate the currency display data structure
-                            const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
-                            balancesByCurrency[currency] = validatedCurrencyData;
-                        }
+                for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
+                    const currencyUserBalance = currencyBalances[userId];
+                    if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                        const currencyDisplayData = {
+                            currency,
+                            netBalance: currencyUserBalance.netBalance,
+                            totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+                            totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+                        };
+                        
+                        // Validate the currency display data structure
+                        const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                        balancesByCurrency[currency] = validatedCurrencyData;
                     }
                 }
+            }
 
-                // Format last activity using pre-fetched metadata
-                const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
-                const lastActivity = this.formatRelativeTime(lastActivityDate.toISOString());
+            // Format last activity using pre-fetched metadata
+            const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
+            let lastActivity: string;
+            let lastActivityRaw: string;
+            
+            try {
+                if (lastActivityDate instanceof Date && !isNaN(lastActivityDate.getTime())) {
+                    lastActivityRaw = lastActivityDate.toISOString();
+                    lastActivity = this.formatRelativeTime(lastActivityRaw);
+                } else if (typeof lastActivityDate === 'string') {
+                    lastActivityRaw = lastActivityDate;
+                    lastActivity = this.formatRelativeTime(lastActivityDate);
+                } else {
+                    // Fallback to group's updatedAt
+                    lastActivityRaw = group.updatedAt;
+                    lastActivity = this.formatRelativeTime(group.updatedAt);
+                }
+            } catch (error) {
+                logger.warn('Failed to format last activity time, using group updatedAt', { 
+                    error, 
+                    lastActivityDate, 
+                    groupId: group.id 
+                });
+                lastActivityRaw = group.updatedAt;
+                lastActivity = this.formatRelativeTime(group.updatedAt);
+            }
 
-                // Get user's balance from first available currency with proper typing
-                let userBalance: {
-                    netBalance: number;
-                    totalOwed: number;
-                    totalOwing: number;
-                } = {
-                    netBalance: 0,
-                    totalOwed: 0,
-                    totalOwing: 0,
-                };
+            // Get user's balance from first available currency with proper typing
+            let userBalance: {
+                netBalance: number;
+                totalOwed: number;
+                totalOwing: number;
+            } = {
+                netBalance: 0,
+                totalOwed: 0,
+                totalOwing: 0,
+            };
+            
+            if (groupBalances.balancesByCurrency) {
+                // Use validated balance data from above
+                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+                const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
                 
-                if (groupBalances.balancesByCurrency) {
-                    // Use validated balance data from above
-                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-                    const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
-                    
-                    if (currencyBalancesArray.length > 0) {
-                        const firstCurrencyBalances = currencyBalancesArray[0];
-                        if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
-                            const balance = firstCurrencyBalances[userId];
-                            userBalance = {
-                                netBalance: balance.netBalance,
-                                totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
-                                totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
-                            };
-                        }
+                if (currencyBalancesArray.length > 0) {
+                    const firstCurrencyBalances = currencyBalancesArray[0];
+                    if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
+                        const balance = firstCurrencyBalances[userId];
+                        userBalance = {
+                            netBalance: balance.netBalance,
+                            totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+                            totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+                        };
                     }
                 }
+            }
 
-                return {
-                    ...group,
-                    balance: {
-                        userBalance,
-                        balancesByCurrency,
-                    },
-                    lastActivity,
-                    lastActivityRaw: lastActivityDate.toISOString(),
-                };
+            return {
+                ...group,
+                balance: {
+                    userBalance,
+                    balancesByCurrency,
+                },
+                lastActivity,
+                lastActivityRaw,
+            };
             });
         });
 
-        // Step 6: Generate pagination and response
+        // Step 7: Generate pagination and response
         return await stepTracker('generate-response', async () => {
-            // Generate nextCursor if there are more results
+            // Determine if there are more results  
+            const hasMore = groupsData.length > limit;
+            const returnedGroups = hasMore ? groupsData.slice(0, limit) : groupsData;
+
             let nextCursor: string | undefined;
-            if (hasMore && groups.length > 0) {
-                const lastGroup = groups[groups.length - 1];
+            if (hasMore && returnedGroups.length > 0) {
+                const lastGroup = returnedGroups[returnedGroups.length - 1];
                 nextCursor = encodeCursor({
                     updatedAt: lastGroup.updatedAt,
                     id: lastGroup.id,
@@ -571,9 +622,6 @@ export class GroupService {
         const docRef = this.getGroupsCollection().doc();
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
-
-        // CRUCIAL: Ensure creator gets ADMIN role with theme index 0 in subcollection
-        // This ensures the integration test "should create a new group with minimal data" passes
 
         const newGroup: Group = {
             id: docRef.id,
@@ -640,8 +688,23 @@ export class GroupService {
         LoggerContext.setBusinessContext({ groupId: docRef.id });
 
         // Fetch the created document to get server-side timestamps
-        const createdDoc = await docRef.get();
-        const group = transformGroupDocument(createdDoc);
+        const groupData = await this.firestoreReader.getGroup(docRef.id);
+        if (!groupData) {
+            throw new Error('Failed to fetch created group');
+        }
+        
+        // Convert GroupDocument to Group format
+        const group: Group = {
+            id: groupData.id,
+            name: groupData.name,
+            description: groupData.description ?? '',
+            createdBy: groupData.createdBy,
+            createdAt: this.safeDateToISO(groupData.createdAt),
+            updatedAt: this.safeDateToISO(groupData.updatedAt),
+            securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
+            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
+            permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+        };
 
         // Add computed fields before returning
         return await this.addComputedFields(group, userId);
@@ -714,9 +777,9 @@ export class GroupService {
         const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Check if group has expenses
-        const expensesSnapshot = await firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).limit(1).get();
+        const expenses = await this.firestoreReader.getExpensesForGroup(groupId, { limit: 1 });
 
-        if (!expensesSnapshot.empty) {
+        if (expenses.length > 0) {
             throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
         }
 
@@ -766,38 +829,23 @@ export class GroupService {
             throw Errors.MISSING_FIELD('groupId');
         }
 
-        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
+        const groupData = await this.firestoreReader.getGroup(groupId);
 
-        if (!groupDoc.exists) {
+        if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const rawData = groupDoc.data();
-        if (!rawData) {
-            throw Errors.INTERNAL_ERROR();
-        }
+        // The reader already returns validated data
+        const validatedGroup = groupData;
 
-        let validatedGroup;
-        try {
-            const dataWithId = { ...rawData, id: groupId };
-            validatedGroup = GroupDocumentSchema.parse(dataWithId);
-        } catch (error) {
-            logger.error('Group document validation failed', error as Error, {
-                groupId,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw Errors.INTERNAL_ERROR();
+        // Validate user access using scalable membership check
+        const membersData = await getUserService().getUsers([userId]);
+        if (!membersData.has(userId)) {
+            throw Errors.FORBIDDEN();
         }
-
-        // Validate group has members using subcollection
-        const groupMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
-        if (groupMembers.length === 0) {
-            throw Errors.INVALID_INPUT(`Group ${groupId} has no members`);
-        }
-
-        // Get members to validate user access using subcollection
-        const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
-        if (!member) {
+        
+        // Check if user is a member using the async helper
+        if (!(await isGroupMemberAsync(groupId, userId))) {
             throw Errors.FORBIDDEN();
         }
 
@@ -843,7 +891,7 @@ export class GroupService {
 
         // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
-            // Get members using service layer from subcollection
+            // Get members using service layer
             getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId),
 
             // Get expenses using service layer with pagination

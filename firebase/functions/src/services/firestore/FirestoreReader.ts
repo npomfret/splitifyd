@@ -191,8 +191,58 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<GroupDocument[]> {
-        // TODO: Implement
-        return [];
+        try {
+            let query = this.db.collection(FirestoreCollections.GROUPS)
+                .where(`members.${userId}`, '!=', null);
+
+            // Apply ordering
+            if (options?.orderBy) {
+                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+            } else {
+                query = query.orderBy('updatedAt', 'desc');
+            }
+
+            // Apply limit
+            if (options?.limit) {
+                query = query.limit(options.limit);
+            }
+
+            // Apply cursor for pagination
+            if (options?.cursor) {
+                // Decode cursor - basic implementation
+                try {
+                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
+                    query = query.startAfter(cursorData.updatedAt, cursorData.id);
+                } catch (err) {
+                    logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
+                }
+            }
+
+            const snapshot = await query.get();
+            const groups: GroupDocument[] = [];
+
+            for (const doc of snapshot.docs) {
+                try {
+                    const groupData = GroupDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    groups.push(groupData);
+                } catch (error) {
+                    logger.error('Invalid group document in getGroupsForUser', {
+                        error,
+                        groupId: doc.id,
+                        userId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return groups;
+        } catch (error) {
+            logger.error('Failed to get groups for user', { error, userId });
+            throw error;
+        }
     }
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
@@ -201,8 +251,57 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
-        // TODO: Implement
-        return [];
+        try {
+            let query = this.db.collection(FirestoreCollections.EXPENSES)
+                .where('groupId', '==', groupId);
+
+            // Apply ordering  
+            if (options?.orderBy) {
+                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+            } else {
+                query = query.orderBy('createdAt', 'desc');
+            }
+
+            // Apply limit
+            if (options?.limit) {
+                query = query.limit(options.limit);
+            }
+
+            // Apply cursor for pagination
+            if (options?.cursor) {
+                try {
+                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
+                    query = query.startAfter(cursorData.createdAt, cursorData.id);
+                } catch (err) {
+                    logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
+                }
+            }
+
+            const snapshot = await query.get();
+            const expenses: ExpenseDocument[] = [];
+
+            for (const doc of snapshot.docs) {
+                try {
+                    const expenseData = ExpenseDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    expenses.push(expenseData);
+                } catch (error) {
+                    logger.error('Invalid expense document in getExpensesForGroup', {
+                        error,
+                        expenseId: doc.id,
+                        groupId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return expenses;
+        } catch (error) {
+            logger.error('Failed to get expenses for group', { error, groupId });
+            throw error;
+        }
     }
 
     async getExpensesByUser(userId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
@@ -211,8 +310,57 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
-        // TODO: Implement
-        return [];
+        try {
+            let query = this.db.collection(FirestoreCollections.SETTLEMENTS)
+                .where('groupId', '==', groupId);
+
+            // Apply ordering  
+            if (options?.orderBy) {
+                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+            } else {
+                query = query.orderBy('createdAt', 'desc');
+            }
+
+            // Apply limit
+            if (options?.limit) {
+                query = query.limit(options.limit);
+            }
+
+            // Apply cursor for pagination
+            if (options?.cursor) {
+                try {
+                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
+                    query = query.startAfter(cursorData.createdAt, cursorData.id);
+                } catch (err) {
+                    logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
+                }
+            }
+
+            const snapshot = await query.get();
+            const settlements: SettlementDocument[] = [];
+
+            for (const doc of snapshot.docs) {
+                try {
+                    const settlementData = SettlementDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    settlements.push(settlementData);
+                } catch (error) {
+                    logger.error('Invalid settlement document in getSettlementsForGroup', {
+                        error,
+                        settlementId: doc.id,
+                        groupId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return settlements;
+        } catch (error) {
+            logger.error('Failed to get settlements for group', { error, groupId });
+            throw error;
+        }
     }
 
     async getSettlementsForUser(userId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
