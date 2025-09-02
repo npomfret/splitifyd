@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { GroupService } from '../../../services/GroupService';
-import { MemberRoles, SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
+import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { firestoreDb } from '../../../firebase';
 import { registerAllServices, getGroupService } from '../../../services/serviceRegistration';

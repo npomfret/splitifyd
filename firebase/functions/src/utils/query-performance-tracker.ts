@@ -1,5 +1,5 @@
 import { logger } from '../logger';
-import { PerformanceMonitor, QueryContext } from './performance-monitor';
+import { QueryContext } from './performance-monitor';
 
 /**
  * Performance tracking specifically for Firestore queries

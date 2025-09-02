@@ -10,7 +10,6 @@ import {calculateSplits, Expense} from '../expenses/validation';
 import {verifyGroupMembership} from '../utils/groupHelpers';
 import {isMemberInArray} from '../utils/memberHelpers';
 import {getGroupMemberService} from './serviceRegistration';
-import {PermissionEngine} from '../permissions';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {transformGroupDocument} from '../groups/handlers';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';

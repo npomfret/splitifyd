@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
-import {firestoreDb as db, admin} from '../../../firebase';
+import {firestoreDb as db} from '../../../firebase';
 
 describe('Comments Integration Tests', () => {
     const apiDriver = new ApiDriver();

@@ -1,4 +1,4 @@
-import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses, GroupMemberDocument } from '@splitifyd/shared';
+import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
 import { getGroupMemberService } from '../services/serviceRegistration';
 

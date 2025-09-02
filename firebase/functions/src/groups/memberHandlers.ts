@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateGroupId } from './validation';
 import { logger } from '../logger';
-import { GroupMembersResponse } from '@splitifyd/shared';
 import { getGroupMemberService } from '../services/serviceRegistration';
 
 
