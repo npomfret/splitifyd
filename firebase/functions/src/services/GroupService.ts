@@ -325,7 +325,7 @@ export class GroupService {
         const includeMetadata = options.includeMetadata === true;
 
         // Step 1: Query groups and metadata using FirestoreReader
-        const { groupsData, changesSnapshot } = await stepTracker('query-groups-and-metadata', async () => {
+        const { groupsData, recentGroupChanges } = await stepTracker('query-groups-and-metadata', async () => {
             // Get groups for user using FirestoreReader
             const groupsData = await this.firestoreReader.getGroupsForUser(userId, {
                 limit: limit + 1,
@@ -336,22 +336,20 @@ export class GroupService {
                 }
             });
 
-            let changesSnapshot = null;
+            let recentGroupChanges: any[] = [];
             // Include metadata query if requested
             if (includeMetadata) {
-                // Get recent changes (last 60 seconds) - still need direct Firestore for this
-                changesSnapshot = await firestoreDb
-                    .collection(FirestoreCollections.GROUP_CHANGES)
-                    .where('timestamp', '>', new Date(Date.now() - 60000))
-                    .where('metadata.affectedUsers', 'array-contains', userId)
-                    .orderBy('timestamp', 'desc')
-                    .limit(10)
-                    .get();
+                // Get recent changes (last 60 seconds) using centralized reader
+                const groupChanges = await this.firestoreReader.getRecentGroupChanges(userId, {
+                    timeWindowMs: 60000,
+                    limit: 10
+                });
+                recentGroupChanges = groupChanges;
             }
 
             return {
                 groupsData,
-                changesSnapshot
+                recentGroupChanges
             };
         });
 
@@ -588,13 +586,13 @@ export class GroupService {
             };
 
             // Add metadata if requested
-            if (includeMetadata && changesSnapshot) {
-                const lastChange = changesSnapshot.docs[0];
+            if (includeMetadata && recentGroupChanges) {
+                const lastChange = recentGroupChanges[0]; // Already sorted by timestamp desc
                 response.metadata = {
-                    lastChangeTimestamp: lastChange?.data().timestamp?.toMillis() || 0,
-                    changeCount: changesSnapshot.size,
+                    lastChangeTimestamp: lastChange?.timestamp?.toMillis?.() || 0,
+                    changeCount: recentGroupChanges.length,
                     serverTime: Date.now(),
-                    hasRecentChanges: changesSnapshot.size > 0,
+                    hasRecentChanges: recentGroupChanges.length > 0,
                 };
             }
 
@@ -781,8 +779,20 @@ export class GroupService {
             throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
         }
 
-        // Delete the group
-        await docRef.delete();
+        // Delete the group and all member subcollection documents
+        await firestoreDb.runTransaction(async (transaction) => {
+            // Get all member documents in the subcollection
+            const membersRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('members');
+            const membersSnapshot = await transaction.get(membersRef);
+
+            // Delete all member documents
+            membersSnapshot.forEach(memberDoc => {
+                transaction.delete(memberDoc.ref);
+            });
+
+            // Delete the main group document
+            transaction.delete(docRef);
+        });
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });

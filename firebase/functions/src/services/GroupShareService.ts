@@ -11,10 +11,12 @@ import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '.
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
-import { transformGroupDocument } from '../groups/handlers';
 import { getGroupMemberService } from './serviceRegistration';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export class GroupShareService {
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    
     private generateShareToken(): string {
         const bytes = randomBytes(12);
         const base64url = bytes.toString('base64url');
@@ -82,21 +84,9 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
         }
 
-        const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const groupDoc = await groupRef.get();
-
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        let group;
-        try {
-            group = transformGroupDocument(groupDoc);
-        } catch (error) {
-            logger.error('Group document validation failed', error as Error, {
-                groupId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
 
         if (!(await isGroupOwnerAsync(group.id, userId)) && !(await isGroupMemberAsync(group.id, userId))) {
@@ -106,6 +96,7 @@ export class GroupShareService {
         const shareToken = this.generateShareToken();
 
         await firestoreDb.runTransaction(async (transaction) => {
+            const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
             const freshGroupDoc = await transaction.get(groupRef);
             if (!freshGroupDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
@@ -159,19 +150,9 @@ export class GroupShareService {
 
         const { groupId } = await this.findShareLinkByToken(linkId);
 
-        const groupDoc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).get();
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        let group;
-        try {
-            group = transformGroupDocument(groupDoc);
-        } catch (error) {
-            logger.error('Group document validation failed', error as Error, {
-                groupId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
         const isAlreadyMember = await isGroupMemberAsync(group.id, userId);
         
@@ -179,7 +160,7 @@ export class GroupShareService {
         const memberDocs = await getGroupMemberService().getMembersFromSubcollection(group.id);
 
         return {
-            groupId: groupDoc.id,
+            groupId: group.id,
             groupName: group.name,
             groupDescription: group.description || '',
             memberCount: memberDocs.length,
@@ -217,22 +198,9 @@ export class GroupShareService {
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
         
         // Pre-validate group exists outside transaction to fail fast
-        const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const preCheckSnapshot = await groupRef.get();
-        
-        if (!preCheckSnapshot.exists) {
+        const preCheckGroup = await this.firestoreReader.getGroup(groupId);
+        if (!preCheckGroup) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-        }
-
-        // Pre-validate and transform group document outside transaction
-        let preCheckGroup;
-        try {
-            preCheckGroup = transformGroupDocument(preCheckSnapshot);
-        } catch (error) {
-            logger.error('Group document validation failed', error as Error, {
-                groupId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document structure is invalid');
         }
 
         // Early membership check to avoid transaction if user is already a member
@@ -275,6 +243,7 @@ export class GroupShareService {
         // Atomic transaction: check group exists and create member subcollection
         const result = await runTransactionWithRetry(
             async (transaction) => {
+                const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
                 const groupSnapshot = await transaction.get(groupRef);
 
                 if (!groupSnapshot.exists) {

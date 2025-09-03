@@ -22,7 +22,8 @@ import type {
     UserDocument,
     GroupDocument,
     ExpenseDocument,
-    SettlementDocument
+    SettlementDocument,
+    GroupChangeDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
@@ -48,6 +49,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getSettlementsForGroup = vi.fn();
     public getSettlementsForUser = vi.fn();
     public getCommentsForTarget = vi.fn();
+    public getRecentGroupChanges = vi.fn();
     public getActiveShareLinkByToken = vi.fn();
     public getPolicyVersionsForUser = vi.fn();
     public getGroupInTransaction = vi.fn();
@@ -455,5 +457,19 @@ export class MockFirestoreReader implements IFirestoreReader {
             memberStatus: 'active' as any,
             ...overrides
         };
+    }
+
+    /**
+     * Mock recent group changes for a user - helper method using builder
+     */
+    public mockRecentGroupChanges(userId: string, changes: GroupChangeDocument[]): void {
+        this.getRecentGroupChanges.mockResolvedValue(changes.filter(change => change.users.includes(userId)));
+    }
+
+    /**
+     * Mock empty recent group changes for a user
+     */
+    public mockNoRecentGroupChanges(userId: string): void {
+        this.getRecentGroupChanges.mockResolvedValue([]);
     }
 }

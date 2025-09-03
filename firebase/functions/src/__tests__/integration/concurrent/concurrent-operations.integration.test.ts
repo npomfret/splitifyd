@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { getGroupMemberService, getGroupService, getExpenseService, registerAllServices } from '../../../services/serviceRegistration';
 import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, AuthenticatedFirebaseUser, SplitTypes, Group } from '@splitifyd/shared';
+import { logger } from '../../../logger';
 
 describe('Concurrent Operations Integration Tests', () => {
     let users: AuthenticatedFirebaseUser[];

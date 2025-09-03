@@ -13,8 +13,20 @@ vi.mock('../../firebase', () => ({
                 delete: vi.fn(),
                 get: vi.fn(),
                 set: vi.fn(),
+                collection: vi.fn(() => ({
+                    // Mock for members subcollection
+                })),
             })),
         })),
+        runTransaction: vi.fn(async (transactionFn) => {
+            const mockTransaction = {
+                get: vi.fn().mockResolvedValue({
+                    forEach: vi.fn(),
+                }),
+                delete: vi.fn(),
+            };
+            return await transactionFn(mockTransaction);
+        }),
     },
 }));
 

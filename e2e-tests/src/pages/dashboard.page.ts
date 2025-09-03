@@ -113,6 +113,25 @@ export class DashboardPage extends BasePage {
         // Dashboard is now ready - we don't check for specific content since users may have existing groups
     }
 
+    /**
+     * Wait for a group with the specified name to not be present on the dashboard
+     * This handles async deletion processes and real-time updates properly
+     */
+    async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number } = {}) {
+        const timeout = options.timeout || 1000; // Default 1 second
+        
+        await expect(async () => {
+            const groupCard = this.page.getByText(groupName);
+            const isVisible = await groupCard.isVisible();
+            if (isVisible) {
+                throw new Error(`Group "${groupName}" is still visible on dashboard`);
+            }
+        }).toPass({
+            timeout,
+            intervals: [100, 250, 500, 1000], // Check frequently initially, then less frequently
+        });
+    }
+
     // Note: Use the inherited logout() method from BasePage for signing out
     // It provides more robust handling of dropdown states and button enabling
 

@@ -19,7 +19,8 @@ import {
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
     PolicyDocumentSchema,
-    GroupMemberDocumentSchema
+    GroupMemberDocumentSchema,
+    GroupChangeDocumentSchema
 } from '../../schemas';
 
 // Import types
@@ -28,7 +29,8 @@ import type {
     GroupDocument,  
     ExpenseDocument,
     SettlementDocument,
-    PolicyDocument
+    PolicyDocument,
+    GroupChangeDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
@@ -406,7 +408,8 @@ export class FirestoreReader implements IFirestoreReader {
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
         try {
             let query = this.db.collection(FirestoreCollections.EXPENSES)
-                .where('groupId', '==', groupId);
+                .where('groupId', '==', groupId)
+                .where('deletedAt', '==', null);
 
             // Apply ordering  
             if (options?.orderBy) {
@@ -524,6 +527,43 @@ export class FirestoreReader implements IFirestoreReader {
     async getCommentsForTarget(target: CommentTarget, options?: QueryOptions): Promise<CommentDocument[]> {
         // TODO: Implement
         return [];
+    }
+
+    async getRecentGroupChanges(userId: string, options?: { 
+        timeWindowMs?: number;
+        limit?: number;
+    }): Promise<GroupChangeDocument[]> {
+        try {
+            const timeWindow = options?.timeWindowMs || 60000; // Default 60 seconds
+            const limit = options?.limit || 10;
+            const cutoffTime = new Date(Date.now() - timeWindow);
+
+            const changesSnapshot = await this.db
+                .collection(FirestoreCollections.GROUP_CHANGES)
+                .where('timestamp', '>', cutoffTime)
+                .where('users', 'array-contains', userId)
+                .orderBy('timestamp', 'desc')
+                .limit(limit)
+                .get();
+
+            const groupChanges: GroupChangeDocument[] = [];
+            changesSnapshot.forEach(doc => {
+                try {
+                    const changeData = GroupChangeDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    groupChanges.push(changeData);
+                } catch (validationError) {
+                    logger.error(`Invalid group change document ${doc.id}`, validationError as Error);
+                }
+            });
+
+            return groupChanges;
+        } catch (error) {
+            logger.error(`Failed to get recent group changes for user ${userId}`, error as Error);
+            throw error;
+        }
     }
 
     async getActiveShareLinkByToken(token: string): Promise<ShareLinkDocument | null> {

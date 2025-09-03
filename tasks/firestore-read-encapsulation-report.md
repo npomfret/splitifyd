@@ -422,10 +422,15 @@ This pagination performance issue should be prioritized as **HIGH PRIORITY** for
 - **Added**: getMemberFromSubcollection, getMembersFromSubcollection methods to IFirestoreReader
 - **Tests**: Core unit tests created (tests pass for isolated functionality, some integration issues with service registry in test environment)
 
-**Day 8: Support Services (CommentService, GroupShareService)**  
+**Day 8: Support Services (CommentService, GroupShareService)** ✅ **COMPLETED**
+- **Why paired**: Related secondary functionality with straightforward query patterns  
 - **Complexity**: Low-medium - straightforward collection queries
 - **Impact**: Low-medium - secondary features
-- **Tests**: 3 test files affected
+- **Tests**: 2 unit test files created, existing integration tests maintained
+- **Status**: Migration complete, both services now use IFirestoreReader dependency injection
+- **Added**: getRecentGroupChanges() method to IFirestoreReader for GROUP_CHANGES collection queries
+- **Created**: GroupChangeDocumentBuilder following established test-support patterns
+- **Tests**: Comprehensive unit tests created with MockFirestoreReader covering error scenarios and dependency injection
 
 **Day 9: Balance & Metadata Services**
 - **Why later**: Complex calculation logic, performance sensitive

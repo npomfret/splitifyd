@@ -73,7 +73,8 @@ export function registerAllServices(): void {
 
     registry.registerService('CommentService', () => {
         if (!commentServiceInstance) {
-            commentServiceInstance = new CommentService();
+            const firestoreReader = getFirestoreReader();
+            commentServiceInstance = new CommentService(firestoreReader);
         }
         return commentServiceInstance;
     });
@@ -110,7 +111,8 @@ export function registerAllServices(): void {
 
     registry.registerService('GroupShareService', () => {
         if (!groupShareServiceInstance) {
-            groupShareServiceInstance = new GroupShareService();
+            const firestoreReader = getFirestoreReader();
+            groupShareServiceInstance = new GroupShareService(firestoreReader);
         }
         return groupShareServiceInstance;
     });

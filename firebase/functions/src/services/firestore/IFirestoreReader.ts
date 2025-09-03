@@ -30,7 +30,8 @@ import type {
     GroupDocument,
     ExpenseDocument,
     SettlementDocument,
-    PolicyDocument
+    PolicyDocument,
+    GroupChangeDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
@@ -184,6 +185,17 @@ export interface IFirestoreReader {
     // ========================================================================
     // Specialized Query Operations
     // ========================================================================
+
+    /**
+     * Get recent group changes for a user
+     * @param userId - The user ID to filter changes for
+     * @param options - Query options including timeWindowMs for how far back to look
+     * @returns Array of group change documents
+     */
+    getRecentGroupChanges(userId: string, options?: { 
+        timeWindowMs?: number;
+        limit?: number;
+    }): Promise<GroupChangeDocument[]>;
 
     /**
      * Find an active share link by token

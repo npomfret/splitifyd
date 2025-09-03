@@ -16,9 +16,9 @@ import {
     ListCommentsResponse,
 } from '@splitifyd/shared';
 import { isGroupMemberAsync } from '../utils/groupHelpers';
-import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { CommentDocumentSchema, CommentDataSchema } from '../schemas/comment';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -33,6 +33,8 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
 export class CommentService {
     private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
     private expensesCollection = firestoreDb.collection(FirestoreCollections.EXPENSES);
+    
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
 
     /**
      * Get reference to comments subcollection based on target type
@@ -53,12 +55,11 @@ export class CommentService {
     private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string, groupId?: string): Promise<void> {
         if (targetType === CommentTargetTypes.GROUP) {
             // For group comments, verify user is a group member
-            const groupDoc = await this.groupsCollection.doc(targetId).get();
-            if (!groupDoc.exists) {
+            const group = await this.firestoreReader.getGroup(targetId);
+            if (!group) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const group = transformGroupDocument(groupDoc);
             if (!(await isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
@@ -68,23 +69,17 @@ export class CommentService {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required for expense comments');
             }
 
-            const expenseDoc = await this.expensesCollection.doc(targetId).get();
-            if (!expenseDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-
-            const expense = expenseDoc.data();
+            const expense = await this.firestoreReader.getExpense(targetId);
             if (!expense || expense.deletedAt) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
             }
 
             // Verify user is a member of the group that the expense belongs to
-            const groupDoc = await this.groupsCollection.doc(groupId).get();
-            if (!groupDoc.exists) {
+            const group = await this.firestoreReader.getGroup(groupId);
+            if (!group) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const group = transformGroupDocument(groupDoc);
             if (!(await isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
@@ -189,11 +184,7 @@ export class CommentService {
         // For expense comments, verify we have the groupId and the expense exists
         let resolvedGroupId = groupId;
         if (targetType === CommentTargetTypes.EXPENSE) {
-            const expenseDoc = await this.expensesCollection.doc(targetId).get();
-            if (!expenseDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-            const expense = expenseDoc.data();
+            const expense = await this.firestoreReader.getExpense(targetId);
             if (!expense || expense.deletedAt) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
             }
@@ -275,11 +266,7 @@ export class CommentService {
         // For expense comments, resolve the groupId from the expense
         let resolvedGroupId = groupId;
         if (targetType === CommentTargetTypes.EXPENSE) {
-            const expenseDoc = await this.expensesCollection.doc(targetId).get();
-            if (!expenseDoc.exists) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-            const expense = expenseDoc.data();
+            const expense = await this.firestoreReader.getExpense(targetId);
             if (!expense || expense.deletedAt) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
             }
