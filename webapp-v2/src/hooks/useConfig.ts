@@ -1,53 +1,13 @@
-import { signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { firebaseConfigManager } from '../app/firebase-config';
+import { configStore } from '@/stores/config-store';
+import type { AppConfiguration } from '@splitifyd/shared';
 
-interface AppConfiguration {
-    firebase: {
-        apiKey: string;
-        authDomain: string;
-        projectId: string;
-        storageBucket: string;
-        messagingSenderId: string;
-        appId: string;
-    };
-    firebaseAuthUrl?: string;
-    environment: {
-        warningBanner?: string;
-    };
-    formDefaults: {
-        displayName?: string;
-        email?: string;
-        password?: string;
-    };
-}
-
-const configSignal = signal<AppConfiguration | null>(null);
-const loadingSignal = signal(false);
-const errorSignal = signal<Error | null>(null);
-
-let initialized = false;
-
-export function useConfig() {
+export function useConfig(): AppConfiguration | null {
     useEffect(() => {
-        if (!initialized && !loadingSignal.value && !configSignal.value) {
-            initialized = true;
-            loadingSignal.value = true;
-
-            firebaseConfigManager
-                .getConfig()
-                .then((config) => {
-                    configSignal.value = config;
-                    errorSignal.value = null;
-                })
-                .catch((error) => {
-                    errorSignal.value = error;
-                })
-                .finally(() => {
-                    loadingSignal.value = false;
-                });
+        if (!configStore.config && !configStore.loading) {
+            configStore.loadConfig().catch(() => {});
         }
     }, []);
 
-    return configSignal.value;
+    return configStore.config;
 }

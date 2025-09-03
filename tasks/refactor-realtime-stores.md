@@ -10,27 +10,19 @@ The goal is to apply the robust, reference-counted subscription model from `comm
 - Explicit state machine (`idle`, `subscribing`, `subscribed`)
 - Clean register/deregister API
 
-## 2. Current State Analysis (Updated: 2025-01-03)
+## 2. Current State Analysis (Updated: 2025-09-03)
 
 ### ✅ Completed
 - **`comments-store.ts`**: Fully refactored with reference-counting pattern (serves as template)
+- **`LoginPage.tsx`**: ✅ **FIXED** - Converted module-level signals to component useState with sessionStorage
+- **`config-store.ts`**: ✅ **CREATED** - New store with proper signal encapsulation  
+- **`useConfig.ts`**: ✅ **FIXED** - Refactored to use ConfigStore instead of module-level signals
 
-### ❌ Verified Issues That Need Fixing
+### ❌ Remaining Issues That Need Fixing
 
-#### HIGH PRIORITY - Signal Encapsulation Violations
-1. **`LoginPage.tsx`** (lines 14-16): Module-level signals break testability
-   ```typescript
-   const emailSignal = signal('');  // Global mutable state!
-   const passwordSignal = signal('');
-   const formDefaultsLoadedSignal = signal(false);
-   ```
-
-2. **`useConfig.ts`** (lines 25-27): Module-level signals
-   ```typescript
-   const configSignal = signal<AppConfiguration | null>(null);
-   const loadingSignal = signal(false);
-   const errorSignal = signal<Error | null>(null);
-   ```
+#### ~~HIGH PRIORITY - Signal Encapsulation Violations~~ ✅ COMPLETED
+~~1. **`LoginPage.tsx`** - FIXED: Converted to component state with sessionStorage~~
+~~2. **`useConfig.ts`** - FIXED: Now uses ConfigStore with private signals~~
 
 #### MEDIUM PRIORITY - Store Architecture Issues
 1. **`group-detail-store-enhanced.ts`**:
@@ -49,16 +41,18 @@ The goal is to apply the robust, reference-counted subscription model from `comm
 
 ## 3. Implementation Plan
 
-### Phase 1: Critical Signal Encapsulation (Day 1)
+### ~~Phase 1: Critical Signal Encapsulation~~ ✅ COMPLETED
 
-#### Fix 1: Create ConfigStore
-- Create `webapp-v2/src/stores/config-store.ts` with private signals
-- Replace `useConfig.ts` module-level signals with store instance
-- Maintain backward compatibility
+#### ~~Fix 1: Create ConfigStore~~ ✅ DONE
+~~- Create `webapp-v2/src/stores/config-store.ts` with private signals~~
+~~- Replace `useConfig.ts` module-level signals with store instance~~  
+~~- Maintain backward compatibility~~
 
-#### Fix 2: Fix LoginPage Signals
-- Convert module signals to component `useState` with sessionStorage
-- Test form persistence across navigation
+#### ~~Fix 2: Fix LoginPage Signals~~ ✅ DONE
+~~- Convert module signals to component `useState` with sessionStorage~~
+~~- Test form persistence across navigation~~
+
+**Status**: Phase 1 complete! All tests pass, code compiles, testability significantly improved.
 
 ### Phase 2: Store Reference Counting (Days 2-3)
 
@@ -101,9 +95,9 @@ The goal is to apply the robust, reference-counted subscription model from `comm
 
 ## 5. Success Metrics
 
-- [ ] Zero module-level signals 
+- [x] Zero module-level signals ✅ **ACHIEVED** (LoginPage & useConfig fixed)
 - [ ] No Firebase listener accumulation during navigation
-- [ ] Memory stable during stress testing (100+ page navigations)
+- [ ] Memory stable during stress testing (100+ page navigations)  
 - [ ] All components have proper cleanup
 
 ## 6. Time Estimate: 5 days

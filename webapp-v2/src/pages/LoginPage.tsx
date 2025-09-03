@@ -1,5 +1,4 @@
-import { signal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { AuthLayout } from '../components/auth/AuthLayout';
@@ -11,13 +10,27 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { firebaseConfigManager } from '../app/firebase-config';
 import { logError } from '../utils/browser-logger';
 
-const emailSignal = signal('');
-const passwordSignal = signal('');
-const formDefaultsLoadedSignal = signal(false);
-
 export function LoginPage() {
     const { t } = useTranslation();
     const authStore = useAuthRequired();
+
+    // Component state with sessionStorage persistence
+    const [email, setEmail] = useState(() => 
+        sessionStorage.getItem('login-email') || ''
+    );
+    const [password, setPassword] = useState(() => 
+        sessionStorage.getItem('login-password') || ''
+    );
+    const [formDefaultsLoaded, setFormDefaultsLoaded] = useState(false);
+
+    // Persist to sessionStorage on changes
+    useEffect(() => {
+        sessionStorage.setItem('login-email', email);
+    }, [email]);
+
+    useEffect(() => {
+        sessionStorage.setItem('login-password', password);
+    }, [password]);
 
     // Clear any previous errors when component mounts and load form defaults
     useEffect(() => {
@@ -28,14 +41,14 @@ export function LoginPage() {
             .getConfig()
             .then((config) => {
                 if (config.formDefaults) {
-                    emailSignal.value = config.formDefaults.email || '';
-                    passwordSignal.value = config.formDefaults.password || '';
+                    setEmail(config.formDefaults.email || '');
+                    setPassword(config.formDefaults.password || '');
                 }
-                formDefaultsLoadedSignal.value = true;
+                setFormDefaultsLoaded(true);
             })
             .catch((error) => {
                 logError('Failed to load form defaults', error);
-                formDefaultsLoadedSignal.value = true;
+                setFormDefaultsLoaded(true);
             });
     }, []);
 
@@ -49,34 +62,33 @@ export function LoginPage() {
     const handleSubmit = async (e: Event) => {
         e.preventDefault();
 
-        const email = emailSignal.value.trim();
-        const password = passwordSignal.value;
+        const trimmedEmail = email.trim();
 
-        if (!email || !password) {
+        if (!trimmedEmail || !password) {
             const errors = [];
-            if (!email) errors.push(t('loginPage.validation.emailRequired'));
+            if (!trimmedEmail) errors.push(t('loginPage.validation.emailRequired'));
             if (!password) errors.push(t('loginPage.validation.passwordRequired'));
             // Validation errors are handled by the form UI
             return;
         }
 
         try {
-            await authStore.login(email, password);
+            await authStore.login(trimmedEmail, password);
             // Redirect will happen via useEffect when user state updates
         } catch (error) {
-            logError('Login attempt failed', error, { email });
+            logError('Login attempt failed', error, { email: trimmedEmail });
         }
     };
 
-    const isFormValid = emailSignal.value.trim() && passwordSignal.value;
+    const isFormValid = email.trim() && password;
     const isSubmitting = authStore.loading;
 
     return (
         <AuthLayout title={t('loginPage.title')} description={t('loginPage.description')}>
             <AuthForm onSubmit={handleSubmit} error={authStore.error} disabled={isSubmitting}>
-                <EmailInput value={emailSignal.value} onInput={(value) => (emailSignal.value = value)} autoFocus disabled={isSubmitting} />
+                <EmailInput value={email} onInput={setEmail} autoFocus disabled={isSubmitting} />
 
-                <PasswordInput value={passwordSignal.value} onInput={(value) => (passwordSignal.value = value)} disabled={isSubmitting} autoComplete="current-password" />
+                <PasswordInput value={password} onInput={setPassword} disabled={isSubmitting} autoComplete="current-password" />
 
                 <div class="flex items-center justify-between">
                     <label class="flex items-center">
