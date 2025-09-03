@@ -12,12 +12,11 @@ import {assignThemeColor} from '../user-management/assign-theme-color';
 import {validateRegisterRequest} from '../auth/validation';
 import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
 import {PerformanceMonitor} from '../utils/performance-monitor';
-import {UserDataSchema, UserDocumentSchema} from '../schemas/user';
+import {UserDataSchema} from '../schemas/user';
 import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
 import {UserRegistration} from "@splitifyd/shared/src";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { UserDocument } from '../schemas';
 
 /**
  * User profile interface for consistent user data across the application

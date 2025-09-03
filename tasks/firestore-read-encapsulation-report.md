@@ -413,11 +413,14 @@ The current FirestoreReader.getGroupsForUser() implementation has a fundamental 
 
 This pagination performance issue should be prioritized as **HIGH PRIORITY** for the next development cycle.
 
-**Day 7: GroupMemberService & GroupPermissionService**
+**Day 7: GroupMemberService & GroupPermissionService** ✅ **COMPLETED**
 - **Why paired**: Related functionality, complex permission logic
 - **Complexity**: High - complex filtering, member status queries
 - **Impact**: Medium - affects group management
 - **Tests**: 4 test files affected
+- **Status**: Migration complete, both services now use IFirestoreReader dependency injection
+- **Added**: getMemberFromSubcollection, getMembersFromSubcollection methods to IFirestoreReader
+- **Tests**: Core unit tests created (tests pass for isolated functionality, some integration issues with service registry in test environment)
 
 **Day 8: Support Services (CommentService, GroupShareService)**  
 - **Complexity**: Low-medium - straightforward collection queries
@@ -594,3 +597,61 @@ This refactoring represents a significant architectural improvement that will:
 5. **Simplify Development**: Clear, consistent interface for all database reads
 
 The 18-day implementation plan balances thorough execution with manageable risk, ensuring each phase can be completed successfully while maintaining system stability.
+
+## 8. Future Architecture Requirements
+
+### 8.1. IFirestoreWriter - Centralized Write Operations
+
+**User Requirement (identified during Day 7):** We need a FirestoreWriter service whose job is to ensure documents going into Firestore adhere to our schemas.
+
+**Key Design Considerations:**
+1. **Schema Validation**: All writes must pass through Zod validation before hitting Firestore
+2. **Transaction Support**: Should handle Firestore transactions with proper retries
+3. **Optimistic Locking**: Implement concurrent modification detection  
+4. **Centralized Write Logic**: Single source of truth for all Firestore write operations
+5. **Error Handling**: Consistent error handling and logging for all writes
+6. **Performance**: Batch operations where possible to reduce Firestore costs
+
+**Proposed Interface Structure:**
+```typescript
+interface IFirestoreWriter {
+    // Document Operations
+    createDocument<T>(collection: string, data: T, schema: z.ZodSchema<T>): Promise<string>;
+    updateDocument<T>(collection: string, docId: string, updates: Partial<T>, schema: z.ZodSchema<T>): Promise<void>;
+    deleteDocument(collection: string, docId: string): Promise<void>;
+    
+    // Transaction Operations
+    runTransaction<T>(operation: (transaction: Transaction, writer: IFirestoreWriter) => Promise<T>): Promise<T>;
+    
+    // Batch Operations
+    batchWrite(operations: WriteOperation[]): Promise<void>;
+    
+    // Subcollection Operations
+    createSubcollectionDocument<T>(
+        parentCollection: string, 
+        parentDocId: string, 
+        subcollection: string, 
+        data: T, 
+        schema: z.ZodSchema<T>
+    ): Promise<string>;
+}
+```
+
+**Integration Points:**
+- Works alongside IFirestoreReader for complete database abstraction
+- Services use both IFirestoreReader and IFirestoreWriter as dependencies
+- Maintains existing ServiceRegistry integration pattern
+- Provides MockFirestoreWriter for unit testing without emulator
+
+**Benefits:**
+1. **Schema Enforcement**: Impossible to write invalid data to Firestore
+2. **Testability**: Complete write mocking for unit tests  
+3. **Consistency**: All writes follow same patterns and error handling
+4. **Performance**: Centralized location for write optimizations
+5. **Maintainability**: Single place to update write logic and schema validation
+
+**Priority**: HIGH - Should be implemented immediately after read encapsulation is complete
+
+**Implementation Estimate**: 5-7 days (similar to IFirestoreReader implementation)
+
+This would complete the full Firestore abstraction layer, giving us complete control over both reads and writes with full schema validation and excellent testability.

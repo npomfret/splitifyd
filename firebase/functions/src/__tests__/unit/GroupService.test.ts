@@ -4,7 +4,6 @@ import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReade
 import type { GroupDocument, ExpenseDocument } from '../../schemas';
 import { Timestamp } from 'firebase-admin/firestore';
 import { SecurityPresets, MemberRoles, MemberStatuses, SplitTypes } from '@splitifyd/shared';
-import { ApiError } from '../../utils/errors';
 
 // Mock dependencies
 vi.mock('../../firebase', () => ({

@@ -81,9 +81,11 @@ export {
     GroupDocumentSchema,
     GroupDataSchema,
     GroupMemberSchema,
+    GroupMemberDocumentSchema,
     type GroupDocument,
     type GroupData,
     type GroupMember,
+    type ParsedGroupMemberDocument,
 } from './group';
 
 // Validation monitoring and utilities

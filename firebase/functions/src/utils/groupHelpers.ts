@@ -1,4 +1,4 @@
-import { Group, FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
+import { FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import { firestoreDb } from '../firebase';

@@ -1,5 +1,4 @@
 import {DocumentReference, Timestamp} from 'firebase-admin/firestore';
-import {z} from 'zod';
 import {firestoreDb} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
@@ -7,8 +6,7 @@ import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberD
 import {calculateGroupBalances} from './balanceCalculator';
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {calculateExpenseMetadata} from './expenseMetadataService';
-import {transformGroupDocument} from '../groups/handlers';
-import {GroupDataSchema, GroupDocumentSchema} from '../schemas';
+import {GroupDataSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
 import {getExpenseService, getGroupMemberService, getSettlementService, getUserService} from './serviceRegistration';
 import {encodeCursor} from '../utils/pagination';

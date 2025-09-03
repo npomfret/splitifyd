@@ -15,15 +15,13 @@
 
 import type { Transaction, DocumentReference } from 'firebase-admin/firestore';
 import {
-    PaginationOptions,
     QueryOptions,
     GroupMemberQueryOptions,
     CommentTarget,
     GroupSubscriptionCallback,
     ExpenseListSubscriptionCallback,
     CommentListSubscriptionCallback,
-    UnsubscribeFunction,
-    TransactionContext
+    UnsubscribeFunction
 } from '../../types/firestore-reader-types';
 
 // Import parsed types from schemas
@@ -115,6 +113,21 @@ export interface IFirestoreReader {
      * @returns Array of group member documents
      */
     getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]>;
+
+    /**
+     * Get a single member from group's member subcollection
+     * @param groupId - The group ID
+     * @param userId - The user ID to find
+     * @returns Group member document or null if not found
+     */
+    getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null>;
+
+    /**
+     * Get all members for a group from the member subcollection
+     * @param groupId - The group ID
+     * @returns Array of group member documents
+     */
+    getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]>;
 
     // ========================================================================
     // Collection Read Operations - Expense-related

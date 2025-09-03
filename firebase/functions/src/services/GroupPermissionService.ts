@@ -3,19 +3,41 @@ import {firestoreDb} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
-import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets} from '@splitifyd/shared';
-import {permissionCache, PermissionEngine} from '../permissions';
+import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels} from '@splitifyd/shared';
+import {permissionCache} from '../permissions';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {transformGroupDocument} from '../groups/handlers';
-import {GroupDocumentSchema} from '../schemas';
 import {createServerTimestamp} from '../utils/dateHelpers';
-import {z} from 'zod';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
-import {getMemberFromArray, isAdminInArray} from '../utils/memberHelpers';
-import {getGroupMemberService} from './serviceRegistration';
+import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { Group, GroupPermissions, GroupMemberDocument, SecurityPreset } from '@splitifyd/shared';
+import { MemberStatuses } from '@splitifyd/shared';
+import type { GroupDocument } from '../schemas';
+
+/**
+ * Transform GroupDocument (database schema) to Group (API type) with required defaults
+ */
+function toGroup(groupDoc: GroupDocument): Group {
+    const defaultPermissions: GroupPermissions = {
+        expenseEditing: 'anyone',
+        expenseDeletion: 'owner-and-admin',
+        memberInvitation: 'anyone',
+        memberApproval: 'automatic',
+        settingsManagement: 'admin-only'
+    };
+    
+    return {
+        ...groupDoc,
+        securityPreset: groupDoc.securityPreset || 'open',
+        permissions: (groupDoc.permissions as GroupPermissions) || defaultPermissions
+    };
+}
 
 export class GroupPermissionService {
+    constructor(
+        private readonly firestoreReader: IFirestoreReader
+    ) {}
     private getGroupsCollection() {
         return firestoreDb.collection(FirestoreCollections.GROUPS);
     }
@@ -24,27 +46,17 @@ export class GroupPermissionService {
      * Validates a group document after an update operation
      */
     private async validateUpdatedGroupDocument(groupDoc: FirebaseFirestore.DocumentReference, operationContext: string): Promise<void> {
-        const updatedDoc = await groupDoc.get();
-        if (!updatedDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupDoc.id);
+        if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found after update');
         }
 
-        const data = updatedDoc.data();
-        if (!data) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', 'Group document is empty after update');
-        }
-
-        try {
-            const dataWithId = { ...data, id: updatedDoc.id };
-            GroupDocumentSchema.parse(dataWithId);
-        } catch (error) {
-            logger.error('Group document validation failed after update operation', error as Error, {
-                groupId: updatedDoc.id,
-                operationContext,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_GROUP_DATA', `Group data validation failed after ${operationContext}`);
-        }
+        // Group validation is handled by FirestoreReader using GroupDocumentSchema
+        // No additional validation needed here since FirestoreReader already validates
+        logger.info('Group document validated successfully after operation', {
+            groupId: groupDoc.id,
+            operationContext
+        });
     }
 
     async applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
@@ -76,23 +88,23 @@ export class GroupPermissionService {
         const groupDocRef = this.getGroupsCollection().doc(groupId);
         
         // Initial read outside transaction for permission checks
-        const groupDoc = await groupDocRef.get();
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        // Get raw document for optimistic locking
+        const groupDoc = await groupDocRef.get();
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check permissions
-        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
-        const members = membersData.members;
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
         
-        if (!isAdminInArray(members, userId)) {
+        if (!isAdminInDocArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to change security presets');
         }
 
-        const newPermissions = PermissionEngine.getDefaultPermissions(preset);
+        const newPermissions = this.getDefaultPermissions(preset);
         const now = new Date().toISOString();
 
         // Use transaction with optimistic locking
@@ -187,15 +199,16 @@ export class GroupPermissionService {
         const groupDocRef = this.getGroupsCollection().doc(groupId);
         
         // Initial read outside transaction for permission checks
-        const groupDoc = await groupDocRef.get();
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        // Get raw document for optimistic locking
+        const groupDoc = await groupDocRef.get();
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
-        if (!(await PermissionEngineAsync.checkPermission(group, userId, 'settingsManagement'))) {
+        if (!(await PermissionEngineAsync.checkPermission(toGroup(group), userId, 'settingsManagement'))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
         }
 
@@ -295,18 +308,19 @@ export class GroupPermissionService {
         const groupDocRef = this.getGroupsCollection().doc(groupId);
         
         // Initial read outside transaction for permission checks
-        const groupDoc = await groupDocRef.get();
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        // Get raw document for optimistic locking
+        const groupDoc = await groupDocRef.get();
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check target user exists
-        const groupMembersResponse = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
 
-        if (!getMemberFromArray(groupMembersResponse.members, targetUserId)) {
+        if (!getMemberDocFromArray(memberDocs, targetUserId)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
         }
 
@@ -318,8 +332,8 @@ export class GroupPermissionService {
         }
 
         const now = new Date().toISOString();
-        const targetMember = getMemberFromArray(groupMembersResponse.members, targetUserId)!;
-        const oldRole = targetMember.memberRole;
+        const targetMember = getMemberDocFromArray(memberDocs, targetUserId)!;
+        const oldRole = targetMember.role;
 
         // Use transaction with optimistic locking
         await runTransactionWithRetry(
@@ -373,8 +387,14 @@ export class GroupPermissionService {
         // Validate the group document after update
         await this.validateUpdatedGroupDocument(groupDocRef, 'member role change');
 
-        // Dual-write: Also update the subcollection for scalable architecture
-        await getGroupMemberService().updateMemberInSubcollection(groupId, targetUserId, {
+        // Dual-write: Also update the subcollection for the new architecture
+        const memberDocRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(targetUserId);
+            
+        await memberDocRef.update({
             role: role,
             lastPermissionChange: now,
         });
@@ -402,24 +422,23 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
         }
 
-        const groupDoc = await this.getGroupsCollection().doc(groupId).get();
-        if (!groupDoc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
-
         // Get members to check user membership
-        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId);
-        const members = membersData.members;
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
         
-        if (!getMemberFromArray(members, userId)) {
+        if (!getMemberDocFromArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
         }
 
-        const permissions = await PermissionEngineAsync.getUserPermissions(group, userId);
-        const userMember = getMemberFromArray(members, userId)!;
-        const userRole = userMember.memberRole;
+        const userMember = getMemberDocFromArray(memberDocs, userId)!;
+        const userRole = userMember.role;
+        
+        // Calculate permissions directly without calling PermissionEngineAsync to avoid service dependencies
+        const permissions = this.calculateUserPermissions(toGroup(group), userMember);
 
         return {
             userId,
@@ -427,5 +446,104 @@ export class GroupPermissionService {
             permissions,
             groupSecurityPreset: group.securityPreset,
         };
+    }
+
+    /**
+     * Get default permissions for a security preset
+     */
+    private getDefaultPermissions(preset: SecurityPreset): GroupPermissions {
+        switch (preset) {
+            case SecurityPresets.OPEN:
+                return {
+                    expenseEditing: PermissionLevels.ANYONE,
+                    expenseDeletion: PermissionLevels.ANYONE,
+                    memberInvitation: PermissionLevels.ANYONE,
+                    memberApproval: 'automatic',
+                    settingsManagement: PermissionLevels.ANYONE,
+                };
+
+            case SecurityPresets.MANAGED:
+                return {
+                    expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
+                    expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
+                    memberInvitation: PermissionLevels.ADMIN_ONLY,
+                    memberApproval: 'admin-required',
+                    settingsManagement: PermissionLevels.ADMIN_ONLY,
+                };
+
+            case SecurityPresets.CUSTOM:
+            default:
+                // Return open permissions as default fallback
+                return this.getDefaultPermissions(SecurityPresets.OPEN);
+        }
+    }
+
+    /**
+     * Calculate user permissions directly without service dependencies
+     * Replicates PermissionEngineAsync logic but uses provided member data
+     */
+    private calculateUserPermissions(group: Group, member: GroupMemberDocument): Record<string, boolean> {
+        if (!group.permissions) {
+            throw new Error(`Group ${group.id} is missing permissions configuration`);
+        }
+
+        // If member is not active, only allow viewing
+        if (member.status !== MemberStatuses.ACTIVE) {
+            return {
+                canEditAnyExpense: false,
+                canDeleteAnyExpense: false,
+                canInviteMembers: false,
+                canManageSettings: false,
+                canApproveMembers: false,
+                canViewGroup: false,
+            };
+        }
+
+        // Viewers have restricted permissions
+        if (member.role === MemberRoles.VIEWER) {
+            return {
+                canEditAnyExpense: false,
+                canDeleteAnyExpense: false,
+                canInviteMembers: false,
+                canManageSettings: false,
+                canApproveMembers: false,
+                canViewGroup: true,
+            };
+        }
+
+        // For members and admins, check each permission level
+        const permissions = group.permissions;
+        
+        return {
+            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.role, group.createdBy, member.userId),
+            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.role, group.createdBy, member.userId),
+            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.role, group.createdBy, member.userId),
+            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.role, group.createdBy, member.userId),
+            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.role, group.createdBy, member.userId),
+            canViewGroup: true, // All active members can view
+        };
+    }
+
+    /**
+     * Check if a member role meets the required permission level
+     */
+    private checkPermissionLevel(requiredLevel: string, memberRole: string, groupCreatedBy: string, userId: string): boolean {
+        const isOwner = groupCreatedBy === userId;
+        const isAdmin = memberRole === MemberRoles.ADMIN;
+
+        switch (requiredLevel) {
+            case PermissionLevels.ANYONE:
+                return true;
+            case PermissionLevels.OWNER_AND_ADMIN:
+                return isOwner || isAdmin;
+            case PermissionLevels.ADMIN_ONLY:
+                return isAdmin;
+            case 'automatic':
+                return true; // For member approval - automatic approval
+            case 'admin-required':
+                return isAdmin || isOwner; // For member approval - admin required
+            default:
+                return false;
+        }
     }
 }

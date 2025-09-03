@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UserService, UserProfile } from '../../services/UserService2';
+import { UserService } from '../../services/UserService2';
 import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
 import type { UserDocument } from '../../schemas';
 import { firebaseAuth } from '../../firebase';

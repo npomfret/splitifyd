@@ -19,8 +19,7 @@ import {
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
     PolicyDocumentSchema,
-    CommentDocumentSchema,
-    ShareLinkDocumentSchema
+    GroupMemberDocumentSchema
 } from '../../schemas';
 
 // Import types
@@ -36,7 +35,6 @@ import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
-    PaginationOptions,
     QueryOptions,
     GroupMemberQueryOptions,
     CommentTarget,
@@ -303,7 +301,103 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
-        throw "todo";
+        try {
+            const membersRef = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('members');
+
+            let query: FirebaseFirestore.Query = membersRef;
+
+            // Apply filters if specified
+            if (options?.includeInactive === false) {
+                query = query.where('status', '==', 'active');
+            }
+
+            if (options?.roles && options.roles.length > 0) {
+                query = query.where('role', 'in', options.roles);
+            }
+
+            const snapshot = await query.get();
+            const members: GroupMemberDocument[] = [];
+
+            for (const doc of snapshot.docs) {
+                try {
+                    const memberData = GroupMemberDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    members.push(memberData);
+                } catch (error) {
+                    logger.error('Invalid group member document in getGroupMembers', error, {
+                        memberId: doc.id,
+                        groupId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return members;
+        } catch (error) {
+            logger.error('Failed to get group members', error, { groupId });
+            throw error;
+        }
+    }
+
+    async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+        try {
+            const memberRef = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('members')
+                .doc(userId);
+
+            const memberDoc = await memberRef.get();
+            if (!memberDoc.exists) {
+                return null;
+            }
+
+            return GroupMemberDocumentSchema.parse({
+                id: memberDoc.id,
+                ...memberDoc.data()
+            });
+        } catch (error) {
+            logger.error('Failed to get member from subcollection', error, { groupId, userId });
+            throw error;
+        }
+    }
+
+    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
+        try {
+            const membersRef = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('members');
+
+            const snapshot = await membersRef.get();
+            const members: GroupMemberDocument[] = [];
+
+            for (const doc of snapshot.docs) {
+                try {
+                    const memberData = GroupMemberDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    members.push(memberData);
+                } catch (error) {
+                    logger.error('Invalid group member document in getMembersFromSubcollection', error, {
+                        memberId: doc.id,
+                        groupId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return members;
+        } catch (error) {
+            logger.error('Failed to get members from subcollection', error, { groupId });
+            throw error;
+        }
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {

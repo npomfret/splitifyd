@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SecurityPresets, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { SecurityPresets, MemberRoles, MemberStatuses, COLOR_PATTERNS } from '@splitifyd/shared';
 import { 
     FirestoreTimestampSchema, 
     AuditFieldsSchema,
@@ -86,3 +86,34 @@ export { GroupDocumentSchema, GroupDataSchema };
 export type GroupDocument = z.infer<typeof GroupDocumentSchema>;
 export type GroupData = z.infer<typeof GroupDataSchema>;
 export type GroupMember = z.infer<typeof GroupMemberSchema>;
+
+/**
+ * Zod schema for UserThemeColor validation
+ */
+const UserThemeColorSchema = z.object({
+    light: z.string(),
+    dark: z.string(),
+    name: z.string(),
+    pattern: z.enum(COLOR_PATTERNS),
+    assignedAt: z.string(), // ISO timestamp
+    colorIndex: z.number(),
+});
+
+/**
+ * Zod schema for GroupMemberDocument validation
+ * Used for subcollection member documents with different structure than GroupMember
+ */
+export const GroupMemberDocumentSchema = z
+    .object({
+        userId: UserIdSchema,
+        groupId: z.string(), // For collectionGroup queries
+        role: z.nativeEnum(MemberRoles),
+        theme: UserThemeColorSchema,
+        joinedAt: z.string(), // ISO string
+        status: z.nativeEnum(MemberStatuses),
+        invitedBy: UserIdSchema.optional(), // UID of the user who created the share link that was used to join
+        lastPermissionChange: z.string().optional(), // ISO string - Track permission updates
+    })
+    .passthrough();
+
+export type ParsedGroupMemberDocument = z.infer<typeof GroupMemberDocumentSchema>;

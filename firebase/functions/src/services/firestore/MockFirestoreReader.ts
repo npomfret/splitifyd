@@ -14,14 +14,7 @@
 import { vi } from 'vitest';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
-    PaginationOptions,
-    QueryOptions,
-    GroupMemberQueryOptions,
-    CommentTarget,
-    GroupSubscriptionCallback,
-    ExpenseListSubscriptionCallback,
-    CommentListSubscriptionCallback,
-    UnsubscribeFunction
+    CommentTarget
 } from '../../types/firestore-reader-types';
 
 // Import types for proper typing
@@ -29,11 +22,9 @@ import type {
     UserDocument,
     GroupDocument,
     ExpenseDocument,
-    SettlementDocument,
-    PolicyDocument
+    SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 export class MockFirestoreReader implements IFirestoreReader {
@@ -50,6 +41,8 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getUsersForGroup = vi.fn();
     public getGroupsForUser = vi.fn();
     public getGroupMembers = vi.fn();
+    public getMemberFromSubcollection = vi.fn();
+    public getMembersFromSubcollection = vi.fn();
     public getExpensesForGroup = vi.fn();
     public getExpensesByUser = vi.fn();
     public getSettlementsForGroup = vi.fn();
@@ -413,6 +406,53 @@ export class MockFirestoreReader implements IFirestoreReader {
             createdAt: new Date(),
             updatedAt: new Date(),
             deletedAt: null,
+            ...overrides
+        };
+    }
+
+    /**
+     * Mock group members subcollection data
+     */
+    public mockGroupMembersSubcollection(groupId: string, members: GroupMemberDocument[]): void {
+        this.getMembersFromSubcollection.mockImplementation(async (id) => {
+            return id === groupId ? members : [];
+        });
+
+        this.getMemberFromSubcollection.mockImplementation(async (id, userId) => {
+            if (id === groupId) {
+                return members.find(m => m.userId === userId) || null;
+            }
+            return null;
+        });
+    }
+
+    /**
+     * Mock a single member in a group's subcollection
+     */
+    public mockMemberInSubcollection(groupId: string, member: GroupMemberDocument): void {
+        this.getMemberFromSubcollection.mockImplementation(async (id, userId) => {
+            return (id === groupId && userId === member.userId) ? member : null;
+        });
+    }
+
+    /**
+     * Create a test GroupMemberDocument with default values
+     */
+    public createTestGroupMemberDocument(overrides: Partial<GroupMemberDocument> = {}): GroupMemberDocument {
+        return {
+            userId: 'test-user',
+            groupId: 'test-group',
+            role: 'member' as any,
+            theme: {
+                light: '#007bff',
+                dark: '#0066cc',
+                name: 'Blue',
+                pattern: 'solid' as any,
+                assignedAt: new Date().toISOString(),
+                colorIndex: 0
+            },
+            joinedAt: new Date().toISOString(),
+            status: 'active' as any,
             ...overrides
         };
     }

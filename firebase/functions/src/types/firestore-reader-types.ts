@@ -4,7 +4,7 @@
  */
 
 import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared';
-import type { Firestore, Transaction } from 'firebase-admin/firestore';
+import type { Transaction } from 'firebase-admin/firestore';
 
 /**
  * Pagination options for collection queries

@@ -6,11 +6,14 @@ import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, GroupMemberDocument, UserThemeColor } from '@splitifyd/shared';
 import { calculateGroupBalances } from './balanceCalculator';
-import { transformGroupDocument } from '../groups/handlers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { createServerTimestamp } from '../utils/dateHelpers';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export class GroupMemberService {
+    constructor(
+        private readonly firestoreReader: IFirestoreReader
+    ) {}
 
     private getInitials(nameOrEmail: string): string {
         const name = nameOrEmail || '';
@@ -91,16 +94,12 @@ export class GroupMemberService {
             throw Errors.UNAUTHORIZED();
         }
 
-        const docRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(doc);
-
-        const memberDoc = await this.getMemberFromSubcollection(groupId, userId);
+        const memberDoc = await this.firestoreReader.getMemberFromSubcollection(groupId, userId);
         if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
         }
@@ -109,7 +108,7 @@ export class GroupMemberService {
             throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
         }
 
-        const memberDocs = await this.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
         if (memberDocs.length === 1) {
             throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
         }
@@ -146,7 +145,8 @@ export class GroupMemberService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        // Remove from subcollection only (no longer dual-write)
+        // Update group timestamp
+        const docRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
         await docRef.update({
             updatedAt: FieldValue.serverTimestamp(),
         });
@@ -184,20 +184,16 @@ export class GroupMemberService {
             throw Errors.MISSING_FIELD('memberId');
         }
 
-        const docRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
+        const group = await this.firestoreReader.getGroup(groupId);
+        if (!group) {
             throw Errors.NOT_FOUND('Group');
         }
-
-        const group = transformGroupDocument(doc);
 
         if (group.createdBy !== userId) {
             throw Errors.FORBIDDEN();
         }
 
-        const memberDoc = await this.getMemberFromSubcollection(groupId, memberId);
+        const memberDoc = await this.firestoreReader.getMemberFromSubcollection(groupId, memberId);
         if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
         }
@@ -239,8 +235,9 @@ export class GroupMemberService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        // Remove from subcollection only (no longer dual-write)
-        await docRef.update({
+        // Update group timestamp
+        const docRef2 = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+        await docRef2.update({
             updatedAt: FieldValue.serverTimestamp(),
         });
 
@@ -286,33 +283,18 @@ export class GroupMemberService {
 
     /**
      * Get a single member from subcollection
+     * @deprecated Use firestoreReader.getMemberFromSubcollection() instead
      */
     async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        const memberRef = firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(userId);
-
-        const memberDoc = await memberRef.get();
-        if (!memberDoc.exists) {
-            return null;
-        }
-
-        return memberDoc.data() as GroupMemberDocument;
+        return this.firestoreReader.getMemberFromSubcollection(groupId, userId);
     }
 
     /**
      * Get all members for a group from subcollection
+     * @deprecated Use firestoreReader.getMembersFromSubcollection() instead
      */
     async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
-        const membersRef = firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members');
-
-        const snapshot = await membersRef.get();
-        return snapshot.docs.map(doc => doc.data() as GroupMemberDocument);
+        return this.firestoreReader.getMembersFromSubcollection(groupId);
     }
 
     /**
@@ -354,18 +336,11 @@ export class GroupMemberService {
 
     /**
      * Get all groups for a user using scalable collectionGroup query
-     * This replaces the problematic query in UserService2.ts line 395
+     * @deprecated Use firestoreReader.getGroupsForUser() instead
      */
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
-        const membersSnapshot = await firestoreDb
-            .collectionGroup('members')
-            .where('userId', '==', userId)
-            .get();
-
-        return membersSnapshot.docs.map(doc => {
-            const data = doc.data() as GroupMemberDocument;
-            return data.groupId;
-        });
+        const groups = await this.firestoreReader.getGroupsForUser(userId);
+        return groups.map(group => group.id);
     }
 
     /**
@@ -373,7 +348,7 @@ export class GroupMemberService {
      * This maintains compatibility with existing API consumers
      */
     async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
-        const memberDocs = await this.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
         const memberIds = memberDocs.map(doc => doc.userId);
 
         const memberProfiles = await getUserService().getUsers(memberIds);

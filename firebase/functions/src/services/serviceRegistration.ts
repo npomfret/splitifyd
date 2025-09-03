@@ -94,14 +94,16 @@ export function registerAllServices(): void {
 
     registry.registerService('GroupMemberService', () => {
         if (!groupMemberServiceInstance) {
-            groupMemberServiceInstance = new GroupMemberService();
+            const firestoreReader = registry.getService<IFirestoreReader>('FirestoreReader');
+            groupMemberServiceInstance = new GroupMemberService(firestoreReader);
         }
         return groupMemberServiceInstance;
     });
 
     registry.registerService('GroupPermissionService', () => {
         if (!groupPermissionServiceInstance) {
-            groupPermissionServiceInstance = new GroupPermissionService();
+            const firestoreReader = registry.getService<IFirestoreReader>('FirestoreReader');
+            groupPermissionServiceInstance = new GroupPermissionService(firestoreReader);
         }
         return groupPermissionServiceInstance;
     });

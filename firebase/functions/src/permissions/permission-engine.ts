@@ -1,6 +1,5 @@
-import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
+import { GroupPermissions, SecurityPreset, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
-import {GroupMember} from "@splitifyd/shared/src";
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;

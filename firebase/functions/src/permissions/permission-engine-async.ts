@@ -1,6 +1,6 @@
 import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
-import { getGroupMemberService } from '../services/serviceRegistration';
+import { getFirestoreReader } from '../services/serviceRegistration';
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;
@@ -16,7 +16,8 @@ export class PermissionEngineAsync {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }
 
-        const member = await getGroupMemberService().getMemberFromSubcollection(group.id, userId);
+        const firestoreReader = getFirestoreReader();
+        const member = await firestoreReader.getMemberFromSubcollection(group.id, userId);
         if (!member) {
             return false;
         }
@@ -79,9 +80,10 @@ export class PermissionEngineAsync {
      * Check if user can change another user's role (async version)
      */
     static async canChangeRole(groupId: string, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): Promise<{ allowed: boolean; reason?: string }> {
+        const firestoreReader = getFirestoreReader();
         const [actorMember, targetMember] = await Promise.all([
-            getGroupMemberService().getMemberFromSubcollection(groupId, actorUserId),
-            getGroupMemberService().getMemberFromSubcollection(groupId, targetUserId),
+            firestoreReader.getMemberFromSubcollection(groupId, actorUserId),
+            firestoreReader.getMemberFromSubcollection(groupId, targetUserId),
         ]);
 
         if (!actorMember || !targetMember) {
@@ -93,7 +95,7 @@ export class PermissionEngineAsync {
         }
 
         if (actorUserId === targetUserId && actorMember.role === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-            const allMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
+            const allMembers = await firestoreReader.getMembersFromSubcollection(groupId);
             const adminCount = allMembers.filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
 
             if (adminCount === 1) {

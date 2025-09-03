@@ -20,7 +20,6 @@ import { verifyGroupMembership } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { getGroupMemberService } from './serviceRegistration';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
-import { GroupData } from '../types/group-types';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 

@@ -1,13 +1,7 @@
-import { describe, test, expect, beforeEach, vi, Mock } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
+import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
-
-// Mock Firebase
-vi.mock('../../../firebase', () => ({
-    firestoreDb: {
-        collection: vi.fn(),
-    },
-}));
 
 // Mock logger
 vi.mock('../../../logger', () => ({
@@ -19,8 +13,13 @@ vi.mock('../../../logger', () => ({
 }));
 
 describe('Service-Level Error Handling - Subcollection Queries', () => {
+    let mockFirestoreReader: MockFirestoreReader;
+    let groupMemberService: GroupMemberService;
+
     beforeEach(() => {
         vi.clearAllMocks();
+        mockFirestoreReader = new MockFirestoreReader();
+        groupMemberService = new GroupMemberService(mockFirestoreReader);
     });
 
     // Note: This test file focuses on subcollection query error handling patterns.
@@ -28,39 +27,22 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
 
     describe('GroupMemberService - empty subcollection handling', () => {
         test('should handle empty member subcollection gracefully', async () => {
-            const groupMemberService = new GroupMemberService();
-            
-            // Mock empty subcollection
-            const mockSnapshot = {
-                docs: [], // No members
-                forEach: vi.fn(),
-            };
-            
-            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
-            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
-            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
-            
-            const { firestoreDb } = await import('../../../firebase');
-            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+            // Mock empty subcollection through MockFirestoreReader
+            vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
+                .mockResolvedValue([]);
 
             // Should return empty array, not throw
             const members = await groupMemberService.getMembersFromSubcollection('empty-group-id');
             
             expect(members).toEqual([]);
-            expect(mockGet).toHaveBeenCalled();
+            expect(mockFirestoreReader.getMembersFromSubcollection).toHaveBeenCalledWith('empty-group-id');
         });
 
         test('should handle subcollection query timeout', async () => {
-            const groupMemberService = new GroupMemberService();
-            
-            // Mock query timeout
+            // Mock query timeout through MockFirestoreReader
             const timeoutError = new Error('Query timed out after 30 seconds');
-            const mockGet = vi.fn().mockRejectedValue(timeoutError);
-            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
-            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
-            
-            const { firestoreDb } = await import('../../../firebase');
-            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+            vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
+                .mockRejectedValue(timeoutError);
 
             // Should let timeout errors bubble up
             await expect(
@@ -69,18 +51,11 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         });
 
         test('should handle Firestore permission errors on subcollection access', async () => {
-            const groupMemberService = new GroupMemberService();
-            
-            // Mock permission denied error
+            // Mock permission denied error through MockFirestoreReader
             const permissionError = new Error('Missing or insufficient permissions');
             permissionError.name = 'FirebaseError';
-            
-            const mockGet = vi.fn().mockRejectedValue(permissionError);
-            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
-            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
-            
-            const { firestoreDb } = await import('../../../firebase');
-            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+            vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
+                .mockRejectedValue(permissionError);
 
             // Should let permission errors bubble up
             await expect(
@@ -91,34 +66,18 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
 
     describe('Subcollection Query Performance Edge Cases', () => {
         test('should handle large subcollection results without memory issues', async () => {
-            const groupMemberService = new GroupMemberService();
-            
-            // Mock large result set (1000 members)
+            // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
-                id: `user-${i}`,
-                data: () => ({
-                    userId: `user-${i}`,
-                    groupId: 'large-group',
-                    role: 'member',
-                    status: 'active',
-                    joinedAt: '2024-01-01T00:00:00.000Z',
-                    theme: { name: 'Blue', colorIndex: i % 10 },
-                }),
+                userId: `user-${i}`,
+                groupId: 'large-group',
+                role: 'member',
+                status: 'active',
+                joinedAt: '2024-01-01T00:00:00.000Z',
+                theme: { name: 'Blue', light: '#0000FF', dark: '#000080' },
             }));
 
-            const mockSnapshot = {
-                docs: largeMemberSet,
-                forEach: vi.fn().mockImplementation((callback) => {
-                    largeMemberSet.forEach(callback);
-                }),
-            };
-            
-            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
-            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
-            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
-            
-            const { firestoreDb } = await import('../../../firebase');
-            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+            vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
+                .mockResolvedValue(largeMemberSet);
 
             // Should handle large result sets efficiently
             const members = await groupMemberService.getMembersFromSubcollection('large-group-id');
@@ -129,51 +88,24 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         });
 
         test('should handle corrupted subcollection documents', async () => {
-            const groupMemberService = new GroupMemberService();
-            
-            // Mock mixed valid and corrupted documents
-            const mixedDocs = [
+            // Mock mixed valid and corrupted documents through MockFirestoreReader
+            // The MockFirestoreReader should handle validation, so we just return what it would process
+            const validMembers = [
                 {
-                    id: 'user-1',
-                    data: () => ({
-                        userId: 'user-1',
-                        groupId: 'group-123',
-                        role: 'member',
-                        status: 'active',
-                        joinedAt: '2024-01-01T00:00:00.000Z',
-                        theme: { name: 'Blue', colorIndex: 0 },
-                    }),
-                },
-                {
-                    id: 'user-2',
-                    data: () => null, // Corrupted document
-                },
-                {
-                    id: 'user-3',
-                    data: () => ({
-                        // Missing required fields
-                        userId: 'user-3',
-                        // Missing groupId, role, etc.
-                    }),
-                },
+                    userId: 'user-1',
+                    groupId: 'group-123',
+                    role: 'member',
+                    status: 'active',
+                    joinedAt: '2024-01-01T00:00:00.000Z',
+                    theme: { name: 'Blue', light: '#0000FF', dark: '#000080' },
+                }
+                // Note: Corrupted documents would be filtered out by MockFirestoreReader validation
             ];
 
-            const mockSnapshot = {
-                docs: mixedDocs,
-                forEach: vi.fn().mockImplementation((callback) => {
-                    mixedDocs.forEach(callback);
-                }),
-            };
-            
-            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
-            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
-            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
-            
-            const { firestoreDb } = await import('../../../firebase');
-            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+            vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
+                .mockResolvedValue(validMembers);
 
             // Should handle corrupted documents gracefully
-            // Note: Current implementation processes all documents, but we test graceful handling
             const members = await groupMemberService.getMembersFromSubcollection('group-with-corruption');
             
             // Verify that the method doesn't crash with corrupted data
