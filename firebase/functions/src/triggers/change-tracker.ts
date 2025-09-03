@@ -10,6 +10,7 @@ import {
     TransactionChangeDocumentSchema,
     BalanceChangeDocumentSchema 
 } from '../schemas/change-documents';
+import { PerformanceMonitor } from '../utils/performance-monitor';
 
 // Change document schemas are now centralized in ../schemas/change-documents.ts
 
@@ -24,48 +25,59 @@ export const trackGroupChanges = onDocumentWritten(
     async (event) => {
         const groupId = event.params.groupId;
         const { before, after, changeType } = extractDataChange(event);
+        const documentPath = `groups/${groupId}`;
 
-        try {
-            // Get changed fields (groups use flat structure)
-            const changedFields = getGroupChangedFields(before, after);
+        return PerformanceMonitor.monitorTriggerExecution(
+            'CHANGE_TRACKER',
+            documentPath,
+            async (stepTracker) => {
+                // Get changed fields (groups use flat structure)
+                const changedFields = getGroupChangedFields(before, after);
 
-            // Calculate priority (not currently used)
-            calculatePriority(changeType, changedFields, 'group');
+                // Calculate priority (not currently used)
+                calculatePriority(changeType, changedFields, 'group');
 
-            // Get affected users from the group subcollection
-            const affectedUsers: string[] = [];
-            
-            // Since members are now stored in subcollections, we need to query for them
-            // For performance, we'll get members from the current state only
-            try {
-                const membersSnapshot = await firestoreDb
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .get();
-                
-                membersSnapshot.forEach(memberDoc => {
-                    affectedUsers.push(memberDoc.id);
+                // Get affected users from the group subcollection
+                const affectedUsers: string[] = await stepTracker('member-fetch', async () => {
+                    const users: string[] = [];
+                    
+                    // Since members are now stored in subcollections, we need to query for them
+                    // For performance, we'll get members from the current state only
+                    try {
+                        const membersSnapshot = await firestoreDb
+                            .collection(FirestoreCollections.GROUPS)
+                            .doc(groupId)
+                            .collection('members')
+                            .get();
+                        
+                        membersSnapshot.forEach(memberDoc => {
+                            users.push(memberDoc.id);
+                        });
+                    } catch (error) {
+                        logger.warn('Could not fetch group members for change tracking', { groupId, error });
+                        // If we can't get members, we still create the change document but with empty users array
+                        // This ensures change detection still works at the group level
+                    }
+                    
+                    return users;
                 });
-            } catch (error) {
-                logger.warn('Could not fetch group members for change tracking', { groupId, error });
-                // If we can't get members, we still create the change document but with empty users array
-                // This ensures change detection still works at the group level
-            }
 
-            // Create minimal change document for client notifications
-            const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
+                // Create and write change document
+                await stepTracker('change-doc-creation', async () => {
+                    // Create minimal change document for client notifications
+                    const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
 
-            // Validate before writing to prevent corrupted documents
-            const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
+                    // Validate before writing to prevent corrupted documents
+                    const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
 
-            // Write to group-changes collection
-            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
-
-            logger.info('group-changed', { id: groupId });
-        } catch (error) {
-            logger.error('Failed to track group change', error as Error, { groupId });
-        }
+                    // Write to group-changes collection
+                    await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+                    
+                    logger.info('group-changed', { id: groupId });
+                });
+            },
+            { changeType, changedFieldsCount: Object.keys(getGroupChangedFields(before, after)).length }
+        );
     },
 );
 

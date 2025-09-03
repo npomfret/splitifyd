@@ -11,6 +11,7 @@ import { firestoreDb } from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { FieldPath } from 'firebase-admin/firestore';
+import { PerformanceMonitor } from '../../utils/performance-monitor';
 
 // Import all schemas for validation
 import {
@@ -193,14 +194,17 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<GroupDocument[]> {
-        try {
-            // NEW APPROACH: Use subcollection architecture instead of the old members field
-            // First, get all group IDs where the user is a member from the subcollections
-            const membershipQuery = this.db.collectionGroup('members')
-                .where('userId', '==', userId)
-                .select('groupId');  // Only select groupId to minimize data transfer
-                
-            const membershipSnapshot = await membershipQuery.get();
+        return PerformanceMonitor.monitorCollectionGroupQuery(
+            'USER_GROUPS',
+            userId,
+            async () => {
+                // NEW APPROACH: Use subcollection architecture instead of the old members field
+                // First, get all group IDs where the user is a member from the subcollections
+                const membershipQuery = this.db.collectionGroup('members')
+                    .where('userId', '==', userId)
+                    .select('groupId');  // Only select groupId to minimize data transfer
+                    
+                const membershipSnapshot = await membershipQuery.get();
             
             if (membershipSnapshot.empty) {
                 return []; // User is not a member of any groups
@@ -292,16 +296,18 @@ export class FirestoreReader implements IFirestoreReader {
                 }
             }
             
-            // Apply limit after sorting and cursor
-            if (options?.limit) {
-                return groups.slice(startIndex, startIndex + options.limit);
-            }
+                // Apply limit after sorting and cursor
+                if (options?.limit) {
+                    return groups.slice(startIndex, startIndex + options.limit);
+                }
 
-            return groups.slice(startIndex);
-        } catch (error) {
-            logger.error('Failed to get groups for user', { error, userId });
-            throw error;
-        }
+                return groups.slice(startIndex);
+            },
+            { 
+                collectionGroupQuery: true,
+                options: JSON.stringify(options) 
+            }
+        );
     }
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
@@ -349,60 +355,63 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        try {
-            const memberRef = this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('members')
-                .doc(userId);
+        return PerformanceMonitor.monitorSubcollectionQuery(
+            'GET_MEMBER',
+            groupId,
+            async () => {
+                const memberRef = this.db
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .doc(userId);
 
-            const memberDoc = await memberRef.get();
-            if (!memberDoc.exists) {
-                return null;
-            }
+                const memberDoc = await memberRef.get();
+                if (!memberDoc.exists) {
+                    return null;
+                }
 
-            const parsedMember = GroupMemberDocumentSchema.parse({
-                id: memberDoc.id,
-                ...memberDoc.data()
-            });
-            return parsedMember;
-        } catch (error) {
-            logger.error('Failed to get member from subcollection', error, { groupId, userId });
-            throw error;
-        }
+                const parsedMember = GroupMemberDocumentSchema.parse({
+                    id: memberDoc.id,
+                    ...memberDoc.data()
+                });
+                return parsedMember;
+            },
+            { userId }
+        );
     }
 
     async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
-        try {
-            const membersRef = this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('members');
+        return PerformanceMonitor.monitorSubcollectionQuery(
+            'GET_MEMBERS',
+            groupId,
+            async () => {
+                const membersRef = this.db
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members');
 
-            const snapshot = await membersRef.get();
-            const parsedMembers: ParsedGroupMemberDocument[] = [];
+                const snapshot = await membersRef.get();
+                const parsedMembers: ParsedGroupMemberDocument[] = [];
 
-            for (const doc of snapshot.docs) {
-                try {
-                    const memberData = GroupMemberDocumentSchema.parse({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                    parsedMembers.push(memberData);
-                } catch (error) {
-                    logger.error('Invalid group member document in getMembersFromSubcollection', error, {
-                        memberId: doc.id,
-                        groupId
-                    });
-                    // Skip invalid documents rather than failing the entire query
+                for (const doc of snapshot.docs) {
+                    try {
+                        const memberData = GroupMemberDocumentSchema.parse({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                        parsedMembers.push(memberData);
+                    } catch (error) {
+                        logger.error('Invalid group member document in getMembersFromSubcollection', error, {
+                            memberId: doc.id,
+                            groupId
+                        });
+                        // Skip invalid documents rather than failing the entire query
+                    }
                 }
-            }
 
-            return parsedMembers;
-        } catch (error) {
-            logger.error('Failed to get members from subcollection', error, { groupId });
-            throw error;
-        }
+                return parsedMembers;
+            }
+        );
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {

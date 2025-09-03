@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/__tests__/integration/error-testing/group-management-errors.e2e.test.ts"
-TEST_FILTER="should successfully delete empty group"
+TEST_FILE="e2e-tests/src/__tests__/integration/edge-cases/complex-scenarios.e2e.test.ts"
+TEST_FILTER=""
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

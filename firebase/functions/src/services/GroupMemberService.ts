@@ -261,23 +261,30 @@ export class GroupMemberService {
      * Path: groups/{groupId}/members/{userId}
      */
     async createMemberSubcollection(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
-        const memberRef = firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(memberDoc.userId);
+        return PerformanceMonitor.monitorSubcollectionQuery(
+            'CREATE_MEMBER',
+            groupId,
+            async () => {
+                const memberRef = firestoreDb
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .doc(memberDoc.userId);
 
-        await memberRef.set({
-            ...memberDoc,
-            createdAt: createServerTimestamp(),
-            updatedAt: createServerTimestamp(),
-        });
+                await memberRef.set({
+                    ...memberDoc,
+                    createdAt: createServerTimestamp(),
+                    updatedAt: createServerTimestamp(),
+                });
 
-        logger.info('Member added to subcollection', { 
-            groupId, 
-            userId: memberDoc.userId,
-            memberRole: memberDoc.memberRole 
-        });
+                logger.info('Member added to subcollection', { 
+                    groupId, 
+                    userId: memberDoc.userId,
+                    memberRole: memberDoc.memberRole 
+                });
+            },
+            { userId: memberDoc.userId, memberRole: memberDoc.memberRole }
+        );
     }
 
     /**
@@ -300,37 +307,51 @@ export class GroupMemberService {
      * Update a member in the subcollection
      */
     async updateMemberInSubcollection(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
-        const memberRef = firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(userId);
+        return PerformanceMonitor.monitorSubcollectionQuery(
+            'UPDATE_MEMBER',
+            groupId,
+            async () => {
+                const memberRef = firestoreDb
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .doc(userId);
 
-        await memberRef.update({
-            ...updates,
-            updatedAt: createServerTimestamp(),
-        });
+                await memberRef.update({
+                    ...updates,
+                    updatedAt: createServerTimestamp(),
+                });
 
-        logger.info('Member updated in subcollection', { 
-            groupId, 
-            userId,
-            updates: Object.keys(updates)
-        });
+                logger.info('Member updated in subcollection', { 
+                    groupId, 
+                    userId,
+                    updates: Object.keys(updates)
+                });
+            },
+            { userId, updateFieldsCount: Object.keys(updates).length }
+        );
     }
 
     /**
      * Delete a member from the subcollection
      */
     async deleteMemberFromSubcollection(groupId: string, userId: string): Promise<void> {
-        const memberRef = firestoreDb
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(userId);
+        return PerformanceMonitor.monitorSubcollectionQuery(
+            'DELETE_MEMBER',
+            groupId,
+            async () => {
+                const memberRef = firestoreDb
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .doc(userId);
 
-        await memberRef.delete();
+                await memberRef.delete();
 
-        logger.info('Member deleted from subcollection', { groupId, userId });
+                logger.info('Member deleted from subcollection', { groupId, userId });
+            },
+            { userId }
+        );
     }
 
     /**
