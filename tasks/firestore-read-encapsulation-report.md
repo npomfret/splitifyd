@@ -20,7 +20,7 @@
 ### 1.2. Critical Analysis & Concerns
 
 **⚠️ Scope Complexity:**
-- **29 files** with Firestore reads require refactoring
+- **30 files** with Firestore reads require refactoring
 - **Mixed concerns**: Some files have both read/write operations
 - **Real-time listeners**: Complex subscription management patterns
 - **Transaction contexts**: Some reads must occur within Firestore transactions
@@ -175,10 +175,11 @@ export class MockFirestoreReader implements IFirestoreReader {
 - `services/balanceCalculator.ts` - balance calculations
 - `services/FirestoreValidationService.ts` - document validation
 
-**Infrastructure (5 files):**
+**Infrastructure (6 files):**
 - `auth/middleware.ts` - user authentication reads
 - `utils/i18n.ts` - user language preferences
 - `utils/firestore-helpers.ts` - utility functions
+- `utils/optimistic-locking.ts` - transactional read-modify-writes
 - `utils/groupHelpers.ts` - group utility reads
 - `triggers/change-tracker.ts` - change tracking
 
