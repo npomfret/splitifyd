@@ -94,49 +94,67 @@ This report details all instances of conditional logic (`if`, `switch`) based on
   ```
 - **Analysis:** The `calculatePriority` function uses a dictionary lookup based on `documentType` to determine which fields are critical or important. While not a direct `if/else` or `switch`, it's still a form of dispatch-on-type that could be refactored.
 
-### 4. `webapp-v2/src/components/group/ActivityFeed.tsx`
-
-- **Location:** `webapp-v2/src/components/group/ActivityFeed.tsx`
-- **Lines:** 33-45, 50-83
-- **Snippet:**
-  ```typescript
-  const ActivityIcon = ({ type }: { type: string }) => {
-      switch (type) {
-          case 'expense_added':
-              return <CurrencyDollarIcon className="h-5 w-5 text-green-500" />;
-          case 'user_joined':
-              return <UserPlusIcon className="h-5 w-5 text-blue-500" />;
-          case 'expense_updated':
-              return <PencilIcon className="h-5 w-5 text-yellow-500" />;
-          case 'settlement_added':
-              return <ClockIcon className="h-5 w-5 text-purple-500" />;
-          default:
-              return <ClockIcon className="h-5 w-5 text-gray-500" />;
-      }
-  };
-
-  const ActivityText = ({ activity }: { activity: (typeof mockActivity)[0] }) => {
-      const { t } = useTranslation();
-      switch (activity.type) {
-          case 'expense_added':
-              // ...
-          case 'user_joined':
-              // ...
-          case 'expense_updated':
-              // ...
-          case 'settlement_added':
-              // ...
-          default:
-              return null;
-      }
-  };
-  ```
-- **Analysis:** The `ActivityFeed` component uses two `switch` statements based on the `type` of the activity. This is a classic example of the anti-pattern. This could be refactored into separate components for each activity type, with a parent component that dynamically renders the correct one.
 
 ---
 
-## Recommendations
+## Implementation Plan
 
-- **Refactor `CommentService`:** Introduce a strategy pattern where each `CommentTargetType` has its own strategy for fetching collections, verifying access, and listing/creating comments.
-- **Refactor `change-tracker.ts` and `change-detection.ts`:** While minor, these could be made more robust by using a builder pattern for each document type, which would encapsulate the logic for which fields are required or important.
-- **Refactor `ActivityFeed.tsx`:** This is the most significant violation. Create separate components for each activity type (e.g., `ExpenseAddedActivity`, `UserJoinedActivity`). A factory component can then be used to render the correct component based on the activity type.
+### Priority 1: CommentService Refactoring (CRITICAL - HIGH IMPACT)
+
+**Current Issue:** `CommentService` has repeated conditional logic across multiple methods based on `CommentTargetType`.
+
+**Solution:** Strategy Pattern
+- Create `CommentTargetStrategy` interface
+- Implement `GroupCommentStrategy` and `ExpenseCommentStrategy`
+- Refactor service to use dependency injection of strategies
+
+**Files to Create:**
+- `firebase/functions/src/services/comments/CommentTargetStrategy.ts`
+- `firebase/functions/src/services/comments/GroupCommentStrategy.ts` 
+- `firebase/functions/src/services/comments/ExpenseCommentStrategy.ts`
+
+**Benefits:**
+- Eliminates 4 locations of duplicated conditional logic
+- Makes adding new comment targets trivial (just add new strategy)
+- Each strategy can be unit tested independently
+- Follows Single Responsibility and Open/Closed principles
+
+### Priority 2: Change Document Creation (MEDIUM IMPACT)
+
+**Current Issue:** Type-based conditionals in change document creation and priority calculation.
+
+**Solution:** Builder Pattern
+- Create abstract `ChangeDocumentBuilder` base class
+- Implement type-specific builders with encapsulated field validation rules
+- Replace dictionary lookups with polymorphic behavior
+
+**Files to Create:**
+- `firebase/functions/src/builders/ChangeDocumentBuilder.ts`
+- `firebase/functions/src/builders/GroupChangeBuilder.ts`
+- `firebase/functions/src/builders/ExpenseChangeBuilder.ts`
+- `firebase/functions/src/builders/SettlementChangeBuilder.ts`
+
+**Benefits:**
+- Encapsulates field importance rules per document type
+- Type-safe validation of required fields
+- Easy to add new document types without modifying existing code
+
+### Priority 3: Testing Updates
+
+**Update Tests for:**
+- CommentService strategy pattern behavior
+- Change document builder functionality
+- Integration tests to ensure no behavioral regressions
+
+## Implementation Order
+
+1. **Phase 1:** CommentService refactoring (highest complexity, highest value)
+2. **Phase 2:** Change document builders (medium complexity, good maintainability improvement)
+3. **Phase 3:** Comprehensive test updates and validation
+
+## Success Metrics
+
+- Zero `if/else` or `switch` statements dispatching on type properties
+- New types can be added by creating new strategy/builder classes only
+- All existing functionality preserved (verified by tests)
+- Code coverage maintained or improved
