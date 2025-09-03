@@ -110,42 +110,4 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         expect(changeNotification!.users).toContain(userId2);
     }, 10000); // Test timeout
 
-    it('documents the frontend bug: refreshAll() does not fetch settlements', async () => {
-        /**
-         * BUG DOCUMENTATION:
-         *
-         * The backend correctly creates change notifications when settlements are added.
-         * However, the frontend has a bug:
-         *
-         * 1. webapp-v2/src/app/stores/group-detail-store-enhanced.ts
-         *    - Listens to transaction-changes (line 104)
-         *    - Calls refreshAll() when changes detected (line 117)
-         *
-         * 2. refreshAll() method (around line 280)
-         *    - Fetches expenses
-         *    - Fetches balances
-         *    - Fetches members
-         *    - BUT DOES NOT FETCH SETTLEMENTS
-         *
-         * 3. webapp-v2/src/components/settlements/SettlementHistory.tsx
-         *    - Only loads settlements on mount (line 52)
-         *    - Does not reload when transaction-changes are detected
-         *
-         * RESULT: New settlements don't appear in the UI until page is refreshed
-         *
-         * FIX NEEDED:
-         * - Add fetchSettlements() to refreshAll() in group-detail-store-enhanced.ts
-         * - OR make SettlementHistory component reactive to changes
-         */
-
-        // This test just documents the issue
-        expect(true).toBe(true);
-
-        // Frontend Bug Identified:
-        // - Settlements generate realtime notifications correctly
-        // - Frontend receives the notifications
-        // - But refreshAll() doesn't fetch settlements
-        // - So SettlementHistory doesn't update
-        // This causes E2E test failures when checking for settlements in history
-    });
 });

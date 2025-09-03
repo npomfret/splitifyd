@@ -62,47 +62,4 @@ describe('Group Permissions', () => {
         });
     });
 
-    // NOTE: Pending member approval endpoints are not yet implemented
-    // These tests are commented out until the features are built
-    // (Tests for features that don't exist yet violate testing guidelines)
-
-    // describe('Pending Members', () => {
-    //     let pendingUser: AuthenticatedFirebaseUser;
-
-    //     beforeAll(async () => {
-    //         // Set group to require admin approval
-    //         await apiDriver.applySecurityPreset(group.id, adminUser.token, SecurityPresets.MANAGED);
-    //         pendingUser = await apiDriver.createUser(generateNewUserDetails('pending'));
-    //         const shareLink = await apiDriver.generateShareLink(group.id, adminUser.token);
-    //         await apiDriver.joinGroupViaShareLink(shareLink.linkId, pendingUser.token);
-    //     });
-
-    //     test('Admin can get list of pending members', async () => {
-    //         const pendingMembers = await apiDriver.getPendingMembers(group.id, adminUser.token);
-    //         expect(pendingMembers.count).toBe(1);
-    //         expect(pendingMembers.pendingMembers[0].user.uid).toBe(pendingUser.uid);
-    //     });
-
-    //     test('Member cannot get list of pending members', async () => {
-    //         await expect(
-    //             apiDriver.getPendingMembers(group.id, memberUser.token)
-    //         ).rejects.toThrow('failed with status 403');
-    //     });
-
-    //     test('Admin can approve a pending member', async () => {
-    //         await apiDriver.approveMember(group.id, adminUser.token, pendingUser.uid);
-    //         const updatedGroup = await apiDriver.getGroup(group.id, adminUser.token);
-    //         expect(updatedGroup.members[pendingUser.uid].status).toBe(MemberStatuses.ACTIVE);
-    //     });
-
-    //     test('Admin can reject a pending member', async () => {
-    //         const userToReject = await apiDriver.createUser(generateNewUserDetails('reject'));
-    //         const shareLink = await apiDriver.generateShareLink(group.id, adminUser.token);
-    //         await apiDriver.joinGroupViaShareLink(shareLink.linkId, userToReject.token);
-
-    //         await apiDriver.rejectMember(group.id, adminUser.token, userToReject.uid);
-    //         const updatedGroup = await apiDriver.getGroup(group.id, adminUser.token);
-    //         expect(updatedGroup.members[userToReject.uid]).toBeUndefined();
-    //     });
-    // });
 });

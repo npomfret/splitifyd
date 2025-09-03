@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { multiUserTest } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { MultiUserWorkflow } from '../../../workflows';
+import { JoinGroupPage } from '../../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -49,5 +50,31 @@ test.describe('Share Link - Error Scenarios', () => {
         const invalidLink = `${baseUrl}/join?linkId=../../malicious`;
         const multiUserWorkflow = new MultiUserWorkflow();
         await multiUserWorkflow.testInvalidShareLink(page, invalidLink);
+    });
+
+    multiUserTest('should display error messages with back navigation option', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage, groupDetailPage }) => {
+        const { page } = authenticatedPage;
+        const joinGroupPage = new JoinGroupPage(page);
+
+        const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-specific-test`;
+
+        // Navigate to invalid share link using page object method
+        await groupDetailPage.navigateToShareLink(invalidShareLink);
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // The app should show an error message for invalid links
+        await expect(joinGroupPage.getErrorMessage()).toBeVisible();
+
+        // Should show specific error message using page object method  
+        const errorMessage = joinGroupPage.getSpecificErrorMessage(/Invalid share link|Group not found|expired/i);
+        await expect(errorMessage).toBeVisible();
+
+        // Should have a button to go back to dashboard using page object method
+        const backButton = joinGroupPage.getBackToDashboardButton();
+        await expect(backButton).toBeVisible();
+
+        // Click the button to verify navigation works using page object method
+        await backButton.click();
+        await joinGroupPage.expectUrl(/\/dashboard/);
     });
 });

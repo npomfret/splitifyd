@@ -8,20 +8,19 @@ setupMCPDebugOnFailure();
 
 // NOTE: Simple load time testing moved to CI performance budgets
 pageTest.describe('Performance Monitoring E2E', () => {
-    pageTest('should maintain full functionality with slow network', async ({ page, context, loginPage }) => {
-        // Simulate slow 3G
+    pageTest('should handle login and registration form interactions correctly on slow network', async ({ page, context, loginPage }) => {
+        // Simulate slow 3G network conditions
         await context.route('**/*', (route) => {
             setTimeout(() => route.continue(), TIMEOUTS.QUICK / 5);
         });
 
         await loginPage.navigate();
 
-        // Page should still be functional on slow network
+        // Page should still load and be functional on slow network
         await waitForApp(page);
         await expect(loginPage.getHeading('Sign In')).toBeVisible();
 
-        // COMPREHENSIVE FUNCTIONALITY TEST (fixing misleading test name)
-        // Test all form interactions, not just one input
+        // Test comprehensive form functionality under slow network conditions
         const emailInput = loginPage.getEmailInput();
         const passwordInput = loginPage.getPasswordInput();
         const submitButton = loginPage.getSubmitButton();

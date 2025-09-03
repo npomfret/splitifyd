@@ -75,9 +75,22 @@ describe('RESTful Group CRUD Operations', () => {
             // Fetch balances immediately after creation
             const balances = await apiDriver.getGroupBalances(createdGroup.id, users[0].token);
 
+            // Verify balance structure is correct
             expect(balances).toBeDefined();
             expect(balances.groupId).toBe(createdGroup.id);
             expect(balances.userBalances).toBeDefined();
+            
+            // Verify balance content for new group (should be empty)
+            expect(balances.balancesByCurrency).toBeDefined();
+            expect(typeof balances.balancesByCurrency).toBe('object');
+            expect(Object.keys(balances.balancesByCurrency)).toHaveLength(0); // New group should have no balances
+            
+            // Verify user balances structure exists (it's an object, not an array)
+            expect(balances.userBalances).toBeDefined();
+            expect(typeof balances.userBalances).toBe('object');
+            expect(balances.userBalances).not.toBeNull();
+            // For a new group, user balances should be an empty object
+            expect(Object.keys(balances.userBalances)).toHaveLength(0);
         });
     });
 
