@@ -319,7 +319,18 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            this.refreshAll().catch((error) => logError('Failed to refresh after expense change', error));
+            this.refreshAll().catch((error) => {
+                // Don't log errors for 404s - this is expected when groups are deleted
+                if (error?.status === 404 || (error?.message && error.message.includes('404')) || 
+                    (error?.code === 'NOT_FOUND')) {
+                    logInfo('Expense change refresh: Group was deleted, state cleared', { 
+                        groupId: this.currentGroupId,
+                        error: error?.message || String(error)
+                    });
+                } else {
+                    logError('Failed to refresh after expense change', error);
+                }
+            });
         });
 
         // Subscribe to group changes (member additions/removals, group updates)
@@ -334,7 +345,18 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
-            this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
+            this.refreshAll().catch((error) => {
+                // Don't log errors for 404s - this is expected when groups are deleted
+                if (error?.status === 404 || (error?.message && error.message.includes('404')) || 
+                    (error?.code === 'NOT_FOUND')) {
+                    logInfo('Group change refresh: Group was deleted, state cleared', { 
+                        groupId: this.currentGroupId,
+                        error: error?.message || String(error)
+                    });
+                } else {
+                    logError('Failed to refresh after group change', error);
+                }
+            });
         });
 
         logInfo('Change subscriptions setup complete', {
@@ -432,7 +454,18 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             await this.loadGroup(this.currentGroupId);
 
             logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
-        } catch (error) {
+        } catch (error: any) {
+            // Handle 404 errors gracefully - this usually means the group was deleted
+            if (error?.status === 404 || (error?.message && error.message.includes('404'))) {
+                logWarning('RefreshAll: Group appears to have been deleted (404 response), clearing current group state', { 
+                    groupId: this.currentGroupId,
+                    error: error?.message || String(error)
+                });
+                // Clear the current group state since it no longer exists
+                this.reset();
+                return; // Don't throw error for deleted groups
+            }
+            
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
             throw error;
         }

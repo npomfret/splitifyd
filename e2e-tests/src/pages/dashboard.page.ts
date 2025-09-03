@@ -118,7 +118,7 @@ export class DashboardPage extends BasePage {
      * This handles async deletion processes and real-time updates properly
      */
     async waitForGroupToNotBePresent(groupName: string, options: { timeout?: number } = {}) {
-        const timeout = options.timeout || 1000; // Default 1 second
+        const timeout = options.timeout || 5000; // Default 5 seconds - allow time for real-time updates
         
         await expect(async () => {
             const groupCard = this.page.getByText(groupName);

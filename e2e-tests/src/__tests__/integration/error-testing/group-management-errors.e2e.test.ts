@@ -86,13 +86,7 @@ authenticatedPageTest.describe('Group Management Error Testing', () => {
         // Wait for dashboard to load 
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        // WORKAROUND: There's a race condition where real-time updates don't propagate
-        // The group is deleted on backend but dashboard doesn't update in real-time
-        // Refresh the page to get the correct state from the server
-        await page.reload();
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-        // Now verify the group is no longer present (should work after refresh)
+        // Verify the group is no longer present (should work with real-time updates)
         const dashboardPage = new DashboardPage(page);
         await dashboardPage.waitForGroupToNotBePresent(groupName);
     });

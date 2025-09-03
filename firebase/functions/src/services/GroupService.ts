@@ -17,6 +17,8 @@ import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-lo
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import { createMinimalChangeDocument } from '../utils/change-detection';
+import { GroupChangeDocumentSchema } from '../schemas/change-documents';
 
 /**
  * Service for managing group operations
@@ -782,6 +784,16 @@ export class GroupService {
             throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
         }
 
+        // Get member list BEFORE deletion for change tracking
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
+        
+        logger.info('Preparing to delete group with members', { 
+            groupId, 
+            memberCount: memberIds.length,
+            members: memberIds 
+        });
+
         // Delete the group and all member subcollection documents
         await firestoreDb.runTransaction(async (transaction) => {
             // Get all member documents in the subcollection
@@ -796,6 +808,28 @@ export class GroupService {
             // Delete the main group document
             transaction.delete(docRef);
         });
+
+        // Manually create change document for group deletion with correct member list
+        // This ensures dashboard gets real-time notifications even though the trigger
+        // can't access the deleted subcollection
+        try {
+            const changeDoc = createMinimalChangeDocument(groupId, 'group', 'deleted', memberIds);
+            const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
+            
+            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+            
+            logger.info('Created change document for group deletion', { 
+                groupId, 
+                memberCount: memberIds.length,
+                members: memberIds
+            });
+        } catch (error) {
+            logger.warn('Failed to create change document for group deletion', { 
+                groupId, 
+                error: error instanceof Error ? error.message : String(error)
+            });
+            // Don't fail the entire operation if change document creation fails
+        }
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });

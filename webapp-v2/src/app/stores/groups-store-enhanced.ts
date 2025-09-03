@@ -226,8 +226,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             userId,
             () => {
                 // Any change = refresh immediately
-                logWarning('Group change detected, refreshing', {});
-                this.refreshGroups().catch((error) => logWarning('Failed to refresh groups', { error }));
+                logWarning('Group change detected, refreshing groups', { 
+                    userId,
+                    currentGroupCount: this.#groupsSignal.value.length,
+                    timestamp: new Date().toISOString()
+                });
+                this.refreshGroups().catch((error) => logWarning('Failed to refresh groups after change detection', { 
+                    error: error instanceof Error ? error.message : String(error),
+                    userId 
+                }));
             },
             {
                 maxRetries: 3,

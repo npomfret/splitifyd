@@ -41,8 +41,27 @@ export const trackGroupChanges = onDocumentWritten(
                 const affectedUsers: string[] = await stepTracker('member-fetch', async () => {
                     const users: string[] = [];
                     
-                    // Since members are now stored in subcollections, we need to query for them
-                    // For performance, we'll get members from the current state only
+                    // For DELETE events, the subcollection is also deleted in the same transaction,
+                    // so we can't query it. We need to fetch members before the document was deleted.
+                    // However, since the trigger fires after the transaction is complete, we can't
+                    // access the subcollection. As a workaround, we'll query for all users who
+                    // have ever been part of this group by looking at recent changes.
+                    
+                    if (changeType === 'deleted') {
+                        logger.warn('Group deletion detected - cannot fetch members from deleted subcollection', { 
+                            groupId, 
+                            changeType 
+                        });
+                        
+                        // For now, we'll create the change document with empty users array
+                        // This means the dashboard won't get real-time notifications, but the bug
+                        // report indicates this is already the case.
+                        // TODO: Consider storing member IDs in the main group document for this purpose
+                        
+                        return users; // Empty array for now
+                    }
+                    
+                    // For CREATE/UPDATE events, query the current subcollection
                     try {
                         const membersSnapshot = await firestoreDb
                             .collection(FirestoreCollections.GROUPS)
@@ -53,8 +72,15 @@ export const trackGroupChanges = onDocumentWritten(
                         membersSnapshot.forEach(memberDoc => {
                             users.push(memberDoc.id);
                         });
+                        
+                        logger.info('Fetched group members for change tracking', { 
+                            groupId, 
+                            changeType,
+                            memberCount: users.length,
+                            members: users 
+                        });
                     } catch (error) {
-                        logger.warn('Could not fetch group members for change tracking', { groupId, error });
+                        logger.warn('Could not fetch group members for change tracking', { groupId, changeType, error });
                         // If we can't get members, we still create the change document but with empty users array
                         // This ensures change detection still works at the group level
                     }
@@ -64,6 +90,16 @@ export const trackGroupChanges = onDocumentWritten(
 
                 // Create and write change document
                 await stepTracker('change-doc-creation', async () => {
+                    // Skip creating change document for DELETE events - these are handled
+                    // manually by GroupService.deleteGroup() to ensure proper member notification
+                    if (changeType === 'deleted') {
+                        logger.info('Skipping change document creation for DELETE event - handled by GroupService', { 
+                            groupId, 
+                            changeType 
+                        });
+                        return;
+                    }
+                    
                     // Create minimal change document for client notifications
                     const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
 
