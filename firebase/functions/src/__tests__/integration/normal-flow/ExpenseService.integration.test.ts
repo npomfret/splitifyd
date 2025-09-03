@@ -6,7 +6,7 @@ import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
-import { registerAllServices } from '../../../services/serviceRegistration';
+import { registerAllServices, getExpenseService } from '../../../services/serviceRegistration';
 
 describe('ExpenseService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -24,7 +24,7 @@ describe('ExpenseService - Integration Tests', () => {
 
         // Register all services for testing
         registerAllServices();
-        expenseService = new ExpenseService();
+        expenseService = getExpenseService();
 
         // Create a fresh group for each test with managed permissions
         const group = await apiDriver.createGroupWithMembers('ExpenseService Test Group', [alice, bob, charlie], alice.token);

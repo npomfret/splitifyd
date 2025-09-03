@@ -79,6 +79,8 @@ vi.mock('../../services/expenseMetadataService', () => ({
 vi.mock('../../utils/groupHelpers', () => ({
     isGroupOwner: vi.fn(() => true),
     isGroupMember: vi.fn(() => true),
+    isGroupOwnerAsync: vi.fn(() => Promise.resolve(true)),
+    isGroupMemberAsync: vi.fn(() => Promise.resolve(true)),
     getThemeColorForMember: vi.fn(() => ({ light: '#FF6B6B' })),
 }));
 

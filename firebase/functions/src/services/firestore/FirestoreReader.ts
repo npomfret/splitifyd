@@ -10,6 +10,7 @@ import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/f
 import { firestoreDb } from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
+import { FieldPath } from 'firebase-admin/firestore';
 
 // Import all schemas for validation
 import {
@@ -186,59 +187,115 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getUsersForGroup(groupId: string): Promise<UserDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo";
     }
 
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<GroupDocument[]> {
         try {
-            let query = this.db.collection(FirestoreCollections.GROUPS)
-                .where(`members.${userId}`, '!=', null);
+            // NEW APPROACH: Use subcollection architecture instead of the old members field
+            // First, get all group IDs where the user is a member from the subcollections
+            const membershipQuery = this.db.collectionGroup('members')
+                .where('userId', '==', userId)
+                .select('groupId');  // Only select groupId to minimize data transfer
+                
+            const membershipSnapshot = await membershipQuery.get();
+            
+            if (membershipSnapshot.empty) {
+                return []; // User is not a member of any groups
+            }
+            
+            // Extract group IDs from the membership documents
+            const groupIds = membershipSnapshot.docs.map(doc => doc.data().groupId).filter(Boolean);
+            
+            if (groupIds.length === 0) {
+                return [];
+            }
+            
+            // Now query the groups collection using the group IDs
+            // Firestore 'in' queries are limited to 10 items, so we might need to batch
+            const groups: GroupDocument[] = [];
+            
+            // Process in chunks of 10 (Firestore 'in' query limit)
+            for (let i = 0; i < groupIds.length; i += 10) {
+                const chunk = groupIds.slice(i, i + 10);
+                
+                let query = this.db.collection(FirestoreCollections.GROUPS)
+                    .where(FieldPath.documentId(), 'in', chunk);
 
-            // Apply ordering
+                // Apply ordering
+                if (options?.orderBy) {
+                    query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+                } else {
+                    query = query.orderBy('updatedAt', 'desc');
+                }
+
+                const snapshot = await query.get();
+
+                for (const doc of snapshot.docs) {
+                    try {
+                        const groupData = GroupDocumentSchema.parse({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                        groups.push(groupData);
+                    } catch (error) {
+                        logger.error('Invalid group document in getGroupsForUser', {
+                            error,
+                            groupId: doc.id,
+                            userId
+                        });
+                        // Skip invalid documents rather than failing the entire query
+                    }
+                }
+            }
+            
+            // Apply manual sorting since we might have fetched multiple chunks
             if (options?.orderBy) {
-                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
-            } else {
-                query = query.orderBy('updatedAt', 'desc');
+                const field = options.orderBy.field;
+                const direction = options.orderBy.direction;
+                groups.sort((a: any, b: any) => {
+                    if (direction === 'asc') {
+                        return a[field] > b[field] ? 1 : -1;
+                    } else {
+                        return a[field] < b[field] ? 1 : -1;
+                    }
+                });
             }
-
-            // Apply limit
-            if (options?.limit) {
-                query = query.limit(options.limit);
-            }
-
-            // Apply cursor for pagination
+            
+            // Apply cursor-based pagination (decode cursor and find position)
+            let startIndex = 0;
             if (options?.cursor) {
-                // Decode cursor - basic implementation
                 try {
-                    const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
-                    query = query.startAfter(cursorData.updatedAt, cursorData.id);
-                } catch (err) {
+                    // Decode cursor using same format as GroupService
+                    const decodedCursor = Buffer.from(options.cursor, 'base64').toString('utf-8');
+                    const cursorData = JSON.parse(decodedCursor);
+                    
+                    // Find the index of the cursor group by both updatedAt and id for precision
+                    // Convert Firestore Timestamp to ISO string for comparison
+                    let cursorUpdatedAt = cursorData.updatedAt;
+                    if (typeof cursorUpdatedAt === 'object' && cursorUpdatedAt._seconds) {
+                        // Convert Firestore Timestamp to ISO string
+                        const timestamp = new Date(cursorUpdatedAt._seconds * 1000 + cursorUpdatedAt._nanoseconds / 1000000);
+                        cursorUpdatedAt = timestamp.toISOString();
+                    }
+                    
+                    // Simplified approach: find by ID only (more reliable)
+                    const cursorIndex = groups.findIndex(group => group.id === cursorData.id);
+                    
+                    if (cursorIndex >= 0) {
+                        startIndex = cursorIndex + 1; // Start after the cursor
+                    }
+                } catch (error) {
                     logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
                 }
             }
-
-            const snapshot = await query.get();
-            const groups: GroupDocument[] = [];
-
-            for (const doc of snapshot.docs) {
-                try {
-                    const groupData = GroupDocumentSchema.parse({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                    groups.push(groupData);
-                } catch (error) {
-                    logger.error('Invalid group document in getGroupsForUser', {
-                        error,
-                        groupId: doc.id,
-                        userId
-                    });
-                    // Skip invalid documents rather than failing the entire query
-                }
+            
+            // Apply limit after sorting and cursor
+            if (options?.limit) {
+                return groups.slice(startIndex, startIndex + options.limit);
             }
 
-            return groups;
+            return groups.slice(startIndex);
         } catch (error) {
             logger.error('Failed to get groups for user', { error, userId });
             throw error;
@@ -246,8 +303,7 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo";
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {

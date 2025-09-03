@@ -22,6 +22,7 @@ import { getGroupMemberService } from './serviceRegistration';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { GroupData } from '../types/group-types';
 import { SettlementDocumentSchema } from '../schemas/settlement';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 // Re-export schema for backward compatibility
 export { SettlementDocumentSchema };
@@ -45,14 +46,16 @@ export class SettlementService {
     private usersCollection = firestoreDb.collection(FirestoreCollections.USERS);
     private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
 
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
+
 
     /**
      * Verify that specified users are members of the group using subcollection
      */
     private async verifyUsersInGroup(groupId: string, userIds: string[]): Promise<void> {
-        const groupDoc = await this.groupsCollection.doc(groupId).get();
+        const groupData = await this.firestoreReader.getGroup(groupId);
 
-        if (!groupDoc.exists) {
+        if (!groupData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
@@ -69,14 +72,14 @@ export class SettlementService {
      * Fetch user data with validation
      */
     private async fetchUserData(userId: string): Promise<RegisteredUser> {
-        const userDoc = await this.usersCollection.doc(userId).get();
+        const userData = await this.firestoreReader.getUser(userId);
 
-        if (!userDoc.exists) {
+        if (!userData) {
             // Users are never deleted, so missing user doc indicates invalid data
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', `User ${userId} not found`);
         }
 
-        const rawData = userDoc.data();
+        const rawData = userData;
 
         // Validate user data with Zod instead of manual field checking
         try {
@@ -109,24 +112,14 @@ export class SettlementService {
     private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
         LoggerContext.update({ settlementId, userId });
         
-        const settlementDoc = await this.settlementsCollection.doc(settlementId).get();
+        const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
-        if (!settlementDoc.exists) {
+        if (!settlementData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        // Validate and parse settlement data structure - strict enforcement
-        const rawData = settlementDoc.data();
-        let settlement;
-        try {
-            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
-        } catch (error) {
-            logger.error('Settlement document validation failed', error as Error, {
-                settlementId,
-                userId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
-        }
+        // Settlement data is already validated by FirestoreReader
+        const settlement = settlementData;
 
         await verifyGroupMembership(settlement.groupId, userId);
 
@@ -274,24 +267,14 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'update-settlement' });
         
         const settlementRef = this.settlementsCollection.doc(settlementId);
-        const settlementDoc = await settlementRef.get();
+        const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
-        if (!settlementDoc.exists) {
+        if (!settlementData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        // Validate and parse settlement data structure  
-        const rawData = settlementDoc.data();
-        let settlement;
-        try {
-            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
-        } catch (error) {
-            logger.error('Settlement document validation failed in updateSettlement', error as Error, {
-                settlementId,
-                userId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
-        }
+        // Settlement data is already validated by FirestoreReader
+        const settlement = settlementData;
 
         await verifyGroupMembership(settlement.groupId, userId);
 
@@ -346,8 +329,7 @@ export class SettlementService {
             }
         );
 
-        const updatedDoc = await settlementRef.get();
-        const updatedSettlement = updatedDoc.data();
+        const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);
 
         // Fetch user data for payer and payee to return complete response
         const [payerData, payeeData] = await Promise.all([
@@ -385,24 +367,14 @@ export class SettlementService {
         LoggerContext.update({ userId, operation: 'delete-settlement' });
         
         const settlementRef = this.settlementsCollection.doc(settlementId);
-        const settlementDoc = await settlementRef.get();
+        const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
-        if (!settlementDoc.exists) {
+        if (!settlementData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
         }
 
-        // Validate and parse settlement data structure  
-        const rawData = settlementDoc.data();
-        let settlement;
-        try {
-            settlement = SettlementDocumentSchema.parse({ ...rawData, id: settlementId });
-        } catch (error) {
-            logger.error('Settlement document validation failed in deleteSettlement', error as Error, {
-                settlementId,
-                userId,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SETTLEMENT_DATA', 'Settlement document structure is invalid');
-        }
+        // Settlement data is already validated by FirestoreReader
+        const settlement = settlementData;
 
         await verifyGroupMembership(settlement.groupId, userId);
 

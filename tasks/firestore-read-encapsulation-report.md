@@ -328,11 +328,90 @@ export class MockFirestoreReader implements IFirestoreReader {
 - ✅ All integration tests passing: 524/524 (verified via build success)
 - ✅ TypeScript compilation successful
 
-**Day 6: ExpenseService & SettlementService**
+**Day 6: ExpenseService & SettlementService** ✅ COMPLETED
 - **Why paired**: Related functionality, similar patterns
 - **Complexity**: Medium - transaction reads, filtering
 - **Impact**: High - core financial features
 - **Tests**: 6 test files affected
+
+**Implementation Results:**
+- ✅ **ExpenseService Migration**: Updated constructor to accept IFirestoreReader dependency
+  - Replaced 5 direct Firestore read operations with reader methods
+  - Added `toGroup()` helper for type compatibility between GroupDocument and Group
+  - Fixed type compatibility issue with securityPreset and permissions fields
+  - All reads now go through centralized, validated FirestoreReader interface
+- ✅ **SettlementService Migration**: Updated constructor to accept IFirestoreReader dependency
+  - Replaced 5 direct Firestore read operations with reader methods  
+  - Simplified user/group/settlement fetching with validated data from reader
+  - Removed redundant Zod validation (now handled by FirestoreReader)
+- ✅ **CRITICAL BUG FIX**: Fixed FirestoreReader.getGroupsForUser() subcollection architecture
+  - **Root cause**: Using deprecated `members.${userId}` query instead of subcollection architecture
+  - **Fix**: Implemented collectionGroup('members') query with proper batching for 'in' query limits
+  - **Impact**: This bug would have caused getGroupsForUser to return empty arrays in production
+- ✅ **ServiceRegistry Updates**: Updated service instantiation to inject IFirestoreReader dependencies
+- ✅ **Integration Test Creation**: Created comprehensive FirestoreReader integration tests (5 tests)
+  - Tests verify subcollection architecture functionality that would have caught the bug
+  - Fixed test isolation by creating fresh users instead of borrowing from contaminated pool
+  - All tests now use unique email addresses to prevent data contamination
+- ✅ **Test Results**: All tests passing
+  - Unit tests: 262/262 passing  
+  - Integration tests: ExpenseService (26/26), SettlementService (17/17), FirestoreReader (5/5)
+  - GroupService integration tests: 29/29 passing
+  - Group list API integration tests: 8/8 passing
+  - TypeScript compilation successful
+- ✅ **Code Quality**: Proper error handling, logging, and type safety maintained throughout
+
+**⚠️ IDENTIFIED GAP - Scale Testing Requirements:**
+The current FirestoreReader integration tests (5 tests) are basic functionality tests that don't cover scale scenarios. Based on the subcollection architecture and potential for large datasets, we need comprehensive scale testing:
+
+**Missing Test Coverage:**
+- **Users with many groups** (100+, 1000+ groups) - tests pagination limits, query performance 
+- **Groups with many members** (50+, 500+ members) - tests subcollection performance
+- **Groups with many comments** (100+, 1000+ comments) - tests comment retrieval efficiency
+- **Groups with many settlements** (100+, 1000+ settlements) - tests settlement queries
+- **Groups with many expenses** (500+, 5000+ expenses) - tests expense pagination
+- **Complex pagination scenarios** - cursor edge cases, ordering with large datasets
+- **Concurrent access patterns** - multiple users querying same large groups
+- **Memory usage validation** - ensure large result sets don't cause memory issues
+
+**Action Item**: Create `firestore-reader.scale.integration.test.ts` with load testing for:
+1. **Pagination stress testing** - verify cursor logic works with 10,000+ groups
+2. **Subcollection performance** - test group member lookups with large member lists  
+3. **Query optimization validation** - ensure 'in' query batching handles limits correctly
+4. **Memory boundary testing** - validate behavior with result sets near memory limits
+
+**Risk**: Without scale testing, the subcollection architecture changes could cause performance issues or pagination failures in production with large datasets.
+
+**⚠️ CRITICAL PERFORMANCE CONCERN - Pagination Implementation:**
+The current FirestoreReader.getGroupsForUser() implementation has a fundamental performance flaw:
+
+**Current Approach Issues:**
+1. **Fetches ALL user groups** from subcollections (potentially thousands)
+2. **Sorts in memory** instead of using Firestore indexes
+3. **Applies pagination in-memory** using array slicing
+4. **No query limits** on the initial subcollection fetch
+
+**Performance Impact:**
+- User with 1000+ groups: fetches ALL 1000 groups just to return first 10
+- Memory usage scales linearly with total group count (not page size)
+- Network bandwidth wasted transferring unused data
+- CPU overhead for client-side sorting and pagination
+- Firestore read costs for ALL documents regardless of page size
+
+**Immediate Action Required:**
+1. **Redesign pagination** to use proper Firestore cursor-based pagination
+2. **Apply limits at query level**, not in memory
+3. **Use Firestore ordering** instead of client-side sorting  
+4. **Batch subcollection queries** with proper limits
+5. **Implement cursor state management** for reliable pagination
+
+**Current Implementation Risk**: Production systems with users having 100+ groups will experience:
+- Slow response times (fetching unnecessary data)
+- High memory usage (storing all groups in memory)  
+- Expensive Firestore costs (reading all documents)
+- Poor user experience (pagination delays)
+
+This pagination performance issue should be prioritized as **HIGH PRIORITY** for the next development cycle.
 
 **Day 7: GroupMemberService & GroupPermissionService**
 - **Why paired**: Related functionality, complex permission logic

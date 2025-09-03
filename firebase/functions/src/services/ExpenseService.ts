@@ -11,10 +11,12 @@ import {verifyGroupMembership} from '../utils/groupHelpers';
 import {isMemberInArray} from '../utils/memberHelpers';
 import {getGroupMemberService} from './serviceRegistration';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {transformGroupDocument} from '../groups/handlers';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { GroupDocument } from '../schemas';
+import type { Group, GroupPermissions } from '@splitifyd/shared';
 
 // Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
@@ -22,32 +24,50 @@ export { ExpenseDocumentSchema, ExpenseSplitSchema };
 /**
  * Service for managing expenses
  */
+/**
+ * Transform GroupDocument (database schema) to Group (API type) with required defaults
+ */
+function toGroup(groupDoc: GroupDocument): Group {
+    const defaultPermissions: GroupPermissions = {
+        expenseEditing: 'anyone',
+        expenseDeletion: 'owner-and-admin',
+        memberInvitation: 'anyone',
+        memberApproval: 'automatic',
+        settingsManagement: 'admin-only'
+    };
+    
+    return {
+        ...groupDoc,
+        securityPreset: groupDoc.securityPreset || 'open',
+        permissions: (groupDoc.permissions as GroupPermissions) || defaultPermissions
+    };
+}
+
 export class ExpenseService {
     private expensesCollection = firestoreDb.collection(FirestoreCollections.EXPENSES);
     private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
+
+    constructor(private readonly firestoreReader: IFirestoreReader) {}
 
     /**
      * Fetch and validate an expense document
      */
     private async fetchExpense(expenseId: string): Promise<{ docRef: DocumentReference; expense: Expense }> {
+        // Use FirestoreReader for read operation
+        const expenseData = await this.firestoreReader.getExpense(expenseId);
+        
+        if (!expenseData) {
+            throw Errors.NOT_FOUND('Expense');
+        }
+
+        // Keep docRef for write operations (until we have IFirestoreWriter)
         const docRef = this.expensesCollection.doc(expenseId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-            throw Errors.NOT_FOUND('Expense');
-        }
-
-        const rawData = doc.data();
-        if (!rawData) {
-            throw Errors.NOT_FOUND('Expense');
-        }
 
         // Validate the expense data structure
         let expense: Expense;
         try {
-            // Add the id field since it's not stored in the document data
-            const dataWithId = { ...rawData, id: doc.id };
-            const validatedData = ExpenseDocumentSchema.parse(dataWithId);
+            // Data already validated by FirestoreReader
+            const validatedData = expenseData;
             // Use the validated data directly - schema parse guarantees type safety
             // Convert receiptUrl from null to undefined if needed
             expense = {
@@ -146,13 +166,14 @@ export class ExpenseService {
         // Verify user is a member of the group
         await verifyGroupMembership(expenseData.groupId, userId);
 
-        // Get group data and verify permissions
-        const groupDoc = await this.groupsCollection.doc(expenseData.groupId).get();
-        if (!groupDoc.exists) {
+        // Get group data and verify permissions using FirestoreReader
+        const groupData = await this.firestoreReader.getGroup(expenseData.groupId);
+        if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        // Transform GroupDocument to Group format for PermissionEngine
+        const group = toGroup(groupData);
 
         // Check if user can create expenses in this group
         const canCreateExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseEditing');
@@ -270,12 +291,12 @@ export class ExpenseService {
         const { docRef, expense } = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
-        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
-        if (!groupDoc.exists) {
+        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        const group = toGroup(groupData);
 
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -585,12 +606,12 @@ export class ExpenseService {
         const { docRef, expense } = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
-        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
-        if (!groupDoc.exists) {
+        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const group = transformGroupDocument(groupDoc);
+        const group = toGroup(groupData);
 
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
@@ -838,8 +859,8 @@ export class ExpenseService {
         const { expense } = await this.fetchExpense(expenseId);
 
         // Get group document for permission check and data
-        const groupDoc = await this.groupsCollection.doc(expense.groupId).get();
-        if (!groupDoc.exists) {
+        const groupData = await this.firestoreReader.getGroup(expense.groupId);
+        if (!groupData) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
@@ -852,14 +873,13 @@ export class ExpenseService {
             }
         }
 
-        const groupData = groupDoc.data();
         if (!groupData?.name) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Invalid group data');
         }
 
         // Transform group data using same pattern as groups handler (without deprecated members field)
         const group = {
-            id: groupDoc.id,
+            id: groupData.id,
             name: groupData.name,
             description: groupData.description || '',
             createdBy: groupData.createdBy,

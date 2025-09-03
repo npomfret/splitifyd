@@ -59,14 +59,14 @@ export function registerAllServices(): void {
 
     registry.registerService('ExpenseService', () => {
         if (!expenseServiceInstance) {
-            expenseServiceInstance = new ExpenseService();
+            expenseServiceInstance = new ExpenseService(getFirestoreReader());
         }
         return expenseServiceInstance;
     });
 
     registry.registerService('SettlementService', () => {
         if (!settlementServiceInstance) {
-            settlementServiceInstance = new SettlementService();
+            settlementServiceInstance = new SettlementService(getFirestoreReader());
         }
         return settlementServiceInstance;
     });
