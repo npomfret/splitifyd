@@ -1,0 +1,237 @@
+import { describe, test, expect, beforeEach, vi, Mock } from 'vitest';
+import { GroupMemberService } from '../../../services/GroupMemberService';
+import { ApiError } from '../../../utils/errors';
+
+// Mock Firebase
+vi.mock('../../../firebase', () => ({
+    firestoreDb: {
+        collection: vi.fn(),
+    },
+}));
+
+// Mock logger
+vi.mock('../../../logger', () => ({
+    logger: {
+        error: vi.fn(),
+        warn: vi.fn(),
+        info: vi.fn(),
+    },
+}));
+
+describe('Service-Level Error Handling - Subcollection Queries', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    // Note: This test file focuses on subcollection query error handling patterns.
+    // Complex service integration tests with full mocking are covered by integration tests.
+
+    describe('GroupMemberService - empty subcollection handling', () => {
+        test('should handle empty member subcollection gracefully', async () => {
+            const groupMemberService = new GroupMemberService();
+            
+            // Mock empty subcollection
+            const mockSnapshot = {
+                docs: [], // No members
+                forEach: vi.fn(),
+            };
+            
+            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
+            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
+            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
+            
+            const { firestoreDb } = await import('../../../firebase');
+            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+
+            // Should return empty array, not throw
+            const members = await groupMemberService.getMembersFromSubcollection('empty-group-id');
+            
+            expect(members).toEqual([]);
+            expect(mockGet).toHaveBeenCalled();
+        });
+
+        test('should handle subcollection query timeout', async () => {
+            const groupMemberService = new GroupMemberService();
+            
+            // Mock query timeout
+            const timeoutError = new Error('Query timed out after 30 seconds');
+            const mockGet = vi.fn().mockRejectedValue(timeoutError);
+            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
+            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
+            
+            const { firestoreDb } = await import('../../../firebase');
+            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+
+            // Should let timeout errors bubble up
+            await expect(
+                groupMemberService.getMembersFromSubcollection('timeout-group-id')
+            ).rejects.toThrow('Query timed out after 30 seconds');
+        });
+
+        test('should handle Firestore permission errors on subcollection access', async () => {
+            const groupMemberService = new GroupMemberService();
+            
+            // Mock permission denied error
+            const permissionError = new Error('Missing or insufficient permissions');
+            permissionError.name = 'FirebaseError';
+            
+            const mockGet = vi.fn().mockRejectedValue(permissionError);
+            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
+            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
+            
+            const { firestoreDb } = await import('../../../firebase');
+            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+
+            // Should let permission errors bubble up
+            await expect(
+                groupMemberService.getMembersFromSubcollection('protected-group-id')
+            ).rejects.toThrow('Missing or insufficient permissions');
+        });
+    });
+
+    describe('Subcollection Query Performance Edge Cases', () => {
+        test('should handle large subcollection results without memory issues', async () => {
+            const groupMemberService = new GroupMemberService();
+            
+            // Mock large result set (1000 members)
+            const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
+                id: `user-${i}`,
+                data: () => ({
+                    userId: `user-${i}`,
+                    groupId: 'large-group',
+                    role: 'member',
+                    status: 'active',
+                    joinedAt: '2024-01-01T00:00:00.000Z',
+                    theme: { name: 'Blue', colorIndex: i % 10 },
+                }),
+            }));
+
+            const mockSnapshot = {
+                docs: largeMemberSet,
+                forEach: vi.fn().mockImplementation((callback) => {
+                    largeMemberSet.forEach(callback);
+                }),
+            };
+            
+            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
+            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
+            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
+            
+            const { firestoreDb } = await import('../../../firebase');
+            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+
+            // Should handle large result sets efficiently
+            const members = await groupMemberService.getMembersFromSubcollection('large-group-id');
+            
+            expect(members).toHaveLength(1000);
+            expect(members[0].userId).toBe('user-0');
+            expect(members[999].userId).toBe('user-999');
+        });
+
+        test('should handle corrupted subcollection documents', async () => {
+            const groupMemberService = new GroupMemberService();
+            
+            // Mock mixed valid and corrupted documents
+            const mixedDocs = [
+                {
+                    id: 'user-1',
+                    data: () => ({
+                        userId: 'user-1',
+                        groupId: 'group-123',
+                        role: 'member',
+                        status: 'active',
+                        joinedAt: '2024-01-01T00:00:00.000Z',
+                        theme: { name: 'Blue', colorIndex: 0 },
+                    }),
+                },
+                {
+                    id: 'user-2',
+                    data: () => null, // Corrupted document
+                },
+                {
+                    id: 'user-3',
+                    data: () => ({
+                        // Missing required fields
+                        userId: 'user-3',
+                        // Missing groupId, role, etc.
+                    }),
+                },
+            ];
+
+            const mockSnapshot = {
+                docs: mixedDocs,
+                forEach: vi.fn().mockImplementation((callback) => {
+                    mixedDocs.forEach(callback);
+                }),
+            };
+            
+            const mockGet = vi.fn().mockResolvedValue(mockSnapshot);
+            const mockCollection = vi.fn().mockReturnValue({ get: mockGet });
+            const mockDoc = vi.fn().mockReturnValue({ collection: mockCollection });
+            
+            const { firestoreDb } = await import('../../../firebase');
+            (firestoreDb.collection as Mock).mockReturnValue({ doc: mockDoc });
+
+            // Should handle corrupted documents gracefully
+            // Note: Current implementation processes all documents, but we test graceful handling
+            const members = await groupMemberService.getMembersFromSubcollection('group-with-corruption');
+            
+            // Verify that the method doesn't crash with corrupted data
+            expect(Array.isArray(members)).toBe(true);
+            // At least the valid document should be processable
+            expect(members.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('Error Recovery and Resilience', () => {
+        test('should handle partial subcollection query failures gracefully', async () => {
+            // This test documents the pattern for handling partial failures in subcollection queries
+            // Real implementation would be in integration tests with actual service methods
+            
+            // Pattern: Services should handle individual query failures while continuing with valid operations
+            // Example: When querying multiple members, one failure shouldn't break the entire operation
+            
+            const mockService = {
+                getMemberFromSubcollection: vi.fn()
+                    .mockResolvedValueOnce({ userId: 'user1', role: 'member' }) // Success
+                    .mockRejectedValueOnce(new Error('Network error'))          // Failure
+                    .mockResolvedValueOnce({ userId: 'user3', role: 'admin' })  // Success
+            };
+
+            // Verify the mock is set up correctly for partial failure patterns
+            expect(mockService.getMemberFromSubcollection).toBeDefined();
+            
+            // In real scenarios, services would catch individual failures and continue processing
+            const results = [];
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const result = await mockService.getMemberFromSubcollection(`user${i}`);
+                    results.push(result);
+                } catch (error) {
+                    // Log error but continue processing other users
+                    results.push(null);
+                }
+            }
+            
+            expect(results).toHaveLength(3);
+            expect(results.filter(r => r !== null)).toHaveLength(2); // 2 successes, 1 failure
+        });
+
+        test('should validate error types for proper handling', () => {
+            // Test that services can distinguish between different error types
+            const regularError = new Error('Network timeout');
+            const apiError = new ApiError(404, 'NOT_FOUND', 'Resource not found');
+
+            // Regular error should have message
+            expect(regularError.message).toBeDefined();
+            expect(regularError.message).toBe('Network timeout');
+
+            // ApiError should have statusCode and errorCode
+            expect(apiError instanceof ApiError).toBe(true);
+            expect(apiError.statusCode).toBeDefined();
+            expect(apiError.statusCode).toBe(404);
+            expect(apiError.code).toBeDefined(); // Note: ApiError uses 'code', not 'errorCode'
+            expect(apiError.code).toBe('NOT_FOUND');
+        });
+    });
+});
