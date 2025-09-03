@@ -6,6 +6,7 @@ import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
+import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
@@ -243,19 +244,35 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
         }
 
-        // Pre-compute all member data outside transaction
+        // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
         const existingMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
         const memberIndex = existingMembers.length;
-        const newMemberTemplate = {
+        
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+            
+        const memberDoc: GroupMemberDocument = {
+            userId: userId,
+            groupId: groupId,
             role: MemberRoles.MEMBER,
-            status: MemberStatuses.ACTIVE,
             theme: getThemeColorForMember(memberIndex),
             joinedAt,
+            status: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
         };
+        
+        const serverTimestamp = createTrueServerTimestamp();
+        const memberDocWithTimestamps = {
+            ...memberDoc,
+            createdAt: serverTimestamp,
+            updatedAt: serverTimestamp,
+        };
 
-        // Ultra-minimal transaction with retry for emulator lock contention
+        // Atomic transaction: check group exists and create member subcollection
         const result = await runTransactionWithRetry(
             async (transaction) => {
                 const groupSnapshot = await transaction.get(groupRef);
@@ -264,32 +281,16 @@ export class GroupShareService {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
                 }
 
-                const rawData = groupSnapshot.data();
-                if (!rawData) {
-                    throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'GROUP_DATA_NULL', 'Group document data is null');
-                }
-
-                // Critical section: Only essential checks and updates
-                const currentMembers = rawData.members || {};
-                if (userId in currentMembers) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
-                }
-
-                // Fast update with pre-computed data
-                const updatedMembers = {
-                    ...currentMembers,
-                    [userId]: newMemberTemplate,
-                };
-
-                // Single atomic write to embedded members
+                // Update group timestamp to reflect membership change
                 await checkAndUpdateWithTimestamp(
                     transaction,
                     groupRef,
-                    {
-                        members: updatedMembers,
-                    },
-                    getUpdatedAtTimestamp(rawData),
+                    {},
+                    getUpdatedAtTimestamp(groupSnapshot.data()),
                 );
+
+                // Create member subcollection document
+                transaction.set(memberRef, memberDocWithTimestamps);
 
                 return {
                     groupName: preCheckGroup.name,
@@ -307,18 +308,6 @@ export class GroupShareService {
                 }
             }
         );
-
-        // Dual-write: Add member to subcollection AFTER successful transaction
-        const memberDoc: GroupMemberDocument = {
-            userId: userId,
-            groupId: groupId,
-            role: newMemberTemplate.role,
-            theme: newMemberTemplate.theme,
-            joinedAt: newMemberTemplate.joinedAt,
-            status: newMemberTemplate.status,
-            invitedBy: newMemberTemplate.invitedBy,
-        };
-        await getGroupMemberService().createMemberSubcollection(groupId, memberDoc);
 
         logger.info('User joined group via share link', {
             groupId,

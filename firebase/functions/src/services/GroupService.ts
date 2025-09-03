@@ -604,10 +604,13 @@ export class GroupService {
             throw Errors.INVALID_INPUT();
         }
 
-        // Store in Firestore with flat structure (no data wrapper)
-        await docRef.set(documentToWrite);
-
-        // Dual-write: Also create the creator as a member in the subcollection
+        // Pre-calculate member subcollection data outside transaction for speed
+        const memberRef = firestoreDb
+            .collection(FirestoreCollections.GROUPS)
+            .doc(docRef.id)
+            .collection('members')
+            .doc(userId);
+            
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: docRef.id,
@@ -616,7 +619,22 @@ export class GroupService {
             joinedAt: now.toDate().toISOString(),
             status: MemberStatuses.ACTIVE,
         };
-        await getGroupMemberService().createMemberSubcollection(docRef.id, memberDoc);
+        
+        const memberServerTimestamp = createTrueServerTimestamp();
+        const memberDocWithTimestamps = {
+            ...memberDoc,
+            createdAt: memberServerTimestamp,
+            updatedAt: memberServerTimestamp,
+        };
+
+        // Atomic transaction: create both group and member documents
+        await runTransactionWithRetry(
+            async (transaction) => {
+                transaction.set(docRef, documentToWrite);
+                transaction.set(memberRef, memberDocWithTimestamps);
+            },
+            { context: { operation: 'createGroup', groupId: docRef.id, userId } }
+        );
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
