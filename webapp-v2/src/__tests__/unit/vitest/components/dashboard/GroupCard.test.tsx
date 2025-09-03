@@ -12,8 +12,6 @@ vi.mock('react-i18next', () => ({
                 'groupCard.settledUp': 'Settled up',
                 'groupCard.youreOwed': (vals: any) => `You're owed ${vals.amount}`,
                 'groupCard.youOwe': (vals: any) => `You owe ${vals.amount}`,
-                'groupCard.members': 'members',
-                'groupCard.member': 'member',
                 'groupCard.noRecentActivity': 'No recent activity',
                 'groupCard.addExpenseTooltip': (vals: any) => `Add expense to ${vals.groupName}`,
                 'groupCard.inviteTooltip': (vals: any) => `Invite to ${vals.groupName}`,
@@ -95,7 +93,6 @@ describe('GroupCard', () => {
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
         expect(screen.getByText('trip to paris')).toBeInTheDocument();
-        expect(screen.getByText('3 members')).toBeInTheDocument();
         expect(screen.getByText('Just created')).toBeInTheDocument();
     });
 
@@ -178,8 +175,7 @@ describe('GroupCard', () => {
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
-        // The component shows member count, not avatars
-        expect(screen.getByText('3 members')).toBeInTheDocument();
+        // The component no longer shows member count
     });
 
     it('limits member avatars to 5 and shows count for rest', () => {
@@ -199,8 +195,7 @@ describe('GroupCard', () => {
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
-        // The component shows member count, not avatars
-        expect(screen.getByText('8 members')).toBeInTheDocument();
+        // The component no longer shows member count
     });
 
     it('calls onClick when card is clicked', () => {
@@ -221,7 +216,7 @@ describe('GroupCard', () => {
 
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
-        expect(screen.getByText('1 member')).toBeInTheDocument(); // singular
+        // The component no longer shows member count
     });
 
     it('displays recent expenses text', () => {
@@ -234,25 +229,5 @@ describe('GroupCard', () => {
         expect(screen.getByText('Just created')).toBeInTheDocument();
     });
 
-    it('handles groups without members object', () => {
-        const group = createTestGroup({
-            name: 'No Members Object',
-        });
 
-        render(<GroupCard group={group} onClick={mockOnClick} />);
-
-        // Should still show member count as 0
-        expect(screen.getByText('0 members')).toBeInTheDocument();
-    });
-
-    it('handles empty members object', () => {
-        const group = createTestGroup({
-            name: 'Empty Members',
-        });
-
-        render(<GroupCard group={group} onClick={mockOnClick} />);
-
-        // Should show 0 members
-        expect(screen.getByText('0 members')).toBeInTheDocument();
-    });
 });
