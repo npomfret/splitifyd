@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ExpenseBuilder, ApiDriver} from '@splitifyd/test-support';
+import {ExpenseBuilder, ApiDriver, TestGroupManager} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -14,15 +14,16 @@ describe('Freeform Categories API Integration', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);
-        testGroup = await apiDriver.createGroupWithMembers(`Freeform Categories Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
     });
 
     describe('Expense Creation with Custom Categories', () => {
         test('should create expense with custom category name', async () => {
-            const customCategory = 'Custom Office Supplies';
+            const uniqueId = uuidv4().slice(0, 8);
+            const customCategory = `Custom Office Supplies ${uniqueId}`;
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
-                .withDescription('Pens and notebooks')
+                .withDescription(`Pens and notebooks ${uniqueId}`)
                 .withAmount(25.99)
                 .withCategory(customCategory)
                 .withPaidBy(users[0].uid)
@@ -32,7 +33,7 @@ describe('Freeform Categories API Integration', () => {
             const response = await apiDriver.createExpense(expenseData, users[0].token);
 
             expect(response.category).toBe(customCategory);
-            expect(response.description).toBe('Pens and notebooks');
+            expect(response.description).toBe(`Pens and notebooks ${uniqueId}`);
             expect(response.amount).toBe(25.99);
         });
 

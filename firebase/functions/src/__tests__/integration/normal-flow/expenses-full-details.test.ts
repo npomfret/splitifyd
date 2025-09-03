@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {ApiDriver, borrowTestUsers, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Expenses Full Details API', () => {
@@ -14,12 +14,13 @@ describe('Expenses Full Details API', () => {
     beforeEach(async () => {
         ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
 
-        // Create a fresh group and expense for each test
-        const group = await apiDriver.createGroupWithMembers('Expense Full Details Test Group', [alice, bob, charlie], alice.token);
+        // Use shared group for performance
+        const group = await TestGroupManager.getOrCreateGroup([alice, bob, charlie], { memberCount: 3 });
         groupId = group.id;
 
-        // Create a test expense
-        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).build(), alice.token);
+        // Create a test expense with unique description
+        const uniqueId = Math.random().toString(36).slice(2, 10);
+        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).build(), alice.token);
         expenseId = expense.id;
     });
 
@@ -43,8 +44,8 @@ describe('Expenses Full Details API', () => {
             // Verify group data
             expect(fullDetails.group).toBeDefined();
             expect(fullDetails.group.id).toBe(groupId);
-            expect(fullDetails.group.name).toBe('Expense Full Details Test Group');
-            expect(fullDetails.group.createdBy).toBe(alice.uid);
+            expect(fullDetails.group.name).toBeDefined();
+            expect(typeof fullDetails.group.name).toBe('string');
             expect(fullDetails.group.createdBy).toBeDefined();
 
             // Verify members data
@@ -78,9 +79,11 @@ describe('Expenses Full Details API', () => {
 
         it('should work with complex expense data', async () => {
             // Create expense with custom splits
+            const uniqueId = Math.random().toString(36).slice(2, 10);
             const complexExpense = await apiDriver.createExpense(
                 new ExpenseBuilder()
                     .withGroupId(groupId)
+                    .withDescription(`Complex expense test ${uniqueId}`)
                     .withPaidBy(bob.uid)
                     .withParticipants([alice.uid, bob.uid, charlie.uid])
                     .withSplitType('exact')

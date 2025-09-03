@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
@@ -16,7 +16,7 @@ describe('API Validation Smoke Tests', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
 
-        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
     });
 
     describe('Date Validation - Smoke Tests', () => {
@@ -39,10 +39,11 @@ describe('API Validation Smoke Tests', () => {
         });
 
         test('should accept valid dates', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -51,7 +52,8 @@ describe('API Validation Smoke Tests', () => {
 
     describe('Category Validation - Smoke Tests', () => {
         test('should accept valid category', async () => {
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const uniqueId = uuidv4().slice(0, 8);
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -78,7 +80,8 @@ describe('API Validation Smoke Tests', () => {
 
     describe('String Length & Security Validation - Smoke Tests', () => {
         test('should accept valid description within limits', async () => {
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Valid description').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const uniqueId = uuidv4().slice(0, 8);
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid description ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -92,7 +95,8 @@ describe('API Validation Smoke Tests', () => {
         });
 
         test('should accept valid group name', async () => {
-            const groupData = new CreateGroupRequestBuilder().withName('Valid Group Name').build();
+            const uniqueId = uuidv4().slice(0, 8);
+            const groupData = new CreateGroupRequestBuilder().withName(`Valid Group Name ${uniqueId}`).build();
             const response = await apiDriver.createGroup(groupData, users[0].token);
             expect(response.id).toBeDefined();
         });

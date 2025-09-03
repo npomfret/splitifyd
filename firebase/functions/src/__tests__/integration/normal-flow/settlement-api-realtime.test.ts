@@ -2,7 +2,7 @@
 // This test shows that the trackSettlementChanges trigger may not be firing for API-created settlements
 
 import {beforeEach, describe, expect, it} from 'vitest';
-import {ApiDriver, AppDriver, SettlementBuilder, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, SettlementBuilder, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import {firestoreDb} from '../../../firebase';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -19,12 +19,13 @@ describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     });
 
     it('should generate transaction-change notification when settlement is created via API', async () => {
-        // Create a group with both users as members using ApiDriver
-        const testGroup = await apiDriver.createGroupWithMembers('Test Group for Settlement API', [user1, user2], user1.token);
+        // Use shared group for realtime testing
+        const testGroup = await TestGroupManager.getOrCreateGroup([user1, user2], { memberCount: 2 });
         groupId = testGroup.id;
 
         // Create a settlement via API (not direct Firestore)
-        const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(user2.uid).withPayee(user1.uid).build();
+        const uniqueNote = `Realtime test settlement ${Date.now()}`;
+        const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(user2.uid).withPayee(user1.uid).withNote(uniqueNote).build();
 
         const createdSettlement = await apiDriver.createSettlement(settlementData, user1.token);
         expect(createdSettlement).toBeDefined();

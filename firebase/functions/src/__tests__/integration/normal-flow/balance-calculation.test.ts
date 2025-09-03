@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 
-import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 

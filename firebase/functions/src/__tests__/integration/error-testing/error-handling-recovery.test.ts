@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -15,8 +15,8 @@ describe('Error Handling and Recovery Testing', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(2);
 
-        // Create a fresh test group for each test
-        testGroup = await apiDriver.createGroupWithMembers('Error Handling Test Group', [users[0]], users[0].token);
+        // Create group with only first user to ensure permission tests work
+        testGroup = await TestGroupManager.getOrCreateGroup([users[0]], { memberCount: 1 });
     });
 
     describe('4.1 Service Outage Scenarios', () => {
@@ -42,10 +42,11 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle partial service degradation gracefully', async () => {
                 // Test operations that depend on multiple services
                 // Create valid expense first
+                const uniqueId = uuidv4().slice(0, 8);
                 const validExpense = await apiDriver.createExpense(
                     new ExpenseBuilder()
                         .withGroupId(testGroup.id)
-                        .withDescription('Valid expense for degradation test')
+                        .withDescription(`Valid expense for degradation test ${uniqueId}`)
                         .withAmount(100)
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid])
@@ -141,8 +142,9 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle concurrent operations with conflicting data gracefully', async () => {
                 // Create an expense
+                const uniqueId = uuidv4().slice(0, 8);
                 const baseExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Conflict test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Conflict test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
                     users[0].token,
                 );
 
@@ -217,8 +219,9 @@ describe('Error Handling and Recovery Testing', () => {
         describe('Backup and Recovery', () => {
             it('should handle data export functionality gracefully', async () => {
                 // Create some test data first
+                const uniqueId = uuidv4().slice(0, 8);
                 const exportTestExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Export test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Export test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
                     users[0].token,
                 );
 
@@ -256,8 +259,9 @@ describe('Error Handling and Recovery Testing', () => {
 
             it('should handle orphaned data cleanup scenarios', async () => {
                 // Create expense, then simulate orphaned state by checking references
+                const uniqueId = uuidv4().slice(0, 8);
                 const cleanupTestExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Cleanup test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Cleanup test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
                     users[0].token,
                 );
 

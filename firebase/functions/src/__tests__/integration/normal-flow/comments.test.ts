@@ -6,7 +6,7 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, TestGroupManager, TestExpenseManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 import {firestoreDb as db} from '../../../firebase';
 
@@ -19,20 +19,11 @@ describe('Comments Integration Tests', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
 
-        // Create a test group with multiple members
+        // Use shared group and expense for comment testing
         const members = users.slice(0, 2);
-        testGroup = await apiDriver.createGroupWithMembers(`Comments Test Group ${uuidv4()}`, members, members[0].token);
-
-        // Create a test expense
-        const expenseData = new ExpenseBuilder()
-            .withGroupId(testGroup.id)
-            .withAmount(50.0)
-            .withDescription('Test expense for comments')
-            .withPaidBy(members[0].uid)
-            .withParticipants([members[0].uid, members[1].uid])
-            .build();
-
-        testExpense = await apiDriver.createExpense(expenseData, users[0].token);
+        const setup = await TestExpenseManager.getGroupWithExpenseForComments(members);
+        testGroup = setup.group;
+        testExpense = setup.expense;
     });
 
     describe('Group Comments via API', () => {

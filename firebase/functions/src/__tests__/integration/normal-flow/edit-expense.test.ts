@@ -8,7 +8,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder, ExpenseUpdateBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, ExpenseUpdateBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Edit Expense Integration Tests', () => {
@@ -20,17 +20,17 @@ describe('Edit Expense Integration Tests', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
 
-        // Create a test group
-        const groupName = `Edit Expense Test ${uuidv4()}`;
-        testGroup = await apiDriver.createGroupWithMembers(groupName, users, users[0].token);
+        // Use shared group for expense editing tests
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
     });
 
     describe('Expense Editing', () => {
         test('should allow expense creator to edit their expense', async () => {
-            // Create initial expense
+            // Create initial expense with unique identifier
+            const uniqueId = uuidv4().slice(0, 8);
             const initialExpenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
-                .withDescription('Original Expense')
+                .withDescription(`Original Expense ${uniqueId}`)
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
@@ -43,7 +43,7 @@ describe('Edit Expense Integration Tests', () => {
             // Update the expense
             const updateData = {
                 amount: 150,
-                description: 'Updated Expense',
+                description: `Updated Expense ${uniqueId}`,
                 category: 'transport',
             };
 
@@ -52,7 +52,7 @@ describe('Edit Expense Integration Tests', () => {
             // Verify the update
             const updatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
             expect(updatedExpense.amount).toBe(150);
-            expect(updatedExpense.description).toBe('Updated Expense');
+            expect(updatedExpense.description).toBe(`Updated Expense ${uniqueId}`);
             expect(updatedExpense.category).toBe('transport');
 
             // Verify splits were recalculated

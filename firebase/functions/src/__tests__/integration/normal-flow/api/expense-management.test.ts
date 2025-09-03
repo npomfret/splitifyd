@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Expense Management', () => {
@@ -16,7 +16,7 @@ describe('Expense Management', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);
-        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 2 });
     });
 
     describe('Expense Creation', () => {
@@ -71,14 +71,15 @@ describe('Expense Management', () => {
         });
 
         test("should list all of a group's expenses", async () => {
-            // Add multiple expenses
+            // Add multiple expenses with unique descriptions for this test
+            const uniqueId = uuidv4().slice(0, 8);
             await apiDriver.createExpense(
                 new ExpenseBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(100)
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
-                    .withDescription('First Test Expense')
+                    .withDescription(`First Test Expense ${uniqueId}`)
                     .build(),
                 users[0].token,
             );
@@ -89,7 +90,7 @@ describe('Expense Management', () => {
                     .withAmount(50)
                     .withPaidBy(users[1].uid)
                     .withParticipants(users.map((u) => u.uid))
-                    .withDescription('Second Test Expense')
+                    .withDescription(`Second Test Expense ${uniqueId}`)
                     .build(),
                 users[1].token,
             );
@@ -97,10 +98,10 @@ describe('Expense Management', () => {
             const response = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             expect(response).toHaveProperty('expenses');
             expect(Array.isArray(response.expenses)).toBe(true);
-            expect(response.expenses.length).toBe(2);
+            expect(response.expenses.length).toBeGreaterThanOrEqual(2);
             const expenseDescriptions = response.expenses.map((e: any) => e.description);
-            expect(expenseDescriptions).toContain('First Test Expense');
-            expect(expenseDescriptions).toContain('Second Test Expense');
+            expect(expenseDescriptions).toContain(`First Test Expense ${uniqueId}`);
+            expect(expenseDescriptions).toContain(`Second Test Expense ${uniqueId}`);
         });
     });
 

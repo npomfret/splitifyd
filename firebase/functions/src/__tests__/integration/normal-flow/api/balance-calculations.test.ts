@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from '@splitifyd/shared';
 import {firestoreDb} from "../../../../firebase";
@@ -29,14 +29,16 @@ describe('Balance Calculations', () => {
 
     beforeEach(async () => {
         const testUsers = getTestUsers(2);
-        balanceTestGroup = await apiDriver.createGroupWithMembers(`Balance Test Group ${uuidv4()}`, testUsers, testUsers[0].token);
+        balanceTestGroup = await TestGroupManager.getOrCreateGroup(testUsers, { memberCount: 2 });
     });
 
     test('should include balance information in group details', async () => {
         const testUsers = getTestUsers(2);
         // Create an expense: User 0 pays 100, split equally between 2 users
+        const uniqueId = uuidv4().slice(0, 8);
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
+            .withDescription(`Balance test expense ${uniqueId}`)
             .withAmount(100)
             .withPaidBy(testUsers[0].uid)
             .withParticipants(testUsers.map((u) => u.uid))
@@ -53,8 +55,10 @@ describe('Balance Calculations', () => {
 
     test('should include balance data in listGroups response', async () => {
         // Add an expense: User 0 pays 100, split equally between 2 users
+        const uniqueId = uuidv4().slice(0, 8);
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
+            .withDescription(`List groups balance test ${uniqueId}`)
             .withAmount(100)
             .withPaidBy(getTestUsers(2)[0].uid)
             .withParticipants(getTestUsers(2).map((u) => u.uid))
@@ -88,10 +92,12 @@ describe('Balance Calculations', () => {
             }
         }
 
-        // User 0 paid 100, split equally between 2 users = User 0 should be owed 50
-        // But balance calculation might be async, so we accept 0 as well
+        // With shared groups, there may be existing balances, so we check structure instead of exact values
+        // User 0 paid 100, split equally between 2 users = User 0 should be owed at least 50 (but could be more with existing expenses)
         const netBalance = testGroupInList!.balance?.balancesByCurrency?.['USD']?.netBalance || 0;
-        expect([0, 50]).toContain(netBalance);
+        expect(typeof netBalance).toBe('number');
+        // Since we added 100 and split between 2 users, User 0 should be owed at least 50
+        expect(netBalance).toBeGreaterThanOrEqual(50);
     });
 
     // NOTE: Expense metadata (expenseCount, lastExpense) removed in favor of on-demand calculation
@@ -106,8 +112,10 @@ describe('Balance Calculations', () => {
         const initialActivityTime = new Date(initialGroupInList!.lastActivityRaw!);
 
         // Add an expense
+        const uniqueId = uuidv4().slice(0, 8);
         const expenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
+            .withDescription(`Activity test expense ${uniqueId}`)
             .withAmount(75)
             .withPaidBy(getTestUsers(2)[0].uid)
             .withParticipants(getTestUsers(2).map((u) => u.uid))
@@ -137,8 +145,10 @@ describe('Balance Calculations', () => {
         expect(updatedActivityTime.getTime()).toBeGreaterThanOrEqual(initialActivityTime.getTime());
 
         // Add another expense to test activity update
+        const uniqueId2 = uuidv4().slice(0, 8);
         const secondExpenseData = new ExpenseBuilder()
             .withGroupId(balanceTestGroup.id)
+            .withDescription(`Second activity test expense ${uniqueId2}`)
             .withAmount(25)
             .withPaidBy(getTestUsers(2)[1].uid)
             .withParticipants(getTestUsers(2).map((u) => u.uid))

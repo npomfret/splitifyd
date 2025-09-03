@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder, SettlementBuilder} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, SettlementBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Negative Value Validation', () => {
@@ -13,16 +13,17 @@ describe('Negative Value Validation', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(2);
 
-        testGroup = await apiDriver.createGroupWithMembers(`Negative Validation Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 2 });
     });
 
     describe('Expense Validation', () => {
         it('should reject negative expense amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withAmount(-100) // Negative amount
-                .withDescription('Test negative expense')
+                .withDescription(`Test negative expense ${uniqueId}`)
                 .withCategory('food')
                 .withSplitType('equal')
                 .withParticipants([users[0].uid, users[1].uid])
@@ -32,11 +33,12 @@ describe('Negative Value Validation', () => {
         });
 
         it('should reject zero expense amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withAmount(0) // Zero amount
-                .withDescription('Test zero expense')
+                .withDescription(`Test zero expense ${uniqueId}`)
                 .withCategory('food')
                 .withSplitType('equal')
                 .withParticipants([users[0].uid, users[1].uid])
@@ -65,11 +67,12 @@ describe('Negative Value Validation', () => {
 
         it('should reject negative amounts when updating expense', async () => {
             // First create a valid expense
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withAmount(100)
-                .withDescription('Valid expense')
+                .withDescription(`Valid expense ${uniqueId}`)
                 .withCategory('food')
                 .withSplitType('equal')
                 .withParticipants([users[0].uid, users[1].uid])
@@ -88,12 +91,13 @@ describe('Negative Value Validation', () => {
 
     describe('Settlement Validation', () => {
         it('should reject negative settlement amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const settlementData = new SettlementBuilder()
                 .withGroupId(testGroup.id)
                 .withPayer(users[0].uid)
                 .withPayee(users[1].uid)
                 .withAmount(-50) // Negative amount
-                .withNote('Test negative settlement')
+                .withNote(`Test negative settlement ${uniqueId}`)
                 .build();
 
             await expect(apiDriver.createSettlement(settlementData, users[0].token)).rejects.toThrow(/Amount must be greater than 0/);
@@ -113,7 +117,8 @@ describe('Negative Value Validation', () => {
 
         it('should reject negative amounts when updating settlement', async () => {
             // First create a valid settlement
-            const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100).withNote('Valid settlement').build();
+            const uniqueId = uuidv4().slice(0, 8);
+            const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100).withNote(`Valid settlement ${uniqueId}`).build();
 
             const settlement = await apiDriver.createSettlement(settlementData, users[0].token);
 

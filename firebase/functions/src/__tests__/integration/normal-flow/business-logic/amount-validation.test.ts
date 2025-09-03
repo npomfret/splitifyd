@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -12,17 +12,16 @@ describe('Amount Validation Edge Cases', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
-    });
-    
-    beforeEach(async () => {
-        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 4 });
     });
 
     describe('Decimal Precision Edge Cases', () => {
         test('should handle very small amounts with proper precision', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(0.01) // 1 cent - this is what the test is about
+                .withDescription(`Small amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
@@ -41,9 +40,11 @@ describe('Amount Validation Edge Cases', () => {
         });
 
         test('should handle amounts with many decimal places', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(33.333333) // Many decimal places - this is what the test is about
+                .withDescription(`Decimal places test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                 .build();
@@ -64,9 +65,11 @@ describe('Amount Validation Edge Cases', () => {
 
     describe('Large Amount Edge Cases', () => {
         test('should handle very large amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(999999.99) // Nearly one million - this is what the test is about
+                .withDescription(`Large amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
@@ -89,9 +92,11 @@ describe('Amount Validation Edge Cases', () => {
         });
 
         test('should reject zero amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(0) // Zero amount - this is what the test is about
+                .withDescription(`Zero amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();
@@ -100,9 +105,11 @@ describe('Amount Validation Edge Cases', () => {
         });
 
         test('should reject negative amounts', async () => {
+            const uniqueId = uuidv4().slice(0, 8);
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(-50) // Negative amount - this is what the test is about
+                .withDescription(`Negative amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .build();

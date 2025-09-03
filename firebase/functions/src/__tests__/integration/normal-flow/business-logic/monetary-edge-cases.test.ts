@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -12,14 +12,15 @@ describe('Additional Monetary Edge Cases', () => {
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);
-
-        testGroup = await apiDriver.createGroupWithMembers(`Test Group ${uuidv4()}`, users, users[0].token);
+        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
     });
 
     test('should handle currency-style formatting for display', async () => {
+        const uniqueId = uuidv4().slice(0, 8);
         const expenseData = new ExpenseBuilder()
             .withGroupId(testGroup.id)
             .withAmount(12.34) // Common currency format - this is what the test is about
+            .withDescription(`Currency format test ${uniqueId}`)
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
             .build();
@@ -36,9 +37,11 @@ describe('Additional Monetary Edge Cases', () => {
     });
 
     test('should handle odd number divisions with proper rounding', async () => {
+        const uniqueId = uuidv4().slice(0, 8);
         const expenseData = new ExpenseBuilder()
             .withGroupId(testGroup.id)
             .withAmount(10.0) // $10 split 3 ways = $3.33, $3.33, $3.34 - this is what the test is about
+            .withDescription(`Odd division test ${uniqueId}`)
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
             .build();

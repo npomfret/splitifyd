@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, AppDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager, TestSettlementManager} from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
@@ -19,8 +19,8 @@ describe('Settlement Edit and Delete Operations', () => {
     beforeEach(async () => {
         ([user1, user2, user3] = await borrowTestUsers(3));
 
-        // Create a group with all users as members
-        const testGroup = await apiDriver.createGroupWithMembers('Test Group for Settlement Edit/Delete', [user1, user2, user3], user1.token);
+        // Use shared group for settlement edit/delete tests
+        const testGroup = await TestGroupManager.getOrCreateGroup([user1, user2, user3], { memberCount: 3 });
         groupId = testGroup.id;
     });
 
