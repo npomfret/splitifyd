@@ -2,6 +2,7 @@ import { authenticatedPageTest, expect } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { DashboardPage } from '../../../pages/dashboard.page';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 
 // Enable debugging helpers
@@ -196,15 +197,17 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Navigate back to dashboard
         await page.goto('/dashboard');
 
+        // Create dashboard page instance
+        const dashboardPage = new DashboardPage(page, user);
+
         // Verify the group card displays properly
-        const groupCard = page.locator('[data-testid="group-card"]').first();
-        await expect(groupCard).toBeVisible();
+        await expect(dashboardPage.getGroupCard()).toBeVisible();
 
         // For a single-user group, it should show "Settled up"
         // But the important thing is that the UI structure supports multi-currency
 
         // Check for balance badges (these would show multiple currencies if there were balances)
-        const balanceBadges = groupCard.locator('[class*="rounded-full"]');
+        const balanceBadges = dashboardPage.getBalanceBadges();
         const badgeCount = await balanceBadges.count();
 
         // Verify the structure supports multiple currency display

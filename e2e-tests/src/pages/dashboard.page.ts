@@ -152,4 +152,8 @@ export class DashboardPage extends BasePage {
     getGroupCard() {
         return this.page.locator('[data-testid="group-card"]').first();
     }
+
+    getBalanceBadges() {
+        return this.getGroupCard().locator('[class*="rounded-full"]');
+    }
 }
