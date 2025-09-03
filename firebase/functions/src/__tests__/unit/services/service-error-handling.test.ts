@@ -68,12 +68,15 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
-                userId: `user-${i}`,
-                groupId: 'large-group',
-                role: 'member',
-                status: 'active',
-                joinedAt: '2024-01-01T00:00:00.000Z',
-                theme: { name: 'Blue', light: '#0000FF', dark: '#000080' },
+                id: `user-${i}`,
+                data: () => ({
+                    userId: `user-${i}`,
+                    groupId: 'large-group',
+                    role: 'member',
+                    status: 'active',
+                    joinedAt: '2024-01-01T00:00:00.000Z',
+                    theme: { name: 'Blue', colorIndex: i % 10 },
+                }),
             }));
 
             vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
@@ -92,14 +95,28 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             // The MockFirestoreReader should handle validation, so we just return what it would process
             const validMembers = [
                 {
-                    userId: 'user-1',
-                    groupId: 'group-123',
-                    role: 'member',
-                    status: 'active',
-                    joinedAt: '2024-01-01T00:00:00.000Z',
-                    theme: { name: 'Blue', light: '#0000FF', dark: '#000080' },
-                }
-                // Note: Corrupted documents would be filtered out by MockFirestoreReader validation
+                    id: 'user-1',
+                    data: () => ({
+                        userId: 'user-1',
+                        groupId: 'group-123',
+                        role: 'member',
+                        status: 'active',
+                        joinedAt: '2024-01-01T00:00:00.000Z',
+                        theme: { name: 'Blue', colorIndex: 0 },
+                    }),
+                },
+                {
+                    id: 'user-2',
+                    data: () => null, // Corrupted document
+                },
+                {
+                    id: 'user-3',
+                    data: () => ({
+                        // Missing required fields
+                        userId: 'user-3',
+                        // Missing groupId, role, etc.
+                    }),
+                },
             ];
 
             vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')

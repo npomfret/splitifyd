@@ -12,8 +12,8 @@ export class GroupMemberDocumentBuilder {
         this.memberDoc = {
             userId,
             groupId,
-            role: MemberRoles.MEMBER,
-            status: MemberStatuses.ACTIVE,
+            memberRole: MemberRoles.MEMBER,
+            memberStatus: MemberStatuses.ACTIVE,
             joinedAt: new Date().toISOString(),
             invitedBy: 'default-inviter',
             theme: {
@@ -28,12 +28,12 @@ export class GroupMemberDocumentBuilder {
     }
 
     withRole(role: 'admin' | 'member' | 'viewer'): this {
-        this.memberDoc.role = role as any;
+        this.memberDoc.memberRole = role as any;
         return this;
     }
 
     withStatus(status: 'active' | 'pending'): this {
-        this.memberDoc.status = status as any;
+        this.memberDoc.memberStatus = status as any;
         return this;
     }
 
@@ -90,27 +90,27 @@ export class GroupMemberDocumentBuilder {
     }
 
     asAdmin(): this {
-        this.memberDoc.role = MemberRoles.ADMIN;
+        this.memberDoc.memberRole = MemberRoles.ADMIN;
         return this;
     }
 
     asMember(): this {
-        this.memberDoc.role = MemberRoles.MEMBER;
+        this.memberDoc.memberRole = MemberRoles.MEMBER;
         return this;
     }
 
     asViewer(): this {
-        this.memberDoc.role = MemberRoles.VIEWER;
+        this.memberDoc.memberRole = MemberRoles.VIEWER;
         return this;
     }
 
     asPending(): this {
-        this.memberDoc.status = MemberStatuses.PENDING;
+        this.memberDoc.memberStatus = MemberStatuses.PENDING;
         return this;
     }
 
     asActive(): this {
-        this.memberDoc.status = MemberStatuses.ACTIVE;
+        this.memberDoc.memberStatus = MemberStatuses.ACTIVE;
         return this;
     }
 

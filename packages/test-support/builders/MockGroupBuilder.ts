@@ -39,7 +39,7 @@ export class MockGroupBuilder {
         const validMembers: Record<string, any> = {};
         for (const [userId, member] of Object.entries(members)) {
             validMembers[userId] = {
-                role: member.role || 'member', // Default to 'member' if not specified
+                memberRole: member.memberRole || 'member', // Default to 'member' if not specified
                 status: member.status || 'active', // Default to 'active' if not specified
                 ...member // Allow override of defaults
             };

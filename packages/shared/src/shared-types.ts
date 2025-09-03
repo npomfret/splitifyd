@@ -340,20 +340,15 @@ export interface GroupBalance {
 
 export interface GroupMember {
     joinedAt: string; // ISO string
-    role: MemberRole;
+    memberRole: MemberRole;
     theme: UserThemeColor;
     invitedBy?: string; // UID of the user who created the share link that was used to join
-    status: MemberStatus;
+    memberStatus: MemberStatus;
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
-export type GroupMemberWithProfile = RegisteredUser & Omit<GroupMember, 'theme' | 'role' | 'status'> & {
-    // Renamed fields to avoid conflicts with RegisteredUser
-    memberRole: MemberRole;      // Renamed from GroupMember.role
-    memberStatus: MemberStatus;  // Renamed from GroupMember.status
-    
+export type GroupMemberWithProfile = RegisteredUser & Omit<GroupMember, 'theme'> & {
     // Additional user display properties for UI
-    name?: string;      // Deprecated - use displayName instead  
     initials: string;   // Auto-generated from displayName
     // Note: theme is inherited from RegisteredUser.themeColor, not duplicated
 };
@@ -365,10 +360,10 @@ export type GroupMemberWithProfile = RegisteredUser & Omit<GroupMember, 'theme' 
 export interface GroupMemberDocument {
     userId: string;
     groupId: string; // For collectionGroup queries
-    role: MemberRole;
+    memberRole: MemberRole;
     theme: UserThemeColor;
     joinedAt: string; // ISO string
-    status: MemberStatus;
+    memberStatus: MemberStatus;
     invitedBy?: string; // UID of the user who created the share link that was used to join
     lastPermissionChange?: string; // ISO string - Track permission updates
 }

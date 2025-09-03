@@ -18,7 +18,7 @@ import { getGroupMemberService } from '../services/serviceRegistration';
  */
 export const isGroupOwnerAsync = async (groupId: string, userId: string): Promise<boolean> => {
     const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
-    return member?.role === MemberRoles.ADMIN || false;
+    return member?.memberRole === MemberRoles.ADMIN || false;
 };
 
 /**

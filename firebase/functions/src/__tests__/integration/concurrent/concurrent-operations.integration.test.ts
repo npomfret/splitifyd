@@ -1,9 +1,7 @@
-import { describe, test, expect, beforeEach, beforeAll, afterEach } from 'vitest';
+import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { getGroupMemberService, getGroupService, getExpenseService, registerAllServices } from '../../../services/serviceRegistration';
 import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, MemberStatuses, AuthenticatedFirebaseUser, SplitTypes, Group } from '@splitifyd/shared';
-import { getThemeColorForMember } from '../../../utils/groupHelpers';
-import { logger } from '../../../logger';
+import { GroupMemberDocument, MemberRoles, AuthenticatedFirebaseUser, SplitTypes, Group } from '@splitifyd/shared';
 
 describe('Concurrent Operations Integration Tests', () => {
     let users: AuthenticatedFirebaseUser[];
@@ -92,7 +90,7 @@ describe('Concurrent Operations Integration Tests', () => {
                         .build()
                 ),
                 () => getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
-                    role: MemberRoles.ADMIN,
+                    memberRole: MemberRoles.ADMIN,
                 }),
                 () => getGroupMemberService().deleteMemberFromSubcollection(testGroup.id, testUser2.uid),
             ];
@@ -124,13 +122,13 @@ describe('Concurrent Operations Integration Tests', () => {
             // Execute multiple role updates concurrently
             const updatePromises = [
                 getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
-                    role: MemberRoles.ADMIN,
+                    memberRole: MemberRoles.ADMIN,
                 }),
                 getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
-                    role: MemberRoles.VIEWER,
+                    memberRole: MemberRoles.VIEWER,
                 }),
                 getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
-                    role: MemberRoles.MEMBER,
+                    memberRole: MemberRoles.MEMBER,
                 }),
             ];
 
@@ -140,7 +138,7 @@ describe('Concurrent Operations Integration Tests', () => {
             // Verify member still exists with one of the roles
             const updatedMember = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, testUser2.uid);
             expect(updatedMember).toBeDefined();
-            expect([MemberRoles.ADMIN, MemberRoles.VIEWER, MemberRoles.MEMBER]).toContain(updatedMember!.role);
+            expect([MemberRoles.ADMIN, MemberRoles.VIEWER, MemberRoles.MEMBER]).toContain(updatedMember!.memberRole);
         });
     });
 
@@ -298,8 +296,8 @@ describe('Concurrent Operations Integration Tests', () => {
             finalMembers.forEach(member => {
                 expect(member.userId).toBeDefined();
                 expect(member.groupId).toBe(testGroup.id);
-                expect(member.role).toBeDefined();
-                expect(member.status).toBeDefined();
+                expect(member.memberRole).toBeDefined();
+                expect(member.memberStatus).toBeDefined();
             });
         });
 
@@ -323,7 +321,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
             const modificationPromises = [
                 getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
-                    role: MemberRoles.ADMIN,
+                    memberRole: MemberRoles.ADMIN,
                 }),
                 getGroupMemberService().deleteMemberFromSubcollection(testGroup.id, testUser3.uid),
                 getGroupMemberService().createMemberSubcollection(testGroup.id, 
@@ -372,7 +370,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 // Operations that will fail - trying to access non-existent member
                 () => getGroupMemberService().getMemberFromSubcollection(testGroup.id, 'non-existent-user-id'),
                 () => getGroupMemberService().updateMemberInSubcollection(testGroup.id, 'non-existent-user-id', {
-                    role: MemberRoles.ADMIN,
+                    memberRole: MemberRoles.ADMIN,
                 }),
             ];
 

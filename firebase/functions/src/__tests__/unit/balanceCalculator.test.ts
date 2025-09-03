@@ -71,16 +71,16 @@ describe('calculateGroupBalances', () => {
             {
                 userId: 'user-1',
                 groupId: 'group-1',
-                role: 'admin',
-                status: 'active',
+                memberRole: 'admin',
+                memberStatus: 'active',
                 joinedAt: '2023-01-01T00:00:00.000Z',
                 theme: 'blue'
             },
             {
                 userId: 'user-2', 
                 groupId: 'group-1',
-                role: 'member',
-                status: 'active',
+                memberRole: 'member',
+                memberStatus: 'active',
                 joinedAt: '2023-01-01T00:00:00.000Z',
                 theme: 'green'
             }

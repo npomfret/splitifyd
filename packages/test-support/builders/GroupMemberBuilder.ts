@@ -7,8 +7,8 @@ export class GroupMemberBuilder {
         // Default member with sensible defaults
         this.member = {
             joinedAt: new Date().toISOString(),
-            role: MemberRoles.MEMBER,
-            status: MemberStatuses.ACTIVE,
+            memberRole: MemberRoles.MEMBER,
+            memberStatus: MemberStatuses.ACTIVE,
             theme: {
                 light: '#1f5582',
                 dark: '#4a9eff',
@@ -26,12 +26,12 @@ export class GroupMemberBuilder {
     }
 
     withRole(role: 'admin' | 'member' | 'viewer'): this {
-        this.member.role = role as any;
+        this.member.memberRole = role as any;
         return this;
     }
 
     withStatus(status: 'active' | 'pending'): this {
-        this.member.status = status as any;
+        this.member.memberStatus = status as any;
         return this;
     }
 
@@ -58,22 +58,22 @@ export class GroupMemberBuilder {
     }
 
     asAdmin(): this {
-        this.member.role = MemberRoles.ADMIN;
+        this.member.memberRole = MemberRoles.ADMIN;
         return this;
     }
 
     asMember(): this {
-        this.member.role = MemberRoles.MEMBER;
+        this.member.memberRole = MemberRoles.MEMBER;
         return this;
     }
 
     asViewer(): this {
-        this.member.role = MemberRoles.VIEWER;
+        this.member.memberRole = MemberRoles.VIEWER;
         return this;
     }
 
     asPending(): this {
-        this.member.status = MemberStatuses.PENDING;
+        this.member.memberStatus = MemberStatuses.PENDING;
         return this;
     }
 

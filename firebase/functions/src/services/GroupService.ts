@@ -660,10 +660,10 @@ export class GroupService {
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: docRef.id,
-            role: MemberRoles.ADMIN,
+            memberRole: MemberRoles.ADMIN,
             theme: getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(),
-            status: MemberStatuses.ACTIVE,
+            memberStatus: MemberStatuses.ACTIVE,
         };
         
         const memberServerTimestamp = createTrueServerTimestamp();

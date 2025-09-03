@@ -37,23 +37,21 @@ export class GroupMemberService {
             if (!profile) {
                 return {
                     uid: memberId,
-                    name: 'Unknown User',
                     initials: '?',
                     email: '',
                     displayName: 'Unknown User',
                     themeColor: memberInfo.theme,
                     // Group membership metadata
                     joinedAt: memberInfo.joinedAt,
-                    memberRole: memberInfo.role,
+                    memberRole: memberInfo.memberRole,
                     invitedBy: memberInfo.invitedBy,
-                    memberStatus: memberInfo.status,
+                    memberStatus: memberInfo.memberStatus,
                     lastPermissionChange: memberInfo.lastPermissionChange,
                 };
             }
 
             return {
                 uid: memberId,
-                name: profile.displayName,
                 initials: this.getInitials(profile.displayName),
                 email: profile.email,
                 displayName: profile.displayName,
@@ -61,7 +59,7 @@ export class GroupMemberService {
                 preferredLanguage: profile.preferredLanguage,
                 // Group membership metadata
                 joinedAt: memberInfo.joinedAt,
-                memberRole: memberInfo.role,
+                memberRole: memberInfo.memberRole,
                 invitedBy: memberInfo.invitedBy,
                 memberStatus: memberInfo.status,
                 lastPermissionChange: memberInfo.lastPermissionChange,
@@ -277,7 +275,7 @@ export class GroupMemberService {
         logger.info('Member added to subcollection', { 
             groupId, 
             userId: memberDoc.userId,
-            role: memberDoc.role 
+            memberRole: memberDoc.memberRole 
         });
     }
 
@@ -365,9 +363,9 @@ export class GroupMemberService {
                     themeColor: memberDoc.theme,
                     // Group membership metadata
                     joinedAt: memberDoc.joinedAt,
-                    memberRole: memberDoc.role,
+                    memberRole: memberDoc.memberRole,
                     invitedBy: memberDoc.invitedBy,
-                    memberStatus: memberDoc.status,
+                    memberStatus: memberDoc.memberStatus,
                     lastPermissionChange: memberDoc.lastPermissionChange,
                 };
             }
@@ -381,9 +379,9 @@ export class GroupMemberService {
                 preferredLanguage: profile.preferredLanguage,
                 // Group membership metadata
                 joinedAt: memberDoc.joinedAt,
-                memberRole: memberDoc.role,
+                memberRole: memberDoc.memberRole,
                 invitedBy: memberDoc.invitedBy,
-                memberStatus: memberDoc.status,
+                memberStatus: memberDoc.memberStatus,
                 lastPermissionChange: memberDoc.lastPermissionChange,
             };
         });

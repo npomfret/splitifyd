@@ -10,8 +10,8 @@ export const ExpenseSplitSchema = z.object({
 
 // Schema for GroupMember (for balance calculations)
 export const GroupMemberBalanceSchema = z.object({
-    role: z.enum(['admin', 'member', 'viewer']),
-    status: z.enum(['active', 'pending']),
+    memberRole: z.enum(['admin', 'member', 'viewer']),
+    memberStatus: z.enum(['active', 'pending']),
     joinedAt: z.string().optional(),
 });
 

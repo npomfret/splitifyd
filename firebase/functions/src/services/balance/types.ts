@@ -44,8 +44,8 @@ export interface GroupData {
 }
 
 export interface GroupMember {
-    role: 'admin' | 'member' | 'viewer';
-    status: 'active' | 'pending';
+    memberRole: 'admin' | 'member' | 'viewer';
+    memberStatus: 'active' | 'pending';
     joinedAt?: string;
 }
 

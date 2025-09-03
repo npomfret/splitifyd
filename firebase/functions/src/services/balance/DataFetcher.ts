@@ -134,8 +134,8 @@ export class DataFetcher {
         const members: Record<string, import('./types').GroupMember> = {};
         for (const memberDoc of memberDocs) {
             members[memberDoc.userId] = {
-                role: memberDoc.role,
-                status: memberDoc.status,
+                memberRole: memberDoc.memberRole,
+                memberStatus: memberDoc.memberStatus,
                 joinedAt: memberDoc.joinedAt,
             };
         }

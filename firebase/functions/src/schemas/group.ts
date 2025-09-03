@@ -14,8 +14,8 @@ import {
  */
 export const GroupMemberSchema = z
     .object({
-        role: z.nativeEnum(MemberRoles),
-        status: z.nativeEnum(MemberStatuses),
+        memberRole: z.nativeEnum(MemberRoles),
+        memberStatus: z.nativeEnum(MemberStatuses),
         joinedAt: FirestoreTimestampSchema,
         invitedBy: UserIdSchema.optional(),
         invitedAt: FirestoreTimestampSchema.optional(),

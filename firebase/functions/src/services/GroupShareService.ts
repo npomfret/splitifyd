@@ -258,10 +258,10 @@ export class GroupShareService {
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: groupId,
-            role: MemberRoles.MEMBER,
+            memberRole: MemberRoles.MEMBER,
             theme: getThemeColorForMember(memberIndex),
             joinedAt,
-            status: MemberStatuses.ACTIVE,
+            memberStatus: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
         };
         

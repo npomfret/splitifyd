@@ -52,8 +52,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.PENDING,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.PENDING,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -67,8 +67,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.PENDING,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.PENDING,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -82,8 +82,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -97,8 +97,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.VIEWER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.VIEWER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -112,8 +112,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -127,8 +127,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.ADMIN,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -142,8 +142,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -157,8 +157,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.ADMIN,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -172,8 +172,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -212,8 +212,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -231,8 +231,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -250,8 +250,8 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Target found
                     userId: 'target123',
                     groupId: testGroupId,
-                    role: MemberRoles.MEMBER,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.MEMBER,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 });
@@ -272,8 +272,8 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Actor found
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 })
@@ -295,16 +295,16 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Actor (not admin)
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.MEMBER,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.MEMBER,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 })
                 .mockResolvedValueOnce({    // Target
                     userId: 'target123',
                     groupId: testGroupId,
-                    role: MemberRoles.MEMBER,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.MEMBER,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 });
@@ -325,16 +325,16 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Actor (admin)
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 })
                 .mockResolvedValueOnce({    // Target (same as actor)
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 });
@@ -344,8 +344,8 @@ describe('PermissionEngineAsync', () => {
                 {
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 }
@@ -371,16 +371,16 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Actor (admin)
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 })
                 .mockResolvedValueOnce({    // Target (creator)
                     userId: creatorId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 });
@@ -404,16 +404,16 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce({    // Actor (admin)
                     userId: testUserId,
                     groupId: testGroupId,
-                    role: MemberRoles.ADMIN,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.ADMIN,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 })
                 .mockResolvedValueOnce({    // Target
                     userId: 'target123',
                     groupId: testGroupId,
-                    role: MemberRoles.MEMBER,
-                    status: MemberStatuses.ACTIVE,
+                    memberRole: MemberRoles.MEMBER,
+                    memberStatus: MemberStatuses.ACTIVE,
                     joinedAt: '2023-01-01T00:00:00Z',
                     theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
                 });
@@ -435,8 +435,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.ADMIN,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.ADMIN,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
@@ -457,8 +457,8 @@ describe('PermissionEngineAsync', () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue({
                 userId: testUserId,
                 groupId: testGroupId,
-                role: MemberRoles.MEMBER,
-                status: MemberStatuses.ACTIVE,
+                memberRole: MemberRoles.MEMBER,
+                memberStatus: MemberStatuses.ACTIVE,
                 joinedAt: '2023-01-01T00:00:00Z',
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
