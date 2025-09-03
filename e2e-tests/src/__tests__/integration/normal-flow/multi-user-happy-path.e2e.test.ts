@@ -1,18 +1,18 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
 
 setupMCPDebugOnFailure();
 
 test.describe('Multi-User Collaboration E2E', () => {
     test('should handle group sharing via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page } = authenticatedPage;
-        const groupWorkflow = new GroupWorkflow(page);
-        await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Shared'), 'Testing group sharing');
+        const { page, user } = authenticatedPage;
+        const groupId = await TestGroupWorkflow.getOrCreateGroup(page, user.email, { fresh: true });
 
         const shareLink = await groupDetailPage.getShareLink();
         expect(shareLink).toMatch(/\/join(\?|\/)/); // Verify format

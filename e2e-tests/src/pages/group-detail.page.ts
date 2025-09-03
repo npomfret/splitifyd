@@ -46,7 +46,7 @@ export class GroupDetailPage extends BasePage {
 
     // Element accessors for expenses
     getAddExpenseButton() {
-        return this.page.getByRole('button', { name: /add expense/i });
+        return this.page.locator('[data-testid="add-expense-button"]').first();
     }
 
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {
@@ -732,9 +732,13 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByText(description).first();
     }
 
-    // todo
     getExpenseAmount(amount: string) {
-        return this.page.getByText(amount);
+        // Target expense amount specifically in the expense list context
+        // Look for amount that's not in a balance/debt context (excludes data-financial-amount elements)
+        return this.page
+            .getByText(amount)
+            .and(this.page.locator(':not([data-financial-amount])'))
+            .first();
     }
 
     async verifyExpenseInList(description: string, amount?: string) {

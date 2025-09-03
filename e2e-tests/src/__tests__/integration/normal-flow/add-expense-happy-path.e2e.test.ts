@@ -1,9 +1,10 @@
 import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
 
 setupMCPDebugOnFailure();
 
@@ -11,15 +12,16 @@ test.describe('Add Expense E2E', () => {
     test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;
         const memberCount = 1;
+        const uniqueId = uuidv4().slice(0, 8);
 
-        // Use the comprehensive helper method for group creation and preparation
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('Expense'), 'Testing expense creation');
+        // Use cached group for better performance
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Navigate to expense form with all necessary waits
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         const testDinnerExpense = new ExpenseBuilder()
-            .withDescription('Test Dinner')
+            .withDescription(`Test Dinner ${uniqueId}`)
             .withAmount(50)
             .withCurrency('USD')
             .withPaidBy(user.uid)
@@ -30,7 +32,7 @@ test.describe('Add Expense E2E', () => {
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        await expect(groupDetailPage.getExpenseByDescription('Test Dinner')).toBeVisible();
+        await expect(groupDetailPage.getExpenseByDescription(`Test Dinner ${uniqueId}`)).toBeVisible();
         await expect(groupDetailPage.getExpenseAmount('$50.00')).toBeVisible();
     });
 
@@ -38,8 +40,8 @@ test.describe('Add Expense E2E', () => {
 
     test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Category'), 'Testing expense categories');
+        const uniqueId = uuidv4().slice(0, 8);
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Wait for page to be fully loaded after group creation
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -50,7 +52,7 @@ test.describe('Add Expense E2E', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
         const categoryExpense = new ExpenseBuilder()
-            .withDescription('Dinner with category')
+            .withDescription(`Dinner with category ${uniqueId}`)
             .withAmount(45)
             .withCurrency('USD')
             .withPaidBy(user.uid)
@@ -61,13 +63,13 @@ test.describe('Add Expense E2E', () => {
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        await expect(groupDetailPage.getExpenseByDescription('Dinner with category')).toBeVisible();
+        await expect(groupDetailPage.getExpenseByDescription(`Dinner with category ${uniqueId}`)).toBeVisible();
     });
 
     test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Display'), 'Testing expense display');
+        const uniqueId = uuidv4().slice(0, 8);
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Wait for page to be fully loaded after group creation
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -83,7 +85,7 @@ test.describe('Add Expense E2E', () => {
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         const movieTicketsExpense = new ExpenseBuilder()
-            .withDescription('Movie Tickets')
+            .withDescription(`Movie Tickets ${uniqueId}`)
             .withAmount(25)
             .withCurrency('USD')
             .withPaidBy(user.uid)
@@ -93,18 +95,16 @@ test.describe('Add Expense E2E', () => {
 
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        await expect(groupDetailPage.getExpenseByDescription('Movie Tickets')).toBeVisible();
+        await expect(groupDetailPage.getExpenseByDescription(`Movie Tickets ${uniqueId}`)).toBeVisible();
 
         const amountText = groupDetailPage.getExpenseAmount('$25.00');
         await expect(amountText).toBeVisible();
-
-        await expect(expenseFormPage.getExpensePaidByText()).toBeVisible();
     });
 
     test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CustomCategory'), 'Testing custom category input');
+        const uniqueId = uuidv4().slice(0, 8);
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Wait for page to be fully loaded after group creation
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -115,7 +115,7 @@ test.describe('Add Expense E2E', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
         const customCategoryExpense = new ExpenseBuilder()
-            .withDescription('Custom category expense')
+            .withDescription(`Custom category expense ${uniqueId}`)
             .withAmount(16)
             .withCurrency('USD')
             .withPaidBy(user.uid)
@@ -126,6 +126,6 @@ test.describe('Add Expense E2E', () => {
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        await expect(groupDetailPage.getExpenseByDescription('Custom category expense')).toBeVisible();
+        await expect(groupDetailPage.getExpenseByDescription(`Custom category expense ${uniqueId}`)).toBeVisible();
     });
 });

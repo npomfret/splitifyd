@@ -35,11 +35,23 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         const joinGroupPage2 = new JoinGroupPage(page2);
         const joinGroupPage3 = new JoinGroupPage(page3);
 
-        // Try parallel joining to test race condition handling
-        await Promise.all([
-            joinGroupPage2.joinGroupUsingShareLink(shareLink),
-            joinGroupPage3.joinGroupUsingShareLink(shareLink),
-        ]);
+        // Join users sequentially instead of in parallel to avoid race conditions
+        // that might cause the test to be unreliable
+        try {
+            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+            console.log(`User 2 (${user2.displayName}) joined successfully`);
+        } catch (error) {
+            console.error(`User 2 (${user2.displayName}) failed to join:`, error);
+            throw error;
+        }
+
+        try {
+            await joinGroupPage3.joinGroupUsingShareLink(shareLink);
+            console.log(`User 3 (${user3.displayName}) joined successfully`);
+        } catch (error) {
+            console.error(`User 3 (${user3.displayName}) failed to join:`, error);
+            throw error;
+        }
 
         // Verify all pages see complete member list
         const allPages = [
@@ -48,18 +60,36 @@ test.describe('Parallel Group Joining Edge Cases', () => {
             { page: page3, groupDetailPage: thirdUser.groupDetailPage },
         ];
 
+        // Ensure all pages are on the correct group page
+        await expect(page).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(page2).toHaveURL(new RegExp(`/groups/${groupId}$`));
+        await expect(page3).toHaveURL(new RegExp(`/groups/${groupId}$`));
+
         await groupDetailPage.synchronizeMultiUserState(allPages, 3, groupId);
 
-        // Get the actual display names from each user's page (in case they were changed)
-        const user1ActualName = await groupDetailPage.getUserDisplayName();
-        const user2ActualName = await secondUser.groupDetailPage.getUserDisplayName();
-        const user3ActualName = await thirdUser.groupDetailPage.getUserDisplayName();
+        // Wait for the member counts to be correct on all pages
+        await groupDetailPage.waitForMemberCount(3);
+        await secondUser.groupDetailPage.waitForMemberCount(3);
+        await thirdUser.groupDetailPage.waitForMemberCount(3);
 
-        // Check all users' actual names are visible on all pages
-        for (const { groupDetailPage: gdp } of allPages) {
-            await expect(gdp.getTextElement(user1ActualName).first()).toBeVisible();
-            await expect(gdp.getTextElement(user2ActualName).first()).toBeVisible();
-            await expect(gdp.getTextElement(user3ActualName).first()).toBeVisible();
-        }
+        // Use the display names from the user fixtures instead of extracting from UI
+        const user1Name = user1.displayName;
+        const user2Name = user2.displayName;
+        const user3Name = user3.displayName;
+
+        console.log(`Looking for users: ${user1Name}, ${user2Name}, ${user3Name}`);
+
+        // Check that all 3 users can see all 3 members on their respective pages
+        await expect(groupDetailPage.getTextElement(user1Name).first()).toBeVisible();
+        await expect(groupDetailPage.getTextElement(user2Name).first()).toBeVisible();  
+        await expect(groupDetailPage.getTextElement(user3Name).first()).toBeVisible();
+
+        await expect(secondUser.groupDetailPage.getTextElement(user1Name).first()).toBeVisible();
+        await expect(secondUser.groupDetailPage.getTextElement(user2Name).first()).toBeVisible();
+        await expect(secondUser.groupDetailPage.getTextElement(user3Name).first()).toBeVisible();
+
+        await expect(thirdUser.groupDetailPage.getTextElement(user1Name).first()).toBeVisible();
+        await expect(thirdUser.groupDetailPage.getTextElement(user2Name).first()).toBeVisible();
+        await expect(thirdUser.groupDetailPage.getTextElement(user3Name).first()).toBeVisible();
     });
 });

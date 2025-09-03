@@ -99,8 +99,15 @@ export class CreateGroupModalPage extends BasePage {
 
     async cancel() {
         // Modal MUST have a cancel/close button - this is basic UX
-        // Use a regex that matches either "Cancel" or "Close"
-        const cancelButton = this.page.getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.cancelButton });
+        // Wait for modal to be fully rendered including buttons
+        await this.page.waitForLoadState('domcontentloaded');
+        
+        // Target Cancel button specifically within the modal dialog context
+        const modalDialog = this.page.getByRole('dialog');
+        const cancelButton = modalDialog.getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.cancelButton, exact: true });
+        
+        // Wait for button to be visible before clicking
+        await expect(cancelButton).toBeVisible({ timeout: 5000 });
         await this.clickButton(cancelButton, { buttonName: translationEn.createGroupModal.cancelButton });
     }
 
