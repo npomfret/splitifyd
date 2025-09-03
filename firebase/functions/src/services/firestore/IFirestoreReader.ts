@@ -77,6 +77,12 @@ export interface IFirestoreReader {
      */
     getPolicy(policyId: string): Promise<PolicyDocument | null>;
 
+    /**
+     * Get all policy documents
+     * @returns Array of all policy documents
+     */
+    getAllPolicies(): Promise<PolicyDocument[]>;
+
     // ========================================================================
     // Collection Read Operations - User-related
     // ========================================================================

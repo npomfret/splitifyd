@@ -13,12 +13,15 @@ import {
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
 import { z } from 'zod';
+import { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
  * Service for managing policy operations
  */
 export class PolicyService {
     private policiesCollection = firestoreDb.collection(FirestoreCollections.POLICIES);
+    
+    constructor(private firestoreReader: IFirestoreReader) {}
 
     /**
      * Validates that a policy document remains valid after an update operation
@@ -97,17 +100,12 @@ export class PolicyService {
      */
     async listPolicies(): Promise<{ policies: PolicyDocument[]; count: number }> {
         try {
-            const snapshot = await this.policiesCollection.get();
-            const policies: PolicyDocument[] = [];
-
-            snapshot.forEach((doc) => {
-                policies.push(this.transformPolicyDocument(doc));
-            });
+            const policies = await this.firestoreReader.getAllPolicies();
 
             logger.info('Policies listed', { count: policies.length });
 
             return {
-                policies,
+                policies: policies as PolicyDocument[],
                 count: policies.length,
             };
         } catch (error) {
@@ -124,17 +122,15 @@ export class PolicyService {
      */
     async getPolicy(id: string): Promise<PolicyDocument> {
         try {
-            const doc = await this.policiesCollection.doc(id).get();
+            const policy = await this.firestoreReader.getPolicy(id);
 
-            if (!doc.exists) {
+            if (!policy) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
-            const policy = this.transformPolicyDocument(doc);
-
             logger.info('Policy retrieved', { policyId: id });
 
-            return policy;
+            return policy as PolicyDocument;
         } catch (error) {
             if (error instanceof ApiError) {
                 throw error;
@@ -149,18 +145,13 @@ export class PolicyService {
      */
     async getPolicyVersion(id: string, hash: string): Promise<PolicyVersion & { versionHash: string }> {
         try {
-            const doc = await this.policiesCollection.doc(id).get();
+            const policy = await this.firestoreReader.getPolicy(id);
 
-            if (!doc.exists) {
+            if (!policy) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
-            const data = doc.data();
-            if (!data) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
-            }
-
-            if (!data.versions) {
+            if (!policy.versions) {
                 throw new ApiError(
                     HTTP_STATUS.INTERNAL_ERROR,
                     'CORRUPT_POLICY_DATA',
@@ -168,7 +159,7 @@ export class PolicyService {
                 );
             }
 
-            const version = data.versions[hash];
+            const version = policy.versions[hash];
             if (!version) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'VERSION_NOT_FOUND', 'Policy version not found');
             }
@@ -505,37 +496,17 @@ export class PolicyService {
         count: number;
     }> {
         try {
-            const policiesSnapshot = await this.policiesCollection.get();
+            const policies = await this.firestoreReader.getAllPolicies();
             const currentPolicies: Record<string, { policyName: string; currentVersionHash: string }> = {};
 
-            policiesSnapshot.forEach((doc) => {
-                const rawData = doc.data();
-                if (!rawData) {
-                    logger.warn('Policy document has no data', { policyId: doc.id });
+            policies.forEach((policy) => {
+                if (!policy.policyName || !policy.currentVersionHash) {
                     return;
                 }
 
-                // Validate policy data structure with Zod
-                let data;
-                try {
-                    // Add document ID to data for validation
-                    const dataWithId = { ...rawData, id: doc.id };
-                    data = PolicyDocumentSchema.parse(dataWithId);
-                } catch (error) {
-                    logger.error('Policy document validation failed', error as Error, {
-                        policyId: doc.id,
-                        validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                    });
-                    return;
-                }
-
-                if (!data.policyName || !data.currentVersionHash) {
-                    return;
-                }
-
-                currentPolicies[doc.id] = {
-                    policyName: data.policyName,
-                    currentVersionHash: data.currentVersionHash,
+                currentPolicies[policy.id] = {
+                    policyName: policy.policyName,
+                    currentVersionHash: policy.currentVersionHash,
                 };
             });
 
@@ -562,36 +533,17 @@ export class PolicyService {
         createdAt: any;
     }> {
         try {
-            const policyDoc = await this.policiesCollection.doc(id).get();
+            const policy = await this.firestoreReader.getPolicy(id);
 
-            if (!policyDoc.exists) {
+            if (!policy) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
-            const rawData = policyDoc.data();
-            if (!rawData) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
-            }
-
-            // Validate policy data structure with Zod
-            let data;
-            try {
-                // Add document ID to data for validation
-                const dataWithId = { ...rawData, id: policyDoc.id };
-                data = PolicyDocumentSchema.parse(dataWithId);
-            } catch (error) {
-                logger.error('Policy document validation failed', error as Error, {
-                    policyId: id,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                });
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_POLICY_DATA', 'Policy document structure is invalid');
-            }
-
-            if (!data.currentVersionHash || !data.versions || !data.policyName) {
+            if (!policy.currentVersionHash || !policy.versions || !policy.policyName) {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing required fields');
             }
 
-            const currentVersion = data.versions[data.currentVersionHash];
+            const currentVersion = policy.versions[policy.currentVersionHash];
             if (!currentVersion) {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'VERSION_NOT_FOUND', 'Current policy version not found in versions map');
             }
@@ -600,8 +552,8 @@ export class PolicyService {
 
             return {
                 id,
-                policyName: data.policyName,
-                currentVersionHash: data.currentVersionHash,
+                policyName: policy.policyName,
+                currentVersionHash: policy.currentVersionHash,
                 text: currentVersion.text,
                 createdAt: currentVersion.createdAt,
             };

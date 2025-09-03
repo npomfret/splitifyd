@@ -6,6 +6,7 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { PerformanceMonitor } from '../utils/performance-monitor';
+import { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
  * Interface for policy acceptance status
@@ -41,19 +42,20 @@ export interface AcceptPolicyRequest {
 export class UserPolicyService {
     private policiesCollection = firestoreDb.collection(FirestoreCollections.POLICIES);
     private usersCollection = firestoreDb.collection(FirestoreCollections.USERS);
+    
+    constructor(private firestoreReader: IFirestoreReader) {}
 
     /**
      * Validate that a policy exists and the version hash is valid
      */
     private async validatePolicyAndVersion(policyId: string, versionHash: string): Promise<void> {
-        const policyDoc = await this.policiesCollection.doc(policyId).get();
+        const policy = await this.firestoreReader.getPolicy(policyId);
 
-        if (!policyDoc.exists) {
+        if (!policy) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy ${policyId} not found`);
         }
 
-        const policyData = policyDoc.data();
-        if (!policyData || !policyData.versions[versionHash]) {
+        if (!policy.versions[versionHash]) {
             throw new ApiError(
                 HTTP_STATUS.BAD_REQUEST,
                 'INVALID_VERSION_HASH',
@@ -175,28 +177,22 @@ export class UserPolicyService {
     async getUserPolicyStatus(userId: string): Promise<UserPolicyStatusResponse> {
         try {
             // Get all policies
-            const policiesSnapshot = await this.policiesCollection.get();
+            const allPolicies = await this.firestoreReader.getAllPolicies();
 
             // Get user's acceptance data
-            const userDoc = await this.usersCollection.doc(userId).get();
+            const user = await this.firestoreReader.getUser(userId);
 
-            if (!userDoc.exists) {
+            if (!user) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
             }
 
-            const userData = userDoc.data();
-            if (!userData) {
-                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'USER_DATA_NULL', 'User document data is null');
-            }
-
-            const userAcceptedPolicies = userData.acceptedPolicies || {};
+            const userAcceptedPolicies = user.acceptedPolicies || {};
             const policies: PolicyAcceptanceStatus[] = [];
             let totalPending = 0;
 
-            policiesSnapshot.forEach((doc) => {
-                const policyData = doc.data();
-                const policyId = doc.id;
-                const currentVersionHash = policyData.currentVersionHash;
+            allPolicies.forEach((policy) => {
+                const policyId = policy.id;
+                const currentVersionHash = policy.currentVersionHash;
                 const userAcceptedHash = userAcceptedPolicies[policyId];
                 const needsAcceptance = !userAcceptedHash || userAcceptedHash !== currentVersionHash;
 
@@ -209,7 +205,7 @@ export class UserPolicyService {
                     currentVersionHash,
                     userAcceptedHash,
                     needsAcceptance,
-                    policyName: policyData.policyName,
+                    policyName: policy.policyName,
                 });
             });
 

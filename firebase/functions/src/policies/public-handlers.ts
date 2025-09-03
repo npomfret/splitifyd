@@ -1,14 +1,13 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { PolicyService } from '../services/PolicyService';
-
-const policyService = new PolicyService();
+import { getPolicyService } from '../services/serviceRegistration';
 
 /**
  * GET /policies/current - List all current policy versions (public endpoint)
  */
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
     try {
+        const policyService = getPolicyService();
         const result = await policyService.getCurrentPolicies();
         res.json(result);
     } catch (error) {
@@ -24,6 +23,7 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
     const { id } = req.params;
 
     try {
+        const policyService = getPolicyService();
         const result = await policyService.getCurrentPolicy(id);
         res.json(result);
     } catch (error) {

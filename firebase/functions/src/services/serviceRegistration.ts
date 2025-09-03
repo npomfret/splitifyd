@@ -83,14 +83,16 @@ export function registerAllServices(): void {
 
     registry.registerService('PolicyService', () => {
         if (!policyServiceInstance) {
-            policyServiceInstance = new PolicyService();
+            const firestoreReader = getFirestoreReader();
+            policyServiceInstance = new PolicyService(firestoreReader);
         }
         return policyServiceInstance;
     });
 
     registry.registerService('UserPolicyService', () => {
         if (!userPolicyServiceInstance) {
-            userPolicyServiceInstance = new UserPolicyService();
+            const firestoreReader = getFirestoreReader();
+            userPolicyServiceInstance = new UserPolicyService(firestoreReader);
         }
         return userPolicyServiceInstance;
     });

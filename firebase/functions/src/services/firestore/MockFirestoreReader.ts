@@ -25,6 +25,7 @@ import type {
     SettlementDocument,
     GroupChangeDocument
 } from '../../schemas';
+import type { PolicyDocument } from '@splitifyd/shared';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
@@ -38,6 +39,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getExpense = vi.fn();
     public getSettlement = vi.fn();
     public getPolicy = vi.fn();
+    public getAllPolicies = vi.fn();
     public getUsersById = vi.fn();
     public getUsersForGroup = vi.fn();
     public getGroupsForUser = vi.fn();
@@ -471,5 +473,68 @@ export class MockFirestoreReader implements IFirestoreReader {
      */
     public mockNoRecentGroupChanges(userId: string): void {
         this.getRecentGroupChanges.mockResolvedValue([]);
+    }
+
+    // ========================================================================
+    // Policy Mock Helpers
+    // ========================================================================
+
+    /**
+     * Mock a policy to exist
+     */
+    public mockPolicyExists(policyId: string, policyData: Partial<PolicyDocument> = {}): void {
+        this.getPolicy.mockImplementation(async (id) => {
+            if (id === policyId) {
+                return {
+                    id: policyId,
+                    policyName: 'Test Policy',
+                    currentVersionHash: 'test-hash',
+                    versions: {
+                        'test-hash': {
+                            text: 'Test policy content',
+                            createdAt: new Date().toISOString(),
+                        }
+                    },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    ...policyData
+                } as PolicyDocument;
+            }
+            return null;
+        });
+    }
+
+    /**
+     * Mock all policies to return a list
+     */
+    public mockAllPolicies(policies: PolicyDocument[]): void {
+        this.getAllPolicies.mockResolvedValue(policies);
+    }
+
+    /**
+     * Mock empty policies list
+     */
+    public mockNoPolicies(): void {
+        this.getAllPolicies.mockResolvedValue([]);
+    }
+
+    /**
+     * Create a test PolicyDocument with default values
+     */
+    public createTestPolicyDocument(overrides: Partial<PolicyDocument> = {}): PolicyDocument {
+        return {
+            id: 'test-policy',
+            policyName: 'Test Policy',
+            currentVersionHash: 'test-hash',
+            versions: {
+                'test-hash': {
+                    text: 'Test policy content',
+                    createdAt: new Date().toISOString(),
+                }
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...overrides
+        };
     }
 }

@@ -173,6 +173,36 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    async getAllPolicies(): Promise<PolicyDocument[]> {
+        try {
+            const snapshot = await this.db
+                .collection(FirestoreCollections.POLICIES)
+                .get();
+
+            const policies: PolicyDocument[] = [];
+
+            snapshot.forEach((doc) => {
+                try {
+                    const policyData = PolicyDocumentSchema.parse({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                    policies.push(policyData);
+                } catch (validationError) {
+                    logger.warn('Skipping invalid policy document during getAllPolicies', {
+                        policyId: doc.id,
+                        error: validationError instanceof Error ? validationError.message : 'Unknown validation error',
+                    });
+                }
+            });
+
+            return policies;
+        } catch (error) {
+            logger.error('Failed to get all policies', error);
+            throw error;
+        }
+    }
+
     // ========================================================================
     // Collection Read Operations - Minimal Implementation
     // ========================================================================
@@ -193,6 +223,7 @@ export class FirestoreReader implements IFirestoreReader {
         throw "todo";
     }
 
+    // todo: this should be paginated
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<GroupDocument[]> {
         return PerformanceMonitor.monitorCollectionGroupQuery(
             'USER_GROUPS',
@@ -470,10 +501,10 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getExpensesByUser(userId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo"
     }
 
+    // todo: this should be paginated
     async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
         try {
             let query = this.db.collection(FirestoreCollections.SETTLEMENTS)
@@ -529,13 +560,11 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getSettlementsForUser(userId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo";
     }
 
     async getCommentsForTarget(target: CommentTarget, options?: QueryOptions): Promise<CommentDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo";
     }
 
     async getRecentGroupChanges(userId: string, options?: { 
@@ -576,13 +605,11 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getActiveShareLinkByToken(token: string): Promise<ShareLinkDocument | null> {
-        // TODO: Implement
-        return null;
+        throw "todo";
     }
 
     async getPolicyVersionsForUser(userId: string): Promise<PolicyDocument[]> {
-        // TODO: Implement
-        return [];
+        throw "todo";
     }
 
     // ========================================================================
@@ -659,18 +686,15 @@ export class FirestoreReader implements IFirestoreReader {
     // ========================================================================
 
     subscribeToGroup(groupId: string, callback: GroupSubscriptionCallback): UnsubscribeFunction {
-        // TODO: Implement real-time subscription
-        return () => {};
+        throw "todo";
     }
 
     subscribeToGroupExpenses(groupId: string, callback: ExpenseListSubscriptionCallback): UnsubscribeFunction {
-        // TODO: Implement real-time subscription
-        return () => {};
+        throw "todo";
     }
 
     subscribeToComments(target: CommentTarget, callback: CommentListSubscriptionCallback): UnsubscribeFunction {
-        // TODO: Implement real-time subscription
-        return () => {};
+        throw "todo";
     }
 
     // ========================================================================
@@ -678,8 +702,7 @@ export class FirestoreReader implements IFirestoreReader {
     // ========================================================================
 
     async getBatchDocuments<T>(collection: string, documentIds: string[]): Promise<T[]> {
-        // TODO: Implement efficient batch read
-        return [];
+        throw "todo";
     }
 
     // ========================================================================
@@ -697,7 +720,6 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async countDocuments(collection: string, filters?: Record<string, any>): Promise<number> {
-        // TODO: Implement count operation
-        return 0;
+        throw "todo";
     }
 }
