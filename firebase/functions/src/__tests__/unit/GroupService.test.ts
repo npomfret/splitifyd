@@ -90,8 +90,8 @@ vi.mock('../../services/serviceRegistration', () => ({
         })),
     })),
     getUserService: vi.fn(() => ({
-        getUsers: vi.fn((userIds) => Promise.resolve(new Map(
-            userIds.map(id => [id, { uid: id, displayName: 'Test User', email: 'test@example.com' }])
+        getUsers: vi.fn((userIds: string[]) => Promise.resolve(new Map(
+            userIds.map((id: string) => [id, { uid: id, displayName: 'Test User', email: 'test@example.com' }])
         )))
     })),
     getGroupMemberService: vi.fn(() => ({
