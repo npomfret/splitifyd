@@ -291,7 +291,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 async function createTestPoolUsers(): Promise<void> {
     console.log('🏊 Initializing test pool users...');
     
-    const POOL_SIZE = 50;
+    const POOL_SIZE = 10;
 
     // Check which pool users already exist
     const emails = [];
@@ -308,7 +308,7 @@ async function createTestPoolUsers(): Promise<void> {
     console.log('✅ Test pool users ready');
 }
 
-async function createGroupWithInvite(name: string, description: string, createdBy: AuthenticatedFirebaseUser): Promise<GroupWithInvite> {
+async function createGroupWithInvite(name: string, createdBy: AuthenticatedFirebaseUser): Promise<GroupWithInvite> {
     // Create group with just the creator initially
     const group = await driver.createGroupWithMembers(name, [createdBy], createdBy.token);
 
@@ -325,17 +325,17 @@ async function createGroups(createdBy: AuthenticatedFirebaseUser, config: TestDa
     const groups: GroupWithInvite[] = [];
 
     // Create special "Empty Group" with NO expenses
-    const emptyGroup = await createGroupWithInvite('Empty Group', 'This group has no expenses - testing empty state', createdBy);
+    const emptyGroup = await createGroupWithInvite('Empty Group', createdBy);
     groups.push(emptyGroup);
     console.log(`Created special empty group: ${emptyGroup.name} with invite link: ${emptyGroup.inviteLink}`);
 
     // Create special "Settled Group" with multi-currency expenses and settlements
-    const settledGroup = await createGroupWithInvite('Settled Group', 'Multi-currency group with many expenses and settlements - fully settled up', createdBy);
+    const settledGroup = await createGroupWithInvite('Settled Group', createdBy);
     groups.push(settledGroup);
     console.log(`Created special settled group: ${settledGroup.name} with invite link: ${settledGroup.inviteLink}`);
 
     // Create special "Large Group" with many users and expenses
-    const largeGroup = await createGroupWithInvite('Large Group', 'Many users and expenses for testing pagination and performance', createdBy);
+    const largeGroup = await createGroupWithInvite('Large Group', createdBy);
     groups.push(largeGroup);
     console.log(`Created special large group: ${largeGroup.name} with invite link: ${largeGroup.inviteLink}`);
 
@@ -358,7 +358,7 @@ async function createGroups(createdBy: AuthenticatedFirebaseUser, config: TestDa
 
     for (let i = 0; i < regularGroupCount; i++) {
         const groupName = groupNames[i % groupNames.length] + (i >= groupNames.length ? ` ${Math.floor(i / groupNames.length) + 1}` : '');
-        const group = await createGroupWithInvite(groupName, 'Regular group with some expenses', createdBy);
+        const group = await createGroupWithInvite(groupName, createdBy);
         groups.push(group);
         console.log(`Created group: ${group.name} with invite link: ${group.inviteLink}`);
     }
