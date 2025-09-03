@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/advanced-splitting-happy-path.e2e.test.ts"
-TEST_FILTER=""
+TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/user-profile-management.e2e.test.ts"
+TEST_FILTER="should allow user to view their profile information"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

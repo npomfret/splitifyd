@@ -23,11 +23,17 @@ export interface EnhancedGroupDetailStore {
     hasMoreSettlements: boolean;
     settlementsCursor: string | null;
 
-    // Methods
+    // New reference-counted methods
+    registerComponent(groupId: string, userId: string): Promise<void>;
+    deregisterComponent(groupId: string): void;
+    
+    // Legacy methods (for backward compatibility during transition)
     loadGroup(id: string): Promise<void>;
     subscribeToChanges(userId: string): void;
     dispose(): void;
     reset(): void;
+    
+    // Other methods
     fetchSettlements(cursor?: string, userId?: string): Promise<void>;
     loadMoreExpenses(): Promise<void>;
     loadMoreSettlements(): Promise<void>;
@@ -54,10 +60,20 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
     readonly #settlementsCursorSignal = signal<string | null>(null);
 
+    // Legacy single-group subscription state (for backward compatibility)
     private expenseChangeListener: (() => void) | null = null;
     private groupChangeListener: (() => void) | null = null;
     private changeDetector = new ChangeDetector();
     private currentGroupId: string | null = null;
+    
+    // New reference counting infrastructure
+    readonly #subscriberCounts = new Map<string, number>();
+    readonly #activeSubscriptions = new Map<string, {
+        expenseListener: () => void;
+        groupListener: () => void;
+        changeDetector: ChangeDetector;
+        userId: string;
+    }>();
 
     // State getters - readonly values for external consumers
     get group() {
@@ -106,6 +122,136 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         return this.#settlementsCursorSignal.value;
     }
 
+    // NEW REFERENCE-COUNTED API
+    
+    /**
+     * Register a component that needs this group's data.
+     * Uses reference counting to manage subscriptions efficiently.
+     */
+    async registerComponent(groupId: string, userId: string): Promise<void> {
+        logInfo('Registering component for group', { groupId, userId });
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+        this.#subscriberCounts.set(groupId, currentCount + 1);
+
+        if (currentCount === 0) {
+            // First component for this group - create subscription
+            logInfo(`First component for group ${groupId}, creating subscription.`);
+            await this.#loadGroupAndSubscribe(groupId, userId);
+        }
+    }
+
+    /**
+     * Deregister a component that no longer needs this group's data.
+     * Cleans up subscriptions when no components are using them.
+     */
+    deregisterComponent(groupId: string): void {
+        logInfo('Deregistering component for group', { groupId });
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+
+        if (currentCount <= 1) {
+            // Last component for this group - dispose subscription
+            logInfo(`Last component for group ${groupId}, disposing subscription.`);
+            this.#subscriberCounts.delete(groupId);
+            this.#disposeGroupSubscription(groupId);
+        } else {
+            this.#subscriberCounts.set(groupId, currentCount - 1);
+        }
+    }
+
+    // INTERNAL METHODS FOR REFERENCE COUNTING
+
+    /**
+     * Internal method to load group data and set up subscriptions
+     */
+    async #loadGroupAndSubscribe(groupId: string, userId: string): Promise<void> {
+        // Load the group data first
+        await this.loadGroup(groupId);
+        
+        // Initialize permissions store for this group
+        permissionsStore.registerComponent(groupId, userId);
+        
+        // Set up dedicated subscriptions for this group
+        this.#subscribeToGroupChanges(groupId, userId);
+    }
+
+    /**
+     * Internal method to subscribe to changes for a specific group
+     */
+    #subscribeToGroupChanges(groupId: string, userId: string): void {
+        // Create a dedicated change detector for this group
+        const groupChangeDetector = new ChangeDetector();
+        
+        // Subscribe to expense changes for this group
+        const expenseListener = groupChangeDetector.subscribeToExpenseChanges(groupId, () => {
+            // Always refresh for reference-counted subscriptions - we only create them for active groups
+            logApiResponse('CHANGE', 'expense_change', 200, {
+                action: 'REFRESHING_ALL',
+                groupId,
+            });
+            this.refreshAll().catch((error) => 
+                logError('Failed to refresh after expense change', error)
+            );
+        });
+
+        // Subscribe to group changes (member additions/removals, group updates)
+        const groupListener = groupChangeDetector.subscribeToGroupChanges(userId, () => {
+            // Always refresh for reference-counted subscriptions - we only create them for active groups
+            logApiResponse('CHANGE', 'group_change', 200, {
+                action: 'REFRESHING_ALL',
+                groupId,
+            });
+            this.refreshAll().catch((error) => 
+                logError('Failed to refresh after group change', error)
+            );
+        });
+
+        // Store subscription info for cleanup
+        this.#activeSubscriptions.set(groupId, {
+            expenseListener,
+            groupListener,
+            changeDetector: groupChangeDetector,
+            userId,
+        });
+
+        logInfo('Group change subscriptions setup complete', {
+            groupId,
+            userId,
+            hasExpenseListener: !!expenseListener,
+            hasGroupListener: !!groupListener,
+        });
+    }
+
+    /**
+     * Internal method to dispose subscriptions for a specific group
+     */
+    #disposeGroupSubscription(groupId: string): void {
+        const subscription = this.#activeSubscriptions.get(groupId);
+        if (!subscription) {
+            return;
+        }
+
+        // Clean up the listeners
+        if (subscription.expenseListener) {
+            subscription.expenseListener();
+        }
+        if (subscription.groupListener) {
+            subscription.groupListener();
+        }
+
+        // Dispose the change detector
+        subscription.changeDetector.dispose();
+        
+        // Deregister from permissions store
+        permissionsStore.deregisterComponent(groupId);
+
+        // Remove from tracking
+        this.#activeSubscriptions.delete(groupId);
+        
+        logInfo('Group subscription disposed', { groupId });
+    }
+
+    // LEGACY API (for backward compatibility)
+
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
@@ -153,8 +299,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             return;
         }
 
-        // Initialize permissions store with current user
-        permissionsStore.setCurrentUser(userId);
+        // Initialize permissions store with current user using reference counting
+        permissionsStore.registerComponent(this.currentGroupId, userId);
 
         logInfo('Setting up change subscriptions', {
             groupId: this.currentGroupId,
@@ -293,7 +439,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
-        // Clean up listeners
+        // Clean up ONLY legacy listeners (for backward compatibility)
+        // Do NOT interfere with reference-counted subscriptions
         if (this.expenseChangeListener) {
             this.expenseChangeListener();
             this.expenseChangeListener = null;
@@ -305,8 +452,8 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
         this.changeDetector.dispose();
         
-        // Clean up permissions store
-        permissionsStore.dispose();
+        // Do NOT call permissionsStore.dispose() as it affects other components
+        // Each component should use deregisterComponent() instead
     }
 
     reset(): void {

@@ -60,89 +60,10 @@ export function RegisterPage() {
     });
     const [localError, setLocalError] = useState<string | null>(null);
 
-    // Clear any previous errors when component mounts and load form defaults
+    // Clear any previous errors when component mounts
     useEffect(() => {
         setLocalError(null);
-        let isMounted = true;
-
-        const loadDefaults = async () => {
-            try {
-                const config = await firebaseConfigManager.getConfig();
-                
-                if (isMounted && config.formDefaults) {
-                    // Check if this is the first visit to register page in this session
-                    // This prevents defaults from overriding form values during tests or user navigation
-                    const defaultsAppliedKey = 'splitifyd-register-defaults-applied';
-                    const defaultsAlreadyApplied = sessionStorage.getItem(defaultsAppliedKey);
-                    
-                    if (defaultsAlreadyApplied) {
-                        // Don't apply defaults on subsequent visits in the same session
-                        return;
-                    }
-                    
-                    // Add small delay to let any immediate automation complete
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    
-                    // Re-check if still mounted after delay
-                    if (!isMounted) return;
-                    
-                                    // Use functional updates to check current state right when we're about to apply defaults
-                    // This ensures we get the most up-to-date values, even if they were set during the delay
-                    setName(currentName => {
-                        // Only apply default if current name is still empty
-                        if (!currentName.trim() && config.formDefaults.displayName) {
-                            try {
-                                sessionStorage.setItem('register-form-name', config.formDefaults.displayName);
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
-                            return config.formDefaults.displayName;
-                        }
-                        return currentName;
-                    });
-                    
-                    setEmail(currentEmail => {
-                        // Only apply default if current email is still empty  
-                        if (!currentEmail.trim() && config.formDefaults.email) {
-                            try {
-                                sessionStorage.setItem('register-form-email', config.formDefaults.email);
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
-                            return config.formDefaults.email;
-                        }
-                        return currentEmail;
-                    });
-                    
-                    setPassword(currentPassword => {
-                        // Only apply default if current password is still empty
-                        if (!currentPassword && config.formDefaults.password) {
-                            try {
-                                sessionStorage.setItem('register-form-password', config.formDefaults.password);
-                                sessionStorage.setItem('register-form-confirmPassword', config.formDefaults.password);
-                            } catch {
-                                // Ignore sessionStorage errors
-                            }
-                            setConfirmPassword(config.formDefaults.password);
-                            return config.formDefaults.password;
-                        }
-                        return currentPassword;
-                    });
-                    
-                    // Mark that defaults have been applied for this session
-                    sessionStorage.setItem(defaultsAppliedKey, 'true');
-                }
-            } catch (error) {
-                logError('Failed to load form defaults', error);
-            }
-        };
-
-        loadDefaults();
-
-        return () => {
-            isMounted = false;
-        };
-    }, []); // Run only once on mount
+    }, []);
 
     // Redirect if already logged in
     useEffect(() => {

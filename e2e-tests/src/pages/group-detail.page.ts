@@ -379,7 +379,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for balances section to be visible
         try {
-            await expect(balancesSection).toBeVisible({ timeout: 8000 });
+            await expect(balancesSection).toBeVisible({ timeout: 5000 });
         } catch (e) {
             const pageContent = await this.page.textContent('body');
             throw new Error(`Balances section failed to load within 8 seconds on group ${groupId}. Page content: ${pageContent?.substring(0, 500)}...`);

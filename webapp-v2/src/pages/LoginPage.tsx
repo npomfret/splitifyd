@@ -6,8 +6,8 @@ import { AuthForm } from '../components/auth/AuthForm';
 import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
+import { DefaultLoginButton } from '../components/auth/DefaultLoginButton';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { firebaseConfigManager } from '../app/firebase-config';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
@@ -21,7 +21,6 @@ export function LoginPage() {
     const [password, setPassword] = useState(() => 
         sessionStorage.getItem('login-password') || ''
     );
-    const [formDefaultsLoaded, setFormDefaultsLoaded] = useState(false);
 
     // Persist to sessionStorage on changes
     useEffect(() => {
@@ -32,24 +31,9 @@ export function LoginPage() {
         sessionStorage.setItem('login-password', password);
     }, [password]);
 
-    // Clear any previous errors when component mounts and load form defaults
+    // Clear any previous errors when component mounts
     useEffect(() => {
         authStore.clearError();
-
-        // Load form defaults from config
-        firebaseConfigManager
-            .getConfig()
-            .then((config) => {
-                if (config.formDefaults) {
-                    setEmail(config.formDefaults.email || '');
-                    setPassword(config.formDefaults.password || '');
-                }
-                setFormDefaultsLoaded(true);
-            })
-            .catch((error) => {
-                logError('Failed to load form defaults', error);
-                setFormDefaultsLoaded(true);
-            });
     }, []);
 
     // Redirect if already logged in
@@ -80,6 +64,11 @@ export function LoginPage() {
         }
     };
 
+    const handleFillForm = (defaultEmail: string, defaultPassword: string) => {
+        setEmail(defaultEmail);
+        setPassword(defaultPassword);
+    };
+
     const isFormValid = email.trim() && password;
     const isSubmitting = authStore.loading;
 
@@ -108,6 +97,12 @@ export function LoginPage() {
                 <SubmitButton loading={isSubmitting} disabled={!isFormValid}>
                     {t('loginPage.submitButton')}
                 </SubmitButton>
+
+                <DefaultLoginButton
+                    onFillForm={handleFillForm}
+                    onSubmit={() => handleSubmit(new Event('submit'))}
+                    disabled={isSubmitting}
+                />
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">

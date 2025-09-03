@@ -63,17 +63,14 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         return null;
     }
 
-    // Fetch group data on mount and subscribe to realtime updates
+    // Fetch group data on mount and subscribe to realtime updates using reference counting
     useEffect(() => {
         if (!groupId || !currentUser.value) return;
 
         const loadGroup = async () => {
             try {
-                await enhancedGroupDetailStore.loadGroup(groupId);
-                // Subscribe to realtime changes after initial load
-                if (currentUser.value) {
-                    enhancedGroupDetailStore.subscribeToChanges(currentUser.value.uid);
-                }
+                // Use new reference-counted API - automatically handles loading and subscription
+                await enhancedGroupDetailStore.registerComponent(groupId, currentUser.value!.uid);
                 isInitialized.value = true;
             } catch (error) {
                 logError('Failed to load group page', error, { groupId });
@@ -84,10 +81,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
         // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
         loadGroup();
 
-        // Cleanup on unmount
+        // Cleanup on unmount using reference counting
         return () => {
-            enhancedGroupDetailStore.dispose();
-            enhancedGroupDetailStore.reset();
+            enhancedGroupDetailStore.deregisterComponent(groupId);
         };
     }, [groupId, currentUser.value]);
 

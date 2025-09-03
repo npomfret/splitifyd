@@ -5,7 +5,7 @@ import { waitForApp, setupMCPDebugOnFailure } from '../../../helpers';
 setupMCPDebugOnFailure();
 
 pageTest.describe('Form Behavior Edge Cases', () => {
-    pageTest('should clear form on page refresh', async ({ loginPageNavigated }) => {
+    pageTest('should persist form values on page refresh', async ({ loginPageNavigated }) => {
         const { page, loginPage } = loginPageNavigated;
 
         // Wait for any pre-filled data to load
@@ -19,12 +19,12 @@ pageTest.describe('Form Behavior Edge Cases', () => {
         await loginPage.fillPreactInput(passwordInput, '');
 
         // Now fill form with our test data
-        await loginPage.fillPreactInput(emailInput, 'test@example.com');
-        await loginPage.fillPreactInput(passwordInput, 'Password123');
+        await loginPage.fillPreactInput(emailInput, 'user@testsite.com');
+        await loginPage.fillPreactInput(passwordInput, 'MyCustomPass456');
 
         // Verify values are filled
-        await expect(emailInput).toHaveValue('test@example.com');
-        await expect(passwordInput).toHaveValue('Password123');
+        await expect(emailInput).toHaveValue('user@testsite.com');
+        await expect(passwordInput).toHaveValue('MyCustomPass456');
 
         // Refresh page and wait for app
         await page.reload();
@@ -34,13 +34,13 @@ pageTest.describe('Form Behavior Edge Cases', () => {
         const refreshedEmailInput = loginPage.getEmailInput();
         const refreshedPasswordInput = loginPage.getPasswordInput();
 
-        // In dev, form may be pre-filled from config, but our custom values should be gone
+        // Values should persist via sessionStorage
         const newEmailValue = await refreshedEmailInput.inputValue();
         const newPasswordValue = await refreshedPasswordInput.inputValue();
 
-        // Our custom values should not persist
-        expect(newEmailValue).not.toBe('test@example.com');
-        expect(newPasswordValue).not.toBe('Password123');
+        // Our custom values should persist
+        expect(newEmailValue).toBe('user@testsite.com');
+        expect(newPasswordValue).toBe('MyCustomPass456');
 
         // No console errors
         // Console errors are automatically captured by

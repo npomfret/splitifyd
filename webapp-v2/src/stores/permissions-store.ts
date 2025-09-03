@@ -123,6 +123,9 @@ export class PermissionsStore {
     private currentGroup: Group | null = null;
     private currentMembers: GroupMemberWithProfile[] = [];
     private cache = new PermissionCache();
+    
+    // Reference counting infrastructure
+    readonly #subscriberCounts = new Map<string, number>();
 
     // Reactive signals
     private groupSignal = signal<Group | null>(null);
@@ -139,7 +142,46 @@ export class PermissionsStore {
         return members.find(m => m.uid === userId)?.memberRole || null;
     });
 
-    // Initialize with user ID
+    // NEW REFERENCE-COUNTED API
+    
+    /**
+     * Register a component that needs permissions for this group.
+     * Uses reference counting to manage state efficiently.
+     */
+    registerComponent(groupId: string, userId: string): void {
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+        this.#subscriberCounts.set(groupId, currentCount + 1);
+        
+        if (currentCount === 0) {
+            // First component for this group
+            this.setCurrentUser(userId);
+        }
+    }
+    
+    /**
+     * Deregister a component that no longer needs permissions for this group.
+     */
+    deregisterComponent(groupId: string): void {
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+        
+        if (currentCount <= 1) {
+            // Last component for this group - clean up
+            this.#subscriberCounts.delete(groupId);
+            // Only clear if this was the group we were tracking
+            if (this.currentGroup?.id === groupId) {
+                this.dispose();
+            }
+        } else {
+            this.#subscriberCounts.set(groupId, currentCount - 1);
+        }
+    }
+    
+    // LEGACY API (for backward compatibility)
+    
+    /**
+     * Initialize with user ID
+     * @deprecated Use registerComponent instead for proper reference counting
+     */
     setCurrentUser(userId: string | null): void {
         this.currentUserId = userId;
         this.userIdSignal.value = userId;
@@ -206,7 +248,14 @@ export class PermissionsStore {
     // Cleanup
     dispose(): void {
         this.currentGroup = null;
+        this.currentMembers = [];
+        this.currentUserId = null;
+        this.groupSignal.value = null;
+        this.membersSignal.value = [];
+        this.userIdSignal.value = null;
+        this.permissionsSignal.value = {};
         this.cache.invalidate();
+        // Note: Don't clear subscriber counts here as other components might still be registered
     }
 
     // Get current group data
