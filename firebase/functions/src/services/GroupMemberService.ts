@@ -6,15 +6,20 @@ import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
-import { calculateGroupBalances } from './balanceCalculator';
+import { getFirestoreReader } from './serviceRegistration';
+import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { createServerTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export class GroupMemberService {
+    private balanceService: BalanceCalculationService;
+    
     constructor(
         private readonly firestoreReader: IFirestoreReader
-    ) {}
+    ) {
+        this.balanceService = new BalanceCalculationService(firestoreReader);
+    }
 
     private getInitials(nameOrEmail: string): string {
         const name = nameOrEmail || '';
@@ -113,7 +118,7 @@ export class GroupMemberService {
         }
 
         try {
-            const groupBalance = await calculateGroupBalances(groupId);
+            const groupBalance = await this.balanceService.calculateGroupBalances(groupId);
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
             for (const currency in balancesByCurrency) {
@@ -202,7 +207,7 @@ export class GroupMemberService {
         }
 
         try {
-            const groupBalance = await calculateGroupBalances(groupId);
+            const groupBalance = await this.balanceService.calculateGroupBalances(groupId);
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
             for (const currency in balancesByCurrency) {

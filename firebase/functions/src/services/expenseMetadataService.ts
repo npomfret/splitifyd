@@ -1,6 +1,5 @@
-import { FirestoreCollections } from '@splitifyd/shared';
 import { createServerTimestamp } from '../utils/dateHelpers';
-import { firestoreDb } from '../firebase';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export interface ExpenseMetadata {
     expenseCount: number;
@@ -13,38 +12,49 @@ export interface ExpenseMetadata {
 }
 
 /**
- * Calculate expense metadata for a group on-demand
+ * Service for calculating expense metadata for groups
  */
-export const calculateExpenseMetadata = async (groupId: string): Promise<ExpenseMetadata> => {
-    if (!groupId) {
-        throw new Error('Group ID is required');
-    }
+export class ExpenseMetadataService {
+    constructor(private firestoreReader: IFirestoreReader) {}
 
-    const expensesQuery = firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).orderBy('createdAt', 'desc');
+    /**
+     * Calculate expense metadata for a group on-demand
+     */
+    async calculateExpenseMetadata(groupId: string): Promise<ExpenseMetadata> {
+        if (!groupId) {
+            throw new Error('Group ID is required');
+        }
 
-    const snapshot = await expensesQuery.get();
+        // Get all expenses for the group, sorted by creation date descending  
+        const expenses = await this.firestoreReader.getExpensesForGroup(groupId, {
+            orderBy: {
+                field: 'createdAt',
+                direction: 'desc'
+            }
+        });
 
-    const expenseCount = snapshot.size;
+        const expenseCount = expenses.length;
 
-    if (expenseCount === 0) {
+        if (expenseCount === 0) {
+            return {
+                expenseCount: 0,
+                lastExpenseTime: undefined,
+                lastExpense: undefined,
+            };
+        }
+
+        // Get the most recent expense (first in the sorted array)
+        const latestExpense = expenses[0];
+
         return {
-            expenseCount: 0,
-            lastExpenseTime: undefined,
-            lastExpense: undefined,
+            expenseCount,
+            lastExpenseTime: latestExpense.createdAt?.toDate(),
+            lastExpense: {
+                description: latestExpense.description,
+                amount: latestExpense.amount,
+                date: latestExpense.date?.toDate() ?? latestExpense.createdAt?.toDate() ?? createServerTimestamp().toDate(),
+            },
         };
     }
+}
 
-    // Get the most recent expense
-    const latestExpenseDoc = snapshot.docs[0];
-    const latestExpenseData = latestExpenseDoc.data();
-
-    return {
-        expenseCount,
-        lastExpenseTime: latestExpenseData.createdAt?.toDate(),
-        lastExpense: {
-            description: latestExpenseData.description,
-            amount: latestExpenseData.amount,
-            date: latestExpenseData.date?.toDate() ?? latestExpenseData.createdAt?.toDate() ?? createServerTimestamp().toDate(),
-        },
-    };
-};

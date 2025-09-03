@@ -8,6 +8,7 @@ import { DebtSimplificationService } from './DebtSimplificationService';
 import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas/balance';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
 import { logger } from '../../logger';
+import type { IFirestoreReader } from '../firestore/IFirestoreReader';
 
 export class BalanceCalculationService {
     private dataFetcher: DataFetcher;
@@ -15,8 +16,8 @@ export class BalanceCalculationService {
     private settlementProcessor: SettlementProcessor;
     private debtSimplificationService: DebtSimplificationService;
 
-    constructor() {
-        this.dataFetcher = new DataFetcher();
+    constructor(firestoreReader: IFirestoreReader) {
+        this.dataFetcher = new DataFetcher(firestoreReader);
         this.expenseProcessor = new ExpenseProcessor();
         this.settlementProcessor = new SettlementProcessor();
         this.debtSimplificationService = new DebtSimplificationService();

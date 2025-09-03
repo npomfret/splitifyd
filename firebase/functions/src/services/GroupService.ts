@@ -3,12 +3,11 @@ import {firestoreDb} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
-import {calculateGroupBalances} from './balanceCalculator';
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
-import {calculateExpenseMetadata} from './expenseMetadataService';
 import {GroupDataSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
-import {getExpenseService, getGroupMemberService, getSettlementService, getUserService} from './serviceRegistration';
+import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService, getFirestoreReader} from './serviceRegistration';
+import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {encodeCursor} from '../utils/pagination';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
@@ -23,7 +22,11 @@ import type { IFirestoreReader } from './firestore/IFirestoreReader';
  * Service for managing group operations
  */
 export class GroupService {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    private balanceService: BalanceCalculationService;
+    
+    constructor(private readonly firestoreReader: IFirestoreReader) {
+        this.balanceService = new BalanceCalculationService(firestoreReader);
+    }
     
     /**
      * Helper to safely convert any date-like value to ISO string
@@ -54,13 +57,13 @@ export class GroupService {
      */
     private async addComputedFields(group: Group, userId: string): Promise<Group> {
         // Calculate real balance for the user
-        const groupBalances = await calculateGroupBalances(group.id);
+        const groupBalances = await this.balanceService.calculateGroupBalances(group.id);
 
         // Validate the balance calculation result for type safety
         const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
 
         // Calculate expense metadata on-demand
-        const expenseMetadata = await calculateExpenseMetadata(group.id);
+        const expenseMetadata = await getExpenseMetadataService().calculateExpenseMetadata(group.id);
 
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<string, {
@@ -416,7 +419,7 @@ export class GroupService {
             });
 
             const balancePromises = groupsWithExpenses.map((group: Group) => 
-                calculateGroupBalances(group.id).catch((error: Error) => {
+                this.balanceService.calculateGroupBalances(group.id).catch((error: Error) => {
                     logger.error('Error calculating balances', error, { groupId: group.id });
                     return {
                         groupId: group.id,
@@ -858,7 +861,7 @@ export class GroupService {
         }
 
         // Always calculate balances on-demand for accurate data
-        const balances = await calculateGroupBalances(groupId);
+        const balances = await this.balanceService.calculateGroupBalances(groupId);
 
         return {
             groupId: balances.groupId,
@@ -909,7 +912,7 @@ export class GroupService {
             }),
 
             // Get balances using existing calculator
-            calculateGroupBalances(groupId),
+            this.balanceService.calculateGroupBalances(groupId),
 
             // Get settlements using service layer with pagination
             getSettlementService()._getGroupSettlementsData(groupId, {

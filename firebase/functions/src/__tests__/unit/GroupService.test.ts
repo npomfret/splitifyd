@@ -70,20 +70,38 @@ vi.mock('../../../src/services/serviceRegistration', () => ({
     })),
 }));
 
-vi.mock('../../services/balanceCalculator', () => ({
-    calculateGroupBalances: vi.fn((groupId) => Promise.resolve({
-        groupId: groupId,
-        balancesByCurrency: {},
-        userBalances: {},
-        simplifiedDebts: [],
-        lastUpdated: Timestamp.now(),
+vi.mock('../../services/balance/BalanceCalculationService', () => ({
+    BalanceCalculationService: vi.fn(() => ({
+        calculateGroupBalances: vi.fn((groupId) => Promise.resolve({
+            groupId: groupId,
+            balancesByCurrency: {},
+            userBalances: {},
+            simplifiedDebts: [],
+            lastUpdated: Timestamp.now(),
+        })),
     })),
 }));
 
-vi.mock('../../services/expenseMetadataService', () => ({
-    calculateExpenseMetadata: vi.fn(() => Promise.resolve({
-        count: 0,
-        lastExpenseTime: undefined,
+vi.mock('../../services/serviceRegistration', () => ({
+    getExpenseMetadataService: vi.fn(() => ({
+        calculateExpenseMetadata: vi.fn(() => Promise.resolve({
+            expenseCount: 0,
+            lastExpenseTime: undefined,
+        })),
+    })),
+    getUserService: vi.fn(() => ({
+        getUsers: vi.fn((userIds) => Promise.resolve(new Map(
+            userIds.map(id => [id, { uid: id, displayName: 'Test User', email: 'test@example.com' }])
+        )))
+    })),
+    getGroupMemberService: vi.fn(() => ({
+        getMembersFromSubcollection: vi.fn(() => Promise.resolve([]))
+    })),
+    getSettlementService: vi.fn(() => ({
+        _getGroupSettlementsData: vi.fn(() => Promise.resolve({ settlements: [], hasMore: false }))
+    })),
+    getExpenseService: vi.fn(() => ({
+        _getGroupExpensesData: vi.fn(() => Promise.resolve({ expenses: [], hasMore: false }))
     })),
 }));
 

@@ -432,11 +432,18 @@ This pagination performance issue should be prioritized as **HIGH PRIORITY** for
 - **Created**: GroupChangeDocumentBuilder following established test-support patterns
 - **Tests**: Comprehensive unit tests created with MockFirestoreReader covering error scenarios and dependency injection
 
-**Day 9: Balance & Metadata Services**
+**Day 9: Balance & Metadata Services** ✅ **COMPLETED**
 - **Why later**: Complex calculation logic, performance sensitive
 - **Complexity**: High - complex aggregation queries
 - **Impact**: High - affects balance displays
 - **Tests**: 4 test files affected
+- **Status**: Migration complete, both services now use IFirestoreReader dependency injection
+- **Services Migrated**: 
+  - DataFetcher: Replaced 4 direct Firestore calls with IFirestoreReader methods
+  - ExpenseMetadataService: Converted from function-based to class-based service with IFirestoreReader
+- **Tests**: 8 comprehensive unit tests created using MockFirestoreReader
+- **Fixed**: Circular dependency initialization issue in balance service exports
+- **Removed**: Backward compatibility functions per architectural guidelines
 
 **Day 10: Policy & Validation Services**
 - **Why last**: Less frequently used, simpler patterns
