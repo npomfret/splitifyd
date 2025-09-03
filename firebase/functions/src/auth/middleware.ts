@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import {firebaseAuth, firestoreDb} from '../firebase';
+import { firebaseAuth } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
-import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
+import { SystemUserRoles } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
+import { getFirestoreReader } from '../services/serviceRegistration';
 
 /**
  * Extended Express Request with user information
@@ -50,14 +51,13 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
             throw new Error('User missing required fields: email and displayName are mandatory');
         }
 
-        // Fetch user role from Firestore
-        const userDocRef = firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid);
-        const userDoc = await userDocRef.get();
-        const userData = userDoc.data();
+        // Fetch user role from Firestore using centralized reader
+        const firestoreReader = getFirestoreReader();
+        const userDocument = await firestoreReader.getUser(userRecord.uid);
 
         // Default to "user" role for existing users without role field (backward compatibility)
         // New users should always have role field set during registration
-        const userRole = userData?.role ?? SystemUserRoles.SYSTEM_USER;
+        const userRole = userDocument?.role ?? SystemUserRoles.SYSTEM_USER;
 
         // Attach user information to request
         req.user = {

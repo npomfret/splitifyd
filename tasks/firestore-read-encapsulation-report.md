@@ -509,16 +509,37 @@ This pagination performance issue should be prioritized as **HIGH PRIORITY** for
 
 ### Phase 3: Infrastructure & Handlers (Days 11-13)
 
-#### Day 11: Authentication & Middleware
+#### Day 11: Authentication & Middleware ✅ **COMPLETED**
 **Files:**
 - `auth/middleware.ts` - user authentication reads
 - `auth/handlers.ts` - authentication endpoint reads  
 - `auth/policy-helpers.ts` - policy helper functions
 
-**Approach:**
-- Inject `IFirestoreReader` into middleware functions
-- Update authentication pipeline to use reader
-- Ensure zero breaking changes to auth flow
+**Implementation Results:**
+- ✅ **Updated auth/middleware.ts**: Replaced direct Firestore user reads with `firestoreReader.getUser()`
+  - Uses `getFirestoreReader()` from ServiceRegistry (correct pattern for stateless middleware)
+  - Maintains backward compatibility with role defaulting to SYSTEM_USER
+  - All three middleware functions (authenticate, requireAdmin, authenticateAdmin) now use centralized reader
+- ✅ **Updated auth/policy-helpers.ts**: Replaced direct policies collection query with `firestoreReader.getAllPolicies()`
+  - Simplified policy version extraction logic using validated PolicyDocument[] from reader
+  - Maintains same error handling and logging behavior
+  - Used by UserService2 during user registration for policy acceptance
+- ✅ **auth/handlers.ts**: No changes required (already uses service registry pattern)
+- ✅ **Comprehensive Unit Tests Created**:
+  - **middleware.test.ts**: 14 tests covering all middleware functions with MockFirestoreReader
+  - **policy-helpers.test.ts**: 7 tests covering policy version retrieval edge cases
+  - All tests use MockFirestoreReader for fast, emulator-free execution
+  - Tests cover authentication flow, admin authorization, error handling, and policy scenarios
+- ✅ **Test Results**: All unit tests passing (348/348)
+- ✅ **TypeScript Compilation**: Successful with no errors
+- ✅ **Integration Test Compatibility**: Middleware changes work with existing integration tests
+- ✅ **Code Quality**: Proper error handling, logging, and type safety maintained throughout
+
+**Architecture Notes:**
+- **Middleware Pattern**: Using `getFirestoreReader()` from ServiceRegistry is correct for stateless middleware functions
+- **Service Registry Integration**: Middleware gets fresh reader instance per request, ensuring proper lifecycle
+- **Zero Breaking Changes**: Authentication flow remains identical from API consumer perspective
+- **Testability**: Complete mock support enables fast unit testing without Firebase emulator
 
 #### Day 12: Utilities & Helpers  
 **Files:**

@@ -1,8 +1,7 @@
 import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
-import { firestoreDb } from '../firebase';
 import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections } from '@splitifyd/shared';
+import { getFirestoreReader } from '../services/serviceRegistration';
 
 /**
  * Get current version hashes for all policies
@@ -10,15 +9,14 @@ import { FirestoreCollections } from '@splitifyd/shared';
  */
 export async function getCurrentPolicyVersions(): Promise<Record<string, string>> {
     try {
-        const firestore = firestoreDb;
-        const policiesSnapshot = await firestore.collection(FirestoreCollections.POLICIES).get();
+        const firestoreReader = getFirestoreReader();
+        const policies = await firestoreReader.getAllPolicies();
 
         const acceptedPolicies: Record<string, string> = {};
 
-        policiesSnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.currentVersionHash) {
-                acceptedPolicies[doc.id] = data.currentVersionHash;
+        policies.forEach((policy) => {
+            if (policy.currentVersionHash) {
+                acceptedPolicies[policy.id] = policy.currentVersionHash;
             }
         });
 
