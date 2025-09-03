@@ -312,8 +312,8 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
 
         test('should sort members by display name', async () => {
             // Use additional users from borrowed users
-            const user3 = users[2]; // Charlie Test
-            const user4 = users[3]; // Alice Test
+            const user3 = users[2];
+            const user4 = users[3];
 
             const memberDocs: GroupMemberDocument[] = [
                 {
@@ -342,12 +342,14 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
 
             const response = await getGroupMemberService().getGroupMembersResponseFromSubcollection(testGroup.id);
             
-            // Verify sorting is working - should be sorted by displayName
+            // Verify sorting behavior without relying on exact names
             const displayNames = response.members.map(m => m.displayName);
-            const manualSortedNames = [...displayNames].sort();
             
-            // Test that the returned list is in sorted order
-            expect(displayNames).toEqual(manualSortedNames);
+            // Test that sorting is working correctly by checking if list is sorted
+            const isSorted = displayNames.every((name, i, arr) => 
+                i === 0 || arr[i - 1].localeCompare(name) <= 0
+            );
+            expect(isSorted).toBe(true);
             
             // Additional verification: ensure we have all expected members
             expect(response.members).toHaveLength(3); // testUser1 (admin) + 2 added members
