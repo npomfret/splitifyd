@@ -347,8 +347,7 @@ export interface GroupMember {
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
-export type GroupMemberWithProfile = RegisteredUser & 
-    Omit<GroupMember, 'theme' | 'role' | 'status'> & {
+export type GroupMemberWithProfile = RegisteredUser & Omit<GroupMember, 'theme' | 'role' | 'status'> & {
     // Renamed fields to avoid conflicts with RegisteredUser
     memberRole: MemberRole;      // Renamed from GroupMember.role
     memberStatus: MemberStatus;  // Renamed from GroupMember.status
