@@ -11,7 +11,8 @@ import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { Group, GroupPermissions, GroupMemberDocument, SecurityPreset } from '@splitifyd/shared';
+import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';
+import type { GroupMemberDocument } from '@splitifyd/shared';
 import { MemberStatuses } from '@splitifyd/shared';
 import type { GroupDocument } from '../schemas';
 
@@ -333,7 +334,7 @@ export class GroupPermissionService {
 
         const now = new Date().toISOString();
         const targetMember = getMemberDocFromArray(memberDocs, targetUserId)!;
-        const oldRole = targetMember.role;
+        const oldRole = targetMember.memberRole;
 
         // Use transaction with optimistic locking
         await runTransactionWithRetry(
@@ -395,7 +396,7 @@ export class GroupPermissionService {
             .doc(targetUserId);
             
         await memberDocRef.update({
-            role: role,
+            memberRole: role,
             lastPermissionChange: now,
         });
 
@@ -435,7 +436,7 @@ export class GroupPermissionService {
         }
 
         const userMember = getMemberDocFromArray(memberDocs, userId)!;
-        const userRole = userMember.role;
+        const userRole = userMember.memberRole;
         
         // Calculate permissions directly without calling PermissionEngineAsync to avoid service dependencies
         const permissions = this.calculateUserPermissions(toGroup(group), userMember);
@@ -488,7 +489,7 @@ export class GroupPermissionService {
         }
 
         // If member is not active, only allow viewing
-        if (member.status !== MemberStatuses.ACTIVE) {
+        if (member.memberStatus !== MemberStatuses.ACTIVE) {
             return {
                 canEditAnyExpense: false,
                 canDeleteAnyExpense: false,
@@ -500,7 +501,7 @@ export class GroupPermissionService {
         }
 
         // Viewers have restricted permissions
-        if (member.role === MemberRoles.VIEWER) {
+        if (member.memberRole === MemberRoles.VIEWER) {
             return {
                 canEditAnyExpense: false,
                 canDeleteAnyExpense: false,
@@ -515,11 +516,11 @@ export class GroupPermissionService {
         const permissions = group.permissions;
         
         return {
-            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.role, group.createdBy, member.userId),
-            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.role, group.createdBy, member.userId),
-            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.role, group.createdBy, member.userId),
-            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.role, group.createdBy, member.userId),
-            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.role, group.createdBy, member.userId),
+            canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.memberRole, group.createdBy, member.userId),
+            canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.memberRole, group.createdBy, member.userId),
+            canInviteMembers: this.checkPermissionLevel(permissions.memberInvitation, member.memberRole, group.createdBy, member.userId),
+            canManageSettings: this.checkPermissionLevel(permissions.settingsManagement, member.memberRole, group.createdBy, member.userId),
+            canApproveMembers: this.checkPermissionLevel(permissions.memberApproval, member.memberRole, group.createdBy, member.userId),
             canViewGroup: true, // All active members can view
         };
     }

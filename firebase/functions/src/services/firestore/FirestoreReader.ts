@@ -33,6 +33,7 @@ import type {
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
+import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
     QueryOptions,
@@ -43,6 +44,7 @@ import type {
     CommentListSubscriptionCallback,
     UnsubscribeFunction
 } from '../../types/firestore-reader-types';
+
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(
@@ -319,7 +321,7 @@ export class FirestoreReader implements IFirestoreReader {
             }
 
             const snapshot = await query.get();
-            const members: GroupMemberDocument[] = [];
+            const parsedMembers: ParsedGroupMemberDocument[] = [];
 
             for (const doc of snapshot.docs) {
                 try {
@@ -327,7 +329,7 @@ export class FirestoreReader implements IFirestoreReader {
                         id: doc.id,
                         ...doc.data()
                     });
-                    members.push(memberData);
+                    parsedMembers.push(memberData);
                 } catch (error) {
                     logger.error('Invalid group member document in getGroupMembers', error, {
                         memberId: doc.id,
@@ -337,7 +339,7 @@ export class FirestoreReader implements IFirestoreReader {
                 }
             }
 
-            return members;
+            return parsedMembers;
         } catch (error) {
             logger.error('Failed to get group members', error, { groupId });
             throw error;
@@ -357,10 +359,11 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            return GroupMemberDocumentSchema.parse({
+            const parsedMember = GroupMemberDocumentSchema.parse({
                 id: memberDoc.id,
                 ...memberDoc.data()
             });
+            return parsedMember;
         } catch (error) {
             logger.error('Failed to get member from subcollection', error, { groupId, userId });
             throw error;
@@ -375,7 +378,7 @@ export class FirestoreReader implements IFirestoreReader {
                 .collection('members');
 
             const snapshot = await membersRef.get();
-            const members: GroupMemberDocument[] = [];
+            const parsedMembers: ParsedGroupMemberDocument[] = [];
 
             for (const doc of snapshot.docs) {
                 try {
@@ -383,7 +386,7 @@ export class FirestoreReader implements IFirestoreReader {
                         id: doc.id,
                         ...doc.data()
                     });
-                    members.push(memberData);
+                    parsedMembers.push(memberData);
                 } catch (error) {
                     logger.error('Invalid group member document in getMembersFromSubcollection', error, {
                         memberId: doc.id,
@@ -393,7 +396,7 @@ export class FirestoreReader implements IFirestoreReader {
                 }
             }
 
-            return members;
+            return parsedMembers;
         } catch (error) {
             logger.error('Failed to get members from subcollection', error, { groupId });
             throw error;

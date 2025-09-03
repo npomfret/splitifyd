@@ -68,15 +68,12 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle large subcollection results without memory issues', async () => {
             // Mock large result set (1000 members) through MockFirestoreReader
             const largeMemberSet = Array.from({ length: 1000 }, (_, i) => ({
-                id: `user-${i}`,
-                data: () => ({
-                    userId: `user-${i}`,
-                    groupId: 'large-group',
-                    role: 'member',
-                    status: 'active',
-                    joinedAt: '2024-01-01T00:00:00.000Z',
-                    theme: { name: 'Blue', colorIndex: i % 10 },
-                }),
+                userId: `user-${i}`,
+                groupId: 'large-group',
+                memberRole: 'member',
+                memberStatus: 'active',
+                joinedAt: '2024-01-01T00:00:00.000Z',
+                theme: { name: 'Blue', colorIndex: i % 10 },
             }));
 
             vi.spyOn(mockFirestoreReader, 'getMembersFromSubcollection')
@@ -99,8 +96,8 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                     data: () => ({
                         userId: 'user-1',
                         groupId: 'group-123',
-                        role: 'member',
-                        status: 'active',
+                        memberRole: 'member',
+                        memberStatus: 'active',
                         joinedAt: '2024-01-01T00:00:00.000Z',
                         theme: { name: 'Blue', colorIndex: 0 },
                     }),
@@ -142,9 +139,9 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             
             const mockService = {
                 getMemberFromSubcollection: vi.fn()
-                    .mockResolvedValueOnce({ userId: 'user1', role: 'member' }) // Success
+                    .mockResolvedValueOnce({ userId: 'user1', memberRole: 'member' }) // Success
                     .mockRejectedValueOnce(new Error('Network error'))          // Failure
-                    .mockResolvedValueOnce({ userId: 'user3', role: 'admin' })  // Success
+                    .mockResolvedValueOnce({ userId: 'user3', memberRole: 'admin' })  // Success
             };
 
             // Verify the mock is set up correctly for partial failure patterns

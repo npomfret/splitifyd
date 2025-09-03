@@ -107,10 +107,10 @@ export const GroupMemberDocumentSchema = z
     .object({
         userId: UserIdSchema,
         groupId: z.string(), // For collectionGroup queries
-        role: z.nativeEnum(MemberRoles),
+        memberRole: z.nativeEnum(MemberRoles),
         theme: UserThemeColorSchema,
         joinedAt: z.string(), // ISO string
-        status: z.nativeEnum(MemberStatuses),
+        memberStatus: z.nativeEnum(MemberStatuses),
         invitedBy: UserIdSchema.optional(), // UID of the user who created the share link that was used to join
         lastPermissionChange: z.string().optional(), // ISO string - Track permission updates
     })

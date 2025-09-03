@@ -40,7 +40,7 @@ describe('GroupPermissionService', () => {
             const testMember = mockFirestoreReader.createTestGroupMemberDocument({
                 userId,
                 groupId,
-                role: 'member'
+                memberRole: 'member'
             });
             mockFirestoreReader.mockMemberInSubcollection(groupId, testMember);
             mockFirestoreReader.mockGroupMembersSubcollection(groupId, [testMember]);

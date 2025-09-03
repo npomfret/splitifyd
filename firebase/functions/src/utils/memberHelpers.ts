@@ -1,4 +1,5 @@
-import { GroupMemberWithProfile, GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { GroupMemberWithProfile, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import type { GroupMemberDocument } from '@splitifyd/shared';
 
 /**
  * Helper functions for working with GroupMemberWithProfile arrays
@@ -69,7 +70,7 @@ export const getMemberDocFromArray = (members: GroupMemberDocument[], userId: st
  */
 export const isAdminInDocArray = (members: GroupMemberDocument[], userId: string): boolean => {
     const member = getMemberDocFromArray(members, userId);
-    return member?.role === MemberRoles.ADMIN;
+    return member?.memberRole === MemberRoles.ADMIN;
 };
 
 /**

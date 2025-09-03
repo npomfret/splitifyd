@@ -28,12 +28,12 @@ describe('GroupMemberService', () => {
                 mockFirestoreReader.createTestGroupMemberDocument({
                     userId: 'user1',
                     groupId,
-                    role: 'admin'
+                    memberRole: 'admin'
                 }),
                 mockFirestoreReader.createTestGroupMemberDocument({
                     userId: 'user2', 
                     groupId,
-                    role: 'member'
+                    memberRole: 'member'
                 })
             ];
 

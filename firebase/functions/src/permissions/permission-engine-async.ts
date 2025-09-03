@@ -22,15 +22,15 @@ export class PermissionEngineAsync {
             return false;
         }
 
-        if (member.status !== MemberStatuses.ACTIVE && action !== 'viewGroup') {
+        if (member.memberStatus !== MemberStatuses.ACTIVE && action !== 'viewGroup') {
             return false;
         }
 
         if (action === 'viewGroup') {
-            return member.status === MemberStatuses.ACTIVE;
+            return member.memberStatus === MemberStatuses.ACTIVE;
         }
 
-        if (member.role === MemberRoles.VIEWER && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action)) {
+        if (member.memberRole === MemberRoles.VIEWER && ['expenseEditing', 'expenseDeletion', 'memberInvitation', 'settingsManagement'].includes(action)) {
             return false;
         }
 
@@ -39,7 +39,7 @@ export class PermissionEngineAsync {
             throw new Error(`Group ${group.id} is missing permission setting for action: ${action}`);
         }
 
-        return this.evaluatePermission(permission, member.role, userId, options);
+        return this.evaluatePermission(permission, member.memberRole, userId, options);
     }
 
     /**
@@ -90,13 +90,13 @@ export class PermissionEngineAsync {
             return { allowed: false, reason: 'User not found in group' };
         }
 
-        if (actorMember.role !== MemberRoles.ADMIN) {
+        if (actorMember.memberRole !== MemberRoles.ADMIN) {
             return { allowed: false, reason: 'Only admins can change member roles' };
         }
 
-        if (actorUserId === targetUserId && actorMember.role === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
+        if (actorUserId === targetUserId && actorMember.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
             const allMembers = await firestoreReader.getMembersFromSubcollection(groupId);
-            const adminCount = allMembers.filter((m) => m.role === MemberRoles.ADMIN && m.status === MemberStatuses.ACTIVE).length;
+            const adminCount = allMembers.filter((m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE).length;
 
             if (adminCount === 1) {
                 return {

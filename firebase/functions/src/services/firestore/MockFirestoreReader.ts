@@ -442,7 +442,7 @@ export class MockFirestoreReader implements IFirestoreReader {
         return {
             userId: 'test-user',
             groupId: 'test-group',
-            role: 'member' as any,
+            memberRole: 'member' as any,
             theme: {
                 light: '#007bff',
                 dark: '#0066cc',
@@ -452,7 +452,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                 colorIndex: 0
             },
             joinedAt: new Date().toISOString(),
-            status: 'active' as any,
+            memberStatus: 'active' as any,
             ...overrides
         };
     }
