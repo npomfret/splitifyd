@@ -341,13 +341,12 @@ export interface GroupBalance {
 export interface GroupMember {
     joinedAt: string; // ISO string
     memberRole: MemberRole;
-    theme: UserThemeColor;
     invitedBy?: string; // UID of the user who created the share link that was used to join
     memberStatus: MemberStatus;
     lastPermissionChange?: string; // ISO string - Track permission updates
 }
 
-export type GroupMemberWithProfile = RegisteredUser & Omit<GroupMember, 'theme'> & {
+export type GroupMemberWithProfile = RegisteredUser & GroupMember & {
     // Additional user display properties for UI
     initials: string;   // Auto-generated from displayName
     // Note: theme is inherited from RegisteredUser.themeColor, not duplicated

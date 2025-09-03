@@ -9,14 +9,6 @@ export class GroupMemberBuilder {
             joinedAt: new Date().toISOString(),
             memberRole: MemberRoles.MEMBER,
             memberStatus: MemberStatuses.ACTIVE,
-            theme: {
-                light: '#1f5582',
-                dark: '#4a9eff',
-                name: 'Ocean Blue',
-                pattern: 'solid',
-                assignedAt: new Date().toISOString(),
-                colorIndex: 0,
-            },
         };
     }
 
@@ -32,28 +24,6 @@ export class GroupMemberBuilder {
 
     withStatus(status: 'active' | 'pending'): this {
         this.member.memberStatus = status as any;
-        return this;
-    }
-
-    withTheme(theme: Partial<UserThemeColor>): this {
-        this.member.theme = { ...this.member.theme, ...theme };
-        return this;
-    }
-
-    withThemeColors(light: string, dark: string, name: string): this {
-        this.member.theme.light = light;
-        this.member.theme.dark = dark;
-        this.member.theme.name = name;
-        return this;
-    }
-
-    withPattern(pattern: ColorPattern): this {
-        this.member.theme.pattern = pattern;
-        return this;
-    }
-
-    withColorIndex(colorIndex: number): this {
-        this.member.theme.colorIndex = colorIndex;
         return this;
     }
 
@@ -78,6 +48,6 @@ export class GroupMemberBuilder {
     }
 
     build(): GroupMember {
-        return { ...this.member, theme: { ...this.member.theme } };
+        return { ...this.member };
     }
 }

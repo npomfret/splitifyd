@@ -6,24 +6,6 @@
 import { Page } from '@playwright/test';
 import type { AppConfiguration } from '@splitifyd/shared';
 
-export interface MockUser {
-    uid: string;
-    email: string;
-    displayName: string;
-    photoURL?: string;
-}
-
-export interface MockGroup {
-    id: string;
-    name: string;
-    description?: string;
-    members: { [userId: string]: any };
-    balance?: any;
-    createdAt: string;
-    updatedAt: string;
-    createdBy: string;
-}
-
 export const mockFirebaseConfig: AppConfiguration = {
     firebase: {
         apiKey: 'mock-api-key',
