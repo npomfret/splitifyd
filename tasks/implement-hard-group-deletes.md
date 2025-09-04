@@ -97,3 +97,356 @@ The manual creation of the `GroupChangeDocument` is what makes the required real
 -   **Performance**: Deleting thousands of documents can take time. The operation should be handled asynchronously, and the UI should provide immediate feedback that the deletion is in progress.
 -   **Cost**: Firestore bills for each delete operation. While typically inexpensive, deleting a very large group with extensive history could incur a noticeable cost.
 -   **Error Handling**: The `bulkWriter` handles retries, but the entire process should be idempotent. If the function fails midway, it should be safe to run it again to complete the cleanup.
+
+---
+
+# DETAILED IMPLEMENTATION PLAN
+
+## Current State Analysis
+
+After analyzing the codebase, the current `GroupService.deleteGroup()` implementation:
+
+1. **Only allows deletion when there are no expenses** - This prevents comprehensive cleanup
+2. **Only deletes**:
+   - Main group document (`/groups/{groupId}`)
+   - Members subcollection (`/groups/{groupId}/members/*`)
+3. **Already creates a change document** for real-time UI updates
+4. **Uses a Firestore transaction** (limited to 500 operations)
+
+## Complete Data Relationships Discovery
+
+Based on codebase analysis, a group deletion must cascade to:
+
+### Primary Collections
+- `groups/{groupId}` - Main group document
+
+### Subcollections of Groups  
+- `groups/{groupId}/members/*` - Group members
+- `groups/{groupId}/shareLinks/*` - Share links for group access
+- `groups/{groupId}/comments/*` - Comments on the group itself
+
+### Top-level Collections with groupId References
+- `expenses` where `groupId == {groupId}` - All expenses in the group
+- `settlements` where `groupId == {groupId}` - All settlements in the group
+- `group-changes` where `groupId == {groupId}` - Group change tracking
+- `transaction-changes` where `groupId == {groupId}` - Transaction change tracking  
+- `balance-changes` where `groupId == {groupId}` - Balance change tracking
+
+### Nested Comments
+- `expenses/{expenseId}/comments/*` - Comments on expenses belonging to this group
+
+## Implementation Strategy
+
+### Phase 1: Backend Implementation
+
+#### File: `firebase/functions/src/services/GroupService.ts`
+
+**Changes to `deleteGroup()` method:**
+
+1. **Remove expense restriction check** - Allow deletion with expenses
+
+2. **Comprehensive data discovery**:
+   ```typescript
+   // Get member list BEFORE deletion (already done)
+   const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+   const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
+   
+   // Discover all related data
+   const expenses = await firestoreDb.collection('expenses').where('groupId', '==', groupId).get();
+   const settlements = await firestoreDb.collection('settlements').where('groupId', '==', groupId).get();
+   const groupChanges = await firestoreDb.collection('group-changes').where('groupId', '==', groupId).get();
+   const transactionChanges = await firestoreDb.collection('transaction-changes').where('groupId', '==', groupId).get();
+   const balanceChanges = await firestoreDb.collection('balance-changes').where('groupId', '==', groupId).get();
+   
+   // Get subcollections
+   const shareLinks = await firestoreDb.collection('groups').doc(groupId).collection('shareLinks').get();
+   const groupComments = await firestoreDb.collection('groups').doc(groupId).collection('comments').get();
+   
+   // Get expense comments
+   const expenseCommentPromises = expenses.docs.map(expense => 
+       firestoreDb.collection('expenses').doc(expense.id).collection('comments').get()
+   );
+   const expenseCommentSnapshots = await Promise.all(expenseCommentPromises);
+   ```
+
+3. **Replace transaction with BulkWriter**:
+   ```typescript
+   const bulkWriter = firestoreDb.bulkWriter();
+   
+   // Queue all deletions
+   expenses.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   settlements.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   groupChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   transactionChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   balanceChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   shareLinks.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   groupComments.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   
+   // Delete expense comments
+   expenseCommentSnapshots.forEach(snapshot => {
+       snapshot.docs.forEach(doc => bulkWriter.delete(doc.ref));
+   });
+   
+   // Delete members (already handled in transaction)
+   memberDocs.forEach(memberDoc => bulkWriter.delete(memberDoc.ref));
+   
+   // Delete main group document last
+   bulkWriter.delete(this.getGroupsCollection().doc(groupId));
+   
+   // Execute bulk deletion
+   await bulkWriter.close();
+   ```
+
+4. **Comprehensive logging**:
+   ```typescript
+   logger.info('group-hard-delete-initiated', {
+       groupId,
+       memberCount: memberIds.length,
+       expenseCount: expenses.size,
+       settlementCount: settlements.size,
+       changeDocCount: groupChanges.size + transactionChanges.size + balanceChanges.size
+   });
+   ```
+
+### Phase 2: Frontend UI Updates
+
+#### File: `webapp-v2/src/components/group/EditGroupModal.tsx`
+
+**Enhanced Confirmation Dialog:**
+
+1. **Add "type group name to confirm" pattern**:
+   ```tsx
+   const [confirmationText, setConfirmationText] = useState('');
+   const isDeleteConfirmed = confirmationText === group.name;
+   
+   // In dialog:
+   <input
+       type="text"
+       placeholder={t('editGroupModal.deleteConfirm.typeName', { name: group.name })}
+       value={confirmationText}
+       onChange={(e) => setConfirmationText(e.target.value)}
+   />
+   
+   <Button
+       disabled={!isDeleteConfirmed || isDeleting}
+       onClick={handleDeleteConfirm}
+   >
+       {isDeleting ? 'Deleting...' : 'Delete Group Permanently'}
+   </Button>
+   ```
+
+2. **Enhanced warning messages**:
+   ```tsx
+   <div className="bg-red-50 border border-red-200 rounded-md p-4">
+       <h4 className="text-red-800 font-semibold">⚠️ Permanent Deletion Warning</h4>
+       <p className="text-red-700 mt-2">
+           This will permanently delete the group and ALL associated data:
+       </p>
+       <ul className="text-red-700 mt-2 list-disc list-inside">
+           <li>All expenses and their comments</li>
+           <li>All settlements</li>
+           <li>All group members and permissions</li>
+           <li>All change history</li>
+       </ul>
+       <p className="text-red-800 font-semibold mt-2">
+           This action cannot be undone.
+       </p>
+   </div>
+   ```
+
+3. **Update loading state**:
+   ```tsx
+   {isDeleting && (
+       <div className="text-center text-gray-600">
+           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2"></div>
+           Deleting group and all associated data...
+       </div>
+   )}
+   ```
+
+### Phase 3: Real-time Update Handling
+
+#### File: `webapp-v2/src/app/stores/group-detail-store-enhanced.ts`
+
+**Handle group deletion while viewing:**
+
+1. **Add error state handling**:
+   ```typescript
+   #errorSignal = signal<string | null>(null);
+   
+   get error(): ReadonlySignal<string | null> {
+       return this.#errorSignal;
+   }
+   ```
+
+2. **Monitor for group deletion in change handlers**:
+   ```typescript
+   // In the group change subscription callback
+   if (change.type === 'group' && change.action === 'deleted' && change.id === this.currentGroupId) {
+       this.#errorSignal.value = 'GROUP_DELETED';
+       this.#groupSignal.value = null;
+       this.#loadingSignal.value = false;
+   }
+   ```
+
+#### File: `webapp-v2/src/pages/GroupDetailPage.tsx`
+
+**Add redirect logic:**
+
+```tsx
+const groupError = groupDetailStore.error;
+
+useEffect(() => {
+    if (groupError === 'GROUP_DELETED') {
+        // Show brief notification then redirect
+        toast.error('Group was deleted');
+        setTimeout(() => {
+            navigate('/dashboard');
+        }, 1000);
+    }
+}, [groupError, navigate]);
+
+// Show deletion state
+if (groupError === 'GROUP_DELETED') {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                    Group Deleted
+                </h2>
+                <p className="text-gray-600 mb-4">
+                    This group has been permanently deleted.
+                </p>
+                <p className="text-sm text-gray-500">
+                    Redirecting to dashboard...
+                </p>
+            </div>
+        </div>
+    );
+}
+```
+
+### Phase 4: Testing Strategy
+
+#### Unit Tests
+**File**: `firebase/functions/src/__tests__/unit/GroupService.test.ts`
+
+```typescript
+describe('GroupService.deleteGroup - Hard Delete', () => {
+    test('should delete group with all related data', async () => {
+        // Setup: Create group with expenses, settlements, comments
+        // Test: Delete group
+        // Verify: All related collections are empty
+    });
+    
+    test('should handle large groups with thousands of documents', async () => {
+        // Test bulkWriter with many documents
+    });
+    
+    test('should be idempotent - safe to retry on failure', async () => {
+        // Test partial failure and retry scenarios
+    });
+});
+```
+
+#### Integration Tests
+**File**: `firebase/functions/src/__tests__/integration/hard-delete.test.ts`
+
+```typescript
+describe('Hard Delete Integration', () => {
+    test('should trigger real-time UI updates on deletion', async () => {
+        // Create group, subscribe to changes
+        // Delete group
+        // Verify change document created
+        // Verify UI receives deletion event
+    });
+});
+```
+
+#### E2E Tests
+**File**: `e2e-tests/src/__tests__/integration/group-deletion.e2e.test.ts`
+
+```typescript
+multiUserTest('group deletion with active viewers', async ({ authenticatedPage, secondUser }) => {
+    // User A creates and shares group with User B
+    // User B navigates to group detail page
+    // User A deletes group
+    // Verify User B is redirected with appropriate message
+});
+```
+
+## Implementation Timeline
+
+### Week 1: Backend Core
+- [ ] Update GroupService.deleteGroup() method
+- [ ] Implement comprehensive data discovery
+- [ ] Replace transaction with BulkWriter
+- [ ] Add detailed logging and monitoring
+- [ ] Unit tests for deletion logic
+
+### Week 2: Frontend UI
+- [ ] Enhance deletion confirmation dialog
+- [ ] Add "type to confirm" pattern
+- [ ] Improve warning messages and loading states
+- [ ] Update translation files
+
+### Week 3: Real-time Handling
+- [ ] Update group detail store error handling
+- [ ] Implement 404 redirect logic
+- [ ] Test multi-user deletion scenarios
+- [ ] Integration tests
+
+### Week 4: Testing & Polish
+- [ ] Comprehensive E2E test coverage
+- [ ] Performance testing with large groups
+- [ ] Error message refinement
+- [ ] Documentation updates
+
+## Risk Mitigation
+
+### Data Loss Prevention
+1. **Clear warnings**: Multiple warnings about permanent deletion
+2. **Confirmation pattern**: Type group name to confirm
+3. **Admin audit**: Log all deletions with user info
+
+### Performance Issues
+1. **BulkWriter**: Handles large datasets automatically
+2. **Timeout**: Increase Cloud Function timeout to 60 seconds
+3. **Progress logging**: Track deletion progress
+
+### Partial Failures
+1. **Idempotent design**: Safe to retry failed deletions
+2. **Error recovery**: Detailed error messages and retry guidance
+3. **Monitoring**: Alert on deletion failures
+
+### Cost Management
+1. **Cost estimation**: Document expected Firestore operations
+2. **Rate limiting**: Prevent abuse of deletion API
+3. **Admin controls**: Ability to disable feature if needed
+
+## Security Considerations
+
+1. **Permission checks**: Keep existing owner/admin verification
+2. **Audit trail**: Log who deleted what and when
+3. **Rate limiting**: Prevent rapid successive deletions
+4. **Admin oversight**: System admin visibility into deletions
+
+## Success Metrics
+
+1. **Functionality**: 100% of related data deleted
+2. **Performance**: Deletion completes within 30 seconds for large groups
+3. **User Experience**: Real-time updates work for all connected users
+4. **Reliability**: 99.9% success rate for deletion operations
+5. **Cost**: Deletion cost remains under $0.10 per group
+
+## Rollback Plan
+
+If issues arise:
+1. **Feature flag**: Disable hard delete, revert to soft delete
+2. **Data recovery**: While not possible for deleted data, ensure no corruption
+3. **User communication**: Clear communication about any issues
+4. **Monitoring**: Real-time monitoring of deletion success rates
+
+---
+
+This comprehensive plan ensures safe, complete, and user-friendly permanent group deletion with excellent real-time user experience and robust error handling.
