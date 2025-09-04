@@ -63,3 +63,68 @@ This ensures that the collector's memory footprint does not grow indefinitely wi
 -   **Fixes Memory Leak:** The collector will now have a bounded memory footprint, eliminating the performance degradation over time in the emulator.
 -   **Improves Performance:** The circular buffer is more performant for managing the fixed-size collection of recent metrics than the previous `push`/`shift` approach.
 -   **Improves Stability:** Makes the local development environment more stable and predictable for long sessions.
+
+---
+
+## ✅ **IMPLEMENTATION COMPLETED**
+
+### **Status:** Complete ✅
+**Completed on:** September 4, 2025  
+**Files Modified:** 
+- `firebase/functions/src/utils/performance-metrics-collector.ts`
+- `firebase/functions/src/__tests__/unit/performance-metrics-collector.test.ts` (new)
+
+### **Changes Implemented:**
+
+#### 🔄 **Circular Buffer Implementation**
+- ✅ Added `OperationMetricBuffer` interface with fixed-size arrays and cursor tracking
+- ✅ Implemented O(1) metric recording using cursor-based circular writes
+- ✅ Created helper methods `getMetricsFromBuffer()` and `getLastNMetricsFromBuffer()` for chronological traversal
+- ✅ Eliminated expensive `Array.shift()` operations that caused O(n) performance
+
+#### 🧹 **Stale Operation Pruning** 
+- ✅ Added `pruneStaleOperations()` method called during periodic reporting
+- ✅ Configured 15-minute inactivity threshold (3x reporting interval)
+- ✅ Added logging when operations are pruned for monitoring
+- ✅ Fixed primary memory leak by removing unused operation entries from main map
+
+#### 📊 **Enhanced Data Structures**
+- ✅ Updated `recordMetric()` to use circular buffer with cursor advancement
+- ✅ Modified `checkForAlerts()` to work with circular buffer traversal
+- ✅ Updated `getOperationStats()` to correctly handle wrapped buffers
+- ✅ Enhanced buffer tracking with `lastUpdated` timestamp and `size` counter
+
+#### 🔧 **Lifecycle Management**
+- ✅ Added `stopPeriodicReporting()` method for clean test teardown
+- ✅ Enhanced `clearMetrics()` with proper state reset
+- ✅ Updated `getMetricsCount()` to work with circular buffers
+- ✅ Added comprehensive `getDebugInfo()` with memory footprint estimates
+
+#### 🧪 **Comprehensive Testing**
+- ✅ Created 15 unit tests covering all functionality:
+  - Circular buffer operations and wrap-around behavior
+  - Stale operation pruning logic
+  - Memory management and bounds verification
+  - Statistics calculation accuracy
+  - Performance alert detection
+  - Service method integrations (recordServiceCall, recordDbOperation, recordBatchOperation)
+
+### **Technical Specifications:**
+- **Memory Bound:** 1000 metrics maximum per operation
+- **Pruning Threshold:** 15 minutes of inactivity (3x 5-minute reporting interval)
+- **Performance:** O(1) metric recording, O(n) statistics calculation where n ≤ 1000
+- **Backward Compatibility:** All existing APIs unchanged
+
+### **Test Results:**
+- ✅ All 15 unit tests passing
+- ✅ TypeScript compilation successful
+- ✅ No breaking changes to existing functionality
+- ✅ Memory leak eliminated through automatic pruning
+
+### **Performance Improvements:**
+- **Before:** O(n) insertions due to `Array.shift()` + unbounded memory growth
+- **After:** O(1) insertions with circular buffer + bounded memory with automatic cleanup
+- **Memory Usage:** Now bounded by `(number of active operations) × (1000 metrics + overhead)`
+- **Stability:** Eliminates performance degradation in long-running Firebase Emulator sessions
+
+The PerformanceMetricsCollector now provides robust, memory-safe performance monitoring that will maintain consistent performance over extended periods without memory leaks or performance degradation.
