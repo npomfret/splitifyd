@@ -245,7 +245,8 @@ class FunctionPerformanceAnalyzer {
       console.log('-'.repeat(100));
       for (const stat of degrading) {
         console.log(`\n📊 ${stat.functionName}`);
-        console.log(`   📈 Performance Trend: ${stat.trendPercentage.toFixed(1)}% slower over time`);
+        const trendText = stat.trendPercentage > 0 ? 'slower' : 'faster';
+        console.log(`   📈 Performance Trend: ${Math.abs(stat.trendPercentage).toFixed(1)}% ${trendText} over time`);
         console.log(`   📋 Sample Size: ${stat.totalExecutions} executions (${stat.totalExecutions >= 100 ? 'with random sampling' : 'full dataset'})`);
         console.log(`   ⏱️  Duration Stats: avg=${stat.averageDuration.toFixed(2)}ms, median=${stat.medianDuration.toFixed(2)}ms`);
         console.log(`   📏 Variability: std=${stat.standardDeviation.toFixed(2)}ms, cv=${(stat.coefficientOfVariation * 100).toFixed(1)}%`);
@@ -390,13 +391,10 @@ class FunctionPerformanceAnalyzer {
 async function main() {
   const args = process.argv.slice(2);
   
-  if (args.length === 0) {
-    console.log('Usage: npm run analyze-performance <log-file-path> [--csv output.csv] [--json output.json]');
-    console.log('Example: npm run analyze-performance firebase-debug.log --csv report.csv --json report.json');
-    process.exit(1);
-  }
-
-  const logFilePath = args[0];
+  // Default to firebase-debug.log if no path provided
+  const logFilePath = args.length > 0 && !args[0].startsWith('--') 
+    ? args[0] 
+    : 'firebase-debug.log';
   
   if (!fs.existsSync(logFilePath)) {
     console.error(`Error: Log file not found: ${logFilePath}`);
@@ -411,7 +409,7 @@ async function main() {
   const stats = analyzer.analyzePerformance();
   analyzer.printReport(stats);
 
-  // Handle optional CSV export
+  // Handle optional CSV export (look through all args, not just after logFilePath)
   const csvIndex = args.indexOf('--csv');
   if (csvIndex !== -1 && args[csvIndex + 1]) {
     analyzer.exportToCSV(stats, args[csvIndex + 1]);

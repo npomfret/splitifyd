@@ -15,8 +15,7 @@
     "test:watch": "vitest watch src/__tests__/unit/",
     "test:coverage": "vitest run --coverage",
     "validate-cors": "node scripts/validate-cors.js",
-    "seed:policies": "tsx src/scripts/seed-policies.ts",
-    "analyze-performance": "tsx scripts/analyze-function-performance.ts"
+    "seed:policies": "tsx src/scripts/seed-policies.ts"
   },
   "engines": {
     "node": "22"
