@@ -299,7 +299,6 @@ describe('Permission System Integration Tests', () => {
 
             // sanity check
             const {group} = await apiDriver.getGroupFullDetails(roleTestGroup.id, members[0].token);
-            console.log(group.id)
         });
 
         test('admins can change member roles', async () => {

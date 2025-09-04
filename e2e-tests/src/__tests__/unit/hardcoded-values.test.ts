@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 describe('Hardcoded Values Validation', () => {
+    // TODO: Work in progress - needs configuration update
     it.skip('should not contain "splitifyd" in any git tracked files', () => {
         const projectRoot = path.join(__dirname, '../../..');
 

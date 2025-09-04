@@ -25,7 +25,6 @@ test.describe('Single User Balance Visualization', () => {
         } catch {
             // Cached groups might have existing balances - verify balances section exists
             await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-            console.log('Group has existing balances - expected for cached groups');
         }
 
         // Members section should show the creator - use first() since display name might appear multiple times
@@ -85,7 +84,6 @@ test.describe('Single User Balance Visualization', () => {
         } catch {
             // If not settled, verify balances section is at least visible
             await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-            console.log('Group has existing balances from previous tests - this is expected for cached groups');
         }
 
         // Verify expenses are tracked in the expense section
@@ -112,7 +110,6 @@ test.describe('Single User Balance Visualization', () => {
         } catch {
             // Cached groups might have existing balances - verify section exists
             await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-            console.log('Group has existing balances - expected for cached groups');
         }
     });
 
@@ -150,7 +147,6 @@ test.describe('Single User Balance Visualization', () => {
         } catch {
             // Cached groups might have existing balances - verify section exists  
             await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-            console.log('Group has existing balances - expected for cached groups');
         }
     });
 });

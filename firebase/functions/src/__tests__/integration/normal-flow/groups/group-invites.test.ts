@@ -39,8 +39,6 @@ describe('Invite Tracking', () => {
 
         // Get the updated group to verify invite tracking
         const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
-        console.log(members.members)
-        console.log(users[1].uid)
 
         const found = members.members.find((m) => m.uid === users[1].uid)!;
 

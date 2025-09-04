@@ -39,17 +39,13 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         // that might cause the test to be unreliable
         try {
             await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-            console.log(`User 2 (${user2.displayName}) joined successfully`);
         } catch (error) {
-            console.error(`User 2 (${user2.displayName}) failed to join:`, error);
             throw error;
         }
 
         try {
             await joinGroupPage3.joinGroupUsingShareLink(shareLink);
-            console.log(`User 3 (${user3.displayName}) joined successfully`);
         } catch (error) {
-            console.error(`User 3 (${user3.displayName}) failed to join:`, error);
             throw error;
         }
 
@@ -77,7 +73,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         const user2Name = user2.displayName;
         const user3Name = user3.displayName;
 
-        console.log(`Looking for users: ${user1Name}, ${user2Name}, ${user3Name}`);
 
         // Check that all 3 users can see all 3 members on their respective pages
         await expect(groupDetailPage.getTextElement(user1Name).first()).toBeVisible();
