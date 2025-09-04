@@ -4,6 +4,7 @@ First, read all md files in docs/guides/ from the project root - study them, the
 
 Simply analyse the current changeset...
 
+- [ ] does it compile? run `npm run build` from the project root
 - [ ] is it sufficiently tested? **Do not run any tests!** Analyse the code changes and any tests that exercise them.
 - [ ] are tests _tidy_? do they user builders to hide away noise? Do they use drivers or POMs to abstract away complexity?
 - [ ] is there any unused code?
