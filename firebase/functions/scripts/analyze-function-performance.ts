@@ -18,11 +18,14 @@ interface FunctionStats {
   medianDuration: number;
   minDuration: number;
   maxDuration: number;
+  standardDeviation: number;
+  coefficientOfVariation: number;
   trend: 'increasing' | 'decreasing' | 'stable';
   trendPercentage: number; // percentage change from first half to second half
   totalExecutions: number;
   firstExecution: Date;
   lastExecution: Date;
+  outliers: number[]; // durations that are statistical outliers
 }
 
 class FunctionPerformanceAnalyzer {
@@ -92,8 +95,16 @@ class FunctionPerformanceAnalyzer {
       const min = sortedDurations[0];
       const max = sortedDurations[sortedDurations.length - 1];
 
+      // Calculate standard deviation and coefficient of variation
+      const variance = sortedDurations.reduce((sum, d) => sum + Math.pow(d - avg, 2), 0) / sortedDurations.length;
+      const standardDeviation = Math.sqrt(variance);
+      const coefficientOfVariation = avg > 0 ? standardDeviation / avg : 0;
+
       // Calculate trend by comparing first half vs second half of executions
       const { trend, trendPercentage } = this.calculateTrend(executions);
+
+      // Detect statistical outliers using IQR method
+      const outliers = this.detectOutliers(sortedDurations);
 
       const functionStats: FunctionStats = {
         functionName,
@@ -102,11 +113,14 @@ class FunctionPerformanceAnalyzer {
         medianDuration: median,
         minDuration: min,
         maxDuration: max,
+        standardDeviation,
+        coefficientOfVariation,
         trend,
         trendPercentage,
         totalExecutions: executions.length,
         firstExecution: executions[0].timestamp,
-        lastExecution: executions[executions.length - 1].timestamp
+        lastExecution: executions[executions.length - 1].timestamp,
+        outliers
       };
 
       stats.set(functionName, functionStats);
@@ -122,24 +136,92 @@ class FunctionPerformanceAnalyzer {
       : sortedArray[mid];
   }
 
+  private detectOutliers(sortedDurations: number[]): number[] {
+    if (sortedDurations.length < 4) return [];
+
+    const q1Index = Math.floor(sortedDurations.length * 0.25);
+    const q3Index = Math.floor(sortedDurations.length * 0.75);
+    const q1 = sortedDurations[q1Index];
+    const q3 = sortedDurations[q3Index];
+    const iqr = q3 - q1;
+    
+    const lowerBound = q1 - 1.5 * iqr;
+    const upperBound = q3 + 1.5 * iqr;
+    
+    return sortedDurations.filter(d => d < lowerBound || d > upperBound);
+  }
+
+  private getRandomSample<T>(array: T[], sampleSize: number): T[] {
+    if (array.length <= sampleSize) return [...array];
+    
+    const sample = [...array];
+    // Fisher-Yates shuffle algorithm for random sampling
+    for (let i = sample.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [sample[i], sample[j]] = [sample[j], sample[i]];
+    }
+    
+    return sample.slice(0, sampleSize);
+  }
+
   private calculateTrend(executions: FunctionExecution[]): { trend: 'increasing' | 'decreasing' | 'stable', trendPercentage: number } {
-    if (executions.length < 4) {
+    // Require minimum sample size for statistical validity  
+    if (executions.length < 20) {
       return { trend: 'stable', trendPercentage: 0 };
     }
 
-    const midPoint = Math.floor(executions.length / 2);
-    const firstHalf = executions.slice(0, midPoint);
-    const secondHalf = executions.slice(midPoint);
+    // Sort by timestamp to ensure chronological order
+    const sortedExecutions = [...executions].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    
+    // For large datasets, use random sampling within time windows for better statistical validity
+    let firstHalf: FunctionExecution[], secondHalf: FunctionExecution[];
+    
+    if (sortedExecutions.length > 100) {
+      // Split by time, then randomly sample within each half
+      const totalTimeSpan = sortedExecutions[sortedExecutions.length - 1].timestamp.getTime() - sortedExecutions[0].timestamp.getTime();
+      const midTimestamp = sortedExecutions[0].timestamp.getTime() + (totalTimeSpan / 2);
+      
+      const firstHalfAll = sortedExecutions.filter(e => e.timestamp.getTime() <= midTimestamp);
+      const secondHalfAll = sortedExecutions.filter(e => e.timestamp.getTime() > midTimestamp);
+      
+      // Random sample of 50 from each half for statistical analysis
+      const sampleSize = Math.min(50, Math.floor(firstHalfAll.length / 2));
+      firstHalf = this.getRandomSample(firstHalfAll, sampleSize);
+      secondHalf = this.getRandomSample(secondHalfAll, sampleSize);
+    } else {
+      // For smaller datasets, use simple time-based split
+      const totalTimeSpan = sortedExecutions[sortedExecutions.length - 1].timestamp.getTime() - sortedExecutions[0].timestamp.getTime();
+      const midTimestamp = sortedExecutions[0].timestamp.getTime() + (totalTimeSpan / 2);
+      
+      firstHalf = sortedExecutions.filter(e => e.timestamp.getTime() <= midTimestamp);
+      secondHalf = sortedExecutions.filter(e => e.timestamp.getTime() > midTimestamp);
+    }
+
+    // Ensure both halves have minimum samples for statistical significance
+    if (firstHalf.length < 10 || secondHalf.length < 10) {
+      return { trend: 'stable', trendPercentage: 0 };
+    }
 
     const firstHalfAvg = firstHalf.reduce((sum, e) => sum + e.duration, 0) / firstHalf.length;
     const secondHalfAvg = secondHalf.reduce((sum, e) => sum + e.duration, 0) / secondHalf.length;
 
     const percentageChange = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100;
 
+    // Use coefficient of variation to adjust threshold based on data variability
+    const allDurations = sortedExecutions.map(e => e.duration);
+    const mean = allDurations.reduce((sum, d) => sum + d, 0) / allDurations.length;
+    const variance = allDurations.reduce((sum, d) => sum + Math.pow(d - mean, 2), 0) / allDurations.length;
+    const stdDev = Math.sqrt(variance);
+    const coefficientOfVariation = stdDev / mean;
+    
+    // Adjust threshold based on data variability - more variable data needs larger threshold
+    const baseThreshold = 15; // Increased for more conservative trend detection
+    const adjustedThreshold = baseThreshold * (1 + coefficientOfVariation * 0.5);
+
     let trend: 'increasing' | 'decreasing' | 'stable';
-    if (percentageChange > 10) {
+    if (percentageChange > adjustedThreshold) {
       trend = 'increasing';
-    } else if (percentageChange < -10) {
+    } else if (percentageChange < -adjustedThreshold) {
       trend = 'decreasing';
     } else {
       trend = 'stable';
@@ -159,25 +241,35 @@ class FunctionPerformanceAnalyzer {
     // Functions with increasing execution time (getting slower)
     const degrading = sortedStats.filter(s => s.trend === 'increasing');
     if (degrading.length > 0) {
-      console.log('\n🔴 FUNCTIONS WITH DEGRADING PERFORMANCE (Slowing Down):');
+      console.log('\n🔴 FUNCTIONS WITH DEGRADING PERFORMANCE (Statistically Significant Slowdown):');
       console.log('-'.repeat(100));
       for (const stat of degrading) {
         console.log(`\n📊 ${stat.functionName}`);
-        console.log(`   Executions: ${stat.totalExecutions}`);
-        console.log(`   Trend: ${stat.trendPercentage > 0 ? '+' : ''}${stat.trendPercentage.toFixed(1)}% slower`);
-        console.log(`   Average: ${stat.averageDuration.toFixed(2)}ms | Median: ${stat.medianDuration.toFixed(2)}ms`);
-        console.log(`   Range: ${stat.minDuration.toFixed(2)}ms - ${stat.maxDuration.toFixed(2)}ms`);
+        console.log(`   📈 Performance Trend: ${stat.trendPercentage.toFixed(1)}% slower over time`);
+        console.log(`   📋 Sample Size: ${stat.totalExecutions} executions (${stat.totalExecutions >= 100 ? 'with random sampling' : 'full dataset'})`);
+        console.log(`   ⏱️  Duration Stats: avg=${stat.averageDuration.toFixed(2)}ms, median=${stat.medianDuration.toFixed(2)}ms`);
+        console.log(`   📏 Variability: std=${stat.standardDeviation.toFixed(2)}ms, cv=${(stat.coefficientOfVariation * 100).toFixed(1)}%`);
+        console.log(`   🎯 Range: ${stat.minDuration.toFixed(2)}ms - ${stat.maxDuration.toFixed(2)}ms`);
         
-        // Show execution timeline
-        if (stat.executions.length <= 20) {
-          console.log(`   Timeline: ${stat.executions.map(e => e.duration.toFixed(1)).join(' → ')}ms`);
+        if (stat.outliers.length > 0) {
+          console.log(`   ⚠️  Outliers: ${stat.outliers.length} detected (${stat.outliers.slice(0, 3).map(o => o.toFixed(1)).join(', ')}${stat.outliers.length > 3 ? '...' : ''}ms)`);
+        }
+        
+        // Show chronological timeline for trend visualization
+        const sortedByTime = [...stat.executions].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        if (sortedByTime.length <= 15) {
+          console.log(`   📊 Timeline: ${sortedByTime.map(e => e.duration.toFixed(1)).join(' → ')}ms`);
         } else {
-          // Show sample of executions
+          // Show representative samples from beginning, middle, end
           const samples = [
-            ...stat.executions.slice(0, 5),
-            ...stat.executions.slice(-5)
+            ...sortedByTime.slice(0, 5),
+            ...sortedByTime.slice(Math.floor(sortedByTime.length / 2) - 2, Math.floor(sortedByTime.length / 2) + 3),
+            ...sortedByTime.slice(-5)
           ];
-          console.log(`   Timeline (first 5 & last 5): ${samples.slice(0, 5).map(e => e.duration.toFixed(1)).join(' → ')}ms ... ${samples.slice(-5).map(e => e.duration.toFixed(1)).join(' → ')}ms`);
+          const early = samples.slice(0, 5);
+          const middle = samples.slice(5, 10);
+          const recent = samples.slice(-5);
+          console.log(`   📊 Timeline: Early[${early.map(e => e.duration.toFixed(1)).join(',')}] → Recent[${recent.map(e => e.duration.toFixed(1)).join(',')}]ms`);
         }
       }
     }
@@ -230,17 +322,24 @@ class FunctionPerformanceAnalyzer {
     console.log('='.repeat(100));
     
     const allStats = Array.from(stats.values());
-    const slowestFunction = allStats.sort((a, b) => b.maxDuration - a.maxDuration)[0];
-    const mostExecuted = allStats.sort((a, b) => b.totalExecutions - a.totalExecutions)[0];
-    const mostVariable = allStats.sort((a, b) => (b.maxDuration / b.minDuration) - (a.maxDuration / a.minDuration))[0];
     
-    console.log(`\n🐌 Slowest execution: ${slowestFunction.functionName} at ${slowestFunction.maxDuration.toFixed(2)}ms`);
-    console.log(`📈 Most executed: ${mostExecuted.functionName} with ${mostExecuted.totalExecutions} executions`);
-    console.log(`🎢 Most variable: ${mostVariable.functionName} (${(mostVariable.maxDuration / mostVariable.minDuration).toFixed(1)}x variance)`);
+    if (allStats.length > 0) {
+      const slowestFunction = allStats.sort((a, b) => b.maxDuration - a.maxDuration)[0];
+      const mostExecuted = allStats.sort((a, b) => b.totalExecutions - a.totalExecutions)[0];
+      const mostVariable = allStats.sort((a, b) => (b.maxDuration / b.minDuration) - (a.maxDuration / a.minDuration))[0];
+      
+      console.log(`\n🐌 Slowest execution: ${slowestFunction.functionName} at ${slowestFunction.maxDuration.toFixed(2)}ms`);
+      console.log(`📈 Most executed: ${mostExecuted.functionName} with ${mostExecuted.totalExecutions} executions`);
+      console.log(`🎢 Most variable: ${mostVariable.functionName} (${(mostVariable.maxDuration / mostVariable.minDuration).toFixed(1)}x variance)`);
+    } else {
+      console.log('\n💡 No function executions found in log file.');
+      console.log('   Expected log format: [timestamp] functions: Finished "function-name" in XXX.XXXms');
+      console.log('   Make sure you\'re analyzing a Firebase Functions debug log, not Firestore logs.');
+    }
   }
 
   exportToCSV(stats: Map<string, FunctionStats>, outputPath: string): void {
-    const rows = ['Function,Executions,Avg Duration (ms),Median (ms),Min (ms),Max (ms),Trend,Trend %'];
+    const rows = ['Function,Executions,Avg Duration (ms),Median (ms),Min (ms),Max (ms),Std Dev (ms),CV (%),Outliers,Trend,Trend %'];
     
     for (const stat of stats.values()) {
       rows.push([
@@ -250,6 +349,9 @@ class FunctionPerformanceAnalyzer {
         stat.medianDuration.toFixed(2),
         stat.minDuration.toFixed(2),
         stat.maxDuration.toFixed(2),
+        stat.standardDeviation.toFixed(2),
+        (stat.coefficientOfVariation * 100).toFixed(1),
+        stat.outliers.length,
         stat.trend,
         stat.trendPercentage.toFixed(1)
       ].join(','));

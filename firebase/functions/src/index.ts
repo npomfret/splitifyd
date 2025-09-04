@@ -401,3 +401,6 @@ export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
 
 // Export scheduled functions
 export { cleanupChanges };
+
+// Export test endpoints (only work in non-production)
+export { testCleanup } from './endpoints/test-cleanup';

@@ -1,5 +1,4 @@
-import { beforeAll, afterAll, afterEach, vi, expect } from 'vitest';
-import { performCleanup } from './src/scheduled/cleanup';
+import { afterAll, afterEach } from 'vitest';
 
 // Mock firebase-functions logger to use console in tests
 // vi.mock('firebase-functions', () => ({
@@ -42,39 +41,10 @@ afterEach(async () => {
 
 // Per-file setup - global cleanup handled by vitest.global-setup.ts
 
-beforeAll(async () => {
-    // This runs once per test file, not globally
-    // For integration tests, run cleanup to ensure consistent performance
-    // Check if we're running integration tests by looking at the current test file path
-    const testPath = expect.getState().testPath;
-    const testingIntegration = testPath?.includes('src/__tests__/integration') ?? false;
+// Cleanup is now handled globally by vitest.global-setup.ts
+// This ensures cleanup runs only once at the start of the entire test suite
 
-    if (testingIntegration) {
-        await runCleanupForTests();
-    }
-}, 30000); // 30 second timeout for cleanup
-
-/**
- * Run the existing cleanup function for tests
- * This ensures integration tests start with consistent performance
- */
-async function runCleanupForTests(): Promise<void> {
-    try {
-        console.log('🧹 Running change document cleanup before integration tests...');
-        
-        // Delete all documents by setting minutesToKeep to 0, skip metrics logging for tests
-        const totalCleaned = await performCleanup(false, false, 0);
-
-        if (totalCleaned > 0) {
-            console.log(`🧹 Cleanup complete: removed ${totalCleaned} change documents`);
-        } else {
-            console.log('🧹 Cleanup complete: no documents to remove');
-        }
-    } catch (error) {
-        console.warn('🧹 Change document cleanup failed:', error);
-        // Don't fail tests if cleanup fails
-    }
-}
+// Cleanup function moved to vitest.global-setup.ts for global execution
 
 afterAll(async () => {
     // Global cleanup
