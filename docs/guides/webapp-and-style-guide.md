@@ -354,3 +354,69 @@ Firebase's real-time capabilities are powerful but require careful handling to p
 - **Firebase Transactions for Atomicity:** For operations that involve reading data, modifying it, and then writing it back (e.g., updating a counter, managing unique IDs), use Firebase Transactions. Transactions ensure that a set of operations is completed atomically, preventing race conditions where multiple clients try to modify the same data concurrently.
 - **Error Handling in Listeners:** Implement comprehensive error handling within `onSnapshot` callbacks. Gracefully manage network disconnections, permission denied errors, and other potential issues to provide a stable user experience.
 - **Avoid Direct Component-Level Listeners:** While possible, avoid setting up `onSnapshot` listeners directly within deeply nested components. Instead, lift the subscription logic to a higher-level store or hook that can manage the data and provide it to consuming components.
+
+### 3. Subscription Churn Anti-Pattern ⚠️
+
+**CRITICAL:** Avoid subscription churn caused by React `useEffect` dependency arrays that include state that changes during the subscription lifecycle.
+
+#### ❌ Anti-Pattern: Subscription Churn
+
+```typescript
+// WRONG: Including initialized state causes subscription churn
+useEffect(() => {
+    if (authStore.user && !store.initialized) {
+        store.fetchData();
+        store.subscribeToChanges(authStore.user.uid);
+    }
+    return () => store.dispose();
+}, [authStore.user, store.initialized]); // ← BUG: initialized changes during lifecycle
+```
+
+**The Problem:**
+1. Effect runs → calls `fetchData()` and `subscribeToChanges()`
+2. `fetchData()` completes → sets `initialized` to `true`  
+3. React detects `initialized` changed → effect runs again
+4. `subscribeToChanges()` unsubscribes existing listener → creates new one
+5. **Result:** Constant subscription destruction/recreation = missed events
+
+#### ✅ Correct Pattern: Stable Subscriptions
+
+```typescript
+// CORRECT: Only depend on authentication state
+useEffect(() => {
+    if (authStore.user && !store.initialized) {
+        store.fetchData();
+        store.subscribeToChanges(authStore.user.uid);
+    }
+    return () => store.dispose();
+}, [authStore.user]); // ← FIXED: Only auth state dependency
+```
+
+**Why This Works:**
+- Subscription is created once when user authenticates
+- No churn from state changes during data fetching
+- Real-time events are never missed due to subscription gaps
+
+#### Subscription Churn Symptoms
+
+- **Missed real-time updates:** Users don't see changes made by others
+- **Intermittent synchronization:** Works sometimes, fails other times  
+- **Console logs show:** Repeated subscribe/unsubscribe cycles
+- **Race conditions:** Events arrive during subscription recreation gaps
+
+#### Detection in Logs
+
+Look for repeated patterns like:
+```
+INFO: ChangeDetector: unsubscribe: {"key":"changes-userId"}
+INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}  
+INFO: ChangeDetector: unsubscribe: {"key":"changes-userId"}
+INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}
+```
+
+#### Prevention Checklist
+
+- [ ] Remove state flags from `useEffect` dependencies that change during subscription setup
+- [ ] Only include authentication/user state in subscription effect dependencies  
+- [ ] Test multi-user scenarios to verify real-time updates work consistently
+- [ ] Check console logs for subscription churn patterns during development

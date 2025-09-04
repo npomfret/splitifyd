@@ -131,30 +131,53 @@ export function setupConsoleErrorReporting() {
             console.log(`File: ${testInfo.file}`);
 
             if (hasConsoleErrors) {
-                console.log(`\n📋 Console Errors (${consoleErrors.length}):`);
-                consoleErrors.forEach((err, index) => {
-                    console.log(`\n  ${index + 1}. ${err.type.toUpperCase()}: ${err.message}`);
-                    if (err.location?.url) {
-                        console.log(`     at ${err.location.url}:${err.location.lineNumber || '?'}:${err.location.columnNumber || '?'}`);
+                console.log(`\n📋 Console Errors (${consoleErrors.length}):\n`);
+                
+                // Check for console log files in test output directory
+                const fs = require('fs');
+                const path = require('path');
+                const consoleLogFiles: string[] = [];
+                
+                if (testInfo.outputDir && fs.existsSync(testInfo.outputDir)) {
+                    try {
+                        const files = fs.readdirSync(testInfo.outputDir);
+                        const logFiles = files.filter((file: string) => file.endsWith('-console.log'));
+                        logFiles.forEach((file: string) => {
+                            consoleLogFiles.push(path.join(testInfo.outputDir, file));
+                        });
+                    } catch (error) {
+                        // Ignore file system errors
                     }
-                    console.log(`     time: ${err.timestamp.toISOString()}`);
-                });
+                }
+                
+                if (consoleLogFiles.length > 0) {
+                    console.log(`📄 Console logs captured in files:`);
+                    consoleLogFiles.forEach((filePath, index) => {
+                        console.log(`  ${index + 1}. ${filePath}`);
+                    });
+                } else {
+                    // Fallback to showing first few errors if no files found
+                    console.log('⚠️  No console log files found. Showing first 3 errors:');
+                    consoleErrors.slice(0, 3).forEach((err, index) => {
+                        console.log(`\n  ${index + 1}. ${err.type.toUpperCase()}: ${err.message}`);
+                        if (err.location?.url) {
+                            console.log(`     at ${err.location.url}:${err.location.lineNumber || '?'}:${err.location.columnNumber || '?'}`);
+                        }
+                        console.log(`     time: ${err.timestamp.toISOString()}`);
+                    });
+                }
             }
 
             if (hasPageErrors) {
                 console.log(`\n⚠️  Page Errors (${pageErrors.length}):`);
-                pageErrors.forEach((err, index) => {
+                // Show only first 2 page errors, detailed errors are in test attachments
+                pageErrors.slice(0, 2).forEach((err, index) => {
                     console.log(`\n  ${index + 1}. ${err.name}: ${err.message}`);
-                    if (err.stack) {
-                        console.log(
-                            `     Stack trace:\n${err.stack
-                                .split('\n')
-                                .map((line) => '       ' + line)
-                                .join('\n')}`,
-                        );
-                    }
                     console.log(`     time: ${err.timestamp.toISOString()}`);
                 });
+                if (pageErrors.length > 2) {
+                    console.log(`\n  ... and ${pageErrors.length - 2} more (see test attachments for full details)`);
+                }
             }
 
             console.log('\n' + '='.repeat(80) + '\n');

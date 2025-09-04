@@ -212,7 +212,7 @@ describe('RESTful Group CRUD Operations', () => {
             await expect(apiDriver.getGroupFullDetails(testGroup.id, users[0].token)).rejects.toThrow(/404|not found/i);
         });
 
-        test('should not delete group with expenses', async () => {
+        test('should delete group with expenses using hard delete', async () => {
             const groupData = new CreateGroupRequestBuilder().withName(`Group with Expenses ${uuidv4()}`).build();
             const testGroup = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -220,8 +220,11 @@ describe('RESTful Group CRUD Operations', () => {
             const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
             await apiDriver.createExpense(expenseData, users[0].token);
 
-            // Try to delete - should fail
-            await expect(apiDriver.deleteGroup(testGroup.id, users[0].token)).rejects.toThrow(/Cannot delete.*expenses/i);
+            // Hard delete should now succeed even with expenses
+            await apiDriver.deleteGroup(testGroup.id, users[0].token);
+
+            // Verify the group is completely deleted
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, users[0].token)).rejects.toThrow(/404|not found/i);
         });
 
         test('should only allow owner to delete', async () => {

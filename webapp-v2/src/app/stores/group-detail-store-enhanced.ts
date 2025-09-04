@@ -200,9 +200,34 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 action: 'REFRESHING_ALL',
                 groupId,
             });
-            this.refreshAll().catch((error) => 
-                logError('Failed to refresh after group change', error)
-            );
+            this.refreshAll().catch((error) => {
+                // Handle 404 errors and "Group not found" 500 errors as group deletion
+                const isGroupDeleted = 
+                    error?.status === 404 || 
+                    (error?.message && error.message.includes('404')) ||
+                    (error?.code === 'NOT_FOUND') ||
+                    (error?.status === 500 && error?.message && error.message.includes('Group not found'));
+                    
+                if (isGroupDeleted) {
+                    logInfo('Group change refresh failed: Group was deleted', { 
+                        groupId,
+                        error: error?.message || String(error),
+                        status: error?.status
+                    });
+                    this.#errorSignal.value = 'GROUP_DELETED';
+                    // Clear all data
+                    batch(() => {
+                        this.#groupSignal.value = null;
+                        this.#membersSignal.value = [];
+                        this.#expensesSignal.value = [];
+                        this.#balancesSignal.value = null;
+                        this.#settlementsSignal.value = [];
+                        this.#loadingSignal.value = false;
+                    });
+                } else {
+                    logError('Failed to refresh after group change', error);
+                }
+            });
         });
 
         // Store subscription info for cleanup
@@ -340,18 +365,35 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 logInfo('Ignoring group change - currentGroupId is null (component disposed)');
                 return;
             }
+            
             // Group change = refresh everything (same as expense changes for consistency)
             logApiResponse('CHANGE', 'group_change', 200, {
                 action: 'REFRESHING_ALL',
                 groupId: this.currentGroupId,
             });
             this.refreshAll().catch((error) => {
-                // Don't log errors for 404s - this is expected when groups are deleted
-                if (error?.status === 404 || (error?.message && error.message.includes('404')) || 
-                    (error?.code === 'NOT_FOUND')) {
+                // Handle 404 errors and "Group not found" 500 errors as group deletion
+                const isGroupDeleted = 
+                    error?.status === 404 || 
+                    (error?.message && error.message.includes('404')) ||
+                    (error?.code === 'NOT_FOUND') ||
+                    (error?.status === 500 && error?.message && error.message.includes('Group not found'));
+                    
+                if (isGroupDeleted) {
                     logInfo('Group change refresh: Group was deleted, state cleared', { 
                         groupId: this.currentGroupId,
-                        error: error?.message || String(error)
+                        error: error?.message || String(error),
+                        status: error?.status
+                    });
+                    this.#errorSignal.value = 'GROUP_DELETED';
+                    // Clear all data
+                    batch(() => {
+                        this.#groupSignal.value = null;
+                        this.#membersSignal.value = [];
+                        this.#expensesSignal.value = [];
+                        this.#balancesSignal.value = null;
+                        this.#settlementsSignal.value = [];
+                        this.#loadingSignal.value = false;
                     });
                 } else {
                     logError('Failed to refresh after group change', error);

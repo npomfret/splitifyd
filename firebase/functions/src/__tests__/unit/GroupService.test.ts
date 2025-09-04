@@ -14,8 +14,11 @@ vi.mock('../../firebase', () => ({
                 get: vi.fn(),
                 set: vi.fn(),
                 collection: vi.fn(() => ({
-                    // Mock for members subcollection
+                    get: vi.fn().mockResolvedValue({ docs: [], size: 0 }),
                 })),
+            })),
+            where: vi.fn(() => ({
+                get: vi.fn().mockResolvedValue({ docs: [], size: 0 }),
             })),
         })),
         runTransaction: vi.fn(async (transactionFn) => {
@@ -27,6 +30,11 @@ vi.mock('../../firebase', () => ({
             };
             return await transactionFn(mockTransaction);
         }),
+        bulkWriter: vi.fn(() => ({
+            delete: vi.fn(),
+            close: vi.fn().mockResolvedValue(undefined),
+            onWriteError: vi.fn(),
+        })),
     },
 }));
 
@@ -234,11 +242,10 @@ describe('GroupService - Unit Tests', () => {
             const result = await groupService.deleteGroup(groupId, userId);
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
-            expect(mockFirestoreReader.getExpensesForGroup).toHaveBeenCalledWith(groupId, { limit: 1 });
-            expect(result.message).toBe('Group deleted successfully');
+            expect(result.message).toBe('Group and all associated data deleted permanently');
         });
 
-        it('should throw error when group has expenses', async () => {
+        it('should successfully delete group with expenses (hard delete)', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
             
@@ -297,9 +304,10 @@ describe('GroupService - Unit Tests', () => {
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue([mockExpense]);
 
-            await expect(
-                groupService.deleteGroup(groupId, userId)
-            ).rejects.toThrow('Invalid input data');
+            const result = await groupService.deleteGroup(groupId, userId);
+
+            expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
+            expect(result.message).toBe('Group and all associated data deleted permanently');
         });
     });
 

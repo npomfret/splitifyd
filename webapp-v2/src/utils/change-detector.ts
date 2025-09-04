@@ -4,7 +4,7 @@ import { logInfo, logWarning } from './browser-logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { streamingMetrics } from './streaming-metrics';
 
-export type ChangeCallback = () => void;
+export type ChangeCallback = (changes?: any[]) => void;
 export type ErrorCallback = (error: Error) => void;
 
 interface SubscriptionConfig {
@@ -125,7 +125,7 @@ export class ChangeDetector {
                     // Track notification metrics
                     streamingMetrics.trackNotification();
 
-                    this.triggerCallbacks(key);
+                    this.triggerCallbacks(key, addedChanges.map(change => change.doc.data()));
                 }
             },
             (error) => {
@@ -141,12 +141,12 @@ export class ChangeDetector {
         });
     }
 
-    private triggerCallbacks(key: string) {
+    private triggerCallbacks(key: string, changes?: any[]) {
         const callbacks = this.callbacks.get(key);
         if (callbacks) {
             callbacks.forEach((callback) => {
                 try {
-                    callback();
+                    callback(changes);
                 } catch (error) {
                     logWarning('Callback error', { error });
                 }

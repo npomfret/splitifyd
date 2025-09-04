@@ -115,30 +115,14 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             const latency = Date.now() - startTime;
             streamingMetrics.trackRestRefresh(latency);
 
-            // Use metadata if available to check for newer data
-            if (response.metadata) {
-                const hasNewerData = response.metadata.lastChangeTimestamp > this.#lastRefreshSignal.value;
-                if (!hasNewerData && this.#groupsSignal.value.length > 0) {
-                    // No new changes, skip update
-                    this.#initializedSignal.value = true;
-                    return;
-                }
-            } else {
-                // Fallback to timestamp check if no metadata
-                const currentGroups = this.#groupsSignal.value;
-                const hasNewerData = response.groups.some((newGroup: Group) => {
-                    const existing = currentGroups.find((g) => g.id === newGroup.id);
-                    if (!existing) return true;
-                    if (!existing.updatedAt || !newGroup.updatedAt) return true;
-                    return new Date(newGroup.updatedAt) > new Date(existing.updatedAt);
-                });
+            // Log each group ID for debugging
+            logWarning('fetchGroups: Groups received from server', {
+                groupIds: response.groups.map(g => g.id),
+                groupCount: response.groups.length,
+                groups: response.groups.map(g => ({ id: g.id, name: g.name }))
+            });
 
-                if (!hasNewerData && currentGroups.length > 0) {
-                    this.#initializedSignal.value = true;
-                    return;
-                }
-            }
-
+            // Always update with server data - removed optimization that could ignore deleted groups
             this.#groupsSignal.value = response.groups;
             this.#lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
             this.#initializedSignal.value = true;
@@ -224,12 +208,15 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         // Subscribe to group changes - any change triggers refresh
         this.changeUnsubscribe = this.changeDetector.subscribeToGroupChanges(
             userId,
-            () => {
-                // Any change = refresh immediately
-                logWarning('Group change detected, refreshing groups', { 
+            (changes) => {
+                // Any change = force refresh immediately (bypass optimization logic)
+                logWarning('Group change detected, forcing refresh of groups', { 
                     userId,
                     currentGroupCount: this.#groupsSignal.value.length,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    changeEvents: changes,
+                    changeCount: changes ? changes.length : 0,
+                    firstChangeData: changes && changes.length > 0 ? changes[0] : null
                 });
                 this.refreshGroups().catch((error) => logWarning('Failed to refresh groups after change detection', { 
                     error: error instanceof Error ? error.message : String(error),
@@ -247,6 +234,13 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 },
             },
         );
+
+        // Immediately refresh to get current data after setting up subscription
+        // This ensures we don't miss any changes that happened before the subscription was active
+        this.refreshGroups().catch((error) => logWarning('Failed to refresh groups after subscription setup', { 
+            error: error instanceof Error ? error.message : String(error),
+            userId 
+        }));
     }
 
     clearError(): void {

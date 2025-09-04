@@ -132,6 +132,25 @@ export class DashboardPage extends BasePage {
         });
     }
 
+    /**
+     * Wait for a group with the specified name to appear on the dashboard
+     * This handles async creation processes and real-time updates properly
+     */
+    async waitForGroupToAppear(groupName: string, options: { timeout?: number } = {}) {
+        const timeout = options.timeout || 5000; // Default 5 seconds - allow time for real-time updates
+        
+        await expect(async () => {
+            const groupCard = this.page.getByText(groupName);
+            const isVisible = await groupCard.isVisible();
+            if (!isVisible) {
+                throw new Error(`Group "${groupName}" is not yet visible on dashboard`);
+            }
+        }).toPass({
+            timeout,
+            intervals: [100, 250, 500], // Check frequently for appearance
+        });
+    }
+
     // Note: Use the inherited logout() method from BasePage for signing out
     // It provides more robust handling of dropdown states and button enabling
 

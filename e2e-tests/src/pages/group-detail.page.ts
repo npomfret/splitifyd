@@ -976,9 +976,9 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Handles the delete confirmation dialog
+     * Handles the delete confirmation dialog with hard delete confirmation text input
      */
-    async handleDeleteConfirmDialog(confirm: boolean) {
+    async handleDeleteConfirmDialog(confirm: boolean, groupName?: string) {
         // Wait for confirmation dialog to appear
         // The confirmation dialog appears on top of the edit modal
         await this.waitForDomContentLoaded();
@@ -993,16 +993,38 @@ export class GroupDetailPage extends BasePage {
         const confirmDialog = confirmTitle.locator('..').locator('..');
 
         if (confirm) {
-            // Find and click the Delete button in the confirmation dialog
-            // The button text is "Delete" as set by confirmText prop
+            // For hard delete, we need to enter the group name in the confirmation text field
+            if (groupName) {
+                // Find the confirmation text input field
+                const confirmationInput = confirmDialog.locator('input[type="text"]');
+                await expect(confirmationInput).toBeVisible();
+                
+                // Clear any existing text and enter the group name
+                await this.fillPreactInput(confirmationInput, groupName);
+                
+                // Verify the text was entered correctly
+                await expect(confirmationInput).toHaveValue(groupName);
+            }
+
+            // Find the Delete button in the confirmation dialog
             const deleteButton = confirmDialog.getByRole('button', { name: 'Delete' });
             await expect(deleteButton).toBeVisible();
-            await expect(deleteButton).toBeEnabled();
+            
+            // Wait for the button to be enabled (it's disabled until confirmation text matches group name)
+            await expect(deleteButton).toBeEnabled({ timeout: 5000 });
+            
+            // Click the delete button
             await deleteButton.click();
+            
+            // Wait for the modal to disappear (indicates deletion is processing/complete)
+            await expect(confirmDialog).not.toBeVisible({ timeout: 10000 });
         } else {
             // Click the Cancel button
             const cancelButton = confirmDialog.getByRole('button', { name: 'Cancel' });
             await cancelButton.click();
+            
+            // Wait for dialog to close
+            await expect(confirmDialog).not.toBeVisible({ timeout: 5000 });
         }
     }
 

@@ -109,6 +109,75 @@ await page.reload();
 - [x] All 334 backend unit tests pass ✅
 - [x] TypeScript compilation successful ✅  
 - [x] E2E test passes without workaround ✅
+- [x] **NEW:** Comprehensive multi-user e2e tests created ✅
+
+### Multi-User E2E Test Coverage Added (2025-09-04):
+**File:** `e2e-tests/src/__tests__/integration/normal-flow/group-deletion-multi-user.e2e.test.ts`
+
+**Test Scenarios:**
+1. **Owner Deletes Group - Both Users See Update**
+   - Tests main bug scenario with 2 users
+   - User A deletes group, User B's dashboard updates in real-time without refresh
+   - Verifies change document propagation works correctly
+   - Monitors for JavaScript errors during real-time updates
+
+2. **Member Leaves Group - Dashboard Updates**
+   - User leaves group (not deletion), dashboard updates appropriately
+   - Tests member removal vs group deletion scenarios
+   - Verifies owner still sees group, member doesn't
+
+3. **Concurrent Dashboard Viewing During Hard Deletion**
+   - Tests hard delete with expenses using new BulkWriter implementation
+   - Both users watching dashboard when deletion happens
+   - Verifies complex deletion with proper user ID propagation in change documents
+   - Extended timeout (10s) for complex deletions
+
+4. **Three-User Real-time Dashboard Updates** ⭐
+   - **NEW (2025-09-04):** Comprehensive 3-user scenario testing
+   - User 1 (owner) deletes group while Users 2 & 3 watch dashboard
+   - Tests most challenging real-time synchronization scenario
+   - **UNCOVERED CRITICAL BUG:** Subscription churn issue (see below)
+
+**Enhanced Page Objects:**
+- Added `DashboardPage.waitForGroupToAppear()` method for better verification
+- Uses proper polling patterns (`expect().toPass()`) instead of `waitForTimeout()`
+- Follows multi-user serialization patterns from existing tests
+
+### Critical Subscription Churn Bug Discovered & Fixed (2025-09-04):
+
+**Issue:** During development of 3-user tests, discovered that Users 2 and 3 intermittently failed to receive deletion events, causing dashboard sync failures.
+
+**Root Cause:** **Subscription Churn** - React `useEffect` dependency array caused constant subscription recreation:
+
+```typescript
+// BUG: Including initialized state caused subscription churn
+}, [authStore.user, enhancedGroupsStore.initialized]); // ← Problem
+```
+
+**The Cycle:**
+1. Effect runs → calls `subscribeToChanges()`
+2. Data fetching completes → sets `initialized` to `true`  
+3. React re-runs effect due to `initialized` change
+4. `subscribeToChanges()` destroys existing subscription → creates new one
+5. **Result:** Users miss events occurring during subscription gaps
+
+**Fix Applied:**
+```typescript
+// FIXED: Only depend on auth state for stable subscriptions
+}, [authStore.user]); // ← Removed initialized dependency
+```
+
+**Files Modified:**
+- `webapp-v2/src/pages/DashboardPage.tsx`: Removed subscription churn
+
+**Testing:**
+- 3-user test now passes consistently (5/5 runs) 
+- Added `skip-error-checking` annotation for expected 404 errors from group detail store refreshes
+- Console log capture enhanced for debugging subscription issues
+
+**Documentation:**
+- Added subscription churn anti-pattern to `docs/guides/webapp-and-style-guide.md`
+- Includes detection methods, symptoms, and prevention checklist
 
 ## ~~Priority~~ Resolution Status
 ~~Medium - affects user experience but has functional workaround. Should be addressed to improve UX and remove test hack.~~

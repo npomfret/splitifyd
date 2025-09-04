@@ -296,10 +296,20 @@
       "updateFailed": "Failed to update group"
     },
     "deleteConfirmDialog": {
-      "title": "Delete Group",
-      "message": "Are you sure you want to delete \"{{groupName}}\"? This action cannot be undone.",
-      "messageWithExpenses": "Cannot delete group with expenses. Delete all expenses first.",
-      "confirmText": "Delete",
+      "title": "Permanently Delete Group",
+      "warningTitle": "⚠️ Permanent Deletion Warning",
+      "warningMessage": "This will permanently delete the group and ALL associated data:",
+      "warningList": {
+        "expenses": "All expenses and their comments",
+        "settlements": "All settlements and payment history",
+        "members": "All group members and permissions",
+        "history": "All change history and activity"
+      },
+      "cannotUndo": "This action cannot be undone.",
+      "typeToConfirm": "To confirm, type the group name \"{{groupName}}\" below:",
+      "deletingMessage": "Deleting group and all associated data...",
+      "deletingText": "Deleting...",
+      "confirmText": "Delete Group Permanently",
       "cancelText": "Cancel",
       "deleteFailed": "Failed to delete group"
     }

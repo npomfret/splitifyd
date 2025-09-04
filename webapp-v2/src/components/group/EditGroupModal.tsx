@@ -28,6 +28,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const [validationError, setValidationError] = useState<string | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [confirmationText, setConfirmationText] = useState('');
     const modalRef = useRef<HTMLDivElement>(null);
 
     // Compare against initial values, not current group prop (which might change due to real-time updates)
@@ -125,6 +126,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const handleDeleteClick = () => {
         setShowDeleteConfirm(true);
         setDeleteError(null);
+        setConfirmationText('');
     };
 
     const handleDeleteConfirm = async () => {
@@ -141,10 +143,6 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
             setDeleteError(errorMessage);
-            // Check if it's because group has expenses
-            if (errorMessage.includes('expenses')) {
-                setDeleteError(t('editGroupModal.deleteConfirmDialog.messageWithExpenses'));
-            }
         } finally {
             setIsDeleting(false);
         }
@@ -153,6 +151,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
     const handleDeleteCancel = () => {
         setShowDeleteConfirm(false);
         setDeleteError(null);
+        setConfirmationText('');
     };
 
     if (!isOpen) return null;
@@ -252,19 +251,98 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                 </div>
             </div>
 
-            {/* Delete Confirmation Dialog */}
-            <ConfirmDialog
-                isOpen={showDeleteConfirm}
-                title={t('editGroupModal.deleteConfirmDialog.title')}
-                message={deleteError || t('editGroupModal.deleteConfirmDialog.message', { groupName: group.name })}
-                confirmText={t('editGroupModal.deleteConfirmDialog.confirmText')}
-                cancelText={t('editGroupModal.deleteConfirmDialog.cancelText')}
-                variant="danger"
-                onConfirm={handleDeleteConfirm}
-                onCancel={handleDeleteCancel}
-                loading={isDeleting}
-                data-testid="delete-group-dialog"
-            />
+            {/* Enhanced Delete Confirmation Dialog */}
+            {showDeleteConfirm && (
+                <div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+                    <div class="relative bg-white rounded-lg shadow-lg max-w-md w-full mx-4" data-testid="delete-group-dialog">
+                        {/* Header */}
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h3 class="text-lg font-semibold text-red-800 flex items-center">
+                                <span class="mr-2">⚠️</span>
+                                {t('editGroupModal.deleteConfirmDialog.title')}
+                            </h3>
+                        </div>
+                        
+                        {/* Content */}
+                        <div class="px-6 py-4">
+                            {/* Warning Message */}
+                            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                                <h4 class="text-red-800 font-semibold mb-2">
+                                    {t('editGroupModal.deleteConfirmDialog.warningTitle')}
+                                </h4>
+                                <p class="text-red-700 text-sm mb-3">
+                                    {t('editGroupModal.deleteConfirmDialog.warningMessage')}
+                                </p>
+                                <ul class="text-red-700 text-sm list-disc list-inside space-y-1">
+                                    <li>{t('editGroupModal.deleteConfirmDialog.warningList.expenses')}</li>
+                                    <li>{t('editGroupModal.deleteConfirmDialog.warningList.settlements')}</li>
+                                    <li>{t('editGroupModal.deleteConfirmDialog.warningList.members')}</li>
+                                    <li>{t('editGroupModal.deleteConfirmDialog.warningList.history')}</li>
+                                </ul>
+                                <p class="text-red-800 font-semibold text-sm mt-3">
+                                    {t('editGroupModal.deleteConfirmDialog.cannotUndo')}
+                                </p>
+                            </div>
+
+                            {/* Confirmation Input */}
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    {t('editGroupModal.deleteConfirmDialog.typeToConfirm', { groupName: group.name })}
+                                </label>
+                                <Input
+                                    type="text"
+                                    placeholder={group.name}
+                                    value={confirmationText}
+                                    onChange={setConfirmationText}
+                                    className="w-full"
+                                    disabled={isDeleting}
+                                />
+                            </div>
+
+                            {/* Error Message */}
+                            {deleteError && (
+                                <div class="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                                    <p class="text-sm text-red-800" role="alert">
+                                        {deleteError}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Loading State */}
+                            {isDeleting && (
+                                <div class="text-center text-gray-600 mb-4">
+                                    <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600 mx-auto mb-2"></div>
+                                    <p class="text-sm">{t('editGroupModal.deleteConfirmDialog.deletingMessage')}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleDeleteCancel}
+                                disabled={isDeleting}
+                            >
+                                {t('editGroupModal.deleteConfirmDialog.cancelText')}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="danger"
+                                onClick={handleDeleteConfirm}
+                                disabled={isDeleting || confirmationText !== group.name}
+                                loading={isDeleting}
+                            >
+                                {isDeleting 
+                                    ? t('editGroupModal.deleteConfirmDialog.deletingText')
+                                    : t('editGroupModal.deleteConfirmDialog.confirmText')
+                                }
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }

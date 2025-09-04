@@ -769,75 +769,165 @@ export class GroupService {
     }
 
     /**
-     * Delete a group
+     * Permanently delete a group and ALL associated data (hard delete)
      * Only the owner can delete a group
-     * Group cannot be deleted if it has expenses
+     * This is a destructive operation that cannot be undone
      */
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
         // Fetch group with write access check
         const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
 
-        // Check if group has expenses
-        const expenses = await this.firestoreReader.getExpensesForGroup(groupId, { limit: 1 });
-
-        if (expenses.length > 0) {
-            throw Errors.INVALID_INPUT('Cannot delete group with expenses. Delete all expenses first.');
-        }
-
         // Get member list BEFORE deletion for change tracking
         const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
         const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
         
-        logger.info('Preparing to delete group with members', { 
+        logger.info('Initiating hard delete for group', { 
             groupId, 
             memberCount: memberIds.length,
-            members: memberIds 
+            members: memberIds,
+            operation: 'HARD_DELETE'
         });
 
-        // Delete the group and all member subcollection documents
-        await firestoreDb.runTransaction(async (transaction) => {
-            // Get all member documents in the subcollection
-            const membersRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('members');
-            const membersSnapshot = await transaction.get(membersRef);
+        // PHASE 1: Discover all related data
+        logger.info('Discovering all related data for comprehensive deletion', { groupId });
 
-            // Delete all member documents
-            membersSnapshot.forEach(memberDoc => {
-                transaction.delete(memberDoc.ref);
-            });
+        // Get all top-level collections with groupId references
+        const [expenses, settlements, groupChanges, transactionChanges, balanceChanges] = await Promise.all([
+            firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
+            firestoreDb.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
+            firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).where('groupId', '==', groupId).get(),
+            firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
+            firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
+        ]);
 
-            // Delete the main group document
-            transaction.delete(docRef);
+        // Get subcollections of the group
+        const [shareLinks, groupComments] = await Promise.all([
+            firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
+            firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
+        ]);
+
+        // Get comments on all expenses belonging to this group
+        const expenseCommentPromises = expenses.docs.map(expense => 
+            firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
+        );
+        const expenseCommentSnapshots = await Promise.all(expenseCommentPromises);
+
+        // Calculate total documents to delete for logging
+        const totalDocuments = expenses.size + settlements.size + groupChanges.size + 
+                             transactionChanges.size + balanceChanges.size + shareLinks.size + 
+                             groupComments.size + (memberDocs?.length || 0) + 1 + // +1 for main group doc
+                             expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
+
+        logger.info('Data discovery complete, creating change document before deletion', {
+            groupId,
+            totalDocuments,
+            breakdown: {
+                expenses: expenses.size,
+                settlements: settlements.size,
+                groupChanges: groupChanges.size,
+                transactionChanges: transactionChanges.size,
+                balanceChanges: balanceChanges.size,
+                shareLinks: shareLinks.size,
+                groupComments: groupComments.size,
+                members: memberDocs?.length || 0,
+                expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0)
+            }
         });
 
-        // Manually create change document for group deletion with correct member list
-        // This ensures dashboard gets real-time notifications even though the trigger
-        // can't access the deleted subcollection
+        // PHASE 2: Create change document BEFORE bulk deletion to avoid race condition
+        let deletionChangeDocRef = null;
         try {
             const changeDoc = createMinimalChangeDocument(groupId, 'group', 'deleted', memberIds);
             const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
             
-            await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+            deletionChangeDocRef = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
             
-            logger.info('Created change document for group deletion', { 
+            logger.info('Created change document for group hard deletion BEFORE bulk deletion', { 
                 groupId, 
                 memberCount: memberIds.length,
-                members: memberIds
+                members: memberIds,
+                changeDocId: deletionChangeDocRef.id
             });
         } catch (error) {
             logger.warn('Failed to create change document for group deletion', { 
                 groupId, 
                 error: error instanceof Error ? error.message : String(error)
             });
-            // Don't fail the entire operation if change document creation fails
+            // Continue with deletion even if change doc creation fails
         }
+
+        // PHASE 3: Execute bulk deletion using BulkWriter
+        const bulkWriter = firestoreDb.bulkWriter();
+
+        // Configure bulkWriter for better performance and error handling
+        bulkWriter.onWriteError((error) => {
+            logger.error('BulkWriter error during group deletion', {
+                groupId,
+                error: error.message,
+                failedAttempts: error.failedAttempts
+            });
+            // Return true to retry, false to stop retrying
+            return error.failedAttempts < 3;
+        });
+
+        // Queue all deletions
+        expenses.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        settlements.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        
+        // Skip deleting group changes - they get cleaned up naturally
+        // This ensures the deletion change document survives to notify dashboards
+        logger.info('Skipping group changes deletion - they will be cleaned up naturally', { 
+            groupId,
+            groupChangesCount: groupChanges.size,
+            deletionChangeDocId: deletionChangeDocRef?.id 
+        });
+        
+        transactionChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        balanceChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        shareLinks.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        groupComments.docs.forEach(doc => bulkWriter.delete(doc.ref));
+
+        // Delete expense comments
+        expenseCommentSnapshots.forEach(snapshot => {
+            snapshot.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        });
+
+        // Delete members
+        if (memberDocs) {
+            memberDocs.forEach(memberDoc => {
+                const memberRef = firestoreDb.collection(FirestoreCollections.GROUPS)
+                    .doc(groupId)
+                    .collection('members')
+                    .doc(memberDoc.userId);
+                bulkWriter.delete(memberRef);
+            });
+        }
+
+        // Delete main group document last
+        bulkWriter.delete(docRef);
+
+        // Execute all deletions
+        logger.info('Executing bulk deletion operations', { groupId, totalDocuments });
+        await bulkWriter.close();
+
+        logger.info('Bulk deletion completed successfully', { 
+            groupId, 
+            totalDocuments,
+            operation: 'HARD_DELETE_COMPLETE',
+            preservedChangeDoc: deletionChangeDocRef?.id
+        });
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });
 
-        // Log without explicitly passing userId - it will be automatically included
-        logger.info('group-deleted', { id: groupId });
+        // Final success log
+        logger.info('group-hard-deleted', { 
+            id: groupId,
+            totalDocuments,
+            operation: 'HARD_DELETE_SUCCESS'
+        });
 
-        return { message: 'Group deleted successfully' };
+        return { message: 'Group and all associated data deleted permanently' };
     }
 
     /**

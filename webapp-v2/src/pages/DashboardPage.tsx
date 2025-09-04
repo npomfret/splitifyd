@@ -39,7 +39,7 @@ export function DashboardPage() {
         return () => {
             enhancedGroupsStore.dispose();
         };
-    }, [authStore.user, enhancedGroupsStore.initialized]);
+    }, [authStore.user]); // Remove initialized dependency to prevent subscription churn
 
     const user = authStore.user;
 

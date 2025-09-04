@@ -3,6 +3,8 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
 import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface PageObjects {
     login: LoginPage;
@@ -42,13 +44,32 @@ function createPageObjects(page: Page, user?: BaseUser): PageObjects {
     };
 }
 
-async function createUserFixture(browser: any, existingPage?: Page, existingContext?: BrowserContext): Promise<UserFixture> {
+async function createUserFixture(browser: any, userIndex: number = 0, existingPage?: Page, existingContext?: BrowserContext, testInfo?: any): Promise<UserFixture> {
     // Use existing page/context if provided (for primary user), otherwise create new ones
     const context = existingContext || (await browser.newContext());
     const page = existingPage || (await context.newPage());
 
     const userPool = getUserPool();
     const user = await userPool.claimUser(browser); // Pass browser instead of page
+
+    // Set up console log capture for this user - use test info to create unique directory
+    const testDir = testInfo ? testInfo.outputDir : path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
+    const logFile = path.join(testDir, `user-${userIndex}-${user.displayName.replace(/\s+/g, '-')}-console.log`);
+    
+    // Ensure directory exists
+    if (!fs.existsSync(testDir)) {
+        fs.mkdirSync(testDir, { recursive: true });
+    }
+
+    // Clear existing log file
+    fs.writeFileSync(logFile, `Console logs for User ${userIndex}: ${user.displayName} (${user.email})\n`, 'utf8');
+
+    // Set up console message listener
+    page.on('console', (msg: any) => {
+        const timestamp = new Date().toISOString();
+        const logEntry = `[${timestamp}] ${msg.type().toUpperCase()}: ${msg.text()}\n`;
+        fs.appendFileSync(logFile, logEntry, 'utf8');
+    });
 
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);
@@ -64,7 +85,7 @@ async function createUserFixture(browser: any, existingPage?: Page, existingCont
 export const multiUserTest = base.extend<MultiUserFixtures>({
     userCount: 1,
 
-    users: async ({ browser, userCount, page, context }, use) => {
+    users: async ({ browser, userCount, page, context }, use, testInfo) => {
         const users: UserFixture[] = [];
         const userPool = getUserPool();
 
@@ -76,10 +97,10 @@ export const multiUserTest = base.extend<MultiUserFixtures>({
 
                 if (i === 0) {
                     // First user: reuse default page/context
-                    userFixture = await createUserFixture(browser, page, context);
+                    userFixture = await createUserFixture(browser, i, page, context, testInfo);
                 } else {
                     // Additional users: create new contexts
-                    userFixture = await createUserFixture(browser);
+                    userFixture = await createUserFixture(browser, i, undefined, undefined, testInfo);
                 }
 
                 users.push(userFixture);
