@@ -1,3 +1,4 @@
+
 import { logger } from '../logger';
 
 /**
@@ -22,10 +23,26 @@ export class PerformanceMetricsCollector {
     private readonly staleThreshold = 3; // Remove operations stale for 3x reporting intervals
     private lastReportTime = Date.now();
     private reportingIntervalId?: NodeJS.Timeout;
+    private readonly isTestEnvironment: boolean;
 
     private constructor() {
-        // Start periodic reporting
-        this.startPeriodicReporting();
+        // Detect test environment
+        this.isTestEnvironment = this.detectTestEnvironment();
+        
+        // Start periodic reporting only in non-test environments
+        if (!this.isTestEnvironment) {
+            this.startPeriodicReporting();
+        }
+    }
+
+    private detectTestEnvironment(): boolean {
+        return !!(
+            process.env.NODE_ENV === 'test' ||
+            process.env.VITEST === 'true' ||
+            (global as any).__vitest__ ||
+            process.argv.some(arg => arg.includes('vitest')) ||
+            process.argv.some(arg => arg.includes('jest'))
+        );
     }
 
     static getInstance(): PerformanceMetricsCollector {

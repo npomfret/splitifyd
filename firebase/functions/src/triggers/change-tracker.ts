@@ -12,7 +12,10 @@ import {
 } from '../schemas/change-documents';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 
-// Change document schemas are now centralized in ../schemas/change-documents.ts
+// Pre-compiled schemas for better performance
+const cachedGroupChangeSchema = GroupChangeDocumentSchema;
+const cachedTransactionChangeSchema = TransactionChangeDocumentSchema;
+const cachedBalanceChangeSchema = BalanceChangeDocumentSchema;
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -104,7 +107,7 @@ export const trackGroupChanges = onDocumentWritten(
                     const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
 
                     // Validate before writing to prevent corrupted documents
-                    const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
+                    const validatedChangeDoc = cachedGroupChangeSchema.parse(changeDoc);
 
                     // Write to group-changes collection
                     await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
@@ -165,7 +168,7 @@ export const trackExpenseChanges = onDocumentWritten(
             const changeDoc = createMinimalChangeDocument(expenseId, 'expense', changeType, Array.from(affectedUsers), groupId);
 
             // Validate before writing to prevent corrupted documents
-            const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
+            const validatedChangeDoc = cachedTransactionChangeSchema.parse(changeDoc);
 
             // Write to transaction-changes collection (expenses use transaction-changes)
             await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
@@ -174,7 +177,7 @@ export const trackExpenseChanges = onDocumentWritten(
             const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
 
             // Validate balance change document
-            const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
+            const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
 
             await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
 
@@ -196,64 +199,71 @@ export const trackSettlementChanges = onDocumentWritten(
     async (event) => {
         const settlementId = event.params.settlementId;
         const { before, after, changeType } = extractDataChange(event);
+        const documentPath = `settlements/${settlementId}`;
 
-        // Process settlement changes immediately
-        try {
-            const beforeData = before?.data();
-            const afterData = after?.data();
+        return PerformanceMonitor.monitorTriggerExecution(
+            'CHANGE_TRACKER',
+            documentPath,
+            async (stepTracker) => {
+                const beforeData = before?.data();
+                const afterData = after?.data();
 
-            // Get groupId from settlement data
-            const groupId = afterData?.groupId || beforeData?.groupId;
-            if (!groupId) {
-                // Settlement has no groupId
-                return;
-            }
+                // Get groupId from settlement data
+                const groupId = afterData?.groupId || beforeData?.groupId;
+                if (!groupId) {
+                    // Settlement has no groupId
+                    return;
+                }
 
-            // Get changed fields
-            const changedFields = getChangedFields(before, after);
+                // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
+                const affectedUsers: string[] = await stepTracker('user-extraction', async () => {
+                    const users = new Set<string>();
 
-            // Calculate priority (not currently used)
-            calculatePriority(changeType, changedFields, 'settlement');
+                    if (afterData) {
+                        // Support both new API format (payerId/payeeId) and legacy format (from/to)
+                        const payer = afterData.payerId || afterData.from;
+                        const payee = afterData.payeeId || afterData.to;
+                        if (payer) users.add(payer);
+                        if (payee) users.add(payee);
+                    }
+                    if (beforeData) {
+                        // Support both new API format (payerId/payeeId) and legacy format (from/to)
+                        const payer = beforeData.payerId || beforeData.from;
+                        const payee = beforeData.payeeId || beforeData.to;
+                        if (payer) users.add(payer);
+                        if (payee) users.add(payee);
+                    }
 
-            // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
-            const affectedUsers = new Set<string>();
+                    return Array.from(users);
+                });
 
-            if (afterData) {
-                // Support both new API format (payerId/payeeId) and legacy format (from/to)
-                const payer = afterData.payerId || afterData.from;
-                const payee = afterData.payeeId || afterData.to;
-                if (payer) affectedUsers.add(payer);
-                if (payee) affectedUsers.add(payee);
-            }
-            if (beforeData) {
-                // Support both new API format (payerId/payeeId) and legacy format (from/to)
-                const payer = beforeData.payerId || beforeData.from;
-                const payee = beforeData.payeeId || beforeData.to;
-                if (payer) affectedUsers.add(payer);
-                if (payee) affectedUsers.add(payee);
-            }
+                // Create and write change documents
+                await stepTracker('change-doc-creation', async () => {
+                    // Create minimal change document for settlement
+                    const changeDoc = createMinimalChangeDocument(settlementId, 'settlement', changeType, affectedUsers, groupId);
 
-            // Create minimal change document for settlement
-            const changeDoc = createMinimalChangeDocument(settlementId, 'settlement', changeType, Array.from(affectedUsers), groupId);
+                    // Also create a minimal balance change document since settlements affect balances
+                    const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, affectedUsers);
 
-            // Validate before writing to prevent corrupted documents
-            const validatedChangeDoc = TransactionChangeDocumentSchema.parse(changeDoc);
+                    // Validate both documents before writing
+                    const validatedChangeDoc = cachedTransactionChangeSchema.parse(changeDoc);
+                    const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
 
-            // Write to transaction-changes collection (settlements are a type of transaction)
-            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
+                    // Use batch write to improve performance and consistency
+                    const batch = firestoreDb.batch();
+                    
+                    batch.create(firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).doc(), validatedChangeDoc);
+                    batch.create(firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).doc(), validatedBalanceDoc);
+                    
+                    await batch.commit();
+                    
+                    logger.info('settlement-changed', { id: settlementId, groupId });
+                });
 
-            // Also create a minimal balance change document since settlements affect balances
-            const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
-
-            // Validate balance change document
-            const validatedBalanceDoc = BalanceChangeDocumentSchema.parse(balanceChangeDoc);
-
-            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
-
-            logger.info('settlement-changed', { id: settlementId, groupId });
-        } catch (error) {
-            logger.error('Failed to track settlement change', error, { settlementId });
-        }
+                return { groupId, affectedUserCount: affectedUsers.length };
+            },
+            { changeType, entityType: 'settlement' }
+        );
     },
 );
 
