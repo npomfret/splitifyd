@@ -1,4 +1,6 @@
 // Global setup that runs ONCE for the entire test suite
+const projectId = 'splitifyd';
+const region = `us-central1`;
 
 // Intelligently find firebase.json by walking up the directory tree
 function _loadFirebaseConfig() {
@@ -28,10 +30,9 @@ async function runCleanupForTests(): Promise<void> {
         // Get the Functions emulator port from firebase.json
         const firebaseConfig = _loadFirebaseConfig();
         const functionsPort = firebaseConfig.emulators?.functions?.port!;
-        const projectId = 'splitifyd';
-        
+
         // Call the test cleanup HTTP endpoint
-        const cleanupUrl = `http://localhost:${functionsPort}/${projectId}/us-central1/testCleanup`;
+        const cleanupUrl = `http://localhost:${functionsPort}/${projectId}/${region}/testCleanup`;
         console.log(`🧹 [GLOBAL SETUP] Calling cleanup endpoint: ${cleanupUrl}`);
         
         const response = await fetch(cleanupUrl, {
@@ -60,9 +61,38 @@ async function runCleanupForTests(): Promise<void> {
     }
 }
 
+async function warmUpFirestoreEmulator(): Promise<void> {
+    console.log('🔥 [GLOBAL SETUP] Warming up Firestore emulator...');
+    
+    try {
+        // Get the Firestore emulator port from firebase.json
+        const firebaseConfig = _loadFirebaseConfig();
+        const firestorePort = firebaseConfig.emulators?.firestore?.port!;
+
+        // Make a simple query to warm up the emulator
+        const warmupUrl = `http://localhost:${firestorePort}/v1/projects/${projectId}/databases/(default)/documents/warmup`;
+        
+        await fetch(warmupUrl, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        // We don't care if this fails - it's just to warm up the connection
+        console.log('🔥 [GLOBAL SETUP] Firestore emulator warmed up');
+    } catch (error) {
+        console.log('🔥 [GLOBAL SETUP] Warmup query completed (connection established)');
+        // Expected to fail - we just want to establish the connection
+    }
+}
+
 export default async function setup() {
     // This runs ONCE for the entire test suite
     console.log('🚀 [GLOBAL SETUP] Starting global test suite setup...');
+    
+    // Warm up the Firestore emulator to avoid cold start penalties
+    await warmUpFirestoreEmulator();
     
     // Clear change documents to ensure consistent performance via HTTP endpoint
     await runCleanupForTests();
