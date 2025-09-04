@@ -38,7 +38,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     getErrorMessage(): Locator {
-        return this.page.getByText(/error|not found|invalid/i);
+        return this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"], [role="alert"]');
     }
 
     getSpecificErrorMessage(pattern: string | RegExp): Locator {
@@ -221,7 +221,7 @@ export class JoinGroupPage extends BasePage {
         // Wait for the join to complete - several possible outcomes:
         const joinSuccessIndicator = this.page.locator('[data-join-success="true"]');
         // More specific error selectors to avoid false positives from group descriptions
-        const errorMessage = this.page.locator('.error-message, [role="alert"], [data-error="true"]').or(this.page.getByText(/join failed|try again|something went wrong|unable to join/i));
+        const errorMessage = this.page.locator('[data-testid="invalid-link-warning"], [data-testid="unable-join-warning"], [role="alert"]');
 
         // Wait for one of the expected outcomes
         await Promise.race([

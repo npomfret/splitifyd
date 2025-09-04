@@ -188,8 +188,8 @@ export class CreateGroupModalPage extends BasePage {
     getErrorMessage(pattern?: string | RegExp): Locator {
         if (pattern) {
             // Look for error text in various possible containers, including paragraphs inside the modal
-            return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"], [role="dialog"] p, .modal p, .fixed p').filter({ hasText: pattern });
+            return this.page.locator('[role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]').filter({ hasText: pattern });
         }
-        return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"], [role="dialog"] p, .modal p, .fixed p');
+        return this.page.locator('[role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
     }
 }

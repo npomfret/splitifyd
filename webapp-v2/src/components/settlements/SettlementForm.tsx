@@ -340,7 +340,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Error Message */}
                         {validationError && (
                             <div class="p-3 bg-red-50 border border-red-200 rounded-md">
-                                <p class="text-sm text-red-600">{validationError}</p>
+                                <p class="text-sm text-red-600" role="alert" data-testid="settlement-validation-error">{validationError}</p>
                             </div>
                         )}
 

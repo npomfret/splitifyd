@@ -71,7 +71,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
-                            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                            <div className="text-red-500 text-4xl mb-4" role="alert" data-testid="invalid-link-warning">⚠️</div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Invalid Link</h2>
                             <p className="text-gray-600 mb-6">No group invitation link was provided. Please use a valid invitation link to join a group.</p>
                             <Button variant="secondary" onClick={() => navigationService.goToDashboard()} className="w-full">
@@ -107,7 +107,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
-                            <div className="text-red-500 text-4xl mb-4">⚠️</div>
+                            <div className="text-red-500 text-4xl mb-4" role="alert" data-testid="unable-join-warning">⚠️</div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Unable to Join Group</h2>
                             <p className="text-gray-600 mb-6">{error}</p>
                             <Button variant="secondary" onClick={() => navigationService.goToDashboard()} className="w-full">

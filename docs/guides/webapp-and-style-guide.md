@@ -323,6 +323,8 @@ E2E tests will fail if:
 
 This ensures precise e2e error detection with zero false positives from financial displays.
 
+**✅ Status**: As of September 2025, all semantic styling violations have been systematically fixed across the webapp-v2 codebase. See `@tasks/semantic-styling-audit.md` for implementation details.
+
 ---
 
 ## Webapp Development Best Practices

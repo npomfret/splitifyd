@@ -244,7 +244,7 @@ export class RegisterPage extends BasePage {
      * Uses more specific selectors to avoid matching required field asterisks
      */
     getEmailError() {
-        return this.page.locator('[data-testid="error-message"], .error-message, div.text-red-600.bg-red-50');
+        return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
     }
 
     /**
@@ -319,9 +319,9 @@ export class RegisterPage extends BasePage {
      */
     getErrorMessage(pattern?: string | RegExp): Locator {
         if (pattern) {
-            return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]').filter({ hasText: pattern });
+            return this.page.locator('[role="alert"], [data-testid*="error"], .error-message').filter({ hasText: pattern });
         }
-        return this.page.locator('.error-message, .text-red-500, .text-danger, [data-testid="error"]');
+        return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
     }
 
     /**

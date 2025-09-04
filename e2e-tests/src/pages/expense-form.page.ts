@@ -37,6 +37,17 @@ export class ExpenseFormPage extends BasePage {
             throw new Error(`Expense form URL validation failed - navigation to expense form likely failed. Expected pattern: /groups/[id]/add-expense, got: ${currentUrl}`);
         }
 
+        // Step 0: Ensure page is fully loaded and not in loading state
+        await this.waitForDomContentLoaded();
+        
+        // Wait for title to change from "Loading..." to actual page title
+        await expect(async () => {
+            const title = await this.page.title();
+            if (title.includes('Loading...')) {
+                throw new Error(`Page still loading: ${title}`);
+            }
+        }).toPass({ timeout: 5000, intervals: [100, 250, 500] });
+
         // Step 1: Wait for basic page layout elements to be visible
         // Check for the expense form header
         const headerTitle = this.page.getByRole('heading', {

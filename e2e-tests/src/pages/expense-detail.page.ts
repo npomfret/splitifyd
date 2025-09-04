@@ -194,7 +194,7 @@ export class ExpenseDetailPage extends BasePage {
      * Get the error message in comments section if present
      */
     getCommentsError() {
-        return this.getDiscussionSection().locator('.text-red-700, .text-red-400').first();
+        return this.getDiscussionSection().locator('[role="alert"], [data-testid="comment-error-message"]').first();
     }
 
     /**

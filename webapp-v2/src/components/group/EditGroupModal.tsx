@@ -227,7 +227,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
                                             </svg>
                                         </div>
                                         <div class="ml-3">
-                                            <p class="text-sm text-red-800">{validationError}</p>
+                                            <p class="text-sm text-red-800" role="alert" data-testid="edit-group-validation-error">{validationError}</p>
                                         </div>
                                     </div>
                                 </div>

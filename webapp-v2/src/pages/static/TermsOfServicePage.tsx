@@ -48,8 +48,8 @@ export function TermsOfServicePage() {
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <h3 class="text-sm font-medium text-red-800">Error loading terms</h3>
-                                <div class="mt-2 text-sm text-red-700">
+                                <h3 class="text-sm font-medium text-red-800" role="alert" data-testid="terms-error-heading">Error loading terms</h3>
+                                <div class="mt-2 text-sm text-red-700" role="alert" data-testid="terms-error-message">
                                     <p>{error}</p>
                                 </div>
                             </div>

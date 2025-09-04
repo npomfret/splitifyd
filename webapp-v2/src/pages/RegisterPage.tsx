@@ -137,7 +137,7 @@ export function RegisterPage() {
             <AuthForm onSubmit={handleSubmit} error={displayError} disabled={isSubmitting}>
                 <div class="space-y-1">
                     <label for="fullname-input" class="block text-sm font-medium text-gray-700">
-                        {t('registerPage.fullNameLabel')} <span class="text-red-500">*</span>
+                        {t('registerPage.fullNameLabel')} <span class="text-red-500" data-testid="required-indicator">*</span>
                     </label>
                     <input
                         id="fullname-input"

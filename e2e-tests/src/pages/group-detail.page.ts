@@ -46,7 +46,11 @@ export class GroupDetailPage extends BasePage {
 
     // Element accessors for expenses
     getAddExpenseButton() {
-        return this.page.locator('[data-testid="add-expense-button"]').first();
+        // Primary selector: use data-testid
+        // Fallback: use role and name for robustness
+        return this.page.locator('[data-testid="add-expense-button"]').or(
+            this.page.getByRole('button', { name: /add expense/i })
+        ).first();
     }
 
     async clickSettleUpButton(expectedMemberCount: number): Promise<SettlementFormPage> {

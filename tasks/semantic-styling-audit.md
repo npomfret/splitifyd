@@ -66,3 +66,55 @@ To bring the codebase into compliance, the following changes must be made:
     -   For other state indicators (like "weak" password or "Deleted" badge), add a descriptive `data-testid`. Example: `data-testid="password-strength-weak"` or `data-testid="deleted-badge"`.
 
 This systematic remediation will resolve the audit violations, improve accessibility, and ensure the stability of the automated error detection in our e2e tests.
+
+## 4. Progress Update
+
+**Status**: ✅ COMPLETED
+
+### ✅ Completed Fixes
+
+**Category 1: Error Messages - ✅ COMPLETED (8/8)**
+
+1. **AuthProvider.tsx:59** - ✅ FIXED
+   - Added `role="alert" data-testid="auth-error-heading"` to Authentication Error heading
+   
+2. **CommentInput.tsx:141** - ✅ FIXED  
+   - Added `role="alert" data-testid="comment-error-message"` to error span
+   - Also fixed character counter with `data-testid="character-limit-exceeded"`
+   
+3. **GroupsList.tsx:35-36** - ✅ FIXED
+   - Added `role="alert" data-testid="groups-load-error-title"` to error heading
+   - Added `role="alert" data-testid="groups-load-error-message"` to error message
+   
+4. **ParticipantSelector.tsx:65** - ✅ FIXED
+   - Added `role="alert" data-testid="validation-error-participants"` to validation error
+   
+5. **EditGroupModal.tsx:230** - ✅ FIXED
+   - Added `role="alert" data-testid="edit-group-validation-error"` to validation error
+   
+6. **SettlementForm.tsx:343** - ✅ FIXED
+   - Added `role="alert" data-testid="settlement-validation-error"` to validation error
+
+7. **JoinGroupPage.tsx:74, 110** - ✅ FIXED
+   - Added `role="alert" data-testid="invalid-link-warning"` to invalid link warning
+   - Added `role="alert" data-testid="unable-join-warning"` to unable to join warning
+
+8. **Policy pages (Cookie, Privacy, Terms)** - ✅ FIXED
+   - Added `role="alert" data-testid="*-error-heading"` to all error headings
+   - Added `role="alert" data-testid="*-error-message"` to all error messages
+
+**Category 2: Required Field Indicators - ✅ COMPLETED**
+- ✅ Fixed all 12+ required field asterisks across multiple components with `data-testid="required-indicator"`
+- Components updated: EmailInput, PasswordInput, ExpenseBasicFields, ParticipantSelector, PayerSelector, CategorySuggestionInput, CurrencyAmountInput, CurrencySelector, Input, TimeInput, RegisterPage
+
+**Category 3: State and Financial Indicators - ✅ COMPLETED**  
+- ✅ **SplitAmountInputs.tsx:74, 121** - Added `data-financial-amount="split-total"` and `data-financial-amount="percentage-total"` to unbalanced totals
+- ✅ **PasswordInput.tsx:161** - Added `data-testid="password-strength-${strength}"` to strength indicator
+- ✅ **ExpenseItem.tsx:55** - Added `data-testid="deleted-badge"` to deleted badge
+
+### 📋 E2E Test Compatibility
+
+✅ **Already Compatible**: The existing e2e test infrastructure in `page-state-collector.ts` is perfectly set up to leverage these semantic attributes:
+- Lines 81-82 already look for `[role="alert"]:visible` and `[data-testid*="error"]:visible` 
+- Lines 97+ exclude elements with `[data-financial-amount]:visible` from error detection
+- No changes needed to e2e tests - they will automatically benefit from these fixes

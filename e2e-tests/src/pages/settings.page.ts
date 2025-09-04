@@ -83,7 +83,7 @@ export class SettingsPage extends BasePage {
         if (text) {
             return this.page.getByText(text);
         }
-        return this.page.locator('.text-red-600, .bg-red-50, [role="alert"]').filter({ hasText: /error|failed|invalid/i });
+        return this.page.locator('[role="alert"], [data-testid*="error"]').filter({ hasText: /error|failed|invalid/i });
     }
 
     // Profile Information Actions

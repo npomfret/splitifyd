@@ -52,7 +52,7 @@ export function ExpenseItem({ expense, members, onClick, onCopy }: ExpenseItemPr
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
                                 <p className={`font-medium ${isDeleted ? 'line-through text-gray-500' : ''}`}>{expense.description}</p>
-                                {isDeleted && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">{t('expenseItem.deleted')}</span>}
+                                {isDeleted && <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded" data-testid="deleted-badge">{t('expenseItem.deleted')}</span>}
                             </div>
                             <p className="text-sm text-gray-600">
                                 {t('expenseItem.paidBy')}{' '}

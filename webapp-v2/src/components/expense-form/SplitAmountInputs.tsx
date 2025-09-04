@@ -73,6 +73,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                             className={`font-medium ${
                                 Math.abs(splits.reduce((sum, s) => sum + s.amount, 0) - amountValue) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                             }`}
+                            data-financial-amount="split-total"
                         >
                             ${splits.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amountValue.toFixed(2)}
                         </span>
@@ -120,6 +121,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                             className={`font-medium ${
                                 Math.abs(splits.reduce((sum, s) => sum + (s.percentage || 0), 0) - 100) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                             }`}
+                            data-financial-amount="percentage-total"
                         >
                             {splits.reduce((sum, s) => sum + (s.percentage || 0), 0).toFixed(1)}%
                         </span>

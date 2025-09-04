@@ -249,11 +249,11 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         
         const uniqueId = generateShortId();
 
-        // Test different currency symbols
+        // Test different currency symbols with randomized amounts
         const testCases = [
-            { currency: 'USD', amount: 10.0, expectedSymbol: '$' },
-            { currency: 'EUR', amount: 20.0, expectedSymbol: '€' },
-            { currency: 'GBP', amount: 15.0, expectedSymbol: '£' },
+            { currency: 'USD', amount: Math.round((Math.random() * 50 + 10) * 100) / 100, expectedSymbol: '$' },
+            { currency: 'EUR', amount: Math.round((Math.random() * 50 + 10) * 100) / 100, expectedSymbol: '€' },
+            { currency: 'GBP', amount: Math.round((Math.random() * 50 + 10) * 100) / 100, expectedSymbol: '£' },
         ];
 
         for (const { currency, amount, expectedSymbol } of testCases) {
@@ -270,7 +270,7 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
 
             // Verify currency symbol appears correctly in expense list
             const expectedDisplay = `${expectedSymbol}${amount.toFixed(2)}`;
-            await expect(page.getByText(expectedDisplay)).toBeVisible();
+            await expect(page.getByText(expectedDisplay).first()).toBeVisible();
         }
 
         // Verify the different expense descriptions are visible

@@ -138,7 +138,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
             <div className="flex items-center justify-between text-xs">
                 <div className="text-gray-500 dark:text-gray-400">
                     {error ? (
-                        <span className="text-red-500 dark:text-red-400">{error}</span>
+                        <span className="text-red-500 dark:text-red-400" role="alert" data-testid="comment-error-message">{error}</span>
                     ) : (
                         <span className="text-xs text-gray-400 dark:text-gray-500">Press Enter to send, Shift+Enter for new line</span>
                     )}
@@ -148,6 +148,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
                         className={`
                         ${isOverLimit ? 'text-red-500 font-medium' : 'text-gray-500 dark:text-gray-400'}
                     `}
+                        data-testid={isOverLimit ? "character-limit-exceeded" : "character-count"}
                     >
                         {remainingChars}
                     </span>

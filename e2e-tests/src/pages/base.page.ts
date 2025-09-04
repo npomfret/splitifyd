@@ -206,6 +206,37 @@ export abstract class BasePage {
     }
 
     /**
+     * Returns detailed information about the currently focused element.
+     * Useful for debugging focus behavior and keyboard navigation.
+     */
+    async getFocusedElement(): Promise<string> {
+        return await this._page.evaluate(() => {
+            const focused = document.activeElement;
+            if (!focused) return 'no element focused';
+            const el = focused as HTMLElement;
+            const placeholder = (focused as HTMLInputElement).placeholder || '';
+            return `${focused.tagName}${focused.id ? '#' + focused.id : ''}${focused.className ? '.' + focused.className.split(' ').join('.') : ''} - "${focused.textContent?.trim() || placeholder || el.getAttribute('aria-label') || ''}"`;
+        });
+    }
+
+    /**
+     * Clears browser storage (localStorage, sessionStorage, and cookies).
+     * Useful for ensuring clean test state and preventing interference between tests.
+     */
+    async clearStorage(): Promise<void> {
+        await this._page.evaluate(() => {
+            // Clear localStorage
+            localStorage.clear();
+            // Clear sessionStorage  
+            sessionStorage.clear();
+        });
+        
+        // Clear cookies
+        const context = this._page.context();
+        await context.clearCookies();
+    }
+
+    /**
      * Expects a button to be enabled before clicking.
      * Provides detailed error messages if the button is disabled.
      */
