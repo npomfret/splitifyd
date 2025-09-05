@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { test as base } from './base-test';
+import { singleUserTest as base } from './multi-user-declarative';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
 
 // Define fixtures for pre-navigated pages
