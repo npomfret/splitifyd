@@ -1,27 +1,12 @@
 #!/usr/bin/env npx tsx
 
 import { execSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
 import { logger } from './logger';
-
-const firebaseConfigPath = path.join(__dirname, '../firebase.json');
-if (!fs.existsSync(firebaseConfigPath)) {
-    logger.error('❌ firebase.json not found. Run the build process first to generate it.');
-    process.exit(1);
-}
+import { getAllEmulatorPorts } from '@splitifyd/test-support';
 
 let ports: number[] = [];
 try {
-    const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-
-    if (firebaseConfig.emulators) {
-        Object.values(firebaseConfig.emulators).forEach((emulator: any) => {
-            if (emulator.port) {
-                ports.push(parseInt(emulator.port));
-            }
-        });
-    }
+    ports = getAllEmulatorPorts();
 
     if (ports.length === 0) {
         logger.error('❌ No emulator ports found in firebase.json', {
@@ -32,7 +17,7 @@ try {
 
     logger.debug('Using ports from firebase.json', { ports });
 } catch (error: any) {
-    logger.error('❌ Could not read firebase.json', { error: error.message });
+    logger.error('❌ Could not load firebase.json', { error: error.message });
     process.exit(1);
 }
 

@@ -12,6 +12,7 @@ import assert from 'node:assert';
 import { startEmulator } from './start-emulator';
 import { seedPolicies } from './seed-policies';
 import { generateTestData } from './generate-test-data';
+import { getPorts, getProjectId } from '@splitifyd/test-support';
 
 async function runSeedPoliciesStep(): Promise<void> {
     try {
@@ -59,16 +60,16 @@ async function runGenerateTestDataStep(): Promise<void> {
     }
 }
 
-// Read and validate configuration files
-const firebaseConfigPath = path.join(__dirname, '../firebase.json');
-if (!fs.existsSync(firebaseConfigPath)) {
-    logger.error('❌ firebase.json not found. Run the build process first to generate it.');
-    process.exit(1);
-}
+// Get Firebase configuration using centralized loader
+let UI_PORT: number;
+let FUNCTIONS_PORT: number;
+let FIRESTORE_PORT: number;
+let AUTH_PORT: number;
 
-const firebaseRcPath = path.join(__dirname, '../.firebaserc');
-if (!fs.existsSync(firebaseRcPath)) {
-    logger.error('❌ .firebaserc not found.');
+try {
+    ({ ui: UI_PORT, functions: FUNCTIONS_PORT, firestore: FIRESTORE_PORT, auth: AUTH_PORT } = getPorts());
+} catch (error) {
+    logger.error('❌ firebase.json not found. Run the build process first to generate it.', { error });
     process.exit(1);
 }
 
@@ -81,19 +82,11 @@ if (!fs.existsSync(envPath)) {
 // Load environment variables from .env file
 dotenv.config({ path: envPath });
 
-// Parse configuration
-const firebaseRc: any = JSON.parse(fs.readFileSync(firebaseRcPath, 'utf8'));
-const PROJECT_ID = firebaseRc.projects.default!;
-assert(PROJECT_ID);
+// Get project ID using centralized loader
+const PROJECT_ID = getProjectId();
 
 // sanity check
 assert(PROJECT_ID === process.env.GCLOUD_PROJECT, `PROJECT_ID=${PROJECT_ID} but GCLOUD_PROJECT=${process.env.GCLOUD_PROJECT}`);
-
-const firebaseConfig: any = JSON.parse(fs.readFileSync(firebaseConfigPath, 'utf8'));
-const UI_PORT: string = firebaseConfig.emulators.ui.port!;
-const FUNCTIONS_PORT: string = firebaseConfig.emulators.functions.port!;
-const FIRESTORE_PORT: string = firebaseConfig.emulators.firestore.port!;
-const AUTH_PORT: string = firebaseConfig.emulators.auth.port!;
 
 logger.info('🚀 Starting Firebase emulator with test data generation...', {
     projectId: PROJECT_ID,

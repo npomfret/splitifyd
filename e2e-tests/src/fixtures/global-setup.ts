@@ -1,38 +1,14 @@
 import { EMULATOR_URL } from '../helpers';
-
-const projectId = 'splitifyd';
-const region = 'us-central1';
-
-// Load firebase.json from the known location
-async function _loadFirebaseConfig() {
-    const fs = await import('fs');
-    const path = await import('path');
-    const url = await import('url');
-    
-    const __filename = url.fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    
-    // Firebase config is in firebase/firebase.json relative to project root
-    const firebaseJsonPath = path.resolve(__dirname, '../../../firebase/firebase.json');
-    
-    if (fs.existsSync(firebaseJsonPath)) {
-        try {
-            const firebaseJsonContent = fs.readFileSync(firebaseJsonPath, 'utf8');
-            return JSON.parse(firebaseJsonContent);
-        } catch (error) {
-            throw new Error(`Failed to read firebase.json at ${firebaseJsonPath}: ${error}`);
-        }
-    }
-    throw new Error(`firebase.json not found at ${firebaseJsonPath}`);
-}
+import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
 
 async function runCleanupForTests(): Promise<void> {
     console.log('🧹 [E2E SETUP] Running change document cleanup via HTTP endpoint...');
     
     try {
-        // Get the Functions emulator port from firebase.json
-        const firebaseConfig = await _loadFirebaseConfig();
-        const functionsPort = firebaseConfig.emulators?.functions?.port!;
+        // Get Firebase configuration
+        const functionsPort = getFunctionsPort();
+        const projectId = getProjectId();
+        const region = getRegion();
 
         // Call the test cleanup HTTP endpoint
         const cleanupUrl = `http://localhost:${functionsPort}/${projectId}/${region}/testCleanup`;

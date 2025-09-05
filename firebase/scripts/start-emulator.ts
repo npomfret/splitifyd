@@ -5,10 +5,10 @@ import * as http from 'http';
 import { logger } from './logger';
 
 interface EmulatorConfig {
-    uiPort: string;
-    functionsPort: string;
-    firestorePort: string;
-    authPort: string;
+    uiPort: number;
+    functionsPort: number;
+    firestorePort: number;
+    authPort: number;
 }
 
 export async function startEmulator(config: EmulatorConfig): Promise<ChildProcess> {
@@ -99,7 +99,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     return emulatorProcess;
 }
 
-function checkApiReady(functionsPort: string): Promise<boolean> {
+function checkApiReady(functionsPort: number): Promise<boolean> {
     return new Promise((resolve) => {
         const req = http.request(
             {
