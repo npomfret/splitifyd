@@ -10,7 +10,6 @@ export class DashboardPage extends BasePage {
     }
     // Selectors
     readonly url = '/dashboard';
-    readonly userNameText = '.text-sm.font-medium.text-gray-700';
 
     async navigate() {
         await this.page.goto(this.url);
@@ -149,49 +148,5 @@ export class DashboardPage extends BasePage {
             timeout,
             intervals: [100, 250, 500], // Check frequently for appearance
         });
-    }
-
-    // Note: Use the inherited logout() method from BasePage for signing out
-    // It provides more robust handling of dropdown states and button enabling
-
-    // Security testing methods
-    getDashboardTestId() {
-        return this.page.locator('[data-testid="dashboard"]');
-    }
-
-    getCreateGroupButtonTestId() {
-        return this.page.locator('[data-testid="create-group-button"]');
-    }
-
-    getGroupNameInputTestId() {
-        return this.page.locator('[data-testid="group-name-input"]');
-    }
-
-    getGroupDescriptionInputTestId() {
-        return this.page.locator('[data-testid="group-description-input"]');
-    }
-
-    getCreateGroupFormTestId() {
-        return this.page.locator('[data-testid="create-group-form"], form');
-    }
-
-    getCreateGroupSubmitTestId() {
-        return this.page.locator('[data-testid="create-group-submit"]');
-    }
-
-    getLogoutButtonTestId() {
-        return this.page.locator('[data-testid="logout-button"], [data-testid="user-menu"]');
-    }
-
-    getLogoutConfirmTestId() {
-        return this.page.locator('[data-testid="logout-confirm"], text=Logout, text=Sign out');
-    }
-
-    getGroupCard() {
-        return this.page.locator('[data-testid="group-card"]').first();
-    }
-
-    getBalanceBadges() {
-        return this.getGroupCard().locator('[class*="rounded-full"]');
     }
 }

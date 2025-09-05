@@ -147,64 +147,6 @@ export class PerformanceMonitor {
         }
     }
 
-    /**
-     * Monitor database operations specifically
-     */
-    static async monitorDbOperation<T>(
-        operationType: 'read' | 'write' | 'query' | 'transaction',
-        collection: string,
-        operation: () => Promise<T>,
-        additionalContext: PerformanceContext = {}
-    ): Promise<T> {
-        const startTime = Date.now();
-        
-        try {
-            const result = await operation();
-            const duration = Date.now() - startTime;
-            
-            // Extract result count if possible
-            let resultCount: number | undefined;
-            if (result && typeof result === 'object') {
-                if ('size' in result) {
-                    resultCount = (result as any).size;
-                } else if ('length' in result) {
-                    resultCount = (result as any).length;
-                } else if ('docs' in result && Array.isArray((result as any).docs)) {
-                    resultCount = (result as any).docs.length;
-                }
-            }
-            
-            // Record in metrics collector
-            performanceMetricsCollector.recordDbOperation(
-                operationType,
-                collection,
-                duration,
-                true,
-                resultCount,
-                additionalContext
-            );
-            
-            return result;
-        } catch (error) {
-            const duration = Date.now() - startTime;
-            
-            // Record in metrics collector
-            performanceMetricsCollector.recordDbOperation(
-                operationType,
-                collection,
-                duration,
-                false,
-                undefined,
-                additionalContext
-            );
-            
-            throw error;
-        }
-    }
-
-    /**
-     * Monitor service method calls
-     */
     static async monitorServiceCall<T>(
         serviceName: string,
         methodName: string,
@@ -239,59 +181,6 @@ export class PerformanceMonitor {
                 additionalContext
             );
             
-            throw error;
-        }
-    }
-
-    /**
-     * Monitor validation operations specifically
-     */
-    static async monitorValidation<T>(
-        validationType: 'document' | 'batch' | 'strict' | 'pre-operation',
-        schemaName: string,
-        operation: () => Promise<T>,
-        context: ValidationContext = {}
-    ): Promise<T> {
-        const monitor = new PerformanceMonitor(`validation-${validationType}`, {
-            schemaName,
-            ...context,
-            validationType,
-        });
-        
-        try {
-            const result = await operation();
-            monitor.end({ 
-                success: true,
-                validationResult: 'passed'
-            });
-            return result;
-        } catch (error) {
-            const isValidationError = error instanceof Error && (
-                error.message.includes('validation failed') ||
-                error.name === 'EnhancedValidationError'
-            );
-
-            monitor.end({ 
-                success: false,
-                validationResult: isValidationError ? 'failed' : 'error',
-                error: error instanceof Error ? error.message : String(error),
-                errorType: isValidationError ? 'validation' : 'system'
-            });
-
-            // Log validation failures with enhanced context
-            if (isValidationError) {
-                logger.warn(`Validation failed`, {
-                    validationType,
-                    schemaName,
-                    documentId: context.documentId,
-                    collection: context.collection,
-                    userId: context.userId,
-                    validationMode: context.validationMode || 'standard',
-                    operation: context.operation,
-                    error: error instanceof Error ? error.message : String(error)
-                });
-            }
-
             throw error;
         }
     }
@@ -342,67 +231,6 @@ export class PerformanceMonitor {
                 });
             }
 
-            throw error;
-        }
-    }
-
-    /**
-     * Monitor Firestore query operations with detailed performance tracking
-     */
-    static async monitorQuery<T>(
-        queryType: 'single' | 'collection' | 'collection-group' | 'indexed' | 'scan',
-        operation: () => Promise<T>,
-        context: QueryContext = {}
-    ): Promise<T> {
-        const monitor = new PerformanceMonitor(`firestore-query-${queryType}`, {
-            queryType,
-            ...context,
-        });
-        
-        try {
-            const result = await operation();
-            const duration = monitor.end({ 
-                success: true,
-                queryResult: 'completed'
-            });
-
-            // Enhanced slow query detection with different thresholds by query type
-            const slowThreshold = queryType === 'single' ? 100 : 
-                                 queryType === 'indexed' ? 200 :
-                                 queryType === 'scan' ? 1000 : 500;
-
-            if (duration > slowThreshold) {
-                logger.warn(`Slow ${queryType} query detected`, {
-                    queryType,
-                    collection: context.collection,
-                    collectionGroup: context.collectionGroup,
-                    duration_ms: duration,
-                    resultCount: context.resultCount,
-                    filterCount: context.filterCount,
-                    indexUsed: context.indexUsed,
-                    slowThreshold,
-                    operation: context.operation
-                });
-            }
-
-            // Alert on potential full collection scans
-            if (queryType === 'scan' && context.resultCount !== undefined && context.resultCount > 100) {
-                logger.warn(`Large collection scan detected`, {
-                    collection: context.collection,
-                    resultCount: context.resultCount,
-                    duration_ms: duration,
-                    operation: context.operation,
-                    recommendation: 'Consider adding composite index'
-                });
-            }
-
-            return result;
-        } catch (error) {
-            monitor.end({ 
-                success: false, 
-                queryResult: 'error',
-                error: error instanceof Error ? error.message : String(error) 
-            });
             throw error;
         }
     }
@@ -565,8 +393,6 @@ export class PerformanceMonitor {
                 group_id: groupId,
                 result_count: resultCount,
                 success: true,
-                threshold_warning_ms: thresholds.warning,
-                threshold_critical_ms: thresholds.critical
             });
 
             // Check for performance issues
@@ -702,8 +528,6 @@ export class PerformanceMonitor {
                 user_id: userId,
                 result_count: resultCount,
                 success: true,
-                threshold_warning_ms: thresholds.warning,
-                threshold_critical_ms: thresholds.critical
             });
 
             // Performance alerting

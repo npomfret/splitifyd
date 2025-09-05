@@ -47,20 +47,6 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the delete button for the expense
-     */
-    getDeleteButton(): Locator {
-        return this.page.getByRole('button', { name: /delete/i });
-    }
-
-    /**
-     * Get expense description text (specifically the paragraph, not the heading)
-     */
-    getExpenseDescription(description: string): Locator {
-        return this.page.getByText(description, { exact: true }).first();
-    }
-
-    /**
      * Get expense amount text
      */
     getExpenseAmount(amount: string): Locator {
@@ -72,13 +58,6 @@ export class ExpenseDetailPage extends BasePage {
      */
     getExpenseHeading(pattern: RegExp): Locator {
         return this.page.getByRole('heading', { name: pattern });
-    }
-
-    /**
-     * Verify expense amount is visible
-     */
-    async verifyExpenseAmount(amount: string): Promise<void> {
-        await expect(this.getExpenseAmount(amount)).toBeVisible();
     }
 
     /**
@@ -190,21 +169,4 @@ export class ExpenseDetailPage extends BasePage {
         await expect(sendButton).toBeDisabled();
     }
 
-    /**
-     * Get the error message in comments section if present
-     */
-    getCommentsError() {
-        return this.getDiscussionSection().locator('[role="alert"], [data-testid="comment-error-message"]').first();
-    }
-
-    /**
-     * Wait for comments to load (no loading spinner visible)
-     */
-    async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
-        // Wait for any loading spinners to disappear
-        const loadingSpinner = this.getDiscussionSection().locator('.animate-spin');
-        if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).toHaveCount(0, { timeout });
-        }
-    }
 }

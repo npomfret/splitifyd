@@ -21,7 +21,6 @@ import {
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
-    UserProfileResponse,
     UserRegistration
 } from '@splitifyd/shared';
 
@@ -252,10 +251,6 @@ export class ApiDriver {
         return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
     }
 
-    async pollGroupUntilBalanceUpdated(groupId: string, token: string, matcher: Matcher<Group>, options?: PollOptions): Promise<Group> {
-        return pollUntil(() => this.getGroup(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
-    }
-
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
         return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
     }
@@ -386,10 +381,6 @@ export class ApiDriver {
         return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
-    async updateUserProfile(token: string | null, updates: { displayName?: string; photoURL?: string | null }): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/profile', 'PUT', updates, token);
-    }
-
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', {currentPassword, newPassword}, token);
     }
@@ -488,78 +479,6 @@ export class ApiDriver {
         }
         
         return settlement;
-    }
-
-    async listGroupComments(groupId: string, _token: string, params?: { limit?: number; cursor?: string }) {
-        // Query Firestore directly like the frontend does
-        const db = admin.firestore();
-        const collectionPath = `groups/${groupId}/comments`;
-        
-        let query = db.collection(collectionPath).orderBy("createdAt", "desc");
-        
-        if (params?.limit) {
-            query = query.limit(params.limit);
-        } else {
-            query = query.limit(20); // Default limit
-        }
-        
-        if (params?.cursor) {
-            const cursorDoc = await db.collection(collectionPath).doc(params.cursor).get();
-            if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc);
-            }
-        }
-        
-        const snapshot = await query.get();
-        const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Check if there are more comments
-        const hasMore = snapshot.docs.length === (params?.limit || 20);
-        
-        return {
-            success: true,
-            data: {
-                comments,
-                hasMore,
-                nextCursor: snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : null
-            }
-        };
-    }
-    
-    async listExpenseComments(expenseId: string, _token: string, params?: { limit?: number; cursor?: string }) {
-        // Query Firestore directly like the frontend does
-        const db = admin.firestore();
-        const collectionPath = `expenses/${expenseId}/comments`;
-        
-        let query = db.collection(collectionPath).orderBy("createdAt", "desc");
-        
-        if (params?.limit) {
-            query = query.limit(params.limit);
-        } else {
-            query = query.limit(20); // Default limit
-        }
-        
-        if (params?.cursor) {
-            const cursorDoc = await db.collection(collectionPath).doc(params.cursor).get();
-            if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc);
-            }
-        }
-        
-        const snapshot = await query.get();
-        const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Check if there are more comments
-        const hasMore = snapshot.docs.length === (params?.limit || 20);
-        
-        return {
-            success: true,
-            data: {
-                comments,
-                hasMore,
-                nextCursor: snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : null
-            }
-        };
     }
 
 }

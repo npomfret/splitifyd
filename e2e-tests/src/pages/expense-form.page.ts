@@ -125,10 +125,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByPlaceholder('What was this expense for?');
     }
 
-    getExpenseAmountField(): Locator {
-        return this.page.locator('input[type="number"]').first();
-    }
-
     getAmountInput(): Locator {
         return this.page.locator('input[type="number"]').first();
     }
@@ -145,10 +141,6 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('button', { name: /update expense/i });
     }
 
-    getEditButton(): Locator {
-        return this.page.getByRole('button', { name: /edit/i });
-    }
-
     // Split type controls
     getExactAmountsText(): Locator {
         return this.page.getByText('Exact amounts');
@@ -156,10 +148,6 @@ export class ExpenseFormPage extends BasePage {
 
     getSelectAllButton(): Locator {
         return this.page.getByRole('button', { name: 'Select all' });
-    }
-
-    getInputWithMinValue(minValue: string): Locator {
-        return this.page.locator(`input[min="${minValue}"]`);
     }
 
     // Form actions
@@ -409,14 +397,6 @@ export class ExpenseFormPage extends BasePage {
         return await splitCard.getByText(userName).isVisible();
     }
 
-    getExpenseAmount(amount: string) {
-        return this.page.getByText(amount);
-    }
-
-    getExpensePaidByText() {
-        return this.page.getByText(/paid by|Paid:/i);
-    }
-
     getSplitBetweenHeading() {
         return this.page.getByRole('heading', { name: /Split between/ });
     }
@@ -498,32 +478,15 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('heading', { name: 'Expense Details' });
     }
 
-    getExpenseHeadingWithAmount(pattern: RegExp) {
-        return this.page.getByRole('heading', { name: pattern });
-    }
-
     async clickSelectAllButton() {
         const selectAllButton = this.page.getByRole('button', { name: 'Select all' });
         await this.clickButton(selectAllButton, { buttonName: 'Select all' });
-    }
-
-    async verifyExpenseInList(description: string, amount?: string) {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-        if (amount) {
-            await expect(this.page.getByText(amount)).toBeVisible();
-        }
     }
 
     getExpenseByDescription(description: string) {
         // Use more specific selector to avoid strict mode violations
         // Look for the description in expense list context, not headings
         return this.page.getByText(description).first();
-    }
-
-    getCategorySelect() {
-        // Category input is an actual input element with aria-haspopup
-        // (not the currency selector which is a div with role=combobox)
-        return this.page.locator('input[aria-haspopup="listbox"]').first();
     }
 
     getCategoryInput() {
@@ -611,13 +574,6 @@ export class ExpenseFormPage extends BasePage {
      */
     getSplitAmountInputs(): Locator {
         return this.page.locator('input[type="number"][step]').filter({ hasText: '' });
-    }
-
-    /**
-     * Get first split amount input
-     */
-    getFirstSplitAmountInput(): Locator {
-        return this.getSplitAmountInputs().first();
     }
 
     /**

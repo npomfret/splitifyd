@@ -68,25 +68,6 @@ export class TestSettlementManager {
     }
 
     /**
-     * Creates a complete setup with group, expense, and settlement for testing
-     * settlement-based operations that need existing data
-     */
-    public static async getGroupWithSettlementForTesting(
-        users: AuthenticatedFirebaseUser[]
-    ): Promise<{ group: Group; settlement: any }> {
-        if (users.length < 2) {
-            throw new Error('At least 2 users required for settlement testing');
-        }
-
-        const group = await TestGroupManager.getOrCreateGroup(users, { memberCount: users.length });
-        const settlement = await this.getOrCreateSettlement(group, users[0], users[1], {
-            note: 'Test settlement for operations'
-        });
-        
-        return { group, settlement };
-    }
-
-    /**
      * Creates multiple settlements between different user pairs
      */
     public static async createMultipleSettlements(

@@ -226,26 +226,4 @@ export class UserPolicyService {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'USER_POLICY_STATUS_FAILED', 'Failed to get user policy status');
         }
     }
-
-    /**
-     * Check if a user has accepted all required policies
-     */
-    async checkPolicyCompliance(userId: string): Promise<{ compliant: boolean; pendingCount: number; pendingPolicies: string[] }> {
-        try {
-            const status = await this.getUserPolicyStatus(userId);
-            const pendingPolicies = status.policies.filter(p => p.needsAcceptance).map(p => p.policyId);
-
-            return {
-                compliant: !status.needsAcceptance,
-                pendingCount: status.totalPending,
-                pendingPolicies,
-            };
-        } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
-            logger.error('Failed to check policy compliance', error as Error, { userId });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_COMPLIANCE_CHECK_FAILED', 'Failed to check policy compliance');
-        }
-    }
 }

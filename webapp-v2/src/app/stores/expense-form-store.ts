@@ -192,11 +192,6 @@ class ExpenseStorageManager {
 // Create singleton storage manager
 const storageManager = new ExpenseStorageManager();
 
-// Export functions for backward compatibility
-export function getRecentCategories(): string[] {
-    return storageManager.getRecentCategories();
-}
-
 export function getRecentAmounts(): number[] {
     return storageManager.getRecentAmounts();
 }

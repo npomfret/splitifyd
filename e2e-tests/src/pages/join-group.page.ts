@@ -25,10 +25,6 @@ export class JoinGroupPage extends BasePage {
         return this.page.getByText(/already.*member|you.*already.*part/i);
     }
 
-    getGroupNameHeading(): Locator {
-        return this.page.getByRole('heading').first();
-    }
-
     getLoginButton(): Locator {
         return this.page.getByRole('button', { name: /login|sign in/i });
     }

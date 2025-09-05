@@ -1,19 +1,10 @@
 import * as admin from "firebase-admin";
 import {ApiDriver, BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./ApiDriver";
-import {Matcher, pollUntil} from "./Polling";
-import {FirestoreCollections, Group, AuthenticatedFirebaseUser, GroupFullDetails} from "@splitifyd/shared";
+import {Matcher} from "./Polling";
+import {FirestoreCollections, Group, AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 export class AppDriver {
     constructor(public apiDriver: ApiDriver, private readonly firestoreDb: admin.firestore.Firestore) {
-    }
-
-    /**
-     * Get group changes filtered by user
-     */
-    async getGroupChangesForUser(groupId: string, userId: string): Promise<GroupChangeDocument[]> {
-        const snapshot = await this.firestoreDb.collection('group-changes').where('id', '==', groupId).where('users', 'array-contains', userId).get();
-
-        return snapshot.docs.map((doc) => doc.data() as GroupChangeDocument);
     }
 
     async getTransactionChanges(groupId: string, type: string) {
@@ -171,41 +162,6 @@ export class AppDriver {
 
     async getSettlementChanges(groupId: string): Promise<SettlementChangeDocument[]> {
         return (await this.getTransactionChanges(groupId, 'settlement')) as SettlementChangeDocument[];
-    }
-
-    /**
-     * Wait for a specific user to be a member of a group
-     */
-    async waitForUserJoinGroup(groupId: string, userId: string, token: string, timeout = 5000): Promise<GroupFullDetails> {
-        return pollUntil(
-            () => this.apiDriver.getGroupFullDetails(groupId, token),
-            (gfd: GroupFullDetails) => {
-                const found = gfd.members.members.find((m) => m.uid === userId);
-                if(found) {
-                    return true
-                } else {
-                    return false;
-                }
-            },
-            {
-                timeout,
-                errorMsg: `User ${userId} did not join group ${groupId}`,
-            },
-        );
-    }
-
-    /**
-     * Wait for group change records to be created
-     */
-    async waitForGroupChangeRecords(groupId: string, userId: string, minimumCount = 1, timeout = 3000): Promise<GroupChangeDocument[]> {
-        return pollUntil(
-            () => this.getGroupChangesForUser(groupId, userId),
-            (changes) => changes.length >= minimumCount,
-            {
-                timeout,
-                errorMsg: `Expected at least ${minimumCount} group change record(s) for user ${userId} in group ${groupId}`,
-            },
-        );
     }
 
     /**

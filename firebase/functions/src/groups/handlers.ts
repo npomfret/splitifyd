@@ -1,62 +1,13 @@
 import { Response } from 'express';
 
-import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
-import { Group } from '../types/group-types';
-import { SecurityPresets } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { PermissionEngine } from '../permissions';
 import { getGroupService } from '../services/serviceRegistration';
-import { GroupDocumentSchema } from '../schemas';
-import { z } from 'zod';
 
 // Group schemas are now centralized in ../schemas/
-
-/**
- * Transform Firestore document to Group format
- */
-export const transformGroupDocument = (doc: DocumentSnapshot): Group => {
-    const rawData = doc.data();
-    if (!rawData) {
-        throw new Error('Invalid group document');
-    }
-
-    // Validate the group document structure
-    let data: z.infer<typeof GroupDocumentSchema>;
-    try {
-        const dataWithId = { ...rawData, id: doc.id };
-        data = GroupDocumentSchema.parse(dataWithId);
-    } catch (error) {
-        logger.error('Invalid group document structure', error as Error, {
-            groupId: doc.id,
-            validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-        });
-        throw new Error('Group data is corrupted');
-    }
-
-    const groupData = data;
-
-    // Ensure required permission fields are always present
-    const securityPreset = groupData.securityPreset || SecurityPresets.OPEN;
-    const permissions = groupData.permissions || PermissionEngine.getDefaultPermissions(securityPreset);
-
-    return {
-        id: doc.id,
-        name: groupData.name!,
-        description: groupData.description ?? '',
-        createdBy: groupData.createdBy!,
-        createdAt: groupData.createdAt!.toDate().toISOString(),
-        updatedAt: groupData.updatedAt!.toDate().toISOString(),
-
-        // Permission system fields - guaranteed to be present
-        securityPreset,
-        permissions: permissions as any, // Cast to any since extra fields are allowed and will be handled by permission engine
-        presetAppliedAt: groupData.presetAppliedAt,
-    };
-};
 
 /**
  * Create a new group

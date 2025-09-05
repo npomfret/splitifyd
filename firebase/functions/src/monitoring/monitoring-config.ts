@@ -141,24 +141,3 @@ export function isLargeResultSet(count: number, operationType: string): boolean 
     return false;
 }
 
-/**
- * Check if failure rate exceeds threshold and should trigger an alert
- */
-export function shouldAlertOnFailureRate(
-    failures: number, 
-    total: number, 
-    operationType: string
-): boolean {
-    if (total < SUBCOLLECTION_MONITORING_CONFIG.subcollectionQueries.minSampleSize) {
-        return false; // Not enough data
-    }
-
-    const failureRate = failures / total;
-    
-    if (operationType.includes('subcollection')) {
-        return failureRate > SUBCOLLECTION_MONITORING_CONFIG.subcollectionQueries.failureRateThreshold;
-    }
-
-    // Default 10% failure rate threshold for other operations
-    return failureRate > 0.1;
-}

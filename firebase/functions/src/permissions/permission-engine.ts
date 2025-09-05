@@ -1,10 +1,4 @@
 import { GroupPermissions, SecurityPreset, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
-import { ExpenseData } from '@splitifyd/shared';
-
-export interface PermissionCheckOptions {
-    expense?: ExpenseData;
-    targetUserId?: string;
-}
 
 /**
  * @deprecated Use PermissionEngineAsync instead for scalable subcollection-based permissions

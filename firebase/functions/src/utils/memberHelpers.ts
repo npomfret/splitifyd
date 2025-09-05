@@ -1,4 +1,4 @@
-import { GroupMemberWithProfile, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { GroupMemberWithProfile, MemberRoles } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 /**
@@ -13,50 +13,6 @@ import type { GroupMemberDocument } from '@splitifyd/shared';
 export const isMemberInArray = (members: GroupMemberWithProfile[], userId: string): boolean => {
     return members.some(member => member.uid === userId);
 };
-
-/**
- * Get a member's role from the array
- */
-export const getMemberRole = (members: GroupMemberWithProfile[], userId: string): string | undefined => {
-    const member = getMemberFromArray(members, userId);
-    return member?.memberRole;
-};
-
-/**
- * Get count of active members in the array
- */
-export const getActiveMemberCount = (members: GroupMemberWithProfile[]): number => {
-    return members.filter(member => member.memberStatus === MemberStatuses.ACTIVE).length;
-};
-
-/**
- * Get all member user IDs from the array
- */
-export const getMemberIds = (members: GroupMemberWithProfile[]): string[] => {
-    return members.map(member => member.uid);
-};
-
-
-/**
- * Get count of admin members in the array
- */
-export const getAdminCount = (members: GroupMemberWithProfile[]): number => {
-    return members.filter(member => 
-        member.memberRole === MemberRoles.ADMIN && 
-        member.memberStatus === MemberStatuses.ACTIVE
-    ).length;
-};
-
-/**
- * Check if a user is the owner (first admin) of the group
- */
-export const isGroupOwnerInArray = (members: GroupMemberWithProfile[], createdBy: string, userId: string): boolean => {
-    return createdBy === userId && isAdminInArray(members, userId);
-};
-
-/**
- * Helper functions for working with GroupMemberDocument arrays (from FirestoreReader)
- */
 
 /**
  * Find a member document in the array by user ID

@@ -39,20 +39,11 @@ class AuthStoreImpl implements AuthStore {
     }
 
     // Signal accessors for reactive components - return readonly signals
-    get userSignal(): ReadonlySignal<User | null> {
-        return this.#userSignal;
-    }
     get loadingSignal(): ReadonlySignal<boolean> {
         return this.#loadingSignal;
     }
     get errorSignal(): ReadonlySignal<string | null> {
         return this.#errorSignal;
-    }
-    get initializedSignal(): ReadonlySignal<boolean> {
-        return this.#initializedSignal;
-    }
-    get isUpdatingProfileSignal(): ReadonlySignal<boolean> {
-        return this.#isUpdatingProfileSignal;
     }
 
     // Token refresh management
@@ -253,12 +244,6 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
     }
 
-    /**
-     * Get user storage instance for use by other stores
-     */
-    getUserStorage() {
-        return this.userStorage;
-    }
 
     async refreshAuthToken(): Promise<string> {
         // Deduplicate concurrent refresh requests
@@ -369,10 +354,6 @@ class AuthStoreImpl implements AuthStore {
 
 // Singleton instance promise
 let authStoreInstance: Promise<AuthStoreImpl> | null = null;
-
-export const createAuthStore = async (): Promise<AuthStoreImpl> => {
-    return await AuthStoreImpl.create();
-};
 
 export const getAuthStore = (): Promise<AuthStoreImpl> => {
     if (!authStoreInstance) {

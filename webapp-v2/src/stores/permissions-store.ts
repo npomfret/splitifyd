@@ -135,12 +135,6 @@ export class PermissionsStore {
 
     // Computed permissions
     permissions = computed(() => this.permissionsSignal.value);
-    userRole = computed(() => {
-        const members = this.membersSignal.value;
-        const userId = this.userIdSignal.value;
-        if (!members.length || !userId) return null;
-        return members.find(m => m.uid === userId)?.memberRole || null;
-    });
 
     // NEW REFERENCE-COUNTED API
     
@@ -208,19 +202,6 @@ export class PermissionsStore {
         this.notifyPermissionChanges();
     }
 
-    // Check specific permission with caching
-    checkPermission(action: keyof GroupPermissions | 'viewGroup', options: { expense?: any } = {}): boolean {
-        if (!this.currentGroup || !this.currentUserId || !this.currentMembers.length) {
-            return false;
-        }
-
-        const cacheKey = this.cache.generateKey(this.currentGroup.id, this.currentUserId, action as string, options.expense?.id);
-
-        return this.cache.check(cacheKey, () => {
-            return ClientPermissionEngine.checkPermission(this.currentGroup!, this.currentMembers, this.currentUserId!, action, options);
-        });
-    }
-
     // Update all computed permissions
     private updatePermissions(): void {
         if (!this.currentGroup || !this.currentUserId || !this.currentMembers.length) {
@@ -258,16 +239,6 @@ export class PermissionsStore {
         // Note: Don't clear subscriber counts here as other components might still be registered
     }
 
-    // Get current group data
-    getCurrentGroup(): Group | null {
-        return this.currentGroup;
-    }
-
-    // Force refresh permissions (useful after API calls)
-    refreshPermissions(): void {
-        this.cache.invalidate();
-        this.updatePermissions();
-    }
 }
 
 // Singleton instance

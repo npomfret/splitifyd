@@ -39,10 +39,6 @@ export class DashboardPage extends BasePage {
         return this._page.getByRole('button', { name: /create.*group|new.*group/i });
     }
 
-    getGroupsList() {
-        return this._page.locator('[data-testid="groups-list"], .groups-list');
-    }
-
     getGroupCard(groupName?: string) {
         if (groupName) {
             return this._page.locator('[data-testid="group-card"]').filter({ hasText: groupName });
@@ -62,18 +58,6 @@ export class DashboardPage extends BasePage {
         return this._page.locator('[data-testid="error-message"], .error-message').filter({ hasText: /error|failed/i });
     }
 
-    // Group management actions
-    async clickCreateGroup() {
-        const button = this.getCreateGroupButton();
-        await this.clickButton(button, { buttonName: 'Create Group' });
-    }
-
-    async clickGroup(groupName: string) {
-        const groupCard = this.getGroupCard(groupName);
-        await expect(groupCard).toBeVisible();
-        await groupCard.click();
-    }
-
     /**
      * Wait for groups to load (either show groups or empty state)
      */
@@ -87,48 +71,6 @@ export class DashboardPage extends BasePage {
         } catch (error) {
             // If neither appears, just make sure loading is done
             await expect(this.getLoadingSpinner()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
-        }
-    }
-
-    /**
-     * Verify dashboard shows groups
-     */
-    async verifyGroupsDisplayed(expectedCount?: number): Promise<void> {
-        await this.waitForGroupsLoaded();
-        
-        if (expectedCount !== undefined) {
-            if (expectedCount === 0) {
-                await expect(this.getEmptyGroupsState()).toBeVisible();
-            } else {
-                await expect(this.getGroupCard()).toHaveCount(expectedCount);
-            }
-        } else {
-            // Just verify some groups are visible
-            const groupCards = this.getGroupCard();
-            const count = await groupCards.count();
-            expect(count).toBeGreaterThan(0);
-        }
-    }
-
-    /**
-     * Verify loading state
-     */
-    async verifyLoadingState(isLoading: boolean): Promise<void> {
-        if (isLoading) {
-            await expect(this.getLoadingSpinner()).toBeVisible();
-        } else {
-            await expect(this.getLoadingSpinner()).not.toBeVisible();
-        }
-    }
-
-    /**
-     * Verify error state
-     */
-    async verifyErrorState(hasError: boolean): Promise<void> {
-        if (hasError) {
-            await expect(this.getErrorMessage()).toBeVisible();
-        } else {
-            await expect(this.getErrorMessage()).not.toBeVisible();
         }
     }
 
@@ -149,23 +91,5 @@ export class DashboardPage extends BasePage {
 
     getModalCancelButton() {
         return this._page.getByRole('button', { name: /cancel|close/i });
-    }
-
-    async fillCreateGroupForm(groupName: string, description?: string) {
-        await expect(this.getCreateGroupModal()).toBeVisible();
-        await this.fillPreactInput(this.getGroupNameInput(), groupName);
-        
-        if (description) {
-            const descInput = this._page.getByLabel(/description/i);
-            await this.fillPreactInput(descInput, description);
-        }
-    }
-
-    async submitCreateGroup() {
-        await this.clickButton(this.getModalSubmitButton(), { buttonName: 'Create Group' });
-    }
-
-    async cancelCreateGroup() {
-        await this.clickButton(this.getModalCancelButton(), { buttonName: 'Cancel' });
     }
 }

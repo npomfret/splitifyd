@@ -123,29 +123,6 @@ export class CommentService {
     }
 
     /**
-     * Get a single comment with validation
-     */
-    async getComment(targetType: CommentTargetType, targetId: string, commentId: string, userId: string, groupId?: string): Promise<CommentApiResponse> {
-        // Verify access to the target entity
-        await this.verifyCommentAccess(targetType, targetId, userId, groupId);
-
-        const commentsCollection = this.getCommentsCollection(targetType, targetId);
-        const commentDoc = await commentsCollection.doc(commentId).get();
-
-        if (!commentDoc.exists) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'COMMENT_NOT_FOUND', 'Comment not found');
-        }
-
-        const comment = this.transformCommentDocument(commentDoc);
-
-        return {
-            ...comment,
-            createdAt: timestampToISO(comment.createdAt as Timestamp),
-            updatedAt: timestampToISO(comment.updatedAt as Timestamp),
-        };
-    }
-
-    /**
      * List comments for a target with pagination
      */
     async listComments(

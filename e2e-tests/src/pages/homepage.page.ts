@@ -11,11 +11,6 @@ export class HomepagePage extends BasePage {
         await this.navigateToHomepage();
     }
 
-    // Header elements
-    getStartedButton() {
-        return this.page.getByRole('button', { name: /get started|start/i });
-    }
-
     getPricingLink() {
         // Pricing link is in the footer, not header
         return this.page.getByText('Pricing').first();

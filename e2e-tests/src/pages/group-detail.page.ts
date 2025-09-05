@@ -26,10 +26,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.locator('h1').first();
     }
 
-    getGroupTitleByName(name: string) {
-        return this.page.getByRole('heading', { name });
-    }
-
     getGroupDescription() {
         // Target the paragraph element containing the group description
         // This is rendered in GroupHeader.tsx as: <p className="text-gray-600">{group.description}</p>
@@ -1033,13 +1029,6 @@ export class GroupDetailPage extends BasePage {
     // ==============================
 
     /**
-     * Count all "All settled up!" elements in the DOM
-     */
-    async getAllSettledUpElementsCount(): Promise<number> {
-        return await this.page.getByText('All settled up!').count();
-    }
-
-    /**
      * Get the main section of the page
      */
     getMainSection() {
@@ -1067,20 +1056,6 @@ export class GroupDetailPage extends BasePage {
             // Click outside modal to close
             await this.page.click('body', { position: { x: 10, y: 10 } });
         }
-    }
-
-    /**
-     * Get edit button for expenses
-     */
-    getEditButton() {
-        return this.page.getByRole('button', { name: /edit/i });
-    }
-
-    /**
-     * Get amount input field
-     */
-    getAmountField() {
-        return this.page.locator('[data-testid="expense-amount"], input[type="number"]').first();
     }
 
     /**
@@ -1238,19 +1213,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Close history modal
-     */
-    async closeHistoryModal(): Promise<void> {
-        const closeButton = this.page.locator('button[aria-label="Close modal"]');
-        const isVisible = await closeButton.isVisible();
-
-        if (isVisible) {
-            await closeButton.click();
-            await expect(closeButton).not.toBeVisible();
-        }
-    }
-
-    /**
      * Verify settlement details in history
      */
     async verifySettlementDetails(details: { note: string; amount: string; payerName: string; payeeName: string }): Promise<void> {
@@ -1277,27 +1239,11 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify settlement has no edit button
-     */
-    async verifySettlementHasNoEditButton(note: string): Promise<void> {
-        const editButton = this.getSettlementEditButton(note);
-        await expect(editButton).not.toBeVisible();
-    }
-
-    /**
      * Verify settlement has delete button
      */
     async verifySettlementHasDeleteButton(note: string): Promise<void> {
         const deleteButton = this.getSettlementDeleteButton(note);
         await expect(deleteButton).toBeVisible();
-    }
-
-    /**
-     * Verify settlement has no delete button
-     */
-    async verifySettlementHasNoDeleteButton(note: string): Promise<void> {
-        const deleteButton = this.getSettlementDeleteButton(note);
-        await expect(deleteButton).not.toBeVisible();
     }
 
     /**
@@ -1386,14 +1332,6 @@ export class GroupDetailPage extends BasePage {
         return memberItem.locator('[data-testid="remove-member-button"]');
     }
 
-    getMembersList(): Locator {
-        return this.page.locator('[data-testid="member-item"]');
-    }
-
-    getMembersSection(): Locator {
-        return this.page.getByText('Members').first();
-    }
-
     // Member management actions
     async clickLeaveGroup(): Promise<void> {
         const leaveButton = this.getLeaveGroupButton();
@@ -1451,16 +1389,6 @@ export class GroupDetailPage extends BasePage {
             await expect(errorMessage).toBeVisible({ timeout: 10000 });
         } catch (e) {
             throw new Error('The error message for leaving with an outstanding balance did not appear within 10 seconds');
-        }
-    }
-
-    async verifyRemoveErrorMessage(): Promise<void> {
-        const dialog = this.page.getByTestId('remove-member-dialog');
-        const errorMessage = dialog.getByTestId('balance-error-message');
-        try {
-            await expect(errorMessage).toBeVisible({ timeout: 10000 });
-        } catch (e) {
-            throw new Error('The error message for removing member with an outstanding balance did not appear within 10 seconds');
         }
     }
 
@@ -1566,23 +1494,6 @@ export class GroupDetailPage extends BasePage {
         await expect(sendButton).toBeDisabled();
     }
 
-    /**
-     * Get the error message in comments section if present
-     */
-    getCommentsError() {
-        return this.getCommentsSection().locator('.text-red-700, .text-red-400').first();
-    }
-
-    /**
-     * Wait for comments to load (no loading spinner visible)
-     */
-    async waitForCommentsToLoad(timeout: number = 5000): Promise<void> {
-        // Wait for any loading spinners to disappear
-        const loadingSpinner = this.getCommentsSection().locator('.animate-spin');
-        if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).toHaveCount(0, { timeout });
-        }
-    }
 
     /**
      * Verify that comment authors are visible in the comments section
@@ -1604,30 +1515,6 @@ export class GroupDetailPage extends BasePage {
         
         for (const commentText of commentTexts) {
             await expect(commentsSection.getByText(commentText)).toBeVisible();
-        }
-    }
-
-    /**
-     * Verify real-time comment updates work between multiple users
-     * This method should be used in multi-user tests
-     */
-    async verifyRealtimeCommentSync(pages: Array<{ page: any; groupDetailPage: GroupDetailPage; userName?: string }>, commentText: string, authorUserIndex: number = 0): Promise<void> {
-        const authorPage = pages[authorUserIndex];
-        const otherPages = pages.filter((_, index) => index !== authorUserIndex);
-
-        // Author adds the comment
-        await authorPage.groupDetailPage.addComment(commentText);
-
-        // Wait for the comment to appear for all users (real-time updates)
-        for (let i = 0; i < pages.length; i++) {
-            const { groupDetailPage, userName } = pages[i];
-            const userIdentifier = userName || `User ${i + 1}`;
-
-            try {
-                await groupDetailPage.waitForCommentToAppear(commentText);
-            } catch (error) {
-                throw new Error(`${userIdentifier} did not see real-time comment update: ${error}`);
-            }
         }
     }
 }

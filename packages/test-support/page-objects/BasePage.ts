@@ -187,18 +187,6 @@ export abstract class BasePage {
         await expect(this._page).toHaveURL(pattern, { timeout });
     }
 
-    /**
-     * Clear authentication state for test cleanup
-     */
-    async clearAuthState(): Promise<void> {
-        // Clear localStorage and cookies
-        await this._page.evaluate(() => {
-            localStorage.clear();
-            sessionStorage.clear();
-        });
-        await this._page.context().clearCookies();
-        await this.waitForDomContentLoaded();
-    }
 
     /**
      * Navigation helpers with base URL handling

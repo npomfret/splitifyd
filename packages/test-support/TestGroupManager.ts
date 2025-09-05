@@ -46,13 +46,6 @@ export class TestGroupManager {
         return this.groupCache.get(cacheKey)!;
     }
 
-    public static async getOrCreateGroupForUser(
-        user: AuthenticatedFirebaseUser,
-        options: Omit<GroupOptions, 'memberCount'> = {}
-    ): Promise<Group> {
-        return this.getOrCreateGroup([user], { ...options, memberCount: 1 });
-    }
-
     private static async createFreshGroup(
         users: AuthenticatedFirebaseUser[], 
         memberCount: number,
@@ -75,9 +68,5 @@ export class TestGroupManager {
 
     public static getCacheSize(): number {
         return this.groupCache.size;
-    }
-
-    public static getCacheKeys(): string[] {
-        return Array.from(this.groupCache.keys());
     }
 }

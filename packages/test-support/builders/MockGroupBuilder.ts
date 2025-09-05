@@ -34,20 +34,6 @@ export class MockGroupBuilder {
         },
     };
 
-    withMembers(members: Record<string, any>): MockGroupBuilder {
-        // Ensure all members have required fields
-        const validMembers: Record<string, any> = {};
-        for (const [userId, member] of Object.entries(members)) {
-            validMembers[userId] = {
-                memberRole: member.memberRole || 'member', // Default to 'member' if not specified
-                status: member.status || 'active', // Default to 'active' if not specified
-                ...member // Allow override of defaults
-            };
-        }
-        this.group.data.members = validMembers;
-        return this;
-    }
-
     build(): any {
         return { ...this.group };
     }

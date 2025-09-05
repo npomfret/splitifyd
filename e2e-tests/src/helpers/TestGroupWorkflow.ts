@@ -161,21 +161,4 @@ export class TestGroupWorkflow {
         const groupWorkflow = new GroupWorkflow(page);
         return groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
     }
-
-    /**
-     * Clear all cached groups (useful for test cleanup)
-     */
-    public static clearCache(): void {
-        this.groupCache.clear();
-    }
-
-    /**
-     * Get cache statistics for debugging
-     */
-    public static getCacheStats(): { groupCount: number; keys: string[] } {
-        return {
-            groupCount: this.groupCache.size,
-            keys: Array.from(this.groupCache.keys())
-        };
-    }
 }

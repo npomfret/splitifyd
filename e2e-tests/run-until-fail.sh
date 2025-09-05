@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/group-deletion-multi-user.e2e.test.ts"
-TEST_FILTER="should update all dashboards in real-time when owner deletes group"
+TEST_FILE="e2e-tests/src/__tests__/integration/normal-flow/complex-scenarios.e2e.test.ts"
+TEST_FILTER=""
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,7 +33,7 @@ fi
 # Parse command line arguments
 MAX_SUCCESSES=5
 HEADED_FLAG=""
-WORKERS=3
+WORKERS=1
 
 for arg in "$@"; do
     if [[ "$arg" == "--headed" ]]; then

@@ -21,15 +21,6 @@ export const UserThemeColorSchema = z.object({
 // Note: MemberSchema was removed as it was unused and had incorrect joinedAt typing
 // GroupMemberSchema below is the correct schema for group member data
 
-export const GroupMemberSchema = z.object({
-    joinedAt: z.string(), // ISO string, following pattern of createdAt/updatedAt
-    isCreator: z.boolean().optional(), // New field from backend
-    themeIndex: z.number().optional(), // New field from backend
-    role: z.enum(['admin', 'member', 'viewer']).optional(), // Updated to new permission system roles
-    status: z.enum(['active', 'inactive', 'pending']).optional(), // New status field
-    theme: UserThemeColorSchema.optional(), // Made optional for backward compatibility
-});
-
 export const FirebaseConfigSchema = z.object({
     apiKey: z.string(),
     authDomain: z.string(),
@@ -309,10 +300,6 @@ export const CommentSchema = z.object({
     text: z.string().min(1).max(500),
     createdAt: z.string(),
     updatedAt: z.string(),
-});
-
-export const CreateCommentRequestSchema = z.object({
-    text: z.string().min(1).max(500),
 });
 
 export const ListCommentsResponseSchema = z.object({

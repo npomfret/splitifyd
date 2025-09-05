@@ -22,11 +22,6 @@ interface MembersListWithManagementProps {
     onLeaveGroupClick?: () => void;
 }
 
-export interface LeaveGroupState {
-    showDialog: boolean;
-    hasBalance: boolean;
-}
-
 export function MembersListWithManagement({ groupId, variant = 'default', onInviteClick, onMemberChange, onLeaveGroupClick }: MembersListWithManagementProps) {
     const { t } = useTranslation();
     const showLeaveConfirm = useSignal(false);

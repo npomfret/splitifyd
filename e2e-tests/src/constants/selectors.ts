@@ -144,58 +144,6 @@ export const FORM_LABELS = {
     SETTLEMENT_NOTE: translation.settlementForm.noteLabel,
 } as const;
 
-export const SPLIT_TYPES = {
-    EQUAL: translation.expenseForm.equal,
-    PERCENTAGE: translation.expenseForm.percentage,
-    EXACT_AMOUNTS: translation.expenseForm.exactAmounts,
-} as const;
-
-export const SPLIT_INSTRUCTIONS = {
-    EXACT_AMOUNTS: translation.expenseForm.exactAmountsInstruction,
-    PERCENTAGE: translation.expenseForm.percentageInstruction,
-} as const;
-
-export const ERROR_MESSAGES = {
-    DISPLAY_NAME_EMPTY: translation.errors.displayNameEmpty,
-    DISPLAY_NAME_TOO_LONG: translation.errors.displayNameTooLong,
-    PASSWORD_TOO_SHORT: translation.errors.passwordTooShort,
-    PASSWORDS_NO_MATCH: translation.errors.passwordsNoMatch,
-    PASSWORD_SAME_AS_CURRENT: translation.errors.passwordSameAsCurrent,
-    PASSWORD_AND_NEW_REQUIRED: translation.errors.passwordAndNewRequired,
-} as const;
-
-export const SETTLEMENT_SELECTORS = {
-    MODAL: '[data-testid="settlement-form-modal"]',
-    PAYER_SELECT: '[data-testid="settlement-payer-select"]',
-    PAYEE_SELECT: '[data-testid="settlement-payee-select"]',
-    AMOUNT_INPUT: '[data-testid="settlement-amount-input"]',
-    DATE_INPUT: '[data-testid="settlement-date-input"]',
-    NOTE_INPUT: '[data-testid="settlement-note-input"]',
-    SAVE_BUTTON: '[data-testid="save-settlement-button"]',
-    CANCEL_BUTTON: '[data-testid="cancel-settlement-button"]',
-    SETTLEMENT_ITEM: '[data-testid="settlement-item"]',
-    EDIT_BUTTON: '[data-testid="edit-settlement-button"]',
-    DELETE_BUTTON: '[data-testid="delete-settlement-button"]',
-} as const;
-
-export const NAVIGATION_SELECTORS = {
-    HEADER_LOGIN_LINK: '[data-testid="header-login-link"]',
-    HEADER_SIGNUP_LINK: '[data-testid="header-signup-link"]',
-    USER_MENU_BUTTON: '[data-testid="user-menu-button"]',
-    USER_DROPDOWN_MENU: '[data-testid="user-dropdown-menu"]',
-    USER_MENU_DASHBOARD_LINK: '[data-testid="user-menu-dashboard-link"]',
-    USER_MENU_SETTINGS_LINK: '[data-testid="user-menu-settings-link"]',
-    SIGN_OUT_BUTTON: '[data-testid="sign-out-button"]',
-    GROUP_SETTINGS_BUTTON: '[data-testid="group-settings-button"]',
-} as const;
-
-export const FOOTER_SELECTORS = {
-    PRICING_LINK: '[data-testid="footer-pricing-link"]',
-    TERMS_LINK: '[data-testid="footer-terms-link"]',
-    PRIVACY_LINK: '[data-testid="footer-privacy-link"]',
-    COOKIES_LINK: '[data-testid="footer-cookies-link"]',
-} as const;
-
 export const SETTINGS_SELECTORS = {
     ACCOUNT_SETTINGS_HEADER: '[data-testid="account-settings-header"]',
     PROFILE_INFORMATION_SECTION: '[data-testid="profile-information-section"]',
@@ -211,25 +159,6 @@ export const SETTINGS_SELECTORS = {
     CONFIRM_PASSWORD_INPUT: '[data-testid="confirm-password-input"]',
     UPDATE_PASSWORD_BUTTON: '[data-testid="update-password-button"]',
     CANCEL_PASSWORD_BUTTON: '[data-testid="cancel-password-button"]',
-} as const;
-
-export const EDIT_GROUP_SELECTORS = {
-    MODAL_TITLE: '[data-testid="edit-group-modal-title"]',
-    GROUP_NAME_INPUT: '[data-testid="group-name-input"]',
-    GROUP_DESCRIPTION_INPUT: '[data-testid="group-description-input"]',
-    SAVE_CHANGES_BUTTON: '[data-testid="save-changes-button"]',
-    DELETE_GROUP_BUTTON: '[data-testid="delete-group-button"]',
-    CANCEL_BUTTON: '[data-testid="cancel-edit-group-button"]',
-    DELETE_DIALOG: '[data-testid="delete-group-dialog"]',
-} as const;
-
-export const MEMBERS_LIST_SELECTORS = {
-    INVITE_OTHERS_BUTTON: '[data-testid="invite-others-button"]',
-    MEMBER_ITEM: '[data-testid="member-item"]',
-    REMOVE_MEMBER_BUTTON: '[data-testid="remove-member-button"]',
-    LEAVE_GROUP_BUTTON: '[data-testid="leave-group-button"]',
-    LEAVE_GROUP_DIALOG: '[data-testid="leave-group-dialog"]',
-    REMOVE_MEMBER_DIALOG: '[data-testid="remove-member-dialog"]',
 } as const;
 
 export const SETTINGS_TEXTS = {
@@ -250,109 +179,6 @@ export const SETTINGS_TEXTS = {
     CANCEL_BUTTON: translation.settingsPage.cancelButton,
     SUCCESS_PROFILE_UPDATED: translation.settingsPage.successMessages.profileUpdated,
     SUCCESS_PASSWORD_CHANGED: translation.settingsPage.successMessages.passwordChanged,
-} as const;
-
-export const SETTINGS_ERROR_MESSAGES = {
-    PROFILE_UPDATE_FAILED: translation.settingsPage.errorMessages.profileUpdateFailed,
-    PASSWORD_AND_NEW_REQUIRED: translation.settingsPage.errorMessages.passwordAndNewRequired,
-    PASSWORD_TOO_SHORT: translation.settingsPage.errorMessages.passwordTooShort,
-    PASSWORDS_NO_MATCH: translation.settingsPage.errorMessages.passwordsNoMatch,
-    PASSWORD_SAME_AS_CURRENT: translation.settingsPage.errorMessages.passwordSameAsCurrent,
-    CURRENT_PASSWORD_INCORRECT: translation.settingsPage.errorMessages.currentPasswordIncorrect,
-    PASSWORD_CHANGE_FAILED: translation.settingsPage.errorMessages.passwordChangeFailed,
-    DISPLAY_NAME_EMPTY: translation.settingsPage.errorMessages.displayNameEmpty,
-    DISPLAY_NAME_TOO_LONG: translation.settingsPage.errorMessages.displayNameTooLong,
-} as const;
-
-export const GROUP_MANAGEMENT_SELECTORS = {
-    // Group Actions
-    ADD_EXPENSE_BUTTON: '[data-testid="add-expense-button"]',
-    SETTLE_UP_BUTTON: '[data-testid="settle-up-button"]',
-    INVITE_OTHERS_BUTTON: '[data-testid="invite-others-button"]',
-    GROUP_SETTINGS_BUTTON: '[data-testid="group-settings-button"]',
-
-    // Member Management
-    MEMBER_ITEM: '[data-testid="member-item"]',
-    REMOVE_MEMBER_BUTTON: '[data-testid="remove-member-button"]',
-    LEAVE_GROUP_BUTTON: '[data-testid="leave-group-button"]',
-    LEAVE_GROUP_DIALOG: '[data-testid="leave-group-dialog"]',
-    REMOVE_MEMBER_DIALOG: '[data-testid="remove-member-dialog"]',
-
-    // Share Group Modal
-    SHARE_LINK_INPUT: '[data-testid="share-link-input"]',
-    COPY_LINK_BUTTON: '[data-testid="copy-link-button"]',
-    CLOSE_SHARE_MODAL_BUTTON: '[data-testid="close-share-modal-button"]',
-    GENERATE_NEW_LINK_BUTTON: '[data-testid="generate-new-link-button"]',
-} as const;
-
-export const GROUP_MANAGEMENT_TEXTS = {
-    // Group Actions
-    GROUP_ACTIONS_TITLE: translation.groupActions.title,
-    ADD_EXPENSE: translation.groupActions.addExpense,
-    SETTLE_UP: translation.groupActions.settleUp,
-    INVITE_OTHERS: translation.groupActions.inviteOthers,
-    GROUP_SETTINGS: translation.groupActions.groupSettings,
-
-    // Member Management
-    MEMBERS_TITLE: translation.membersList.title,
-    ADMIN: translation.membersList.admin,
-    LEAVE_GROUP: translation.membersList.leaveGroup,
-    LEAVE_GROUP_DIALOG_TITLE: translation.membersList.leaveGroupDialog.title,
-    LEAVE_GROUP_CONFIRM_TEXT: translation.membersList.leaveGroupDialog.confirmText,
-    LEAVE_GROUP_CANCEL_TEXT: translation.membersList.leaveGroupDialog.cancelText,
-    REMOVE_MEMBER_DIALOG_TITLE: translation.membersList.removeMemberDialog.title,
-    REMOVE_MEMBER_CONFIRM_TEXT: translation.membersList.removeMemberDialog.confirmText,
-    REMOVE_MEMBER_CANCEL_TEXT: translation.membersList.removeMemberDialog.cancelText,
-
-    // Edit Group Modal
-    EDIT_GROUP_TITLE: translation.editGroupModal.title,
-    GROUP_NAME_LABEL: translation.editGroupModal.groupNameLabel,
-    GROUP_NAME_PLACEHOLDER: translation.editGroupModal.groupNamePlaceholder,
-    DESCRIPTION_LABEL: translation.editGroupModal.descriptionLabel,
-    DESCRIPTION_PLACEHOLDER: translation.editGroupModal.descriptionPlaceholder,
-    SAVE_CHANGES_BUTTON: translation.editGroupModal.saveChangesButton,
-    DELETE_GROUP_BUTTON: translation.editGroupModal.deleteGroupButton,
-    CANCEL_EDIT_BUTTON: translation.editGroupModal.cancelButton,
-    DELETE_CONFIRM_DIALOG_TITLE: translation.editGroupModal.deleteConfirmDialog.title,
-    DELETE_CONFIRM_TEXT: translation.editGroupModal.deleteConfirmDialog.confirmText,
-    DELETE_CANCEL_TEXT: translation.editGroupModal.deleteConfirmDialog.cancelText,
-
-    // Share Group Modal
-    SHARE_GROUP_TITLE: translation.shareGroupModal.title,
-    SHARE_GROUP_DESCRIPTION: translation.shareGroupModal.description,
-    QR_CODE_DESCRIPTION: translation.shareGroupModal.qrCodeDescription,
-    EXPIRATION: translation.shareGroupModal.expiration,
-    GENERATE_NEW: translation.shareGroupModal.generateNew,
-    LINK_COPIED: translation.shareGroupModal.linkCopied,
-} as const;
-
-export const NAVIGATION_TEXTS = {
-    COMPANY_NAME: translation.footer.companyName,
-    COMPANY_DESCRIPTION: translation.footer.companyDescription,
-    PRODUCT_SECTION: translation.footer.productSection,
-    PRICING: translation.footer.pricing,
-    LEGAL_SECTION: translation.footer.legalSection,
-    TERMS_OF_SERVICE: translation.footer.termsOfService,
-    PRIVACY_POLICY: translation.footer.privacyPolicy,
-    COOKIE_POLICY: translation.footer.cookiePolicy,
-    COPYRIGHT: translation.footer.copyright,
-    DASHBOARD: translation.userMenu.dashboard,
-    SETTINGS: translation.userMenu.settings,
-    LOGO_ALT: translation.header.logoAlt,
-    GROUP_SETTINGS_ARIA: translation.groupHeader.groupSettingsAriaLabel,
-} as const;
-
-// Error Handling Components Selectors
-export const ERROR_HANDLING_SELECTORS = {
-    ERROR_TITLE: '[data-testid="error-title"]',
-    ERROR_MESSAGE: '[data-testid="error-message"]',
-    ERROR_RETRY_BUTTON: '[data-testid="error-retry-button"]',
-    NOT_FOUND_TITLE: '[data-testid="not-found-title"]',
-    NOT_FOUND_SUBTITLE: '[data-testid="not-found-subtitle"]',
-    NOT_FOUND_DESCRIPTION: '[data-testid="not-found-description"]',
-    GO_TO_DASHBOARD_LINK: '[data-testid="go-to-dashboard-link"]',
-    GO_HOME_LINK: '[data-testid="go-home-link"]',
-    LOADING_MESSAGE: '[data-testid="loading-message"]',
 } as const;
 
 // Error Handling Text Constants

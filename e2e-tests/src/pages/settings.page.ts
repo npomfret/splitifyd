@@ -108,26 +108,12 @@ export class SettingsPage extends BasePage {
         await expect(this.getUserMenuButton()).toContainText(newDisplayName);
     }
 
-    async verifyDisplayNameValue(expectedName: string): Promise<void> {
-        const displayNameInput = this.getDisplayNameInput();
-        await expect(displayNameInput).toHaveValue(expectedName);
-    }
-
     async verifyRealTimeDisplayNameUpdate(expectedName: string): Promise<void> {
         // Verify the display name updates in real-time in the profile section
         await expect(this.getProfileDisplayName()).toContainText(expectedName);
 
         // Verify the user menu in navigation also updates automatically
         await expect(this.getUserMenuButton()).toContainText(expectedName);
-    }
-
-    async verifySaveButtonState(expectedEnabled: boolean): Promise<void> {
-        const saveButton = this.getSaveChangesButton();
-        if (expectedEnabled) {
-            await expect(saveButton).toBeEnabled();
-        } else {
-            await expect(saveButton).toBeDisabled();
-        }
     }
 
     // Password Change Actions
@@ -184,15 +170,6 @@ export class SettingsPage extends BasePage {
         }
     }
 
-    async verifyUpdatePasswordButtonState(expectedEnabled: boolean): Promise<void> {
-        const updateButton = this.getUpdatePasswordButton();
-        if (expectedEnabled) {
-            await expect(updateButton).toBeEnabled();
-        } else {
-            await expect(updateButton).toBeDisabled();
-        }
-    }
-
     // Profile Information Verification
     async verifyProfileInformation(displayName: string, email: string): Promise<void> {
         await expect(this.getProfileDisplayName()).toContainText(displayName);
@@ -204,11 +181,6 @@ export class SettingsPage extends BasePage {
         const message = expectedText ? this.getSuccessMessage(expectedText) : this.getSuccessMessage();
         // Increase timeout as the success message may take a moment to appear after API call
         await expect(message).toBeVisible({ timeout: 5000 });
-    }
-
-    async verifyErrorMessage(expectedText?: string): Promise<void> {
-        const message = expectedText ? this.getErrorMessage(expectedText) : this.getErrorMessage();
-        await expect(message).toBeVisible();
     }
 
     // Form State Verification

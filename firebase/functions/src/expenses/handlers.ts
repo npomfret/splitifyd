@@ -3,14 +3,11 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { firestoreDb } from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
-import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import { FirestoreCollections, DELETED_AT_FIELD } from '@splitifyd/shared';
+import { FirestoreCollections } from '@splitifyd/shared';
 import { getExpenseService } from '../services/serviceRegistration';
-import { ExpenseDocumentSchema } from '../schemas/expense';
-import { z } from 'zod';
 
 const getExpensesCollection = () => {
     return firestoreDb.collection(FirestoreCollections.EXPENSES);
@@ -70,146 +67,6 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
     res.json({
         message: 'Expense deleted successfully',
     });
-};
-
-/**
- * Internal function to get group expenses data
- * Used by both the HTTP handler and consolidated endpoints
- */
-export const _getGroupExpensesData = async (
-    groupId: string,
-    options: {
-        limit?: number;
-        cursor?: string;
-        includeDeleted?: boolean;
-    } = {},
-): Promise<{
-    expenses: any[];
-    count: number;
-    hasMore: boolean;
-    nextCursor?: string;
-}> => {
-    const limit = Math.min(options.limit || 20, 100);
-    const cursor = options.cursor;
-    const includeDeleted = options.includeDeleted || false;
-
-    let query = getExpensesCollection()
-        .where('groupId', '==', groupId)
-        .select(
-            'groupId',
-            'createdBy',
-            'paidBy',
-            'amount',
-            'currency',
-            'description',
-            'category',
-            'date',
-            'splitType',
-            'participants',
-            'splits',
-            'receiptUrl',
-            'createdAt',
-            'updatedAt',
-            'deletedAt',
-            'deletedBy',
-        )
-        .orderBy('date', 'desc')
-        .orderBy('createdAt', 'desc')
-        .limit(limit + 1);
-
-    // Filter out deleted expenses by default
-    if (!includeDeleted) {
-        query = query.where(DELETED_AT_FIELD, '==', null);
-    }
-
-    if (cursor) {
-        try {
-            const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-            const cursorData = JSON.parse(decodedCursor);
-
-            if (cursorData.date && cursorData.createdAt) {
-                query = query.startAfter(parseISOToTimestamp(cursorData.date) || createServerTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp());
-            }
-        } catch (error) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
-        }
-    }
-
-    const snapshot = await query.get();
-
-    const hasMore = snapshot.docs.length > limit;
-    const expenses = snapshot.docs.slice(0, limit).map((doc) => {
-        const rawData = doc.data();
-        if (!rawData) {
-            logger.warn('Empty expense document in _getGroupExpensesData', { docId: doc.id, groupId });
-            return null;
-        }
-
-        const dataWithId = { ...rawData, id: doc.id };
-        let data;
-        try {
-            data = ExpenseDocumentSchema.parse(dataWithId);
-        } catch (error) {
-            logger.error('Invalid expense document in _getGroupExpensesData', error as Error, {
-                docId: doc.id,
-                groupId,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            return null; // Skip invalid documents
-        }
-
-        return {
-            id: doc.id,
-            groupId: data.groupId,
-            createdBy: data.createdBy,
-            paidBy: data.paidBy,
-            amount: data.amount,
-            currency: data.currency,
-            description: data.description,
-            category: data.category,
-            date: timestampToISO(data.date),
-            splitType: data.splitType,
-            participants: data.participants,
-            splits: data.splits,
-            receiptUrl: data.receiptUrl,
-            createdAt: timestampToISO(data.createdAt),
-            updatedAt: timestampToISO(data.updatedAt),
-            deletedAt: data.deletedAt ? timestampToISO(data.deletedAt) : null,
-            deletedBy: data.deletedBy || null,
-        };
-    }).filter(expense => expense !== null);
-
-    let nextCursor: string | undefined;
-    if (hasMore && expenses.length > 0) {
-        const lastDoc = snapshot.docs[limit - 1];
-        const rawData = lastDoc.data();
-        if (rawData) {
-            const dataWithId = { ...rawData, id: lastDoc.id };
-            try {
-                const lastDocData = ExpenseDocumentSchema.parse(dataWithId);
-                const cursorData = {
-                    date: timestampToISO(lastDocData.date),
-                    createdAt: timestampToISO(lastDocData.createdAt),
-                    id: lastDoc.id,
-                };
-                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-            } catch (error) {
-                logger.error('Invalid last document for cursor generation in _getGroupExpensesData', error as Error, {
-                    docId: lastDoc.id,
-                    groupId,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                });
-                // Don't set nextCursor if validation fails
-            }
-        }
-    }
-
-    return {
-        expenses,
-        count: expenses.length,
-        hasMore,
-        nextCursor,
-    };
 };
 
 export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
