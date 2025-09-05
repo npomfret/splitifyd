@@ -27,32 +27,82 @@ if (hasArguments) {
 const originalScript = process.env.ORIGINAL_TEST_SCRIPT || 'test';
 const isMonorepoRoot = process.cwd() === path.resolve(__dirname, '..');
 
+// Test command mappings based on project type and script
+function getTestCommand(scriptType, packageName) {
+  const commands = {
+    'functions': {
+      'test': 'npm run test:unit && npm run test:integration',
+      'test:unit': 'vitest run src/__tests__/unit/',
+      'test:integration': 'npm run build && node scripts/cleanup-test-data.js && JAVA_TOOL_OPTIONS="-Xmx4g" vitest run src/__tests__/integration/'
+    },
+    'webapp-v2': {
+      'test': 'npm run test:unit && npm run test:integration',
+      'test:unit': 'vitest run src/__tests__/unit/vitest && playwright test --workers=4',
+      'test:integration': 'echo \'no integration tests\' && exit 0'
+    },
+    '@splitifyd/e2e-tests': {
+      'test': 'npm run test:unit && npm run test:integration',
+      'test:unit': 'npm run build && jest src/__tests__/unit',
+      'test:integration': 'npm run build && JAVA_TOOL_OPTIONS="-Xms2g -Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-report/integration PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=2 --project=chromium --reporter=html src/__tests__/integration/normal-flow src/__tests__/integration/error-testing src/__tests__/integration/edge-cases src/__tests__/integration/security'
+    },
+    '@splitifyd/shared': {
+      'test': 'npm run test:unit && npm run test:integration',
+      'test:unit': 'echo \'No unit tests for shared package\'',
+      'test:integration': 'echo \'No integration tests for shared package\''
+    },
+    '@splitifyd/test-support': {
+      'test': 'npm run test:unit && npm run test:integration',
+      'test:unit': 'npm run build && echo \'There are no unit tests in test-support\'',
+      'test:integration': 'npm run build && echo \'There are no integration tests in test-support\''
+    },
+    'backend': {
+      'test': 'cd functions && npm test',
+      'test:unit': 'cd functions && npm run test:unit',
+      'test:integration': 'cd functions && npm run test:integration'
+    }
+  };
+  
+  return commands[packageName]?.[scriptType];
+}
+
 // Determine the actual command to run
 let actualCommand;
 let actualArgs;
 
 if (isMonorepoRoot) {
-  // At monorepo root, delegate to workspaces using the direct scripts
-  actualCommand = 'npm';
-  actualArgs = ['run', `${originalScript}:direct`, '-ws', '--if-present'];
-} else {
-  // In a specific workspace, run the direct script to avoid recursion
-  const packageJson = require(path.join(process.cwd(), 'package.json'));
-  const directScript = `${originalScript}:direct`;
-  const testScript = packageJson.scripts?.[directScript];
+  // At monorepo root, we need to manually call each workspace
+  // For now, we'll map to the specific commands that make sense at root level
+  const rootCommands = {
+    'test': 'npm run test:unit -ws --if-present && npm run test:integration -ws --if-present',
+    'test:unit': 'npm run test:unit -ws --if-present',
+    'test:integration': 'npm run test:integration -ws --if-present'
+  };
   
-  if (!testScript) {
-    console.error(`No "${directScript}" script found in package.json`);
+  actualCommand = rootCommands[originalScript];
+  actualArgs = [];
+  
+  if (!actualCommand) {
+    console.error(`No root command mapping found for "${originalScript}"`);
+    process.exit(1);
+  }
+} else {
+  // In a specific workspace, execute the command directly
+  const packageJson = require(path.join(process.cwd(), 'package.json'));
+  const packageName = packageJson.name;
+  const command = getTestCommand(originalScript, packageName);
+  
+  if (!command) {
+    console.error(`No command mapping found for "${originalScript}" in package "${packageName}"`);
     process.exit(1);
   }
   
-  // Run the direct script
-  actualCommand = 'npm';
-  actualArgs = ['run', directScript];
+  // Execute the command directly using shell
+  actualCommand = command;
+  actualArgs = [];
 }
 
 // Execute the actual test command
-const child = spawn(actualCommand, actualArgs, {
+const child = spawn(actualCommand, [], {
   stdio: 'inherit',
   shell: true
 });
