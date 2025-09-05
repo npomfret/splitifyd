@@ -9,6 +9,7 @@ export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { SettlementUpdateBuilder } from './SettlementUpdateBuilder';
 export { GroupUpdateBuilder } from './GroupUpdateBuilder';
 export { MockGroupBuilder } from './MockGroupBuilder';
+export { CommentBuilder } from './CommentBuilder';
 export { CommentRequestBuilder } from './CommentRequestBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';
 export { MockFirestoreBuilder } from './MockFirestoreBuilder';

@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/preact';
 import { vi, beforeEach, describe, it, expect, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { CommentsSection } from '@/components/comments/CommentsSection';
+import { CommentBuilder } from '@splitifyd/test-support';
 import type { CommentApiResponse } from '@splitifyd/shared';
 
 // Mock Heroicons to avoid JSX serialization issues
@@ -77,42 +78,6 @@ vi.mock('@/components/comments/CommentInput', () => ({
     ),
 }));
 
-// Builder pattern for creating test comments
-class CommentBuilder {
-    private comment: CommentApiResponse = {
-        id: `comment-${Math.random().toString(36).substring(2, 11)}`,
-        authorId: 'user-1',
-        authorName: 'Test User',
-        text: 'Test comment',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-
-    withId(id: string) {
-        this.comment.id = id;
-        return this;
-    }
-
-    withAuthor(authorId: string, authorName: string) {
-        this.comment.authorId = authorId;
-        this.comment.authorName = authorName;
-        return this;
-    }
-
-    withText(text: string) {
-        this.comment.text = text;
-        return this;
-    }
-
-    withCreatedAt(date: Date) {
-        this.comment.createdAt = date.toISOString();
-        return this;
-    }
-
-    build(): CommentApiResponse {
-        return { ...this.comment };
-    }
-}
 
 // Import after mocks
 import { commentsStore } from '@/stores/comments-store';
