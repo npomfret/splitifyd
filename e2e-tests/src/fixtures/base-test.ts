@@ -4,7 +4,7 @@ import { setupConsoleErrorReporting } from '../helpers';
 // Set up console error reporting for all tests
 setupConsoleErrorReporting();
 
-// Extend base test to inject Playwright flag
+// Extend base test to inject Playwright flag and i18n language setting
 export const test = base.extend({
     page: async ({ page }, use) => {
         // Inject __PLAYWRIGHT__ flag and i18n language setting before any page script executes.
