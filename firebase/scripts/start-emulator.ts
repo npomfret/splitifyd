@@ -3,6 +3,7 @@
 import { spawn, ChildProcess } from 'child_process';
 import * as http from 'http';
 import { logger } from './logger';
+import { getProjectId, getRegion, getFunctionsPort } from '@splitifyd/test-support';
 
 interface EmulatorConfig {
     uiPort: number;
@@ -71,7 +72,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
 
     while (apiAttempts < maxApiAttempts && !apiReady) {
         apiAttempts++;
-        apiReady = await checkApiReady(config.functionsPort);
+        apiReady = await checkApiReady();
         if (!apiReady) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
         }
@@ -81,7 +82,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
         logger.error('❌ API functions failed to become ready within timeout', {
             apiAttempts,
             maxApiAttempts,
-            apiPath: `/${process.env.GCLOUD_PROJECT!}/us-central1/api`,
+            apiPath: getApiPath(),
             note: 'This may indicate an issue with function deployment or configuration',
         });
         throw new Error('API functions failed to become ready');
@@ -99,13 +100,17 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
     return emulatorProcess;
 }
 
-function checkApiReady(functionsPort: number): Promise<boolean> {
+function getApiPath(): string {
+    return `/${getProjectId()}/${getRegion()}/api`;
+}
+
+function checkApiReady(): Promise<boolean> {
     return new Promise((resolve) => {
         const req = http.request(
             {
                 hostname: 'localhost',
-                port: Number(functionsPort),
-                path: `/${process.env.GCLOUD_PROJECT}/us-central1/api`,
+                port: getFunctionsPort(),
+                path: getApiPath(),
                 method: 'GET',
                 timeout: 1000,
             },
