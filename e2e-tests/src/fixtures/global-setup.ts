@@ -1,5 +1,8 @@
 import { EMULATOR_URL } from '../helpers';
 
+const projectId = 'splitifyd';
+const region = 'us-central1';
+
 // Load firebase.json from the known location
 async function _loadFirebaseConfig() {
     const fs = await import('fs');
@@ -30,8 +33,6 @@ async function runCleanupForTests(): Promise<void> {
         // Get the Functions emulator port from firebase.json
         const firebaseConfig = await _loadFirebaseConfig();
         const functionsPort = firebaseConfig.emulators?.functions?.port!;
-        const projectId = 'splitifyd';
-        const region = 'us-central1';
 
         // Call the test cleanup HTTP endpoint
         const cleanupUrl = `http://localhost:${functionsPort}/${projectId}/${region}/testCleanup`;

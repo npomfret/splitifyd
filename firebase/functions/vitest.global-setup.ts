@@ -88,6 +88,15 @@ async function warmUpFirestoreEmulator(): Promise<void> {
 }
 
 export default async function setup() {
+    // Check if we're running integration tests by looking at the process arguments
+    const processArgs = process.argv.join(' ');
+    const isIntegrationTests = processArgs.includes('src/__tests__/integration');
+    
+    if (!isIntegrationTests) {
+        console.log('🎯 [GLOBAL SETUP] Unit tests only - skipping Firebase emulator setup');
+        return;
+    }
+    
     // This runs ONCE for the entire test suite
     console.log('🚀 [GLOBAL SETUP] Starting global test suite setup...');
     

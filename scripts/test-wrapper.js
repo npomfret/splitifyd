@@ -33,7 +33,7 @@ function getTestCommand(scriptType, packageName) {
     'functions': {
       'test': 'npm run test:unit && npm run test:integration',
       'test:unit': 'vitest run src/__tests__/unit/',
-      'test:integration': 'npm run build && node scripts/cleanup-test-data.js && JAVA_TOOL_OPTIONS="-Xmx4g" vitest run src/__tests__/integration/'
+      'test:integration': 'npm run build && vitest run src/__tests__/integration/'
     },
     'webapp-v2': {
       'test': 'npm run test:unit && npm run test:integration',
