@@ -1,8 +1,8 @@
 // NOTE: This test suite runs against the live Firebase emulator.
 // You must have the emulator running for these tests to pass.
 //
-// This test reproduces the bug where groups couldn't be deleted due to
-// soft-deleted expenses and missing member subcollection cleanup
+// This test verifies that hard group deletion works correctly with both
+// soft-deleted and active expenses, ensuring comprehensive cleanup
 
 import { describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +12,7 @@ import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
 describe('Group Deletion with Soft-Deleted Expenses', () => {
     const apiDriver = new ApiDriver();
 
-    test('should reproduce the bug: group deletion fails when soft-deleted expenses exist', async () => {
+    test('should successfully delete group with soft-deleted expenses using hard delete', async () => {
         const users = await borrowTestUsers(2);
         const [user1, user2] = users;
 
@@ -45,13 +45,11 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         // Verify the expense is soft-deleted but still exists in Firestore
         // (It should have deletedAt field set but still be in the collection)
         
-        // Now try to delete the group - this should work with the fix
-        // but would have failed with the bug because getExpensesForGroup
-        // wasn't filtering out soft-deleted expenses
+        // Hard delete should succeed and clean up all data including soft-deleted expenses
         const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
         
         expect(deleteResponse).toHaveProperty('message');
-        expect(deleteResponse.message).toContain('deleted successfully');
+        expect(deleteResponse.message).toContain('deleted permanently');
 
         // Verify the group is actually deleted
         await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token))
@@ -102,7 +100,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
         
         expect(deleteResponse).toHaveProperty('message');
-        expect(deleteResponse.message).toContain('deleted successfully');
+        expect(deleteResponse.message).toContain('deleted permanently');
 
         // Verify the group is deleted for all users
         for (const user of users) {
@@ -137,7 +135,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         const deleteResponse = await apiDriver.deleteGroup(testGroup.id, owner.token);
         
         expect(deleteResponse).toHaveProperty('message');
-        expect(deleteResponse.message).toContain('deleted successfully');
+        expect(deleteResponse.message).toContain('deleted permanently');
 
         // Verify the group is completely gone
         await expect(apiDriver.getGroupFullDetails(testGroup.id, owner.token))
@@ -150,14 +148,14 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         }
     });
 
-    test('should fail to delete group with active (non-deleted) expenses', async () => {
+    test('should successfully delete group with active (non-deleted) expenses using hard delete', async () => {
         const users = await borrowTestUsers(2);
         const [user1, user2] = users;
 
         // Create a group
         const groupData = new CreateGroupRequestBuilder()
             .withName(`Active Expense Group ${uuidv4()}`)
-            .withDescription('Testing group with active expenses')
+            .withDescription('Testing hard delete with active expenses')
             .build();
 
         const testGroup = await apiDriver.createGroup(groupData, user1.token);
@@ -175,14 +173,24 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
             .withParticipants([user1.uid, user2.uid])
             .build();
 
-        await apiDriver.createExpense(expenseData, user1.token);
+        const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
 
-        // Try to delete the group - should fail because of active expense
-        await expect(apiDriver.deleteGroup(testGroup.id, user1.token))
-            .rejects.toThrow(/Cannot delete.*expenses/i);
+        // Hard delete should succeed even with active expenses
+        const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
+        
+        expect(deleteResponse).toHaveProperty('message');
+        expect(deleteResponse.message).toContain('deleted permanently');
 
-        // Verify the group still exists
-        const { group } = await apiDriver.getGroupFullDetails(testGroup.id, user1.token);
-        expect(group.id).toBe(testGroup.id);
+        // Verify the group is completely deleted
+        await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token))
+            .rejects.toThrow(/404|not found/i);
+
+        // Verify user2 also can't access it
+        await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token))
+            .rejects.toThrow(/404|not found/i);
+
+        // Verify the expense is also deleted (hard delete removes everything)
+        await expect(apiDriver.getExpense(createdExpense.id, user1.token))
+            .rejects.toThrow(/404|not found/i);
     });
 });

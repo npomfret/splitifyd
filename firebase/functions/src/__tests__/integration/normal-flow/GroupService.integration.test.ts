@@ -238,7 +238,7 @@ describe('GroupService - Integration Tests', () => {
         test('should allow owner to delete empty group', async () => {
             const result = await groupService.deleteGroup(testGroupId, creator.uid);
 
-            expect(result.message).toBe('Group deleted successfully');
+            expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group was deleted
             const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
@@ -250,7 +250,7 @@ describe('GroupService - Integration Tests', () => {
                 .rejects.toThrow(ApiError);
         });
 
-        test('should prevent deletion of group with expenses', async () => {
+        test('should successfully delete group with expenses using hard delete', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -258,17 +258,23 @@ describe('GroupService - Integration Tests', () => {
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(50)
-                    .withDescription('Blocking expense')
+                    .withDescription('Test expense')
                     .build(),
                 creator.token
             );
 
-            await expect(groupService.deleteGroup(testGroupId, creator.uid))
-                .rejects.toThrow(ApiError);
+            // Hard delete should succeed and remove everything
+            const result = await groupService.deleteGroup(testGroupId, creator.uid);
+            
+            expect(result.message).toBe('Group and all associated data deleted permanently');
 
-            // Cleanup
-            await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
+            // Verify group was deleted
+            const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
+            expect(doc.exists).toBe(false);
+
+            // Verify expense was also deleted (hard delete removes all related data)
+            const expenseDoc = await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).get();
+            expect(expenseDoc.exists).toBe(false);
         });
 
         test('should throw NOT_FOUND for non-existent group', async () => {
