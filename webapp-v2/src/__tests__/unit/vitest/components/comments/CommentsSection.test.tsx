@@ -3,7 +3,6 @@ import { vi, beforeEach, describe, it, expect, afterEach } from 'vitest';
 import userEvent from '@testing-library/user-event';
 import { CommentsSection } from '@/components/comments/CommentsSection';
 import { CommentBuilder } from '@splitifyd/test-support';
-import type { CommentApiResponse } from '@splitifyd/shared';
 
 // Mock Heroicons to avoid JSX serialization issues
 vi.mock('@heroicons/react/24/outline', () => ({

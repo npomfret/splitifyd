@@ -6,7 +6,6 @@ import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
-import { getFirestoreReader } from './serviceRegistration';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { createServerTimestamp } from '../utils/dateHelpers';

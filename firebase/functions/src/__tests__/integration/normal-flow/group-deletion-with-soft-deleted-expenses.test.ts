@@ -7,7 +7,6 @@
 import { describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers } from '@splitifyd/test-support';
-import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
 
 describe('Group Deletion with Soft-Deleted Expenses', () => {
     const apiDriver = new ApiDriver();

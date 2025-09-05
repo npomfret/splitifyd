@@ -1,4 +1,4 @@
-import { GroupMember, UserThemeColor, MemberRoles, MemberStatuses, ColorPattern } from '@splitifyd/shared';
+import { GroupMember, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 
 export class GroupMemberBuilder {
     private member: GroupMember;

@@ -1,6 +1,5 @@
 import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
-import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 

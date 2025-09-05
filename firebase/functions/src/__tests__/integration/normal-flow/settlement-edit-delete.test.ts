@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager, TestSettlementManager} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
 import {firestoreDb} from "../../../firebase";
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";

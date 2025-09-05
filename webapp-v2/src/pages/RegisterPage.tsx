@@ -7,7 +7,6 @@ import { EmailInput } from '../components/auth/EmailInput';
 import { PasswordInput } from '../components/auth/PasswordInput';
 import { SubmitButton } from '../components/auth/SubmitButton';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
-import { firebaseConfigManager } from '../app/firebase-config';
 import { logError } from '../utils/browser-logger';
 
 export function RegisterPage() {

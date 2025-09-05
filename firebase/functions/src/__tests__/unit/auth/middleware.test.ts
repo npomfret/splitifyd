@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { authenticate, requireAdmin, authenticateAdmin, AuthenticatedRequest } from '../../../auth/middleware';
 import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
 import { Errors } from '../../../utils/errors';

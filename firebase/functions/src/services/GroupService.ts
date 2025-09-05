@@ -6,7 +6,7 @@ import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberD
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {GroupDataSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
-import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService, getFirestoreReader} from './serviceRegistration';
+import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService} from './serviceRegistration';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {encodeCursor} from '../utils/pagination';
 import {DOCUMENT_CONFIG} from '../constants';

@@ -4,7 +4,6 @@ import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types
 import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';
 import type { IFirestoreReader } from '../firestore/IFirestoreReader';
-import type { ExpenseDocument, SettlementDocument, GroupDocument } from '../../schemas';
 
 export class DataFetcher {
     constructor(private firestoreReader: IFirestoreReader) {}
