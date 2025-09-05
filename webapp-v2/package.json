@@ -12,9 +12,11 @@
     "typecheck": "npm run build:check",
     "clean": "rm -rf dist",
     "super-clean": "npm run clean && rm -rf node_modules",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "vitest run src/__tests__/unit/vitest && playwright test --workers=4",
-    "test:integration": "echo 'no integration tests' && exit 0",
+    "test": "ORIGINAL_TEST_SCRIPT=test node ../scripts/test-wrapper.js",
+    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../scripts/test-wrapper.js",
+    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../scripts/test-wrapper.js",
+    "test:unit:direct": "vitest run src/__tests__/unit/vitest && playwright test --workers=4",
+    "test:integration:direct": "echo 'no integration tests' && exit 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css}\" \"scripts/**/*.{js,json}\" \"*.{html,json,js}\""
   },
   "dependencies": {

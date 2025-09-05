@@ -7,9 +7,9 @@
     "build": "npx tsc --noEmit",
     "clean": "rm -rf playwright-report",
     "super-clean": "npm run clean && rm -rf node_modules",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "npm run build && jest src/__tests__/unit",
-    "test:integration": "npm run build && JAVA_TOOL_OPTIONS=\"-Xmx4g\" PLAYWRIGHT_HTML_REPORT=playwright-report/integration PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=2 --project=chromium --reporter=html src/__tests__/integration/normal-flow src/__tests__/integration/error-testing src/__tests__/integration/edge-cases src/__tests__/integration/security",
+    "test": "ORIGINAL_TEST_SCRIPT=test node ../scripts/test-wrapper.js",
+    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../scripts/test-wrapper.js",
+    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../scripts/test-wrapper.js",
     "screenshots:walkthrough": "npx playwright test --project=chromium src/tests/screenshots/generate-walkthrough.test.ts",
     "install-browsers": "playwright install --with-deps"
   },

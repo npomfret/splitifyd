@@ -22,9 +22,12 @@
     "watch": "tsup --watch",
     "clean": "rm -rf dist",
     "super-clean": "npm run clean && rm -rf node_modules",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "echo 'No unit tests for shared package'",
-    "test:integration": "echo 'No integration tests for shared package'"
+    "test": "ORIGINAL_TEST_SCRIPT=test node ../../scripts/test-wrapper.js",
+    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../../scripts/test-wrapper.js",
+    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js",
+    "test:direct": "npm run test:unit:direct && npm run test:integration:direct",
+    "test:unit:direct": "echo 'No unit tests for shared package'",
+    "test:integration:direct": "echo 'No integration tests for shared package'"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

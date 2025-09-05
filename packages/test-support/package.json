@@ -9,9 +9,12 @@
     "build": "npx tsc --noEmit",
     "clean": "echo 'No clean needed'",
     "super-clean": "rm -rf node_modules",
-    "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "npm run build && echo 'There are no unit tests in test-support'",
-    "test:integration": "npm run build && echo 'There are no integration tests in test-support'"
+    "test": "ORIGINAL_TEST_SCRIPT=test node ../../scripts/test-wrapper.js",
+    "test:unit": "ORIGINAL_TEST_SCRIPT=test:unit node ../../scripts/test-wrapper.js",
+    "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js",
+    "test:direct": "npm run test:unit:direct && npm run test:integration:direct",
+    "test:unit:direct": "npm run build && echo 'There are no unit tests in test-support'",
+    "test:integration:direct": "npm run build && echo 'There are no integration tests in test-support'"
   },
   "devDependencies": {
     "@types/node": "^24.0.14",
