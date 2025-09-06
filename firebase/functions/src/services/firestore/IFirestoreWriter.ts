@@ -19,12 +19,9 @@ import type {
     UserDocument,
     GroupDocument,
     ExpenseDocument,
-    SettlementDocument,
-    PolicyDocument,
-    GroupChangeDocument
+    SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 export interface WriteResult {

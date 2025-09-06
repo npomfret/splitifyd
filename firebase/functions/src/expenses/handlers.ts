@@ -3,7 +3,6 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import {getFirestore} from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError, Errors } from '../utils/errors';
-import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';

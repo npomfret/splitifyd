@@ -20,7 +20,6 @@ import { getFirestore } from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
-import { ApiError } from '../../utils/errors';
 
 // Import schemas for validation
 import {
@@ -28,7 +27,6 @@ import {
     GroupDocumentSchema,
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
-    PolicyDocumentSchema,
     GroupMemberDocumentSchema,
     CommentDataSchema
 } from '../../schemas';
@@ -38,12 +36,9 @@ import type {
     UserDocument,
     GroupDocument,
     ExpenseDocument,
-    SettlementDocument,
-    PolicyDocument,
-    GroupChangeDocument
+    SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { 
     IFirestoreWriter, 

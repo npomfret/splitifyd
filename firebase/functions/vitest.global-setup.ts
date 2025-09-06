@@ -1,4 +1,4 @@
-import { getFunctionsPort, getFirestorePort, getProjectId, getRegion } from '@splitifyd/test-support';
+import { getFirestorePort, getProjectId } from '@splitifyd/test-support';
 
 
 async function warmUpFirestoreEmulator(): Promise<void> {

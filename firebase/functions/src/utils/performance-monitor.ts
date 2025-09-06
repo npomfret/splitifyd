@@ -5,8 +5,7 @@ import { metricsStorage } from './metrics-storage';
 import { 
     getMonitoringThreshold, 
     isLargeResultSet, 
-    MONITORING_LABELS,
-    SAMPLING_RATES 
+    MONITORING_LABELS
 } from '../monitoring/monitoring-config';
 
 /**
