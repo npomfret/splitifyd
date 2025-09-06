@@ -172,18 +172,6 @@ describe('UserService - Integration Tests', () => {
             expect(profile.updatedAt).toBeDefined();
         });
 
-        test('should cache user profiles for subsequent requests', async () => {
-            const testUser = users[0];
-
-            // First call - should fetch from Firebase
-            const profile1 = await userService.getUser(testUser.uid);
-            
-            // Second call - should use cache (same instance)
-            const profile2 = await userService.getUser(testUser.uid);
-            
-            // Should be the exact same object reference (cached)
-            expect(profile1).toBe(profile2);
-        });
 
         test('should throw NOT_FOUND for non-existent user', async () => {
             const nonExistentUid = 'nonexistent-user-id';
@@ -206,7 +194,7 @@ describe('UserService - Integration Tests', () => {
     });
 
     describe('getUsers', () => {
-        test('should fetch multiple users efficiently with caching', async () => {
+        test('should fetch multiple users efficiently', async () => {
             const uids = users.map(u => u.uid);
 
             const profiles = await userService.getUsers(uids);
@@ -221,13 +209,10 @@ describe('UserService - Integration Tests', () => {
             }
         });
 
-        test('should handle mixed cached and uncached users', async () => {
+        test('should handle fetching multiple users', async () => {
             const [user1, user2, user3] = users;
 
-            // Cache first user by calling getUser
-            await userService.getUser(user1.uid);
-
-            // Now fetch all three - should use cache for user1, fetch user2 and user3
+            // Fetch all three users
             const profiles = await userService.getUsers([user1.uid, user2.uid, user3.uid]);
 
             expect(profiles.size).toBe(3);
@@ -311,20 +296,20 @@ describe('UserService - Integration Tests', () => {
             expect(userData.photoURL).toBeNull();
         });
 
-        test('should clear cache after update', async () => {
-            // Cache the user first
-            const user = await apiDriver.createUser();// don't use a pooled user as we are modifiying it
-            const originalProfile = await userService.getUser(user.uid);
+        test('should fetch fresh data after update', async () => {
+            // Get initial profile
+            const originalProfile = await userService.getUser(testUser.uid);
+            const originalDisplayName = originalProfile.displayName;
             
             // Update the profile
             await userService.updateProfile(testUser.uid, {
-                displayName: 'Cache Test Name',
+                displayName: 'Updated Test Name',
             });
 
-            // Get user again - should be fresh from database, not cached
+            // Get user again - should have updated data
             const updatedProfile = await userService.getUser(testUser.uid);
-            expect(updatedProfile.displayName).toBe('Cache Test Name');
-            expect(updatedProfile).not.toBe(originalProfile); // Different object reference
+            expect(updatedProfile.displayName).toBe('Updated Test Name');
+            expect(updatedProfile.displayName).not.toBe(originalDisplayName);
         });
 
         test('should throw NOT_FOUND for non-existent user', async () => {

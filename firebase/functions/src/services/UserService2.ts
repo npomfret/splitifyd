@@ -62,11 +62,9 @@ interface FirestoreUserDocument {
 }
 
 /**
- * Service for fetching user profiles from Firebase Auth with request-level caching
+ * Service for fetching user profiles from Firebase Auth
  */
 export class UserService {
-    private cache = new Map<string, UserProfile>();
-
     constructor(private readonly firestoreReader: IFirestoreReader) {}
 
     /**
@@ -114,11 +112,6 @@ export class UserService {
     private async _getUser(userId: string): Promise<UserProfile> {
         LoggerContext.update({userId});
 
-        // Check cache first
-        if (this.cache.has(userId)) {
-            return this.cache.get(userId)!;
-        }
-
         try {
             // Get user from Firebase Auth
             const userRecord = await getAuth().getUser(userId);
@@ -132,9 +125,6 @@ export class UserService {
             // User data is already validated by FirestoreReader
 
             const profile = this.createUserProfile(userRecord, userData);
-
-            // Cache the result
-            this.cache.set(userId, profile);
 
             return profile;
         } catch (error) {
@@ -165,22 +155,12 @@ export class UserService {
         LoggerContext.update({operation: 'batch-get-users', userCount: uids.length});
 
         const result = new Map<string, UserProfile>();
-        const uncachedUids: string[] = [];
 
-        // Check cache for each UID
-        for (const uid of uids) {
-            if (this.cache.has(uid)) {
-                result.set(uid, this.cache.get(uid)!);
-            } else {
-                uncachedUids.push(uid);
-            }
-        }
-
-        // Fetch uncached users in batches (Firebase Auth supports up to 100 users per batch)
-        if (uncachedUids.length > 0) {
+        // Fetch all users in batches (Firebase Auth supports up to 100 users per batch)
+        if (uids.length > 0) {
             const batchSize = 100;
-            for (let i = 0; i < uncachedUids.length; i += batchSize) {
-                const batch = uncachedUids.slice(i, i + batchSize);
+            for (let i = 0; i < uids.length; i += batchSize) {
+                const batch = uids.slice(i, i + batchSize);
                 await this.fetchUserBatch(batch, result);
             }
         }
@@ -204,8 +184,7 @@ export class UserService {
 
             const profile = this.createUserProfile(userRecord, userData);
 
-            // Cache and add to result
-            this.cache.set(userRecord.uid, profile);
+            // Add to result
             result.set(userRecord.uid, profile);
         }
 
@@ -287,9 +266,6 @@ export class UserService {
 
             // Update Firestore user document
             await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
-
-            // Clear cache for this user to ensure fresh data
-            this.cache.delete(userId);
 
             // Return the updated profile
             return await this.getUser(userId);
