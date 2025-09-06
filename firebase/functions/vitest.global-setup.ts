@@ -1,43 +1,5 @@
 import { getFunctionsPort, getFirestorePort, getProjectId, getRegion } from '@splitifyd/test-support';
 
-async function runCleanupForTests(): Promise<void> {
-    console.log('🧹 [GLOBAL SETUP] Running change document cleanup via HTTP endpoint...');
-    
-    try {
-        // Get Firebase configuration
-        const functionsPort = getFunctionsPort();
-        const projectId = getProjectId();
-        const region = getRegion();
-
-        // Call the test cleanup HTTP endpoint
-        const cleanupUrl = `http://localhost:${functionsPort}/${projectId}/${region}/testCleanup`;
-        console.log(`🧹 [GLOBAL SETUP] Calling cleanup endpoint: ${cleanupUrl}`);
-        
-        const response = await fetch(cleanupUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        
-        if (result.success && result.documentsDeleted > 0) {
-            console.log(`🧹 [GLOBAL SETUP] Cleanup complete: removed ${result.documentsDeleted} change documents`);
-        } else if (result.success) {
-            console.log('🧹 [GLOBAL SETUP] Cleanup complete: no change documents to remove');
-        } else {
-            console.warn('🧹 [GLOBAL SETUP] Cleanup endpoint returned failure:', result.message);
-        }
-    } catch (error) {
-        console.warn('🧹 [GLOBAL SETUP] Change document cleanup failed:', error);
-        // Don't fail tests if cleanup fails
-    }
-}
 
 async function warmUpFirestoreEmulator(): Promise<void> {
     console.log('🔥 [GLOBAL SETUP] Warming up Firestore emulator...');
@@ -80,9 +42,6 @@ export default async function setup() {
     
     // Warm up the Firestore emulator to avoid cold start penalties
     await warmUpFirestoreEmulator();
-    
-    // Clear change documents to ensure consistent performance via HTTP endpoint
-    await runCleanupForTests();
     
     console.log('✅ [GLOBAL SETUP] Global setup complete');
 }
