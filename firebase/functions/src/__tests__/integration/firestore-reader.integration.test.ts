@@ -43,12 +43,13 @@ describe('FirestoreReader Integration Tests', () => {
 
             // Now test FirestoreReader.getGroupsForUser
             const firestoreReader = getFirestoreReader();
-            const groups = await firestoreReader.getGroupsForUser(testUser.uid);
+            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
 
             // Should find the created group
-            expect(groups).toHaveLength(1);
-            expect(groups[0].id).toBe(groupId);
-            expect(groups[0].name).toBe('FirestoreReader Test Group');
+            expect(paginatedGroups.data).toHaveLength(1);
+            expect(paginatedGroups.data[0].id).toBe(groupId);
+            expect(paginatedGroups.data[0].name).toBe('FirestoreReader Test Group');
+            expect(paginatedGroups.hasMore).toBe(false);
 
             // This test would have FAILED before the fix because:
             // 1. Old implementation: .where(`members.${userId}`, '!=', null)
@@ -67,9 +68,10 @@ describe('FirestoreReader Integration Tests', () => {
             );
 
             const firestoreReader = getFirestoreReader();
-            const groups = await firestoreReader.getGroupsForUser(testUser.uid);
+            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
 
-            expect(groups).toHaveLength(0);
+            expect(paginatedGroups.data).toHaveLength(0);
+            expect(paginatedGroups.hasMore).toBe(false);
         });
 
         test('should handle pagination options correctly', async () => {
@@ -97,18 +99,21 @@ describe('FirestoreReader Integration Tests', () => {
 
             const firestoreReader = getFirestoreReader();
 
-            // Test limit
+            // Test limit - should return paginated result with hasMore=true
             const limitedGroups = await firestoreReader.getGroupsForUser(testUser.uid, { limit: 2 });
-            expect(limitedGroups).toHaveLength(2);
+            expect(limitedGroups.data).toHaveLength(2);
+            expect(limitedGroups.hasMore).toBe(true);
+            expect(limitedGroups.nextCursor).toBeDefined();
 
             // Test ordering
-            const allGroups = await firestoreReader.getGroupsForUser(testUser.uid, {
+            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid, {
                 orderBy: { field: 'name', direction: 'asc' }
             });
-            expect(allGroups).toHaveLength(3);
-            expect(allGroups[0].name).toBe('Group A');
-            expect(allGroups[1].name).toBe('Group B');
-            expect(allGroups[2].name).toBe('Group C');
+            expect(paginatedGroups.data).toHaveLength(3);
+            expect(paginatedGroups.data[0].name).toBe('Group A');
+            expect(paginatedGroups.data[1].name).toBe('Group B');
+            expect(paginatedGroups.data[2].name).toBe('Group C');
+            expect(paginatedGroups.hasMore).toBe(false);
         });
     });
 

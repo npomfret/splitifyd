@@ -21,7 +21,8 @@ import {
     GroupSubscriptionCallback,
     ExpenseListSubscriptionCallback,
     CommentListSubscriptionCallback,
-    UnsubscribeFunction
+    UnsubscribeFunction,
+    PaginatedResult
 } from '../../types/firestore-reader-types';
 
 // Import parsed types from schemas
@@ -94,24 +95,18 @@ export interface IFirestoreReader {
      */
     getUsersById(userIds: string[]): Promise<UserDocument[]>;
 
-    /**
-     * Get users that are members of a specific group
-     * @param groupId - The group ID
-     * @returns Array of user documents
-     */
-    getUsersForGroup(groupId: string): Promise<UserDocument[]>;
 
     // ========================================================================
     // Collection Read Operations - Group-related
     // ========================================================================
 
     /**
-     * Get all groups where the user is a member
+     * Get all groups where the user is a member with pagination support
      * @param userId - The user ID
      * @param options - Query options for pagination and filtering
-     * @returns Array of group documents
+     * @returns Paginated result containing group documents, hasMore flag, and nextCursor
      */
-    getGroupsForUser(userId: string, options?: QueryOptions): Promise<GroupDocument[]>;
+    getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>>;
 
     /**
      * Get group members for a specific group
@@ -148,13 +143,6 @@ export interface IFirestoreReader {
      */
     getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]>;
 
-    /**
-     * Get expenses created by a specific user
-     * @param userId - The user ID
-     * @param options - Query options for pagination and filtering
-     * @returns Array of expense documents
-     */
-    getExpensesByUser(userId: string, options?: QueryOptions): Promise<ExpenseDocument[]>;
 
     // ========================================================================
     // Collection Read Operations - Settlement-related
@@ -168,25 +156,11 @@ export interface IFirestoreReader {
      */
     getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]>;
 
-    /**
-     * Get settlements involving a specific user
-     * @param userId - The user ID
-     * @param options - Query options for pagination and filtering
-     * @returns Array of settlement documents
-     */
-    getSettlementsForUser(userId: string, options?: QueryOptions): Promise<SettlementDocument[]>;
 
     // ========================================================================
     // Collection Read Operations - Comment-related
     // ========================================================================
 
-    /**
-     * Get comments for a specific target (group or expense)
-     * @param target - The target specification
-     * @param options - Query options for pagination and filtering
-     * @returns Array of comment documents
-     */
-    getCommentsForTarget(target: CommentTarget, options?: QueryOptions): Promise<CommentDocument[]>;
 
     // ========================================================================
     // Specialized Query Operations
@@ -203,19 +177,7 @@ export interface IFirestoreReader {
         limit?: number;
     }): Promise<GroupChangeDocument[]>;
 
-    /**
-     * Find an active share link by token
-     * @param token - The share link token
-     * @returns Share link document or null if not found/expired
-     */
-    getActiveShareLinkByToken(token: string): Promise<ShareLinkDocument | null>;
 
-    /**
-     * Get policy versions for a user
-     * @param userId - The user ID
-     * @returns Array of policy documents
-     */
-    getPolicyVersionsForUser(userId: string): Promise<PolicyDocument[]>;
 
     // ========================================================================
     // Transaction-aware Read Operations
@@ -252,41 +214,13 @@ export interface IFirestoreReader {
     // Real-time Subscription Operations
     // ========================================================================
 
-    /**
-     * Subscribe to real-time updates for a group document
-     * @param groupId - The group ID
-     * @param callback - Callback function for group updates
-     * @returns Unsubscribe function
-     */
-    subscribeToGroup(groupId: string, callback: GroupSubscriptionCallback): UnsubscribeFunction;
 
-    /**
-     * Subscribe to real-time updates for group expenses
-     * @param groupId - The group ID
-     * @param callback - Callback function for expense list updates
-     * @returns Unsubscribe function
-     */
-    subscribeToGroupExpenses(groupId: string, callback: ExpenseListSubscriptionCallback): UnsubscribeFunction;
 
-    /**
-     * Subscribe to real-time updates for comments on a target
-     * @param target - The comment target
-     * @param callback - Callback function for comment list updates
-     * @returns Unsubscribe function
-     */
-    subscribeToComments(target: CommentTarget, callback: CommentListSubscriptionCallback): UnsubscribeFunction;
 
     // ========================================================================
     // Batch Operations
     // ========================================================================
 
-    /**
-     * Get multiple documents by collection and IDs
-     * @param collection - The collection name
-     * @param documentIds - Array of document IDs
-     * @returns Array of document data (validated by collection schema)
-     */
-    getBatchDocuments<T>(collection: string, documentIds: string[]): Promise<T[]>;
 
     // ========================================================================
     // Utility Operations
@@ -300,11 +234,4 @@ export interface IFirestoreReader {
      */
     documentExists(collection: string, documentId: string): Promise<boolean>;
 
-    /**
-     * Count documents in a collection query
-     * @param collection - The collection name
-     * @param filters - Query filters
-     * @returns Number of matching documents
-     */
-    countDocuments(collection: string, filters?: Record<string, any>): Promise<number>;
 }

@@ -363,8 +363,10 @@ export class GroupMemberService {
      * @deprecated Use firestoreReader.getGroupsForUser() instead
      */
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
-        const groups = await this.firestoreReader.getGroupsForUser(userId);
-        return groups.map(group => group.id);
+        // Use a high limit to maintain backward compatibility 
+        // This method is expected to return ALL groups for a user
+        const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, { limit: 1000 });
+        return paginatedGroups.data.map((group: any) => group.id);
     }
 
     /**

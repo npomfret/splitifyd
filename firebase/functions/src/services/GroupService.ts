@@ -330,10 +330,11 @@ export class GroupService {
         const includeMetadata = options.includeMetadata === true;
 
         // Step 1: Query groups and metadata using FirestoreReader
-        const { groupsData, recentGroupChanges } = await stepTracker('query-groups-and-metadata', async () => {
-            // Get groups for user using FirestoreReader
-            const groupsData = await this.firestoreReader.getGroupsForUser(userId, {
-                limit: limit + 1,
+        const { paginatedGroups, recentGroupChanges } = await stepTracker('query-groups-and-metadata', async () => {
+            // Get groups for user using FirestoreReader (returns PaginatedResult)
+            // Request extra groups to detect if there are more pages
+            const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, {
+                limit: limit * 2, // Get more than needed to detect hasMore reliably
                 cursor: cursor,
                 orderBy: {
                     field: 'updatedAt',
@@ -353,14 +354,17 @@ export class GroupService {
             }
 
             return {
-                groupsData,
+                paginatedGroups,
                 recentGroupChanges
             };
         });
 
         // Step 2: Process group documents
         const { groups, groupIds } = await stepTracker('process-group-documents', async () => {
-            // Determine if there are more results
+            // Extract groups data from paginated result
+            const groupsData = paginatedGroups.data;
+            
+            // Determine if there are more results (we requested more than limit)
             const hasMore = groupsData.length > limit;
             const returnedGroups = hasMore ? groupsData.slice(0, limit) : groupsData;
 
@@ -566,18 +570,9 @@ export class GroupService {
 
         // Step 7: Generate pagination and response
         return await stepTracker('generate-response', async () => {
-            // Determine if there are more results  
-            const hasMore = groupsData.length > limit;
-            const returnedGroups = hasMore ? groupsData.slice(0, limit) : groupsData;
-
-            let nextCursor: string | undefined;
-            if (hasMore && returnedGroups.length > 0) {
-                const lastGroup = returnedGroups[returnedGroups.length - 1];
-                nextCursor = encodeCursor({
-                    updatedAt: lastGroup.updatedAt,
-                    id: lastGroup.id,
-                });
-            }
+            // Calculate pagination information correctly
+            const hasMore = paginatedGroups.data.length > limit;
+            const nextCursor = hasMore ? paginatedGroups.nextCursor : undefined;
 
             const response: ListGroupsResponse = {
                 groups: groupsWithBalances,

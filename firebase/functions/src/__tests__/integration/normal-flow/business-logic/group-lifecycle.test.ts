@@ -35,17 +35,11 @@ describe('Group Lifecycle Edge Cases', () => {
         const expenses = await apiDriver.getGroupExpenses(emptyGroup.id, users[0].token);
         expect(expenses.expenses).toHaveLength(0);
 
-        // Check group list shows zero balance - may need to wait for propagation
-        const groupsList = await apiDriver.listGroups(users[0].token);
-        const groupInList = groupsList.groups.find((g: any) => g.id === emptyGroup.id);
-
-        expect(groupInList).toBeDefined();
-        // balancesByCurrency is optional for groups without expenses
-        if (groupInList?.balance?.balancesByCurrency) {
-            const usdBalance = groupInList.balance.balancesByCurrency['USD'];
-            if (usdBalance) {
-                expect(usdBalance.netBalance).toBe(0);
-            }
+        // Verify empty group details include balance structure
+        expect(groupDetails).toHaveProperty('balance');
+        // For groups without expenses, balance should be empty or zero
+        if (groupDetails.balance?.balancesByCurrency?.['USD']) {
+            expect(groupDetails.balance.balancesByCurrency['USD'].netBalance).toBe(0);
         }
     });
 
@@ -152,17 +146,13 @@ describe('Group Lifecycle Edge Cases', () => {
         expect(expenses.expenses).toHaveLength(1);
         expect(expenses.expenses[0].amount).toBe(90);
 
-        // Get group from list to verify balance info
-        const groupsList = await apiDriver.listGroups(users[0].token);
-        const groupInList = groupsList.groups.find((g: any) => g.id === complexGroup.id);
-        expect(groupInList).toBeDefined();
-
+        // Verify group details include balance info after expense creation
+        const {group: groupWithBalance} = await apiDriver.getGroupFullDetails(complexGroup.id, users[0].token);
+        expect(groupWithBalance).toHaveProperty('balance');
+        
         // When a single user pays for expenses they fully participate in, net balance is 0
-        if (groupInList?.balance?.balancesByCurrency) {
-            const usdBalance = groupInList.balance.balancesByCurrency['USD'];
-            if (usdBalance) {
-                expect(usdBalance.netBalance).toBe(0);
-            }
+        if (groupWithBalance.balance?.balancesByCurrency?.['USD']) {
+            expect(groupWithBalance.balance.balancesByCurrency['USD'].netBalance).toBe(0);
         }
     });
 

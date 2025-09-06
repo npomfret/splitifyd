@@ -156,25 +156,26 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const firestoreReader = getFirestoreReader();
             
             // This should not throw even with invalid data in the database
-            let groups: any[] = [];
+            let paginatedResult: any;
             let error;
             
             try {
-                groups = await firestoreReader.getGroupsForUser(testUser.uid);
+                paginatedResult = await firestoreReader.getGroupsForUser(testUser.uid);
             } catch (e) {
                 error = e;
             }
 
             // Should not throw an error
             expect(error).toBeUndefined();
-            expect(groups).toBeDefined();
-            expect(Array.isArray(groups)).toBe(true);
+            expect(paginatedResult).toBeDefined();
+            expect(paginatedResult.data).toBeDefined();
+            expect(Array.isArray(paginatedResult.data)).toBe(true);
 
             // Should include at least the valid group
-            const validGroup = groups.find((g: any) => g.id === validGroupId);
+            const validGroup = paginatedResult.data.find((g: any) => g.id === validGroupId);
             expect(validGroup).toBeDefined();
 
-            console.log(`FirestoreReader returned ${groups.length} groups successfully`);
+            console.log(`FirestoreReader returned ${paginatedResult.data.length} groups successfully`);
         });
 
         test('GET /groups/:id should handle invalid securityPreset for specific group', async () => {

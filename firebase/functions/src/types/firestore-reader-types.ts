@@ -73,6 +73,58 @@ export interface QueryOptions extends PaginationOptions, FilterOptions {
 }
 
 /**
+ * Paginated result wrapper for collection queries
+ * Provides consistent pagination interface with cursor support
+ */
+export interface PaginatedResult<T> {
+    /** The actual data for this page */
+    data: T;
+    /** Whether more results exist after this page */
+    hasMore: boolean;
+    /** Cursor for fetching the next page (undefined if hasMore is false) */
+    nextCursor?: string;
+    /** Optional rough estimate of total items for UI purposes */
+    totalEstimate?: number;
+}
+
+/**
+ * Cursor data for groups pagination
+ * Contains all necessary information for resuming pagination
+ */
+export interface GroupsPaginationCursor {
+    /** ID of the last group in current page */
+    lastGroupId: string;
+    /** UpdatedAt timestamp of the last group for ordering */
+    lastUpdatedAt: string;
+    /** Optional cursor for subcollection pagination */
+    membershipCursor?: string;
+}
+
+/**
+ * Order by specification for queries
+ */
+export interface OrderBy {
+    field: string;
+    direction: 'asc' | 'desc';
+}
+
+/**
+ * Options for efficient batch group fetching
+ */
+export interface BatchGroupFetchOptions {
+    orderBy: OrderBy;
+    limit: number;
+}
+
+/**
+ * Cursor encoding/decoding utilities
+ */
+export interface CursorUtils {
+    encodeCursor(data: GroupsPaginationCursor): string;
+    decodeCursor(cursor: string): GroupsPaginationCursor;
+}
+
+/**
  * Error handling context for FirestoreReader operations
  */
 export interface ReadErrorContext {

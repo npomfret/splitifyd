@@ -14,7 +14,8 @@
 import { vi } from 'vitest';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
-    CommentTarget
+    CommentTarget,
+    PaginatedResult
 } from '../../types/firestore-reader-types';
 
 // Import types for proper typing
@@ -41,28 +42,17 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getPolicy = vi.fn();
     public getAllPolicies = vi.fn();
     public getUsersById = vi.fn();
-    public getUsersForGroup = vi.fn();
     public getGroupsForUser = vi.fn();
     public getGroupMembers = vi.fn();
     public getMemberFromSubcollection = vi.fn();
     public getMembersFromSubcollection = vi.fn();
     public getExpensesForGroup = vi.fn();
-    public getExpensesByUser = vi.fn();
     public getSettlementsForGroup = vi.fn();
-    public getSettlementsForUser = vi.fn();
-    public getCommentsForTarget = vi.fn();
     public getRecentGroupChanges = vi.fn();
-    public getActiveShareLinkByToken = vi.fn();
-    public getPolicyVersionsForUser = vi.fn();
     public getGroupInTransaction = vi.fn();
     public getUserInTransaction = vi.fn();
     public getMultipleInTransaction = vi.fn();
-    public subscribeToGroup = vi.fn();
-    public subscribeToGroupExpenses = vi.fn();
-    public subscribeToComments = vi.fn();
-    public getBatchDocuments = vi.fn();
     public documentExists = vi.fn();
-    public countDocuments = vi.fn();
 
     // ========================================================================
     // Test Utility Methods
@@ -173,16 +163,76 @@ export class MockFirestoreReader implements IFirestoreReader {
     }
 
     /**
-     * Mock multiple groups for a user
+     * Mock multiple groups for a user with pagination support
      */
-    public mockGroupsForUser(userId: string, groups: GroupDocument[]): void {
-        this.getGroupsForUser.mockResolvedValue(groups);
+    public mockGroupsForUser(userId: string, groups: GroupDocument[], hasMore: boolean = false, nextCursor?: string): void {
+        const paginatedResult: PaginatedResult<GroupDocument[]> = {
+            data: groups,
+            hasMore,
+            nextCursor,
+            totalEstimate: groups.length + (hasMore ? 10 : 0)
+        };
+        
+        this.getGroupsForUser.mockResolvedValue(paginatedResult);
         
         // Also mock individual group gets
         groups.forEach(group => {
             if (!this.getGroup.getMockImplementation()) {
                 this.mockGroupExists(group.id, group);
             }
+        });
+    }
+
+    /**
+     * Mock paginated groups with specific pagination behavior
+     * Useful for testing pagination edge cases
+     */
+    public mockPaginatedGroups(
+        userId: string, 
+        allGroups: GroupDocument[], 
+        pageSize: number = 10
+    ): void {
+        this.getGroupsForUser.mockImplementation(async (uid, options) => {
+            if (uid !== userId) {
+                return { data: [], hasMore: false };
+            }
+            
+            const limit = options?.limit || pageSize;
+            const cursor = options?.cursor;
+            
+            let startIndex = 0;
+            if (cursor) {
+                try {
+                    const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
+                    const cursorIndex = allGroups.findIndex(group => group.id === cursorData.lastGroupId);
+                    if (cursorIndex >= 0) {
+                        startIndex = cursorIndex + 1;
+                    }
+                } catch (error) {
+                    // Invalid cursor, start from beginning
+                }
+            }
+            
+            const endIndex = startIndex + limit;
+            const pageData = allGroups.slice(startIndex, endIndex);
+            const hasMore = endIndex < allGroups.length;
+            
+            let nextCursor: string | undefined;
+            if (hasMore && pageData.length > 0) {
+                const lastGroup = pageData[pageData.length - 1];
+                const cursorData = {
+                    lastGroupId: lastGroup.id,
+                    lastUpdatedAt: lastGroup.updatedAt
+                };
+                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+            }
+            
+            return {
+                data: pageData,
+                hasMore,
+                nextCursor,
+                totalEstimate: allGroups.length
+            };
         });
     }
 
@@ -264,28 +314,7 @@ export class MockFirestoreReader implements IFirestoreReader {
         });
     }
 
-    /**
-     * Mock comments for a target
-     */
-    public mockCommentsForTarget(target: CommentTarget, comments: CommentDocument[]): void {
-        this.getCommentsForTarget.mockImplementation(async (t) => {
-            if (t.type === target.type && t.id === target.id) {
-                return comments;
-            }
-            return [];
-        });
-    }
 
-    /**
-     * Mock real-time subscriptions (returns a mock unsubscribe function)
-     */
-    public mockSubscriptions(): void {
-        const mockUnsubscribe = vi.fn();
-        
-        this.subscribeToGroup.mockReturnValue(mockUnsubscribe);
-        this.subscribeToGroupExpenses.mockReturnValue(mockUnsubscribe);
-        this.subscribeToComments.mockReturnValue(mockUnsubscribe);
-    }
 
     /**
      * Mock document existence checks
@@ -296,32 +325,7 @@ export class MockFirestoreReader implements IFirestoreReader {
         });
     }
 
-    /**
-     * Mock batch document retrieval
-     */
-    public mockBatchDocuments<T>(collection: string, documents: Record<string, T>): void {
-        this.getBatchDocuments.mockImplementation(async (col: string, ids: string[]) => {
-            if (col === collection) {
-                return ids.map((id: string) => documents[id]).filter(Boolean) as T[];
-            }
-            return [];
-        });
-    }
 
-    /**
-     * Mock document counting
-     */
-    public mockDocumentCount(collection: string, count: number, filters?: Record<string, any>): void {
-        this.countDocuments.mockImplementation(async (col, f) => {
-            if (col === collection) {
-                // Simple filter matching - could be enhanced for more complex scenarios
-                if (!filters || JSON.stringify(f) === JSON.stringify(filters)) {
-                    return count;
-                }
-            }
-            return 0;
-        });
-    }
 
     // ========================================================================
     // Data Builder Helpers

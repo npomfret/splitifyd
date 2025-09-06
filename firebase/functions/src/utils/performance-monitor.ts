@@ -615,6 +615,9 @@ export class PerformanceMonitor {
                     resultCount = result.length;
                 } else if ('size' in result) {
                     resultCount = (result as any).size;
+                } else if ('data' in result && Array.isArray((result as any).data)) {
+                    // Handle PaginatedResult<T> structure
+                    resultCount = (result as any).data.length;
                 }
             }
 
