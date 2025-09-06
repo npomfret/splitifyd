@@ -1,5 +1,6 @@
 import { logger } from '../logger';
-import { metricsStorage } from './metrics-storage';
+import { createMetricsStorage } from './metrics-storage-factory';
+import type { IMetricsStorage } from './metrics-storage-factory';
 import { metricsSampler } from './metrics-sampler';
 
 /**
@@ -12,10 +13,14 @@ export class PerformanceMetricsCollector {
     private lastReportTime = Date.now();
     private reportingIntervalId?: NodeJS.Timeout;
     private readonly isTestEnvironment: boolean;
+    private metricsStorage: IMetricsStorage;
 
     private constructor() {
         // Detect test environment
         this.isTestEnvironment = this.detectTestEnvironment();
+        
+        // Create metrics storage instance
+        this.metricsStorage = createMetricsStorage();
         
         // Start periodic reporting only in non-test environments
         if (!this.isTestEnvironment) {
@@ -57,7 +62,7 @@ export class PerformanceMetricsCollector {
 
         if (samplingDecision.sample) {
             // Store to Firestore
-            await metricsStorage.storeMetric({
+            await this.metricsStorage.storeMetric({
                 timestamp: metric.timestamp,
                 operationType: metric.operationType,
                 operationName,
@@ -223,7 +228,7 @@ export class PerformanceMetricsCollector {
         
         try {
             // Query recent metrics from Firestore
-            const recentMetrics = await metricsStorage.queryRecentMetrics(60); // Last hour
+            const recentMetrics = await this.metricsStorage.queryRecentMetrics(60); // Last hour
             
             if (recentMetrics.length === 0) {
                 logger.info('No metrics to report');
@@ -267,7 +272,7 @@ export class PerformanceMetricsCollector {
             
             // Store aggregated stats
             if (stats.length > 0) {
-                await metricsStorage.storeAggregatedStats({
+                await this.metricsStorage.storeAggregatedStats({
                     period: 'hour',
                     periodStart: new Date(Date.now() - 3600000),
                     periodEnd: new Date(),

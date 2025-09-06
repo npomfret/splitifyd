@@ -46,7 +46,7 @@ describe('Trigger Debug Tests', () => {
         }
 
         // Create an expense using builder
-        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(user1.uid).withParticipants([user1.uid]).build(), user1.token);
+        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withPaidBy(user1.uid).withParticipants([user1.uid]).withSplitType('equal').build(), user1.token);
 
         // Created expense
         expect(expense).toBeDefined();

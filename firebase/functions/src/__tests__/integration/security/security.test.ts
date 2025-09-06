@@ -103,6 +103,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid]) // Only user 0 is participant - this is what the test is about
+                    .withSplitType('equal')
                     .build();
                 const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
@@ -117,6 +118,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
+                    .withSplitType('equal')
                     .build();
                 const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
@@ -183,6 +185,7 @@ describe('Comprehensive Security Test Suite', () => {
                         .withPaidBy(users[0].uid)
                         .withParticipants(users.map((u) => u.uid))
                         .withDescription(payload) // XSS payload - this is what the test is about
+                        .withSplitType('equal')
                         .build();
 
                     // SECURITY ISSUE: Some XSS payloads are rejected (good), others may pass through
@@ -248,6 +251,7 @@ describe('Comprehensive Security Test Suite', () => {
                             .withGroupId(testGroup.id)
                             .withPaidBy(users[0].uid)
                             .withParticipants(users.map((u) => u.uid))
+                            .withSplitType('equal')
                             .build(),
                         ...payload, // Prototype pollution attempt - this is what the test is about
                     };
@@ -287,6 +291,7 @@ describe('Comprehensive Security Test Suite', () => {
                             .withGroupId(testGroup.id)
                             .withPaidBy(users[0].uid)
                             .withParticipants(users.map((u) => u.uid))
+                            .withSplitType('equal')
                             .build(),
                         ...invalidData, // Invalid data type - this is what the test is about
                     };
@@ -301,6 +306,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withAmount(Number.MAX_SAFE_INTEGER + 1) // Extremely large value - this is what the test is about
+                    .withSplitType('equal')
                     .build();
 
                 await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|invalid.*amount|too.*large/i);
@@ -312,6 +318,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withAmount(-100) // Negative amount - this is what the test is about
+                    .withSplitType('equal')
                     .build();
 
                 await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|invalid.*amount|negative/i);
@@ -325,6 +332,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withDescription(veryLongString) // Very long string - this is what the test is about
+                    .withSplitType('equal')
                     .build();
 
                 await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|too.*long|exceeds.*limit/i);
@@ -336,6 +344,7 @@ describe('Comprehensive Security Test Suite', () => {
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withDescription('') // Empty description - this is what the test is about
+                    .withSplitType('equal')
                     .build();
 
                 await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|validation|required|empty/i);
@@ -369,6 +378,7 @@ describe('Comprehensive Security Test Suite', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
                 .withDescription('A'.repeat(1000000)) // 1MB string - this is what the test is about
+                .withSplitType('equal')
                 .build();
 
             // SECURITY FIX: API should reject enormous payloads due to validation limits

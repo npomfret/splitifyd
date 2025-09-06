@@ -8,7 +8,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder, ExpenseUpdateBuilder, TestGroupManager} from '@splitifyd/test-support';
+import {ApiDriver, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Edit Expense Integration Tests', () => {
@@ -35,6 +35,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(initialExpenseData, users[0].token);
@@ -71,6 +72,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withAmount(50)
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -106,12 +108,13 @@ describe('Edit Expense Integration Tests', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // User 1 (not creator, not owner) should not be able to edit
-            await expect(apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(200).build(), users[1].token)).rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.updateExpense(createdExpense.id, { amount: 200 }, users[1].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('should track edit history when expense is updated', async () => {
@@ -123,6 +126,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -171,40 +175,45 @@ describe('Edit Expense Integration Tests', () => {
         });
 
         test('should update group lastExpenseTime when expense date is changed', async () => {
-            // Create expense with old date
-            const oldDate = new Date();
-            oldDate.setDate(oldDate.getDate() - 10);
-
+            // Get the current group to see its last activity date
+            const currentGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
+            
+            // Use updatedAt as the base date (lastActivity might be a text message like "No recent activity")
+            const baseDate = new Date(currentGroup.updatedAt);
+            
+            // Create expense with a date newer than the group's current updatedAt
+            const initialDate = new Date(baseDate.getTime() + 1000); // 1 second newer
+            
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Date Update Test')
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
-                .withDate(oldDate.toISOString())
+                .withDate(initialDate.toISOString())
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
-            // Update with new date
-            const newDate = new Date();
+            // Update with an even newer date 
+            const newerDate = new Date(initialDate.getTime() + 2000); // 2 seconds newer
             await apiDriver.updateExpense(
                 createdExpense.id,
                 {
-                    date: newDate.toISOString(),
+                    date: newerDate.toISOString(),
                 },
                 users[0].token,
             );
 
-            // Check group metadata was updated
-            const groupsResponse = await apiDriver.listGroups(users[0].token);
-            const updatedGroup = groupsResponse.groups.find((g: any) => g.id === testGroup.id);
+            // Check group metadata was updated by fetching the group directly
+            const updatedGroup = await apiDriver.getGroup(testGroup.id, users[0].token);
             expect(updatedGroup).toBeDefined();
 
             // The group might not have the lastExpense updated immediately after expense update
             // Let's check if the expense was updated correctly instead
             const updatedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
-            expect(new Date(updatedExpense.date).toDateString()).toBe(newDate.toDateString());
+            expect(new Date(updatedExpense.date).toDateString()).toBe(newerDate.toDateString());
         });
 
         test('should handle concurrent updates with optimistic locking', async () => {
@@ -215,6 +224,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -274,18 +284,19 @@ describe('Edit Expense Integration Tests', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Test invalid amount
-            await expect(apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withAmount(-50).build(), users[0].token)).rejects.toThrow();
+            await expect(apiDriver.updateExpense(createdExpense.id, { amount: -50 }, users[0].token)).rejects.toThrow();
 
             // Test invalid date
-            await expect(apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDate('invalid-date').build(), users[0].token)).rejects.toThrow();
+            await expect(apiDriver.updateExpense(createdExpense.id, { date: 'invalid-date' }, users[0].token)).rejects.toThrow();
 
             // Test empty description
-            await expect(apiDriver.updateExpense(createdExpense.id, new ExpenseUpdateBuilder().withDescription('').build(), users[0].token)).rejects.toThrow();
+            await expect(apiDriver.updateExpense(createdExpense.id, { description: '' }, users[0].token)).rejects.toThrow();
         });
 
         test('should handle partial updates correctly', async () => {
@@ -297,6 +308,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -338,6 +350,7 @@ describe('Edit Expense Integration Tests', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);

@@ -54,6 +54,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withAmount(150) // $1.50
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+            .withSplitType('equal')
             .build();
         await apiDriver.createExpense(expenseData, users[0].token);
 
@@ -86,6 +87,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withAmount(60) // $0.60
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         const expenseData2 = new ExpenseBuilder()
@@ -94,6 +96,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withAmount(20) // $0.20
             .withPaidBy(users[1].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         await apiDriver.createExpense(expenseData1, users[0].token);
@@ -170,6 +173,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withAmount(300) // $3.00
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+            .withSplitType('equal')
             .build();
 
         const expenseData2 = new ExpenseBuilder()
@@ -179,6 +183,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withPaidBy(users[1].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
             .withCategory('transport')
+            .withSplitType('equal')
             .build();
 
         await apiDriver.createExpense(expenseData1, users[0].token);

@@ -257,7 +257,7 @@ describe('CommentItem', () => {
 
     describe('Layout and Responsiveness', () => {
         it('should have proper flex layout', () => {
-            const comment = new CommentBuilder().build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').build();
             renderCommentItem(comment);
 
             const contentArea = screen.getByText('John Doe').closest('.flex-1');
@@ -265,7 +265,7 @@ describe('CommentItem', () => {
         });
 
         it('should have proper header layout for author and timestamp', () => {
-            const comment = new CommentBuilder().build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').build();
             renderCommentItem(comment);
 
             const headerArea = screen.getByText('John Doe').parentElement;
@@ -308,7 +308,7 @@ describe('CommentItem', () => {
         });
 
         it('should maintain semantic structure', () => {
-            const comment = new CommentBuilder().build();
+            const comment = new CommentBuilder().withText('This is a test comment').build();
             renderCommentItem(comment);
 
             // Should have proper paragraph tag for comment text
@@ -319,7 +319,7 @@ describe('CommentItem', () => {
 
     describe('Dark Mode Support', () => {
         it('should have dark mode classes', () => {
-            const comment = new CommentBuilder().build();
+            const comment = new CommentBuilder().withAuthor('user-1', 'John Doe').withText('This is a test comment').build();
             renderCommentItem(comment);
 
             const authorName = screen.getByText('John Doe');

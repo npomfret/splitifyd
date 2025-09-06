@@ -65,6 +65,7 @@ export class TestExpenseManager {
             .withPaidBy(payer.uid)
             .withParticipants(users.map(u => u.uid))
             .withCategory(category)
+            .withSplitType('equal')
             .build();
 
         return this.apiDriver.createExpense(expenseData, payer.token);

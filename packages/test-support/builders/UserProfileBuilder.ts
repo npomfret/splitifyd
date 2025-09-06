@@ -1,3 +1,12 @@
+import { 
+    randomString, 
+    randomBoolean, 
+    randomChoice, 
+    randomEmail, 
+    randomUrl, 
+    generateShortId 
+} from '../test-helpers';
+
 // Import UserProfile from the functions package - this is the source of truth
 type UserProfile = {
     uid: string;
@@ -17,11 +26,13 @@ type UserProfile = {
  */
 export class UserProfileBuilder {
     private user: UserProfile = {
-        uid: 'user-1',
-        displayName: 'Test User',
-        email: 'test@example.com',
-        photoURL: null,
-        emailVerified: true,
+        uid: `user-${generateShortId()}`,
+        displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
+        email: randomEmail(),
+        photoURL: randomBoolean() ? randomUrl() : null,
+        emailVerified: randomBoolean(),
+        themeColor: randomChoice(['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD']),
+        preferredLanguage: randomChoice(['en', 'es', 'fr', 'de', 'it', 'pt']),
     };
 
     withUid(uid: string): UserProfileBuilder {

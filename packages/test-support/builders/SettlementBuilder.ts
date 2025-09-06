@@ -1,3 +1,11 @@
+import { 
+    randomDecimal, 
+    randomDate, 
+    randomString, 
+    randomCurrency, 
+    generateShortId 
+} from '../test-helpers';
+
 export interface TestSettlement {
     groupId: string;
     payerId: string;
@@ -13,11 +21,13 @@ export class SettlementBuilder {
 
     constructor() {
         this.settlement = {
-            groupId: 'default-group-id',
-            payerId: 'default-payer-id',
-            payeeId: 'default-payee-id',
-            amount: 50.0,
-            currency: 'USD',
+            groupId: `group-${generateShortId()}`,
+            payerId: `user-${generateShortId()}`,
+            payeeId: `user-${generateShortId()}`,
+            amount: randomDecimal(5, 200),
+            currency: randomCurrency(),
+            date: randomDate(),
+            note: `Settlement ${randomString(6)}`,
         };
     }
 

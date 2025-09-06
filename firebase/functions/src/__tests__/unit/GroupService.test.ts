@@ -7,6 +7,7 @@ import { SecurityPresets, MemberRoles, MemberStatuses, SplitTypes } from '@split
 
 // Mock dependencies
 vi.mock('../../firebase', () => ({
+    isTest: vi.fn(() => true),
     getFirestore: vi.fn(() => ({
         collection: vi.fn(() => ({
             doc: vi.fn(() => ({

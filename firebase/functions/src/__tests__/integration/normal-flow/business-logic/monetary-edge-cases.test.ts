@@ -23,6 +23,7 @@ describe('Additional Monetary Edge Cases', () => {
             .withDescription(`Currency format test ${uniqueId}`)
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -44,6 +45,7 @@ describe('Additional Monetary Edge Cases', () => {
             .withDescription(`Odd division test ${uniqueId}`)
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+            .withSplitType('equal')
             .build();
 
         const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -70,6 +72,7 @@ describe('Additional Monetary Edge Cases', () => {
             .withAmount(0.999) // Nearly 1 cent - this is what the test is about
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         const response = await apiDriver.createExpense(expenseData, users[0].token);

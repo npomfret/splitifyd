@@ -72,7 +72,6 @@ export interface MetricsStorageConfig {
 }
 
 export class MetricsStorage {
-    private static instance: MetricsStorage;
     private config: MetricsStorageConfig;
     private metricsBuffer: PerformanceMetric[] = [];
     private flushTimer?: NodeJS.Timeout;
@@ -80,7 +79,7 @@ export class MetricsStorage {
     private db: Firestore;
     private isShuttingDown = false;
 
-    private constructor(config?: Partial<MetricsStorageConfig>) {
+    constructor(config?: Partial<MetricsStorageConfig>) {
         this.config = {
             bufferSize: 100,
             flushIntervalMs: 30000, // 30 seconds
@@ -100,12 +99,6 @@ export class MetricsStorage {
         this.registerShutdownHandler();
     }
 
-    static getInstance(config?: Partial<MetricsStorageConfig>): MetricsStorage {
-        if (!MetricsStorage.instance) {
-            MetricsStorage.instance = new MetricsStorage(config);
-        }
-        return MetricsStorage.instance;
-    }
 
     /**
      * Store a performance metric
@@ -439,5 +432,5 @@ export class MetricsStorage {
     }
 }
 
-// Export singleton instance
-export const metricsStorage = MetricsStorage.getInstance();
+// Export is now handled by the factory
+// This file only exports the class

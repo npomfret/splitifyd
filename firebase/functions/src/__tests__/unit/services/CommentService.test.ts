@@ -11,6 +11,7 @@ vi.mock('../../../utils/groupHelpers', () => ({
 }));
 
 vi.mock('../../../firebase', () => ({
+    isTest: vi.fn(() => true),
     getAuth: vi.fn(() => ({
         getUser: vi.fn(),
     })),

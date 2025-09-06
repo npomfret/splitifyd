@@ -6,7 +6,12 @@ import { RegisterRequestBuilder, ValidationExpenseBuilder } from '@splitifyd/tes
 describe('Auth Validation', () => {
     describe('validateRegisterRequest', () => {
         it('should validate valid register request and normalize data', () => {
-            const request = new RegisterRequestBuilder().withEmail('TEST@EXAMPLE.COM').withDisplayName('  Test User  ').build();
+            const request = new RegisterRequestBuilder()
+                .withEmail('TEST@EXAMPLE.COM')
+                .withDisplayName('  Test User  ')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .build();
 
             const result = validateRegisterRequest(request);
 
@@ -33,7 +38,11 @@ describe('Auth Validation', () => {
             expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('Test<script>').build())).toThrow(ApiError);
 
             // Valid boundary case
-            const result = validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('John Doe-Smith_123.Jr').build());
+            const result = validateRegisterRequest(new RegisterRequestBuilder()
+                .withDisplayName('John Doe-Smith_123.Jr')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .build());
             expect(result.displayName).toBe('John Doe-Smith_123.Jr');
         });
 

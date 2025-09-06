@@ -30,6 +30,7 @@ vi.mock('../../../services/serviceRegistration', () => ({
 }));
 
 vi.mock('../../../firebase', () => ({
+    isTest: vi.fn(() => true),
     getFirestore: vi.fn(() => ({
         collection: vi.fn(() => ({
             doc: vi.fn(() => ({

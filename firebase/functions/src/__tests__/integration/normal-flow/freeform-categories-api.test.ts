@@ -28,6 +28,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(customCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -46,6 +47,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(specialCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -63,6 +65,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(safeCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -80,6 +83,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(maxLengthCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -99,6 +103,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(tooLongCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
@@ -112,6 +117,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory('')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
@@ -125,6 +131,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory('   ')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/between 1 and 50 characters|INVALID_CATEGORY/i);
@@ -141,6 +148,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory('food')
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -173,6 +181,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(customCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -204,6 +213,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(firstCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -237,6 +247,7 @@ describe('Freeform Categories API Integration', () => {
                     .withCategory(category)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
+                    .withSplitType('equal')
                     .build();
 
                 const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -257,6 +268,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(categoryWithHtml)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             // XSS content should be rejected entirely
@@ -272,6 +284,7 @@ describe('Freeform Categories API Integration', () => {
                 .withCategory(sqlLikeCategory)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
+                .withSplitType('equal')
                 .build();
 
             // Should be safely stored without causing database issues

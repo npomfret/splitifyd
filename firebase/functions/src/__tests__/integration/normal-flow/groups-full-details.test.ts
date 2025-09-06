@@ -24,7 +24,7 @@ describe('Groups Full Details API', () => {
         it('should return consolidated group data with all components', async () => {
             // Add some test data to make the response more interesting
             const uniqueId = Math.random().toString(36).slice(2, 10);
-            const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).build(), alice.token);
+            const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
 
             await apiDriver.createSettlement(new SettlementBuilder().withGroupId(groupId).withPayer(bob.uid).withPayee(alice.uid).withAmount(20).withNote(`Settlement test ${uniqueId}`).build(), bob.token);
 
@@ -108,6 +108,7 @@ describe('Groups Full Details API', () => {
                         .withPaidBy(alice.uid)
                         .withParticipants([alice.uid, bob.uid])
                         .withDate(new Date(Date.now() - i * 1000).toISOString()) // Different times for pagination
+                        .withSplitType('equal')
                         .build(),
                     alice.token,
                 ),
@@ -135,6 +136,7 @@ describe('Groups Full Details API', () => {
                         .withPaidBy(alice.uid)
                         .withParticipants([alice.uid, bob.uid])
                         .withDate(new Date(Date.now() - i * 1000).toISOString())
+                        .withSplitType('equal')
                         .build(),
                     alice.token,
                 ),
@@ -185,7 +187,7 @@ describe('Groups Full Details API', () => {
         it('should return consistent data across individual and consolidated endpoints', async () => {
             // Add test data
             const uniqueId = Math.random().toString(36).slice(2, 10);
-            await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Consistency test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).build(), alice.token);
+            await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Consistency test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).withSplitType('equal').build(), alice.token);
 
             // Get data from both consolidated and individual endpoints
             const [fullDetails, expenses, balances] = await Promise.all([

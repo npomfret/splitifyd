@@ -119,7 +119,7 @@ describe('Comments Validation', () => {
 
     describe('validateListCommentsQuery', () => {
         it('should validate valid query with default limit', () => {
-            const query = new CommentQueryBuilder().build();
+            const query = new CommentQueryBuilder().withEmptyQuery().build();
 
             const result = validateListCommentsQuery(query);
 

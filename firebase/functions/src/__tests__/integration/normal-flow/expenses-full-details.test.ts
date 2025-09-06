@@ -20,7 +20,7 @@ describe('Expenses Full Details API', () => {
 
         // Create a test expense with unique description
         const uniqueId = Math.random().toString(36).slice(2, 10);
-        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).build(), alice.token);
+        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
         expenseId = expense.id;
     });
 
@@ -84,6 +84,7 @@ describe('Expenses Full Details API', () => {
                 new ExpenseBuilder()
                     .withGroupId(groupId)
                     .withDescription(`Complex expense test ${uniqueId}`)
+                    .withAmount(100)
                     .withPaidBy(bob.uid)
                     .withParticipants([alice.uid, bob.uid, charlie.uid])
                     .withSplitType('exact')

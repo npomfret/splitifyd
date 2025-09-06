@@ -22,7 +22,7 @@ describe('API Validation Smoke Tests', () => {
     describe('Date Validation - Smoke Tests', () => {
         test('should reject invalid date formats', async () => {
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                 date: 'invalid-date-format',
             };
 
@@ -33,7 +33,7 @@ describe('API Validation Smoke Tests', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -43,7 +43,7 @@ describe('API Validation Smoke Tests', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -53,7 +53,7 @@ describe('API Validation Smoke Tests', () => {
     describe('Category Validation - Smoke Tests', () => {
         test('should accept valid category', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -61,7 +61,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject empty category', async () => {
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                 category: '',
             };
 
@@ -70,7 +70,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject null category', async () => {
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                 category: null as any,
             };
 
@@ -81,7 +81,7 @@ describe('API Validation Smoke Tests', () => {
     describe('String Length & Security Validation - Smoke Tests', () => {
         test('should accept valid description within limits', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid description ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid description ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -89,7 +89,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject description exceeding length limit', async () => {
             const longDescription = 'A'.repeat(201); // Over 200 char limit
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(longDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(longDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -109,7 +109,7 @@ describe('API Validation Smoke Tests', () => {
 
         test('should reject XSS attempts', async () => {
             const xssDescription = '<script>alert("xss")</script>Valid content';
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(xssDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(xssDescription).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             // API should reject dangerous content rather than sanitize it
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/400|invalid|dangerous/i);

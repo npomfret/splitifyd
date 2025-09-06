@@ -33,6 +33,7 @@ describe('Error Handling and Recovery Testing', () => {
                             .withAmount(100)
                             .withPaidBy(users[0].uid)
                             .withParticipants([users[0].uid])
+                            .withSplitType('equal')
                             .build(),
                         users[0].token,
                     ),
@@ -50,6 +51,7 @@ describe('Error Handling and Recovery Testing', () => {
                         .withAmount(100)
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid])
+                        .withSplitType('equal')
                         .build(),
                     users[0].token,
                 );
@@ -81,6 +83,7 @@ describe('Error Handling and Recovery Testing', () => {
                             .withAmount(100)
                             .withPaidBy(unauthorizedUser.uid)
                             .withParticipants([unauthorizedUser.uid])
+                            .withSplitType('equal')
                             .build(),
                         unauthorizedUser.token,
                     ),
@@ -109,7 +112,7 @@ describe('Error Handling and Recovery Testing', () => {
 
                 await expect(
                     apiDriver.createExpense(
-                        new ExpenseBuilder().withGroupId(testGroup.id).withDescription(oversizedDescription).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                        new ExpenseBuilder().withGroupId(testGroup.id).withDescription(oversizedDescription).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                         users[0].token,
                     ),
                 ).rejects.toThrow(/400|payload.*large|request.*size|validation|description.*long/i);
@@ -144,7 +147,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create an expense
                 const uniqueId = uuidv4().slice(0, 8);
                 const baseExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Conflict test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Conflict test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                     users[0].token,
                 );
 
@@ -221,7 +224,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create some test data first
                 const uniqueId = uuidv4().slice(0, 8);
                 const exportTestExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Export test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Export test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                     users[0].token,
                 );
 
@@ -261,7 +264,7 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create expense, then simulate orphaned state by checking references
                 const uniqueId = uuidv4().slice(0, 8);
                 const cleanupTestExpense = await apiDriver.createExpense(
-                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Cleanup test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
+                    new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Cleanup test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                     users[0].token,
                 );
 
@@ -303,6 +306,7 @@ describe('Error Handling and Recovery Testing', () => {
                             .withAmount(-100) // Invalid
                             .withPaidBy(users[0].uid)
                             .withParticipants([users[0].uid])
+                            .withSplitType('equal')
                             .build(),
                         users[0].token,
                     );
@@ -337,6 +341,7 @@ describe('Error Handling and Recovery Testing', () => {
                         .withAmount(100)
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid, user2.uid])
+                        .withSplitType('equal')
                         .build(),
                     users[0].token,
                 );

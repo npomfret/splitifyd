@@ -1,7 +1,8 @@
 import { logger } from '../logger';
 import { performanceMetricsCollector } from './performance-metrics-collector';
 import { metricsSampler } from './metrics-sampler';
-import { metricsStorage } from './metrics-storage';
+import { createMetricsStorage } from './metrics-storage-factory';
+import type { IMetricsStorage } from './metrics-storage-factory';
 import { 
     getMonitoringThreshold, 
     isLargeResultSet, 
@@ -68,6 +69,7 @@ export class PerformanceMonitor {
     private startTime: number;
     private operationName: string;
     private context: PerformanceContext;
+    private static metricsStorage: IMetricsStorage = createMetricsStorage();
 
     constructor(operationName: string, context: PerformanceContext = {}) {
         this.operationName = operationName;
@@ -140,7 +142,7 @@ export class PerformanceMonitor {
             
             if (samplingDecision.sample) {
                 // Store metric in Firestore
-                await metricsStorage.storeMetric({
+                await PerformanceMonitor.metricsStorage.storeMetric({
                     timestamp: new Date(),
                     operationType: 'general',
                     operationName,
@@ -181,7 +183,7 @@ export class PerformanceMonitor {
             );
             
             if (samplingDecision.sample) {
-                await metricsStorage.storeMetric({
+                await PerformanceMonitor.metricsStorage.storeMetric({
                     timestamp: new Date(),
                     operationType: 'general',
                     operationName,
@@ -226,7 +228,7 @@ export class PerformanceMonitor {
             );
             
             if (samplingDecision.sample) {
-                await metricsStorage.storeMetric({
+                await PerformanceMonitor.metricsStorage.storeMetric({
                     timestamp: new Date(),
                     operationType: 'service-call',
                     operationName,
@@ -270,7 +272,7 @@ export class PerformanceMonitor {
             );
             
             if (samplingDecision.sample) {
-                await metricsStorage.storeMetric({
+                await PerformanceMonitor.metricsStorage.storeMetric({
                     timestamp: new Date(),
                     operationType: 'service-call',
                     operationName,

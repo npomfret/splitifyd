@@ -38,6 +38,7 @@ describe('Split Validation Edge Cases', () => {
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Rounding test ${uniqueId}`)
+                .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withSplitType('exact')
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
@@ -104,6 +105,7 @@ describe('Split Validation Edge Cases', () => {
         test('should reject duplicate users in splits', async () => {
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
+                .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withSplitType('exact')
                 .withParticipants([users[0].uid, users[1].uid])
@@ -153,6 +155,7 @@ describe('Split Validation Edge Cases', () => {
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Percentage rounding test ${uniqueId}`)
+                .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withSplitType('percentage')
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])

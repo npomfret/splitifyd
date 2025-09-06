@@ -10,7 +10,7 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from '../logger';
-import { metricsStorage } from '../utils/metrics-storage';
+import { createMetricsStorage } from '../utils/metrics-storage-factory';
 import { metricsSampler } from '../utils/metrics-sampler';
 import type { PerformanceMetric, AggregatedStats } from '../utils/metrics-storage';
 
@@ -23,6 +23,7 @@ export async function performMetricsAggregation(
 ): Promise<AggregatedStats[]> {
     const startTime = Date.now();
     const aggregatedStats: AggregatedStats[] = [];
+    const metricsStorage = createMetricsStorage();
 
     try {
         // Query recent metrics

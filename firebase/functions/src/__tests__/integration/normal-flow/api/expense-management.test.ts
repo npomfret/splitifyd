@@ -25,6 +25,8 @@ describe('Expense Management', () => {
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
+                .withSplitType('equal')
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -42,6 +44,7 @@ describe('Expense Management', () => {
             const expenseData = new ExpenseBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Unequal Split Expense')
+                .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withSplitType('exact')
                 .withParticipants(users.map((u) => u.uid))
@@ -80,6 +83,7 @@ describe('Expense Management', () => {
                     .withPaidBy(users[0].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withDescription(`First Test Expense ${uniqueId}`)
+                    .withSplitType('equal')
                     .build(),
                 users[0].token,
             );
@@ -91,6 +95,7 @@ describe('Expense Management', () => {
                     .withPaidBy(users[1].uid)
                     .withParticipants(users.map((u) => u.uid))
                     .withDescription(`Second Test Expense ${uniqueId}`)
+                    .withSplitType('equal')
                     .build(),
                 users[1].token,
             );
@@ -112,6 +117,7 @@ describe('Expense Management', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
+                .withSplitType('equal')
                 .build();
             const createdExpense = await apiDriver.createExpense(initialExpenseData, users[0].token);
 
@@ -139,6 +145,7 @@ describe('Expense Management', () => {
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.map((u) => u.uid))
+                .withSplitType('equal')
                 .build();
 
             const createResponse = await apiDriver.createExpense(testExpenseData, users[0].token);
@@ -228,6 +235,7 @@ describe('Expense Management', () => {
                 .withAmount(50)
                 .withPaidBy(users[1].uid)
                 .withParticipants(users.map((u) => u.uid))
+                .withSplitType('equal')
                 .build();
             const createdExpense = await apiDriver.createExpense(expenseToDeleteData, users[1].token);
             expect(createdExpense.id).toBeDefined();

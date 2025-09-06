@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, GroupUpdateBuilder} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('RESTful Group CRUD Operations', () => {
@@ -116,7 +116,7 @@ describe('RESTful Group CRUD Operations', () => {
 
         test('should include balance information', async () => {
             // Create an expense to generate balance
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
             await apiDriver.createExpense(expenseData, users[0].token);
 
             // Get group details (balance calculation happens automatically)
@@ -149,7 +149,7 @@ describe('RESTful Group CRUD Operations', () => {
         });
 
         test('should update group name', async () => {
-            const updates = new GroupUpdateBuilder().withName('Updated Group Name').build();
+            const updates = { name: 'Updated Group Name' };
 
             await apiDriver.updateGroup(testGroup.id, updates, users[0].token);
 
@@ -160,7 +160,7 @@ describe('RESTful Group CRUD Operations', () => {
         });
 
         test('should update group description', async () => {
-            const updates = new GroupUpdateBuilder().withDescription('Updated description').build();
+            const updates = { description: 'Updated description' };
 
             await apiDriver.updateGroup(testGroup.id, updates, users[0].token);
 
@@ -171,7 +171,7 @@ describe('RESTful Group CRUD Operations', () => {
         });
 
         test('should update multiple fields', async () => {
-            const updates = new GroupUpdateBuilder().withName('New Name').withDescription('New description').build();
+            const updates = { name: 'New Name', description: 'New description' };
 
             await apiDriver.updateGroup(testGroup.id, updates, users[0].token);
 
@@ -217,7 +217,7 @@ describe('RESTful Group CRUD Operations', () => {
             const testGroup = await apiDriver.createGroup(groupData, users[0].token);
 
             // Add an expense
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription('Test expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
             await apiDriver.createExpense(expenseData, users[0].token);
 
             // Hard delete should now succeed even with expenses

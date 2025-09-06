@@ -1,13 +1,19 @@
 import type { CommentApiResponse } from '@splitifyd/shared';
+import { 
+    randomString, 
+    randomChoice, 
+    randomDate, 
+    generateShortId
+} from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentApiResponse = {
-        id: 'comment-1',
-        authorId: 'user-123',
-        authorName: 'John Doe',
-        text: 'This is a test comment',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        id: `comment-${generateShortId()}`,
+        authorId: `user-${generateShortId()}`,
+        authorName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(4)}`,
+        text: `${randomChoice(['Great', 'Awesome', 'Thanks', 'Perfect', 'Nice', 'Cool'])} ${randomString(8)}!`,
+        createdAt: randomDate(),
+        updatedAt: randomDate(),
     };
 
     withId(id: string): this {

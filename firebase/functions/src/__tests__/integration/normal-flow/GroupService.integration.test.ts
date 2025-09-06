@@ -137,6 +137,7 @@ describe('GroupService - Integration Tests', () => {
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(100)
                     .withDescription('Test expense for balance')
+                    .withSplitType('equal')
                     .build(),
                 creator.token
             );
@@ -259,6 +260,7 @@ describe('GroupService - Integration Tests', () => {
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(50)
                     .withDescription('Active expense')
+                    .withSplitType('equal')
                     .build(),
                 creator.token
             );
@@ -325,6 +327,7 @@ describe('GroupService - Integration Tests', () => {
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(100)
                     .withDescription('First expense')
+                    .withSplitType('equal')
                     .build(),
                 creator.token
             );
@@ -336,6 +339,7 @@ describe('GroupService - Integration Tests', () => {
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(60)
                     .withDescription('Second expense')
+                    .withSplitType('equal')
                     .build(),
                 member.token
             );
@@ -518,6 +522,7 @@ describe('GroupService - Integration Tests', () => {
                         .withParticipants([creator.uid, member.uid])
                         .withAmount(100)
                         .withDescription('Balance test expense')
+                        .withSplitType('equal')
                         .build(),
                     creator.token
                 );

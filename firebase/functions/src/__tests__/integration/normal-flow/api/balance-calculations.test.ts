@@ -57,6 +57,8 @@ describe('Balance Calculations', () => {
             .withAmount(100)
             .withPaidBy(testUsers[0].uid)
             .withParticipants([testUsers[0].uid])
+            .withSplitType('equal')
+            .withSplitType('equal')
             .build();
         await apiDriver.createExpense(expenseData, testUsers[0].token);
 
@@ -69,14 +71,8 @@ describe('Balance Calculations', () => {
     });
 
     test('should include balance data in listGroups response', async () => {
-        // First get the current list of groups to work with an existing one
-        const initialListResponse = await apiDriver.listGroups(getTestUsers(2)[0].token);
-        expect(initialListResponse).toHaveProperty('groups');
-        expect(Array.isArray(initialListResponse.groups)).toBe(true);
-        expect(initialListResponse.groups.length).toBeGreaterThan(0);
-        
-        // Use the first group from the list (similar to group-list.test.ts approach)
-        const testGroup = initialListResponse.groups[0];
+        // Use the balanceTestGroup created in beforeEach
+        const testGroup = balanceTestGroup;
         
         // Add an expense to this existing group
         const uniqueId = uuidv4().slice(0, 8);
@@ -86,6 +82,7 @@ describe('Balance Calculations', () => {
             .withAmount(100)
             .withPaidBy(getTestUsers(2)[0].uid)
             .withParticipants([getTestUsers(2)[0].uid])
+            .withSplitType('equal')
             .build();
         await apiDriver.createExpense(expenseData, getTestUsers(2)[0].token);
 
@@ -146,6 +143,7 @@ describe('Balance Calculations', () => {
             .withAmount(75)
             .withPaidBy(getTestUsers(2)[0].uid)
             .withParticipants([getTestUsers(2)[0].uid])
+            .withSplitType('equal')
             .build();
         const expense = await apiDriver.createExpense(expenseData, getTestUsers(2)[0].token);
 
@@ -178,6 +176,7 @@ describe('Balance Calculations', () => {
             .withAmount(25)
             .withPaidBy(getTestUsers(2)[0].uid)
             .withParticipants([getTestUsers(2)[0].uid])
+            .withSplitType('equal')
             .build();
         const secondExpense = await apiDriver.createExpense(secondExpenseData, getTestUsers(2)[0].token);
 

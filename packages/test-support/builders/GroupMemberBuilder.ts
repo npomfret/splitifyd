@@ -1,14 +1,14 @@
 import { GroupMember, MemberRoles, MemberStatuses } from '@splitifyd/shared';
+import { randomChoice, randomDate } from '../test-helpers';
 
 export class GroupMemberBuilder {
     private member: GroupMember;
 
     constructor() {
-        // Default member with sensible defaults
         this.member = {
-            joinedAt: new Date().toISOString(),
-            memberRole: MemberRoles.MEMBER,
-            memberStatus: MemberStatuses.ACTIVE,
+            joinedAt: randomDate(90),
+            memberRole: randomChoice([MemberRoles.ADMIN, MemberRoles.MEMBER, MemberRoles.VIEWER]),
+            memberStatus: randomChoice([MemberStatuses.ACTIVE, MemberStatuses.PENDING]),
         };
     }
 

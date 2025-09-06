@@ -42,6 +42,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid, users[2].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -58,6 +59,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid, users[2].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -82,6 +84,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -143,6 +146,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid, users[0].uid])
                 .withCategory('transport')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -158,6 +162,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[2].uid)
                 .withParticipants([users[2].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(expenseData, users[2].token)).rejects.toMatchObject({
@@ -175,6 +180,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -194,6 +200,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -215,6 +222,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -234,6 +242,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -254,6 +263,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid])
                 .withCategory('entertainment')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -274,6 +284,7 @@ describe('Permission System Integration Tests', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);

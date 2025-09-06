@@ -34,6 +34,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
             .withAmount(50)
             .withPaidBy(user1.uid)
             .withParticipants([user1.uid, user2.uid])
+            .withSplitType('equal')
             .build();
 
         const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
@@ -86,6 +87,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
                 .withAmount(25 * i)
                 .withPaidBy(users[i - 1].uid)
                 .withParticipants([user1.uid, user2.uid, user3.uid])
+                .withSplitType('equal')
                 .build();
 
             const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
@@ -170,6 +172,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
             .withAmount(75)
             .withPaidBy(user1.uid)
             .withParticipants([user1.uid, user2.uid])
+            .withSplitType('equal')
             .build();
 
         const createdExpense = await apiDriver.createExpense(expenseData, user1.token);

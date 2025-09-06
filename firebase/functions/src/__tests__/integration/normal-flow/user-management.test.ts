@@ -267,31 +267,36 @@ describe('User Management Tests', () => {
 
     describe('User Expenses Endpoint', () => {
         let testGroup: any;
-        // let userExpenses: any[] = []; // Not used currently
+        let testId: string;
+        let createdExpenses: any[];
 
         beforeEach(async () => {
             // Create a test group and some expenses for the user
             const secondUser = await borrowTestUser();
+            testId = uuidv4().substring(0, 8); // Short unique ID for this test run
 
-            testGroup = await apiDriver.createGroupWithMembers(`User Expenses Test Group ${uuidv4()}`, [user, secondUser], user.token);
+            testGroup = await apiDriver.createGroupWithMembers(`User Expenses Test Group ${testId}`, [user, secondUser], user.token);
 
-            // Create multiple expenses
-            await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(100).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription('User Expense 1').build(),
+            // Create expenses with current date to ensure they appear at the top of pagination
+            const currentDate = new Date().toISOString();
+            
+            // Create multiple expenses with unique descriptions and store the results
+            const expense1 = await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(100).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription(`User Expense 1 [${testId}]`).withSplitType('equal').withDate(currentDate).build(),
                 user.token,
             );
 
-            await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(50).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription('User Expense 2').build(),
+            const expense2 = await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(50).withPaidBy(user.uid).withParticipants([user.uid, secondUser.uid]).withDescription(`User Expense 2 [${testId}]`).withSplitType('equal').withDate(currentDate).build(),
                 user.token,
             );
 
-            await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(75).withPaidBy(secondUser.uid).withParticipants([user.uid, secondUser.uid]).withDescription('Other User Expense').build(),
+            const expense3 = await apiDriver.createExpense(
+                new ExpenseBuilder().withGroupId(testGroup.id).withAmount(75).withPaidBy(secondUser.uid).withParticipants([user.uid, secondUser.uid]).withDescription(`Other User Expense [${testId}]`).withSplitType('equal').withDate(currentDate).build(),
                 secondUser.token,
             );
 
-            // userExpenses = [expense1, expense2, expense3]; // Not used currently
+            createdExpenses = [expense1, expense2, expense3];
         });
 
         test('should list all expenses for a user across groups', async () => {
@@ -299,13 +304,26 @@ describe('User Management Tests', () => {
 
             expect(response).toHaveProperty('expenses');
             expect(Array.isArray(response.expenses)).toBe(true);
-            expect(response.expenses.length).toBeGreaterThanOrEqual(3);
 
-            // Should include expenses where user is payer or participant
-            const expenseDescriptions = response.expenses.map((e: any) => e.description);
-            expect(expenseDescriptions).toContain('User Expense 1');
-            expect(expenseDescriptions).toContain('User Expense 2');
-            expect(expenseDescriptions).toContain('Other User Expense'); // user is participant
+            // Verify we created the expenses successfully
+            expect(createdExpenses).toHaveLength(3);
+            expect(createdExpenses.every(expense => expense && expense.id)).toBe(true);
+
+            // Check that we can find the expenses from our test group
+            const testGroupExpenses = response.expenses.filter((e: any) => e.groupId === testGroup.id);
+            
+            // MUST find exactly 3 expenses - no conditional logic
+            expect(testGroupExpenses).toHaveLength(3);
+            
+            const testGroupDescriptions = testGroupExpenses.map((e: any) => e.description);
+            expect(testGroupDescriptions).toContain(`User Expense 1 [${testId}]`);
+            expect(testGroupDescriptions).toContain(`User Expense 2 [${testId}]`);
+            expect(testGroupDescriptions).toContain(`Other User Expense [${testId}]`);
+
+            // Verify all created expense IDs are returned
+            const returnedIds = testGroupExpenses.map((e: any) => e.id);
+            const createdIds = createdExpenses.map(expense => expense.id);
+            expect(returnedIds).toEqual(expect.arrayContaining(createdIds));
         });
 
         test('should require authentication for user expenses', async () => {

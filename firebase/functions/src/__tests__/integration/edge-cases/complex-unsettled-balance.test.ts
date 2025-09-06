@@ -114,6 +114,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
             .withGroupId(group.id)
             .withDescription('One Person Pays')
             .withAmount(150) // $150.00 in dollars (not cents!)
+            .withCurrency('USD')
             .withPaidBy(user1.uid)
             .withSplitType('equal')
             .withParticipants([user1.uid, user2.uid])
@@ -164,6 +165,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
             .withPayer(user2.uid)
             .withPayee(user1.uid)
             .withAmount(actualDebtAmount) // Already in dollars
+            .withCurrency('USD')
             .withNote('Full settlement payment - E2E bug replication')
             .build();
 
@@ -314,7 +316,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(initialBalances.simplifiedDebts[0].to.userId).toBe(user1.uid);
 
         // Partial settlement 1: Bob pays Alice $40 (40% of debt)
-        const partialSettlement1 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(40).withNote('Partial payment 1 of 3').build();
+        const partialSettlement1 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(40).withCurrency('USD').withNote('Partial payment 1 of 3').build();
         await apiDriver.createSettlement(partialSettlement1, user2.token);
 
         // Check remaining debt: should be $60
@@ -325,7 +327,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(balancesAfter1.userBalances[user1.uid].netBalance).toBe(60);
 
         // Partial settlement 2: Bob pays Alice $35 (partial)
-        const partialSettlement2 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(35).withNote('Partial payment 2 of 3').build();
+        const partialSettlement2 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(35).withCurrency('USD').withNote('Partial payment 2 of 3').build();
         await apiDriver.createSettlement(partialSettlement2, user2.token);
 
         // Check remaining debt: should be $25
@@ -336,7 +338,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(balancesAfter2.userBalances[user1.uid].netBalance).toBe(25);
 
         // Final settlement: Bob pays remaining $25
-        const finalSettlement = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(25).withNote('Final settlement payment').build();
+        const finalSettlement = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(25).withCurrency('USD').withNote('Final settlement payment').build();
         await apiDriver.createSettlement(finalSettlement, user2.token);
 
         // Check final balance: should be fully settled
@@ -384,7 +386,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(initialBalances.simplifiedDebts[0].from.userId).toBe(user2.uid);
 
         // Overpayment: Bob pays Alice $100 (exceeds $60 debt)
-        const overpayment = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(100).withNote('Overpayment settlement').build();
+        const overpayment = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(100).withCurrency('USD').withNote('Overpayment settlement').build();
         await apiDriver.createSettlement(overpayment, user2.token);
 
         // Check result: Alice should now owe Bob $40 (overpayment of $40)

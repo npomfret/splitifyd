@@ -1,12 +1,13 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { CreateGroupRequest } from '@splitifyd/shared';
+import { randomString, randomChoice, generateShortId } from '../test-helpers';
 
 export class CreateGroupRequestBuilder {
     private group: CreateGroupRequest;
 
     constructor() {
         this.group = {
-            name: `Test Group ${uuidv4().slice(0, 8)}`,
+            name: `${randomChoice(['Team', 'Group', 'Squad', 'Club', 'Circle'])} ${randomString(6)}`,
+            description: `${randomChoice(['Fun', 'Cool', 'Awesome', 'Great', 'Nice'])} group ${generateShortId()}`,
         };
     }
 

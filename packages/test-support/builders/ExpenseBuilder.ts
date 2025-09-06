@@ -1,3 +1,13 @@
+import { 
+    randomString, 
+    randomDecimal, 
+    randomChoice, 
+    randomDate, 
+    randomCurrency, 
+    randomCategory, 
+    generateShortId 
+} from '../test-helpers';
+
 export interface TestExpense {
     groupId: string;
     description: string;
@@ -19,16 +29,17 @@ export class ExpenseBuilder {
     private expense: TestExpense;
 
     constructor() {
+        const userId = `user-${generateShortId()}`;
         this.expense = {
-            groupId: 'default-group-id',
-            description: 'Test Expense',
-            amount: 100,
-            currency: 'USD',
-            paidBy: 'default-user-id',
-            splitType: 'equal',
-            participants: ['default-user-id'],
-            date: new Date().toISOString(),
-            category: 'other',
+            groupId: `group-${generateShortId()}`,
+            description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
+            amount: randomDecimal(5, 500),
+            currency: randomCurrency(),
+            paidBy: userId,
+            splitType: randomChoice(['equal', 'exact', 'percentage']),
+            participants: [userId],
+            date: randomDate(),
+            category: randomCategory(),
         };
     }
 

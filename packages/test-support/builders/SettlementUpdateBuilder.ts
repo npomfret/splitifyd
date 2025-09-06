@@ -1,3 +1,10 @@
+import { 
+    randomDecimal, 
+    randomDate, 
+    randomCurrency,
+    generateShortId 
+} from '../test-helpers';
+
 export interface SettlementUpdate {
     amount?: number;
     currency?: string;
@@ -9,7 +16,12 @@ export class SettlementUpdateBuilder {
     private update: SettlementUpdate;
 
     constructor() {
-        this.update = {};
+        this.update = {
+            amount: randomDecimal(5, 200),
+            currency: randomCurrency(),
+            date: randomDate(),
+            note: `Updated settlement ${generateShortId()}`,
+        };
     }
 
     withAmount(amount: number): this {

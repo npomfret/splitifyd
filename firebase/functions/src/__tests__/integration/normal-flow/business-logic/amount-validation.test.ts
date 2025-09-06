@@ -24,6 +24,7 @@ describe('Amount Validation Edge Cases', () => {
                 .withDescription(`Small amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -47,6 +48,7 @@ describe('Amount Validation Edge Cases', () => {
                 .withDescription(`Decimal places test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
@@ -72,6 +74,7 @@ describe('Amount Validation Edge Cases', () => {
                 .withDescription(`Large amount test ${uniqueId}`)
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
                 .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);

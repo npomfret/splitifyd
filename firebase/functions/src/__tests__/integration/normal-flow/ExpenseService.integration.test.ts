@@ -51,6 +51,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, bob.uid])
                     .withAmount(100)
                     .withDescription('Test expense')
+                    .withSplitType('equal')
                     .build(),
                 alice.token
             );
@@ -107,6 +108,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, bob.uid])
                     .withAmount(50)
                     .withDescription('First expense')
+                    .withSplitType('equal')
                     .build(),
                 alice.token
             );
@@ -118,6 +120,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, bob.uid])
                     .withAmount(75)
                     .withDescription('Second expense')
+                    .withSplitType('equal')
                     .build(),
                 bob.token
             );
@@ -129,6 +132,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, charlie.uid])
                     .withAmount(100)
                     .withDescription('Third expense')
+                    .withSplitType('equal')
                     .build(),
                 alice.token
             );
@@ -340,6 +344,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, bob.uid])
                     .withAmount(100)
                     .withDescription('Original expense')
+                    .withSplitType('equal')
                     .build(),
                 alice.token
             );
@@ -407,6 +412,7 @@ describe('ExpenseService - Integration Tests', () => {
                     .withParticipants([alice.uid, bob.uid])
                     .withAmount(100)
                     .withDescription('Expense to delete')
+                    .withSplitType('equal')
                     .build(),
                 alice.token
             );

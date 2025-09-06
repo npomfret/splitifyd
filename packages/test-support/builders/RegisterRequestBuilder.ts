@@ -1,3 +1,11 @@
+import { 
+    randomString, 
+    randomChoice, 
+    randomEmail, 
+    randomBoolean,
+    generateShortId 
+} from '../test-helpers';
+
 export interface RegisterRequest {
     email: string;
     password: string;
@@ -8,11 +16,11 @@ export interface RegisterRequest {
 
 export class RegisterRequestBuilder {
     private request: RegisterRequest = {
-        email: 'test@example.com',
-        password: 'TestPass123!',
-        displayName: 'Test User',
-        termsAccepted: true,
-        cookiePolicyAccepted: true,
+        email: randomEmail(),
+        password: `Pass${generateShortId()}!${randomString(4).toUpperCase()}`,
+        displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
+        termsAccepted: randomBoolean(),
+        cookiePolicyAccepted: randomBoolean(),
     };
 
     withEmail(email: string): RegisterRequestBuilder {

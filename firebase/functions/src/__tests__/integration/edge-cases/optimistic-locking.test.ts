@@ -3,7 +3,7 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ExpenseBuilder, ExpenseUpdateBuilder, CreateGroupRequestBuilder, SettlementBuilder, SettlementUpdateBuilder, GroupUpdateBuilder, ApiDriver} from '@splitifyd/test-support';
+import {ExpenseBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Optimistic Locking Integration Tests', () => {
@@ -72,8 +72,8 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Same user tries to update the group simultaneously (testing optimistic locking)
             const updatePromises = [
-                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('First Update').build(), users[0].token),
-                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Second Update').build(), users[0].token),
+                apiDriver.updateGroup(group.id, { name: 'First Update' }, users[0].token),
+                apiDriver.updateGroup(group.id, { name: 'Second Update' }, users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -115,14 +115,14 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create an expense
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
 
             // Same user tries to update the expense simultaneously (testing optimistic locking)
             const updatePromises = [
-                apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(200).build(), users[0].token),
-                apiDriver.updateExpense(expense.id, new ExpenseUpdateBuilder().withAmount(300).build(), users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 200 }, users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 300 }, users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -163,16 +163,16 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create multiple expenses
             const expense1 = await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense for Deletion').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense for Deletion').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
             await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Another expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(),
+                new ExpenseBuilder().withGroupId(group.id).withDescription('Another expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
 
             // Try to delete and update the same expense simultaneously
-            const promises = [apiDriver.deleteExpense(expense1.id, users[0].token), apiDriver.updateExpense(expense1.id, new ExpenseUpdateBuilder().withAmount(75).build(), users[0].token)];
+            const promises = [apiDriver.deleteExpense(expense1.id, users[0].token), apiDriver.updateExpense(expense1.id, { amount: 75 }, users[0].token)];
 
             const results = await Promise.allSettled(promises);
 
@@ -223,8 +223,8 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Try to update the settlement concurrently with same user
             const updatePromises = [
-                apiDriver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(75).build(), users[0].token),
-                apiDriver.updateSettlement(settlement.id, new SettlementUpdateBuilder().withAmount(100).build(), users[0].token),
+                apiDriver.updateSettlement(settlement.id, { amount: 75 }, users[0].token),
+                apiDriver.updateSettlement(settlement.id, { amount: 100 }, users[0].token),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -265,6 +265,7 @@ describe('Optimistic Locking Integration Tests', () => {
                         .withAmount(100)
                         .withPaidBy(users[0].uid)
                         .withParticipants([users[0].uid]) // Only original user initially
+                        .withSplitType('equal')
                         .build(),
                     users[0].token,
                 ),
@@ -296,9 +297,9 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Perform multiple concurrent updates with same user (proper optimistic locking test)
             const operations = [
-                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 1').build(), users[0].token),
-                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withName('Update 2').build(), users[0].token),
-                apiDriver.updateGroup(group.id, new GroupUpdateBuilder().withDescription('Updated description').build(), users[0].token),
+                apiDriver.updateGroup(group.id, { name: 'Update 1' }, users[0].token),
+                apiDriver.updateGroup(group.id, { name: 'Update 2' }, users[0].token),
+                apiDriver.updateGroup(group.id, { description: 'Updated description' }, users[0].token),
             ];
 
             const results = await Promise.allSettled(operations);

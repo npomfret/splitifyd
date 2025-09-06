@@ -36,6 +36,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[3].uid)
                 .withParticipants([users[3].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(expenseData, users[3].token)).rejects.toThrow(/failed with status 403/);
@@ -137,6 +138,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -170,6 +172,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             await expect(apiDriver.createExpense(newExpenseData, users[1].token)).rejects.toThrow(/failed with status 403/);
@@ -198,6 +201,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[0].uid)
                 .withParticipants([users[0].uid, users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const adminExpense = await apiDriver.createExpense(adminExpenseData, users[0].token);
@@ -251,6 +255,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('food')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -289,6 +294,7 @@ describe('Permission System Edge Cases', () => {
                 .withPaidBy(users[1].uid)
                 .withParticipants([users[1].uid])
                 .withCategory('entertainment')
+                .withSplitType('equal')
                 .build();
 
             const expense = await apiDriver.createExpense(expenseData, users[1].token);
@@ -326,6 +332,7 @@ describe('Permission System Edge Cases', () => {
                     .withPaidBy(users[i % 2].uid)
                     .withParticipants([users[0].uid, users[1].uid])
                     .withCategory('food')
+                    .withSplitType('equal')
                     .build();
 
                 return apiDriver.createExpense(expenseData, users[i % 2].token);

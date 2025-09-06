@@ -65,6 +65,7 @@ describe('Group Lifecycle Edge Cases', () => {
                 .withDescription(expense.description)
                 .withPaidBy(testUser.uid)
                 .withParticipants([testUser.uid])
+                .withSplitType('equal')
                 .build();
             const createdExpense = await apiDriver.createExpense(expenseData, testUser.token);
             createdExpenseIds.push(createdExpense.id);
@@ -85,9 +86,8 @@ describe('Group Lifecycle Edge Cases', () => {
         const groupExpenses = await apiDriver.getGroupExpenses(multiExpenseGroup.id, testUser.token);
         expect(groupExpenses.expenses).toHaveLength(3);
 
-        // Get group from list to check balance
-        const groupsList = await apiDriver.listGroups(testUser.token);
-        const groupInList = groupsList.groups.find((g: any) => g.id === multiExpenseGroup.id);
+        // Get group directly to check balance
+        const groupInList = await apiDriver.getGroup(multiExpenseGroup.id, testUser.token);
         expect(groupInList).toBeDefined();
 
         // When a user pays for expenses only they participate in, net balance should be 0
@@ -109,6 +109,7 @@ describe('Group Lifecycle Edge Cases', () => {
             .withAmount(100) // Test expense deletion - this is what the test is about
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
@@ -137,6 +138,7 @@ describe('Group Lifecycle Edge Cases', () => {
             .withAmount(90) // Complex split scenario - this is what the test is about
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid])
+            .withSplitType('equal')
             .build();
 
         await apiDriver.createExpense(expenseData1, users[0].token);
@@ -166,6 +168,7 @@ describe('Group Lifecycle Edge Cases', () => {
             .withAmount(50) // Test expense updates - this is what the test is about
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid, users[1].uid])
+            .withSplitType('equal')
             .build();
 
         const createdExpense = await apiDriver.createExpense(initialExpenseData, users[0].token);

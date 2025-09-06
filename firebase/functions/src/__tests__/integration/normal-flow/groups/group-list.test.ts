@@ -129,6 +129,7 @@ describe('GET /groups - List Groups', () => {
             .withAmount(100)
             .withPaidBy(users[0].uid)
             .withParticipants([users[0].uid])
+            .withSplitType('equal')
             .build();
         await apiDriver.createExpense(expenseData, users[0].token);
 

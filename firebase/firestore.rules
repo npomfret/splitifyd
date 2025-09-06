@@ -162,6 +162,42 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Allow expense operations for authenticated users
+    match /expenses/{expenseId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null 
+        && request.auth.uid in resource.data.participants;
+      allow update, delete: if request.auth != null 
+        && request.auth.uid == resource.data.createdBy;
+    }
+
+    // Allow user expense queries
+    match /users/{userId}/expenses/{expenseId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow group expense operations
+    match /groups/{groupId}/expenses/{expenseId} {
+      allow read: if request.auth != null 
+        && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+      allow write: if request.auth != null 
+        && exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid));
+    }
+
+    // For test environment - allow specific test collections
+    match /test-users/{document=**} {
+      allow read, write: if true;
+    }
+    
+    match /test-groups/{document=**} {
+      allow read, write: if true;
+    }
+    
+    match /test-expenses/{document=**} {
+      allow read, write: if true;
+    }
+
     // Default deny rule for any other collections
     match /{document=**} {
       allow read, write: if false;
