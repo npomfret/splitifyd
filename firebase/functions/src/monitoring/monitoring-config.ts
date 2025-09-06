@@ -5,6 +5,28 @@
  * for the subcollection-based membership system introduced in the scalability migration.
  */
 
+export interface SamplingRateConfig {
+    /** Sampling rate for service calls (0.0-1.0) */
+    serviceCallRate: number;
+    /** Sampling rate for database operations */
+    databaseOperationRate: number;
+    /** Sampling rate for query operations */
+    queryOperationRate: number;
+    /** Sampling rate for batch operations */
+    batchOperationRate: number;
+    /** Sampling rate for transaction operations */
+    transactionRate: number;
+    /** Sampling rate for trigger executions */
+    triggerExecutionRate: number;
+    /** Sampling rate for validation operations */
+    validationRate: number;
+    
+    /** Special conditions */
+    errorSamplingRate: number;        // Errors are always important
+    slowOperationRate: number;        // Slow ops need attention
+    criticalOperationRate: number;    // Critical ops must be tracked
+}
+
 export interface SubcollectionMonitoringThresholds {
     /** Query execution time warning threshold (ms) */
     queryWarningThreshold: number;
@@ -41,12 +63,32 @@ export interface CollectionGroupMonitoringThresholds {
 }
 
 /**
+ * Sampling rates configuration for performance monitoring
+ */
+export const SAMPLING_RATES: SamplingRateConfig = {
+    // Base sampling rates by operation type
+    serviceCallRate: 0.05,           // 5% of service calls
+    databaseOperationRate: 0.10,      // 10% of database operations
+    queryOperationRate: 0.10,         // 10% of queries
+    batchOperationRate: 0.20,         // 20% of batch operations
+    transactionRate: 0.20,            // 20% of transactions
+    triggerExecutionRate: 0.15,       // 15% of trigger executions
+    validationRate: 0.01,             // 1% of validations (very frequent)
+    
+    // Special conditions - always sample these
+    errorSamplingRate: 1.0,           // 100% of errors
+    slowOperationRate: 1.0,           // 100% of slow operations
+    criticalOperationRate: 1.0,       // 100% of critical operations
+};
+
+/**
  * Production monitoring configuration for scalable membership architecture
  */
 export const SUBCOLLECTION_MONITORING_CONFIG: {
     subcollectionQueries: SubcollectionMonitoringThresholds;
     triggers: TriggerMonitoringThresholds;
     collectionGroup: CollectionGroupMonitoringThresholds;
+    sampling: SamplingRateConfig;
 } = {
     subcollectionQueries: {
         queryWarningThreshold: 100,    // Subcollection queries should be < 100ms
@@ -67,6 +109,7 @@ export const SUBCOLLECTION_MONITORING_CONFIG: {
         maxGroupsPerUser: 100,         // Alert if user is in > 100 groups
         expectedIndexUsage: true,      // Expect queries to use the collectionGroup index
     },
+    sampling: SAMPLING_RATES,
 };
 
 /**

@@ -2,12 +2,10 @@ import { logger } from '../logger';
 import { QueryContext } from './performance-monitor';
 
 /**
- * Performance tracking specifically for Firestore queries
+ * Performance tracking specifically for Firestore queries - without caching
  */
 export class QueryPerformanceTracker {
     private static instance: QueryPerformanceTracker;
-    private queryMetrics: Map<string, QueryMetric[]> = new Map();
-    private readonly maxMetricsPerQuery = 100; // Keep last 100 executions per query
 
     private constructor() {}
 
@@ -47,8 +45,8 @@ export class QueryPerformanceTracker {
 
             const duration = Date.now() - startTime;
             
-            // Store the metric
-            this.recordMetric(querySignature, {
+            // Log the metric immediately without storing
+            this.logMetric(querySignature, {
                 timestamp: new Date(),
                 duration,
                 collection,
@@ -68,7 +66,7 @@ export class QueryPerformanceTracker {
         } catch (error) {
             const duration = Date.now() - startTime;
             
-            this.recordMetric(querySignature, {
+            this.logMetric(querySignature, {
                 timestamp: new Date(),
                 duration,
                 collection,
@@ -87,24 +85,33 @@ export class QueryPerformanceTracker {
     }
 
     /**
-     * Record a query metric
+     * Log a query metric immediately
      */
-    private recordMetric(querySignature: string, metric: QueryMetric): void {
-        if (!this.queryMetrics.has(querySignature)) {
-            this.queryMetrics.set(querySignature, []);
+    private logMetric(querySignature: string, metric: QueryMetric): void {
+        // Log slow queries
+        if (metric.duration > 500) {
+            logger.warn('Slow query detected', {
+                querySignature,
+                duration_ms: metric.duration,
+                collection: metric.collection,
+                resultCount: metric.resultCount,
+                success: metric.success,
+                indexUsed: metric.indexUsed
+            });
         }
 
-        const metrics = this.queryMetrics.get(querySignature)!;
-        metrics.push(metric);
-
-        // Keep only the most recent metrics
-        if (metrics.length > this.maxMetricsPerQuery) {
-            metrics.shift();
+        // Log failed queries
+        if (!metric.success) {
+            logger.error('Query failed', {
+                querySignature,
+                collection: metric.collection,
+                error: metric.error
+            });
         }
     }
 
     /**
-     * Analyze query performance and alert on issues
+     * Analyze query performance for issues
      */
     private analyzeQueryPerformance(
         querySignature: string,
@@ -112,168 +119,82 @@ export class QueryPerformanceTracker {
         resultCount: number,
         context: Partial<QueryContext>
     ): void {
-        const metrics = this.queryMetrics.get(querySignature) || [];
-        
-        // Alert on slow queries
-        const slowThreshold = this.getSlowThreshold(context.queryType);
-        if (duration > slowThreshold) {
-            logger.warn(`Slow query detected`, {
+        // Check for missing indexes (slow queries with filters)
+        if (duration > 1000 && context.filterCount && context.filterCount > 1) {
+            logger.warn('Potential missing index detected', {
                 querySignature,
                 duration_ms: duration,
-                collection: context.collection,
-                queryType: context.queryType,
-                resultCount,
-                slowThreshold,
                 filterCount: context.filterCount,
                 orderByCount: context.orderByCount,
-                indexUsed: context.indexUsed,
-                operation: context.operation
+                resultCount
             });
         }
 
-        // Alert on potential full collection scans
-        if (!context.indexUsed && resultCount > 50) {
-            logger.warn(`Potential full collection scan`, {
-                querySignature,
-                collection: context.collection,
-                resultCount,
-                duration_ms: duration,
-                recommendation: 'Consider adding a composite index'
-            });
-        }
-
-        // Performance trend analysis (if we have enough data)
-        if (metrics.length >= 10) {
-            const recentMetrics = metrics.slice(-10);
-            const averageDuration = recentMetrics.reduce((sum, m) => sum + m.duration, 0) / recentMetrics.length;
-            
-            // Alert if current execution is significantly slower than recent average
-            if (duration > averageDuration * 2 && duration > 200) {
-                logger.warn(`Query performance degradation detected`, {
-                    querySignature,
-                    currentDuration_ms: duration,
-                    averageDuration_ms: averageDuration,
-                    degradationFactor: duration / averageDuration,
-                    collection: context.collection,
-                    operation: context.operation
-                });
-            }
-        }
-
-        // Alert on high result count queries
+        // Check for large result sets
         if (resultCount > 1000) {
-            logger.warn(`High result count query`, {
+            logger.warn('Large result set detected', {
                 querySignature,
                 resultCount,
                 duration_ms: duration,
-                collection: context.collection,
-                recommendation: 'Consider adding pagination or more specific filtering'
+                recommendation: 'Consider pagination or more selective filters'
+            });
+        }
+
+        // Check for inefficient queries (high duration, low results)
+        if (duration > 500 && resultCount < 10) {
+            logger.warn('Inefficient query detected', {
+                querySignature,
+                duration_ms: duration,
+                resultCount,
+                recommendation: 'Query took long time for small result set'
             });
         }
     }
 
     /**
-     * Get performance threshold based on query type
-     */
-    private getSlowThreshold(queryType?: string): number {
-        switch (queryType) {
-            case 'single': return 100;      // Single document lookups should be fast
-            case 'indexed': return 200;     // Indexed queries
-            case 'collection': return 500;  // Collection queries
-            case 'scan': return 1000;       // Full scans (already problematic)
-            default: return 300;            // Default threshold
-        }
-    }
-
-    /**
-     * Get performance statistics for a query
+     * Get query statistics - no data available without caching
      */
     getQueryStats(querySignature: string): QueryStats | null {
-        const metrics = this.queryMetrics.get(querySignature);
-        if (!metrics || metrics.length === 0) {
-            return null;
-        }
-
-        const successfulMetrics = metrics.filter(m => m.success);
-        if (successfulMetrics.length === 0) {
-            return null;
-        }
-
-        const durations = successfulMetrics.map(m => m.duration).sort((a, b) => a - b);
-        const resultCounts = successfulMetrics.map(m => m.resultCount);
-
-        return {
-            querySignature,
-            executionCount: metrics.length,
-            successfulExecutions: successfulMetrics.length,
-            failedExecutions: metrics.length - successfulMetrics.length,
-            averageDuration: durations.reduce((sum, d) => sum + d, 0) / durations.length,
-            medianDuration: durations[Math.floor(durations.length / 2)],
-            p95Duration: durations[Math.floor(durations.length * 0.95)],
-            minDuration: durations[0],
-            maxDuration: durations[durations.length - 1],
-            averageResultCount: resultCounts.reduce((sum, c) => sum + c, 0) / resultCounts.length,
-            lastExecuted: metrics[metrics.length - 1].timestamp,
-            collection: successfulMetrics[0].collection
-        };
+        // Without caching, we cannot provide historical statistics
+        return null;
     }
 
     /**
-     * Get all tracked queries with their performance stats
+     * Get all query statistics - no data available without caching
      */
     getAllQueryStats(): QueryStats[] {
-        const allStats: QueryStats[] = [];
-        
-        for (const querySignature of this.queryMetrics.keys()) {
-            const stats = this.getQueryStats(querySignature);
-            if (stats) {
-                allStats.push(stats);
-            }
-        }
-
-        // Sort by average duration (slowest first)
-        return allStats.sort((a, b) => b.averageDuration - a.averageDuration);
+        // Without caching, we cannot provide historical statistics
+        return [];
     }
 
     /**
-     * Clear metrics for a specific query or all queries
+     * Clear query metrics - no-op without caching
      */
-    clearMetrics(querySignature?: string): void {
-        if (querySignature) {
-            this.queryMetrics.delete(querySignature);
-        } else {
-            this.queryMetrics.clear();
-        }
+    clearMetrics(): void {
+        // No metrics to clear
     }
 
     /**
-     * Generate a performance report
+     * Get slow queries - no data available without caching
      */
-    generatePerformanceReport(): QueryPerformanceReport {
-        const allStats = this.getAllQueryStats();
-        const totalExecutions = allStats.reduce((sum, s) => sum + s.executionCount, 0);
-        const slowQueries = allStats.filter(s => s.averageDuration > 500);
-        const failingQueries = allStats.filter(s => s.failedExecutions > 0);
+    getSlowQueries(thresholdMs: number = 500): QueryMetric[] {
+        // Without caching, we cannot provide historical data
+        return [];
+    }
 
-        return {
-            generatedAt: new Date(),
-            totalQueries: allStats.length,
-            totalExecutions,
-            slowQueries: slowQueries.length,
-            failingQueries: failingQueries.length,
-            averageQueryDuration: allStats.reduce((sum, s) => sum + s.averageDuration, 0) / allStats.length,
-            topSlowQueries: allStats.slice(0, 10),
-            queriesNeedingIndexes: allStats.filter(s => 
-                s.averageDuration > 200 && 
-                s.averageResultCount > 10
-            )
-        };
+    /**
+     * Get queries by collection - no data available without caching
+     */
+    getQueriesByCollection(collection: string): QueryMetric[] {
+        // Without caching, we cannot provide historical data
+        return [];
     }
 }
 
-/**
- * Individual query execution metric
- */
+// Export convenience function for getting the tracker instance
+export const getQueryTracker = () => QueryPerformanceTracker.getInstance();
+
+// Type definitions
 interface QueryMetric {
     timestamp: Date;
     duration: number;
@@ -288,37 +209,15 @@ interface QueryMetric {
     error?: string;
 }
 
-/**
- * Aggregated statistics for a query
- */
 interface QueryStats {
     querySignature: string;
     collection: string;
-    executionCount: number;
+    totalExecutions: number;
     successfulExecutions: number;
     failedExecutions: number;
     averageDuration: number;
-    medianDuration: number;
-    p95Duration: number;
-    minDuration: number;
-    maxDuration: number;
     averageResultCount: number;
-    lastExecuted: Date;
+    maxDuration: number;
+    minDuration: number;
+    lastExecution: Date;
 }
-
-/**
- * Complete performance report
- */
-interface QueryPerformanceReport {
-    generatedAt: Date;
-    totalQueries: number;
-    totalExecutions: number;
-    slowQueries: number;
-    failingQueries: number;
-    averageQueryDuration: number;
-    topSlowQueries: QueryStats[];
-    queriesNeedingIndexes: QueryStats[];
-}
-
-// Export singleton instance
-export const queryPerformanceTracker = QueryPerformanceTracker.getInstance();

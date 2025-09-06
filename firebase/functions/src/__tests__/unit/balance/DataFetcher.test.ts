@@ -186,7 +186,7 @@ describe('DataFetcher', () => {
             // Verify only active expense is returned
             expect(result.expenses).toHaveLength(1);
             expect(result.expenses[0].id).toBe('expense-1');
-            expect(result.expenses[0].deletedAt).toBeNull();
+            expect(result.expenses[0].deletedAt).toBeUndefined();
         });
     });
 });

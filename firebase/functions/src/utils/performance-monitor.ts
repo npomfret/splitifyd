@@ -1,9 +1,12 @@
 import { logger } from '../logger';
 import { performanceMetricsCollector } from './performance-metrics-collector';
+import { metricsSampler } from './metrics-sampler';
+import { metricsStorage } from './metrics-storage';
 import { 
     getMonitoringThreshold, 
     isLargeResultSet, 
-    MONITORING_LABELS 
+    MONITORING_LABELS,
+    SAMPLING_RATES 
 } from '../monitoring/monitoring-config';
 
 /**
@@ -115,35 +118,87 @@ export class PerformanceMonitor {
         operation: () => Promise<T>,
         context: PerformanceContext = {}
     ): Promise<T> {
-        const monitor = new PerformanceMonitor(operationName, context);
+        const startTime = Date.now();
+        let duration = 0;
+        let success = false;
+        let error: string | undefined;
         
         try {
             const result = await operation();
-            const duration = monitor.end({ success: true });
+            duration = Date.now() - startTime;
+            success = true;
             
-            // Record in metrics collector
-            performanceMetricsCollector.recordMetric(operationName, {
-                timestamp: new Date(),
-                duration,
-                success: true,
-                operationType: 'general',
-                context
-            });
+            // Check if we should sample this operation
+            const samplingDecision = metricsSampler.shouldSample(
+                'general',
+                operationName,
+                {
+                    duration,
+                    success,
+                    ...context
+                }
+            );
+            
+            if (samplingDecision.sample) {
+                // Store metric in Firestore
+                await metricsStorage.storeMetric({
+                    timestamp: new Date(),
+                    operationType: 'general',
+                    operationName,
+                    duration,
+                    success,
+                    sampled: true,
+                    sampleRate: samplingDecision.rate,
+                    context,
+                    userId: context.userId as string | undefined,
+                    groupId: context.groupId as string | undefined,
+                    requestId: context.requestId as string | undefined
+                });
+            }
+            
+            // Log if slow
+            if (duration > 1000) {
+                logger.warn(`slow-operation`, {
+                    operation: operationName,
+                    duration_ms: duration,
+                    ...context
+                });
+            }
             
             return result;
-        } catch (error) {
-            const duration = monitor.end({ success: false, error: error instanceof Error ? error.message : String(error) });
+        } catch (err) {
+            duration = Date.now() - startTime;
+            error = err instanceof Error ? err.message : String(err);
             
-            // Record in metrics collector
-            performanceMetricsCollector.recordMetric(operationName, {
-                timestamp: new Date(),
-                duration,
-                success: false,
-                operationType: 'general',
-                context
-            });
+            // Always sample errors
+            const samplingDecision = metricsSampler.shouldSample(
+                'general',
+                operationName,
+                {
+                    duration,
+                    success: false,
+                    ...context
+                }
+            );
             
-            throw error;
+            if (samplingDecision.sample) {
+                await metricsStorage.storeMetric({
+                    timestamp: new Date(),
+                    operationType: 'general',
+                    operationName,
+                    duration,
+                    success: false,
+                    sampled: true,
+                    sampleRate: samplingDecision.rate,
+                    context,
+                    error,
+                    userId: context.userId as string | undefined,
+                    groupId: context.groupId as string | undefined,
+                    requestId: context.requestId as string | undefined
+                });
+            }
+            
+            throw err;
         }
     }
 
@@ -154,32 +209,87 @@ export class PerformanceMonitor {
         additionalContext: PerformanceContext = {}
     ): Promise<T> {
         const startTime = Date.now();
+        const operationName = `${serviceName}.${methodName}`;
         
         try {
             const result = await operation();
             const duration = Date.now() - startTime;
             
-            // Record in metrics collector
-            performanceMetricsCollector.recordServiceCall(
-                serviceName,
-                methodName,
-                duration,
-                true,
-                additionalContext
+            // Check if we should sample this service call
+            const samplingDecision = metricsSampler.shouldSample(
+                'service-call',
+                operationName,
+                {
+                    duration,
+                    success: true,
+                    ...additionalContext
+                }
             );
+            
+            if (samplingDecision.sample) {
+                await metricsStorage.storeMetric({
+                    timestamp: new Date(),
+                    operationType: 'service-call',
+                    operationName,
+                    duration,
+                    success: true,
+                    sampled: true,
+                    sampleRate: samplingDecision.rate,
+                    context: {
+                        serviceName,
+                        methodName,
+                        ...additionalContext
+                    },
+                    userId: additionalContext.userId as string | undefined,
+                    groupId: additionalContext.groupId as string | undefined,
+                    requestId: additionalContext.requestId as string | undefined
+                });
+            }
+            
+            // Log if slow
+            if (duration > 1000) {
+                logger.warn('Slow service call', {
+                    service: serviceName,
+                    method: methodName,
+                    duration_ms: duration
+                });
+            }
             
             return result;
         } catch (error) {
             const duration = Date.now() - startTime;
             
-            // Record in metrics collector
-            performanceMetricsCollector.recordServiceCall(
-                serviceName,
-                methodName,
-                duration,
-                false,
-                additionalContext
+            // Always sample errors
+            const samplingDecision = metricsSampler.shouldSample(
+                'service-call',
+                operationName,
+                {
+                    duration,
+                    success: false,
+                    ...additionalContext
+                }
             );
+            
+            if (samplingDecision.sample) {
+                await metricsStorage.storeMetric({
+                    timestamp: new Date(),
+                    operationType: 'service-call',
+                    operationName,
+                    duration,
+                    success: false,
+                    sampled: true,
+                    sampleRate: samplingDecision.rate,
+                    context: {
+                        serviceName,
+                        methodName,
+                        ...additionalContext
+                    },
+                    error: error instanceof Error ? error.message : String(error),
+                    userId: additionalContext.userId as string | undefined,
+                    groupId: additionalContext.groupId as string | undefined,
+                    requestId: additionalContext.requestId as string | undefined
+                });
+            }
             
             throw error;
         }

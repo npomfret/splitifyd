@@ -46,6 +46,8 @@ function ensureServicesRegistered() {
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
+import { aggregateMetrics, aggregateMetricsDaily } from './scheduled/metrics-aggregation';
+import { cleanupMetrics, aggressiveMetricsCleanup } from './scheduled/metrics-cleanup';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed
@@ -395,7 +397,13 @@ export const api = onRequest(
 export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
 
 // Export scheduled functions
-export { cleanupChanges };
+export { 
+    cleanupChanges,
+    aggregateMetrics,
+    aggregateMetricsDaily,
+    cleanupMetrics,
+    aggressiveMetricsCleanup
+};
 
 // Export test endpoints (only work in non-production)
 export { testCleanup } from './endpoints/test-cleanup';

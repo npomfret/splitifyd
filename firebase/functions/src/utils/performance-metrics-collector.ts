@@ -1,26 +1,14 @@
-
 import { logger } from '../logger';
+import { metricsStorage } from './metrics-storage';
+import { metricsSampler } from './metrics-sampler';
 
 /**
- * Circular buffer to store metrics for a single operation
- */
-interface OperationMetricBuffer {
-    metrics: OperationMetric[];
-    cursor: number;
-    size: number; // Current number of metrics (may be less than maxSize)
-    maxSize: number;
-    lastUpdated: number; // Timestamp of last metric added
-}
-
-/**
- * Collects and aggregates performance metrics over time
+ * Collects and stores performance metrics in Firestore
+ * Uses sampling to reduce overhead
  */
 export class PerformanceMetricsCollector {
     private static instance: PerformanceMetricsCollector;
-    private metrics: Map<string, OperationMetricBuffer> = new Map();
-    private readonly maxMetricsPerOperation = 1000; // Keep last 1000 executions per operation
     private readonly reportingInterval = 5 * 60 * 1000; // 5 minutes
-    private readonly staleThreshold = 3; // Remove operations stale for 3x reporting intervals
     private lastReportTime = Date.now();
     private reportingIntervalId?: NodeJS.Timeout;
     private readonly isTestEnvironment: boolean;
@@ -53,85 +41,64 @@ export class PerformanceMetricsCollector {
     }
 
     /**
-     * Record a performance metric
+     * Record a performance metric - stores to Firestore if sampled
      */
-    recordMetric(operationName: string, metric: OperationMetric): void {
-        if (!this.metrics.has(operationName)) {
-            this.metrics.set(operationName, {
-                metrics: new Array(this.maxMetricsPerOperation),
-                cursor: 0,
-                size: 0,
-                maxSize: this.maxMetricsPerOperation,
-                lastUpdated: Date.now()
+    async recordMetric(operationName: string, metric: OperationMetric): Promise<void> {
+        // Check if we should sample this metric
+        const samplingDecision = metricsSampler.shouldSample(
+            metric.operationType,
+            operationName,
+            {
+                duration: metric.duration,
+                success: metric.success,
+                ...metric.context
+            }
+        );
+
+        if (samplingDecision.sample) {
+            // Store to Firestore
+            await metricsStorage.storeMetric({
+                timestamp: metric.timestamp,
+                operationType: metric.operationType,
+                operationName,
+                duration: metric.duration,
+                success: metric.success,
+                sampled: true,
+                sampleRate: samplingDecision.rate,
+                context: metric.context,
+                error: metric.error,
+                userId: metric.context?.userId as string | undefined,
+                groupId: metric.context?.groupId as string | undefined,
+                requestId: metric.context?.requestId as string | undefined
             });
         }
 
-        const buffer = this.metrics.get(operationName)!;
-        
-        // Store metric at current cursor position
-        buffer.metrics[buffer.cursor] = metric;
-        buffer.lastUpdated = Date.now();
-        
-        // Advance cursor (wraps around)
-        buffer.cursor = (buffer.cursor + 1) % buffer.maxSize;
-        
-        // Update size only if buffer isn't full yet
-        if (buffer.size < buffer.maxSize) {
-            buffer.size++;
+        // Always log slow operations
+        if (metric.duration > 1000) {
+            logger.warn(`Slow operation detected: ${operationName}`, {
+                duration: metric.duration,
+                success: metric.success,
+                sampled: samplingDecision.sample
+            });
         }
-
+        
         // Check for immediate alerts
         this.checkForAlerts(operationName, metric);
     }
 
     /**
-     * Get all metrics from a circular buffer in chronological order (oldest first)
-     */
-    private getMetricsFromBuffer(buffer: OperationMetricBuffer): OperationMetric[] {
-        if (buffer.size === 0) {
-            return [];
-        }
-
-        const metrics: OperationMetric[] = [];
-        
-        if (buffer.size < buffer.maxSize) {
-            // Buffer not full yet, return metrics from start to cursor
-            for (let i = 0; i < buffer.size; i++) {
-                metrics.push(buffer.metrics[i]);
-            }
-        } else {
-            // Buffer is full, need to handle wrap-around
-            // Start from the oldest entry (at cursor position) and wrap around
-            for (let i = 0; i < buffer.maxSize; i++) {
-                const index = (buffer.cursor + i) % buffer.maxSize;
-                metrics.push(buffer.metrics[index]);
-            }
-        }
-        
-        return metrics;
-    }
-
-    /**
-     * Get the last N metrics from a buffer in chronological order
-     */
-    private getLastNMetricsFromBuffer(buffer: OperationMetricBuffer, n: number): OperationMetric[] {
-        const allMetrics = this.getMetricsFromBuffer(buffer);
-        return allMetrics.slice(-n);
-    }
-
-    /**
      * Record a service call completion
      */
-    recordServiceCall(
+    async recordServiceCall(
         serviceName: string,
         methodName: string,
         duration: number,
         success: boolean,
         context: Record<string, any> = {}
-    ): void {
+    ): Promise<void> {
         const operationName = `${serviceName}.${methodName}`;
         
-        this.recordMetric(operationName, {
+        await this.recordMetric(operationName, {
             timestamp: new Date(),
             duration,
             success,
@@ -145,17 +112,17 @@ export class PerformanceMetricsCollector {
     /**
      * Record a database operation completion
      */
-    recordDbOperation(
+    async recordDbOperation(
         operationType: 'read' | 'write' | 'query' | 'transaction',
         collection: string,
         duration: number,
         success: boolean,
         resultCount?: number,
         context: Record<string, any> = {}
-    ): void {
+    ): Promise<void> {
         const operationName = `db-${operationType}-${collection}`;
         
-        this.recordMetric(operationName, {
+        await this.recordMetric(operationName, {
             timestamp: new Date(),
             duration,
             success,
@@ -170,15 +137,15 @@ export class PerformanceMetricsCollector {
     /**
      * Record a batch operation completion
      */
-    recordBatchOperation(
+    async recordBatchOperation(
         operationName: string,
         duration: number,
         success: boolean,
         stepCount: number,
         batchSize?: number,
         context: Record<string, any> = {}
-    ): void {
-        this.recordMetric(`batch-${operationName}`, {
+    ): Promise<void> {
+        await this.recordMetric(`batch-${operationName}`, {
             timestamp: new Date(),
             duration,
             success,
@@ -194,8 +161,6 @@ export class PerformanceMetricsCollector {
      * Check for performance alerts
      */
     private checkForAlerts(operationName: string, metric: OperationMetric): void {
-        const buffer = this.metrics.get(operationName)!;
-        
         // Alert on slow operations
         const slowThreshold = this.getSlowThreshold(metric.operationType);
         if (metric.duration > slowThreshold) {
@@ -208,47 +173,14 @@ export class PerformanceMetricsCollector {
                 context: metric.context
             });
         }
-
-        // Alert on high failure rates (if we have enough data)
-        if (buffer.size >= 10) {
-            const recentMetrics = this.getLastNMetricsFromBuffer(buffer, 10);
-            const failures = recentMetrics.filter(m => !m.success).length;
-            const failureRate = failures / recentMetrics.length;
-            
-            if (failureRate > 0.2) { // 20% failure rate
-                logger.warn('High failure rate detected', {
-                    operationName,
-                    failureRate: Math.round(failureRate * 100),
-                    recentFailures: failures,
-                    totalRecent: recentMetrics.length,
-                    operationType: metric.operationType
-                });
-            }
-        }
-
-        // Alert on performance degradation
-        if (buffer.size >= 20) {
-            const allMetrics = this.getMetricsFromBuffer(buffer);
-            const recentMetrics = allMetrics.slice(-10);
-            const olderMetrics = allMetrics.slice(-20, -10);
-            
-            const recentAvg = recentMetrics
-                .filter(m => m.success)
-                .reduce((sum, m) => sum + m.duration, 0) / recentMetrics.filter(m => m.success).length;
-            
-            const olderAvg = olderMetrics
-                .filter(m => m.success)
-                .reduce((sum, m) => sum + m.duration, 0) / olderMetrics.filter(m => m.success).length;
-            
-            if (recentAvg > olderAvg * 1.5 && recentAvg > 200) { // 50% slower and > 200ms
-                logger.warn('Performance degradation detected', {
-                    operationName,
-                    recentAverage_ms: Math.round(recentAvg),
-                    previousAverage_ms: Math.round(olderAvg),
-                    degradationFactor: Math.round(recentAvg / olderAvg * 100) / 100,
-                    operationType: metric.operationType
-                });
-            }
+        
+        // Alert on failures
+        if (!metric.success) {
+            logger.warn('Operation failed', {
+                operationName,
+                operationType: metric.operationType,
+                context: metric.context
+            });
         }
     }
 
@@ -266,99 +198,116 @@ export class PerformanceMetricsCollector {
     }
 
     /**
-     * Get aggregated statistics for an operation
+     * Get aggregated statistics for an operation - no data available without caching
      */
     getOperationStats(operationName: string): OperationStats | null {
-        const buffer = this.metrics.get(operationName);
-        if (!buffer || buffer.size === 0) {
-            return null;
-        }
-
-        const metrics = this.getMetricsFromBuffer(buffer);
-        const successfulMetrics = metrics.filter(m => m.success);
-        const failedMetrics = metrics.filter(m => !m.success);
-        
-        if (successfulMetrics.length === 0) {
-            return null;
-        }
-
-        const durations = successfulMetrics.map(m => m.duration).sort((a, b) => a - b);
-        const now = Date.now();
-        const oneHourAgo = now - (60 * 60 * 1000);
-        const recentMetrics = metrics.filter(m => m.timestamp.getTime() > oneHourAgo);
-
-        return {
-            operationName,
-            operationType: metrics[0].operationType,
-            totalExecutions: metrics.length,
-            successfulExecutions: successfulMetrics.length,
-            failedExecutions: failedMetrics.length,
-            successRate: successfulMetrics.length / metrics.length,
-            averageDuration: durations.reduce((sum, d) => sum + d, 0) / durations.length,
-            medianDuration: durations[Math.floor(durations.length / 2)],
-            p95Duration: durations[Math.floor(durations.length * 0.95)],
-            p99Duration: durations[Math.floor(durations.length * 0.99)],
-            minDuration: durations[0],
-            maxDuration: durations[durations.length - 1],
-            recentExecutions: recentMetrics.length,
-            recentSuccessRate: recentMetrics.length > 0 ? 
-                recentMetrics.filter(m => m.success).length / recentMetrics.length : 0,
-            lastExecuted: metrics[metrics.length - 1].timestamp,
-            firstExecuted: metrics[0].timestamp
-        };
+        // Without caching, we cannot provide historical statistics
+        return null;
     }
 
     /**
-     * Get performance summary for all operations
+     * Get all operations statistics - no data available without caching
      */
-    getPerformanceSummary(): PerformanceSummary {
-        const allStats: OperationStats[] = [];
-        
-        for (const operationName of this.metrics.keys()) {
-            const stats = this.getOperationStats(operationName);
-            if (stats) {
-                allStats.push(stats);
-            }
-        }
-
-        // Sort by average duration (slowest first)
-        const sortedStats = allStats.sort((a, b) => b.averageDuration - a.averageDuration);
-
-        const totalExecutions = allStats.reduce((sum, s) => sum + s.totalExecutions, 0);
-        const totalFailures = allStats.reduce((sum, s) => sum + s.failedExecutions, 0);
-        const overallSuccessRate = totalExecutions > 0 ? 1 - (totalFailures / totalExecutions) : 1;
-
-        return {
-            generatedAt: new Date(),
-            totalOperations: allStats.length,
-            totalExecutions,
-            overallSuccessRate,
-            slowestOperations: sortedStats.slice(0, 10),
-            failingOperations: allStats
-                .filter(s => s.successRate < 0.9)
-                .sort((a, b) => a.successRate - b.successRate)
-                .slice(0, 10),
-            recentlyDegraded: allStats
-                .filter(s => s.recentSuccessRate < s.successRate - 0.1)
-                .slice(0, 10),
-            highVolumeOperations: allStats
-                .filter(s => s.recentExecutions > 100)
-                .sort((a, b) => b.recentExecutions - a.recentExecutions)
-                .slice(0, 10)
-        };
+    getAllOperationStats(): OperationStats[] {
+        // Without caching, we cannot provide historical statistics
+        return [];
     }
 
     /**
-     * Start periodic performance reporting
+     * Generate performance report from Firestore metrics
+     */
+    async generateReport(): Promise<void> {
+        if (this.isTestEnvironment) {
+            return;
+        }
+        
+        try {
+            // Query recent metrics from Firestore
+            const recentMetrics = await metricsStorage.queryRecentMetrics(60); // Last hour
+            
+            if (recentMetrics.length === 0) {
+                logger.info('No metrics to report');
+                return;
+            }
+            
+            // Group metrics by operation
+            const groupedMetrics = new Map<string, any[]>();
+            for (const metric of recentMetrics) {
+                const key = `${metric.operationType}:${metric.operationName}`;
+                if (!groupedMetrics.has(key)) {
+                    groupedMetrics.set(key, []);
+                }
+                groupedMetrics.get(key)!.push(metric);
+            }
+            
+            // Calculate stats for each operation
+            const stats = [];
+            for (const [operation, metrics] of groupedMetrics) {
+                const durations = metrics.map(m => m.duration).sort((a, b) => a - b);
+                const successCount = metrics.filter(m => m.success).length;
+                
+                stats.push({
+                    operation,
+                    count: metrics.length,
+                    successRate: successCount / metrics.length,
+                    avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
+                    p50: durations[Math.floor(durations.length * 0.5)],
+                    p95: durations[Math.floor(durations.length * 0.95)],
+                    p99: durations[Math.floor(durations.length * 0.99)]
+                });
+            }
+            
+            // Log aggregated stats
+            logger.info('Performance report generated', {
+                period: 'hourly',
+                totalMetrics: recentMetrics.length,
+                operations: stats.length,
+                topOperations: stats.slice(0, 10)
+            });
+            
+            // Store aggregated stats
+            if (stats.length > 0) {
+                await metricsStorage.storeAggregatedStats({
+                    period: 'hour',
+                    periodStart: new Date(Date.now() - 3600000),
+                    periodEnd: new Date(),
+                    operationType: 'mixed',
+                    operationName: 'all',
+                    totalCount: recentMetrics.length,
+                    successCount: recentMetrics.filter(m => m.success).length,
+                    failureCount: recentMetrics.filter(m => !m.success).length,
+                    sampledCount: recentMetrics.length,
+                    avgDuration: stats.reduce((a, s) => a + s.avgDuration, 0) / stats.length,
+                    minDuration: Math.min(...recentMetrics.map(m => m.duration)),
+                    maxDuration: Math.max(...recentMetrics.map(m => m.duration)),
+                    p50Duration: stats[0]?.p50 || 0,
+                    p95Duration: stats[0]?.p95 || 0,
+                    p99Duration: stats[0]?.p99 || 0,
+                    successRate: recentMetrics.filter(m => m.success).length / recentMetrics.length,
+                    errorRate: recentMetrics.filter(m => !m.success).length / recentMetrics.length,
+                    throughput: recentMetrics.length / 3600
+                });
+            }
+        } catch (error) {
+            logger.error('Failed to generate performance report', error);
+        }
+    }
+
+    /**
+     * Start periodic reporting
      */
     private startPeriodicReporting(): void {
+        if (this.reportingIntervalId) {
+            clearInterval(this.reportingIntervalId);
+        }
+
         this.reportingIntervalId = setInterval(() => {
-            this.generatePeriodicReport();
+            this.generateReport();
         }, this.reportingInterval);
     }
 
     /**
-     * Stop periodic reporting (useful for testing)
+     * Stop periodic reporting
      */
     stopPeriodicReporting(): void {
         if (this.reportingIntervalId) {
@@ -368,131 +317,30 @@ export class PerformanceMetricsCollector {
     }
 
     /**
-     * Generate periodic performance report
-     */
-    private generatePeriodicReport(): void {
-        const now = Date.now();
-        const timeSinceLastReport = now - this.lastReportTime;
-        
-        if (timeSinceLastReport < this.reportingInterval) {
-            return; // Too soon
-        }
-
-        // Prune stale operations before generating report
-        this.pruneStaleOperations(now);
-
-        const summary = this.getPerformanceSummary();
-        
-        logger.info('Performance Summary', {
-            reportPeriod: `${timeSinceLastReport / 1000}s`,
-            totalOperations: summary.totalOperations,
-            totalExecutions: summary.totalExecutions,
-            overallSuccessRate: Math.round(summary.overallSuccessRate * 100),
-            slowestOperations: summary.slowestOperations.slice(0, 5).map(op => ({
-                name: op.operationName,
-                avgDuration: Math.round(op.averageDuration),
-                executions: op.totalExecutions
-            })),
-            failingOperations: summary.failingOperations.slice(0, 3).map(op => ({
-                name: op.operationName,
-                successRate: Math.round(op.successRate * 100),
-                failures: op.failedExecutions
-            }))
-        });
-
-        this.lastReportTime = now;
-    }
-
-    /**
-     * Remove operations that haven't recorded metrics recently
-     */
-    private pruneStaleOperations(now: number): void {
-        const staleThresholdTime = now - (this.staleThreshold * this.reportingInterval);
-        const operationsToRemove: string[] = [];
-
-        for (const [operationName, buffer] of this.metrics.entries()) {
-            if (buffer.lastUpdated < staleThresholdTime) {
-                operationsToRemove.push(operationName);
-            }
-        }
-
-        if (operationsToRemove.length > 0) {
-            logger.info('Pruning stale operations', {
-                removedOperations: operationsToRemove.length,
-                operations: operationsToRemove,
-                staleThresholdMinutes: (this.staleThreshold * this.reportingInterval) / (1000 * 60)
-            });
-
-            for (const operationName of operationsToRemove) {
-                this.metrics.delete(operationName);
-            }
-        }
-    }
-
-    /**
-     * Clear all metrics
+     * Clear all metrics - no-op without caching
      */
     clearMetrics(): void {
-        this.metrics.clear();
-        this.lastReportTime = Date.now();
+        // No metrics to clear
     }
 
     /**
-     * Get metrics count for monitoring
+     * Get memory usage - returns 0 without caching
      */
-    getMetricsCount(): number {
-        return Array.from(this.metrics.values()).reduce((total, buffer) => total + buffer.size, 0);
-    }
-
-    /**
-     * Get debug information about the collector state
-     */
-    getDebugInfo(): {
-        operationCount: number;
-        totalMetrics: number;
-        memoryFootprint: number;
-        oldestOperation?: { name: string; lastUpdated: number };
-        reportingActive: boolean;
-    } {
-        const buffers = Array.from(this.metrics.values());
-        const totalMetrics = buffers.reduce((sum, buffer) => sum + buffer.size, 0);
-        
-        // Estimate memory footprint (rough calculation)
-        const memoryFootprint = this.metrics.size * (
-            this.maxMetricsPerOperation * 200 + // Rough estimate per metric
-            100 // Buffer overhead
-        );
-
-        let oldestOperation;
-        if (this.metrics.size > 0) {
-            let oldestTime = Number.MAX_SAFE_INTEGER;
-            let oldestName = '';
-            
-            for (const [name, buffer] of this.metrics.entries()) {
-                if (buffer.lastUpdated < oldestTime) {
-                    oldestTime = buffer.lastUpdated;
-                    oldestName = name;
-                }
-            }
-            
-            if (oldestName) {
-                oldestOperation = { name: oldestName, lastUpdated: oldestTime };
-            }
-        }
-
+    getMemoryUsage(): { totalMetrics: number; estimatedSize: number } {
         return {
-            operationCount: this.metrics.size,
-            totalMetrics,
-            memoryFootprint,
-            oldestOperation,
-            reportingActive: !!this.reportingIntervalId
+            totalMetrics: 0,
+            estimatedSize: 0
         };
     }
 }
 
-/**
- * Individual operation metric
- */
+// Export convenience function for getting the collector instance
+export const getPerformanceCollector = () => PerformanceMetricsCollector.getInstance();
+
+// Export singleton instance for backward compatibility
+export const performanceMetricsCollector = PerformanceMetricsCollector.getInstance();
+
+// Type definitions
 interface OperationMetric {
     timestamp: Date;
     duration: number;
@@ -502,16 +350,14 @@ interface OperationMetric {
     methodName?: string;
     collection?: string;
     dbOperationType?: string;
-    batchOperationName?: string;
     resultCount?: number;
+    batchOperationName?: string;
     stepCount?: number;
     batchSize?: number;
-    context: Record<string, any>;
+    context?: Record<string, any>;
+    error?: string;
 }
 
-/**
- * Aggregated statistics for an operation
- */
 interface OperationStats {
     operationName: string;
     operationType: string;
@@ -527,23 +373,4 @@ interface OperationStats {
     maxDuration: number;
     recentExecutions: number;
     recentSuccessRate: number;
-    lastExecuted: Date;
-    firstExecuted: Date;
 }
-
-/**
- * Performance summary report
- */
-interface PerformanceSummary {
-    generatedAt: Date;
-    totalOperations: number;
-    totalExecutions: number;
-    overallSuccessRate: number;
-    slowestOperations: OperationStats[];
-    failingOperations: OperationStats[];
-    recentlyDegraded: OperationStats[];
-    highVolumeOperations: OperationStats[];
-}
-
-// Export singleton instance
-export const performanceMetricsCollector = PerformanceMetricsCollector.getInstance();

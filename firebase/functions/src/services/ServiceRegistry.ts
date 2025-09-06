@@ -11,7 +11,6 @@ import { logger } from '../logger';
  */
 export class ServiceRegistry {
     private static instance: ServiceRegistry;
-    private services: Map<string, any> = new Map();
     private serviceFactories: Map<string, () => any> = new Map();
     private initializing: Set<string> = new Set();
 
@@ -32,19 +31,12 @@ export class ServiceRegistry {
             logger.warn(`Service ${name} is already registered, overwriting`);
         }
         this.serviceFactories.set(name, factory);
-        // Clear cached instance if it exists to force re-initialization
-        this.services.delete(name);
     }
 
     /**
-     * Get a service instance (lazy initialization)
+     * Get a service instance (creates new instance each time)
      */
     public getService<T>(name: string): T {
-        // Return cached instance if available
-        if (this.services.has(name)) {
-            return this.services.get(name) as T;
-        }
-
         // Check for circular dependency
         if (this.initializing.has(name)) {
             throw new Error(`Circular dependency detected for service: ${name}`);
@@ -60,11 +52,8 @@ export class ServiceRegistry {
             // Mark as initializing
             this.initializing.add(name);
             
-            // Create service instance
+            // Create service instance (no caching)
             const service = factory();
-            
-            // Cache the instance
-            this.services.set(name, service);
             
             logger.info(`Service ${name} initialized successfully`);
             
@@ -96,7 +85,6 @@ export class ServiceRegistry {
      * Clear all services (useful for testing)
      */
     public clearServices(): void {
-        this.services.clear();
         this.serviceFactories.clear();
         this.initializing.clear();
     }
@@ -106,12 +94,10 @@ export class ServiceRegistry {
      */
     public getDependencyInfo(): { 
         registered: string[], 
-        initialized: string[], 
         initializing: string[] 
     } {
         return {
             registered: this.getRegisteredServices(),
-            initialized: Array.from(this.services.keys()),
             initializing: Array.from(this.initializing)
         };
     }
