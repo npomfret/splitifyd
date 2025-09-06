@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi, Mock } from 'vitest';
-import { firestoreDb } from '../../../firebase';
+import {getFirestore} from '../../../firebase';
 import { logger } from '../../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { getGroupChangedFields, calculatePriority, createMinimalChangeDocument } from '../../../utils/change-detection';
@@ -7,9 +7,9 @@ import { GroupChangeDocumentSchema } from '../../../schemas/change-documents';
 
 // Mock Firebase dependencies
 vi.mock('../../../firebase', () => ({
-    firestoreDb: {
+    getFirestore: vi.fn(() => ({
         collection: vi.fn(),
-    },
+    })),
 }));
 
 vi.mock('../../../logger', () => ({
@@ -56,7 +56,7 @@ async function processGroupChangeEvent(groupId: string, before: any, after: any,
         // Since members are now stored in subcollections, we need to query for them
         // For performance, we'll get members from the current state only
         try {
-            const membersSnapshot = await firestoreDb
+            const membersSnapshot = await getFirestore()
                 .collection(FirestoreCollections.GROUPS)
                 .doc(groupId)
                 .collection('members')
@@ -78,7 +78,7 @@ async function processGroupChangeEvent(groupId: string, before: any, after: any,
         const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
 
         // Write to group-changes collection
-        await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+        await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
 
         logger.info('group-changed', { id: groupId });
     } catch (error) {
@@ -105,7 +105,7 @@ describe('Change Tracker Trigger Logic', () => {
             collection: mockCollection,
         });
         
-        (firestoreDb.collection as Mock).mockImplementation(mockCollection);
+        (getFirestore().collection as Mock).mockImplementation(mockCollection);
     });
 
     describe('subcollection member fetching', () => {
@@ -135,7 +135,7 @@ describe('Change Tracker Trigger Logic', () => {
             await processGroupChangeEvent('test-group-id', mockBefore, mockAfter, 'updated');
 
             // Verify subcollection query was made correctly
-            expect(firestoreDb.collection).toHaveBeenCalledWith(FirestoreCollections.GROUPS);
+            expect(getFirestore().collection).toHaveBeenCalledWith(FirestoreCollections.GROUPS);
             expect(mockDoc).toHaveBeenCalledWith('test-group-id');
             expect(mockCollection).toHaveBeenCalledWith('members');
             expect(mockGet).toHaveBeenCalled();

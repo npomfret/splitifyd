@@ -49,7 +49,7 @@ async function initializeAppServices() {
         // Emulator mode - import everything normally
         console.log('🔗 Importing Firebase module for emulator...');
         const firebaseModule = await import('../functions/src/firebase');
-        firestoreDb = firebaseModule.firestoreDb;
+        firestoreDb = firebaseModule.getFirestore();
         console.log('✅ Emulator Firestore instance obtained');
     }
 }

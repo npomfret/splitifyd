@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
 import { ApiDriver, CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import { AuthenticatedFirebaseUser, FirestoreCollections } from "@splitifyd/shared";
-import { firestoreDb } from '../../../../firebase';
+import {getFirestore} from '../../../../firebase';
 import { Timestamp } from 'firebase-admin/firestore';
 
 describe('Group Deletion Real-Time Updates', () => {
@@ -37,7 +37,7 @@ describe('Group Deletion Real-Time Updates', () => {
         expect(members.members.length).toBe(2);
 
         // Subscribe to group changes to monitor real-time updates
-        const changeDocumentsBefore = await firestoreDb
+        const changeDocumentsBefore = await getFirestore()
             .collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', group.id)
             .get();
@@ -48,7 +48,7 @@ describe('Group Deletion Real-Time Updates', () => {
         await apiDriver.deleteGroup(group.id, users[0].token);
 
         // Check for change document creation
-        const changeDocumentsAfter = await firestoreDb
+        const changeDocumentsAfter = await getFirestore()
             .collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', group.id)
             .get();
@@ -111,7 +111,7 @@ describe('Group Deletion Real-Time Updates', () => {
         console.log(`Group deletion took ${endTime - startTime}ms`);
 
         // Check if any change documents exist for this group
-        const changeDocuments = await firestoreDb
+        const changeDocuments = await getFirestore()
             .collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', group.id)
             .get();
@@ -140,7 +140,7 @@ describe('Group Deletion Real-Time Updates', () => {
         const group = await apiDriver.createGroup(groupData, users[0].token);
 
         // Manually create a change document to simulate existing changes
-        await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add({
+        await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add({
             id: group.id,
             type: 'group',
             action: 'updated',
@@ -149,7 +149,7 @@ describe('Group Deletion Real-Time Updates', () => {
         });
 
         // Verify we have change documents before deletion
-        const changesBefore = await firestoreDb
+        const changesBefore = await getFirestore()
             .collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', group.id)
             .get();
@@ -161,7 +161,7 @@ describe('Group Deletion Real-Time Updates', () => {
         await apiDriver.deleteGroup(group.id, users[0].token);
 
         // Check remaining change documents
-        const changesAfter = await firestoreDb
+        const changesAfter = await getFirestore()
             .collection(FirestoreCollections.GROUP_CHANGES)
             .where('id', '==', group.id)
             .get();

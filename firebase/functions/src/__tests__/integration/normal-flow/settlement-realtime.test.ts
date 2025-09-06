@@ -9,11 +9,11 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import {ApiDriver, AppDriver} from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
 import { randomUUID } from 'crypto';
-import { firestoreDb } from '../../../firebase';
+import {getFirestore} from '../../../firebase';
 
 describe('Settlement Realtime Updates - Bug Documentation', () => {
     const apiDriver = new ApiDriver();
-    const appDriver = new AppDriver(apiDriver, firestoreDb);
+    const appDriver = new AppDriver(apiDriver, getFirestore());
 
     let groupId: string;
     let userId1: string;
@@ -32,9 +32,9 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
         if (groupId) {
             const collections = ['settlements', FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
             for (const collection of collections) {
-                const snapshot = await firestoreDb.collection(collection).where('groupId', '==', groupId).get();
+                const snapshot = await getFirestore().collection(collection).where('groupId', '==', groupId).get();
 
-                const batch = firestoreDb.batch();
+                const batch = getFirestore().batch();
                 snapshot.docs.forEach((doc) => batch.delete(doc.ref));
                 await batch.commit();
             }
@@ -49,7 +49,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        const settlementRef = await firestoreDb.collection('settlements').add(settlementData);
+        const settlementRef = await getFirestore().collection('settlements').add(settlementData);
 
         // Wait for settlement change notification using ApiDriver
         await appDriver.waitForSettlementChanges(
@@ -84,7 +84,7 @@ describe('Settlement Realtime Updates - Bug Documentation', () => {
             createdBy: userId2,
         };
 
-        await firestoreDb.collection('settlements').add(settlementData);
+        await getFirestore().collection('settlements').add(settlementData);
 
         // Wait for balance change notification using ApiDriver
         await appDriver.waitForBalanceChanges(

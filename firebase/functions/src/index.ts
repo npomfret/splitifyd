@@ -19,7 +19,7 @@ import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails 
 import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment } from './comments/handlers';
-import {admin, firestoreDb, isEmulator} from './firebase';
+import { getFirestore, getAuth } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { getUserProfile, updateUserProfile, changePassword, deleteUserAccount } from './user/handlers';
@@ -29,37 +29,26 @@ import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
 
-// Initialize service registry
+// Initialize service registry - moved to lazy initialization below
 import { registerAllServices } from './services/serviceRegistration';
-registerAllServices();
+
+// Lazy initialization flag
+let servicesRegistered = false;
+
+// Ensure services are registered before handling any request
+function ensureServicesRegistered() {
+    if (!servicesRegistered) {
+        registerAllServices();
+        servicesRegistered = true;
+    }
+}
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
 
-// Test emulator connections when running locally
-if (isEmulator()) {
-    // Helper function to wait for emulator with exponential backoff
-    async function waitForEmulator(testFn: () => Promise<any>, maxRetries = 5, initialDelay = 1000): Promise<void> {
-        for (let i = 0; i < maxRetries; i++) {
-            try {
-                await testFn();
-                return;
-            } catch (error: any) {
-                if (i === maxRetries - 1) {
-                    throw error;
-                }
-                const delay = initialDelay * Math.pow(2, i);
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-        }
-    }
-
-    // Test Auth emulator connection without blocking startup
-    waitForEmulator(() => admin.auth().listUsers(1)).catch((error: any) => {
-        logger.error('Auth emulator connection failed after multiple retries', error);
-    });
-}
+// Removed emulator connection test at module level to prevent connection creation
+// The emulator connection will be tested lazily when first needed
 
 // Lazy-initialize Express app
 let app: express.Application | null = null;
@@ -67,6 +56,9 @@ let app: express.Application | null = null;
 function getApp(): express.Application {
     if (!app) {
         app = express();
+        
+        // Ensure services are registered when app is first created
+        ensureServicesRegistered();
 
         // Disable ETags to prevent 304 responses
         disableETags(app);
@@ -92,6 +84,9 @@ function setupRoutes(app: express.Application): void {
     app.get('/health', async (req: express.Request, res: express.Response) => {
         const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
 
+        // Get Firebase instances normally
+        const firestoreDb = getFirestore();
+
         const firestoreStart = Date.now();
         const testRef = firestoreDb.collection('_health_check').doc('test');
         await testRef.set({ timestamp: createServerTimestamp() }, { merge: true });
@@ -102,7 +97,7 @@ function setupRoutes(app: express.Application): void {
         };
 
         const authStart = Date.now();
-        await admin.auth().listUsers(SYSTEM.AUTH_LIST_LIMIT);
+        await getAuth().listUsers(SYSTEM.AUTH_LIST_LIMIT);
         checks.auth = {
             status: 'healthy',
             responseTime: Date.now() - authStart,

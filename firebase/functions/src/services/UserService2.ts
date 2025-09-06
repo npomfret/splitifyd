@@ -1,6 +1,6 @@
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import {Timestamp} from 'firebase-admin/firestore';
-import {firebaseAuth, firestoreDb} from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import {AuthErrors, FirestoreCollections, SystemUserRoles, RegisteredUser, UserThemeColor} from '@splitifyd/shared';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
@@ -121,7 +121,7 @@ export class UserService {
 
         try {
             // Get user from Firebase Auth
-            const userRecord = await firebaseAuth.getUser(userId);
+            const userRecord = await getAuth().getUser(userId);
 
             // Ensure required fields are present
             this.validateUserRecord(userRecord);
@@ -192,7 +192,7 @@ export class UserService {
      * Fetch a batch of users and add to result map
      */
     private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
-        const getUsersResult = await firebaseAuth.getUsers(uids.map((uid) => ({uid})));
+        const getUsersResult = await getAuth().getUsers(uids.map((uid) => ({uid})));
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
@@ -247,7 +247,7 @@ export class UserService {
             }
 
             // Update Firebase Auth
-            await firebaseAuth.updateUser(userId, authUpdateData);
+            await getAuth().updateUser(userId, authUpdateData);
 
             // Build update object for Firestore
             const firestoreUpdate: any = {
@@ -286,7 +286,7 @@ export class UserService {
             }
 
             // Update Firestore user document
-            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
+            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
 
             // Clear cache for this user to ensure fresh data
             this.cache.delete(userId);
@@ -320,7 +320,7 @@ export class UserService {
 
         try {
             // Get user to ensure they exist
-            const userRecord = await firebaseAuth.getUser(userId);
+            const userRecord = await getAuth().getUser(userId);
             if (!userRecord.email) {
                 throw Errors.INVALID_INPUT('User email not found');
             }
@@ -331,12 +331,12 @@ export class UserService {
             // Consider implementing a more secure password verification flow.
 
             // Update password in Firebase Auth
-            await firebaseAuth.updateUser(userId, {
+            await getAuth().updateUser(userId, {
                 password: validatedData.newPassword,
             });
 
             // Update Firestore to track password change
-            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).update({
+            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update({
                 updatedAt: createServerTimestamp(),
                 passwordChangedAt: createServerTimestamp(),
             });
@@ -381,10 +381,10 @@ export class UserService {
             }
 
             // Delete user data from Firestore first (before Auth deletion)
-            await firestoreDb.collection(FirestoreCollections.USERS).doc(userId).delete();
+            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).delete();
 
             // Delete user from Firebase Auth
-            await firebaseAuth.deleteUser(userId);
+            await getAuth().deleteUser(userId);
 
             logger.info('User account deleted successfully');
 
@@ -438,7 +438,7 @@ export class UserService {
         try {
             // Create the user in Firebase Auth
             const c: CreateRequest = userRegistration;
-            userRecord = await firebaseAuth.createUser(c);
+            userRecord = await getAuth().createUser(c);
 
             // Add userId to context now that user is created
             LoggerContext.update({userId: userRecord.uid});
@@ -489,7 +489,7 @@ export class UserService {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document validation failed during registration');
             }
 
-            await firestoreDb.collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
+            await getFirestore().collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
 
             return {
                 uid: userRecord.uid,
@@ -500,7 +500,7 @@ export class UserService {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {
                 try {
-                    await firebaseAuth.deleteUser(userRecord.uid);
+                    await getAuth().deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
                     LoggerContext.update({userId: userRecord.uid});

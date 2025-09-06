@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
@@ -10,7 +10,7 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { getExpenseService } from '../services/serviceRegistration';
 
 const getExpensesCollection = () => {
-    return firestoreDb.collection(FirestoreCollections.EXPENSES);
+    return getFirestore().collection(FirestoreCollections.EXPENSES);
 };
 
 

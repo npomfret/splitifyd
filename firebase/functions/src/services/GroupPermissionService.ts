@@ -1,5 +1,5 @@
 import {FieldValue} from 'firebase-admin/firestore';
-import {firestoreDb} from '../firebase';
+import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
@@ -40,7 +40,7 @@ export class GroupPermissionService {
         private readonly firestoreReader: IFirestoreReader
     ) {}
     private getGroupsCollection() {
-        return firestoreDb.collection(FirestoreCollections.GROUPS);
+        return getFirestore().collection(FirestoreCollections.GROUPS);
     }
 
     /**
@@ -389,7 +389,7 @@ export class GroupPermissionService {
         await this.validateUpdatedGroupDocument(groupDocRef, 'member role change');
 
         // Dual-write: Also update the subcollection for the new architecture
-        const memberDocRef = firestoreDb
+        const memberDocRef = getFirestore()
             .collection(FirestoreCollections.GROUPS)
             .doc(groupId)
             .collection('members')

@@ -1,4 +1,4 @@
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp } from '../utils/dateHelpers';
@@ -40,8 +40,8 @@ export interface AcceptPolicyRequest {
  * Service for managing user policy acceptance operations
  */
 export class UserPolicyService {
-    private policiesCollection = firestoreDb.collection(FirestoreCollections.POLICIES);
-    private usersCollection = firestoreDb.collection(FirestoreCollections.USERS);
+    private policiesCollection = getFirestore().collection(FirestoreCollections.POLICIES);
+    private usersCollection = getFirestore().collection(FirestoreCollections.USERS);
     
     constructor(private firestoreReader: IFirestoreReader) {}
 
@@ -146,7 +146,7 @@ export class UserPolicyService {
             });
 
             // Use batch to ensure atomicity
-            const batch = firestoreDb.batch();
+            const batch = getFirestore().batch();
             batch.update(userDocRef, updateData);
             await batch.commit();
 

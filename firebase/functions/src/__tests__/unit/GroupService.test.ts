@@ -7,7 +7,7 @@ import { SecurityPresets, MemberRoles, MemberStatuses, SplitTypes } from '@split
 
 // Mock dependencies
 vi.mock('../../firebase', () => ({
-    firestoreDb: {
+    getFirestore: vi.fn(() => ({
         collection: vi.fn(() => ({
             doc: vi.fn(() => ({
                 delete: vi.fn(),
@@ -35,7 +35,7 @@ vi.mock('../../firebase', () => ({
             close: vi.fn().mockResolvedValue(undefined),
             onWriteError: vi.fn(),
         })),
-    },
+    })),
 }));
 
 vi.mock('../../utils/performance-monitor', () => ({

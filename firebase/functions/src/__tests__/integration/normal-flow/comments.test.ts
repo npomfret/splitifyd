@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, TestExpenseManager} from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
-import {firestoreDb as db} from '../../../firebase';
+import {getFirestore} from '../../../firebase';
 
 describe('Comments Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -88,7 +88,7 @@ describe('Comments Integration Tests', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // Query Firestore directly like the frontend does
-            const snapshot = await db
+            const snapshot = await getFirestore()
                 .collection(`groups/${testGroup.id}/comments`)
                 .orderBy('createdAt', 'desc')
                 .limit(20)
@@ -120,7 +120,7 @@ describe('Comments Integration Tests', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // Query Firestore directly
-            const snapshot = await db
+            const snapshot = await getFirestore()
                 .collection(`groups/${testGroup.id}/comments`)
                 .orderBy('createdAt', 'desc')
                 .get();
@@ -148,7 +148,7 @@ describe('Comments Integration Tests', () => {
             let callbackCount = 0;
 
             // Set up listener like the frontend does
-            const unsubscribe = db
+            const unsubscribe = getFirestore()
                 .collection(`groups/${testGroup.id}/comments`)
                 .orderBy('createdAt', 'desc')
                 .limit(20)
@@ -228,7 +228,7 @@ describe('Comments Integration Tests', () => {
             await new Promise(resolve => setTimeout(resolve, 100));
 
             // Query Firestore directly like the frontend does
-            const snapshot = await db
+            const snapshot = await getFirestore()
                 .collection(`expenses/${testExpense.id}/comments`)
                 .orderBy('createdAt', 'desc')
                 .limit(20)
@@ -262,7 +262,7 @@ describe('Comments Integration Tests', () => {
             // Both comments should exist in Firestore
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            const snapshot = await db
+            const snapshot = await getFirestore()
                 .collection(`groups/${testGroup.id}/comments`)
                 .get();
 
@@ -288,7 +288,7 @@ describe('Comments Integration Tests', () => {
             // Also check Firestore document
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            const snapshot = await db
+            const snapshot = await getFirestore()
                 .collection(`groups/${testGroup.id}/comments`)
                 .where('text', '==', 'Timestamp test')
                 .limit(1)

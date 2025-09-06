@@ -11,10 +11,10 @@ vi.mock('../../../utils/groupHelpers', () => ({
 }));
 
 vi.mock('../../../firebase', () => ({
-    firebaseAuth: {
+    getAuth: vi.fn(() => ({
         getUser: vi.fn(),
-    },
-    firestoreDb: {
+    })),
+    getFirestore: vi.fn(() => ({
         collection: vi.fn(() => ({
             doc: vi.fn(() => ({
                 collection: vi.fn(() => ({
@@ -30,7 +30,7 @@ vi.mock('../../../firebase', () => ({
                 })),
             })),
         })),
-    },
+    })),
 }));
 
 describe('CommentService', () => {

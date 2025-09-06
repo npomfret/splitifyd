@@ -1,4 +1,4 @@
-import { afterAll, afterEach } from 'vitest';
+import { afterAll, afterEach, beforeEach } from 'vitest';
 
 // Mock firebase-functions logger to use console in tests
 // vi.mock('firebase-functions', () => ({
@@ -22,6 +22,8 @@ const testUserRegistry = new Map<string, TestUserEntry>();
     testUserRegistry.set(testId, { users, apiDriver });
 };
 
+// Test setup hooks
+
 // Automatically clean up all borrowed test users after each test
 afterEach(async () => {
     if (testUserRegistry.size > 0) {
@@ -37,15 +39,4 @@ afterEach(async () => {
         }
         testUserRegistry.clear();
     }
-});
-
-// Per-file setup - global cleanup handled by vitest.global-setup.ts
-
-// Cleanup is now handled globally by vitest.global-setup.ts
-// This ensures cleanup runs only once at the start of the entire test suite
-
-// Cleanup function moved to vitest.global-setup.ts for global execution
-
-afterAll(async () => {
-    // Global cleanup
 });

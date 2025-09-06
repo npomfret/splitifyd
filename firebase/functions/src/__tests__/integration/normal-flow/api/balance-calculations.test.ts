@@ -9,11 +9,11 @@ import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from '@splitifyd/shared';
-import {firestoreDb} from "../../../../firebase";
+import {getFirestore} from "../../../../firebase";
 
 describe('Balance Calculations', () => {
     const apiDriver = new ApiDriver();
-    const appDriver = new AppDriver(apiDriver, firestoreDb);
+    const appDriver = new AppDriver(apiDriver, getFirestore());
     let balanceTestGroup: any;
 
     let users: AuthenticatedFirebaseUser[];

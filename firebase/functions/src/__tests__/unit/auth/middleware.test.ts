@@ -13,10 +13,10 @@ vi.mock('../../../services/serviceRegistration', () => ({
 
 // Mock Firebase Auth
 vi.mock('../../../firebase', () => ({
-    firebaseAuth: {
+    getAuth: vi.fn(() => ({
         verifyIdToken: vi.fn(),
         getUser: vi.fn()
-    }
+    }))
 }));
 
 // Mock logger and errors
@@ -50,7 +50,7 @@ describe('Authentication Middleware', () => {
         // Get the mocked modules
         const firebaseModule = await import('../../../firebase');
         const errorsModule = await import('../../../utils/errors');
-        mockFirebaseAuth = firebaseModule.firebaseAuth;
+        mockFirebaseAuth = firebaseModule.getAuth();
         mockSendError = errorsModule.sendError;
 
         mockReq = {

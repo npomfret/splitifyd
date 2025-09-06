@@ -1,5 +1,5 @@
 import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { firestoreDb } from '../firebase';
+import { getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { getChangedFields, getGroupChangedFields, calculatePriority, createMinimalChangeDocument, createMinimalBalanceChangeDocument, ChangeType } from '../utils/change-detection';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -66,7 +66,7 @@ export const trackGroupChanges = onDocumentWritten(
                     
                     // For CREATE/UPDATE events, query the current subcollection
                     try {
-                        const membersSnapshot = await firestoreDb
+                        const membersSnapshot = await getFirestore()
                             .collection(FirestoreCollections.GROUPS)
                             .doc(groupId)
                             .collection('members')
@@ -110,7 +110,7 @@ export const trackGroupChanges = onDocumentWritten(
                     const validatedChangeDoc = cachedGroupChangeSchema.parse(changeDoc);
 
                     // Write to group-changes collection
-                    await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+                    await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
                     
                     logger.info('group-changed', { id: groupId });
                 });
@@ -171,7 +171,7 @@ export const trackExpenseChanges = onDocumentWritten(
             const validatedChangeDoc = cachedTransactionChangeSchema.parse(changeDoc);
 
             // Write to transaction-changes collection (expenses use transaction-changes)
-            await firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
+            await getFirestore().collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
 
             // Also create a minimal balance change document since expenses affect balances
             const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
@@ -179,7 +179,7 @@ export const trackExpenseChanges = onDocumentWritten(
             // Validate balance change document
             const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
 
-            await firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
+            await getFirestore().collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
 
             logger.info('expense-changed', { id: expenseId, groupId });
         } catch (error) {
@@ -250,6 +250,7 @@ export const trackSettlementChanges = onDocumentWritten(
                     const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
 
                     // Use batch write to improve performance and consistency
+                    const firestoreDb = getFirestore();
                     const batch = firestoreDb.batch();
                     
                     batch.create(firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).doc(), validatedChangeDoc);

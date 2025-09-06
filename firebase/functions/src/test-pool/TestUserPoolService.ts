@@ -1,4 +1,4 @@
-import {admin, firestoreDb} from '../firebase';
+import {admin, getFirestore} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {RegisteredUser} from "@splitifyd/shared";
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
@@ -33,7 +33,7 @@ export class TestUserPoolService {
     }
 
     async borrowUser(): Promise<PoolUser> {
-        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const poolRef = getFirestore().collection(POOL_COLLECTION);
         
         // Use transaction to atomically claim an available user
         const result = await runTransactionWithRetry(
@@ -89,7 +89,7 @@ export class TestUserPoolService {
     }
 
     async returnUser(email: string): Promise<void> {
-        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const poolRef = getFirestore().collection(POOL_COLLECTION);
         
         // Use transaction to atomically return user
         await runTransactionWithRetry(
@@ -147,7 +147,7 @@ export class TestUserPoolService {
     }
 
     async getPoolStatus() {
-        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const poolRef = getFirestore().collection(POOL_COLLECTION);
         const [availableSnapshot, borrowedSnapshot] = await Promise.all([
             poolRef.where('status', '==', 'available').get(),
             poolRef.where('status', '==', 'borrowed').get()
@@ -162,10 +162,10 @@ export class TestUserPoolService {
 
     // Force cleanup all borrows (for testing/admin use)
     async resetPool(): Promise<void> {
-        const poolRef = firestoreDb.collection(POOL_COLLECTION);
+        const poolRef = getFirestore().collection(POOL_COLLECTION);
         const borrowedSnapshot = await poolRef.where('status', '==', 'borrowed').get();
         
-        const batch = firestoreDb.batch();
+        const batch = getFirestore().batch();
         borrowedSnapshot.docs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
             batch.update(doc.ref, { status: 'available' });
         });

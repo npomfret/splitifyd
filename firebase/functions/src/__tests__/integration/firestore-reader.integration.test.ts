@@ -19,6 +19,7 @@ describe('FirestoreReader Integration Tests', () => {
     });
 
     afterAll(async () => {
+        // Cleanup handled by Firebase SDK
     });
 
     describe('getGroupsForUser', () => {

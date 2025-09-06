@@ -1,5 +1,5 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -32,8 +32,8 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
             while (hasMore) {
                 // Query for documents to delete
                 const snapshot = deleteAll || minutesToKeep === 0
-                    ? await firestoreDb.collection(collectionName).limit(500).get()
-                    : await firestoreDb.collection(collectionName)
+                    ? await getFirestore().collection(collectionName).limit(500).get()
+                    : await getFirestore().collection(collectionName)
                         .where('timestamp', '<', cutoffDate)
                         .limit(500)
                         .get();
@@ -44,7 +44,7 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
                 }
 
                 // Delete in batches
-                const batch = firestoreDb.batch();
+                const batch = getFirestore().batch();
                 let batchDeleteCount = 0;
 
                 snapshot.docs.forEach((doc) => {
@@ -117,7 +117,7 @@ export const cleanupChanges = onSchedule(
 async function logCleanupMetrics(metrics: { collection: string; deletedCount: number; timestamp: string; deleteAll?: boolean }): Promise<void> {
     try {
         // Store metrics for monitoring (could be sent to external service)
-        await firestoreDb.collection('system-metrics').add({
+        await getFirestore().collection('system-metrics').add({
             type: 'cleanup',
             ...metrics,
             createdAt: FieldValue.serverTimestamp(),

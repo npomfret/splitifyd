@@ -1,6 +1,6 @@
 import { DocumentSnapshot, Query, Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import {firebaseAuth, firestoreDb} from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -31,8 +31,8 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
-    private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
-    private expensesCollection = firestoreDb.collection(FirestoreCollections.EXPENSES);
+    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
+    private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
     
     constructor(private readonly firestoreReader: IFirestoreReader) {}
 
@@ -254,7 +254,7 @@ export class CommentService {
         await this.verifyCommentAccess(targetType, targetId, userId, resolvedGroupId);
 
         // Get user display name for the comment
-        const userRecord = await firebaseAuth.getUser(userId);
+        const userRecord = await getAuth().getUser(userId);
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
 
         // Prepare comment data

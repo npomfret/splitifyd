@@ -1,6 +1,6 @@
 import {DocumentReference} from 'firebase-admin/firestore';
 import {z} from 'zod';
-import {firestoreDb} from '../firebase';
+import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
 import {createServerTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
@@ -44,8 +44,8 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class ExpenseService {
-    private expensesCollection = firestoreDb.collection(FirestoreCollections.EXPENSES);
-    private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
+    private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
+    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
 
     constructor(private readonly firestoreReader: IFirestoreReader) {}
 

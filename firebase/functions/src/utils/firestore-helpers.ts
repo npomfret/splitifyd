@@ -2,7 +2,7 @@
  * Utility functions for working with Firestore documents
  */
 
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { logger } from '../logger';
 import { PerformanceMonitor } from './performance-monitor';
 import { performanceMetricsCollector } from './performance-metrics-collector';
@@ -64,7 +64,7 @@ export async function runTransactionWithRetry<T>(
                 const attemptStartTime = Date.now();
                 
                 try {
-                    const result = await firestoreDb.runTransaction(transactionFn);
+                    const result = await getFirestore().runTransaction(transactionFn);
                     const totalDuration = Date.now() - attemptStartTime + retryDelayTotal;
                     
                     // Record successful transaction metrics

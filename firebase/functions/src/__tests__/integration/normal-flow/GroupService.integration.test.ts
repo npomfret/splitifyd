@@ -3,7 +3,7 @@ import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} f
 import { GroupService } from '../../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
-import { firestoreDb } from '../../../firebase';
+import {getFirestore} from '../../../firebase';
 import { registerAllServices, getGroupService } from '../../../services/serviceRegistration';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
@@ -42,7 +42,7 @@ describe('GroupService - Integration Tests', () => {
             expect(group.updatedAt).toBeDefined();
 
             // Verify Firestore document was created correctly
-            const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).get();
+            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).get();
             expect(doc.exists).toBe(true);
             
             const docData = doc.data()!;
@@ -69,7 +69,7 @@ describe('GroupService - Integration Tests', () => {
             expect(group.presetAppliedAt).toBeDefined();
 
             // Cleanup
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
+            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
     });
 
@@ -94,7 +94,7 @@ describe('GroupService - Integration Tests', () => {
         afterEach(async () => {
             // Cleanup
             try {
-                await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
+                await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
             } catch (error) {
                 // Group might already be deleted
             }
@@ -150,7 +150,7 @@ describe('GroupService - Integration Tests', () => {
             expect(result.balances.userBalances).toBeDefined();
 
             // Cleanup expense
-            await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
+            await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
         });
     });
 
@@ -172,7 +172,7 @@ describe('GroupService - Integration Tests', () => {
 
         afterEach(async () => {
             try {
-                await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
+                await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
             } catch (error) {
                 // Group might already be deleted
             }
@@ -213,7 +213,7 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group updated successfully');
 
             // Verify the timestamp was updated
-            const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
+            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
             const docData = doc.data()!;
             expect(docData.updatedAt).toBeDefined();
         });
@@ -241,7 +241,7 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group was deleted
-            const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
+            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
             expect(doc.exists).toBe(false);
         });
 
@@ -269,11 +269,11 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group was deleted
-            const doc = await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
+            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
             expect(doc.exists).toBe(false);
 
             // Verify expense was also deleted (hard delete removes all related data)
-            const expenseDoc = await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).get();
+            const expenseDoc = await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).get();
             expect(expenseDoc.exists).toBe(false);
         });
 
@@ -301,7 +301,7 @@ describe('GroupService - Integration Tests', () => {
 
         afterEach(async () => {
             try {
-                await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
+                await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
             } catch (error) {
                 // Group might already be deleted
             }
@@ -352,8 +352,8 @@ describe('GroupService - Integration Tests', () => {
             expect(balances.simplifiedDebts).toBeDefined();
 
             // Cleanup
-            await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense1.id).delete();
-            await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense2.id).delete();
+            await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense1.id).delete();
+            await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense2.id).delete();
         });
 
         test('should throw UNAUTHORIZED for missing userId', async () => {
@@ -392,7 +392,7 @@ describe('GroupService - Integration Tests', () => {
             // Cleanup all test groups
             for (const groupId of testGroupIds) {
                 try {
-                    await firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).delete();
+                    await getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).delete();
                 } catch (error) {
                     // Group might already be deleted
                 }
@@ -464,7 +464,7 @@ describe('GroupService - Integration Tests', () => {
             expect(groupWithExpense!.balance).toBeDefined();
 
             // Cleanup
-            await firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
+            await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
         });
     });
 
@@ -487,7 +487,7 @@ describe('GroupService - Integration Tests', () => {
 
         afterEach(async () => {
             try {
-                await firestoreDb.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
+                await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
             } catch (error) {
                 // Group might already be deleted
             }
@@ -533,7 +533,7 @@ describe('GroupService - Integration Tests', () => {
             expect(group.id).toBeDefined();
 
             // Cleanup
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
+            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should handle concurrent updates gracefully', async () => {
@@ -561,7 +561,7 @@ describe('GroupService - Integration Tests', () => {
             expect(successes.length).toBeGreaterThan(0);
 
             // Cleanup
-            await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
+            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should handle malformed input gracefully', async () => {
@@ -576,7 +576,7 @@ describe('GroupService - Integration Tests', () => {
             try {
                 const group = await groupService.createGroup(creator.uid, groupData);
                 // If it succeeds, cleanup
-                await firestoreDb.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
+                await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
             } catch (error) {
                 // Expected - validation should catch this
                 expect(error).toBeInstanceOf(Error);

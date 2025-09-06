@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import { z } from 'zod';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { logger, LoggerContext } from '../logger';
 import { HTTP_STATUS } from '../constants';
@@ -24,7 +24,7 @@ export class GroupShareService {
     }
 
     private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLink }> {
-        const groupsSnapshot = await firestoreDb.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
+        const groupsSnapshot = await getFirestore().collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
 
         if (groupsSnapshot.empty) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
@@ -95,14 +95,14 @@ export class GroupShareService {
 
         const shareToken = this.generateShareToken();
 
-        await firestoreDb.runTransaction(async (transaction) => {
-            const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+        await getFirestore().runTransaction(async (transaction) => {
+            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
             const freshGroupDoc = await transaction.get(groupRef);
             if (!freshGroupDoc.exists) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            const shareLinksRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+            const shareLinksRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
             const shareLinkDoc = shareLinksRef.doc();
 
             const shareLinkData: Omit<ShareLink, 'id'> = {
@@ -217,7 +217,7 @@ export class GroupShareService {
         const existingMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
         const memberIndex = existingMembers.length;
         
-        const memberRef = firestoreDb
+        const memberRef = getFirestore()
             .collection(FirestoreCollections.GROUPS)
             .doc(groupId)
             .collection('members')
@@ -243,7 +243,7 @@ export class GroupShareService {
         // Atomic transaction: check group exists and create member subcollection
         const result = await runTransactionWithRetry(
             async (transaction) => {
-                const groupRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+                const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
                 const groupSnapshot = await transaction.get(groupRef);
 
                 if (!groupSnapshot.exists) {

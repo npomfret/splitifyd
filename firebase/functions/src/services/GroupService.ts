@@ -1,5 +1,5 @@
 import {DocumentReference, Timestamp} from 'firebase-admin/firestore';
-import {firestoreDb} from '../firebase';
+import {getFirestore} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
@@ -51,7 +51,7 @@ export class GroupService {
      * Get the groups collection reference
      */
     private getGroupsCollection() {
-        return firestoreDb.collection(FirestoreCollections.GROUPS);
+        return getFirestore().collection(FirestoreCollections.GROUPS);
     }
 
     /**
@@ -654,7 +654,7 @@ export class GroupService {
         }
 
         // Pre-calculate member subcollection data outside transaction for speed
-        const memberRef = firestoreDb
+        const memberRef = getFirestore()
             .collection(FirestoreCollections.GROUPS)
             .doc(docRef.id)
             .collection('members')
@@ -793,22 +793,22 @@ export class GroupService {
 
         // Get all top-level collections with groupId references
         const [expenses, settlements, groupChanges, transactionChanges, balanceChanges] = await Promise.all([
-            firestoreDb.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
-            firestoreDb.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-            firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).where('groupId', '==', groupId).get(),
-            firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
-            firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
+            getFirestore().collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
+            getFirestore().collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
+            getFirestore().collection(FirestoreCollections.GROUP_CHANGES).where('groupId', '==', groupId).get(),
+            getFirestore().collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
+            getFirestore().collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
         ]);
 
         // Get subcollections of the group
         const [shareLinks, groupComments] = await Promise.all([
-            firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
-            firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
+            getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
+            getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
         ]);
 
         // Get comments on all expenses belonging to this group
-        const expenseCommentPromises = expenses.docs.map(expense => 
-            firestoreDb.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
+        const expenseCommentPromises = expenses.docs.map(expense =>
+            getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
         );
         const expenseCommentSnapshots = await Promise.all(expenseCommentPromises);
 
@@ -840,7 +840,7 @@ export class GroupService {
             const changeDoc = createMinimalChangeDocument(groupId, 'group', 'deleted', memberIds);
             const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
             
-            deletionChangeDocRef = await firestoreDb.collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+            deletionChangeDocRef = await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
             
             logger.info('Created change document for group hard deletion BEFORE bulk deletion', { 
                 groupId, 
@@ -857,7 +857,7 @@ export class GroupService {
         }
 
         // PHASE 3: Execute bulk deletion using BulkWriter
-        const bulkWriter = firestoreDb.bulkWriter();
+        const bulkWriter = getFirestore().bulkWriter();
 
         // Configure bulkWriter for better performance and error handling
         bulkWriter.onWriteError((error) => {
@@ -895,7 +895,7 @@ export class GroupService {
         // Delete members
         if (memberDocs) {
             memberDocs.forEach(memberDoc => {
-                const memberRef = firestoreDb.collection(FirestoreCollections.GROUPS)
+                const memberRef = getFirestore().collection(FirestoreCollections.GROUPS)
                     .doc(groupId)
                     .collection('members')
                     .doc(memberDoc.userId);

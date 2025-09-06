@@ -7,7 +7,7 @@
  */
 
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
-import { firestoreDb } from '../../firebase';
+import {getFirestore} from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { FieldPath } from 'firebase-admin/firestore';
@@ -51,7 +51,7 @@ import type {
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(
-        private readonly db: Firestore = firestoreDb
+        private readonly db: Firestore = getFirestore()
     ) {}
 
     // ========================================================================

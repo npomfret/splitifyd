@@ -56,7 +56,7 @@ async function initializeHandlers() {
         
         const handlers = await import('../functions/src/policies/handlers');
 
-        firestoreDb = firebaseModule.firestoreDb;
+        firestoreDb = firebaseModule.getFirestore();
         createPolicyInternal = handlers.createPolicyInternal;
         publishPolicyInternal = handlers.publishPolicyInternal;
     }

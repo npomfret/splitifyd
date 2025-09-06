@@ -3,12 +3,12 @@
 
 import {beforeEach, describe, expect, it} from 'vitest';
 import {ApiDriver, AppDriver, SettlementBuilder, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
-import {firestoreDb} from '../../../firebase';
+import {getFirestore} from '../../../firebase';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Settlement API Realtime Integration - Bug Reproduction', () => {
     const apiDriver = new ApiDriver();
-    const appDriver = new AppDriver(apiDriver, firestoreDb);
+    const appDriver = new AppDriver(apiDriver, getFirestore());
 
     let user1: AuthenticatedFirebaseUser;
     let user2: AuthenticatedFirebaseUser;

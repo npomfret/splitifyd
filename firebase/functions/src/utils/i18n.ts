@@ -100,8 +100,8 @@ async function getUserPreferredLanguage(userId?: string): Promise<string | null>
     if (!userId) return null;
 
     try {
-        const { firestoreDb } = await import('../firebase');
-        const userDoc = await firestoreDb.collection('users').doc(userId).get();
+        const { getFirestore } = await import('../firebase');
+        const userDoc = await getFirestore().collection('users').doc(userId).get();
 
         if (userDoc.exists) {
             const userData = userDoc.data();

@@ -1,7 +1,7 @@
 
 import { FieldValue, Filter, Query } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -41,9 +41,9 @@ const UserDataSchema = z
  * Service for managing settlement operations
  */
 export class SettlementService {
-    private settlementsCollection = firestoreDb.collection(FirestoreCollections.SETTLEMENTS);
-    private usersCollection = firestoreDb.collection(FirestoreCollections.USERS);
-    private groupsCollection = firestoreDb.collection(FirestoreCollections.GROUPS);
+    private settlementsCollection = getFirestore().collection(FirestoreCollections.SETTLEMENTS);
+    private usersCollection = getFirestore().collection(FirestoreCollections.USERS);
+    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
 
     constructor(private readonly firestoreReader: IFirestoreReader) {}
 

@@ -88,7 +88,7 @@ async function initializeAppServices() {
         const policyHelpers = await import('../functions/src/auth/policy-helpers');
         const themeHelpers = await import('../functions/src/user-management/assign-theme-color');
 
-        firestoreDb = firebaseModule.firestoreDb;
+        firestoreDb = firebaseModule.getFirestore();
         createServerTimestamp = dateHelpers.createServerTimestamp;
         getCurrentPolicyVersions = policyHelpers.getCurrentPolicyVersions;
         assignThemeColor = themeHelpers.assignThemeColor;

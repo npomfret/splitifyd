@@ -112,7 +112,7 @@ const main = async () => {
         await runSeedPoliciesStep();
 
         // Step 3: Generate test data
-        await runGenerateTestDataStep();
+        // await runGenerateTestDataStep();
 
         logger.info('');
         logger.info('═══════════════════════════════════════════════════════');

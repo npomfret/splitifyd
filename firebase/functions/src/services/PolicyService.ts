@@ -1,5 +1,5 @@
 import * as crypto from 'crypto';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -19,7 +19,7 @@ import { IFirestoreReader } from './firestore/IFirestoreReader';
  * Service for managing policy operations
  */
 export class PolicyService {
-    private policiesCollection = firestoreDb.collection(FirestoreCollections.POLICIES);
+    private policiesCollection = getFirestore().collection(FirestoreCollections.POLICIES);
     
     constructor(private firestoreReader: IFirestoreReader) {}
 

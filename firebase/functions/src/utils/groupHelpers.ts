@@ -1,7 +1,7 @@
 import { FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { getGroupMemberService } from '../services/serviceRegistration';
 
 /**
@@ -31,7 +31,7 @@ export const isGroupMemberAsync = async (groupId: string, userId: string): Promi
 };
 
 const getGroupsCollection = () => {
-    return firestoreDb.collection(FirestoreCollections.GROUPS);
+    return getFirestore().collection(FirestoreCollections.GROUPS);
 };
 
 /**

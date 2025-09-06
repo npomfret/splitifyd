@@ -30,7 +30,7 @@ vi.mock('../../../services/serviceRegistration', () => ({
 }));
 
 vi.mock('../../../firebase', () => ({
-    firestoreDb: {
+    getFirestore: vi.fn(() => ({
         collection: vi.fn(() => ({
             doc: vi.fn(() => ({
                 get: vi.fn(),
@@ -47,7 +47,7 @@ vi.mock('../../../firebase', () => ({
             get: vi.fn(),
         })),
         runTransaction: vi.fn(),
-    },
+    })),
 }));
 
 vi.mock('../../../utils/firestore-helpers', () => ({
@@ -181,8 +181,8 @@ describe('GroupShareService', () => {
             vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
 
             // Mock the Firestore transaction
-            const { firestoreDb } = await import('../../../firebase');
-            vi.mocked(firestoreDb.runTransaction).mockImplementation(async (transactionFn: any) => {
+            const { getFirestore } = await import('../../../firebase');
+            vi.mocked(getFirestore().runTransaction).mockImplementation(async (transactionFn: any) => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({ exists: true }),
                     set: vi.fn(),
@@ -226,8 +226,8 @@ describe('GroupShareService', () => {
             vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
 
             // Mock the Firestore transaction
-            const { firestoreDb } = await import('../../../firebase');
-            vi.mocked(firestoreDb.runTransaction).mockImplementation(async (transactionFn: any) => {
+            const { getFirestore } = await import('../../../firebase');
+            vi.mocked(getFirestore().runTransaction).mockImplementation(async (transactionFn: any) => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({ exists: true }),
                     set: vi.fn(),
@@ -332,8 +332,8 @@ describe('GroupShareService', () => {
             vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
 
             // Mock the Firestore transaction
-            const { firestoreDb } = await import('../../../firebase');
-            vi.mocked(firestoreDb.runTransaction).mockImplementation(async (transactionFn: any) => {
+            const { getFirestore } = await import('../../../firebase');
+            vi.mocked(getFirestore().runTransaction).mockImplementation(async (transactionFn: any) => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({ exists: true }),
                     set: vi.fn(),

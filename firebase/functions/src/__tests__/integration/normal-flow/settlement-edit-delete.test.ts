@@ -4,12 +4,12 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { SettlementBuilder, SettlementUpdateBuilder } from '@splitifyd/test-support';
-import {firestoreDb} from "../../../firebase";
+import {getFirestore} from "../../../firebase";
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 describe('Settlement Edit and Delete Operations', () => {
     const apiDriver = new ApiDriver();
-    const appDriver = new AppDriver(apiDriver, firestoreDb);
+    const appDriver = new AppDriver(apiDriver, getFirestore());
     let groupId: string;
 
     let user1: AuthenticatedFirebaseUser;

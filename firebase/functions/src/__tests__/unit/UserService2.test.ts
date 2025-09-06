@@ -2,21 +2,21 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserService } from '../../services/UserService2';
 import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
 import type { UserDocument } from '../../schemas';
-import { firebaseAuth } from '../../firebase';
+import {getAuth} from '../../firebase';
 import type { UserRecord } from 'firebase-admin/auth';
 import { ApiError } from '../../utils/errors';
 import { Timestamp } from 'firebase-admin/firestore';
 
 // Mock Firebase Auth
 vi.mock('../../firebase', () => ({
-    firebaseAuth: {
+    getAuth: vi.fn(() => ({
         getUser: vi.fn(),
         getUsers: vi.fn(),
         updateUser: vi.fn(),
         createUser: vi.fn(),
         deleteUser: vi.fn(),
-    },
-    firestoreDb: {},
+    })),
+    getFirestore: vi.fn(() => ({})),
 }));
 
 // Mock other dependencies
@@ -88,7 +88,7 @@ describe('UserService2 - Unit Tests', () => {
             };
 
             // Mock Firebase Auth
-            vi.mocked(firebaseAuth.getUser).mockResolvedValue(mockAuthUser);
+            vi.mocked(getAuth().getUser).mockResolvedValue(mockAuthUser);
 
             // Mock Firestore Reader
             mockFirestoreReader.getUser.mockResolvedValue(mockFirestoreUser);
@@ -96,7 +96,7 @@ describe('UserService2 - Unit Tests', () => {
             const result = await userService.getUser(userId);
 
             // Verify calls
-            expect(firebaseAuth.getUser).toHaveBeenCalledWith(userId);
+            expect(getAuth().getUser).toHaveBeenCalledWith(userId);
             expect(mockFirestoreReader.getUser).toHaveBeenCalledWith(userId);
 
             // Verify result
@@ -124,7 +124,7 @@ describe('UserService2 - Unit Tests', () => {
             } as any as UserRecord;
 
             // Mock Firebase Auth
-            vi.mocked(firebaseAuth.getUser).mockResolvedValue(mockAuthUser);
+            vi.mocked(getAuth().getUser).mockResolvedValue(mockAuthUser);
 
             // Mock Firestore Reader returning null (no document)
             mockFirestoreReader.getUser.mockResolvedValue(null);
@@ -151,7 +151,7 @@ describe('UserService2 - Unit Tests', () => {
             // Mock Firebase Auth throwing user not found error
             const authError = new Error('User not found');
             (authError as any).code = 'auth/user-not-found';
-            vi.mocked(firebaseAuth.getUser).mockRejectedValue(authError);
+            vi.mocked(getAuth().getUser).mockRejectedValue(authError);
 
             await expect(userService.getUser(userId)).rejects.toThrow(ApiError);
         });
@@ -177,7 +177,7 @@ describe('UserService2 - Unit Tests', () => {
                 updatedAt: Timestamp.now(),
             };
 
-            vi.mocked(firebaseAuth.getUser).mockResolvedValue(mockAuthUser);
+            vi.mocked(getAuth().getUser).mockResolvedValue(mockAuthUser);
             mockFirestoreReader.getUser.mockResolvedValue(mockFirestoreUser);
 
             // First call
@@ -187,7 +187,7 @@ describe('UserService2 - Unit Tests', () => {
             const result2 = await userService.getUser(userId);
 
             // Firebase Auth should only be called once
-            expect(firebaseAuth.getUser).toHaveBeenCalledTimes(1);
+            expect(getAuth().getUser).toHaveBeenCalledTimes(1);
             expect(mockFirestoreReader.getUser).toHaveBeenCalledTimes(1);
 
             // Results should be the same object (cached)
@@ -211,7 +211,7 @@ describe('UserService2 - Unit Tests', () => {
             ];
 
             // Mock Firebase Auth batch call
-            vi.mocked(firebaseAuth.getUsers).mockResolvedValue({
+            vi.mocked(getAuth().getUsers).mockResolvedValue({
                 users: mockAuthUsers,
                 notFound: [],
             } as any);
@@ -225,7 +225,7 @@ describe('UserService2 - Unit Tests', () => {
             const result = await userService.getUsers(userIds);
 
             // Verify Firebase Auth was called with correct identifiers
-            expect(firebaseAuth.getUsers).toHaveBeenCalledWith([
+            expect(getAuth().getUsers).toHaveBeenCalledWith([
                 { uid: 'user1' },
                 { uid: 'user2' },
                 { uid: 'user3' },
@@ -249,7 +249,7 @@ describe('UserService2 - Unit Tests', () => {
             const result = await userService.getUsers([]);
 
             expect(result.size).toBe(0);
-            expect(firebaseAuth.getUsers).not.toHaveBeenCalled();
+            expect(getAuth().getUsers).not.toHaveBeenCalled();
             expect(mockFirestoreReader.getUser).not.toHaveBeenCalled();
         });
 
@@ -275,7 +275,7 @@ describe('UserService2 - Unit Tests', () => {
                 updatedAt: Timestamp.now(),
             };
 
-            vi.mocked(firebaseAuth.getUser).mockResolvedValueOnce(cachedUserAuth);
+            vi.mocked(getAuth().getUser).mockResolvedValueOnce(cachedUserAuth);
             mockFirestoreReader.getUser.mockResolvedValueOnce(cachedUserFirestore);
 
             // Cache the first user
@@ -292,7 +292,7 @@ describe('UserService2 - Unit Tests', () => {
                 emailVerified: true,
             } as any as UserRecord;
 
-            vi.mocked(firebaseAuth.getUsers).mockResolvedValue({
+            vi.mocked(getAuth().getUsers).mockResolvedValue({
                 users: [newUserAuth],
                 notFound: [],
             } as any);
@@ -311,7 +311,7 @@ describe('UserService2 - Unit Tests', () => {
             const result = await userService.getUsers(userIds);
 
             // Should only fetch the uncached user
-            expect(firebaseAuth.getUsers).toHaveBeenCalledWith([{ uid: 'new-user' }]);
+            expect(getAuth().getUsers).toHaveBeenCalledWith([{ uid: 'new-user' }]);
             expect(mockFirestoreReader.getUser).toHaveBeenCalledTimes(1);
             expect(mockFirestoreReader.getUser).toHaveBeenCalledWith('new-user');
 
@@ -331,7 +331,7 @@ describe('UserService2 - Unit Tests', () => {
                 displayName: undefined,
             } as any as UserRecord;
 
-            vi.mocked(firebaseAuth.getUser).mockResolvedValue(invalidAuthUser);
+            vi.mocked(getAuth().getUser).mockResolvedValue(invalidAuthUser);
 
             await expect(userService.getUser(userId)).rejects.toThrow(
                 'User invalid-user missing required fields: email and displayName are mandatory'
@@ -347,7 +347,7 @@ describe('UserService2 - Unit Tests', () => {
                 emailVerified: true,
             } as any as UserRecord;
 
-            vi.mocked(firebaseAuth.getUser).mockResolvedValue(mockAuthUser);
+            vi.mocked(getAuth().getUser).mockResolvedValue(mockAuthUser);
 
             const firestoreError = new Error('Firestore connection failed');
             mockFirestoreReader.getUser.mockRejectedValue(firestoreError);

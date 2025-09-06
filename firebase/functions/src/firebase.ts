@@ -34,62 +34,96 @@ function _loadFirebaseConfig() {
     }
 }
 
-if (!admin.apps || admin.apps.length === 0) {
-    // see https://firebase.google.com/docs/emulator-suite/connect_firestore#web
-    const app = admin.initializeApp({
-        projectId: process.env.GCLOUD_PROJECT!
-    });
+// Lazy-initialized app instance - DO NOT initialize at module level
+let app: admin.app.App | undefined;
 
-    if (!isProduction()) {
-        // when running in a deployed firebase environment, NODE_ENV is production
-        // otherwise we assume that we need to connect to the emulator (like in tests)
-        //
-        // when a function is running in the emulator it will see:
-        //   "NODE_ENV": "development"
-        //   "FUNCTIONS_EMULATOR": "true"
-        // and no extra setup is needed
-        //
-        // however in a unit-test type environment, we need to configure the firebase API to connect to the emulator
-
-        if (isEmulator()) {// we are in the emulator - do nothing
-            // sanity checks
-
-            // these are all set by firebase
-            assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
-            assert(process.env.FIRESTORE_EMULATOR_HOST);
-            assert(process.env.FIREBASE_CONFIG);
-        } else {
-            assert(isTest(), "do not set env.FUNCTIONS_EMULATOR artificially!");
-
-            const firebaseConfig = _loadFirebaseConfig();
-
-            assert(firebaseConfig.emulators?.firestore?.port, "firestore port must be defined in firebase.json emulators configuration");
-            const firestorePort = firebaseConfig.emulators.firestore.port;
-            assert(typeof firestorePort === 'number', "firestore port in firebase.json must be a number");
-
-            // console.log(`connecting to local firestore emulator on port ${firestorePort}`);
-            const firestore = app.firestore();
-            firestore.settings({
-                host: `localhost:${firestorePort}`,
-                ssl: false,
+/**
+ * Get or create the Firebase Admin app instance
+ * This follows the recommended pattern from Firebase docs:
+ * - Lazy initialization to prevent connection creation at module load
+ * - Singleton pattern to reuse connections across function invocations
+ */
+function getApp(): admin.app.App {
+    if (!app) {
+        try {
+            // Try to get the default app if it exists
+            app = admin.app();
+        } catch (error) {
+            // No app exists, create a new one
+            app = admin.initializeApp({
+                projectId: process.env.GCLOUD_PROJECT!
             });
-
-            assert(firebaseConfig.emulators?.auth?.port, "firebase auth port must be defined in firebase.json emulators configuration");
-            const authPort = firebaseConfig.emulators.auth.port;
-            assert(typeof authPort === 'number', "firebase auth port in firebase.json must be a number");
-
-            // Connect to Auth Emulator
-            assert(authPort, "Auth emulator port not found in config.");
-            process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${authPort}`;
+            
+            // Configure emulator settings if needed
+            if (!isProduction()) {
+                configureEmulatorSettings(app);
+            }
         }
+    }
+    return app;
+}
+
+/**
+ * Configure emulator settings for non-production environments
+ */
+function configureEmulatorSettings(appInstance: admin.app.App): void {
+    if (isEmulator()) {
+        // Sanity checks for emulator environment
+        assert(process.env.FIREBASE_AUTH_EMULATOR_HOST);
+        assert(process.env.FIRESTORE_EMULATOR_HOST);
+        assert(process.env.FIREBASE_CONFIG);
+    } else if (isTest()) {
+        
+        const firebaseConfig = _loadFirebaseConfig();
+        
+        // Configure Firestore emulator
+        assert(firebaseConfig.emulators?.firestore?.port, "firestore port must be defined in firebase.json emulators configuration");
+        const firestorePort = firebaseConfig.emulators.firestore.port;
+        assert(typeof firestorePort === 'number', "firestore port in firebase.json must be a number");
+        
+        const firestore = appInstance.firestore();
+        firestore.settings({
+            host: `localhost:${firestorePort}`,
+            ssl: false,
+        });
+        
+        // Configure Auth emulator
+        assert(firebaseConfig.emulators?.auth?.port, "firebase auth port must be defined in firebase.json emulators configuration");
+        const authPort = firebaseConfig.emulators.auth.port;
+        assert(typeof authPort === 'number', "firebase auth port in firebase.json must be a number");
+        
+        process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${authPort}`;
     }
 }
 
-const firestoreDb = admin.firestore();
-const firebaseAuth = admin.auth();
+// Lazy-initialized singleton instances to minimize connections
+let _firestoreDb: admin.firestore.Firestore | undefined;
+let _firebaseAuth: admin.auth.Auth | undefined;
+
+/**
+ * Get Firestore instance - lazy initialization to reduce connections
+ * This ensures we only create connections when actually needed
+ */
+export function getFirestore(): admin.firestore.Firestore {
+    if (!_firestoreDb) {
+        const appInstance = getApp();
+        _firestoreDb = appInstance.firestore();
+    }
+    return _firestoreDb;
+}
+
+/**
+ * Get Auth instance - lazy initialization to reduce connections
+ * This ensures we only create connections when actually needed
+ */
+export function getAuth(): admin.auth.Auth {
+    if (!_firebaseAuth) {
+        const appInstance = getApp();
+        _firebaseAuth = appInstance.auth();
+    }
+    return _firebaseAuth;
+}
 
 export {
-    firestoreDb,
-    firebaseAuth,
     admin
 };

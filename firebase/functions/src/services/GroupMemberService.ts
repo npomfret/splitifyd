@@ -1,6 +1,6 @@
 
 import { FieldValue } from 'firebase-admin/firestore';
-import { firestoreDb } from '../firebase';
+import {getFirestore} from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
 import { getUserService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
@@ -149,7 +149,7 @@ export class GroupMemberService {
         }
 
         // Update group timestamp
-        const docRef = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const docRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
         await docRef.update({
             updatedAt: FieldValue.serverTimestamp(),
         });
@@ -239,7 +239,7 @@ export class GroupMemberService {
         }
 
         // Update group timestamp
-        const docRef2 = firestoreDb.collection(FirestoreCollections.GROUPS).doc(groupId);
+        const docRef2 = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
         await docRef2.update({
             updatedAt: FieldValue.serverTimestamp(),
         });
@@ -269,7 +269,7 @@ export class GroupMemberService {
             'CREATE_MEMBER',
             groupId,
             async () => {
-                const memberRef = firestoreDb
+                const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
                     .doc(groupId)
                     .collection('members')
@@ -315,7 +315,7 @@ export class GroupMemberService {
             'UPDATE_MEMBER',
             groupId,
             async () => {
-                const memberRef = firestoreDb
+                const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
                     .doc(groupId)
                     .collection('members')
@@ -344,7 +344,7 @@ export class GroupMemberService {
             'DELETE_MEMBER',
             groupId,
             async () => {
-                const memberRef = firestoreDb
+                const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
                     .doc(groupId)
                     .collection('members')

@@ -4,7 +4,7 @@ import {ApiDriver, borrowTestUsers, borrowTestUser, UserRegistrationBuilder} fro
 import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
-import { firestoreDb, firebaseAuth } from '../../../firebase';
+import {getAuth, getFirestore} from '../../../firebase';
 import { registerAllServices, getUserService } from '../../../services/serviceRegistration';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared/src";
 
@@ -48,12 +48,12 @@ describe('UserService - Integration Tests', () => {
             expect(result.user.displayName).toBe(userData.displayName);
 
             // Verify Firebase Auth record was created
-            const authUser = await firebaseAuth.getUser(result.user.uid!);
+            const authUser = await getAuth().getUser(result.user.uid!);
             expect(authUser.email).toBe(userData.email);
             expect(authUser.displayName).toBe(userData.displayName);
 
             // Verify Firestore document was created
-            const userDoc = await firestoreDb.collection('users').doc(result.user.uid!).get();
+            const userDoc = await getFirestore().collection('users').doc(result.user.uid!).get();
             expect(userDoc.exists).toBe(true);
             
             const userData_firestore = userDoc.data()!;
@@ -68,7 +68,7 @@ describe('UserService - Integration Tests', () => {
             expect(userData_firestore.updatedAt).toBeDefined();
 
             // Cleanup
-            await firebaseAuth.deleteUser(result.user.uid!);
+            await getAuth().deleteUser(result.user.uid!);
             await userDoc.ref.delete();
         });
 
@@ -133,8 +133,8 @@ describe('UserService - Integration Tests', () => {
                 });
 
                 // Cleanup the successful registration
-                await firebaseAuth.deleteUser(result.user.uid!);
-                await firestoreDb.collection('users').doc(result.user.uid!).delete();
+                await getAuth().deleteUser(result.user.uid!);
+                await getFirestore().collection('users').doc(result.user.uid!).delete();
             } catch (error) {
                 // If registration failed, no cleanup needed
             }
@@ -151,8 +151,8 @@ describe('UserService - Integration Tests', () => {
             expect(result2.success).toBe(true);
 
             // Cleanup
-            await firebaseAuth.deleteUser(result2.user.uid!);
-            await firestoreDb.collection('users').doc(result2.user.uid!).delete();
+            await getAuth().deleteUser(result2.user.uid!);
+            await getFirestore().collection('users').doc(result2.user.uid!).delete();
         });
     });
 
@@ -271,11 +271,11 @@ describe('UserService - Integration Tests', () => {
             expect(updatedProfile.displayName).toBe(newDisplayName);
 
             // Verify Firebase Auth was updated
-            const authUser = await firebaseAuth.getUser(testUser.uid);
+            const authUser = await getAuth().getUser(testUser.uid);
             expect(authUser.displayName).toBe(newDisplayName);
 
             // Verify Firestore was updated
-            const userDoc = await firestoreDb.collection('users').doc(testUser.uid).get();
+            const userDoc = await getFirestore().collection('users').doc(testUser.uid).get();
             const userData = userDoc.data()!;
             expect(userData.displayName).toBe(newDisplayName);
             expect(userData.updatedAt).toBeDefined();
@@ -291,7 +291,7 @@ describe('UserService - Integration Tests', () => {
             expect(updatedProfile.preferredLanguage).toBe(newLanguage);
 
             // Verify Firestore was updated
-            const userDoc = await firestoreDb.collection('users').doc(testUser.uid).get();
+            const userDoc = await getFirestore().collection('users').doc(testUser.uid).get();
             const userData = userDoc.data()!;
             expect(userData.preferredLanguage).toBe(newLanguage);
         });
@@ -302,11 +302,11 @@ describe('UserService - Integration Tests', () => {
             });
 
             // Verify Firebase Auth was updated
-            const authUser = await firebaseAuth.getUser(testUser.uid);
+            const authUser = await getAuth().getUser(testUser.uid);
             expect(authUser.photoURL).toBeUndefined();
 
             // Verify Firestore was updated  
-            const userDoc = await firestoreDb.collection('users').doc(testUser.uid).get();
+            const userDoc = await getFirestore().collection('users').doc(testUser.uid).get();
             const userData = userDoc.data()!;
             expect(userData.photoURL).toBeNull();
         });
@@ -355,7 +355,7 @@ describe('UserService - Integration Tests', () => {
             expect(result.message).toBe('Password changed successfully');
 
             // Verify Firestore timestamp was updated
-            const userDoc = await firestoreDb.collection('users').doc(testUser.uid).get();
+            const userDoc = await getFirestore().collection('users').doc(testUser.uid).get();
             const userData = userDoc.data()!;
             expect(userData.passwordChangedAt).toBeDefined();
             expect(userData.updatedAt).toBeDefined();
@@ -416,11 +416,11 @@ describe('UserService - Integration Tests', () => {
             expect(deleteResult.message).toBe('Account deleted successfully');
 
             // Verify user was deleted from Firebase Auth
-            await expect(firebaseAuth.getUser(userId))
+            await expect(getAuth().getUser(userId))
                 .rejects.toThrow();
 
             // Verify user was deleted from Firestore
-            const userDoc = await firestoreDb.collection('users').doc(userId).get();
+            const userDoc = await getFirestore().collection('users').doc(userId).get();
             expect(userDoc.exists).toBe(false);
         });
 
@@ -442,7 +442,7 @@ describe('UserService - Integration Tests', () => {
             })).rejects.toThrow(ApiError);
 
             // Clean up group manually from Firestore since API auth is complex in this test
-            await firestoreDb.collection('groups').doc(group.id).delete();
+            await getFirestore().collection('groups').doc(group.id).delete();
         });
 
         test('should require confirmation for deletion', async () => {
@@ -492,7 +492,7 @@ describe('UserService - Integration Tests', () => {
             const profile = await userService.getUser(testUser.uid);
             
             // Verify Auth and Firestore have consistent data
-            const authUser = await firebaseAuth.getUser(testUser.uid);
+            const authUser = await getAuth().getUser(testUser.uid);
             expect(profile.email).toBe(authUser.email);
             expect(profile.displayName).toBe(authUser.displayName);
             expect(profile.photoURL).toBe(authUser.photoURL || null);
