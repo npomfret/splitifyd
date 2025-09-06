@@ -4,7 +4,6 @@ import {ApiError, Errors} from '../utils/errors';
 import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels} from '@splitifyd/shared';
-import {permissionCache} from '../permissions';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {createServerTimestamp} from '../utils/dateHelpers';
 import {PerformanceMonitor} from '../utils/performance-monitor';
@@ -162,7 +161,7 @@ export class GroupPermissionService {
         // Validate the group document after update
         await this.validateUpdatedGroupDocument(groupDocRef, 'security preset application');
 
-        permissionCache.invalidateGroup(groupId);
+        // Cache invalidation removed - fetching fresh data on every request
 
         logger.info('Security preset applied', { groupId, preset, userId });
 
@@ -268,7 +267,7 @@ export class GroupPermissionService {
         // Validate the group document after update
         await this.validateUpdatedGroupDocument(groupDocRef, 'group permissions update');
 
-        permissionCache.invalidateGroup(groupId);
+        // Cache invalidation removed - fetching fresh data on every request
 
         logger.info('Group permissions updated', { groupId, permissions, userId });
 
@@ -400,8 +399,8 @@ export class GroupPermissionService {
             lastPermissionChange: now,
         });
 
-        permissionCache.invalidateGroup(groupId);
-        permissionCache.invalidateUser(targetUserId);
+        // Cache invalidation removed - fetching fresh data on every request
+        // Cache invalidation removed - fetching fresh data on every request
 
         logger.info('Member role changed', { groupId, targetUserId, oldRole, newRole: role, changedBy: userId });
 

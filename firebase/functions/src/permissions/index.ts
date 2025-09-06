@@ -1,5 +1,4 @@
 export { PermissionEngine } from './permission-engine';
-export { PermissionCache, permissionCache } from './permission-cache';
 
 // Re-export permission-related types from shared types
 export {
