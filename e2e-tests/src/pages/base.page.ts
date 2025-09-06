@@ -338,53 +338,35 @@ export abstract class BasePage {
         options?: {
             buttonName?: string; // Human-readable name for error messages
             dropdownContent?: Locator; // Optional locator for dropdown content to verify it's visible
-            maxRetries?: number; // Max retries if dropdown doesn't open (default: 2)
         },
     ): Promise<void> {
-        const { buttonName = 'dropdown', dropdownContent, maxRetries = 2 } = options || {};
+        const { buttonName = 'dropdown', dropdownContent } = options || {};
 
         // Ensure button is visible and enabled
         await expect(dropdownButton).toBeVisible();
         await expect(dropdownButton).toBeEnabled();
 
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
-            // Click the dropdown button
-            await dropdownButton.click();
+        // Click the dropdown button
+        await dropdownButton.click();
 
-            // Check if dropdown opened using aria-expanded attribute
-            const ariaExpanded = await dropdownButton.getAttribute('aria-expanded');
+        // Check if dropdown opened using aria-expanded attribute
+        const ariaExpanded = await dropdownButton.getAttribute('aria-expanded');
 
-            if (ariaExpanded === 'true') {
-                // If dropdown content locator provided, verify it's visible
-                if (dropdownContent) {
-                    try {
-                        await expect(dropdownContent).toBeVisible({ timeout: 1000 });
-                    } catch (error) {
-                        if (attempt === maxRetries) {
-                            throw new Error(`Dropdown "${buttonName}" button shows aria-expanded="true" but content is not visible`);
-                        }
-                        continue; // Retry
-                    }
-                }
-                return; // Success!
+        if (ariaExpanded === 'true') {
+            // If dropdown content locator provided, verify it's visible
+            if (dropdownContent) {
+                await expect(dropdownContent).toBeVisible();
             }
-
-            // If aria-expanded not available or false, check for dropdown content visibility
-            if (!ariaExpanded && dropdownContent) {
-                try {
-                    await expect(dropdownContent).toBeVisible({ timeout: 1000 });
-                    return; // Success!
-                } catch (error) {
-                    if (attempt === maxRetries) {
-                        throw new Error(`Dropdown "${buttonName}" did not open after ${maxRetries} attempts`);
-                    }
-                    // Wait for DOM to settle before retry
-                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                }
-            } else if (attempt === maxRetries) {
-                throw new Error(`Dropdown "${buttonName}" did not open after ${maxRetries} attempts. aria-expanded="${ariaExpanded}"`);
-            }
+            return; // Success!
         }
+
+        // If aria-expanded not available or false, check for dropdown content visibility
+        if (!ariaExpanded && dropdownContent) {
+            await expect(dropdownContent).toBeVisible();
+            return; // Success!
+        }
+
+        throw new Error(`Dropdown "${buttonName}" did not open. aria-expanded="${ariaExpanded}"`);
     }
 
     /**
@@ -429,7 +411,6 @@ export abstract class BasePage {
         await this.clickDropdownButton(userMenuButton, {
             buttonName: 'User Menu',
             dropdownContent: dropdownMenu,
-            maxRetries: 3,
         });
     }
 
@@ -472,19 +453,31 @@ export abstract class BasePage {
      * This is a common action available on most authenticated pages.
      */
     async logout(): Promise<void> {
-        await this.openUserMenu();
-
-        const signOutButton = this.getSignOutButton();
-
-        // Click the sign-out button - clickButton handles visibility and enabled state
-        // Note: dropdown items may be briefly disabled during animation, so we use a longer timeout
-        await this.clickButton(signOutButton, {
-            buttonName: 'Sign Out',
-            timeout: 3000, // Longer timeout for dropdown items that may animate in
-        });
+        const userMenuButton = this.getUserMenuButton();
+        const dropdownMenu = this.getUserDropdownMenu();
+        
+        // Ensure user menu button is visible and enabled
+        await expect(userMenuButton).toBeVisible();
+        await expect(userMenuButton).toBeEnabled();
+        
+        // Click to open dropdown
+        await userMenuButton.click();
+        
+        // Wait for both the dropdown to be visible AND the sign-out button to be present
+        await expect(dropdownMenu).toBeVisible();
+        
+        const signOutButton = dropdownMenu.locator('[data-testid="sign-out-button"]');
+        await expect(signOutButton).toBeVisible();
+        await expect(signOutButton).toBeEnabled();
+        
+        // Wait for the element to be stable (no animations/transitions)
+        await signOutButton.waitFor({ state: 'attached' });
+        
+        // Click the sign-out button
+        await signOutButton.click();
 
         // Wait for redirect to login page
-        await expect(this._page).toHaveURL(/\/login/, { timeout: 5000 });
+        await expect(this._page).toHaveURL(/\/login/);
     }
 
     /**
