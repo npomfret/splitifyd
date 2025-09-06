@@ -8,6 +8,7 @@ import { DebtSimplificationService } from './DebtSimplificationService';
 import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas/balance';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
 import { logger } from '../../logger';
+import { timestampToISO } from '../../utils/dateHelpers';
 import type { IFirestoreReader } from '../firestore/IFirestoreReader';
 
 export class BalanceCalculationService {
@@ -86,7 +87,7 @@ export class BalanceCalculationService {
                     groupId: validatedInput.groupId,
                     userBalances,
                     simplifiedDebts,
-                    lastUpdated: Timestamp.now(),
+                    lastUpdated: timestampToISO(Timestamp.now()),
                     balancesByCurrency,
                 };
 

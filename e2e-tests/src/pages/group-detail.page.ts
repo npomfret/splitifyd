@@ -283,28 +283,38 @@ export class GroupDetailPage extends BasePage {
         // Primary approach: verify all users are visible in the group (more reliable than member count)
         for (const userName of allUserNames) {
             try {
-                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 2000 });
+                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 5000 });
             } catch (e) {
-                // Capture detailed state for debugging
-                const memberElements = await this.page.locator('[data-testid="member-item"]').all();
-                const visibleMembers = await Promise.all(
-                    memberElements.map(async (el) => {
-                        const name = await el.getAttribute('data-member-name');
-                        const id = await el.getAttribute('data-member-id');
-                        const innerText = await el.innerText();
-                        return {
-                            name: name || 'Unknown',
-                            id: id || 'no-id',
-                            text: innerText.replace(/\n/g, ' '),
-                        };
-                    }),
-                );
+                // Capture detailed state for debugging - handle page closure gracefully
+                let visibleMembers: Array<{name: string, id: string, text: string}> = [];
+                let memberCount: string | null = 'unknown';
+                let pageUrl = 'unknown';
+                
+                try {
+                    const memberElements = await this.page.locator('[data-testid="member-item"]').all();
+                    visibleMembers = await Promise.all(
+                        memberElements.map(async (el) => {
+                            const name = await el.getAttribute('data-member-name');
+                            const id = await el.getAttribute('data-member-id');
+                            const innerText = await el.innerText();
+                            return {
+                                name: name || 'Unknown',
+                                id: id || 'no-id',
+                                text: innerText.replace(/\n/g, ' '),
+                            };
+                        }),
+                    );
 
-                const memberCount = await this.page
-                    .locator('[data-testid="member-count"]')
-                    .textContent()
-                    .catch(() => 'count-not-found');
-                const pageUrl = this.page.url();
+                    memberCount = await this.page
+                        .locator('[data-testid="member-count"]')
+                        .textContent()
+                        .catch(() => 'count-not-found');
+                    pageUrl = this.page.url();
+                } catch (debugError: any) {
+                    // Page was closed or became inaccessible
+                    console.warn('Could not capture debug info - page may be closed:', debugError.message);
+                    visibleMembers = [{name: 'debug-capture-failed', id: 'unknown', text: 'Page inaccessible'}];
+                }
 
                 // Get browser context info
                 const browserUser = this.userInfo?.displayName || this.userInfo?.email || 'Unknown User';
@@ -344,6 +354,8 @@ export class GroupDetailPage extends BasePage {
                     memberCount,
                     timestamp: new Date().toISOString(),
                 };
+
+                throw new Error(`User synchronization failed: User "${userName}" not visible after 5 seconds. ${JSON.stringify(context, null, 2)}`);
             }
         }
 

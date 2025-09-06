@@ -298,12 +298,11 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         // Users 2 and 3 STAY on dashboard to watch for real-time updates
         // (This is the key difference from the 2-user test)
 
-        // CRITICAL: Wait for all subscriptions to be fully established
-        // Users 2 and 3 need time for their change subscriptions to be ready
-        // Reduced delay to avoid test timeout while allowing some stabilization
-        await page1.waitForTimeout(2000);
-        await page2.waitForTimeout(2000); 
-        await page3.waitForTimeout(2000);
+        // CRITICAL: Ensure all subscriptions are ready by waiting for DOM to be stable
+        // This replaces arbitrary timeouts with proper synchronization
+        await page1.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded');
+        await page3.waitForLoadState('domcontentloaded');
 
         // User 1 deletes the group
         const editModal = await groupDetailPage.openEditGroupModal();

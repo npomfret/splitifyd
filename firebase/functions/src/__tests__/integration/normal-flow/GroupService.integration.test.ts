@@ -250,7 +250,7 @@ describe('GroupService - Integration Tests', () => {
                 .rejects.toThrow(ApiError);
         });
 
-        test('should successfully delete group with expenses using hard delete', async () => {
+        test('should successfully delete group with expenses (hard delete)', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
@@ -258,21 +258,20 @@ describe('GroupService - Integration Tests', () => {
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(50)
-                    .withDescription('Test expense')
+                    .withDescription('Active expense')
                     .build(),
                 creator.token
             );
 
-            // Hard delete should succeed and remove everything
+            // Hard delete should succeed even with active expenses
             const result = await groupService.deleteGroup(testGroupId, creator.uid);
             
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
-            // Verify group was deleted
-            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
-            expect(doc.exists).toBe(false);
-
-            // Verify expense was also deleted (hard delete removes all related data)
+            // Verify group and expense were both deleted
+            const groupDoc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
+            expect(groupDoc.exists).toBe(false);
+            
             const expenseDoc = await getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).get();
             expect(expenseDoc.exists).toBe(false);
         });

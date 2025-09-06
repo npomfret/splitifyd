@@ -15,8 +15,8 @@ export interface Expense {
     date: string;
     category: string;
     receiptUrl?: string;
-    createdAt?: Timestamp;
-    deletedAt?: Timestamp;
+    createdAt?: string;
+    deletedAt?: string;
 }
 
 export interface Settlement {
@@ -28,7 +28,7 @@ export interface Settlement {
     currency: string;
     date?: string;
     note?: string;
-    createdAt?: Timestamp;
+    createdAt?: string;
 }
 
 export interface ExpenseSplit {
@@ -67,6 +67,6 @@ export interface BalanceCalculationResult {
     groupId: string;
     userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
-    lastUpdated: Timestamp;
+    lastUpdated: string;
     balancesByCurrency: CurrencyBalances;
 }

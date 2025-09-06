@@ -991,7 +991,7 @@ export class GroupService {
             groupId: balances.groupId,
             userBalances: balances.userBalances,
             simplifiedDebts: balances.simplifiedDebts,
-            lastUpdated: timestampToISO(balances.lastUpdated),
+            lastUpdated: balances.lastUpdated,
             balancesByCurrency: balances.balancesByCurrency || {},
         };
     }

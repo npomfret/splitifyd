@@ -12,7 +12,7 @@ import {
     isInDateRange,
     getStartOfDay,
     getEndOfDay,
-} from '../dateHelpers';
+} from '../../utils/dateHelpers';
 
 // Mock Timestamp.now() for predictable testing
 const mockNow = new Date('2024-01-15T12:00:00.000Z');

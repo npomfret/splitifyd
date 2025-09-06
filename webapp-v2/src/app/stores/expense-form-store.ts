@@ -722,17 +722,17 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             storageManager.addRecentCategory(this.#categorySignal.value);
             storageManager.addRecentAmount(numericAmount);
 
-            // Refresh group data to show the new expense immediately
-            try {
-                await Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]);
-            } catch (refreshError) {
-                // Log refresh error but don't fail the expense creation
-                logWarning('Failed to refresh data after creating expense', { error: refreshError });
-            }
-
-            // Clear draft and reset form after successful save
+            // Clear draft and reset form immediately after successful creation
             this.clearDraft(groupId);
             this.reset();
+
+            // Refresh group data to show the new expense (non-blocking)
+            // Don't await this to avoid blocking navigation
+            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()])
+                .catch((refreshError) => {
+                    // Log refresh error but don't fail the expense creation
+                    logWarning('Failed to refresh data after creating expense', { error: refreshError });
+                });
 
             return expense;
         } catch (error) {
@@ -775,16 +775,16 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             storageManager.addRecentCategory(this.#categorySignal.value);
             storageManager.addRecentAmount(numericAmount);
 
-            // Refresh group data to show the updated expense immediately
-            try {
-                await Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]);
-            } catch (refreshError) {
-                // Log refresh error but don't fail the expense update
-                logWarning('Failed to refresh data after updating expense', { error: refreshError });
-            }
-
-            // Clear draft after successful update
+            // Clear draft immediately after successful update
             this.clearDraft(groupId);
+
+            // Refresh group data to show the updated expense (non-blocking)
+            // Don't await this to avoid blocking navigation
+            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()])
+                .catch((refreshError) => {
+                    // Log refresh error but don't fail the expense update
+                    logWarning('Failed to refresh data after updating expense', { error: refreshError });
+                });
 
             return expense;
         } catch (error) {

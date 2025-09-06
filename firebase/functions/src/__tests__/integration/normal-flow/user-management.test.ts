@@ -338,22 +338,6 @@ describe('User Management Tests', () => {
             expect(limitedResponse.expenses.length).toBeLessThanOrEqual(2);
         });
 
-        test('should handle date filtering', async () => {
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-
-            const response = await apiDriver.listUserExpenses(user.token, {
-                startDate: yesterday.toISOString(),
-                endDate: tomorrow.toISOString(),
-            });
-
-            expect(response).toHaveProperty('expenses');
-            expect(Array.isArray(response.expenses)).toBe(true);
-            // Should include today's expenses
-            expect(response.expenses.length).toBeGreaterThanOrEqual(3);
-        });
 
         test('should return empty array for user with no expenses', async () => {
             const newUser = await apiDriver.createUser();// don't use the pool users - we need a clean one
@@ -365,23 +349,20 @@ describe('User Management Tests', () => {
             expect(response.expenses.length).toBe(0);
         });
 
-        test('should validate query parameters', async () => {
-            // Note: Current API implementation is permissive with query parameters
-            // This test documents expected behavior, but validation may need strengthening
-            const invalidParams = ['limit=invalid', 'limit=-1', 'limit=1000000', 'startDate=invalid-date', 'endDate=invalid-date'];
+        test('should validate query parameters and return proper 400 errors', async () => {
+            const invalidParams = [
+                { param: 'limit=invalid', description: 'non-numeric limit' },
+                { param: 'limit=-1', description: 'negative limit' },
+                { param: 'limit=1000000', description: 'excessive limit' },
+                { param: 'startDate=invalid-date', description: 'unsupported startDate parameter' },
+                { param: 'endDate=invalid-date', description: 'unsupported endDate parameter' },
+                { param: 'includeDeleted=maybe', description: 'invalid boolean value for includeDeleted' }
+            ];
 
-            for (const param of invalidParams) {
-                try {
-                    // For invalid parameter testing, we use makeInvalidApiCall to test error handling
-                    const response = await apiDriver.makeInvalidApiCall(`/expenses/user?${param}`, 'GET', null, user.token);
-                    // API currently allows invalid parameters and returns data anyway
-                    // TODO: Strengthen validation to reject invalid parameters
-                    expect(response).toHaveProperty('expenses');
-                } catch (error) {
-                    // API might return 400 for validation errors or 500 for internal errors
-                    // Both indicate the parameter was problematic
-                    expect((error as Error).message).toMatch(/400|500|invalid.*parameter|validation|internal.*error/i);
-                }
+            for (const { param, description } of invalidParams) {
+                await expect(
+                    apiDriver.makeInvalidApiCall(`/expenses/user?${param}`, 'GET', null, user.token)
+                ).rejects.toThrow(/400|invalid.*input|invalid.*parameter|unsupported.*parameter/i);
             }
         });
 

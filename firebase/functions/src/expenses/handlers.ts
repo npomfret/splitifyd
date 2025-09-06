@@ -2,7 +2,8 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import {getFirestore} from '../firebase';
 import { validateUserAuth } from '../auth/utils';
-import { ApiError } from '../utils/errors';
+import { ApiError, Errors } from '../utils/errors';
+import { createServerTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
@@ -92,9 +93,41 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
 
 export const listUserExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
+    
+    // Validate and sanitize limit parameter
+    const limitParam = req.query.limit as string;
+    let limit = 50; // default
+    if (limitParam !== undefined) {
+        const parsedLimit = parseInt(limitParam);
+        if (isNaN(parsedLimit)) {
+            throw Errors.INVALID_INPUT('limit parameter must be a valid number');
+        }
+        if (parsedLimit < 1) {
+            throw Errors.INVALID_INPUT('limit parameter must be greater than 0');
+        }
+        if (parsedLimit > 100) {
+            throw Errors.INVALID_INPUT('limit parameter must not exceed 100');
+        }
+        limit = parsedLimit;
+    }
+    
+    // Validate other parameters
     const cursor = req.query.cursor as string;
-    const includeDeleted = req.query.includeDeleted === 'true';
+    const includeDeletedParam = req.query.includeDeleted as string;
+    const includeDeleted = includeDeletedParam === 'true';
+    
+    // Validate includeDeleted parameter if provided
+    if (includeDeletedParam !== undefined && includeDeletedParam !== 'true' && includeDeletedParam !== 'false') {
+        throw Errors.INVALID_INPUT('includeDeleted parameter must be "true" or "false"');
+    }
+    
+    // Check for unsupported parameters
+    const supportedParams = ['limit', 'cursor', 'includeDeleted'];
+    const providedParams = Object.keys(req.query);
+    const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
+    if (unsupportedParams.length > 0) {
+        throw Errors.INVALID_INPUT(`Unsupported parameters: ${unsupportedParams.join(', ')}. Supported parameters are: ${supportedParams.join(', ')}`);
+    }
 
     const result = await getExpenseService().listUserExpenses(userId, {
         limit,

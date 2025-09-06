@@ -86,7 +86,7 @@ while [ $SUCCESS_COUNT -lt $MAX_SUCCESSES ]; do
     else
         PLAYWRIGHT_HTML_OPEN=never PLAYWRIGHT_HTML_REPORT=e2e-tests/playwright-report/ad-hoc npx playwright test -c e2e-tests/playwright.config.ts --workers=$WORKERS $HEADED_FLAG --project=chromium --reporter=html --trace on "$TEST_FILE"
     fi
-    
+
     # Check exit code
     if [ $? -ne 0 ]; then
         FINAL_TIME=$(date +%s)

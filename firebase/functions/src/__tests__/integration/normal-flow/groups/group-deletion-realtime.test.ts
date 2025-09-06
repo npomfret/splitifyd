@@ -130,7 +130,7 @@ describe('Group Deletion Real-Time Updates', () => {
         expect(deletionDoc!.data().id).toBe(group.id);
     });
 
-    test('should preserve deletion change document even when all other group changes are deleted', async () => {
+    test('should create deletion change document while preserving existing change documents', async () => {
         // Create a group - change documents are only created by Firestore triggers in production
         // but our emulator setup might not have these triggers, so we'll manually create a change doc
         const groupData = new CreateGroupRequestBuilder()
@@ -155,9 +155,10 @@ describe('Group Deletion Real-Time Updates', () => {
             .get();
         
         console.log(`Found ${changesBefore.size} change documents before deletion`);
-        expect(changesBefore.size).toBeGreaterThan(0);
+        // Should have at least our manually created change document
+        expect(changesBefore.size).toBeGreaterThanOrEqual(1);
 
-        // Delete the group - this should delete old changes but create a new deletion change
+        // Delete the group - this preserves existing changes and adds a new deletion change
         await apiDriver.deleteGroup(group.id, users[0].token);
 
         // Check remaining change documents
@@ -168,16 +169,13 @@ describe('Group Deletion Real-Time Updates', () => {
         
         console.log(`Found ${changesAfter.size} change documents after deletion`);
         
-        // We should have at least 1 change document (the deletion one), potentially more if old ones weren't cleaned up
-        expect(changesAfter.size).toBeGreaterThan(0);
+        // We should have at least one more change document than before (the deletion one)
+        // (Current implementation doesn't delete old changes to avoid race conditions)
+        expect(changesAfter.size).toBe(changesBefore.size + 1);
         
-        // Find the deletion change document specifically
-        const deletionDoc = changesAfter.docs.find((doc: any) => 
-            doc.data().action === 'deleted' && doc.data().type === 'group'
-        );
-        
+        // Verify one of them is the deletion change document
+        const deletionDoc = changesAfter.docs.find(doc => doc.data().action === 'deleted');
         expect(deletionDoc).toBeDefined();
-        expect(deletionDoc!.data().action).toBe('deleted');
         expect(deletionDoc!.data().type).toBe('group');
     });
 });

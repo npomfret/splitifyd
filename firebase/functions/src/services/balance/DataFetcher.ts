@@ -44,8 +44,8 @@ export class DataFetcher {
                 date: timestampToISO(expenseDoc.date),
                 category: expenseDoc.category,
                 receiptUrl: expenseDoc.receiptUrl || undefined,
-                createdAt: expenseDoc.createdAt,
-                deletedAt: expenseDoc.deletedAt,
+                createdAt: expenseDoc.createdAt ? timestampToISO(expenseDoc.createdAt) : undefined,
+                deletedAt: expenseDoc.deletedAt ? timestampToISO(expenseDoc.deletedAt) : undefined,
             } satisfies Expense;
         });
 
@@ -69,7 +69,7 @@ export class DataFetcher {
                 currency: settlementDoc.currency,
                 date: settlementDoc.date ? timestampToISO(settlementDoc.date) : undefined,
                 note: settlementDoc.note,
-                createdAt: settlementDoc.createdAt,
+                createdAt: settlementDoc.createdAt ? timestampToISO(settlementDoc.createdAt) : undefined,
             } satisfies Settlement;
         });
 

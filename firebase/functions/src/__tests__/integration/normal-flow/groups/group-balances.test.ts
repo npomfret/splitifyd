@@ -34,10 +34,11 @@ describe('GET /groups/balances - Group Balances', () => {
         // For empty group, balances should be empty
         expect(typeof balances.userBalances).toBe('object');
         expect(Array.isArray(balances.simplifiedDebts)).toBe(true);
-        // TODO: Remove this "if" block - we don't understand our own data structure
-        // lastUpdated can be either string (ISO date) or Firestore Timestamp object
+        
+        // lastUpdated: Should be properly serialized as ISO string
         expect(balances.lastUpdated).toBeDefined();
-        expect(typeof balances.lastUpdated === 'string' || typeof balances.lastUpdated === 'object').toBe(true);
+        expect(typeof balances.lastUpdated).toBe('string');
+        expect(balances.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); // ISO 8601 format
     });
 
     test('should return balances for group with expenses', async () => {
@@ -149,11 +150,11 @@ describe('GET /groups/balances - Group Balances', () => {
         const balances = await apiDriver.getGroupBalances(testGroup.id, users[0].token);
 
         expect(balances.lastUpdated).toBeDefined();
-        // lastUpdated should be present and not null
         expect(balances.lastUpdated).not.toBeNull();
-        // TODO: Remove this "if" block - we don't understand our own data structure
-        // Can be either string (ISO date) or timestamp object
-        expect(typeof balances.lastUpdated === 'string' || typeof balances.lastUpdated === 'object').toBe(true);
+        
+        // lastUpdated: Should be properly serialized as ISO string
+        expect(typeof balances.lastUpdated).toBe('string');
+        expect(balances.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); // ISO 8601 format
     });
 
     test('should include simplified debts for complex scenarios', async () => {

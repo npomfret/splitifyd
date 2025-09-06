@@ -278,6 +278,91 @@ const [note, setNote] = useState('');
 
 **Status**: Complete resolution of both store reference counting AND form stability issues. The refactoring task is fully complete and production-ready.
 
+## 10. EXPENSE FORM NAVIGATION RACE CONDITION (2025-01-05)
+
+### 🚨 Bug #5: Expense Creation Blocks Navigation Due to Refresh Operations
+**Issue**: After successfully creating an expense, the application would remain on the add-expense page instead of navigating back to the group page, causing test timeouts and poor UX.
+
+**Root Cause**: In `expense-form-store.ts` `saveExpense()` method, blocking refresh operations prevented navigation:
+```typescript
+// ❌ BLOCKING - Navigation waits for potentially slow refresh calls
+const expense = await apiClient.createExpense(request);
+await Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]);
+// Navigation happens after this await completes
+```
+
+**Location**: `webapp-v2/src/app/stores/expense-form-store.ts` lines 731-732
+
+**Impact**: 
+- Test failures: "should support real-time expense comments across multiple users" timing out at 15s
+- Poor user experience: users stuck on expense form after successful creation
+- Console logs showed expense created (201) but navigation never occurred
+
+**Test Evidence**: E2E test expected `await alicePage.waitForURL(new RegExp(\`/groups/${groupId}$\`), { timeout: 3000 });` but page remained on `/groups/[id]/add-expense`
+
+**Solution**: ✅ **FIXED** - Made refresh operations non-blocking:
+```typescript
+// ✅ NON-BLOCKING - Navigation proceeds immediately after expense creation
+const expense = await apiClient.createExpense(request);
+
+// Clear draft and reset form immediately
+this.clearDraft(groupId);
+this.reset();
+
+// Refresh data in background (non-blocking)
+Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()])
+    .catch((refreshError) => {
+        logWarning('Failed to refresh data after creating expense', { error: refreshError });
+    });
+
+return expense; // Navigation can proceed immediately
+```
+
+**Same Fix Applied To**: `updateExpense()` method for consistency
+
+**Verification**: 
+- ✅ All 4 tests in `comments-realtime.e2e.test.ts` now pass (14.0s execution time)
+- ✅ Navigation works immediately after expense creation
+- ✅ Data still refreshes in background for real-time updates
+- ✅ Error handling preserved for refresh failures
+
+### Key Lessons from Expense Form Debugging
+
+1. **UI Operations Must Not Block on Background Refresh**: Critical user flows like navigation should never wait for data refresh operations that could fail or take too long.
+
+2. **Separate Success Actions from Background Actions**: 
+   - **Success actions**: Clear form, reset state, allow navigation
+   - **Background actions**: Refresh data stores, update caches
+   - These should be decoupled to prevent blocking
+
+3. **Test Timeouts Reveal Real UX Issues**: The 15-second test timeout wasn't arbitrary - it revealed that real users would experience similar delays in navigation.
+
+4. **Race Conditions Between Store Operations and Navigation**: When store operations block the main thread, they can prevent router navigation from completing, even if the navigation call is made.
+
+5. **Non-Blocking Background Updates**: Data refresh operations should run in the background without blocking user interactions. Users expect immediate feedback after form submissions.
+
+### Implementation Pattern for Form Submissions
+
+```typescript
+// ✅ CORRECT - Immediate success handling, background refresh
+async saveData() {
+    const result = await apiCall();
+    
+    // Immediate success actions
+    this.clearForm();
+    this.resetState();
+    
+    // Background refresh (non-blocking)
+    this.refreshStores().catch(handleError);
+    
+    return result; // UI can proceed immediately
+}
+```
+
+This pattern ensures responsive UI while maintaining data consistency through background operations.
+
+**Status**: ✅ **RESOLVED** - Expense form navigation now works reliably, maintaining both responsiveness and real-time data updates.
+
 ## 7. Implementation Templates
 
 ### Reference-Counting Pattern (from comments-store)
