@@ -1,7 +1,8 @@
-import {admin, getFirestore} from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {RegisteredUser} from "@splitifyd/shared";
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
+import { Timestamp } from "firebase-admin/firestore";
 
 export interface PoolUser {
     user: RegisteredUser,
@@ -83,7 +84,7 @@ export class TestUserPoolService {
             token: newUser.token,
             password: newUser.password,
             status: 'borrowed' as const,
-            createdAt: admin.firestore.Timestamp.now()
+            createdAt: Timestamp.now()
         });
         return newUser;
     }
@@ -141,7 +142,7 @@ export class TestUserPoolService {
             cookiePolicyAccepted: true,
         });
 
-        const token = await admin.auth().createCustomToken(user.uid);
+        const token = await getAuth().createCustomToken(user.uid);
 
         return {user, password: POOL_PASSWORD, token};
     }

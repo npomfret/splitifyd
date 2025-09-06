@@ -23,17 +23,6 @@ if (!process.env.GCLOUD_PROJECT) {
     }
 }
 
-function _loadFirebaseConfig() {
-    const firebaseJsonPath = join(__dirname, '../../firebase.json');
-
-    try {
-        const firebaseJsonContent = readFileSync(firebaseJsonPath, 'utf8');
-        return JSON.parse(firebaseJsonContent);
-    } catch (error) {
-        throw new Error(`Failed to read firebase.json at ${firebaseJsonPath}: ${error}`);
-    }
-}
-
 // Lazy-initialized app instance - DO NOT initialize at module level
 let app: admin.app.App | undefined;
 
@@ -73,9 +62,10 @@ function configureEmulatorSettings(appInstance: admin.app.App): void {
         assert(process.env.FIRESTORE_EMULATOR_HOST);
         assert(process.env.FIREBASE_CONFIG);
     } else if (isTest()) {
-        
-        const firebaseConfig = _loadFirebaseConfig();
-        
+        const firebaseJsonPath = join(__dirname, '../../firebase.json');
+        const firebaseJsonContent = readFileSync(firebaseJsonPath, 'utf8');
+        const firebaseConfig = JSON.parse(firebaseJsonContent);
+
         // Configure Firestore emulator
         assert(firebaseConfig.emulators?.firestore?.port, "firestore port must be defined in firebase.json emulators configuration");
         const firestorePort = firebaseConfig.emulators.firestore.port;
@@ -123,7 +113,3 @@ export function getAuth(): admin.auth.Auth {
     }
     return _firebaseAuth;
 }
-
-export {
-    admin
-};
