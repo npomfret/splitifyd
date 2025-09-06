@@ -153,6 +153,11 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             logInfo(`Last component for group ${groupId}, disposing subscription.`);
             this.#subscriberCounts.delete(groupId);
             this.#disposeGroupSubscription(groupId);
+            
+            // Clear currentGroupId if this was the current group to prevent further operations
+            if (this.currentGroupId === groupId) {
+                this.currentGroupId = null;
+            }
         } else {
             this.#subscriberCounts.set(groupId, currentCount - 1);
         }
@@ -183,18 +188,68 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         
         // Subscribe to expense changes for this group
         const expenseListener = groupChangeDetector.subscribeToExpenseChanges(groupId, () => {
+            // Check if subscription is still active (group might have been deleted)
+            if (!this.#activeSubscriptions.has(groupId)) {
+                logInfo('Ignoring expense change for deleted/disposed group', { groupId });
+                return;
+            }
+            
             // Always refresh for reference-counted subscriptions - we only create them for active groups
             logApiResponse('CHANGE', 'expense_change', 200, {
                 action: 'REFRESHING_ALL',
                 groupId,
             });
-            this.refreshAll().catch((error) => 
-                logError('Failed to refresh after expense change', error)
-            );
+            this.refreshAll().catch((error) => {
+                // Don't log errors for deleted groups - this is expected
+                const isGroupDeleted = 
+                    error?.status === 404 || 
+                    (error?.message && error.message.includes('404')) ||
+                    (error?.code === 'NOT_FOUND');
+                if (!isGroupDeleted) {
+                    logError('Failed to refresh after expense change', error);
+                }
+            });
         });
 
         // Subscribe to group changes (member additions/removals, group updates)
-        const groupListener = groupChangeDetector.subscribeToGroupChanges(userId, () => {
+        const groupListener = groupChangeDetector.subscribeToGroupChanges(userId, (changes) => {
+            // Check if subscription is still active (group might have been deleted)
+            if (!this.#activeSubscriptions.has(groupId)) {
+                logInfo('Ignoring group change for deleted/disposed group', { groupId });
+                return;
+            }
+            
+            // Check if THIS group was deleted
+            const changeDetails = changes && changes.length > 0 ? changes[0] : null;
+            const isThisGroupDeleted = changeDetails?.action === 'deleted' && changeDetails?.id === groupId;
+            
+            if (isThisGroupDeleted) {
+                logInfo('Group deletion detected via change event, clearing state without refresh', { 
+                    groupId,
+                    changeAction: changeDetails?.action
+                });
+                
+                // Set error signal to indicate deletion
+                this.#errorSignal.value = 'GROUP_DELETED';
+                
+                // Clear all data WITHOUT trying to refresh (which would cause 404)
+                batch(() => {
+                    this.#groupSignal.value = null;
+                    this.#membersSignal.value = [];
+                    this.#expensesSignal.value = [];
+                    this.#balancesSignal.value = null;
+                    this.#settlementsSignal.value = [];
+                    this.#loadingSignal.value = false;
+                });
+                
+                // Clear currentGroupId and dispose subscription
+                this.currentGroupId = null;
+                this.#disposeGroupSubscription(groupId);
+                this.#subscriberCounts.delete(groupId);
+                
+                return; // Don't try to refresh a deleted group
+            }
+            
             // Always refresh for reference-counted subscriptions - we only create them for active groups
             logApiResponse('CHANGE', 'group_change', 200, {
                 action: 'REFRESHING_ALL',
@@ -345,9 +400,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 groupId: this.currentGroupId,
             });
             this.refreshAll().catch((error) => {
-                // Don't log errors for 404s - this is expected when groups are deleted
-                if (error?.status === 404 || (error?.message && error.message.includes('404')) || 
-                    (error?.code === 'NOT_FOUND')) {
+                // Don't log errors for deleted groups - this is expected
+                const isGroupDeleted = 
+                    error?.status === 404 || 
+                    (error?.message && error.message.includes('404')) ||
+                    (error?.code === 'NOT_FOUND');
+                if (isGroupDeleted) {
                     logInfo('Expense change refresh: Group was deleted, state cleared', { 
                         groupId: this.currentGroupId,
                         error: error?.message || String(error)
@@ -359,11 +417,41 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         });
 
         // Subscribe to group changes (member additions/removals, group updates)
-        this.groupChangeListener = this.changeDetector.subscribeToGroupChanges(userId, () => {
+        this.groupChangeListener = this.changeDetector.subscribeToGroupChanges(userId, (changes) => {
             // Defensive check: ignore changes if currentGroupId is null (component disposed)
             if (!this.currentGroupId) {
                 logInfo('Ignoring group change - currentGroupId is null (component disposed)');
                 return;
+            }
+            
+            // Check if the current group was deleted
+            const changeDetails = changes && changes.length > 0 ? changes[0] : null;
+            const isCurrentGroupDeleted = changeDetails?.action === 'deleted' && changeDetails?.id === this.currentGroupId;
+            
+            if (isCurrentGroupDeleted) {
+                logInfo('Current group deletion detected via change event, clearing state without refresh', { 
+                    groupId: this.currentGroupId,
+                    changeAction: changeDetails?.action
+                });
+                
+                // Set error signal to indicate deletion
+                this.#errorSignal.value = 'GROUP_DELETED';
+                
+                // Clear all data WITHOUT trying to refresh (which would cause 404)
+                batch(() => {
+                    this.#groupSignal.value = null;
+                    this.#membersSignal.value = [];
+                    this.#expensesSignal.value = [];
+                    this.#balancesSignal.value = null;
+                    this.#settlementsSignal.value = [];
+                    this.#loadingSignal.value = false;
+                });
+                
+                // Clear currentGroupId and dispose subscriptions
+                this.currentGroupId = null;
+                this.dispose();
+                
+                return; // Don't try to refresh a deleted group
             }
             
             // Group change = refresh everything (same as expense changes for consistency)
@@ -486,25 +574,73 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
+        
+        // Store the groupId at the start to detect if it changes during async operations
+        const refreshingGroupId = this.currentGroupId;
 
-        logInfo('RefreshAll: Starting complete data refresh', { groupId: this.currentGroupId });
+        logInfo('RefreshAll: Starting complete data refresh', { groupId: refreshingGroupId });
 
         try {
+            // Check if we're still refreshing the same group (user might have navigated away)
+            if (this.currentGroupId !== refreshingGroupId) {
+                logInfo('RefreshAll: Group changed during refresh, aborting', { 
+                    originalGroupId: refreshingGroupId,
+                    currentGroupId: this.currentGroupId
+                });
+                return;
+            }
+            
             // Use the consolidated full-details endpoint to ensure atomic data consistency
             // This prevents race conditions where balances might not be calculated yet
             // loadGroup() already calls getGroupFullDetails() which includes ALL data
-            await this.loadGroup(this.currentGroupId);
+            await this.loadGroup(refreshingGroupId);
 
-            logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
+            logInfo('RefreshAll: Complete data refresh successful', { groupId: refreshingGroupId });
         } catch (error: any) {
-            // Handle 404 errors gracefully - this usually means the group was deleted
-            if (error?.status === 404 || (error?.message && error.message.includes('404'))) {
-                logWarning('RefreshAll: Group appears to have been deleted (404 response), clearing current group state', { 
+            // Handle 404 errors and "Group not found" errors gracefully - group was deleted
+            const isGroupDeleted = 
+                error?.status === 404 || 
+                (error?.message && error.message.includes('404')) ||
+                (error?.code === 'NOT_FOUND') ||
+                (error?.status === 500 && error?.message && error.message.includes('Group not found'));
+                
+            if (isGroupDeleted) {
+                logInfo('RefreshAll: Group has been deleted, clearing state', { 
                     groupId: this.currentGroupId,
-                    error: error?.message || String(error)
+                    error: error?.message || String(error),
+                    status: error?.status
                 });
-                // Clear the current group state since it no longer exists
-                this.reset();
+                
+                // Set error signal to indicate deletion
+                this.#errorSignal.value = 'GROUP_DELETED';
+                
+                // Clear all data and stop trying to refresh
+                batch(() => {
+                    this.#groupSignal.value = null;
+                    this.#membersSignal.value = [];
+                    this.#expensesSignal.value = [];
+                    this.#balancesSignal.value = null;
+                    this.#settlementsSignal.value = [];
+                    this.#loadingSignal.value = false;
+                    this.#loadingMembersSignal.value = false;
+                    this.#loadingExpensesSignal.value = false;
+                    this.#loadingBalancesSignal.value = false;
+                    this.#loadingSettlementsSignal.value = false;
+                });
+                
+                // Clear currentGroupId to prevent further refresh attempts
+                const deletedGroupId = this.currentGroupId;
+                this.currentGroupId = null;
+                
+                // Dispose of BOTH legacy and reference-counted subscriptions for deleted group
+                this.dispose();
+                
+                // Also dispose reference-counted subscriptions if they exist
+                if (deletedGroupId && this.#activeSubscriptions.has(deletedGroupId)) {
+                    this.#disposeGroupSubscription(deletedGroupId);
+                    this.#subscriberCounts.delete(deletedGroupId);
+                }
+                
                 return; // Don't throw error for deleted groups
             }
             

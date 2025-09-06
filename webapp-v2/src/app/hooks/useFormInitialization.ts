@@ -5,7 +5,7 @@ import { ROUTES } from '@/constants/routes';
 import { expenseFormStore } from '../stores/expense-form-store';
 import { enhancedGroupDetailStore } from '../stores/group-detail-store-enhanced';
 import { apiClient } from '../apiClient';
-import { logError } from '@/utils/browser-logger.ts';
+import { logError, logInfo } from '@/utils/browser-logger.ts';
 import { useAuth } from './useAuth';
 import { extractTimeFromISO } from '@/utils/dateUtils.ts';
 
@@ -129,9 +129,22 @@ export function useFormInitialization({
                 // Reset form to clean state
                 expenseFormStore.reset();
 
-                // Ensure group data is loaded
+                // Check if group data is already loaded by parent component
+                // Parent component (GroupDetailPage) should have already registered/loaded the group
                 if (!group.value || group.value.id !== groupId) {
-                    await enhancedGroupDetailStore.loadGroup(groupId);
+                    // Only load if absolutely necessary - but don't create a subscription
+                    // This is a one-time load for form initialization
+                    try {
+                        await enhancedGroupDetailStore.loadGroup(groupId);
+                    } catch (error: any) {
+                        // Handle 404 errors gracefully - group might have been deleted
+                        if (error?.status === 404 || (error?.message && error.message.includes('404'))) {
+                            logInfo('Group not found during form initialization - likely deleted', { groupId });
+                            initError.value = 'Group no longer exists';
+                            return;
+                        }
+                        throw error;
+                    }
                 }
 
                 if (isEditMode && expenseId) {
