@@ -56,6 +56,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     private subscriberCount = 0;
     private subscriberIds = new Set<string>();
     private currentUserId: string | null = null;
+    
+    // Debouncing for refresh operations
+    private refreshDebounceTimer: NodeJS.Timeout | null = null;
+    private refreshDebounceDelay = 300; // 300ms debounce
+    private pendingRefresh = false;
 
     // State getters - readonly values for external consumers
     get groups() {
@@ -124,7 +129,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             streamingMetrics.trackRestRefresh(latency);
 
             // Log each group ID for debugging
-            logWarning('fetchGroups: Groups received from server', {
+            logInfo('fetchGroups: Groups received from server', {
                 groupIds: response.groups.map(g => g.id),
                 groupCount: response.groups.length,
                 groups: response.groups.map(g => ({ id: g.id, name: g.name }))
@@ -134,9 +139,17 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.#groupsSignal.value = response.groups;
             this.#lastRefreshSignal.value = response.metadata?.serverTime || Date.now();
             this.#initializedSignal.value = true;
-        } catch (error) {
-            this.#errorSignal.value = this.getErrorMessage(error);
-            throw error;
+        } catch (error: any) {
+            // Handle 404 or empty response gracefully - this might mean all groups were deleted
+            if (error?.status === 404 || error?.message?.includes('404')) {
+                logInfo('fetchGroups: No groups found (404), clearing list', { error: error?.message });
+                this.#groupsSignal.value = [];
+                this.#lastRefreshSignal.value = Date.now();
+                this.#initializedSignal.value = true;
+            } else {
+                this.#errorSignal.value = this.getErrorMessage(error);
+                throw error;
+            }
         } finally {
             this.#loadingSignal.value = false;
         }
@@ -198,13 +211,37 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     async refreshGroups(): Promise<void> {
-        this.#isRefreshingSignal.value = true;
-
-        try {
-            await this.fetchGroups();
-        } finally {
-            this.#isRefreshingSignal.value = false;
+        // If a refresh is already pending, just wait for it
+        if (this.pendingRefresh) {
+            logInfo('refreshGroups: Refresh already pending, skipping duplicate request');
+            return;
         }
+        
+        // Clear any existing debounce timer
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+        }
+        
+        // Return a promise that resolves when the debounced refresh completes
+        return new Promise<void>((resolve, reject) => {
+            this.refreshDebounceTimer = setTimeout(async () => {
+                this.pendingRefresh = true;
+                this.#isRefreshingSignal.value = true;
+                
+                logInfo('refreshGroups: Starting debounced refresh');
+                
+                try {
+                    await this.fetchGroups();
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                } finally {
+                    this.#isRefreshingSignal.value = false;
+                    this.pendingRefresh = false;
+                    this.refreshDebounceTimer = null;
+                }
+            }, this.refreshDebounceDelay);
+        });
     }
 
     /**
@@ -267,18 +304,35 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             userId,
             (changes) => {
                 // Any change = force refresh immediately (bypass optimization logic)
-                logWarning('Group change detected, forcing refresh of groups', { 
+                const changeDetails = changes && changes.length > 0 ? changes[0] : null;
+                const isDeleteOperation = changeDetails?.action === 'deleted';
+                
+                logInfo('Group change detected, triggering refresh', { 
                     userId,
                     currentGroupCount: this.#groupsSignal.value.length,
                     timestamp: new Date().toISOString(),
-                    changeEvents: changes,
                     changeCount: changes ? changes.length : 0,
-                    firstChangeData: changes && changes.length > 0 ? changes[0] : null
+                    isDeleteOperation,
+                    changeAction: changeDetails?.action,
+                    affectedGroupId: changeDetails?.id,
+                    affectedUsers: changeDetails?.users
                 });
-                this.refreshGroups().catch((error) => logWarning('Failed to refresh groups after change detection', { 
-                    error: error instanceof Error ? error.message : String(error),
-                    userId 
-                }));
+                
+                // NO OPTIMISTIC UPDATES - just refresh from server
+                // This ensures the dashboard accurately reflects server state
+                this.refreshGroups()
+                    .then(() => {
+                        logInfo('Groups refresh completed after change detection', {
+                            userId,
+                            newGroupCount: this.#groupsSignal.value.length,
+                            isDeleteOperation,
+                            affectedGroupId: changeDetails?.id
+                        });
+                    })
+                    .catch((error) => logWarning('Failed to refresh groups after change detection', { 
+                        error: error instanceof Error ? error.message : String(error),
+                        userId 
+                    }));
             },
             {
                 maxRetries: 3,
@@ -323,6 +377,13 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     reset(): void {
+        // Clear any pending refresh operations
+        if (this.refreshDebounceTimer) {
+            clearTimeout(this.refreshDebounceTimer);
+            this.refreshDebounceTimer = null;
+        }
+        this.pendingRefresh = false;
+        
         batch(() => {
             this.#groupsSignal.value = [];
             this.#loadingSignal.value = false;
