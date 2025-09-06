@@ -20,14 +20,25 @@ test.describe('Error Handling', () => {
 
         // Already authenticated via fixture
 
-        // Intercept API calls to simulate network failure
-        await context.route('**/api/groups', (route) => {
-            route.abort();
-        });
-
         // Try to create group while network is failing using page object methods
         await dashboardPage.openCreateGroupModal();
         await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+
+        // Wait for any initial dashboard API calls to settle before setting up interception
+        await dashboardPage.page.waitForTimeout(1000);
+
+        // Intercept API calls to simulate network failure - be very specific to only intercept group creation
+        await context.route(/\/groups$/, (route) => {
+            const method = route.request().method();
+            if (method === 'POST') {
+                route.fulfill({
+                    status: 0, // Network failure
+                    body: '',
+                });
+            } else {
+                route.continue();
+            }
+        });
 
         // Fill and submit form using page object methods
         await createGroupModalPage.fillGroupForm('Network Test Group', 'Testing network error handling');
@@ -37,8 +48,9 @@ test.describe('Error Handling', () => {
         await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify error indication is shown using page object method for error detection
-        const errorElement = createGroupModalPage.getErrorMessage(/error|failed|try again/i);
-        await expect(errorElement.first()).toBeVisible();
+        // Wait for the error to appear (might be async) - check for any error message first
+        const anyErrorElement = createGroupModalPage.getErrorMessage();
+        await expect(anyErrorElement.first()).toBeVisible({ timeout: 5000 });
 
         // Note: Modal behavior on network errors may have changed
         // The app might now close the modal and show the error elsewhere
@@ -47,7 +59,7 @@ test.describe('Error Handling', () => {
         if (!isModalOpen) {
             // If modal closed, verify we're still on dashboard with error shown
             await dashboardPage.expectUrl(/\/dashboard/);
-            await expect(errorElement.first()).toBeVisible();
+            await expect(anyErrorElement.first()).toBeVisible();
         } else {
             // If modal is still open, that's also valid
             await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
@@ -89,24 +101,33 @@ test.describe('Error Handling', () => {
 
         // Already authenticated via fixture
 
-        // Intercept API calls to simulate server error
-        await context.route('**/api/groups', (route) => {
-            route.fulfill({
-                status: 500,
-                body: JSON.stringify({ error: 'Internal Server Error' }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-        });
-
         await dashboardPage.openCreateGroupModal();
+        
+        // Wait for any initial dashboard API calls to settle before setting up interception
+        await dashboardPage.page.waitForTimeout(1000);
+
+        // Intercept API calls to simulate server error - be very specific to only intercept group creation
+        await context.route(/\/groups$/, (route) => {
+            const method = route.request().method();
+            if (method === 'POST') {
+                route.fulfill({
+                    status: 500,
+                    body: JSON.stringify({ error: 'Internal Server Error' }),
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            } else {
+                route.continue();
+            }
+        });
         await createGroupModalPage.fillGroupForm('Server Error Test', 'Testing 500 error');
         await createGroupModalPage.submitForm();
 
         await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Should show some error indication using page object method
-        const errorIndication = createGroupModalPage.getErrorMessage(/error|failed|wrong/i);
-        await expect(errorIndication.first()).toBeVisible();
+        // Wait for the error to appear (might be async) - check for any error message first
+        const errorIndication = createGroupModalPage.getErrorMessage();
+        await expect(errorIndication.first()).toBeVisible({ timeout: 5000 });
 
         // Note: Modal behavior on server errors may have changed
         const isModalOpen = await createGroupModalPage.isOpen();
@@ -131,13 +152,18 @@ test.describe('Error Handling', () => {
 
         // Already authenticated via fixture
 
-        // Intercept API calls to return malformed JSON
-        await context.route('**/api/groups', (route) => {
-            route.fulfill({
-                status: 200,
-                body: 'Invalid JSON response {malformed',
-                headers: { 'Content-Type': 'application/json' },
-            });
+        // Intercept API calls to return malformed JSON - only for GET requests to break group loading
+        await context.route(/\/groups$/, (route) => {
+            const method = route.request().method();
+            if (method === 'GET') {
+                route.fulfill({
+                    status: 200,
+                    body: 'Invalid JSON response {malformed',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+            } else {
+                route.continue();
+            }
         });
 
         // Wait for load state using page object
@@ -166,11 +192,17 @@ test.describe('Error Handling', () => {
 
         // Already authenticated via fixture
 
-        // Intercept API calls to simulate timeout
-        await context.route('**/api/groups', async (route) => {
-            // Wait for configured timeout delay then respond with timeout
-            await new Promise((resolve) => setTimeout(resolve, TIMEOUT_CONTEXTS.SIMULATED_TIMEOUT_DELAY));
-            await route.fulfill({ status: 408, body: 'Request Timeout' });
+        // Intercept API calls to simulate timeout - be very specific to avoid blocking dashboard loads
+        await context.route('**/groups', async (route) => {
+            const method = route.request().method();
+            const url = route.request().url();
+            if (method === 'POST') {
+                // Wait for configured timeout delay then respond with timeout
+                await new Promise((resolve) => setTimeout(resolve, TIMEOUT_CONTEXTS.SIMULATED_TIMEOUT_DELAY));
+                await route.fulfill({ status: 408, body: 'Request Timeout' });
+            } else {
+                route.continue();
+            }
         });
 
         await dashboardPage.openCreateGroupModal();

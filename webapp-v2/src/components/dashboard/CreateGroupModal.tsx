@@ -81,19 +81,25 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
         setIsSubmitting(true);
         setValidationError(null);
 
-        const groupData: CreateGroupRequest = {
-            name: groupNameSignal.value.trim(),
-            description: groupDescriptionSignal.value.trim() || undefined,
-        };
+        try {
+            const groupData: CreateGroupRequest = {
+                name: groupNameSignal.value.trim(),
+                description: groupDescriptionSignal.value.trim() || undefined,
+            };
 
-        const newGroup = await enhancedGroupsStore.createGroup(groupData);
+            const newGroup = await enhancedGroupsStore.createGroup(groupData);
 
-        // Success! Close modal and optionally callback
-        if (onSuccess) {
-            onSuccess(newGroup.id);
+            // Success! Close modal and optionally callback
+            if (onSuccess) {
+                onSuccess(newGroup.id);
+            }
+            onClose();
+        } catch (error) {
+            // Error is already handled by the store (sets enhancedGroupsStore.errorSignal)
+            // Just prevent unhandled promise rejection - don't close modal on error
+        } finally {
+            setIsSubmitting(false);
         }
-        onClose();
-        setIsSubmitting(false);
     };
 
     if (!isOpen) return null;
@@ -157,7 +163,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                         </div>
 
                         {/* Error Display */}
-                        {enhancedGroupsStore.error && (
+                        {enhancedGroupsStore.errorSignal.value && (
                             <div class="bg-red-50 border border-red-200 rounded-md p-3">
                                 <div class="flex">
                                     <div class="flex-shrink-0">
@@ -171,7 +177,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                     </div>
                                     <div class="ml-3">
                                         <p class="text-sm text-red-800" role="alert" data-testid="create-group-error-message">
-                                            {enhancedGroupsStore.error}
+                                            {enhancedGroupsStore.errorSignal.value}
                                         </p>
                                     </div>
                                 </div>
