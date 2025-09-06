@@ -84,7 +84,7 @@ export const GroupSchema = z.object({
         .optional(),
 
     // Security configuration for permission system
-    securityPreset: z.enum(['open', 'managed']).optional(),
+    securityPreset: z.enum(['open', 'managed', 'custom']).optional(),
     permissions: z
         .object({
             expenseEditing: z.enum(['anyone', 'owner-and-admin', 'admin-only']).optional(),

@@ -18,7 +18,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
 
         // Setup 2-person group with unique ID
         const uniqueId = generateShortId();
-        const groupName = `Owner Delete Test ${uniqueId}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const groupName = `Owner Delete Test ${uniqueId}-${randomSuffix}`;
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing owner deletion');
 
         // Get share link and have User2 join
@@ -46,8 +47,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await dashboardPage1.waitForGroupToAppear(groupName);
         await dashboardPage2.waitForGroupToAppear(groupName);
 
-        // User1 (owner) navigates to group and deletes it
-        await page.goto(`/groups/${groupId}`);
+        // User1 (owner) clicks on the group from dashboard to navigate to it
+        await dashboardPage1.clickGroupCard(groupName);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Delete the group
@@ -92,7 +93,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
 
         // Setup 2-person group
         const uniqueId = generateShortId();
-        const groupName = `Member Leave Test ${uniqueId}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const groupName = `Member Leave Test ${uniqueId}-${randomSuffix}`;
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member leaving');
 
         // User2 joins the group
@@ -116,8 +118,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await dashboardPage1.waitForGroupToAppear(groupName);
         await dashboardPage2.waitForGroupToAppear(groupName);
 
-        // User2 navigates back to group to leave it
-        await page2.goto(`/groups/${groupId}`);
+        // User2 clicks on the group from dashboard to navigate to it
+        await dashboardPage2.clickGroupCard(groupName);
         await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
         
         // User2 leaves the group (not deletes - just leaves)
@@ -145,7 +147,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
 
         // Setup group with expenses (testing hard delete with data)
         const uniqueId = generateShortId();
-        const groupName = `Hard Delete Test ${uniqueId}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const groupName = `Hard Delete Test ${uniqueId}-${randomSuffix}`;
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing hard delete with expenses');
 
         // User2 joins
@@ -195,8 +198,8 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await dashboardPage1.waitForGroupToAppear(groupName);
         await dashboardPage2.waitForGroupToAppear(groupName);
 
-        // User1 navigates to group and performs hard delete (should work despite expenses)
-        await page.goto(`/groups/${groupId}`);
+        // User1 clicks on the group from dashboard to perform hard delete (should work despite expenses)
+        await dashboardPage1.clickGroupCard(groupName);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // With new hard delete implementation, this should succeed even with expenses
@@ -252,7 +255,8 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
 
         // Create group with User 1 as owner
         const uniqueId = generateShortId();
-        const groupName = `Dashboard Update Test ${uniqueId}`;
+        const randomSuffix = Math.random().toString(36).substring(2, 8);
+        const groupName = `Dashboard Update Test ${uniqueId}-${randomSuffix}`;
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time dashboard updates');
 
         // User 2 and User 3 join the group
@@ -291,8 +295,8 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         // User 2: Stays on dashboard (should see real-time update) 
         // User 3: Stays on dashboard (should see real-time update)
         
-        // User 1 goes to group detail page to delete
-        await page1.goto(`/groups/${groupId}`);
+        // User 1 clicks on the group from dashboard to delete
+        await dashboardPage1.clickGroupCard(groupName);
         await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Users 2 and 3 STAY on dashboard to watch for real-time updates

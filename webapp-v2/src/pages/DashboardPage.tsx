@@ -28,18 +28,20 @@ export function DashboardPage() {
 
     // Fetch groups when component mounts and user is authenticated
     useEffect(() => {
-        if (authStore.user && !enhancedGroupsStore.initialized) {
-            // Intentionally not awaited - useEffect cannot be async (React anti-pattern)
-            enhancedGroupsStore.fetchGroups();
-            // Subscribe to realtime changes
-            enhancedGroupsStore.subscribeToChanges(authStore.user.uid);
+        if (authStore.user) {
+            // Use unique component ID for reference counting
+            const componentId = 'dashboard-page';
+            
+            // Register component with reference-counted subscription
+            // This prevents subscription churn when multiple components use the store
+            enhancedGroupsStore.registerComponent(componentId, authStore.user.uid);
+            
+            // Cleanup: deregister this component
+            return () => {
+                enhancedGroupsStore.deregisterComponent(componentId);
+            };
         }
-
-        // Cleanup on unmount
-        return () => {
-            enhancedGroupsStore.dispose();
-        };
-    }, [authStore.user]); // Remove initialized dependency to prevent subscription churn
+    }, [authStore.user]); // Only depend on auth state to prevent subscription churn
 
     const user = authStore.user;
 

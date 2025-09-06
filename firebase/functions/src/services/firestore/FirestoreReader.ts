@@ -9,7 +9,7 @@
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import {getFirestore} from '../../firebase';
 import { logger } from '../../logger';
-import { FirestoreCollections } from '@splitifyd/shared';
+import { FirestoreCollections, SecurityPresets } from '@splitifyd/shared';
 import { FieldPath } from 'firebase-admin/firestore';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
 
@@ -92,10 +92,15 @@ export class FirestoreReader implements IFirestoreReader {
                 return null;
             }
 
-            const groupData = GroupDocumentSchema.parse({
+            // Sanitize the data before validation
+            const rawData = {
                 id: groupDoc.id, 
                 ...groupDoc.data() 
-            });
+            };
+            const sanitizedData = this.sanitizeGroupData(rawData);
+            
+            // Now validate with the sanitized data
+            const groupData = GroupDocumentSchema.parse(sanitizedData);
 
             return groupData;
         } catch (error) {
@@ -204,6 +209,34 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     // ========================================================================
+    // Helper Methods for Data Sanitization
+    // ========================================================================
+
+    /**
+     * Sanitizes group data before validation to handle invalid values
+     * that may have been inserted into the database
+     */
+    private sanitizeGroupData(data: any): any {
+        const sanitized = { ...data };
+        
+        // Sanitize securityPreset field
+        if (sanitized.securityPreset !== undefined) {
+            const validPresets = Object.values(SecurityPresets);
+            if (!validPresets.includes(sanitized.securityPreset)) {
+                logger.warn('Invalid securityPreset value detected, defaulting to OPEN', {
+                    groupId: sanitized.id,
+                    invalidValue: sanitized.securityPreset,
+                    validValues: validPresets
+                });
+                // Default to OPEN for invalid values
+                sanitized.securityPreset = SecurityPresets.OPEN;
+            }
+        }
+        
+        return sanitized;
+    }
+
+    // ========================================================================
     // Collection Read Operations - Minimal Implementation
     // ========================================================================
 
@@ -270,10 +303,15 @@ export class FirestoreReader implements IFirestoreReader {
 
                 for (const doc of snapshot.docs) {
                     try {
-                        const groupData = GroupDocumentSchema.parse({
+                        // Sanitize the data before validation
+                        const rawData = {
                             id: doc.id,
                             ...doc.data()
-                        });
+                        };
+                        const sanitizedData = this.sanitizeGroupData(rawData);
+                        
+                        // Now validate with the sanitized data
+                        const groupData = GroupDocumentSchema.parse(sanitizedData);
                         groups.push(groupData);
                     } catch (error) {
                         logger.error('Invalid group document in getGroupsForUser', {

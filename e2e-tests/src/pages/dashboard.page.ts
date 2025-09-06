@@ -149,4 +149,21 @@ export class DashboardPage extends BasePage {
             intervals: [100, 250, 500], // Check frequently for appearance
         });
     }
+
+    /**
+     * Click on a group card to navigate to the group details page
+     * This simulates the user clicking on a group from the dashboard
+     */
+    async clickGroupCard(groupName: string) {
+        // Ensure the group is visible first
+        await this.waitForGroupToAppear(groupName);
+        
+        // Find the group card button and click it
+        // Group cards are typically buttons containing the group name
+        const groupCard = this.page.getByRole('button').filter({ hasText: groupName });
+        await this.clickButton(groupCard, { buttonName: `Group: ${groupName}` });
+        
+        // Wait for navigation to complete
+        await this.waitForDomContentLoaded();
+    }
 }

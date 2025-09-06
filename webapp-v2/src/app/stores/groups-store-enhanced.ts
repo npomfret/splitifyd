@@ -1,7 +1,7 @@
 import { signal, batch, ReadonlySignal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
-import { logWarning } from '@/utils/browser-logger.ts';
+import { logWarning, logInfo } from '@/utils/browser-logger.ts';
 import { ChangeDetector } from '@/utils/change-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 
@@ -31,6 +31,9 @@ export interface EnhancedGroupsStore {
     refreshGroups(): Promise<void>;
     clearError(): void;
     reset(): void;
+    registerComponent(componentId: string, userId: string): void;
+    deregisterComponent(componentId: string): void;
+    // Legacy API - kept for backward compatibility
     subscribeToChanges(userId: string): void;
     dispose(): void;
 }
@@ -48,6 +51,11 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     private changeDetector = new ChangeDetector();
     private changeUnsubscribe: (() => void) | null = null;
+    
+    // Reference counting for subscription management
+    private subscriberCount = 0;
+    private subscriberIds = new Set<string>();
+    private currentUserId: string | null = null;
 
     // State getters - readonly values for external consumers
     get groups() {
@@ -199,7 +207,56 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         }
     }
 
-    subscribeToChanges(userId: string): void {
+    /**
+     * Register a component to use the groups store
+     * Uses reference counting to manage subscriptions
+     */
+    registerComponent(componentId: string, userId: string): void {
+        // Add to subscriber tracking
+        this.subscriberIds.add(componentId);
+        this.subscriberCount++;
+        
+        // If this is the first subscriber or user changed, set up subscription
+        if (this.subscriberCount === 1 || this.currentUserId !== userId) {
+            this.currentUserId = userId;
+            this.setupSubscription(userId);
+        }
+        
+        logInfo(`Groups store: Component registered`, { 
+            componentId, 
+            userId, 
+            subscriberCount: this.subscriberCount 
+        });
+    }
+    
+    /**
+     * Deregister a component from the groups store
+     * Only disposes subscription when last component deregisters
+     */
+    deregisterComponent(componentId: string): void {
+        if (!this.subscriberIds.has(componentId)) {
+            return;
+        }
+        
+        this.subscriberIds.delete(componentId);
+        this.subscriberCount--;
+        
+        logInfo(`Groups store: Component deregistered`, { 
+            componentId, 
+            subscriberCount: this.subscriberCount 
+        });
+        
+        // Only dispose if this was the last subscriber
+        if (this.subscriberCount === 0) {
+            this.disposeSubscription();
+            this.currentUserId = null;
+        }
+    }
+    
+    /**
+     * Internal method to set up subscription
+     */
+    private setupSubscription(userId: string): void {
         // Unsubscribe from any existing listener
         if (this.changeUnsubscribe) {
             this.changeUnsubscribe();
@@ -242,6 +299,24 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             userId 
         }));
     }
+    
+    /**
+     * Internal method to dispose subscription
+     */
+    private disposeSubscription(): void {
+        if (this.changeUnsubscribe) {
+            this.changeUnsubscribe();
+            this.changeUnsubscribe = null;
+        }
+    }
+    
+    /**
+     * Legacy API - subscribes without reference counting
+     * @deprecated Use registerComponent/deregisterComponent instead
+     */
+    subscribeToChanges(userId: string): void {
+        this.setupSubscription(userId);
+    }
 
     clearError(): void {
         this.#errorSignal.value = null;
@@ -262,10 +337,14 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         this.dispose();
     }
 
+    /**
+     * Legacy API - disposes without reference counting
+     * @deprecated Use registerComponent/deregisterComponent instead
+     */
     dispose(): void {
-        if (this.changeUnsubscribe) {
-            this.changeUnsubscribe();
-            this.changeUnsubscribe = null;
+        // Only dispose if no components are registered (legacy behavior)
+        if (this.subscriberCount === 0) {
+            this.disposeSubscription();
         }
     }
 
