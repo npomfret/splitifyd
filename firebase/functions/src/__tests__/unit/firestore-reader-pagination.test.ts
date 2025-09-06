@@ -9,7 +9,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
 import type { GroupDocument } from '../../schemas';
-import type { PaginatedResult } from '../../types/firestore-reader-types';
 
 /**
  * Builder for creating GroupDocument test data

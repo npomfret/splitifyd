@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, AppDriver, borrowTestUsers, TestGroupManager, CreateGroupRequestBuilder} from '@splitifyd/test-support';
+import {ApiDriver, AppDriver, borrowTestUsers, CreateGroupRequestBuilder} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import {AuthenticatedFirebaseUser} from '@splitifyd/shared';
 import {getFirestore} from "../../../../firebase";

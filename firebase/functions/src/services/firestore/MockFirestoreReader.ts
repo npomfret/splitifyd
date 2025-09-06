@@ -14,7 +14,6 @@
 import { vi } from 'vitest';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
-    CommentTarget,
     PaginatedResult
 } from '../../types/firestore-reader-types';
 
@@ -27,7 +26,6 @@ import type {
     GroupChangeDocument
 } from '../../schemas';
 import type { PolicyDocument } from '@splitifyd/shared';
-import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 export class MockFirestoreReader implements IFirestoreReader {

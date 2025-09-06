@@ -33,19 +33,12 @@ import type {
     PolicyDocument,
     GroupChangeDocument
 } from '../../schemas';
-import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
     QueryOptions,
     GroupMemberQueryOptions,
-    CommentTarget,
-    GroupSubscriptionCallback,
-    ExpenseListSubscriptionCallback,
-    CommentListSubscriptionCallback,
-    UnsubscribeFunction,
     PaginatedResult,
     GroupsPaginationCursor,
     OrderBy,

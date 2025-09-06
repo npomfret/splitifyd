@@ -17,11 +17,6 @@ import type { Transaction, DocumentReference } from 'firebase-admin/firestore';
 import {
     QueryOptions,
     GroupMemberQueryOptions,
-    CommentTarget,
-    GroupSubscriptionCallback,
-    ExpenseListSubscriptionCallback,
-    CommentListSubscriptionCallback,
-    UnsubscribeFunction,
     PaginatedResult
 } from '../../types/firestore-reader-types';
 
@@ -34,8 +29,6 @@ import type {
     PolicyDocument,
     GroupChangeDocument
 } from '../../schemas';
-import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { ParsedShareLink as ShareLinkDocument } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
 export interface IFirestoreReader {

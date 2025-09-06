@@ -8,7 +8,6 @@ import {GroupDataSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
 import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService} from './serviceRegistration';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
-import {encodeCursor} from '../utils/pagination';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
