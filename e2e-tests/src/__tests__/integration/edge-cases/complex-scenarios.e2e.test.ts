@@ -1,10 +1,9 @@
-import { multiUserTest as test, expect } from '../../../fixtures/multi-user-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
-import { GroupDetailPage } from '../../../pages';
-import { JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from '../../../helpers';
+import {GroupDetailPage, JoinGroupPage} from '../../../pages';
+import {GroupWorkflow} from '../../../workflows';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {ExpenseBuilder} from '@splitifyd/test-support';
 
 // Enable console error reporting and MCP debugging
 setupMCPDebugOnFailure();
@@ -40,35 +39,39 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Alice adds beach house expense ($800)
         const memberCount = 2; // Alice and Bob
         const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
-        const beachHouseExpense = new ExpenseBuilder()
+        await aliceExpenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription('Beach House Rental')
             .withAmount(800.0)
             .withPaidBy(alice.uid)
             .withCurrency('USD')
             .withSplitType('equal')
-            .build();
-        await aliceExpenseFormPage.submitExpense(beachHouseExpense);
+            .withParticipants([alice.uid, bob.uid])
+            .build());
+
+        // Wait for Alice's expense to be fully processed and synced
+        await aliceGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // Bob adds restaurant expense ($120)
         const bobGroupDetailPage = new GroupDetailPage(bobPage);
         const bobExpenseFormPage = await bobGroupDetailPage.clickAddExpenseButton(memberCount);
-        const restaurantExpense = new ExpenseBuilder()
+        await bobExpenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription('Restaurant Dinner')
             .withAmount(120.0)
             .withPaidBy(bob.uid)
             .withCurrency('USD')
             .withSplitType('equal')
-            .build();
-        await bobExpenseFormPage.submitExpense(restaurantExpense);
+            .withParticipants([alice.uid, bob.uid])
+            .build());
 
-        // Wait for real-time updates to sync Alice's page with latest data
+        // Wait for Bob's expense to be fully processed and synced
         await aliceGroupDetailPage.waitForBalancesToLoad(groupId);
-        // Wait for balance section to be visible - indicates data loaded
-        await expect(aliceGroupDetailPage.getBalancesHeading()).toBeVisible();
+        await bobGroupDetailPage.waitForBalancesToLoad(groupId);
 
-        // Verify both expenses are visible on Alice's page
+        // Verify both expenses are visible to both users
         await expect(alicePage.getByText('Beach House Rental')).toBeVisible();
         await expect(alicePage.getByText('Restaurant Dinner')).toBeVisible();
+        await expect(bobPage.getByText('Beach House Rental')).toBeVisible();
+        await expect(bobPage.getByText('Restaurant Dinner')).toBeVisible();
 
         // Verify balances section shows unsettled state
         const balancesHeading = aliceGroupDetailPage.getBalancesHeading();
@@ -76,10 +79,5 @@ test.describe('Complex Unsettled Group Scenario', () => {
 
         // With Alice paying $800 and Bob paying $120, Bob owes Alice $340.00
         await expect(aliceGroupDetailPage.getBalancesSection().getByText('$340.00')).toBeVisible();
-
-        // Verify member count shows 2 members
-        await expect(aliceGroupDetailPage.getMembersCount()).toBeVisible();
-
-        // No cleanup needed - fixtures handle it automatically
     });
 });

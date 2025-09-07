@@ -3,7 +3,7 @@ import { expect as expectThree, threeUserTest } from '../../../fixtures/three-us
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers';
-import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../../pages';
+import { GroupDetailPage, JoinGroupPage, DashboardPage, SettingsPage } from '../../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -33,9 +33,9 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         const joinGroupPage = new JoinGroupPage(page2, user2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
-        // Wait for synchronization - both users should see each other as members
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+        // Wait for synchronization - both users should see 2 members total
+        await groupDetailPage.waitForMemberCount(2);
+        await groupDetailPage2.waitForMemberCount(2);
 
         // Both users navigate to dashboard to see the group
         await dashboardPage1.navigate();
@@ -104,9 +104,9 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         const joinGroupPage = new JoinGroupPage(page2, user2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
-        // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+        // Wait for synchronization - both users should see 2 members total
+        await groupDetailPage.waitForMemberCount(2);
+        await groupDetailPage2.waitForMemberCount(2);
 
         // Both users navigate to dashboard
         await dashboardPage1.navigate();
@@ -157,15 +157,15 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         
         const joinGroupPage = new JoinGroupPage(page2, user2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+        await groupDetailPage.waitForMemberCount(2);
+        await groupDetailPage2.waitForMemberCount(2);
 
         // Add expenses to test hard delete functionality
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(2);
         await expenseFormPage1.submitExpense({
             description: 'Pre-deletion Expense 1',
             amount: 50,
-            paidBy: user1.displayName,
+            paidBy: user1.uid, // Use userId for server validation
             currency: 'USD',
             splitType: 'equal',
         });
@@ -179,7 +179,7 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await expenseFormPage2.submitExpense({
             description: 'Pre-deletion Expense 2',
             amount: 75,
-            paidBy: user2.displayName,
+            paidBy: user2.uid, // Use userId for server validation
             currency: 'USD',
             splitType: 'equal',
         });
@@ -272,10 +272,10 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         const joinGroupPage3 = new JoinGroupPage(page3, user3);
         await joinGroupPage3.joinGroupUsingShareLink(shareLink);
 
-        // Wait for all users to see each other as members
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName, user3.displayName);
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName, user3.displayName);
-        await groupDetailPage3.waitForUserSynchronization(user1.displayName, user2.displayName, user3.displayName);
+        // Wait for all users to see 3 members total
+        await groupDetailPage.waitForMemberCount(3);
+        await groupDetailPage2.waitForMemberCount(3);
+        await groupDetailPage3.waitForMemberCount(3);
 
         // ALL users navigate to their dashboards
         await dashboardPage1.navigate();

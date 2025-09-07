@@ -1,8 +1,8 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
-import { v4 as uuidv4 } from 'uuid';
+import {authenticatedPageTest as test, expect} from '../../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure, TestGroupWorkflow} from '../../../helpers';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {ExpenseBuilder} from '@splitifyd/test-support';
+import {v4 as uuidv4} from 'uuid';
 
 setupMCPDebugOnFailure();
 
@@ -16,14 +16,13 @@ test.describe('Basic Expense Operations E2E', () => {
 
         // Create expense using page object
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const testExpense = new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription(`Test Expense Lifecycle ${uniqueId}`)
             .withAmount(50)
             .withCurrency('USD')
             .withPaidBy(groupInfo.user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage.submitExpense(testExpense);
+            .build());
 
         // Verify expense appears in list
         await expect(groupDetailPage.getExpenseByDescription(`Test Expense Lifecycle ${uniqueId}`)).toBeVisible();

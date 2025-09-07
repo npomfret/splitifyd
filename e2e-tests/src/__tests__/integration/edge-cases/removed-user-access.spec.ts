@@ -1,10 +1,10 @@
-import { multiUserTest, expect } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
-import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
-import { generateTestGroupName, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { JoinGroupPage } from '../../../pages';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import {expect, multiUserTest} from '../../../fixtures';
+import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../../helpers';
+import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
+import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {JoinGroupPage} from '../../../pages';
+import {ExpenseBuilder} from '@splitifyd/test-support';
 
 setupConsoleErrorReporting();
 setupMCPDebugOnFailure();
@@ -52,6 +52,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
             .withCurrency('USD')
             .withPaidBy(user2.uid)
             .withSplitType('equal')
+            .withParticipants([user1.uid, user2.uid])
             .build();
         
         await expenseFormPage.submitExpense(sharedExpense);
@@ -87,16 +88,15 @@ multiUserTest.describe('Multi-User Group Access', () => {
         await memberGroupDetailPage.waitForMemberCount(2);
         
         // Both users add expenses to create some activity
-        const adminExpense = new ExpenseBuilder()
+        const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);
+        await adminExpenseForm.submitExpense(new ExpenseBuilder()
             .withDescription(`Admin Expense ${uniqueId}`)
             .withAmount(50.00)
             .withCurrency('USD')
             .withPaidBy(adminUser.uid)
             .withSplitType('equal')
-            .build();
-        
-        const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);
-        await adminExpenseForm.submitExpense(adminExpense);
+            .withParticipants([adminUser.uid, memberUser.uid])
+            .build());
         
         await groupDetailPage.waitForBalancesToLoad(groupId);
         
@@ -107,6 +107,7 @@ multiUserTest.describe('Multi-User Group Access', () => {
             .withCurrency('USD')
             .withPaidBy(memberUser.uid)
             .withSplitType('equal')
+            .withParticipants([adminUser.uid, memberUser.uid])
             .build();
         
         const memberExpenseForm = await memberGroupDetailPage.clickAddExpenseButton(2);

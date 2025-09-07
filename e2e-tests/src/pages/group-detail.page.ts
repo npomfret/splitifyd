@@ -238,30 +238,14 @@ export class GroupDetailPage extends BasePage {
             throw new Error(`waitForMemberCount called but not on a group page. Current URL: ${currentUrl}`);
         }
 
-        // First, wait for any loading spinner in the Members section to disappear
-        const membersSection = this.page.locator('text=Members').locator('..');
-        const loadingSpinner = membersSection.locator('.animate-spin, [role="status"]');
-        const spinnerCount = await loadingSpinner.count();
-        if (spinnerCount > 0) {
-            await expect(loadingSpinner.first()).not.toBeVisible({ timeout });
-        }
+        // Wait for page to load
+        await this.waitForDomContentLoaded();
 
         const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
 
-        // Use a more robust approach - wait for the text or any variant that indicates member count
-        try {
-            await expect(this.page.getByText(expectedText)).toBeVisible({ timeout });
-        } catch (e) {
-            // If exact text isn't found, try waiting for the members section to be updated
-            // This provides a fallback for real-time update timing issues
-            console.log(`Expected member text '${expectedText}' not found, checking for members section updates`);
-
-            // Wait for real-time updates to sync
-            await this.waitForDomContentLoaded();
-
-            // Final attempt with the expected text
-            await expect(this.page.getByText(expectedText)).toBeVisible({ timeout: 3000 });
-        }
+        // Wait for member count to appear in the main group heading
+        // The member count is displayed in the group header section, not in the Members list
+        await expect(this.page.getByText(expectedText).first()).toBeVisible({ timeout });
 
         // Double-check we're still on the group page after waiting
         const finalUrl = this.page.url();
@@ -570,9 +554,6 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    /**
-     * Create expense and synchronize across multiple users
-     */
     /**
      * Create expense and synchronize across multiple users using proper page object composition
      */

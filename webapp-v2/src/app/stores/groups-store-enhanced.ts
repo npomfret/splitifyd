@@ -326,6 +326,26 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                             userId,
                             groupId
                         }));
+                },
+                onGroupRemoved: (groupId) => {
+                    logInfo('Group removed - removing from list without refresh', { 
+                        userId,
+                        groupId,
+                        currentGroupCount: this.#groupsSignal.value.length
+                    });
+                    
+                    // Remove the group from the list immediately without fetching
+                    const currentGroups = this.#groupsSignal.value;
+                    const filteredGroups = currentGroups.filter(group => group.id !== groupId);
+                    
+                    if (filteredGroups.length !== currentGroups.length) {
+                        this.#groupsSignal.value = filteredGroups;
+                        logInfo('Group removed from dashboard', { 
+                            groupId,
+                            oldCount: currentGroups.length,
+                            newCount: filteredGroups.length
+                        });
+                    }
                 }
             },
             {

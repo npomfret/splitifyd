@@ -1,8 +1,8 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
-import { v4 as uuidv4 } from 'uuid';
+import {authenticatedPageTest as test, expect} from '../../../fixtures/authenticated-page-test';
+import {setupMCPDebugOnFailure, TestGroupWorkflow} from '../../../helpers';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {ExpenseBuilder} from '@splitifyd/test-support';
+import {v4 as uuidv4} from 'uuid';
 
 setupMCPDebugOnFailure();
 
@@ -18,14 +18,13 @@ test.describe('Add Expense E2E', () => {
         // Navigate to expense form with all necessary waits
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
-        const testDinnerExpense = new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription(`Test Dinner ${uniqueId}`)
             .withAmount(50)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage.submitExpense(testDinnerExpense);
+            .build());
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -49,14 +48,13 @@ test.describe('Add Expense E2E', () => {
 
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
-        const categoryExpense = new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription(`Dinner with category ${uniqueId}`)
             .withAmount(45)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage.submitExpense(categoryExpense);
+            .build());
 
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -82,14 +80,13 @@ test.describe('Add Expense E2E', () => {
         await expect(page).toHaveURL(new RegExp(`/groups/${groupId}/add-expense`));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
-        const movieTicketsExpense = new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription(`Movie Tickets ${uniqueId}`)
             .withAmount(25)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage.submitExpense(movieTicketsExpense);
+            .build());
 
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
@@ -112,14 +109,13 @@ test.describe('Add Expense E2E', () => {
 
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
 
-        const customCategoryExpense = new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
             .withDescription(`Custom category expense ${uniqueId}`)
             .withAmount(16)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage.submitExpense(customCategoryExpense);
+            .build());
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });

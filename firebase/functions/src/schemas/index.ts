@@ -110,10 +110,8 @@ export {
 
 // Change tracking schemas
 export {
-    GroupChangeDocumentSchema,
     TransactionChangeDocumentSchema,
     BalanceChangeDocumentSchema,
-    type GroupChangeDocument,
     type TransactionChangeDocument,
     type BalanceChangeDocument,
 } from './change-documents';

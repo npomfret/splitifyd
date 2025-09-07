@@ -17,7 +17,8 @@ import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import { createMinimalChangeDocument } from '../utils/change-detection';
-import { GroupChangeDocumentSchema } from '../schemas/change-documents';
+// Note: GroupChangeDocumentSchema removed as GROUP_CHANGES collection was unused
+import { notificationService } from './notification-service';
 
 /**
  * Service for managing group operations
@@ -341,20 +342,9 @@ export class GroupService {
                 }
             });
 
-            let recentGroupChanges: any[] = [];
-            // Include metadata query if requested
-            if (includeMetadata) {
-                // Get recent changes (last 60 seconds) using centralized reader
-                const groupChanges = await this.firestoreReader.getRecentGroupChanges(userId, {
-                    timeWindowMs: 60000,
-                    limit: 10
-                });
-                recentGroupChanges = groupChanges;
-            }
-
+            // Note: recentGroupChanges removed as GROUP_CHANGES collection was unused
             return {
-                paginatedGroups,
-                recentGroupChanges
+                paginatedGroups
             };
         });
 
@@ -786,10 +776,9 @@ export class GroupService {
         logger.info('Discovering all related data for comprehensive deletion', { groupId });
 
         // Get all top-level collections with groupId references
-        const [expenses, settlements, groupChanges, transactionChanges, balanceChanges] = await Promise.all([
+        const [expenses, settlements, transactionChanges, balanceChanges] = await Promise.all([
             getFirestore().collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
             getFirestore().collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-            getFirestore().collection(FirestoreCollections.GROUP_CHANGES).where('groupId', '==', groupId).get(),
             getFirestore().collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
             getFirestore().collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
         ]);
@@ -807,7 +796,7 @@ export class GroupService {
         const expenseCommentSnapshots = await Promise.all(expenseCommentPromises);
 
         // Calculate total documents to delete for logging
-        const totalDocuments = expenses.size + settlements.size + groupChanges.size + 
+        const totalDocuments = expenses.size + settlements.size + 
                              transactionChanges.size + balanceChanges.size + shareLinks.size + 
                              groupComments.size + (memberDocs?.length || 0) + 1 + // +1 for main group doc
                              expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
@@ -818,7 +807,6 @@ export class GroupService {
             breakdown: {
                 expenses: expenses.size,
                 settlements: settlements.size,
-                groupChanges: groupChanges.size,
                 transactionChanges: transactionChanges.size,
                 balanceChanges: balanceChanges.size,
                 shareLinks: shareLinks.size,
@@ -828,27 +816,13 @@ export class GroupService {
             }
         });
 
-        // PHASE 2: Create change document BEFORE bulk deletion to avoid race condition
-        let deletionChangeDocRef = null;
-        try {
-            const changeDoc = createMinimalChangeDocument(groupId, 'group', 'deleted', memberIds);
-            const validatedChangeDoc = GroupChangeDocumentSchema.parse(changeDoc);
-            
-            deletionChangeDocRef = await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
-            
-            logger.info('Created change document for group hard deletion BEFORE bulk deletion', { 
-                groupId, 
-                memberCount: memberIds.length,
-                members: memberIds,
-                changeDocId: deletionChangeDocRef.id
-            });
-        } catch (error) {
-            logger.warn('Failed to create change document for group deletion', { 
-                groupId, 
-                error: error instanceof Error ? error.message : String(error)
-            });
-            // Continue with deletion even if change doc creation fails
-        }
+        // PHASE 2: Notifications will be handled by triggers after deletion
+        // This ensures a single source of truth for notification management
+        logger.info('Group deletion notifications will be handled by triggers', {
+            groupId,
+            memberCount: memberIds.length,
+            members: memberIds
+        });
 
         // PHASE 3: Execute bulk deletion using BulkWriter
         const bulkWriter = getFirestore().bulkWriter();
@@ -868,13 +842,7 @@ export class GroupService {
         expenses.docs.forEach(doc => bulkWriter.delete(doc.ref));
         settlements.docs.forEach(doc => bulkWriter.delete(doc.ref));
         
-        // Skip deleting group changes - they get cleaned up naturally
-        // This ensures the deletion change document survives to notify dashboards
-        logger.info('Skipping group changes deletion - they will be cleaned up naturally', { 
-            groupId,
-            groupChangesCount: groupChanges.size,
-            deletionChangeDocId: deletionChangeDocRef?.id 
-        });
+        // Note: GROUP_CHANGES collection has been removed as it was unused
         
         transactionChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
         balanceChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
@@ -907,8 +875,7 @@ export class GroupService {
         logger.info('Bulk deletion completed successfully', { 
             groupId, 
             totalDocuments,
-            operation: 'HARD_DELETE_COMPLETE',
-            preservedChangeDoc: deletionChangeDocRef?.id
+            operation: 'HARD_DELETE_COMPLETE'
         });
 
         // Set group context

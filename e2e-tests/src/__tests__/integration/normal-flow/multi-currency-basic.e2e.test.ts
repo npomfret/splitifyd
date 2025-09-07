@@ -1,9 +1,9 @@
-import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { DashboardPage } from '../../../pages/dashboard.page';
-import { ExpenseBuilder } from '@splitifyd/test-support';
-import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
+import {authenticatedPageTest, expect} from '../../../fixtures';
+import {setupMCPDebugOnFailure, TestGroupWorkflow} from '../../../helpers';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {DashboardPage} from '../../../pages/dashboard.page';
+import {ExpenseBuilder} from '@splitifyd/test-support';
+import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 
 // Enable debugging helpers
 setupMCPDebugOnFailure();
@@ -26,14 +26,13 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense using page object methods
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const lunchExpense = new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseBuilder()
             .withDescription(`Lunch ${uniqueId}`)
             .withAmount(25.0)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage1.submitExpense(lunchExpense);
+            .build());
 
         // Verify back on group page with USD expense
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -41,14 +40,13 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const dinnerExpense = new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseBuilder()
             .withDescription(`Dinner ${uniqueId}`)
             .withAmount(30.0)
             .withCurrency('EUR')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage2.submitExpense(dinnerExpense);
+            .build());
 
         // Verify both expenses with separate currencies
         await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible();
@@ -78,28 +76,26 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create first expense with EUR
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const coffeeExpense = new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseBuilder()
             .withDescription(`Coffee ${uniqueId}`)
             .withAmount(5.5)
             .withCurrency('EUR')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage1.submitExpense(coffeeExpense);
+            .build());
 
         // Verify expense was created with EUR
         await expect(page.getByText('€5.50').first()).toBeVisible();
 
         // Create second expense - should default to EUR (remembered from first)
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const snackExpense = new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseBuilder()
             .withDescription(`Snack ${uniqueId}`)
             .withAmount(3.25)
             .withCurrency('EUR') // Should be remembered by the system
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage2.submitExpense(snackExpense);
+            .build());
 
         // Verify second expense also used EUR
         await expect(page.getByText('€3.25').first()).toBeVisible();
@@ -122,25 +118,23 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const taxiExpense = new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseBuilder()
             .withDescription(`Taxi ${uniqueId}`)
             .withAmount(20.0)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage1.submitExpense(taxiExpense);
+            .build());
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const museumExpense = new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseBuilder()
             .withDescription(`Museum ${uniqueId}`)
             .withAmount(15.0)
             .withCurrency('EUR')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage2.submitExpense(museumExpense);
+            .build());
 
         // Verify both expenses were created with proper currency display
         await expect(page.getByText('$20.00').first()).toBeVisible(); // USD expense
@@ -178,34 +172,31 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Add expenses in different currencies
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const usdTestExpense = new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseBuilder()
             .withDescription(`USD Test ${uniqueId}`)
             .withAmount(50.0)
             .withCurrency('USD')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage1.submitExpense(usdTestExpense);
+            .build());
 
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const eurTestExpense = new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseBuilder()
             .withDescription(`EUR Test ${uniqueId}`)
             .withAmount(40.0)
             .withCurrency('EUR')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage2.submitExpense(eurTestExpense);
+            .build());
 
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        const gbpTestExpense = new ExpenseBuilder()
+        await expenseFormPage3.submitExpense(new ExpenseBuilder()
             .withDescription(`GBP Test ${uniqueId}`)
             .withAmount(30.0)
             .withCurrency('GBP')
             .withPaidBy(user.uid)
             .withSplitType('equal')
-            .build();
-        await expenseFormPage3.submitExpense(gbpTestExpense);
+            .build());
 
         // STEP 1: Navigate back to dashboard and FIRST verify the group appears
         const dashboardPage = new DashboardPage(page, user);
@@ -258,14 +249,13 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         for (const { currency, amount, expectedSymbol } of testCases) {
             // Create expense with specific currency
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-            const currencyTestExpense = new ExpenseBuilder()
+            await expenseFormPage.submitExpense(new ExpenseBuilder()
                 .withDescription(`Test ${currency} ${uniqueId}`)
                 .withAmount(amount)
                 .withCurrency(currency)
                 .withPaidBy(user.uid)
                 .withSplitType('equal')
-                .build();
-            await expenseFormPage.submitExpense(currencyTestExpense);
+                .build());
 
             // Verify currency symbol appears correctly in expense list
             const expectedDisplay = `${expectedSymbol}${amount.toFixed(2)}`;

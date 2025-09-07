@@ -34,6 +34,83 @@ export class AppDriver {
         return doc.exists ? doc.data() as UserNotificationDocument : null;
     }
 
+    async waitForGroupDetailsChangeCount(groupId: string, userId:string, expectedGroupDetailsChangeCount: number) {
+        return this.waitForNotificationWithMatcher(
+            userId,
+            groupId,
+            (doc) => {
+                const currentCount = doc.groups[groupId]?.groupDetailsChangeCount || 0;
+                return currentCount >= expectedGroupDetailsChangeCount;
+            },
+            {
+                timeout: 1000,
+                errorMsg: 'Failed to receive all 3 group update notifications'
+            }
+        );
+    }
+
+    async waitForTransactionChangeCount(groupId: string, userId: string, expectedTransactionChangeCount: number) {
+        return this.waitForNotificationWithMatcher(
+            userId,
+            groupId,
+            (doc) => {
+                const currentCount = doc.groups[groupId]?.transactionChangeCount || 0;
+                return currentCount >= expectedTransactionChangeCount;
+            },
+            {
+                timeout: 5000,
+                errorMsg: `Failed to reach expected transaction change count: ${expectedTransactionChangeCount}`
+            }
+        );
+    }
+
+    async waitForBalanceChangeCount(groupId: string, userId: string, expectedBalanceChangeCount: number) {
+        return this.waitForNotificationWithMatcher(
+            userId,
+            groupId,
+            (doc) => {
+                const currentCount = doc.groups[groupId]?.balanceChangeCount || 0;
+                return currentCount >= expectedBalanceChangeCount;
+            },
+            {
+                timeout: 5000,
+                errorMsg: `Failed to reach expected balance change count: ${expectedBalanceChangeCount}`
+            }
+        );
+    }
+
+    async waitForTransactionAndBalanceChangeCounts(groupId: string, userId: string, expectedTransactionCount: number, expectedBalanceCount: number) {
+        return this.waitForNotificationWithMatcher(
+            userId,
+            groupId,
+            (doc) => {
+                const transactionCount = doc.groups[groupId]?.transactionChangeCount || 0;
+                const balanceCount = doc.groups[groupId]?.balanceChangeCount || 0;
+                return transactionCount >= expectedTransactionCount && balanceCount >= expectedBalanceCount;
+            },
+            {
+                timeout: 5000,
+                errorMsg: `Failed to reach expected counts - transaction: ${expectedTransactionCount}, balance: ${expectedBalanceCount}`
+            }
+        );
+    }
+
+    async waitForMultiUserTransactionAndBalanceNotifications(groupId: string, userIds: string[], timeout = 5000) {
+        await Promise.all(userIds.map(userId => Promise.all([
+            this.waitForUserNotificationUpdate(userId, groupId, 'transaction', timeout),
+            this.waitForUserNotificationUpdate(userId, groupId, 'balance', timeout)
+        ])));
+    }
+
+    async waitForMultiUserAllNotifications(groupId: string, userIds: string[], timeout = 5000) {
+        await Promise.all(userIds.map(userId => Promise.all([
+            this.waitForUserNotificationUpdate(userId, groupId, 'group', timeout),
+            this.waitForUserNotificationUpdate(userId, groupId, 'transaction', timeout),
+            this.waitForUserNotificationUpdate(userId, groupId, 'balance', timeout)
+        ])));
+    }
+
+
     async waitForUserNotificationUpdate(userId: string, groupId: string, changeType: 'transaction' | 'balance' | 'group', timeout = 5000, expectedCount?: number): Promise<void> {
         let attempts = 0;
         
@@ -70,6 +147,42 @@ export class AppDriver {
                 }
             }
         );
+    }
+
+    async waitForNotificationWithMatcher(
+        userId: string, 
+        groupId: string, 
+        matcher: Matcher<UserNotificationDocument>, 
+        options: {
+            timeout?: number;
+            interval?: number;
+            errorMsg?: string;
+        } = {}
+    ): Promise<UserNotificationDocument> {
+        const { timeout = 5000, interval = 50, errorMsg = `Timeout waiting for notification matcher for user ${userId} in group ${groupId}` } = options;
+        
+        const result = await pollUntil(
+            () => this.getUserNotificationDocument(userId),
+            async (doc: UserNotificationDocument | null) => {
+                if (!doc || !doc.groups[groupId]) {
+                    return false; // Keep waiting for document/group to exist
+                }
+                return await matcher(doc);
+            },
+            {
+                timeout,
+                interval,
+                errorMsg,
+                onRetry: (attempt, error) => {
+                    if (error) {
+                        console.log(`[DEBUG] Polling attempt ${attempt} failed:`, error.message);
+                    }
+                }
+            }
+        );
+        
+        // At this point, we know the document exists because pollUntil succeeded
+        return result!;
     }
 
     async waitForMultiUserNotificationUpdate(userIds: string[], groupId: string, changeType: 'transaction' | 'balance' | 'group', timeout = 3000): Promise<void> {

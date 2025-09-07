@@ -487,22 +487,32 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should handle pagination with cursor', async () => {
+            // Create test groups to ensure we have enough data for pagination
+            for (let i = 0; i < 5; i++) {
+                await apiDriver.createGroupWithMembers(
+                    `Pagination Test Group ${i} ${Date.now()}`, 
+                    [creator], 
+                    creator.token
+                );
+            }
+            
             const firstPage = await groupService.listGroups(creator.uid, {
                 limit: 2,
             });
 
-            if (firstPage.nextCursor) {
-                const secondPage = await groupService.listGroups(creator.uid, {
-                    limit: 2,
-                    cursor: firstPage.nextCursor,
-                });
+            expect(firstPage.groups.length).toBe(2);
+            expect(firstPage.nextCursor).toBeTruthy();
+            
+            const secondPage = await groupService.listGroups(creator.uid, {
+                limit: 2,
+                cursor: firstPage.nextCursor,
+            });
 
-                expect(secondPage.groups.length).toBeGreaterThan(0);
-                // Groups should be different from first page
-                const firstPageIds = firstPage.groups.map(g => g.id);
-                const secondPageIds = secondPage.groups.map(g => g.id);
-                expect(firstPageIds).not.toEqual(secondPageIds);
-            }
+            expect(secondPage.groups.length).toBeGreaterThan(0);
+            // Groups should be different from first page
+            const firstPageIds = firstPage.groups.map(g => g.id);
+            const secondPageIds = secondPage.groups.map(g => g.id);
+            expect(firstPageIds).not.toEqual(secondPageIds);
         });
 
         test('should include balance information for each group', async () => {

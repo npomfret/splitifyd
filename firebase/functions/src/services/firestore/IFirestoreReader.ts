@@ -26,8 +26,7 @@ import type {
     GroupDocument,
     ExpenseDocument,
     SettlementDocument,
-    PolicyDocument,
-    GroupChangeDocument
+    PolicyDocument
 } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
@@ -159,16 +158,7 @@ export interface IFirestoreReader {
     // Specialized Query Operations
     // ========================================================================
 
-    /**
-     * Get recent group changes for a user
-     * @param userId - The user ID to filter changes for
-     * @param options - Query options including timeWindowMs for how far back to look
-     * @returns Array of group change documents
-     */
-    getRecentGroupChanges(userId: string, options?: { 
-        timeWindowMs?: number;
-        limit?: number;
-    }): Promise<GroupChangeDocument[]>;
+    // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
 
 
 

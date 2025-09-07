@@ -1,16 +1,18 @@
-import { expect, multiUserTest } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
-import { GroupWorkflow } from '../../../workflows';
-import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
-import { GroupDetailPage, JoinGroupPage } from '../../../pages';
+import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
+import {setupMCPDebugOnFailure} from '../../../helpers';
+import {GroupWorkflow} from '../../../workflows';
+import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
+import {GroupDetailPage, JoinGroupPage} from '../../../pages';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {ExpenseBuilder} from '@splitifyd/test-support';
 
 setupMCPDebugOnFailure();
 
-multiUserTest.describe('Multi-User Balance Visualization - Deterministic States', () => {
-    multiUserTest('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+test.describe('Multi-User Balance Visualization - Deterministic States', () => {
+    test('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group with unique ID
@@ -28,26 +30,27 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // User2 joins using robust JoinGroupPage
-        const joinGroupPage = new JoinGroupPage(page2, user2);
+        const joinGroupPage = new JoinGroupPage(page2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
-        // Try to wait for synchronization but don't fail the test
-        try {
-            await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-            await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
-        } catch (error) {
-            // Continue without failing the test - synchronization is optional
-        }
+        // Verify User2 is now on the group page
+        await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(page2.getByText(`Equal Payment Test ${uniqueId}`)).toBeVisible();
+
+        // Wait for group member list to synchronize before adding expenses
+        await page.waitForTimeout(2000);
+        await page2.waitForTimeout(2000);
 
         // SEQUENTIAL EXPENSES: User1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense({
-            description: 'User1 Equal Payment',
-            amount: 100,
-            paidBy: user1.displayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
+        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+            .withDescription('User1 Equal Payment')
+            .withAmount(100.0)
+            .withPaidBy(user1.uid)
+            .withCurrency('USD')
+            .withSplitType('equal')
+            .withParticipants([user1.uid, user2.uid])
+            .build());
 
         // Wait for first expense to be synced via real-time updates
         await groupDetailPage.waitForBalanceUpdate();
@@ -58,13 +61,14 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
 
         // User2 adds expense AFTER User1's is synchronized
         const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense({
-            description: 'User2 Equal Payment',
-            amount: 100,
-            paidBy: user2.displayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
+        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+            .withDescription('User2 Equal Payment')
+            .withAmount(100.0)
+            .withPaidBy(user2.uid)
+            .withCurrency('USD')
+            .withSplitType('equal')
+            .withParticipants([user1.uid, user2.uid])
+            .build());
 
         // Wait for second expense to be processed
         await groupDetailPage2.waitForBalanceUpdate();
@@ -92,10 +96,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await groupDetailPage.verifyExpenseVisible('User2 Equal Payment');
     });
 
-    multiUserTest('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    test('should show specific debt when only one person pays', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
@@ -121,6 +125,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Wait for expense to be processed via real-time updates
@@ -138,10 +143,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await expect(groupDetailPage.getCurrencyAmount('200.00')).toBeVisible();
     });
 
-    multiUserTest('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    test('should calculate complex debts correctly', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
@@ -167,6 +172,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Wait for first expense to be synced via real-time updates
@@ -184,6 +190,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user2.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Wait for second expense to be processed
@@ -201,10 +208,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await groupDetailPage.verifyExpenseVisible('Small User2 Payment');
     });
 
-    multiUserTest('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    test('should transition from settled to debt to settled predictably', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
@@ -234,6 +241,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -252,6 +260,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user2.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Wait for balance calculations to be updated via real-time updates
@@ -269,10 +278,10 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
         await groupDetailPage.verifyExpenseVisible('Balance Debt');
     });
 
-    multiUserTest('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    test('should handle currency formatting in debt amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
@@ -298,6 +307,7 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -314,8 +324,8 @@ multiUserTest.describe('Multi-User Balance Visualization - Deterministic States'
     });
 });
 
-multiUserTest.describe('Balance with Settlement Calculations', () => {
-    multiUserTest('should update debt correctly after partial settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+test.describe('Balance with Settlement Calculations', () => {
+    test('should update debt correctly after partial settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
         const groupDetailPage2 = secondUser.groupDetailPage;
@@ -331,7 +341,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // User 2 joins
-        const joinGroupPage = new JoinGroupPage(page2, user2);
+        const joinGroupPage = new JoinGroupPage(page2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         // Synchronize both users - no reloads needed with real-time updates
@@ -349,6 +359,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Verify expense appears for User 1
@@ -411,7 +422,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
         await groupDetailPage2.verifyDebtRelationship(user2.displayName, user1.displayName, '$40.00');
     });
 
-    multiUserTest('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+    test('should show settled up after exact settlement', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
         const groupDetailPage2 = secondUser.groupDetailPage;
@@ -440,6 +451,7 @@ multiUserTest.describe('Balance with Settlement Calculations', () => {
             paidBy: user1.displayName,
             currency: 'USD',
             splitType: 'equal',
+            participants: [user1.uid, user2.uid],
         });
 
         // Wait for expense to be processed via real-time updates

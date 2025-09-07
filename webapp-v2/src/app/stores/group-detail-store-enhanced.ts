@@ -124,6 +124,21 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.refreshAll().catch(error => 
                     logError('Failed to refresh after balance change', error)
                 );
+            },
+            onGroupRemoved: (groupId) => {
+                if (groupId !== this.currentGroupId) return;
+                logInfo('Group removed - clearing state without refresh', { groupId });
+                
+                // Clear state immediately without trying to fetch the deleted group
+                this.#errorSignal.value = 'GROUP_DELETED';
+                batch(() => {
+                    this.#groupSignal.value = null;
+                    this.#membersSignal.value = [];
+                    this.#expensesSignal.value = [];
+                    this.#balancesSignal.value = null;
+                    this.#settlementsSignal.value = [];
+                    this.#loadingSignal.value = false;
+                });
             }
         });
     }
@@ -170,7 +185,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.unsubscribeNotifications();
             this.unsubscribeNotifications = null;
         }
-        this.notificationDetector.dispose();
     }
 
     reset(): void {

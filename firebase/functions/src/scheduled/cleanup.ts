@@ -15,7 +15,7 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
     const cutoffDate = new Date();
     cutoffDate.setMinutes(cutoffDate.getMinutes() - minutesToKeep);
 
-    const collections = [FirestoreCollections.GROUP_CHANGES, FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
+    const collections = [FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     let totalDeleted = 0;
 
     // Process all collections in parallel

@@ -162,6 +162,15 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // User notifications collection - for new notification system
+    match /user-notifications/{userId} {
+      // Users can only read their own notification documents
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Only server functions can write notifications (via admin SDK)
+      allow write: if false;
+    }
+
     // Allow expense operations for authenticated users
     match /expenses/{expenseId} {
       allow read: if request.auth != null;

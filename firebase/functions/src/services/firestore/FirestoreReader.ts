@@ -21,7 +21,7 @@ import {
     SettlementDocumentSchema,
     PolicyDocumentSchema,
     GroupMemberDocumentSchema,
-    GroupChangeDocumentSchema
+    // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
 
 // Import types
@@ -30,8 +30,7 @@ import type {
     GroupDocument,  
     ExpenseDocument,
     SettlementDocument,
-    PolicyDocument,
-    GroupChangeDocument
+    PolicyDocument
 } from '../../schemas';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
@@ -660,42 +659,7 @@ export class FirestoreReader implements IFirestoreReader {
 
 
 
-    async getRecentGroupChanges(userId: string, options?: { 
-        timeWindowMs?: number;
-        limit?: number;
-    }): Promise<GroupChangeDocument[]> {
-        try {
-            const timeWindow = options?.timeWindowMs || 60000; // Default 60 seconds
-            const limit = options?.limit || 10;
-            const cutoffTime = new Date(Date.now() - timeWindow);
-
-            const changesSnapshot = await this.db
-                .collection(FirestoreCollections.GROUP_CHANGES)
-                .where('timestamp', '>', cutoffTime)
-                .where('users', 'array-contains', userId)
-                .orderBy('timestamp', 'desc')
-                .limit(limit)
-                .get();
-
-            const groupChanges: GroupChangeDocument[] = [];
-            changesSnapshot.forEach(doc => {
-                try {
-                    const changeData = GroupChangeDocumentSchema.parse({
-                        id: doc.id,
-                        ...doc.data()
-                    });
-                    groupChanges.push(changeData);
-                } catch (validationError) {
-                    logger.error(`Invalid group change document ${doc.id}`, validationError as Error);
-                }
-            });
-
-            return groupChanges;
-        } catch (error) {
-            logger.error(`Failed to get recent group changes for user ${userId}`, error as Error);
-            throw error;
-        }
-    }
+    // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
 
 
 

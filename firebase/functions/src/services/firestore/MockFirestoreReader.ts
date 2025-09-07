@@ -22,8 +22,7 @@ import type {
     UserDocument,
     GroupDocument,
     ExpenseDocument,
-    SettlementDocument,
-    GroupChangeDocument
+    SettlementDocument
 } from '../../schemas';
 import type { PolicyDocument } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
@@ -46,7 +45,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getMembersFromSubcollection = vi.fn();
     public getExpensesForGroup = vi.fn();
     public getSettlementsForGroup = vi.fn();
-    public getRecentGroupChanges = vi.fn();
+    // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
     public getGroupInTransaction = vi.fn();
     public getUserInTransaction = vi.fn();
     public getMultipleInTransaction = vi.fn();
@@ -463,19 +462,7 @@ export class MockFirestoreReader implements IFirestoreReader {
         };
     }
 
-    /**
-     * Mock recent group changes for a user - helper method using builder
-     */
-    public mockRecentGroupChanges(userId: string, changes: GroupChangeDocument[]): void {
-        this.getRecentGroupChanges.mockResolvedValue(changes.filter(change => change.users.includes(userId)));
-    }
-
-    /**
-     * Mock empty recent group changes for a user
-     */
-    public mockNoRecentGroupChanges(userId: string): void {
-        this.getRecentGroupChanges.mockResolvedValue([]);
-    }
+    // Note: Group changes mock helpers removed as GROUP_CHANGES collection was unused
 
     // ========================================================================
     // Policy Mock Helpers

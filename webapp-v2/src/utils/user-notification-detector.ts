@@ -10,6 +10,7 @@ export interface NotificationCallbacks {
     onGroupChange?: (groupId: string) => void;
     onTransactionChange?: (groupId: string) => void;
     onBalanceChange?: (groupId: string) => void;
+    onGroupRemoved?: (groupId: string) => void;
 }
 
 /**
@@ -94,8 +95,8 @@ export class UserNotificationDetector {
         // Start listening immediately
         this.startListener();
         
-        // Return unsubscribe function
-        return () => this.dispose();
+        // Return unsubscribe function that cleans up without disposing
+        return () => this.unsubscribe();
     }
 
     /**
@@ -194,8 +195,13 @@ export class UserNotificationDetector {
         const currentGroupIds = new Set(Object.keys(data.groups));
         for (const [groupId] of this.lastGroupStates) {
             if (!currentGroupIds.has(groupId)) {
-                logInfo('UserNotificationDetector: removing state for deleted group', { groupId });
+                logInfo('UserNotificationDetector: group removed from user notifications', { groupId });
                 this.lastGroupStates.delete(groupId);
+                
+                // Notify callback that the group was removed (deleted or user was removed)
+                if (this.callbacks.onGroupRemoved) {
+                    this.callbacks.onGroupRemoved(groupId);
+                }
             }
         }
     }
@@ -293,16 +299,11 @@ export class UserNotificationDetector {
     }
 
     /**
-     * Dispose the detector and clean up resources
+     * Unsubscribe from current listener without disposing detector
+     * Allows detector to be reused for new subscriptions
      */
-    dispose(): void {
-        if (this.isDisposed) {
-            return;
-        }
-
-        logInfo('UserNotificationDetector: disposing', { userId: this.userId });
-        
-        this.isDisposed = true;
+    unsubscribe(): void {
+        logInfo('UserNotificationDetector: unsubscribing', { userId: this.userId });
         
         // Clear retry timer
         if (this.retryTimer) {
@@ -316,13 +317,30 @@ export class UserNotificationDetector {
             this.listener = null;
         }
         
-        // Clear state
+        // Clear subscription state but keep detector alive
         this.lastVersion = 0;
         this.lastGroupStates.clear();
         this.callbacks = {};
         this.config = {};
         this.retryCount = 0;
         this.userId = null;
+    }
+
+    /**
+     * Dispose the detector and clean up resources
+     * This permanently disables the detector
+     */
+    dispose(): void {
+        if (this.isDisposed) {
+            return;
+        }
+
+        logInfo('UserNotificationDetector: disposing', { userId: this.userId });
+        
+        this.isDisposed = true;
+        
+        // Unsubscribe first
+        this.unsubscribe();
     }
 
     /**

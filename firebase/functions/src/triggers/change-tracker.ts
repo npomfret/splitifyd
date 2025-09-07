@@ -21,6 +21,16 @@ export const trackGroupChanges = onDocumentWritten(
         const { before, after, changeType } = extractDataChange(event);
         const documentPath = `groups/${groupId}`;
 
+        // For DELETE events, notification-triggers handle member removal automatically
+        // when member documents are deleted, so no additional work needed here
+        if (changeType === 'deleted') {
+            logger.info('Group deletion detected - notifications handled by member deletion triggers', { 
+                groupId, 
+                changeType 
+            });
+            return;
+        }
+
         return PerformanceMonitor.monitorTriggerExecution(
             'CHANGE_TRACKER',
             documentPath,
@@ -34,26 +44,6 @@ export const trackGroupChanges = onDocumentWritten(
                 // Get affected users from the group subcollection
                 const affectedUsers: string[] = await stepTracker('member-fetch', async () => {
                     const users: string[] = [];
-                    
-                    // For DELETE events, the subcollection is also deleted in the same transaction,
-                    // so we can't query it. We need to fetch members before the document was deleted.
-                    // However, since the trigger fires after the transaction is complete, we can't
-                    // access the subcollection. As a workaround, we'll query for all users who
-                    // have ever been part of this group by looking at recent changes.
-                    
-                    if (changeType === 'deleted') {
-                        logger.warn('Group deletion detected - cannot fetch members from deleted subcollection', { 
-                            groupId, 
-                            changeType 
-                        });
-                        
-                        // For now, we'll create the change document with empty users array
-                        // This means the dashboard won't get real-time notifications, but the bug
-                        // report indicates this is already the case.
-                        // TODO: Consider storing member IDs in the main group document for this purpose
-                        
-                        return users; // Empty array for now
-                    }
                     
                     // For CREATE/UPDATE events, query the current subcollection
                     try {
@@ -82,19 +72,9 @@ export const trackGroupChanges = onDocumentWritten(
                     return users;
                 });
 
-                // Update user notifications
+                // Update user notifications for CREATE/UPDATE events
                 await stepTracker('notification-update', async () => {
-                    if (changeType === 'deleted') {
-                        logger.info('Skipping notifications for DELETE event - handled by GroupService', { 
-                            groupId, 
-                            changeType 
-                        });
-                        return;
-                    }
-
-                    // Update notification documents for all affected users
                     await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
-                    
                     logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
                 });
             },

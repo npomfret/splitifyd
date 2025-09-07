@@ -87,6 +87,10 @@ export const addUserToGroupNotifications = onDocumentCreated(
 /**
  * Remove user from group notifications when they leave a group
  * Triggered when a member document is deleted from a group's members subcollection
+ * 
+ * IMPORTANT: This trigger fires for both individual member removal AND group deletion.
+ * When a group is deleted, all member documents are deleted, causing this trigger
+ * to fire for each member. We must notify users BEFORE removing them from notifications.
  */
 export const removeUserFromGroupNotifications = onDocumentDeleted(
     {
@@ -102,6 +106,17 @@ export const removeUserFromGroupNotifications = onDocumentDeleted(
             'NOTIFICATION_TRIGGER',
             `groups/${groupId}/members/${userId}`,
             async () => {
+                // CRITICAL: Notify the user about the group change BEFORE removing them
+                // This ensures they receive real-time updates about group deletion/removal
+                await notificationService.updateUserNotification(userId, groupId, 'group');
+                
+                logger.info('Group change notification sent before member removal', { 
+                    userId,
+                    groupId,
+                    trigger: 'member-removed'
+                });
+                
+                // Then remove user from group notifications
                 await notificationService.removeUserFromGroup(userId, groupId);
                 
                 logger.info('User removed from group notifications', { 
