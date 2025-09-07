@@ -13,9 +13,10 @@
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { notificationService } from '../services/notification-service';
+import {NotificationService, notificationService} from '../services/notification-service';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 
+const notificationService = new NotificationService()
 
 /**
  * Initialize notification document when a new user is created

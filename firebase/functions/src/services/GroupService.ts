@@ -17,8 +17,6 @@ import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import { createMinimalChangeDocument } from '../utils/change-detection';
-// Note: GroupChangeDocumentSchema removed as GROUP_CHANGES collection was unused
-import { notificationService } from './notification-service';
 
 /**
  * Service for managing group operations

@@ -17,7 +17,7 @@
  * - Atomic consistency using FieldValue operations
  */
 
-import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import {FieldValue, type Firestore, Timestamp} from 'firebase-admin/firestore';
 import { FirestoreWriter } from './firestore/FirestoreWriter';
 import { FirestoreReader } from './firestore/FirestoreReader';
 import type { WriteResult, BatchWriteResult } from './firestore/IFirestoreWriter';
@@ -34,13 +34,8 @@ import { HTTP_STATUS } from '../constants';
 export type ChangeType = 'transaction' | 'balance' | 'group';
 
 export class NotificationService {
-    private readonly BATCH_SIZE = 500;
-    private readonly MAX_RECENT_CHANGES = 10;
 
-    constructor(
-        private readonly writer: FirestoreWriter = new FirestoreWriter(),
-        private readonly reader: FirestoreReader = new FirestoreReader()
-    ) {}
+    constructor(private readonly db: Firestore = getFirestore()) {}
 
     /**
      * Update a single user's notification document
@@ -74,14 +69,14 @@ export class NotificationService {
         
         try {
             // Try update() first to preserve existing nested object fields
-            await getFirestore().doc(`user-notifications/${userId}`).update(updates);
+            await this.db.doc(`user-notifications/${userId}`).update(updates);
             logger.info('🔔 updateUserNotification completed via update', { userId, groupId, changeType });
         } catch (error) {
             // If update fails (document or path doesn't exist), fall back to set with merge
             logger.info('🔔 updateUserNotification update failed, falling back to set with merge', { userId, groupId, changeType });
             
             const fallbackUpdates = this.buildUpdateData(groupId, changeType);
-            await getFirestore().doc(`user-notifications/${userId}`).set(fallbackUpdates, { merge: true });
+            await this.db.doc(`user-notifications/${userId}`).set(fallbackUpdates, { merge: true });
             logger.info('🔔 updateUserNotification completed via set', { userId, groupId, changeType });
         }
         
@@ -138,7 +133,7 @@ export class NotificationService {
      * Creates the document with empty groups object if it doesn't exist
      */
     async initializeUserNotifications(userId: string): Promise<WriteResult> {
-        const docRef = getFirestore().doc(`user-notifications/${userId}`);
+        const docRef = this.db.doc(`user-notifications/${userId}`);
         const existingDoc = await docRef.get();
         
         if (existingDoc.exists) {
@@ -182,7 +177,7 @@ export class NotificationService {
      */
     async addUserToGroup(userId: string, groupId: string): Promise<WriteResult> {
         // First check if the user already has this group in their notifications
-        const docRef = getFirestore().doc(`user-notifications/${userId}`);
+        const docRef = this.db.doc(`user-notifications/${userId}`);
         const existingDoc = await docRef.get();
         
         if (existingDoc.exists && existingDoc.data()?.groups?.[groupId]) {
@@ -229,7 +224,7 @@ export class NotificationService {
         };
 
         // Use update here since we're only removing a field and document should exist
-        await getFirestore().doc(`user-notifications/${userId}`).update(removeUpdate);
+        await this.db.doc(`user-notifications/${userId}`).update(removeUpdate);
         logger.info('User removed from group notifications', { userId, groupId });
         
         return {
@@ -282,5 +277,3 @@ export class NotificationService {
     }
 }
 
-// Export singleton instance for use in triggers
-export const notificationService = new NotificationService();
