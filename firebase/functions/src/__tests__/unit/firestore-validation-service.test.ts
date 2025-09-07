@@ -3,7 +3,7 @@ import { z } from 'zod';
 import * as admin from 'firebase-admin';
 import { FirestoreValidationService, getFirestoreValidationService } from '../../services/FirestoreValidationService';
 import { ServiceRegistry } from '../../services/ServiceRegistry';
-import { registerAllServices, getFirestoreValidationService as getFromRegistry } from '../../services/serviceRegistration';
+import { getFirestoreValidationService as getFromRegistry } from '../../services/serviceRegistration';
 import { LoggerContext } from '../../utils/logger-context';
 
 // Mock dependencies
@@ -42,6 +42,7 @@ vi.mock('../../utils/performance-monitor', () => ({
 // Import mocked functions
 import { validateFirestoreDocument, validateBeforeWrite } from '../../schemas/validation-helpers';
 import { getValidationMetrics } from '../../schemas/validation-monitor';
+import { setupTestServices } from '../test-helpers/setup';
 
 // Test schema
 const TestSchema = z.object({
@@ -288,7 +289,7 @@ describe('Service Registry Integration', () => {
     beforeEach(() => {
         const registry = ServiceRegistry.getInstance();
         registry.clearServices();
-        registerAllServices();
+        setupTestServices();
     });
 
     it('should register FirestoreValidationService in registry', () => {

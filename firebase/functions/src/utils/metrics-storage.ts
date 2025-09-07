@@ -8,11 +8,14 @@
  * - Compression of context data
  */
 
-import { getFirestore } from '../firebase';
-import { Firestore, Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
-import { FirestoreWriter } from '../services/firestore/FirestoreWriter';
+import type { IFirestoreWriter } from '../services/firestore/IFirestoreWriter';
+import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
 import type { WriteResult } from '../services/firestore/IFirestoreWriter';
+
+// Global flag to ensure shutdown message is only logged once per process
+let shutdownMessageLogged = false;
 
 export interface PerformanceMetric {
     timestamp: Date;
@@ -75,11 +78,11 @@ export class MetricsStorage {
     private config: MetricsStorageConfig;
     private metricsBuffer: PerformanceMetric[] = [];
     private flushTimer?: NodeJS.Timeout;
-    private firestoreWriter: FirestoreWriter;
-    private db: Firestore;
+    private firestoreWriter: IFirestoreWriter;
+    private firestoreReader: IFirestoreReader;
     private isShuttingDown = false;
 
-    constructor(config?: Partial<MetricsStorageConfig>) {
+    constructor(firestoreWriter: IFirestoreWriter, firestoreReader: IFirestoreReader, config?: Partial<MetricsStorageConfig>) {
         this.config = {
             bufferSize: 100,
             flushIntervalMs: 30000, // 30 seconds
@@ -89,8 +92,8 @@ export class MetricsStorage {
             ...config
         };
 
-        this.db = getFirestore();
-        this.firestoreWriter = new FirestoreWriter();
+        this.firestoreWriter = firestoreWriter;
+        this.firestoreReader = firestoreReader;
         
         // Start auto-flush timer
         this.startAutoFlush();
@@ -172,7 +175,7 @@ export class MetricsStorage {
             const collectionName = this.getMetricsCollectionName();
             const documents = batch.map(metric => this.prepareMetricDocument(metric));
 
-            await this.firestoreWriter.bulkCreate(collectionName, documents);
+            await this.firestoreWriter.writePerformanceMetrics(collectionName, documents);
         }
     }
 
@@ -183,7 +186,7 @@ export class MetricsStorage {
         const collectionName = this.getMetricsCollectionName();
         const document = this.prepareMetricDocument(metric);
 
-        await this.db.collection(collectionName).add(document);
+        await this.firestoreWriter.writePerformanceMetrics(collectionName, [document]);
     }
 
     /**
@@ -192,16 +195,10 @@ export class MetricsStorage {
     private async writeMetricsDirect(metrics: PerformanceMetric[]): Promise<void> {
         if (metrics.length === 0) return;
 
-        const batch = this.db.batch();
         const collectionName = this.getMetricsCollectionName();
+        const documents = metrics.slice(0, this.config.maxBatchSize).map(metric => this.prepareMetricDocument(metric));
 
-        for (const metric of metrics.slice(0, this.config.maxBatchSize)) {
-            const docRef = this.db.collection(collectionName).doc();
-            const document = this.prepareMetricDocument(metric);
-            batch.set(docRef, document);
-        }
-
-        await batch.commit();
+        await this.firestoreWriter.writePerformanceMetrics(collectionName, documents);
     }
 
     /**
@@ -255,12 +252,10 @@ export class MetricsStorage {
     }
 
     /**
-     * Get metrics collection name with date partitioning
+     * Get metrics collection name
      */
     private getMetricsCollectionName(): string {
-        const date = new Date();
-        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        return `${this.config.collectionPrefix}-metrics-${yearMonth}`;
+        return `${this.config.collectionPrefix}-metrics`;
     }
 
     /**
@@ -272,18 +267,10 @@ export class MetricsStorage {
         const document = {
             ...stats,
             periodStart: Timestamp.fromDate(stats.periodStart),
-            periodEnd: Timestamp.fromDate(stats.periodEnd),
-            createdAt: FieldValue.serverTimestamp()
+            periodEnd: Timestamp.fromDate(stats.periodEnd)
         };
 
-        const docRef = this.db.collection(collectionName).doc();
-        await docRef.set(document);
-
-        return {
-            id: docRef.id,
-            success: true,
-            timestamp: Timestamp.now()
-        };
+        return await this.firestoreWriter.writePerformanceStats(collectionName, document);
     }
 
     /**
@@ -297,40 +284,8 @@ export class MetricsStorage {
             success?: boolean;
         }
     ): Promise<PerformanceMetric[]> {
-        const cutoff = new Date();
-        cutoff.setMinutes(cutoff.getMinutes() - minutes);
-
         const collectionName = this.getMetricsCollectionName();
-        let query = this.db
-            .collection(collectionName)
-            .where('timestamp', '>=', Timestamp.fromDate(cutoff))
-            .orderBy('timestamp', 'desc')
-            .limit(1000);
-
-        if (filters?.operationType) {
-            query = query.where('operationType', '==', filters.operationType);
-        }
-
-        if (filters?.operationName) {
-            query = query.where('operationName', '==', filters.operationName);
-        }
-
-        if (filters?.success !== undefined) {
-            query = query.where('success', '==', filters.success);
-        }
-
-        const snapshot = await query.get();
-
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                timestamp: data.timestamp.toDate(),
-                context: typeof data.context === 'string' 
-                    ? JSON.parse(data.context) 
-                    : data.context
-            } as PerformanceMetric;
-        });
+        return await this.firestoreReader.queryPerformanceMetrics(collectionName, minutes, filters);
     }
 
     /**
@@ -341,22 +296,7 @@ export class MetricsStorage {
         lookbackCount: number = 24
     ): Promise<AggregatedStats[]> {
         const collectionName = `${this.config.collectionPrefix}-aggregates`;
-        
-        const snapshot = await this.db
-            .collection(collectionName)
-            .where('period', '==', period)
-            .orderBy('periodStart', 'desc')
-            .limit(lookbackCount)
-            .get();
-
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                ...data,
-                periodStart: data.periodStart.toDate(),
-                periodEnd: data.periodEnd.toDate()
-            } as AggregatedStats;
-        });
+        return await this.firestoreReader.queryAggregatedStats(collectionName, period, lookbackCount);
     }
 
     /**
@@ -396,7 +336,10 @@ export class MetricsStorage {
      */
     private registerShutdownHandler(): void {
         const shutdownHandler = async () => {
-            logger.info('Metrics storage shutting down, flushing remaining metrics');
+            if (!shutdownMessageLogged) {
+                logger.info('Metrics storage shutting down, flushing remaining metrics');
+                shutdownMessageLogged = true;
+            }
             this.isShuttingDown = true;
             this.stopAutoFlush();
             await this.flush();

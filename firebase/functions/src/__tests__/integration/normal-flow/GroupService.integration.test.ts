@@ -4,8 +4,9 @@ import { GroupService } from '../../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import {getFirestore} from '../../../firebase';
-import { registerAllServices, getGroupService } from '../../../services/serviceRegistration';
+import { getGroupService } from '../../../services/serviceRegistration';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import { setupTestServices } from '../../test-helpers/setup';
 
 // NOTE: GroupService returns the raw Group interface which uses group.members object format
 // This is different from the API endpoints which return GroupMemberWithProfile[] arrays
@@ -18,7 +19,7 @@ describe('GroupService - Integration Tests', () => {
         testUsers = await borrowTestUsers(4);
 
         // Register all services before creating instances
-        registerAllServices();
+        setupTestServices();
         groupService = getGroupService();
     });
 

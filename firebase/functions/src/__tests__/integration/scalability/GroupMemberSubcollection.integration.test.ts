@@ -1,8 +1,9 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { getGroupMemberService, getGroupService, registerAllServices } from '../../../services/serviceRegistration';
+import { getGroupMemberService, getGroupService } from '../../../services/serviceRegistration';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses, AuthenticatedFirebaseUser } from '@splitifyd/shared';
 import { getThemeColorForMember } from '../../../utils/groupHelpers';
+import { setupTestServices } from '../../test-helpers/setup';
 
 describe('GroupMemberService Subcollection Integration Tests', () => {
     let users: AuthenticatedFirebaseUser[];
@@ -12,7 +13,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
 
     beforeAll(async () => {
         // Register all services before creating instances
-        registerAllServices();
+        setupTestServices();
     });
 
     beforeEach(async () => {

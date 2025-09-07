@@ -10,10 +10,11 @@
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { getFirestoreReader, registerAllServices } from '../../services/serviceRegistration';
+import { getFirestoreReader } from '../../services/serviceRegistration';
 import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import type { Firestore } from 'firebase-admin/firestore';
+import { setupTestServices } from '../test-helpers/setup';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     let firestore: Firestore;
@@ -23,7 +24,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
     const createdGroupIds: string[] = []; // Track all created groups for cleanup
 
     beforeAll(async () => {
-        registerAllServices();
+        setupTestServices();
         firestore = getFirestore();
         apiDriver = new ApiDriver();
 

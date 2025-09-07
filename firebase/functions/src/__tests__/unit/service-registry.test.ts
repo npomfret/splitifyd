@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ServiceRegistry } from '../../services/ServiceRegistry';
 import { 
-    registerAllServices, 
     getUserService, 
     getGroupService, 
     getExpenseService,
@@ -13,6 +12,7 @@ import {
     getGroupPermissionService,
     getGroupShareService
 } from '../../services/serviceRegistration';
+import { setupTestServices } from '../test-helpers/setup';
 
 describe('ServiceRegistry', () => {
     let registry: ServiceRegistry;
@@ -89,7 +89,7 @@ describe('Service Registration', () => {
     beforeEach(() => {
         const registry = ServiceRegistry.getInstance();
         registry.clearServices();
-        registerAllServices();
+        setupTestServices();
     });
 
     it('should register all services', () => {

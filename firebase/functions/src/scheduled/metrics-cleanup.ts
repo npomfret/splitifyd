@@ -53,9 +53,11 @@ export async function performMetricsCleanup(
         const alertsCutoff = new Date();
         alertsCutoff.setDate(now.getDate() - finalConfig.alertsRetentionDays);
 
-        // Clean up raw metrics collections (partitioned by month)
-        const rawMetricsDeleted = await cleanupRawMetrics(
+        // Clean up raw metrics collection
+        const rawMetricsDeleted = await cleanupCollection(
             db,
+            'performance-metrics',
+            'timestamp',
             rawMetricsCutoff,
             finalConfig,
             logMetrics
@@ -119,73 +121,6 @@ export async function performMetricsCleanup(
     }
 }
 
-/**
- * Clean up raw metrics collections (partitioned by month)
- */
-async function cleanupRawMetrics(
-    db: FirebaseFirestore.Firestore,
-    cutoffDate: Date,
-    config: CleanupConfig,
-    logMetrics: boolean
-): Promise<number> {
-    let totalDeleted = 0;
-    const cutoffTimestamp = Timestamp.fromDate(cutoffDate);
-
-    // Get list of metrics collections (they're named like performance-metrics-2024-01)
-    const collections = await db.listCollections();
-    const metricsCollections = collections.filter(col => 
-        col.id.startsWith('performance-metrics-')
-    );
-
-    for (const collection of metricsCollections) {
-        // Extract year-month from collection name
-        const match = collection.id.match(/performance-metrics-(\d{4})-(\d{2})/);
-        if (!match) continue;
-
-        const year = parseInt(match[1]);
-        const month = parseInt(match[2]);
-        
-        // Check if entire collection is older than retention period
-        const collectionDate = new Date(year, month - 1, 1);
-        const collectionEndDate = new Date(year, month, 0); // Last day of month
-        
-        if (collectionEndDate < cutoffDate) {
-            // Entire collection is old - delete all documents
-            const deleted = await deleteEntireCollection(
-                db,
-                collection.id,
-                config.batchSize,
-                config.maxDeletesPerRun - totalDeleted
-            );
-            totalDeleted += deleted;
-            
-            if (logMetrics && deleted > 0) {
-                logger.info(`Deleted entire old metrics collection`, {
-                    collection: collection.id,
-                    documentsDeleted: deleted
-                });
-            }
-        } else if (collectionDate < cutoffDate) {
-            // Partial cleanup needed - delete old documents within collection
-            const deleted = await cleanupCollection(
-                db,
-                collection.id,
-                'timestamp',
-                cutoffDate,
-                config,
-                logMetrics
-            );
-            totalDeleted += deleted;
-        }
-
-        // Stop if we've reached the max deletes limit
-        if (totalDeleted >= config.maxDeletesPerRun) {
-            break;
-        }
-    }
-
-    return totalDeleted;
-}
 
 /**
  * Clean up a specific collection

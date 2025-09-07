@@ -7,11 +7,12 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';
 import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
-import { getFirestoreReader, registerAllServices } from '../../services/serviceRegistration';
+import { getFirestoreReader } from '../../services/serviceRegistration';
+import { setupTestServices } from '../test-helpers/setup';
 
 describe('FirestoreReader', () => {
     beforeEach(() => {
-        registerAllServices();
+        setupTestServices();
     });
 
     test('should be instantiable', () => {

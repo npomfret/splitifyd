@@ -5,10 +5,11 @@
  * This allows for proper dependency injection and testability.
  */
 
-import { isTest } from '../firebase';
 import { MetricsStorage } from './metrics-storage';
-import { TestMetricsStorage } from './test-metrics-storage';
 import type { MetricsStorageConfig } from './metrics-storage';
+import { getFirestore } from '../firebase';
+import { FirestoreWriter } from '../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../services/firestore/FirestoreReader';
 
 // Interface for metrics storage operations
 export interface IMetricsStorage {
@@ -23,15 +24,13 @@ export interface IMetricsStorage {
 }
 
 /**
- * Create a metrics storage instance based on environment
+ * Create a metrics storage instance
  */
 export function createMetricsStorage(config?: Partial<MetricsStorageConfig>): IMetricsStorage {
-    if (isTest()) {
-        return new TestMetricsStorage(config);
-    } else {
-        return new MetricsStorage(config);
-    }
+    const db = getFirestore();
+    const firestoreWriter = new FirestoreWriter(db);
+    const firestoreReader = new FirestoreReader();
+    
+    return new MetricsStorage(firestoreWriter, firestoreReader, config);
 }
 
-// Default instance for backwards compatibility
-export const metricsStorage = createMetricsStorage();

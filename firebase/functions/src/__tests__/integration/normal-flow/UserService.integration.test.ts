@@ -5,8 +5,9 @@ import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import {getAuth, getFirestore} from '../../../firebase';
-import { registerAllServices, getUserService } from '../../../services/serviceRegistration';
+import { getUserService } from '../../../services/serviceRegistration';
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared/src";
+import { setupTestServices } from '../../test-helpers/setup';
 
 describe('UserService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -20,7 +21,7 @@ describe('UserService - Integration Tests', () => {
 
     beforeAll(async () => {
         // Register all services before creating instances
-        registerAllServices();
+        setupTestServices();
         userService = getUserService();
     });
 

@@ -8,6 +8,8 @@ import assert from 'node:assert';
 import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
+import { registerAllServices } from '../functions/src/services/serviceRegistration';
+import { createMetricsStorage } from '../functions/src/utils/metrics-storage-factory';
 
 /*
  * This script seeds policy files to either the emulator or production
@@ -39,8 +41,8 @@ async function initializeHandlers() {
         firestoreDb = admin.firestore();
 
         // Register all services before importing handlers
-        const { registerAllServices } = await import('../functions/src/services/serviceRegistration');
-        registerAllServices();
+        const metricsStorage = createMetricsStorage();
+        registerAllServices(metricsStorage);
 
         // Import handlers that will use our initialized admin instance
         const handlers = await import('../functions/src/policies/handlers');
@@ -51,8 +53,8 @@ async function initializeHandlers() {
         const firebaseModule = await import('../functions/src/firebase');
         
         // Register all services before importing handlers
-        const { registerAllServices } = await import('../functions/src/services/serviceRegistration');
-        registerAllServices();
+        const metricsStorage = createMetricsStorage();
+        registerAllServices(metricsStorage);
         
         const handlers = await import('../functions/src/policies/handlers');
 

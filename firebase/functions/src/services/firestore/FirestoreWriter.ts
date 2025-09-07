@@ -1102,26 +1102,26 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Performance Metrics Operations
     // ========================================================================
 
-    async writePerformanceMetrics(metrics: any[]): Promise<WriteResult> {
+    async writePerformanceMetrics(collectionName: string, metrics: any[]): Promise<WriteResult> {
         return PerformanceMonitor.monitorServiceCall(
             'FirestoreWriter',
             'writePerformanceMetrics',
             async () => {
                 try {
                     const batch = this.db.batch();
-                    const collection = this.db.collection('performance-metrics');
+                    const collection = this.db.collection(collectionName);
 
                     for (const metric of metrics) {
                         const docRef = collection.doc();
                         batch.set(docRef, {
                             ...metric,
-                            timestamp: FieldValue.serverTimestamp()
+                            createdAt: FieldValue.serverTimestamp()
                         });
                     }
 
                     await batch.commit();
 
-                    logger.info('Performance metrics written', { count: metrics.length });
+                    logger.info('Performance metrics written', { count: metrics.length, collection: collectionName });
 
                     return {
                         id: 'batch',
@@ -1141,20 +1141,20 @@ export class FirestoreWriter implements IFirestoreWriter {
         );
     }
 
-    async writePerformanceStats(stats: any): Promise<WriteResult> {
+    async writePerformanceStats(collectionName: string, stats: any): Promise<WriteResult> {
         return PerformanceMonitor.monitorServiceCall(
             'FirestoreWriter',
             'writePerformanceStats',
             async () => {
                 try {
-                    const docRef = this.db.collection('performance-aggregates').doc();
+                    const docRef = this.db.collection(collectionName).doc();
                     
                     await docRef.set({
                         ...stats,
-                        timestamp: FieldValue.serverTimestamp()
+                        createdAt: FieldValue.serverTimestamp()
                     });
 
-                    logger.info('Performance stats written', { statsId: docRef.id });
+                    logger.info('Performance stats written', { statsId: docRef.id, collection: collectionName });
 
                     return {
                         id: docRef.id,

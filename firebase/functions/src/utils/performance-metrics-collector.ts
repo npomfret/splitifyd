@@ -1,5 +1,5 @@
 import { logger } from '../logger';
-import { createMetricsStorage } from './metrics-storage-factory';
+import { getMetricsStorage } from '../services/serviceRegistration';
 import type { IMetricsStorage } from './metrics-storage-factory';
 import { metricsSampler } from './metrics-sampler';
 
@@ -13,19 +13,23 @@ export class PerformanceMetricsCollector {
     private lastReportTime = Date.now();
     private reportingIntervalId?: NodeJS.Timeout;
     private readonly isTestEnvironment: boolean;
-    private metricsStorage: IMetricsStorage;
+    private metricsStorage: IMetricsStorage | null = null;
 
     private constructor() {
         // Detect test environment
         this.isTestEnvironment = this.detectTestEnvironment();
         
-        // Create metrics storage instance
-        this.metricsStorage = createMetricsStorage();
-        
         // Start periodic reporting only in non-test environments
         if (!this.isTestEnvironment) {
             this.startPeriodicReporting();
         }
+    }
+
+    private getMetricsStorage(): IMetricsStorage {
+        if (!this.metricsStorage) {
+            this.metricsStorage = getMetricsStorage();
+        }
+        return this.metricsStorage;
     }
 
     private detectTestEnvironment(): boolean {
@@ -62,7 +66,7 @@ export class PerformanceMetricsCollector {
 
         if (samplingDecision.sample) {
             // Store to Firestore
-            await this.metricsStorage.storeMetric({
+            await this.getMetricsStorage().storeMetric({
                 timestamp: metric.timestamp,
                 operationType: metric.operationType,
                 operationName,
@@ -228,7 +232,7 @@ export class PerformanceMetricsCollector {
         
         try {
             // Query recent metrics from Firestore
-            const recentMetrics = await this.metricsStorage.queryRecentMetrics(60); // Last hour
+            const recentMetrics = await this.getMetricsStorage().queryRecentMetrics(60); // Last hour
             
             if (recentMetrics.length === 0) {
                 logger.info('No metrics to report');
@@ -272,7 +276,7 @@ export class PerformanceMetricsCollector {
             
             // Store aggregated stats
             if (stats.length > 0) {
-                await this.metricsStorage.storeAggregatedStats({
+                await this.getMetricsStorage().storeAggregatedStats({
                     period: 'hour',
                     periodStart: new Date(Date.now() - 3600000),
                     periodEnd: new Date(),

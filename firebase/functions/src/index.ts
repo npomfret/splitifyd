@@ -31,14 +31,26 @@ import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test
 
 // Initialize service registry - moved to lazy initialization below
 import { registerAllServices } from './services/serviceRegistration';
+import { createMetricsStorage } from './utils/metrics-storage-factory';
+import type { IMetricsStorage } from './utils/metrics-storage-factory';
 
-// Lazy initialization flag
+// Lazy initialization flags
 let servicesRegistered = false;
+let metricsStorageInstance: IMetricsStorage | null = null;
+
+// Get or create the single metrics storage instance
+function getMetricsStorage(): IMetricsStorage {
+    if (!metricsStorageInstance) {
+        metricsStorageInstance = createMetricsStorage();
+    }
+    return metricsStorageInstance;
+}
 
 // Ensure services are registered before handling any request
 function ensureServicesRegistered() {
     if (!servicesRegistered) {
-        registerAllServices();
+        const metricsStorage = getMetricsStorage();
+        registerAllServices(metricsStorage);
         servicesRegistered = true;
     }
 }
@@ -396,13 +408,19 @@ export const api = onRequest(
 // Export Firestore triggers for realtime change tracking
 export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
 
+// Create notification triggers with shared metrics storage
+import { createNotificationTriggers } from './triggers/notification-triggers';
+
+// Initialize notification triggers with shared metrics storage
+const notificationTriggers = createNotificationTriggers(getMetricsStorage());
+
 // Export notification triggers for user lifecycle events
-export { 
+export const { 
     initializeUserNotifications, 
     addUserToGroupNotifications, 
     removeUserFromGroupNotifications, 
     cleanupUserNotifications 
-} from './triggers/notification-triggers';
+} = notificationTriggers;
 
 // Export scheduled functions
 export { 

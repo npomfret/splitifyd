@@ -10,7 +10,7 @@ import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/f
 import {getFirestore} from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets } from '@splitifyd/shared';
-import { FieldPath } from 'firebase-admin/firestore';
+import { FieldPath, Timestamp } from 'firebase-admin/firestore';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
 
 // Import all schemas for validation
@@ -743,6 +743,100 @@ export class FirestoreReader implements IFirestoreReader {
     // Batch Operations
     // ========================================================================
 
+
+    // ========================================================================
+    // Performance Metrics Operations
+    // ========================================================================
+
+    async queryPerformanceMetrics(
+        collectionName: string,
+        minutes: number,
+        filters?: {
+            operationType?: string;
+            operationName?: string;
+            success?: boolean;
+        }
+    ): Promise<any[]> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'queryPerformanceMetrics',
+            async () => {
+                try {
+                    const cutoff = new Date();
+                    cutoff.setMinutes(cutoff.getMinutes() - minutes);
+
+                    let query = this.db
+                        .collection(collectionName)
+                        .where('timestamp', '>=', Timestamp.fromDate(cutoff))
+                        .orderBy('timestamp', 'desc')
+                        .limit(1000);
+
+                    if (filters?.operationType) {
+                        query = query.where('operationType', '==', filters.operationType);
+                    }
+
+                    if (filters?.operationName) {
+                        query = query.where('operationName', '==', filters.operationName);
+                    }
+
+                    if (filters?.success !== undefined) {
+                        query = query.where('success', '==', filters.success);
+                    }
+
+                    const snapshot = await query.get();
+
+                    return snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...data,
+                            timestamp: data.timestamp.toDate(),
+                            context: typeof data.context === 'string' 
+                                ? JSON.parse(data.context) 
+                                : data.context
+                        };
+                    });
+                } catch (error) {
+                    logger.error('Failed to query performance metrics', error, { collectionName, minutes, filters });
+                    return [];
+                }
+            },
+            { collectionName, minutes, hasFilters: !!filters }
+        );
+    }
+
+    async queryAggregatedStats(
+        collectionName: string,
+        period: 'hour' | 'day' | 'week',
+        lookbackCount: number = 24
+    ): Promise<any[]> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'queryAggregatedStats',
+            async () => {
+                try {
+                    const snapshot = await this.db
+                        .collection(collectionName)
+                        .where('period', '==', period)
+                        .orderBy('periodStart', 'desc')
+                        .limit(lookbackCount)
+                        .get();
+
+                    return snapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            ...data,
+                            periodStart: data.periodStart.toDate(),
+                            periodEnd: data.periodEnd.toDate()
+                        };
+                    });
+                } catch (error) {
+                    logger.error('Failed to query aggregated stats', error, { collectionName, period, lookbackCount });
+                    return [];
+                }
+            },
+            { collectionName, period, lookbackCount }
+        );
+    }
 
     // ========================================================================
     // Utility Operations

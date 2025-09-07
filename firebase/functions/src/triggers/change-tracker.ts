@@ -6,9 +6,9 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-import {NotificationService, notificationService} from '../services/notification-service';
+import { NotificationService } from '../services/notification-service';
 
-const notificationService = new NotificationService()
+const notificationService = new NotificationService();
 
 /**
  * Track changes to groups and create change documents for realtime updates

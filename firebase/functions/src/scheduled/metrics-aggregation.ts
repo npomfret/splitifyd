@@ -10,24 +10,26 @@
 
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from '../logger';
-import { createMetricsStorage } from '../utils/metrics-storage-factory';
+import { getMetricsStorage } from '../services/serviceRegistration';
 import { metricsSampler } from '../utils/metrics-sampler';
 import type { PerformanceMetric, AggregatedStats } from '../utils/metrics-storage';
+import type { IMetricsStorage } from '../utils/metrics-storage-factory';
 
 /**
  * Core aggregation logic that can be called by both scheduled function and tests
  */
 export async function performMetricsAggregation(
     lookbackMinutes: number = 15,
-    logResults: boolean = true
+    logResults: boolean = true,
+    metricsStorage?: IMetricsStorage
 ): Promise<AggregatedStats[]> {
     const startTime = Date.now();
     const aggregatedStats: AggregatedStats[] = [];
-    const metricsStorage = createMetricsStorage();
+    const storage = metricsStorage || getMetricsStorage();
 
     try {
         // Query recent metrics
-        const recentMetrics = await metricsStorage.queryRecentMetrics(lookbackMinutes);
+        const recentMetrics = await storage.queryRecentMetrics(lookbackMinutes);
 
         if (recentMetrics.length === 0) {
             if (logResults) {
@@ -52,7 +54,7 @@ export async function performMetricsAggregation(
             aggregatedStats.push(stats);
 
             // Store aggregated stats
-            await metricsStorage.storeAggregatedStats(stats);
+            await storage.storeAggregatedStats(stats);
 
             // Check for anomalies
             checkForAnomalies(stats, logResults);
@@ -65,7 +67,7 @@ export async function performMetricsAggregation(
         );
         
         aggregatedStats.push(summaryStats);
-        await metricsStorage.storeAggregatedStats(summaryStats);
+        await storage.storeAggregatedStats(summaryStats);
 
         const duration = Date.now() - startTime;
 
@@ -251,7 +253,8 @@ export const aggregateMetrics = onSchedule(
         maxInstances: 1,
     },
     async () => {
-        await performMetricsAggregation(15, true);
+        const metricsStorage = getMetricsStorage();
+        await performMetricsAggregation(15, true, metricsStorage);
     }
 );
 
@@ -269,6 +272,7 @@ export const aggregateMetricsDaily = onSchedule(
     },
     async () => {
         // Aggregate last 24 hours
-        await performMetricsAggregation(1440, true);
+        const metricsStorage = getMetricsStorage();
+        await performMetricsAggregation(1440, true, metricsStorage);
     }
 );

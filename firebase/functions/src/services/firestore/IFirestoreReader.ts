@@ -206,6 +206,40 @@ export interface IFirestoreReader {
 
 
     // ========================================================================
+    // Performance Metrics Operations
+    // ========================================================================
+
+    /**
+     * Query performance metrics from the metrics collection
+     * @param collectionName - The metrics collection name (e.g., 'performance-metrics')
+     * @param minutes - Number of minutes to look back from now
+     * @param filters - Optional filters for operation type, name, and success status
+     * @returns Array of performance metrics
+     */
+    queryPerformanceMetrics(
+        collectionName: string,
+        minutes: number,
+        filters?: {
+            operationType?: string;
+            operationName?: string;
+            success?: boolean;
+        }
+    ): Promise<any[]>;
+
+    /**
+     * Query aggregated performance statistics
+     * @param collectionName - The aggregates collection name (e.g., 'performance-aggregates')  
+     * @param period - The time period for aggregation ('hour', 'day', 'week')
+     * @param lookbackCount - Number of periods to look back (default: 24)
+     * @returns Array of aggregated statistics
+     */
+    queryAggregatedStats(
+        collectionName: string,
+        period: 'hour' | 'day' | 'week',
+        lookbackCount?: number
+    ): Promise<any[]>;
+
+    // ========================================================================
     // Utility Operations
     // ========================================================================
 

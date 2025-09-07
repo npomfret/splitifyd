@@ -13,6 +13,7 @@ import { ExpenseMetadataService } from './expenseMetadataService';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { FirestoreReader } from './firestore/FirestoreReader';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IMetricsStorage } from '../utils/metrics-storage-factory';
 
 /**
  * Register all services with the ServiceRegistry
@@ -39,8 +40,11 @@ let firestoreReaderInstance: IFirestoreReader | null = null;
 /**
  * Initialize all service registrations
  */
-export function registerAllServices(): void {
+export function registerAllServices(metricsStorage: IMetricsStorage): void {
     const registry = ServiceRegistry.getInstance();
+
+    // Register MetricsStorage as a service
+    registry.registerService('MetricsStorage', () => metricsStorage);
 
     // Register services with factory functions for lazy initialization
     registry.registerService('UserService', () => {
@@ -160,7 +164,8 @@ export const SERVICE_NAMES = {
     GROUP_SHARE_SERVICE: 'GroupShareService',
     EXPENSE_METADATA_SERVICE: 'ExpenseMetadataService',
     FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService',
-    FIRESTORE_READER: 'FirestoreReader'
+    FIRESTORE_READER: 'FirestoreReader',
+    METRICS_STORAGE: 'MetricsStorage'
 } as const;
 
 /**
@@ -216,4 +221,8 @@ export function getExpenseMetadataService(): ExpenseMetadataService {
 
 export function getFirestoreReader(): IFirestoreReader {
     return ServiceRegistry.getInstance().getService<IFirestoreReader>(SERVICE_NAMES.FIRESTORE_READER);
+}
+
+export function getMetricsStorage(): IMetricsStorage {
+    return ServiceRegistry.getInstance().getService<IMetricsStorage>(SERVICE_NAMES.METRICS_STORAGE);
 }

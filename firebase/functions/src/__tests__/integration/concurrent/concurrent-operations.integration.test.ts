@@ -1,8 +1,9 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { getGroupMemberService, getGroupService, getExpenseService, registerAllServices } from '../../../services/serviceRegistration';
+import { getGroupMemberService, getGroupService, getExpenseService } from '../../../services/serviceRegistration';
 import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, AuthenticatedFirebaseUser, SplitTypes, Group } from '@splitifyd/shared';
 import { logger } from '../../../logger';
+import { setupTestServices } from '../../test-helpers/setup';
 
 describe('Concurrent Operations Integration Tests', () => {
     let users: AuthenticatedFirebaseUser[];
@@ -14,7 +15,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
     beforeAll(async () => {
         // Register all services before creating instances
-        registerAllServices();
+        setupTestServices();
     });
 
     beforeEach(async () => {

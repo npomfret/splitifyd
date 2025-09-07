@@ -50,6 +50,8 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getUserInTransaction = vi.fn();
     public getMultipleInTransaction = vi.fn();
     public documentExists = vi.fn();
+    public queryPerformanceMetrics = vi.fn();
+    public queryAggregatedStats = vi.fn();
 
     // ========================================================================
     // Test Utility Methods

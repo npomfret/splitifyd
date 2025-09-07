@@ -27,6 +27,20 @@ vi.mock('../../../services/serviceRegistration', () => ({
         ]),
         getMemberFromSubcollection: vi.fn().mockResolvedValue(null),
     })),
+    getMetricsStorage: vi.fn(() => ({
+        storeMetric: vi.fn().mockResolvedValue(undefined),
+        storeMetrics: vi.fn().mockResolvedValue(undefined),
+        flush: vi.fn().mockResolvedValue(undefined),
+        queryRecentMetrics: vi.fn().mockResolvedValue([]),
+        queryAggregatedStats: vi.fn().mockResolvedValue([]),
+        storeAggregatedStats: vi.fn().mockResolvedValue({ id: 'mock-result' }),
+        getStats: vi.fn().mockReturnValue({ 
+            bufferSize: 0, 
+            isShuttingDown: false, 
+            config: {} 
+        }),
+        reset: vi.fn(),
+    })),
 }));
 
 vi.mock('../../../firebase', () => ({

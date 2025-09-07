@@ -8,14 +8,15 @@
  */
 
 import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import { getFirestoreReader, registerAllServices } from '../../services/serviceRegistration';
+import { getFirestoreReader } from '../../services/serviceRegistration';
 import {ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder} from '@splitifyd/test-support';
+import { setupTestServices } from '../test-helpers/setup';
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();
 
     beforeAll(async () => {
-        registerAllServices();
+        setupTestServices();
     });
 
     afterAll(async () => {
