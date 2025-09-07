@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
-import { parseISOToTimestamp, timestampToISO, createServerTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
+import { parseISOToTimestamp, timestampToISO, createOptimisticTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
 
 describe('Firebase Date Handling Integration Tests', () => {
 
@@ -21,7 +21,7 @@ describe('Firebase Date Handling Integration Tests', () => {
         });
 
         it('should convert Timestamps to ISO strings', () => {
-            const now = createServerTimestamp();
+            const now = createOptimisticTimestamp();
             const isoString = timestampToISO(now);
 
             expect(typeof isoString).toBe('string');
@@ -53,7 +53,7 @@ describe('Firebase Date Handling Integration Tests', () => {
 
     describe('Server-side Timestamp Generation', () => {
         it('should create server timestamps', () => {
-            const timestamp = createServerTimestamp();
+            const timestamp = createOptimisticTimestamp();
             expect(timestamp).toBeInstanceOf(Timestamp);
 
             // Verify timestamp is recent
@@ -63,8 +63,8 @@ describe('Firebase Date Handling Integration Tests', () => {
         });
 
         it('should create consistent timestamps', () => {
-            const timestamp1 = createServerTimestamp();
-            const timestamp2 = createServerTimestamp();
+            const timestamp1 = createOptimisticTimestamp();
+            const timestamp2 = createOptimisticTimestamp();
 
             // Timestamps should be very close but potentially different
             const diff = Math.abs(timestamp1.toMillis() - timestamp2.toMillis());

@@ -99,6 +99,34 @@ export class ExpenseBuilder {
     }
 
     build(): TestExpense {
+        // Auto-generate splits if not explicitly provided
+        let splits = this.expense.splits;
+        if (!splits && this.expense.participants.length > 0) {
+            if (this.expense.splitType === 'equal') {
+                const splitAmount = this.expense.amount / this.expense.participants.length;
+                splits = this.expense.participants.map(userId => ({
+                    userId,
+                    amount: splitAmount
+                }));
+            } else if (this.expense.splitType === 'exact') {
+                // For exact splits, distribute evenly as default
+                const splitAmount = this.expense.amount / this.expense.participants.length;
+                splits = this.expense.participants.map(userId => ({
+                    userId,
+                    amount: splitAmount
+                }));
+            } else if (this.expense.splitType === 'percentage') {
+                // For percentage splits, distribute evenly as default
+                const percentage = 100 / this.expense.participants.length;
+                const splitAmount = (this.expense.amount * percentage) / 100;
+                splits = this.expense.participants.map(userId => ({
+                    userId,
+                    amount: splitAmount,
+                    percentage: percentage
+                }));
+            }
+        }
+
         return {
             groupId: this.expense.groupId,
             description: this.expense.description,
@@ -107,7 +135,7 @@ export class ExpenseBuilder {
             paidBy: this.expense.paidBy,
             splitType: this.expense.splitType,
             participants: [...this.expense.participants],
-            ...(this.expense.splits && { splits: [...this.expense.splits] }),
+            splits: splits ? [...splits] : undefined,
             date: this.expense.date,
             category: this.expense.category,
             ...(this.expense.receiptUrl && { receiptUrl: this.expense.receiptUrl }),

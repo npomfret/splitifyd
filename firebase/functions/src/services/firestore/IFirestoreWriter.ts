@@ -287,6 +287,18 @@ export interface IFirestoreWriter {
     ): void;
 
     // ========================================================================
+    // Generic Document Operations
+    // ========================================================================
+
+    /**
+     * Update a single document by path
+     * @param documentPath - The full document path (e.g., 'user-notifications/userId')
+     * @param updates - The update data
+     * @returns Write result
+     */
+    updateDocument(documentPath: string, updates: any): Promise<WriteResult>;
+
+    // ========================================================================
     // Performance Metrics Operations
     // ========================================================================
 

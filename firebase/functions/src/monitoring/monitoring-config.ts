@@ -131,6 +131,7 @@ export const MONITORING_LABELS = {
         CHANGE_TRACKER: 'trigger.changeTracker',
         MEMBER_FETCH_IN_TRIGGER: 'trigger.memberFetch',
         CHANGE_DOC_CREATION: 'trigger.changeDocCreation',
+        NOTIFICATION_TRIGGER: 'trigger.notificationTrigger',
     },
 } as const;
 

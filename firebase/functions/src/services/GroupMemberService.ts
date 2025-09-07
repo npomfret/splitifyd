@@ -8,7 +8,7 @@ import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, Use
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-import { createServerTimestamp } from '../utils/dateHelpers';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export class GroupMemberService {
@@ -277,8 +277,8 @@ export class GroupMemberService {
 
                 await memberRef.set({
                     ...memberDoc,
-                    createdAt: createServerTimestamp(),
-                    updatedAt: createServerTimestamp(),
+                    createdAt: createOptimisticTimestamp(),
+                    updatedAt: createOptimisticTimestamp(),
                 });
 
                 logger.info('Member added to subcollection', { 
@@ -323,7 +323,7 @@ export class GroupMemberService {
 
                 await memberRef.update({
                     ...updates,
-                    updatedAt: createServerTimestamp(),
+                    updatedAt: createOptimisticTimestamp(),
                 });
 
                 logger.info('Member updated in subcollection', { 

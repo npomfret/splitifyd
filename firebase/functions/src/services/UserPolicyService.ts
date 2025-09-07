@@ -1,7 +1,7 @@
 import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createServerTimestamp } from '../utils/dateHelpers';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -87,7 +87,7 @@ export class UserPolicyService {
             const userDocRef = this.usersCollection.doc(userId);
             await userDocRef.update({
                 [`acceptedPolicies.${policyId}`]: versionHash,
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             });
 
             const acceptedAt = new Date().toISOString();
@@ -138,7 +138,7 @@ export class UserPolicyService {
             // Build the update object for user document
             const userDocRef = this.usersCollection.doc(userId);
             const updateData: any = {
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             };
 
             acceptances.forEach((acceptance) => {

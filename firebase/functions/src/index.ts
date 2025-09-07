@@ -10,7 +10,7 @@ import { sendHealthCheckResponse, ApiError } from './utils/errors';
 import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
-import { createServerTimestamp, timestampToISO } from './utils/dateHelpers';
+import { createOptimisticTimestamp, timestampToISO } from './utils/dateHelpers';
 import { createExpense, getExpense, updateExpense, deleteExpense, listUserExpenses, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
@@ -91,7 +91,7 @@ function setupRoutes(app: express.Application): void {
 
         const firestoreStart = Date.now();
         const testRef = firestoreDb.collection('_health_check').doc('test');
-        await testRef.set({ timestamp: createServerTimestamp() }, { merge: true });
+        await testRef.set({ timestamp: createOptimisticTimestamp() }, { merge: true });
         await testRef.get();
         checks.firestore = {
             status: 'healthy',
@@ -113,7 +113,7 @@ function setupRoutes(app: express.Application): void {
         const memUsage = process.memoryUsage();
 
         res.json({
-            timestamp: timestampToISO(createServerTimestamp()),
+            timestamp: timestampToISO(createOptimisticTimestamp()),
             uptime: process.uptime(),
             memory: {
                 rss: `${Math.round(memUsage.rss / SYSTEM.BYTES_PER_KB / SYSTEM.BYTES_PER_KB)} MB`,
@@ -395,6 +395,14 @@ export const api = onRequest(
 
 // Export Firestore triggers for realtime change tracking
 export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
+
+// Export notification triggers for user lifecycle events
+export { 
+    initializeUserNotifications, 
+    addUserToGroupNotifications, 
+    removeUserFromGroupNotifications, 
+    cleanupUserNotifications 
+} from './triggers/notification-triggers';
 
 // Export scheduled functions
 export { 

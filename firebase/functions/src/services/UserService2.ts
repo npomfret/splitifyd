@@ -6,7 +6,7 @@ import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
-import {createServerTimestamp} from '../utils/dateHelpers';
+import {createOptimisticTimestamp} from '../utils/dateHelpers';
 import {getCurrentPolicyVersions} from '../auth/policy-helpers';
 import {assignThemeColor} from '../user-management/assign-theme-color';
 import {validateRegisterRequest} from '../auth/validation';
@@ -230,7 +230,7 @@ export class UserService {
 
             // Build update object for Firestore
             const firestoreUpdate: any = {
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             };
             if (validatedData.displayName !== undefined) {
                 firestoreUpdate.displayName = validatedData.displayName;
@@ -313,8 +313,8 @@ export class UserService {
 
             // Update Firestore to track password change
             await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update({
-                updatedAt: createServerTimestamp(),
-                passwordChangedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
+                passwordChangedAt: createOptimisticTimestamp(),
             });
 
             logger.info('Password changed successfully');
@@ -430,18 +430,18 @@ export class UserService {
                 email: userRegistration.email,// todo: this looks like a security issue
                 displayName: userRegistration.displayName,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
-                createdAt: createServerTimestamp(),
-                updatedAt: createServerTimestamp(),
+                createdAt: createOptimisticTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
                 acceptedPolicies: currentPolicyVersions, // Capture current policy versions
                 themeColor, // Add automatic theme color assignment
             };
 
             // Only set acceptance timestamps if the user actually accepted the terms
             if (userRegistration.termsAccepted) {
-                userDoc.termsAcceptedAt = createServerTimestamp();
+                userDoc.termsAcceptedAt = createOptimisticTimestamp();
             }
             if (userRegistration.cookiePolicyAccepted) {
-                userDoc.cookiePolicyAcceptedAt = createServerTimestamp();
+                userDoc.cookiePolicyAcceptedAt = createOptimisticTimestamp();
             }
 
             // Validate user document before writing to Firestore

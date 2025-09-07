@@ -4,7 +4,7 @@ import { z } from 'zod';
 import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createServerTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { createOptimisticTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
@@ -210,7 +210,7 @@ export class SettlementService {
         await verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
-        const now = createServerTimestamp();
+        const now = createOptimisticTimestamp();
         const settlementDate = settlementData.date ? safeParseISOToTimestamp(settlementData.date) : now;
 
         const settlementId = this.settlementsCollection.doc().id;
@@ -282,7 +282,7 @@ export class SettlementService {
         }
 
         const updates: any = {
-            updatedAt: createServerTimestamp(),
+            updatedAt: createOptimisticTimestamp(),
         };
 
         if (updateData.amount !== undefined) {

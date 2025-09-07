@@ -1,4 +1,4 @@
-import { createServerTimestamp } from '../utils/dateHelpers';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export interface ExpenseMetadata {
@@ -52,7 +52,7 @@ export class ExpenseMetadataService {
             lastExpense: {
                 description: latestExpense.description,
                 amount: latestExpense.amount,
-                date: latestExpense.date?.toDate() ?? latestExpense.createdAt?.toDate() ?? createServerTimestamp().toDate(),
+                date: latestExpense.date?.toDate() ?? latestExpense.createdAt?.toDate() ?? createOptimisticTimestamp().toDate(),
             },
         };
     }

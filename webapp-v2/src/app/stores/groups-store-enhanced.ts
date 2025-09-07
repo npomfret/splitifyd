@@ -2,7 +2,7 @@ import { signal, batch, ReadonlySignal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning, logInfo } from '@/utils/browser-logger.ts';
-import { ChangeDetector } from '@/utils/change-detector.ts';
+import { UserNotificationDetector } from '@/utils/user-notification-detector.ts';
 import { streamingMetrics } from '@/utils/streaming-metrics';
 
 export interface EnhancedGroupsStore {
@@ -49,8 +49,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private changeDetector = new ChangeDetector();
-    private changeUnsubscribe: (() => void) | null = null;
+    private notificationDetector = new UserNotificationDetector();
+    private notificationUnsubscribe: (() => void) | null = null;
     
     // Reference counting for subscription management
     private subscriberCount = 0;
@@ -295,55 +295,49 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      */
     private setupSubscription(userId: string): void {
         // Unsubscribe from any existing listener
-        if (this.changeUnsubscribe) {
-            this.changeUnsubscribe();
+        if (this.notificationUnsubscribe) {
+            this.notificationUnsubscribe();
         }
 
-        // Subscribe to group changes - any change triggers refresh
-        this.changeUnsubscribe = this.changeDetector.subscribeToGroupChanges(
+        // Subscribe to user notifications - group changes trigger refresh
+        this.notificationUnsubscribe = this.notificationDetector.subscribe(
             userId,
-            (changes) => {
-                // Any change = force refresh immediately (bypass optimization logic)
-                const changeDetails = changes && changes.length > 0 ? changes[0] : null;
-                const isDeleteOperation = changeDetails?.action === 'deleted';
-                
-                logInfo('Group change detected, triggering refresh', { 
-                    userId,
-                    currentGroupCount: this.#groupsSignal.value.length,
-                    timestamp: new Date().toISOString(),
-                    changeCount: changes ? changes.length : 0,
-                    isDeleteOperation,
-                    changeAction: changeDetails?.action,
-                    affectedGroupId: changeDetails?.id,
-                    affectedUsers: changeDetails?.users
-                });
-                
-                // NO OPTIMISTIC UPDATES - just refresh from server
-                // This ensures the dashboard accurately reflects server state
-                this.refreshGroups()
-                    .then(() => {
-                        logInfo('Groups refresh completed after change detection', {
+            {
+                onGroupChange: (groupId) => {
+                    logInfo('Group change detected, triggering refresh', { 
+                        userId,
+                        groupId,
+                        currentGroupCount: this.#groupsSignal.value.length,
+                        timestamp: new Date().toISOString()
+                    });
+                    
+                    // NO OPTIMISTIC UPDATES - just refresh from server
+                    // This ensures the dashboard accurately reflects server state
+                    this.refreshGroups()
+                        .then(() => {
+                            logInfo('Groups refresh completed after change detection', {
+                                userId,
+                                groupId,
+                                newGroupCount: this.#groupsSignal.value.length
+                            });
+                        })
+                        .catch((error) => logWarning('Failed to refresh groups after change detection', { 
+                            error: error instanceof Error ? error.message : String(error),
                             userId,
-                            newGroupCount: this.#groupsSignal.value.length,
-                            isDeleteOperation,
-                            affectedGroupId: changeDetails?.id
-                        });
-                    })
-                    .catch((error) => logWarning('Failed to refresh groups after change detection', { 
-                        error: error instanceof Error ? error.message : String(error),
-                        userId 
-                    }));
+                            groupId
+                        }));
+                }
             },
             {
                 maxRetries: 3,
                 retryDelay: 2000,
                 onError: (error) => {
-                    logWarning('Change subscription error, notifications may be delayed', {
+                    logWarning('Notification subscription error, notifications may be delayed', {
                         error: error.message,
-                        userId,
+                        userId
                     });
-                },
-            },
+                }
+            }
         );
 
         // Immediately refresh to get current data after setting up subscription
@@ -358,9 +352,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
      * Internal method to dispose subscription
      */
     private disposeSubscription(): void {
-        if (this.changeUnsubscribe) {
-            this.changeUnsubscribe();
-            this.changeUnsubscribe = null;
+        if (this.notificationUnsubscribe) {
+            this.notificationUnsubscribe();
+            this.notificationUnsubscribe = null;
         }
     }
     

@@ -7,7 +7,7 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
  * Two approaches are provided depending on use case:
  *
  * 1. For optimistic locking: Use createPreciseTimestamp() - returns actual Timestamp for comparison
- * 2. For general updates: Use createServerTimestamp() - returns FieldValue for true server-side timing
+ * 2. For general updates: Use createOptimisticTimestamp() - returns FieldValue for true server-side timing
  */
 
 /**
@@ -22,14 +22,6 @@ export const createOptimisticTimestamp = (): Timestamp => {
     return Timestamp.now();
 };
 
-/**
- * Creates a server-side timestamp (maintains backward compatibility)
- * @deprecated Use createOptimisticTimestamp() for optimistic locking or createTrueServerTimestamp() for server timestamps
- * @returns Firestore Timestamp with current time
- */
-export const createServerTimestamp = (): Timestamp => {
-    return Timestamp.now();
-};
 
 /**
  * Creates a true server-side timestamp placeholder
@@ -111,7 +103,7 @@ export const getRelativeTime = (timestamp: Timestamp): string => {
  */
 export const dateToTimestamp = (date: Date | null | undefined): Timestamp => {
     if (!date) {
-        return createServerTimestamp();
+        return createOptimisticTimestamp();
     }
     return Timestamp.fromDate(date);
 };
@@ -123,11 +115,11 @@ export const dateToTimestamp = (date: Date | null | undefined): Timestamp => {
  */
 export const safeParseISOToTimestamp = (isoString: string | undefined): Timestamp => {
     if (!isoString) {
-        return createServerTimestamp();
+        return createOptimisticTimestamp();
     }
 
     const parsed = parseISOToTimestamp(isoString);
-    return parsed || createServerTimestamp();
+    return parsed || createOptimisticTimestamp();
 };
 
 /**

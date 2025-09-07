@@ -1,21 +1,12 @@
 import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { getFirestore } from '../firebase';
 import { logger } from '../logger';
-import { getChangedFields, getGroupChangedFields, calculatePriority, createMinimalChangeDocument, createMinimalBalanceChangeDocument, ChangeType } from '../utils/change-detection';
+import { getChangedFields, getGroupChangedFields, calculatePriority, ChangeType } from '../utils/change-detection';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
-import { 
-    GroupChangeDocumentSchema,
-    TransactionChangeDocumentSchema,
-    BalanceChangeDocumentSchema 
-} from '../schemas/change-documents';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-
-// Pre-compiled schemas for better performance
-const cachedGroupChangeSchema = GroupChangeDocumentSchema;
-const cachedTransactionChangeSchema = TransactionChangeDocumentSchema;
-const cachedBalanceChangeSchema = BalanceChangeDocumentSchema;
+import { notificationService } from '../services/notification-service';
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -91,28 +82,20 @@ export const trackGroupChanges = onDocumentWritten(
                     return users;
                 });
 
-                // Create and write change document
-                await stepTracker('change-doc-creation', async () => {
-                    // Skip creating change document for DELETE events - these are handled
-                    // manually by GroupService.deleteGroup() to ensure proper member notification
+                // Update user notifications
+                await stepTracker('notification-update', async () => {
                     if (changeType === 'deleted') {
-                        logger.info('Skipping change document creation for DELETE event - handled by GroupService', { 
+                        logger.info('Skipping notifications for DELETE event - handled by GroupService', { 
                             groupId, 
                             changeType 
                         });
                         return;
                     }
-                    
-                    // Create minimal change document for client notifications
-                    const changeDoc = createMinimalChangeDocument(groupId, 'group', changeType, affectedUsers);
 
-                    // Validate before writing to prevent corrupted documents
-                    const validatedChangeDoc = cachedGroupChangeSchema.parse(changeDoc);
-
-                    // Write to group-changes collection
-                    await getFirestore().collection(FirestoreCollections.GROUP_CHANGES).add(validatedChangeDoc);
+                    // Update notification documents for all affected users
+                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
                     
-                    logger.info('group-changed', { id: groupId });
+                    logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
                 });
             },
             { changeType, changedFieldsCount: Object.keys(getGroupChangedFields(before, after)).length }
@@ -164,24 +147,11 @@ export const trackExpenseChanges = onDocumentWritten(
                 participants.forEach((userId: string) => affectedUsers.add(userId));
             }
 
-            // Create minimal change document for expense
-            const changeDoc = createMinimalChangeDocument(expenseId, 'expense', changeType, Array.from(affectedUsers), groupId);
+            // Update user notifications for transaction and balance changes
+            await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'transaction');
+            await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'balance');
 
-            // Validate before writing to prevent corrupted documents
-            const validatedChangeDoc = cachedTransactionChangeSchema.parse(changeDoc);
-
-            // Write to transaction-changes collection (expenses use transaction-changes)
-            await getFirestore().collection(FirestoreCollections.TRANSACTION_CHANGES).add(validatedChangeDoc);
-
-            // Also create a minimal balance change document since expenses affect balances
-            const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, Array.from(affectedUsers));
-
-            // Validate balance change document
-            const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
-
-            await getFirestore().collection(FirestoreCollections.BALANCE_CHANGES).add(validatedBalanceDoc);
-
-            logger.info('expense-changed', { id: expenseId, groupId });
+            logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.size });
         } catch (error) {
             logger.error('Failed to track expense change', error as Error, { expenseId });
         }
@@ -237,28 +207,12 @@ export const trackSettlementChanges = onDocumentWritten(
                     return Array.from(users);
                 });
 
-                // Create and write change documents
-                await stepTracker('change-doc-creation', async () => {
-                    // Create minimal change document for settlement
-                    const changeDoc = createMinimalChangeDocument(settlementId, 'settlement', changeType, affectedUsers, groupId);
-
-                    // Also create a minimal balance change document since settlements affect balances
-                    const balanceChangeDoc = createMinimalBalanceChangeDocument(groupId, affectedUsers);
-
-                    // Validate both documents before writing
-                    const validatedChangeDoc = cachedTransactionChangeSchema.parse(changeDoc);
-                    const validatedBalanceDoc = cachedBalanceChangeSchema.parse(balanceChangeDoc);
-
-                    // Use batch write to improve performance and consistency
-                    const firestoreDb = getFirestore();
-                    const batch = firestoreDb.batch();
+                // Update user notifications for transaction and balance changes
+                await stepTracker('notification-update', async () => {
+                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
+                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
                     
-                    batch.create(firestoreDb.collection(FirestoreCollections.TRANSACTION_CHANGES).doc(), validatedChangeDoc);
-                    batch.create(firestoreDb.collection(FirestoreCollections.BALANCE_CHANGES).doc(), validatedBalanceDoc);
-                    
-                    await batch.commit();
-                    
-                    logger.info('settlement-changed', { id: settlementId, groupId });
+                    logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
                 });
 
                 return { groupId, affectedUserCount: affectedUsers.length };

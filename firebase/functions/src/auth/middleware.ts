@@ -55,9 +55,7 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         const firestoreReader = getFirestoreReader();
         const userDocument = await firestoreReader.getUser(userRecord.uid);
 
-        // Default to "user" role for existing users without role field (backward compatibility)
-        // New users should always have role field set during registration
-        const userRole = userDocument?.role ?? SystemUserRoles.SYSTEM_USER;
+        const userRole = userDocument!.role;
 
         // Attach user information to request
         req.user = {

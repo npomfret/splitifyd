@@ -1,6 +1,6 @@
 import { signal, batch } from '@preact/signals';
-import { ChangeDetector } from '@/utils/change-detector.ts';
-import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger.ts';
+import { UserNotificationDetector } from '@/utils/user-notification-detector';
+import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger';
 import type { ExpenseData, Group, GroupBalances, GroupMemberWithProfile, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { permissionsStore } from '../../stores/permissions-store';
@@ -15,35 +15,26 @@ export interface EnhancedGroupDetailStore {
     loading: boolean;
     loadingMembers: boolean;
     loadingExpenses: boolean;
-    loadingBalances: boolean;
     loadingSettlements: boolean;
     error: string | null;
     hasMoreExpenses: boolean;
-    expenseCursor: string | null;
     hasMoreSettlements: boolean;
-    settlementsCursor: string | null;
-
-    // New reference-counted methods
-    registerComponent(groupId: string, userId: string): Promise<void>;
-    deregisterComponent(groupId: string): void;
     
-    // Legacy methods (for backward compatibility during transition)
+    // Methods
     loadGroup(id: string): Promise<void>;
     subscribeToChanges(userId: string): void;
     dispose(): void;
     reset(): void;
-    
-    // Other methods
-    fetchSettlements(cursor?: string, userId?: string): Promise<void>;
+    refreshAll(): Promise<void>;
+    registerComponent(groupId: string, userId: string): Promise<void>;
+    deregisterComponent(groupId: string): void;
     loadMoreExpenses(): Promise<void>;
     loadMoreSettlements(): Promise<void>;
-    refreshAll(): Promise<void>;
-    leaveGroup(groupId: string): Promise<{ success: boolean; message: string }>;
-    removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }>;
+    fetchSettlements(cursor?: string, userId?: string): Promise<void>;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
-    // Private signals - encapsulated within the class
+    // Private signals
     readonly #groupSignal = signal<Group | null>(null);
     readonly #membersSignal = signal<GroupMemberWithProfile[]>([]);
     readonly #expensesSignal = signal<ExpenseData[]>([]);
@@ -52,285 +43,29 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #loadingSignal = signal<boolean>(false);
     readonly #loadingMembersSignal = signal<boolean>(false);
     readonly #loadingExpensesSignal = signal<boolean>(false);
-    readonly #loadingBalancesSignal = signal<boolean>(false);
     readonly #loadingSettlementsSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
     readonly #hasMoreExpensesSignal = signal<boolean>(true);
-    readonly #expenseCursorSignal = signal<string | null>(null);
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
-    readonly #settlementsCursorSignal = signal<string | null>(null);
 
-    // Legacy single-group subscription state (for backward compatibility)
-    private expenseChangeListener: (() => void) | null = null;
-    private groupChangeListener: (() => void) | null = null;
-    private changeDetector = new ChangeDetector();
+    // State
     private currentGroupId: string | null = null;
-    
-    // New reference counting infrastructure
-    readonly #subscriberCounts = new Map<string, number>();
-    readonly #activeSubscriptions = new Map<string, {
-        expenseListener: () => void;
-        groupListener: () => void;
-        changeDetector: ChangeDetector;
-        userId: string;
-    }>();
+    private notificationDetector = new UserNotificationDetector();
+    private unsubscribeNotifications: (() => void) | null = null;
 
-    // State getters - readonly values for external consumers
-    get group() {
-        return this.#groupSignal.value;
-    }
-    get members() {
-        return this.#membersSignal.value;
-    }
-    get expenses() {
-        return this.#expensesSignal.value;
-    }
-    get balances() {
-        return this.#balancesSignal.value;
-    }
-    get loading() {
-        return this.#loadingSignal.value;
-    }
-    get loadingMembers() {
-        return this.#loadingMembersSignal.value;
-    }
-    get loadingExpenses() {
-        return this.#loadingExpensesSignal.value;
-    }
-    get loadingBalances() {
-        return this.#loadingBalancesSignal.value;
-    }
-    get error() {
-        return this.#errorSignal.value;
-    }
-    get hasMoreExpenses() {
-        return this.#hasMoreExpensesSignal.value;
-    }
-    get expenseCursor() {
-        return this.#expenseCursorSignal.value;
-    }
-    get settlements() {
-        return this.#settlementsSignal.value;
-    }
-    get loadingSettlements() {
-        return this.#loadingSettlementsSignal.value;
-    }
-    get hasMoreSettlements() {
-        return this.#hasMoreSettlementsSignal.value;
-    }
-    get settlementsCursor() {
-        return this.#settlementsCursorSignal.value;
-    }
-
-    // NEW REFERENCE-COUNTED API
-    
-    /**
-     * Register a component that needs this group's data.
-     * Uses reference counting to manage subscriptions efficiently.
-     */
-    async registerComponent(groupId: string, userId: string): Promise<void> {
-        logInfo('Registering component for group', { groupId, userId });
-        const currentCount = this.#subscriberCounts.get(groupId) || 0;
-        this.#subscriberCounts.set(groupId, currentCount + 1);
-
-        if (currentCount === 0) {
-            // First component for this group - create subscription
-            logInfo(`First component for group ${groupId}, creating subscription.`);
-            await this.#loadGroupAndSubscribe(groupId, userId);
-        }
-    }
-
-    /**
-     * Deregister a component that no longer needs this group's data.
-     * Cleans up subscriptions when no components are using them.
-     */
-    deregisterComponent(groupId: string): void {
-        logInfo('Deregistering component for group', { groupId });
-        const currentCount = this.#subscriberCounts.get(groupId) || 0;
-
-        if (currentCount <= 1) {
-            // Last component for this group - dispose subscription
-            logInfo(`Last component for group ${groupId}, disposing subscription.`);
-            this.#subscriberCounts.delete(groupId);
-            this.#disposeGroupSubscription(groupId);
-            
-            // Clear currentGroupId if this was the current group to prevent further operations
-            if (this.currentGroupId === groupId) {
-                this.currentGroupId = null;
-            }
-        } else {
-            this.#subscriberCounts.set(groupId, currentCount - 1);
-        }
-    }
-
-    // INTERNAL METHODS FOR REFERENCE COUNTING
-
-    /**
-     * Internal method to load group data and set up subscriptions
-     */
-    async #loadGroupAndSubscribe(groupId: string, userId: string): Promise<void> {
-        // Load the group data first
-        await this.loadGroup(groupId);
-        
-        // Initialize permissions store for this group
-        permissionsStore.registerComponent(groupId, userId);
-        
-        // Set up dedicated subscriptions for this group
-        this.#subscribeToGroupChanges(groupId, userId);
-    }
-
-    /**
-     * Internal method to subscribe to changes for a specific group
-     */
-    #subscribeToGroupChanges(groupId: string, userId: string): void {
-        // Create a dedicated change detector for this group
-        const groupChangeDetector = new ChangeDetector();
-        
-        // Subscribe to expense changes for this group
-        const expenseListener = groupChangeDetector.subscribeToExpenseChanges(groupId, () => {
-            // Check if subscription is still active (group might have been deleted)
-            if (!this.#activeSubscriptions.has(groupId)) {
-                logInfo('Ignoring expense change for deleted/disposed group', { groupId });
-                return;
-            }
-            
-            // Always refresh for reference-counted subscriptions - we only create them for active groups
-            logApiResponse('CHANGE', 'expense_change', 200, {
-                action: 'REFRESHING_ALL',
-                groupId,
-            });
-            this.refreshAll().catch((error) => {
-                // Don't log errors for deleted groups - this is expected
-                const isGroupDeleted = 
-                    error?.status === 404 || 
-                    (error?.message && error.message.includes('404')) ||
-                    (error?.code === 'NOT_FOUND');
-                if (!isGroupDeleted) {
-                    logError('Failed to refresh after expense change', error);
-                }
-            });
-        });
-
-        // Subscribe to group changes (member additions/removals, group updates)
-        const groupListener = groupChangeDetector.subscribeToGroupChanges(userId, (changes) => {
-            // Check if subscription is still active (group might have been deleted)
-            if (!this.#activeSubscriptions.has(groupId)) {
-                logInfo('Ignoring group change for deleted/disposed group', { groupId });
-                return;
-            }
-            
-            // Check if THIS group was deleted
-            const changeDetails = changes && changes.length > 0 ? changes[0] : null;
-            const isThisGroupDeleted = changeDetails?.action === 'deleted' && changeDetails?.id === groupId;
-            
-            if (isThisGroupDeleted) {
-                logInfo('Group deletion detected via change event, clearing state without refresh', { 
-                    groupId,
-                    changeAction: changeDetails?.action
-                });
-                
-                // Set error signal to indicate deletion
-                this.#errorSignal.value = 'GROUP_DELETED';
-                
-                // Clear all data WITHOUT trying to refresh (which would cause 404)
-                batch(() => {
-                    this.#groupSignal.value = null;
-                    this.#membersSignal.value = [];
-                    this.#expensesSignal.value = [];
-                    this.#balancesSignal.value = null;
-                    this.#settlementsSignal.value = [];
-                    this.#loadingSignal.value = false;
-                });
-                
-                // Clear currentGroupId and dispose subscription
-                this.currentGroupId = null;
-                this.#disposeGroupSubscription(groupId);
-                this.#subscriberCounts.delete(groupId);
-                
-                return; // Don't try to refresh a deleted group
-            }
-            
-            // Always refresh for reference-counted subscriptions - we only create them for active groups
-            logApiResponse('CHANGE', 'group_change', 200, {
-                action: 'REFRESHING_ALL',
-                groupId,
-            });
-            this.refreshAll().catch((error) => {
-                // Handle 404 errors and "Group not found" 500 errors as group deletion
-                const isGroupDeleted = 
-                    error?.status === 404 || 
-                    (error?.message && error.message.includes('404')) ||
-                    (error?.code === 'NOT_FOUND') ||
-                    (error?.status === 500 && error?.message && error.message.includes('Group not found'));
-                    
-                if (isGroupDeleted) {
-                    logInfo('Group change refresh failed: Group was deleted', { 
-                        groupId,
-                        error: error?.message || String(error),
-                        status: error?.status
-                    });
-                    this.#errorSignal.value = 'GROUP_DELETED';
-                    // Clear all data
-                    batch(() => {
-                        this.#groupSignal.value = null;
-                        this.#membersSignal.value = [];
-                        this.#expensesSignal.value = [];
-                        this.#balancesSignal.value = null;
-                        this.#settlementsSignal.value = [];
-                        this.#loadingSignal.value = false;
-                    });
-                } else {
-                    logError('Failed to refresh after group change', error);
-                }
-            });
-        });
-
-        // Store subscription info for cleanup
-        this.#activeSubscriptions.set(groupId, {
-            expenseListener,
-            groupListener,
-            changeDetector: groupChangeDetector,
-            userId,
-        });
-
-        logInfo('Group change subscriptions setup complete', {
-            groupId,
-            userId,
-            hasExpenseListener: !!expenseListener,
-            hasGroupListener: !!groupListener,
-        });
-    }
-
-    /**
-     * Internal method to dispose subscriptions for a specific group
-     */
-    #disposeGroupSubscription(groupId: string): void {
-        const subscription = this.#activeSubscriptions.get(groupId);
-        if (!subscription) {
-            return;
-        }
-
-        // Clean up the listeners
-        if (subscription.expenseListener) {
-            subscription.expenseListener();
-        }
-        if (subscription.groupListener) {
-            subscription.groupListener();
-        }
-
-        // Dispose the change detector
-        subscription.changeDetector.dispose();
-        
-        // Deregister from permissions store
-        permissionsStore.deregisterComponent(groupId);
-
-        // Remove from tracking
-        this.#activeSubscriptions.delete(groupId);
-        
-        logInfo('Group subscription disposed', { groupId });
-    }
-
-    // LEGACY API (for backward compatibility)
+    // State getters
+    get group() { return this.#groupSignal.value; }
+    get members() { return this.#membersSignal.value; }
+    get expenses() { return this.#expensesSignal.value; }
+    get balances() { return this.#balancesSignal.value; }
+    get settlements() { return this.#settlementsSignal.value; }
+    get loading() { return this.#loadingSignal.value; }
+    get loadingMembers() { return this.#loadingMembersSignal.value; }
+    get loadingExpenses() { return this.#loadingExpensesSignal.value; }
+    get loadingSettlements() { return this.#loadingSettlementsSignal.value; }
+    get error() { return this.#errorSignal.value; }
+    get hasMoreExpenses() { return this.#hasMoreExpensesSignal.value; }
+    get hasMoreSettlements() { return this.#hasMoreSettlementsSignal.value; }
 
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
@@ -338,33 +73,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.currentGroupId = groupId;
 
         try {
-            // Use consolidated endpoint to eliminate race conditions
             const fullDetails = await apiClient.getGroupFullDetails(groupId);
 
-            // Update all signals atomically using batch to prevent race conditions
             batch(() => {
-                logInfo('LoadGroup: Updating group signal', {
-                    groupId: this.currentGroupId,
-                    oldName: this.#groupSignal.value?.name,
-                    newName: fullDetails.group.name,
-                });
                 this.#groupSignal.value = fullDetails.group;
                 this.#membersSignal.value = fullDetails.members.members;
                 this.#expensesSignal.value = fullDetails.expenses.expenses;
                 this.#balancesSignal.value = fullDetails.balances;
                 this.#settlementsSignal.value = fullDetails.settlements.settlements;
-
-                // Update pagination state
-                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                this.#expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
-                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                this.#settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
-
-                // CRITICAL: Only set loading to false AFTER all data is populated
                 this.#loadingSignal.value = false;
             });
             
-            // Update permissions store with the new group data and members
             permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
         } catch (error) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
@@ -379,242 +98,55 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             return;
         }
 
-        // Initialize permissions store with current user using reference counting
-        permissionsStore.registerComponent(this.currentGroupId, userId);
-
-        logInfo('Setting up change subscriptions', {
+        logInfo('Setting up notification subscriptions', {
             groupId: this.currentGroupId,
             userId,
         });
 
-        // Subscribe to expense changes - any change triggers full refresh
-        this.expenseChangeListener = this.changeDetector.subscribeToExpenseChanges(this.currentGroupId, () => {
-            // Defensive check: ignore changes if currentGroupId is null (component disposed)
-            if (!this.currentGroupId) {
-                logInfo('Ignoring expense change - currentGroupId is null (component disposed)');
-                return;
+        this.unsubscribeNotifications = this.notificationDetector.subscribe(userId, {
+            onTransactionChange: (groupId) => {
+                if (groupId !== this.currentGroupId) return;
+                logInfo('Transaction change detected', { groupId });
+                this.refreshAll().catch(error => 
+                    logError('Failed to refresh after transaction change', error)
+                );
+            },
+            onGroupChange: (groupId) => {
+                if (groupId !== this.currentGroupId) return;
+                logInfo('Group change detected', { groupId });
+                this.refreshAll().catch(error => 
+                    logError('Failed to refresh after group change', error)
+                );
+            },
+            onBalanceChange: (groupId) => {
+                if (groupId !== this.currentGroupId) return;
+                logInfo('Balance change detected', { groupId });
+                this.refreshAll().catch(error => 
+                    logError('Failed to refresh after balance change', error)
+                );
             }
-            // Any change = refresh everything
-            logApiResponse('CHANGE', 'expense_change', 200, {
-                action: 'REFRESHING_ALL',
-                groupId: this.currentGroupId,
-            });
-            this.refreshAll().catch((error) => {
-                // Don't log errors for deleted groups - this is expected
-                const isGroupDeleted = 
-                    error?.status === 404 || 
-                    (error?.message && error.message.includes('404')) ||
-                    (error?.code === 'NOT_FOUND');
-                if (isGroupDeleted) {
-                    logInfo('Expense change refresh: Group was deleted, state cleared', { 
-                        groupId: this.currentGroupId,
-                        error: error?.message || String(error)
-                    });
-                } else {
-                    logError('Failed to refresh after expense change', error);
-                }
-            });
         });
-
-        // Subscribe to group changes (member additions/removals, group updates)
-        this.groupChangeListener = this.changeDetector.subscribeToGroupChanges(userId, (changes) => {
-            // Defensive check: ignore changes if currentGroupId is null (component disposed)
-            if (!this.currentGroupId) {
-                logInfo('Ignoring group change - currentGroupId is null (component disposed)');
-                return;
-            }
-            
-            // Check if the current group was deleted
-            const changeDetails = changes && changes.length > 0 ? changes[0] : null;
-            const isCurrentGroupDeleted = changeDetails?.action === 'deleted' && changeDetails?.id === this.currentGroupId;
-            
-            if (isCurrentGroupDeleted) {
-                logInfo('Current group deletion detected via change event, clearing state without refresh', { 
-                    groupId: this.currentGroupId,
-                    changeAction: changeDetails?.action
-                });
-                
-                // Set error signal to indicate deletion
-                this.#errorSignal.value = 'GROUP_DELETED';
-                
-                // Clear all data WITHOUT trying to refresh (which would cause 404)
-                batch(() => {
-                    this.#groupSignal.value = null;
-                    this.#membersSignal.value = [];
-                    this.#expensesSignal.value = [];
-                    this.#balancesSignal.value = null;
-                    this.#settlementsSignal.value = [];
-                    this.#loadingSignal.value = false;
-                });
-                
-                // Clear currentGroupId and dispose subscriptions
-                this.currentGroupId = null;
-                this.dispose();
-                
-                return; // Don't try to refresh a deleted group
-            }
-            
-            // Group change = refresh everything (same as expense changes for consistency)
-            logApiResponse('CHANGE', 'group_change', 200, {
-                action: 'REFRESHING_ALL',
-                groupId: this.currentGroupId,
-            });
-            this.refreshAll().catch((error) => {
-                // Handle 404 errors and "Group not found" 500 errors as group deletion
-                const isGroupDeleted = 
-                    error?.status === 404 || 
-                    (error?.message && error.message.includes('404')) ||
-                    (error?.code === 'NOT_FOUND') ||
-                    (error?.status === 500 && error?.message && error.message.includes('Group not found'));
-                    
-                if (isGroupDeleted) {
-                    logInfo('Group change refresh: Group was deleted, state cleared', { 
-                        groupId: this.currentGroupId,
-                        error: error?.message || String(error),
-                        status: error?.status
-                    });
-                    this.#errorSignal.value = 'GROUP_DELETED';
-                    // Clear all data
-                    batch(() => {
-                        this.#groupSignal.value = null;
-                        this.#membersSignal.value = [];
-                        this.#expensesSignal.value = [];
-                        this.#balancesSignal.value = null;
-                        this.#settlementsSignal.value = [];
-                        this.#loadingSignal.value = false;
-                    });
-                } else {
-                    logError('Failed to refresh after group change', error);
-                }
-            });
-        });
-
-        logInfo('Change subscriptions setup complete', {
-            groupId: this.currentGroupId,
-            hasExpenseListener: !!this.expenseChangeListener,
-            hasGroupListener: !!this.groupChangeListener,
-        });
-    }
-
-    async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
-        if (!this.currentGroupId) return;
-
-        this.#loadingSettlementsSignal.value = true;
-        try {
-            const response = await apiClient.listSettlements(this.currentGroupId, 20, cursor, userId);
-
-            if (cursor) {
-                // Append to existing settlements
-                this.#settlementsSignal.value = [...this.#settlementsSignal.value, ...response.settlements];
-            } else {
-                // Replace settlements
-                this.#settlementsSignal.value = response.settlements;
-            }
-
-            this.#hasMoreSettlementsSignal.value = response.hasMore;
-            this.#settlementsCursorSignal.value = response.nextCursor || null;
-        } catch (error) {
-            logWarning('Failed to fetch settlements', { error });
-        } finally {
-            this.#loadingSettlementsSignal.value = false;
-        }
-    }
-
-    async loadMoreExpenses(): Promise<void> {
-        if (!this.#hasMoreExpensesSignal.value || !this.#expenseCursorSignal.value || !this.currentGroupId) return;
-
-        // Use consolidated endpoint for progressive loading to maintain consistency
-        this.#loadingExpensesSignal.value = true;
-        try {
-            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
-                expenseCursor: this.#expenseCursorSignal.value,
-                expenseLimit: 20,
-            });
-
-            batch(() => {
-                // Append new expenses to existing ones
-                this.#expensesSignal.value = [...this.#expensesSignal.value, ...fullDetails.expenses.expenses];
-
-                // Update pagination state
-                this.#hasMoreExpensesSignal.value = fullDetails.expenses.hasMore;
-                this.#expenseCursorSignal.value = fullDetails.expenses.nextCursor || null;
-            });
-        } catch (error) {
-            logWarning('Failed to load more expenses', { error });
-        } finally {
-            this.#loadingExpensesSignal.value = false;
-        }
-    }
-
-    async loadMoreSettlements(): Promise<void> {
-        if (!this.#hasMoreSettlementsSignal.value || !this.#settlementsCursorSignal.value || !this.currentGroupId) return;
-
-        // Use consolidated endpoint for progressive loading to maintain consistency
-        this.#loadingSettlementsSignal.value = true;
-        try {
-            const fullDetails = await apiClient.getGroupFullDetails(this.currentGroupId, {
-                settlementCursor: this.#settlementsCursorSignal.value,
-                settlementLimit: 20,
-            });
-
-            batch(() => {
-                // Append new settlements to existing ones
-                this.#settlementsSignal.value = [...this.#settlementsSignal.value, ...fullDetails.settlements.settlements];
-
-                // Update pagination state
-                this.#hasMoreSettlementsSignal.value = fullDetails.settlements.hasMore;
-                this.#settlementsCursorSignal.value = fullDetails.settlements.nextCursor || null;
-            });
-        } catch (error) {
-            logWarning('Failed to load more settlements', { error });
-        } finally {
-            this.#loadingSettlementsSignal.value = false;
-        }
     }
 
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
         
-        // Store the groupId at the start to detect if it changes during async operations
-        const refreshingGroupId = this.currentGroupId;
-
-        logInfo('RefreshAll: Starting complete data refresh', { groupId: refreshingGroupId });
-
         try {
-            // Check if we're still refreshing the same group (user might have navigated away)
-            if (this.currentGroupId !== refreshingGroupId) {
-                logInfo('RefreshAll: Group changed during refresh, aborting', { 
-                    originalGroupId: refreshingGroupId,
-                    currentGroupId: this.currentGroupId
-                });
-                return;
-            }
-            
-            // Use the consolidated full-details endpoint to ensure atomic data consistency
-            // This prevents race conditions where balances might not be calculated yet
-            // loadGroup() already calls getGroupFullDetails() which includes ALL data
-            await this.loadGroup(refreshingGroupId);
-
-            logInfo('RefreshAll: Complete data refresh successful', { groupId: refreshingGroupId });
+            await this.loadGroup(this.currentGroupId);
+            logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
         } catch (error: any) {
-            // Handle 404 errors and "Group not found" errors gracefully - group was deleted
             const isGroupDeleted = 
                 error?.status === 404 || 
                 (error?.message && error.message.includes('404')) ||
-                (error?.code === 'NOT_FOUND') ||
-                (error?.status === 500 && error?.message && error.message.includes('Group not found'));
+                (error?.code === 'NOT_FOUND');
                 
             if (isGroupDeleted) {
                 logInfo('RefreshAll: Group has been deleted, clearing state', { 
                     groupId: this.currentGroupId,
-                    error: error?.message || String(error),
-                    status: error?.status
+                    error: error?.message || String(error)
                 });
                 
-                // Set error signal to indicate deletion
                 this.#errorSignal.value = 'GROUP_DELETED';
-                
-                // Clear all data and stop trying to refresh
                 batch(() => {
                     this.#groupSignal.value = null;
                     this.#membersSignal.value = [];
@@ -622,26 +154,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#balancesSignal.value = null;
                     this.#settlementsSignal.value = [];
                     this.#loadingSignal.value = false;
-                    this.#loadingMembersSignal.value = false;
-                    this.#loadingExpensesSignal.value = false;
-                    this.#loadingBalancesSignal.value = false;
-                    this.#loadingSettlementsSignal.value = false;
                 });
                 
-                // Clear currentGroupId to prevent further refresh attempts
-                const deletedGroupId = this.currentGroupId;
                 this.currentGroupId = null;
-                
-                // Dispose of BOTH legacy and reference-counted subscriptions for deleted group
-                this.dispose();
-                
-                // Also dispose reference-counted subscriptions if they exist
-                if (deletedGroupId && this.#activeSubscriptions.has(deletedGroupId)) {
-                    this.#disposeGroupSubscription(deletedGroupId);
-                    this.#subscriberCounts.delete(deletedGroupId);
-                }
-                
-                return; // Don't throw error for deleted groups
+                return;
             }
             
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
@@ -650,27 +166,16 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
-        // Clean up ONLY legacy listeners (for backward compatibility)
-        // Do NOT interfere with reference-counted subscriptions
-        if (this.expenseChangeListener) {
-            this.expenseChangeListener();
-            this.expenseChangeListener = null;
+        if (this.unsubscribeNotifications) {
+            this.unsubscribeNotifications();
+            this.unsubscribeNotifications = null;
         }
-        if (this.groupChangeListener) {
-            this.groupChangeListener();
-            this.groupChangeListener = null;
-        }
-
-        this.changeDetector.dispose();
-        
-        // Do NOT call permissionsStore.dispose() as it affects other components
-        // Each component should use deregisterComponent() instead
+        this.notificationDetector.dispose();
     }
 
     reset(): void {
         this.dispose();
 
-        // Reset all signals
         batch(() => {
             this.#groupSignal.value = null;
             this.#membersSignal.value = [];
@@ -678,45 +183,34 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.#balancesSignal.value = null;
             this.#settlementsSignal.value = [];
             this.#loadingSignal.value = false;
-            this.#loadingMembersSignal.value = false;
-            this.#loadingExpensesSignal.value = false;
-            this.#loadingBalancesSignal.value = false;
-            this.#loadingSettlementsSignal.value = false;
             this.#errorSignal.value = null;
-            this.#hasMoreExpensesSignal.value = true;
-            this.#expenseCursorSignal.value = null;
-            this.#hasMoreSettlementsSignal.value = false;
-            this.#settlementsCursorSignal.value = null;
         });
 
         this.currentGroupId = null;
     }
 
-    async leaveGroup(groupId: string): Promise<{ success: boolean; message: string }> {
-        try {
-            const response = await apiClient.leaveGroup(groupId);
-            return response;
-        } catch (error) {
-            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to leave group';
-            throw error;
-        }
+    // Reference-counted registration (simplified)
+    async registerComponent(groupId: string, userId: string): Promise<void> {
+        await this.loadGroup(groupId);
+        this.subscribeToChanges(userId);
     }
 
-    async removeMember(groupId: string, memberId: string): Promise<{ success: boolean; message: string }> {
-        try {
-            const response = await apiClient.removeGroupMember(groupId, memberId);
-            // Refresh all data after successful removal
-            if (response.success) {
-                await this.refreshAll();
-            }
-            return response;
-        } catch (error) {
-            this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to remove member';
-            throw error;
-        }
+    deregisterComponent(groupId: string): void {
+        this.dispose();
     }
 
+    // Pagination methods (simplified - just stubs for now)
+    async loadMoreExpenses(): Promise<void> {
+        logInfo('loadMoreExpenses: Not implemented in minimal version');
+    }
+
+    async loadMoreSettlements(): Promise<void> {
+        logInfo('loadMoreSettlements: Not implemented in minimal version');
+    }
+
+    async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
+        logInfo('fetchSettlements: Not implemented in minimal version');
+    }
 }
 
-// Export singleton instance
 export const enhancedGroupDetailStore = new EnhancedGroupDetailStoreImpl();

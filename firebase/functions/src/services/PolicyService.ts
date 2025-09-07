@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import {
@@ -202,7 +202,7 @@ export class PolicyService {
             }
 
             const versionHash = this.calculatePolicyHash(text);
-            const now = timestampToISO(createServerTimestamp());
+            const now = timestampToISO(createOptimisticTimestamp());
 
             const newVersion: PolicyVersion = {
                 text,
@@ -233,7 +233,7 @@ export class PolicyService {
 
             const updates: any = {
                 versions,
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             };
 
             // If publish is true, also update currentVersionHash
@@ -296,7 +296,7 @@ export class PolicyService {
             // Update current version hash
             await this.policiesCollection.doc(id).update({
                 currentVersionHash: versionHash,
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             });
 
             // Validate the updated document to ensure it's still valid
@@ -361,7 +361,7 @@ export class PolicyService {
             }
 
             const versionHash = this.calculatePolicyHash(text);
-            const now = createServerTimestamp();
+            const now = createOptimisticTimestamp();
 
             const initialVersion: PolicyVersion = {
                 text,
@@ -472,7 +472,7 @@ export class PolicyService {
 
             await this.policiesCollection.doc(id).update({
                 versions: updatedVersions,
-                updatedAt: createServerTimestamp(),
+                updatedAt: createOptimisticTimestamp(),
             });
 
             // Validate the updated document to ensure it's still valid

@@ -292,6 +292,13 @@ export class ApiDriver {
         return res.group;
     }
 
+    async assertExpense(groupId: string, expenseId:string, token: string) {
+        const {expenses} = await this.getGroupFullDetails(groupId, token);
+        const found = expenses.expenses.find(item => item.id === expenseId);
+        if(!found)
+            throw Error(`expect with id ${expenseId} not found in group ${groupId}`);
+    }
+
     async getGroupFullDetails(
         groupId: string,
         token: string,

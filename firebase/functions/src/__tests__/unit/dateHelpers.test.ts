@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
     createOptimisticTimestamp,
-    createServerTimestamp,
     createTrueServerTimestamp,
     parseISOToTimestamp,
     timestampToISO,
@@ -41,12 +40,6 @@ describe('dateHelpers', () => {
         });
     });
 
-    describe('createServerTimestamp', () => {
-        it('should create a Timestamp instance', () => {
-            const timestamp = createServerTimestamp();
-            expect(timestamp).toBeInstanceOf(Timestamp);
-        });
-    });
 
     describe('createTrueServerTimestamp', () => {
         it('should create a FieldValue.serverTimestamp', () => {

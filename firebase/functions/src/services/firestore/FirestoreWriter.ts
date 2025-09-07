@@ -1061,6 +1061,44 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     // ========================================================================
+    // Generic Document Operations
+    // ========================================================================
+
+    async updateDocument(documentPath: string, updates: any): Promise<WriteResult> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreWriter',
+            'updateDocument',
+            async () => {
+                try {
+                    // Add updated timestamp
+                    const finalUpdates = {
+                        ...updates,
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(documentPath).update(finalUpdates);
+
+                    logger.info('Document updated', { documentPath, fields: Object.keys(updates) });
+
+                    return {
+                        id: documentPath,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update document', error, { documentPath });
+                    return {
+                        id: documentPath,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            },
+            { documentPath, updateFields: Object.keys(updates).join(',') }
+        );
+    }
+
+    // ========================================================================
     // Performance Metrics Operations
     // ========================================================================
 

@@ -5,7 +5,7 @@ import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels} from '@splitifyd/shared';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {createServerTimestamp} from '../utils/dateHelpers';
+import {createOptimisticTimestamp} from '../utils/dateHelpers';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
@@ -133,7 +133,7 @@ export class GroupPermissionService {
                     securityPreset: preset,
                     presetAppliedAt: now,
                     permissions: newPermissions,
-                    updatedAt: createServerTimestamp(),
+                    updatedAt: createOptimisticTimestamp(),
                 };
 
                 const changeLog: PermissionChangeLog = {
@@ -240,7 +240,7 @@ export class GroupPermissionService {
                 const updateData: any = {
                     securityPreset: SecurityPresets.CUSTOM,
                     permissions: updatedPermissions,
-                    updatedAt: createServerTimestamp(),
+                    updatedAt: createOptimisticTimestamp(),
                 };
 
                 const changeLog: PermissionChangeLog = {
@@ -358,7 +358,7 @@ export class GroupPermissionService {
 
                 // Perform the update
                 const updateData: any = {
-                    updatedAt: createServerTimestamp(),
+                    updatedAt: createOptimisticTimestamp(),
                 };
 
                 const changeLog: PermissionChangeLog = {

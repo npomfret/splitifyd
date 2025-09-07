@@ -3,7 +3,7 @@ import { z } from 'zod';
 import {getAuth, getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { createServerTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import {
@@ -258,7 +258,7 @@ export class CommentService {
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
 
         // Prepare comment data
-        const now = createServerTimestamp();
+        const now = createOptimisticTimestamp();
         const commentCreateData: CommentCreateData = {
             authorId: userId,
             authorName,

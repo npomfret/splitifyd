@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
-import {createServerTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {logger, LoggerContext} from '../logger';
 import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
 import {calculateSplits, Expense} from '../expenses/validation';
@@ -196,7 +196,7 @@ export class ExpenseService {
         }
 
         // Create the expense document
-        const now = createServerTimestamp();
+        const now = createOptimisticTimestamp();
         const docRef = this.expensesCollection.doc();
 
         // Calculate splits based on split type
@@ -211,7 +211,7 @@ export class ExpenseService {
             currency: expenseData.currency,
             description: expenseData.description,
             category: expenseData.category,
-            date: parseISOToTimestamp(expenseData.date) || createServerTimestamp(),
+            date: parseISOToTimestamp(expenseData.date) || createOptimisticTimestamp(),
             splitType: expenseData.splitType,
             participants: expenseData.participants,
             splits,
@@ -327,12 +327,12 @@ export class ExpenseService {
         // with Firestore-specific fields (timestamps) that have different types
         const updates: any = {
             ...updateData,
-            updatedAt: createServerTimestamp(),
+            updatedAt: createOptimisticTimestamp(),
         };
 
         // Handle date conversion
         if (updateData.date) {
-            updates.date = parseISOToTimestamp(updateData.date) || createServerTimestamp();
+            updates.date = parseISOToTimestamp(updateData.date) || createOptimisticTimestamp();
         }
 
         // Handle split recalculation if needed
@@ -388,7 +388,7 @@ export class ExpenseService {
 
                 const historyEntry = {
                     ...cleanExpenseData,
-                    modifiedAt: createServerTimestamp(),
+                    modifiedAt: createOptimisticTimestamp(),
                     modifiedBy: userId,
                     changeType: 'update' as const,
                     changes: Object.keys(updateData),
@@ -520,7 +520,7 @@ export class ExpenseService {
                 const cursorData = JSON.parse(decodedCursor);
 
                 if (cursorData.date && cursorData.createdAt) {
-                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createServerTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp());
+                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createOptimisticTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createOptimisticTimestamp());
                 }
             } catch (error) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
@@ -654,9 +654,9 @@ export class ExpenseService {
 
                     // Step 3: Now do ALL writes - soft delete the expense
                     transaction.update(docRef, {
-                        [DELETED_AT_FIELD]: createServerTimestamp(),
+                        [DELETED_AT_FIELD]: createOptimisticTimestamp(),
                         deletedBy: userId,
-                        updatedAt: createServerTimestamp(), // Update the timestamp for optimistic locking
+                        updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
                     });
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
@@ -738,7 +738,7 @@ export class ExpenseService {
                 const cursorData = JSON.parse(decodedCursor);
 
                 if (cursorData.date && cursorData.createdAt) {
-                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createServerTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createServerTimestamp());
+                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createOptimisticTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createOptimisticTimestamp());
                 }
             } catch (error) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
