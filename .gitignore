@@ -84,3 +84,4 @@ directives
 .claude/commands/merge.md
 .claude/commands/commit.md
 .claude/commands/comment.md
+.claude/commands/un-commit.md
