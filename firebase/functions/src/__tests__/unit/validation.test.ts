@@ -29,13 +29,25 @@ describe('Auth Validation', () => {
 
         it('should enforce display name boundary conditions', () => {
             // Too short
-            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('A').build())).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder()
+                .withDisplayName('A')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .build())).toThrow(ApiError);
 
             // Too long
-            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('A'.repeat(51)).build())).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder()
+                .withDisplayName('A'.repeat(51))
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .build())).toThrow(ApiError);
 
             // Invalid characters
-            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withDisplayName('Test<script>').build())).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder()
+                .withDisplayName('Test<script>')
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(true)
+                .build())).toThrow(ApiError);
 
             // Valid boundary case
             const result = validateRegisterRequest(new RegisterRequestBuilder()
@@ -47,9 +59,15 @@ describe('Auth Validation', () => {
         });
 
         it('should require terms and cookie policy acceptance', () => {
-            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withTermsAccepted(false).build())).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder()
+                .withTermsAccepted(false)
+                .withCookiePolicyAccepted(true)
+                .build())).toThrow(ApiError);
 
-            expect(() => validateRegisterRequest(new RegisterRequestBuilder().withCookiePolicyAccepted(false).build())).toThrow(ApiError);
+            expect(() => validateRegisterRequest(new RegisterRequestBuilder()
+                .withTermsAccepted(true)
+                .withCookiePolicyAccepted(false)
+                .build())).toThrow(ApiError);
         });
     });
 });
