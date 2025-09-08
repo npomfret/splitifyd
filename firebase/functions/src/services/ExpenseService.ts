@@ -15,6 +15,7 @@ import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { GroupDocument } from '../schemas';
 import type { Group, GroupPermissions } from '@splitifyd/shared';
 
@@ -47,7 +48,10 @@ export class ExpenseService {
     private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
     private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
 
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
+    ) {}
 
     /**
      * Fetch and validate an expense document
@@ -237,34 +241,28 @@ export class ExpenseService {
         }
 
         // Use transaction to create expense atomically
-        await runTransactionWithRetry(
-            async (transaction) => {
-                // Re-verify group exists within transaction
-                const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
-                const groupDocInTx = await transaction.get(groupDocRef);
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            // Re-verify group exists within transaction
+            const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
+            const groupDocInTx = await transaction.get(groupDocRef);
 
-                if (!groupDocInTx.exists) {
-                    throw Errors.NOT_FOUND('Group');
-                }
-
-                const groupDataInTx = groupDocInTx.data();
-                if (!groupDataInTx) {
-                    throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
-                }
-
-                // Create the expense
-                transaction.set(docRef, expense);
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'createExpense',
-                    userId,
-                    groupId: expenseData.groupId,
-                    expenseId: docRef.id
-                }
+            if (!groupDocInTx.exists) {
+                throw Errors.NOT_FOUND('Group');
             }
-        );
+
+            const groupDataInTx = groupDocInTx.data();
+            if (!groupDataInTx) {
+                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
+            }
+
+            // Create the expense
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                FirestoreCollections.EXPENSES,
+                docRef.id,
+                expense
+            );
+        });
 
         // Set business context for logging
         LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
@@ -396,8 +394,17 @@ export class ExpenseService {
 
                 // Save history and update expense
                 const historyRef = docRef.collection('history').doc();
-                transaction.set(historyRef, historyEntry);
-                transaction.update(docRef, updates);
+                this.firestoreWriter.createInTransaction(
+                    transaction,
+                    `${FirestoreCollections.EXPENSES}/${expenseId}/history`,
+                    historyRef.id,
+                    historyEntry
+                );
+                this.firestoreWriter.updateInTransaction(
+                    transaction,
+                    docRef.path,
+                    updates
+                );
             },
             {
                 maxAttempts: 3,
@@ -653,11 +660,15 @@ export class ExpenseService {
                     }
 
                     // Step 3: Now do ALL writes - soft delete the expense
-                    transaction.update(docRef, {
-                        [DELETED_AT_FIELD]: createOptimisticTimestamp(),
-                        deletedBy: userId,
-                        updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
-                    });
+                    this.firestoreWriter.updateInTransaction(
+                        transaction,
+                        docRef.path,
+                        {
+                            [DELETED_AT_FIELD]: createOptimisticTimestamp(),
+                            deletedBy: userId,
+                            updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
+                        }
+                    );
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
                 },

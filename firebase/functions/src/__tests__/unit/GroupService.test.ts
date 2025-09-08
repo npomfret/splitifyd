@@ -129,14 +129,29 @@ vi.mock('../../user-management/assign-theme-color', () => ({
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockFirestoreWriter: any;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
-        groupService = new GroupService(mockFirestoreReader);
+        mockFirestoreWriter = {
+            runTransaction: vi.fn(),
+            bulkDelete: vi.fn(),
+            createInTransaction: vi.fn(),
+            updateInTransaction: vi.fn(),
+            deleteInTransaction: vi.fn()
+        };
+        groupService = new GroupService(mockFirestoreReader, mockFirestoreWriter);
 
         // Reset all mocks
         vi.clearAllMocks();
         mockFirestoreReader.resetAllMocks();
+        
+        // Set up default mock implementations after clearing
+        mockFirestoreWriter.bulkDelete.mockResolvedValue({
+            successCount: 1,
+            failureCount: 0,
+            results: [{ id: 'test-group-123', success: true }]
+        });
     });
 
     describe('fetchGroupWithAccess', () => {

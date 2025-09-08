@@ -16,6 +16,7 @@ import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-lo
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 /**
  * Service for managing group operations
@@ -23,7 +24,10 @@ import type { IFirestoreReader } from './firestore/IFirestoreReader';
 export class GroupService {
     private balanceService: BalanceCalculationService;
     
-    constructor(private readonly firestoreReader: IFirestoreReader) {
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
+    ) {
         this.balanceService = new BalanceCalculationService(firestoreReader);
     }
     
@@ -658,13 +662,20 @@ export class GroupService {
         };
 
         // Atomic transaction: create both group and member documents
-        await runTransactionWithRetry(
-            async (transaction) => {
-                transaction.set(docRef, documentToWrite);
-                transaction.set(memberRef, memberDocWithTimestamps);
-            },
-            { context: { operation: 'createGroup', groupId: docRef.id, userId } }
-        );
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                FirestoreCollections.GROUPS,
+                docRef.id,
+                documentToWrite
+            );
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                `${FirestoreCollections.GROUPS}/${docRef.id}/members`,
+                userId,
+                memberDocWithTimestamps
+            );
+        });
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
@@ -701,44 +712,34 @@ export class GroupService {
         const { docRef, group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
-        await runTransactionWithRetry(
-            async (transaction) => {
-                const freshDoc = await transaction.get(docRef);
-                if (!freshDoc.exists) {
-                    throw Errors.NOT_FOUND('Group');
-                }
-
-                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
-
-                // Create updated data with current timestamp (will be converted to ISO in the data field)
-                const now = createOptimisticTimestamp();
-                const updatedData = {
-                    ...group,
-                    ...updates,
-                    updatedAt: now.toDate(),
-                };
-
-                // Use existing pattern since we already have the fresh document from transaction read
-                await updateWithTimestamp(
-                    transaction,
-                    docRef,
-                    {
-                        name: updatedData.name,
-                        description: updatedData.description,
-                        updatedAt: updatedData.updatedAt.toISOString(),
-                    },
-                    originalUpdatedAt,
-                );
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'updateGroup',
-                    userId,
-                    groupId
-                }
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const freshDoc = await transaction.get(docRef);
+            if (!freshDoc.exists) {
+                throw Errors.NOT_FOUND('Group');
             }
-        );
+
+            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
+
+            // Create updated data with current timestamp (will be converted to ISO in the data field)
+            const now = createOptimisticTimestamp();
+            const updatedData = {
+                ...group,
+                ...updates,
+                updatedAt: now.toDate(),
+            };
+
+            // Use existing pattern since we already have the fresh document from transaction read
+            await updateWithTimestamp(
+                transaction,
+                docRef,
+                {
+                    name: updatedData.name,
+                    description: updatedData.description,
+                    updatedAt: updatedData.updatedAt.toISOString(),
+                },
+                originalUpdatedAt,
+            );
+        });
 
         // Set group context
         LoggerContext.setBusinessContext({ groupId });
@@ -821,53 +822,44 @@ export class GroupService {
             members: memberIds
         });
 
-        // PHASE 3: Execute bulk deletion using BulkWriter
-        const bulkWriter = getFirestore().bulkWriter();
-
-        // Configure bulkWriter for better performance and error handling
-        bulkWriter.onWriteError((error) => {
-            logger.error('BulkWriter error during group deletion', {
-                groupId,
-                error: error.message,
-                failedAttempts: error.failedAttempts
-            });
-            // Return true to retry, false to stop retrying
-            return error.failedAttempts < 3;
-        });
-
-        // Queue all deletions
-        expenses.docs.forEach(doc => bulkWriter.delete(doc.ref));
-        settlements.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        // PHASE 3: Execute bulk deletion using IFirestoreWriter
+        const documentPaths: string[] = [];
         
-        // Note: GROUP_CHANGES collection has been removed as it was unused
-        
-        transactionChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
-        balanceChanges.docs.forEach(doc => bulkWriter.delete(doc.ref));
-        shareLinks.docs.forEach(doc => bulkWriter.delete(doc.ref));
-        groupComments.docs.forEach(doc => bulkWriter.delete(doc.ref));
+        // Collect all document paths for bulk deletion
+        expenses.docs.forEach(doc => documentPaths.push(doc.ref.path));
+        settlements.docs.forEach(doc => documentPaths.push(doc.ref.path));
+        transactionChanges.docs.forEach(doc => documentPaths.push(doc.ref.path));
+        balanceChanges.docs.forEach(doc => documentPaths.push(doc.ref.path));
+        shareLinks.docs.forEach(doc => documentPaths.push(doc.ref.path));
+        groupComments.docs.forEach(doc => documentPaths.push(doc.ref.path));
 
         // Delete expense comments
         expenseCommentSnapshots.forEach(snapshot => {
-            snapshot.docs.forEach(doc => bulkWriter.delete(doc.ref));
+            snapshot.docs.forEach(doc => documentPaths.push(doc.ref.path));
         });
 
         // Delete members
         if (memberDocs) {
             memberDocs.forEach(memberDoc => {
-                const memberRef = getFirestore().collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .doc(memberDoc.userId);
-                bulkWriter.delete(memberRef);
+                const memberPath = `${FirestoreCollections.GROUPS}/${groupId}/members/${memberDoc.userId}`;
+                documentPaths.push(memberPath);
             });
         }
 
         // Delete main group document last
-        bulkWriter.delete(docRef);
+        documentPaths.push(docRef.path);
 
-        // Execute all deletions
+        // Execute bulk deletion
         logger.info('Executing bulk deletion operations', { groupId, totalDocuments });
-        await bulkWriter.close();
+        const bulkDeleteResult = await this.firestoreWriter.bulkDelete(documentPaths);
+        
+        if (bulkDeleteResult.failureCount > 0) {
+            logger.error('Some deletions failed during group hard delete', {
+                groupId,
+                successCount: bulkDeleteResult.successCount,
+                failureCount: bulkDeleteResult.failureCount
+            });
+        }
 
         logger.info('Bulk deletion completed successfully', { 
             groupId, 

@@ -12,7 +12,9 @@ import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { FirestoreReader } from './firestore/FirestoreReader';
+import { FirestoreWriter } from './firestore/FirestoreWriter';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { IMetricsStorage } from '../utils/metrics-storage-factory';
 
 /**
@@ -36,6 +38,7 @@ let groupShareServiceInstance: GroupShareService | null = null;
 let expenseMetadataServiceInstance: ExpenseMetadataService | null = null;
 let firestoreValidationServiceInstance: FirestoreValidationService | null = null;
 let firestoreReaderInstance: IFirestoreReader | null = null;
+let firestoreWriterInstance: IFirestoreWriter | null = null;
 
 /**
  * Initialize all service registrations
@@ -50,7 +53,8 @@ export function registerAllServices(metricsStorage: IMetricsStorage): void {
     registry.registerService('UserService', () => {
         if (!userServiceInstance) {
             const firestoreReader = getFirestoreReader();
-            userServiceInstance = new UserService(firestoreReader);
+            const firestoreWriter = getFirestoreWriter();
+            userServiceInstance = new UserService(firestoreReader, firestoreWriter);
         }
         return userServiceInstance;
     });
@@ -58,14 +62,17 @@ export function registerAllServices(metricsStorage: IMetricsStorage): void {
     registry.registerService('GroupService', () => {
         if (!groupServiceInstance) {
             const firestoreReader = getFirestoreReader();
-            groupServiceInstance = new GroupService(firestoreReader);
+            const firestoreWriter = getFirestoreWriter();
+            groupServiceInstance = new GroupService(firestoreReader, firestoreWriter);
         }
         return groupServiceInstance;
     });
 
     registry.registerService('ExpenseService', () => {
         if (!expenseServiceInstance) {
-            expenseServiceInstance = new ExpenseService(getFirestoreReader());
+            const firestoreReader = getFirestoreReader();
+            const firestoreWriter = getFirestoreWriter();
+            expenseServiceInstance = new ExpenseService(firestoreReader, firestoreWriter);
         }
         return expenseServiceInstance;
     });
@@ -146,6 +153,13 @@ export function registerAllServices(metricsStorage: IMetricsStorage): void {
         }
         return firestoreReaderInstance;
     });
+
+    registry.registerService('FirestoreWriter', () => {
+        if (!firestoreWriterInstance) {
+            firestoreWriterInstance = new FirestoreWriter();
+        }
+        return firestoreWriterInstance;
+    });
 }
 
 /**
@@ -165,6 +179,7 @@ export const SERVICE_NAMES = {
     EXPENSE_METADATA_SERVICE: 'ExpenseMetadataService',
     FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService',
     FIRESTORE_READER: 'FirestoreReader',
+    FIRESTORE_WRITER: 'FirestoreWriter',
     METRICS_STORAGE: 'MetricsStorage'
 } as const;
 
@@ -225,4 +240,8 @@ export function getFirestoreReader(): IFirestoreReader {
 
 export function getMetricsStorage(): IMetricsStorage {
     return ServiceRegistry.getInstance().getService<IMetricsStorage>(SERVICE_NAMES.METRICS_STORAGE);
+}
+
+export function getFirestoreWriter(): IFirestoreWriter {
+    return ServiceRegistry.getInstance().getService<IFirestoreWriter>(SERVICE_NAMES.FIRESTORE_WRITER);
 }

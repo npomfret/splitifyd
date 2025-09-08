@@ -17,6 +17,7 @@ import {getFirestoreValidationService, getGroupMemberService} from './serviceReg
 import {UserRegistration} from "@splitifyd/shared";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 /**
  * User profile interface for consistent user data across the application
@@ -65,7 +66,10 @@ interface FirestoreUserDocument {
  * Service for fetching user profiles from Firebase Auth
  */
 export class UserService {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
+    ) {}
 
     /**
      * Validates that a user record has all required fields
@@ -265,7 +269,7 @@ export class UserService {
             }
 
             // Update Firestore user document
-            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update(firestoreUpdate);
+            await this.firestoreWriter.updateUser(userId, firestoreUpdate);
 
             // Return the updated profile
             return await this.getUser(userId);
@@ -312,8 +316,7 @@ export class UserService {
             });
 
             // Update Firestore to track password change
-            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).update({
-                updatedAt: createOptimisticTimestamp(),
+            await this.firestoreWriter.updateUser(userId, {
                 passwordChangedAt: createOptimisticTimestamp(),
             });
 
@@ -357,7 +360,7 @@ export class UserService {
             }
 
             // Delete user data from Firestore first (before Auth deletion)
-            await getFirestore().collection(FirestoreCollections.USERS).doc(userId).delete();
+            await this.firestoreWriter.deleteUser(userId);
 
             // Delete user from Firebase Auth
             await getAuth().deleteUser(userId);
@@ -465,7 +468,7 @@ export class UserService {
                 throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_USER_DATA', 'User document validation failed during registration');
             }
 
-            await getFirestore().collection(FirestoreCollections.USERS).doc(userRecord.uid).set(userDoc);
+            await this.firestoreWriter.createUser(userRecord.uid, userDoc as any);
 
             return {
                 uid: userRecord.uid,
