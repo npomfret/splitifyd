@@ -67,6 +67,7 @@ The app must run reliably across all supported environments.
 - Delete temporary files; never gitignore them
 - Keep build artifacts separate from source files
 - Never add files containing _sensitive_ data to git
+- Never `import` (or require) inside a method  
 
 ## Content Security Policy
 
