@@ -2,6 +2,7 @@ import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import path from 'path';
 import { Request } from 'express';
+import { getFirestoreReader } from '../services/serviceRegistration';
 
 export interface LocalizedRequest extends Request {
     language?: string;
@@ -100,13 +101,7 @@ async function getUserPreferredLanguage(userId?: string): Promise<string | null>
     if (!userId) return null;
 
     try {
-        const { getFirestore } = await import('../firebase');
-        const userDoc = await getFirestore().collection('users').doc(userId).get();
-
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            return userData?.preferredLanguage || null;
-        }
+        return await getFirestoreReader().getUserLanguagePreference(userId);
     } catch (error) {
         console.error('Error fetching user preferred language:', error);
     }

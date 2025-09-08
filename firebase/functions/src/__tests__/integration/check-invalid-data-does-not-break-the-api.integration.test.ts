@@ -17,16 +17,14 @@ import type { Firestore } from 'firebase-admin/firestore';
 import { setupTestServices } from '../test-helpers/setup';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
-    let firestore: Firestore;
-    let apiDriver: ApiDriver;
+    const firestore = getFirestore();
+    const apiDriver = new ApiDriver();
     let testUser: any;
     let validGroupId: string;
     const createdGroupIds: string[] = []; // Track all created groups for cleanup
 
     beforeAll(async () => {
         setupTestServices();
-        firestore = getFirestore();
-        apiDriver = new ApiDriver();
 
         // Create a test user for API calls
         testUser = await apiDriver.createUser(

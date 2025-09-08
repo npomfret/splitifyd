@@ -1,8 +1,8 @@
 import {getAuth, getFirestore} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
-import { Timestamp } from "firebase-admin/firestore";
-import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
+import {Timestamp} from "firebase-admin/firestore";
+import type {IFirestoreReader} from '../services/firestore/IFirestoreReader';
 
 export interface PoolUser {
     token: string
@@ -34,19 +34,15 @@ export class TestUserPoolService {
     }
 
     async borrowUser(): Promise<PoolUser> {
-        const poolRef = getFirestore().collection(POOL_COLLECTION);
-        
         // Use transaction to atomically claim an available user
         const result = await runTransactionWithRetry(
             async (transaction) => {
-                // Query for available users
-                const availableQuery = await transaction.get(
-                    poolRef.where('status', '==', 'available').limit(1)
-                );
+                // Query for available users using FirestoreReader
+                const availableUsers = await this.firestoreReader.getTestUsersByStatus('available', 1);
                 
-                if (!availableQuery.empty) {
+                if (availableUsers.length > 0) {
                     // Found an available user - claim it atomically
-                    const doc = availableQuery.docs[0];
+                    const doc = availableUsers[0];
                     const data = doc.data() as FirestorePoolUser;
                     
                     // Update status to borrowed within transaction
@@ -82,7 +78,7 @@ export class TestUserPoolService {
         // No available users found - create a new one
         // This is done outside transaction since createUser() involves Auth API calls
         const newUser = await this.createUser();
-        await poolRef.doc(newUser.email).set({
+        await getFirestore().collection(POOL_COLLECTION).doc(newUser.email).set({
             email: newUser.email,
             token: newUser.token,
             password: newUser.password,

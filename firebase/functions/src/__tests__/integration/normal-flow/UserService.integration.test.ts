@@ -265,10 +265,10 @@ describe('UserService - Integration Tests', () => {
             expect(authUser.displayName).toBe(newDisplayName);
 
             // Verify Firestore was updated
-            const userDoc = await firestore.collection('users').doc(testUser.uid).get();
-            const userData = userDoc.data()!;
-            expect(userData.displayName).toBe(newDisplayName);
-            expect(userData.updatedAt).toBeDefined();
+            const updatedUserData = await getFirestoreReader().getUser(testUser.uid);
+            expect(updatedUserData).not.toBeNull();
+            expect(updatedUserData!.displayName).toBe(newDisplayName);
+            expect(updatedUserData!.updatedAt).toBeDefined();
         });
 
         test('should update preferred language in Firestore only', async () => {
@@ -281,9 +281,9 @@ describe('UserService - Integration Tests', () => {
             expect(updatedProfile.preferredLanguage).toBe(newLanguage);
 
             // Verify Firestore was updated
-            const userDoc = await firestore.collection('users').doc(testUser.uid).get();
-            const userData = userDoc.data()!;
-            expect(userData.preferredLanguage).toBe(newLanguage);
+            const userData = await getFirestoreReader().getUser(testUser.uid);
+            expect(userData).not.toBeNull();
+            expect(userData!.preferredLanguage).toBe(newLanguage);
         });
 
         test('should update photo URL with null value', async () => {
@@ -296,9 +296,9 @@ describe('UserService - Integration Tests', () => {
             expect(authUser.photoURL).toBeUndefined();
 
             // Verify Firestore was updated  
-            const userDoc = await firestore.collection('users').doc(testUser.uid).get();
-            const userData = userDoc.data()!;
-            expect(userData.photoURL).toBeNull();
+            const userData = await getFirestoreReader().getUser(testUser.uid);
+            expect(userData).not.toBeNull();
+            expect(userData!.photoURL).toBeNull();
         });
 
         test('should fetch fresh data after update', async () => {
@@ -348,18 +348,18 @@ describe('UserService - Integration Tests', () => {
             expect(result.message).toBe('Password changed successfully');
 
             // Verify Firestore document was updated with proper timestamps
-            const userDoc = await firestore.collection('users').doc(testUser.uid).get();
-            const userData = userDoc.data()!;
+            const userData = await getFirestoreReader().getUser(testUser.uid);
+            expect(userData).not.toBeNull();
             
             // Verify passwordChangedAt timestamp exists and is recent
-            expect(userData.passwordChangedAt).toBeDefined();
-            const passwordChangedAt = userData.passwordChangedAt.toDate();
+            expect(userData!.passwordChangedAt).toBeDefined();
+            const passwordChangedAt = userData!.passwordChangedAt.toDate();
             expect(passwordChangedAt.getTime()).toBeGreaterThanOrEqual(beforeChange.getTime());
             expect(passwordChangedAt.getTime()).toBeLessThanOrEqual(Date.now());
             
             // Verify updatedAt timestamp was also updated
-            expect(userData.updatedAt).toBeDefined();
-            const updatedAt = userData.updatedAt.toDate();
+            expect(userData!.updatedAt).toBeDefined();
+            const updatedAt = userData!.updatedAt.toDate();
             expect(updatedAt.getTime()).toBeGreaterThanOrEqual(beforeChange.getTime());
             expect(updatedAt.getTime()).toBeLessThanOrEqual(Date.now());
 
@@ -423,8 +423,8 @@ describe('UserService - Integration Tests', () => {
                 .rejects.toThrow();
 
             // Verify user was deleted from Firestore
-            const userDoc = await firestore.collection('users').doc(userId).get();
-            expect(userDoc.exists).toBe(false);
+            const deletedUserData = await getFirestoreReader().getUser(userId);
+            expect(deletedUserData).toBeNull();
         });
 
         test('should prevent deletion of users with active groups', async () => {

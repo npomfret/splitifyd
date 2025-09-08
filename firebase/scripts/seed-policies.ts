@@ -36,32 +36,18 @@ let publishPolicyInternal: any;
  * Initialize Firebase handlers
  */
 async function initializeHandlers() {
-    if (!env.isEmulator && require.main === module) {
-        // Production mode - use the admin instance we already initialized
-        firestoreDb = admin.firestore();
+    // Emulator mode - import everything normally
+    const firebaseModule = await import('../functions/src/firebase');
+    const handlers = await import('../functions/src/policies/handlers');
 
-        // Register all services before importing handlers
-        const metricsStorage = createMetricsStorage();
-        registerAllServices(metricsStorage);
+    firestoreDb = firebaseModule.getFirestore();
 
-        // Import handlers that will use our initialized admin instance
-        const handlers = await import('../functions/src/policies/handlers');
-        createPolicyInternal = handlers.createPolicyInternal;
-        publishPolicyInternal = handlers.publishPolicyInternal;
-    } else {
-        // Emulator mode - import everything normally
-        const firebaseModule = await import('../functions/src/firebase');
-        
-        // Register all services before importing handlers
-        const metricsStorage = createMetricsStorage();
-        registerAllServices(metricsStorage);
-        
-        const handlers = await import('../functions/src/policies/handlers');
+    // Register all services before importing handlers
+    const metricsStorage = createMetricsStorage();
+    registerAllServices(metricsStorage, firestoreDb);
 
-        firestoreDb = firebaseModule.getFirestore();
-        createPolicyInternal = handlers.createPolicyInternal;
-        publishPolicyInternal = handlers.publishPolicyInternal;
-    }
+    createPolicyInternal = handlers.createPolicyInternal;
+    publishPolicyInternal = handlers.publishPolicyInternal;
 }
 
 /**

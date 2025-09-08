@@ -6,7 +6,6 @@ export * from './page-objects';
 export * from "./AppDriver";
 export * from "./Polling";
 export * from './test-pool-helpers';
-export * from './MockFirestoreReader';
 export * from './TestGroupManager';
 export * from './TestExpenseManager';
 export * from './TestSettlementManager';

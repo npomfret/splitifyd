@@ -53,7 +53,7 @@ function getMetricsStorage(): IMetricsStorage {
 function ensureServicesRegistered() {
     if (!servicesRegistered) {
         const metricsStorage = getMetricsStorage();
-        registerAllServices(metricsStorage);
+        registerAllServices(metricsStorage, firestoreDb);
         servicesRegistered = true;
     }
 }

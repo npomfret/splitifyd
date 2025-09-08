@@ -442,61 +442,37 @@ export class SettlementService {
         const startDate = options.startDate;
         const endDate = options.endDate;
 
-        let query: Query = this.settlementsCollection
-            .where('groupId', '==', groupId)
-            .orderBy('date', 'desc')
-            .limit(limit);
-
-        if (filterUserId) {
-            query = query.where(
-                Filter.or(
-                    Filter.where('payerId', '==', filterUserId),
-                    Filter.where('payeeId', '==', filterUserId)
-                )
-            );
-        }
-
-        if (startDate) {
-            query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
-        }
-
-        if (endDate) {
-            query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
-        }
-
-        if (cursor) {
-            const cursorDoc = await this.settlementsCollection.doc(cursor).get();
-            if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc);
-            }
-        }
-
-        const snapshot = await query.get();
+        const result = await this.firestoreReader.getSettlementsForGroupPaginated(groupId, {
+            limit,
+            cursor,
+            filterUserId,
+            startDate,
+            endDate
+        });
 
         const settlements: SettlementListItem[] = await Promise.all(
-            snapshot.docs.map(async (doc) => {
-                const data = doc.data();
+            result.settlements.map(async (settlement) => {
                 const [payerData, payeeData] = await Promise.all([
-                    this.fetchUserData(data.payerId),
-                    this.fetchUserData(data.payeeId)
+                    this.fetchUserData(settlement.payerId),
+                    this.fetchUserData(settlement.payeeId)
                 ]);
 
                 return {
-                    id: doc.id,
-                    groupId: data.groupId,
+                    id: settlement.id,
+                    groupId: settlement.groupId,
                     payer: payerData,
                     payee: payeeData,
-                    amount: data.amount,
-                    currency: data.currency,
-                    date: timestampToISO(data.date),
-                    note: data.note,
-                    createdAt: timestampToISO(data.createdAt),
-                };
+                    amount: settlement.amount,
+                    currency: settlement.currency,
+                    date: timestampToISO(settlement.date),
+                    note: settlement.note,
+                    createdAt: timestampToISO(settlement.createdAt),
+                } as SettlementListItem;
             }),
         );
 
-        const hasMore = snapshot.docs.length === limit;
-        const nextCursor = hasMore && snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1].id : undefined;
+        const hasMore = result.hasMore;
+        const nextCursor = result.nextCursor;
 
         return {
             settlements,

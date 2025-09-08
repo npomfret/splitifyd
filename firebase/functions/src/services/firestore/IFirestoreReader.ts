@@ -525,4 +525,135 @@ export interface IFirestoreReader {
      */
     verifyDocumentExists(collection: string, docId: string): Promise<boolean>;
 
+    // ========================================================================
+    // Settlement Query Operations
+    // ========================================================================
+
+    /**
+     * Get paginated settlements for a group with filtering and ordering
+     * @param groupId - The group ID
+     * @param options - Query options including pagination, filters, and ordering
+     * @returns Object with settlements array, hasMore flag, and nextCursor
+     */
+    getSettlementsForGroupPaginated(
+        groupId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            filterUserId?: string;
+            startDate?: string;
+            endDate?: string;
+        }
+    ): Promise<{
+        settlements: SettlementDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
+
+    // ========================================================================
+    // System Document Operations
+    // ========================================================================
+
+    /**
+     * Get system metrics document
+     * @param metricType - The type of metric to retrieve
+     * @returns System metric document or null if not found
+     */
+    getSystemMetrics(metricType: string): Promise<any | null>;
+
+    /**
+     * Add system metrics document
+     * @param metricData - The metric data to store
+     * @returns Document ID of the created metric
+     */
+    addSystemMetrics(metricData: any): Promise<string>;
+
+    // ========================================================================
+    // Group Membership Verification
+    // ========================================================================
+
+    /**
+     * Verify if a user is a member of a group
+     * @param groupId - The group ID
+     * @param userId - The user ID
+     * @returns True if user is a member, false otherwise
+     */
+    verifyGroupMembership(groupId: string, userId: string): Promise<boolean>;
+
+    // ========================================================================
+    // Subcollection Operations
+    // ========================================================================
+
+    /**
+     * Get a document from a subcollection
+     * @param parentCollection - The parent collection name
+     * @param parentDocId - The parent document ID
+     * @param subcollectionName - The subcollection name
+     * @param docId - The document ID within the subcollection
+     * @returns Document data or null if not found
+     */
+    getSubcollectionDocument(
+        parentCollection: string,
+        parentDocId: string,
+        subcollectionName: string,
+        docId: string
+    ): Promise<any | null>;
+
+
+    // ========================================================================
+    // Test User Pool Operations (Enhanced)
+    // ========================================================================
+
+    /**
+     * Get available test users with query filtering
+     * @param status - The status to filter by ('available', 'borrowed')
+     * @param limit - Maximum number of users to return
+     * @returns Array of test user documents
+     */
+    getTestUsersByStatus(status: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    /**
+     * Get a specific test user document within a transaction
+     * @param transaction - The transaction context
+     * @param email - The test user email
+     * @returns Test user document or null if not found
+     */
+    getTestUserInTransaction(transaction: FirebaseFirestore.Transaction, email: string): Promise<any | null>;
+
+    // ========================================================================
+    // Complex Query Operations
+    // ========================================================================
+
+    /**
+     * Execute complex queries with multiple filters
+     * @param collection - The collection name
+     * @param filters - Array of filter conditions
+     * @param options - Query options for ordering and pagination
+     * @returns Array of document snapshots
+     */
+    queryWithComplexFilters(
+        collection: string,
+        filters: Array<{
+            field: string;
+            operator: FirebaseFirestore.WhereFilterOp;
+            value: any;
+        }>,
+        options?: {
+            orderBy?: { field: string; direction: 'asc' | 'desc' };
+            limit?: number;
+            startAfter?: FirebaseFirestore.DocumentSnapshot;
+        }
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    // ========================================================================
+    // User Language Preference Operations
+    // ========================================================================
+
+    /**
+     * Get user language preference from user document
+     * @param userId - The user ID
+     * @returns User's language preference or null if not found
+     */
+    getUserLanguagePreference(userId: string): Promise<string | null>;
+
 }

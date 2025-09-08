@@ -4,7 +4,7 @@ import { GroupService } from '../../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import {getFirestore} from '../../../firebase';
-import { getGroupService } from '../../../services/serviceRegistration';
+import { getGroupService, getFirestoreReader } from '../../../services/serviceRegistration';
 import {PooledTestUser} from "@splitifyd/shared";
 import { setupTestServices } from '../../test-helpers/setup';
 
@@ -44,17 +44,15 @@ describe('GroupService - Integration Tests', () => {
             expect(group.updatedAt).toBeDefined();
 
             // Verify Firestore document was created correctly
-            const doc = await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).get();
-            expect(doc.exists).toBe(true);
-            
-            const docData = doc.data()!;
-            expect(docData.name).toBe('Test Group');
-            expect(docData.createdBy).toBe(creator.uid);
-            expect(docData.createdAt).toBeDefined();
-            expect(docData.updatedAt).toBeDefined();
+            const firestoreGroup = await getFirestoreReader().getGroup(group.id);
+            expect(firestoreGroup).not.toBeNull();
+            expect(firestoreGroup!.name).toBe('Test Group');
+            expect(firestoreGroup!.createdBy).toBe(creator.uid);
+            expect(firestoreGroup!.createdAt).toBeDefined();
+            expect(firestoreGroup!.updatedAt).toBeDefined();
 
             // Cleanup
-            await doc.ref.delete();
+            await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should set default security preset and permissions', async () => {
@@ -216,9 +214,9 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group updated successfully');
 
             // Verify the timestamp was updated
-            const doc = await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
-            const docData = doc.data()!;
-            expect(docData.updatedAt).toBeDefined();
+            const updatedGroup = await getFirestoreReader().getGroup(testGroupId);
+            expect(updatedGroup).not.toBeNull();
+            expect(updatedGroup!.updatedAt).toBeDefined();
         });
     });
 
@@ -244,8 +242,8 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group was deleted
-            const doc = await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
-            expect(doc.exists).toBe(false);
+            const deletedGroup = await getFirestoreReader().getGroup(testGroupId);
+            expect(deletedGroup).toBeNull();
         });
 
         test('should prevent non-owner from deleting group', async () => {
@@ -273,11 +271,11 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group and expense were both deleted
-            const groupDoc = await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).get();
-            expect(groupDoc.exists).toBe(false);
+            const deletedGroup2 = await getFirestoreReader().getGroup(testGroupId);
+            expect(deletedGroup2).toBeNull();
             
-            const expenseDoc = await firestore.collection(FirestoreCollections.EXPENSES).doc(expense.id).get();
-            expect(expenseDoc.exists).toBe(false);
+            const deletedExpense = await getFirestoreReader().getExpense(expense.id);
+            expect(deletedExpense).toBeNull();
         });
 
         test('should throw NOT_FOUND for non-existent group', async () => {

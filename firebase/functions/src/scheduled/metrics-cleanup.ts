@@ -116,7 +116,7 @@ export async function performMetricsCleanup(
             });
 
             // Log cleanup metrics
-            await logCleanupMetrics(db, deletedCounts, totalDeleted);
+            await logCleanupMetrics(firestoreReader, deletedCounts, totalDeleted);
         }
 
         return { deletedCounts, totalDeleted };
@@ -241,12 +241,12 @@ async function deleteEntireCollection(
  * Log cleanup metrics for monitoring
  */
 async function logCleanupMetrics(
-    db: FirebaseFirestore.Firestore,
+    firestoreReader: IFirestoreReader,
     deletedCounts: Record<string, number>,
     totalDeleted: number
 ): Promise<void> {
     try {
-        await db.collection('system-metrics').add({
+        await firestoreReader.addSystemMetrics({
             type: 'metrics-cleanup',
             timestamp: Timestamp.now(),
             deletedCounts,

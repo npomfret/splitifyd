@@ -2,7 +2,7 @@ import { FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, COLOR_P
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
 import {getFirestore} from '../firebase';
-import { getGroupMemberService } from '../services/serviceRegistration';
+import { getGroupMemberService, getFirestoreReader } from '../services/serviceRegistration';
 
 /**
  * @deprecated Removed in Phase 5 cleanup - Use isGroupOwnerAsync instead for scalable subcollection queries
@@ -30,34 +30,20 @@ export const isGroupMemberAsync = async (groupId: string, userId: string): Promi
     return member !== null;
 };
 
-const getGroupsCollection = () => {
-    return getFirestore().collection(FirestoreCollections.GROUPS);
-};
-
 /**
  * Verify that a user is a member of a group, throwing an error if not
  */
 export const verifyGroupMembership = async (groupId: string, userId: string): Promise<void> => {
-    const groupDoc = await getGroupsCollection().doc(groupId).get();
-
-    if (!groupDoc.exists) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+    const isMember = await getFirestoreReader().verifyGroupMembership(groupId, userId);
+    
+    if (!isMember) {
+        // Check if group exists first
+        const group = await getFirestoreReader().getGroup(groupId);
+        if (!group) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
+        }
+        throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
     }
-
-    const groupData = groupDoc.data();
-
-    // Check if this is a group document (has members)
-    if (!groupData || !groupData.name) {
-        throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-    }
-
-    // Check if user is a member using subcollection
-    const isMember = await isGroupMemberAsync(groupId, userId);
-    if (isMember) {
-        return;
-    }
-
-    throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_GROUP_MEMBER', 'You are not a member of this group');
 };
 
 /**

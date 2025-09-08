@@ -9,8 +9,9 @@
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
-import { FieldPath, Timestamp } from 'firebase-admin/firestore';
+import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
+import { safeParseISOToTimestamp } from '../../utils/dateHelpers';
 
 // Import all schemas for validation
 import {
@@ -1705,6 +1706,241 @@ export class FirestoreReader implements IFirestoreReader {
             },
             { groupId, limit: options?.limit, includeDeleted: options?.includeDeleted }
         );
+    }
+
+    // ========================================================================
+    // New Methods Implementation
+    // ========================================================================
+
+    async getSettlementsForGroupPaginated(
+        groupId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            filterUserId?: string;
+            startDate?: string;
+            endDate?: string;
+        }
+    ): Promise<{
+        settlements: SettlementDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getSettlementsForGroupPaginated',
+            async () => {
+                try {
+                    const limit = Math.min(options?.limit || 20, 100);
+                    const { cursor, filterUserId, startDate, endDate } = options || {};
+
+                    let query: FirebaseFirestore.Query = this.db.collection(FirestoreCollections.SETTLEMENTS)
+                        .where('groupId', '==', groupId)
+                        .orderBy('date', 'desc')
+                        .limit(limit);
+
+                    if (filterUserId) {
+                        query = query.where(
+                            Filter.or(
+                                Filter.where('payerId', '==', filterUserId),
+                                Filter.where('payeeId', '==', filterUserId)
+                            )
+                        );
+                    }
+
+                    if (startDate) {
+                        query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
+                    }
+
+                    if (endDate) {
+                        query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
+                    }
+
+                    if (cursor) {
+                        const cursorDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(cursor).get();
+                        if (cursorDoc.exists) {
+                            query = query.startAfter(cursorDoc);
+                        }
+                    }
+
+                    const snapshot = await query.get();
+                    const settlements = snapshot.docs.map(doc => 
+                        SettlementDocumentSchema.parse({ id: doc.id, ...doc.data() })
+                    );
+
+                    const hasMore = settlements.length === limit;
+                    const nextCursor = hasMore && settlements.length > 0 ? settlements[settlements.length - 1].id : undefined;
+
+                    return {
+                        settlements,
+                        hasMore,
+                        nextCursor
+                    };
+                } catch (error) {
+                    logger.error('Failed to get settlements for group paginated', error, { groupId, options });
+                    throw error;
+                }
+            },
+            { groupId, ...options }
+        );
+    }
+
+    async getSystemMetrics(metricType: string): Promise<any | null> {
+        try {
+            const snapshot = await this.db.collection('system-metrics')
+                .where('type', '==', metricType)
+                .orderBy('timestamp', 'desc')
+                .limit(1)
+                .get();
+
+            if (snapshot.empty) {
+                return null;
+            }
+
+            const doc = snapshot.docs[0];
+            return { id: doc.id, ...doc.data() };
+        } catch (error) {
+            logger.error('Failed to get system metrics', error, { metricType });
+            throw error;
+        }
+    }
+
+    async addSystemMetrics(metricData: any): Promise<string> {
+        try {
+            const docRef = await this.db.collection('system-metrics').add(metricData);
+            return docRef.id;
+        } catch (error) {
+            logger.error('Failed to add system metrics', error, { metricData });
+            throw error;
+        }
+    }
+
+    async verifyGroupMembership(groupId: string, userId: string): Promise<boolean> {
+        try {
+            // Check if user is a member using subcollection lookup
+            const memberDoc = await this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('members')
+                .doc(userId)
+                .get();
+
+            return memberDoc.exists;
+        } catch (error) {
+            logger.error('Failed to verify group membership', error, { groupId, userId });
+            throw error;
+        }
+    }
+
+    async getSubcollectionDocument(
+        parentCollection: string,
+        parentDocId: string,
+        subcollectionName: string,
+        docId: string
+    ): Promise<any | null> {
+        try {
+            const doc = await this.db
+                .collection(parentCollection)
+                .doc(parentDocId)
+                .collection(subcollectionName)
+                .doc(docId)
+                .get();
+
+            return doc.exists ? { id: doc.id, ...doc.data() } : null;
+        } catch (error) {
+            logger.error('Failed to get subcollection document', error, { 
+                parentCollection, parentDocId, subcollectionName, docId 
+            });
+            throw error;
+        }
+    }
+
+
+    async getTestUsersByStatus(status: string, limit: number = 10): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        try {
+            const snapshot = await this.db.collection('test-user-pool')
+                .where('status', '==', status)
+                .limit(limit)
+                .get();
+
+            return snapshot.docs;
+        } catch (error) {
+            logger.error('Failed to get test users by status', error, { status, limit });
+            throw error;
+        }
+    }
+
+    async getTestUserInTransaction(
+        transaction: FirebaseFirestore.Transaction, 
+        email: string
+    ): Promise<any | null> {
+        try {
+            const docRef = this.db.collection('test-user-pool').doc(email);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? { id: doc.id, ...doc.data() } : null;
+        } catch (error) {
+            logger.error('Failed to get test user in transaction', error, { email });
+            throw error;
+        }
+    }
+
+    async queryWithComplexFilters(
+        collection: string,
+        filters: Array<{
+            field: string;
+            operator: FirebaseFirestore.WhereFilterOp;
+            value: any;
+        }>,
+        options?: {
+            orderBy?: { field: string; direction: 'asc' | 'desc' };
+            limit?: number;
+            startAfter?: FirebaseFirestore.DocumentSnapshot;
+        }
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        try {
+            let query: FirebaseFirestore.Query = this.db.collection(collection);
+
+            // Apply filters
+            for (const filter of filters) {
+                query = query.where(filter.field, filter.operator, filter.value);
+            }
+
+            // Apply ordering
+            if (options?.orderBy) {
+                query = query.orderBy(options.orderBy.field, options.orderBy.direction);
+            }
+
+            // Apply limit
+            if (options?.limit) {
+                query = query.limit(options.limit);
+            }
+
+            // Apply startAfter cursor
+            if (options?.startAfter) {
+                query = query.startAfter(options.startAfter);
+            }
+
+            const snapshot = await query.get();
+            return snapshot.docs;
+        } catch (error) {
+            logger.error('Failed to query with complex filters', error, { collection, filters, options });
+            throw error;
+        }
+    }
+
+    async getUserLanguagePreference(userId: string): Promise<string | null> {
+        try {
+            const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
+            if (!userDoc.exists) {
+                return null;
+            }
+
+            const userData = userDoc.data();
+            return userData?.language || userData?.locale || null;
+        } catch (error) {
+            logger.error('Failed to get user language preference', error, { userId });
+            throw error;
+        }
     }
 
 }

@@ -8,7 +8,7 @@ import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers, 
 import { GroupService } from '../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
-import { getGroupService } from '../../services/serviceRegistration';
+import { getGroupService, getFirestoreReader } from '../../services/serviceRegistration';
 import { setupTestServices } from '../test-helpers/setup';
 import {PooledTestUser} from "@splitifyd/shared";
 
@@ -323,17 +323,15 @@ describe('Groups API', () => {
             expect(group.updatedAt).toBeDefined();
 
             // Verify Firestore document was created correctly
-            const doc = await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).get();
-            expect(doc.exists).toBe(true);
-
-            const docData = doc.data()!;
-            expect(docData.name).toBe('Test Group');
-            expect(docData.createdBy).toBe(creator.uid);
-            expect(docData.createdAt).toBeDefined();
-            expect(docData.updatedAt).toBeDefined();
+            const firestoreGroup = await getFirestoreReader().getGroup(group.id);
+            expect(firestoreGroup).not.toBeNull();
+            expect(firestoreGroup!.name).toBe('Test Group');
+            expect(firestoreGroup!.createdBy).toBe(creator.uid);
+            expect(firestoreGroup!.createdAt).toBeDefined();
+            expect(firestoreGroup!.updatedAt).toBeDefined();
 
             // Cleanup
-            await doc.ref.delete();
+            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
     });
 });

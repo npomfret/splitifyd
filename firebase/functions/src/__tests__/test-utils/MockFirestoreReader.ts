@@ -557,4 +557,31 @@ export class MockFirestoreReader implements IFirestoreReader {
             ...overrides
         };
     }
+
+    // ========================================================================
+    // Mock implementations for new methods
+    // ========================================================================
+
+    getSettlementsForGroupPaginated = vi.fn().mockResolvedValue({
+        settlements: [],
+        hasMore: false,
+        nextCursor: undefined
+    });
+
+    getSystemMetrics = vi.fn().mockResolvedValue(null);
+
+    addSystemMetrics = vi.fn().mockResolvedValue('mock-metric-id');
+
+    verifyGroupMembership = vi.fn().mockResolvedValue(true);
+
+    getSubcollectionDocument = vi.fn().mockResolvedValue(null);
+
+
+    getTestUsersByStatus = vi.fn().mockResolvedValue([]);
+
+    getTestUserInTransaction = vi.fn().mockResolvedValue(null);
+
+    queryWithComplexFilters = vi.fn().mockResolvedValue([]);
+
+    getUserLanguagePreference = vi.fn().mockResolvedValue('en');
 }

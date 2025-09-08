@@ -118,7 +118,7 @@ export const cleanupChanges = onSchedule(
  */
 async function logCleanupMetrics(metrics: { collection: string; deletedCount: number; timestamp: string; deleteAll?: boolean }): Promise<void> {
     try {
-        // Store metrics for monitoring (could be sent to external service)
+        // Store metrics for monitoring (could be sent to external service)  
         await getFirestore().collection('system-metrics').add({
             type: 'cleanup',
             ...metrics,

@@ -29,7 +29,7 @@ let servicesRegistered = false;
 
 function ensureServicesRegistered(metricsStorage: IMetricsStorage) {
     if (!servicesRegistered) {
-        registerAllServices(metricsStorage);
+        registerAllServices(metricsStorage, firestore);
         servicesRegistered = true;
     }
 }

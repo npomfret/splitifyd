@@ -1,4 +1,72 @@
 import { logger } from '../logger';
+import type { UserService } from './UserService2';
+import type { GroupService } from './GroupService';
+import type { ExpenseService } from './ExpenseService';
+import type { SettlementService } from './SettlementService';
+import type { CommentService } from './CommentService';
+import type { PolicyService } from './PolicyService';
+import type { UserPolicyService } from './UserPolicyService';
+import type { GroupMemberService } from './GroupMemberService';
+import type { GroupPermissionService } from './GroupPermissionService';
+import type { GroupShareService } from './GroupShareService';
+import type { ExpenseMetadataService } from './expenseMetadataService';
+import type { FirestoreValidationService } from './FirestoreValidationService';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IMetricsStorage } from '../utils/metrics-storage-factory';
+
+/**
+ * Service name constants for type-safe service retrieval
+ */
+export const SERVICE_NAMES = {
+    USER_SERVICE: 'UserService',
+    GROUP_SERVICE: 'GroupService',
+    EXPENSE_SERVICE: 'ExpenseService',
+    SETTLEMENT_SERVICE: 'SettlementService',
+    COMMENT_SERVICE: 'CommentService',
+    POLICY_SERVICE: 'PolicyService',
+    USER_POLICY_SERVICE: 'UserPolicyService',
+    GROUP_MEMBER_SERVICE: 'GroupMemberService',
+    GROUP_PERMISSION_SERVICE: 'GroupPermissionService',
+    GROUP_SHARE_SERVICE: 'GroupShareService',
+    EXPENSE_METADATA_SERVICE: 'ExpenseMetadataService',
+    FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService',
+    FIRESTORE_READER: 'FirestoreReader',
+    FIRESTORE_WRITER: 'FirestoreWriter',
+    METRICS_STORAGE: 'MetricsStorage'
+} as const;
+
+/**
+ * Type mapping from service names to service types
+ */
+export interface ServiceTypeMap {
+    [SERVICE_NAMES.USER_SERVICE]: UserService;
+    [SERVICE_NAMES.GROUP_SERVICE]: GroupService;
+    [SERVICE_NAMES.EXPENSE_SERVICE]: ExpenseService;
+    [SERVICE_NAMES.SETTLEMENT_SERVICE]: SettlementService;
+    [SERVICE_NAMES.COMMENT_SERVICE]: CommentService;
+    [SERVICE_NAMES.POLICY_SERVICE]: PolicyService;
+    [SERVICE_NAMES.USER_POLICY_SERVICE]: UserPolicyService;
+    [SERVICE_NAMES.GROUP_MEMBER_SERVICE]: GroupMemberService;
+    [SERVICE_NAMES.GROUP_PERMISSION_SERVICE]: GroupPermissionService;
+    [SERVICE_NAMES.GROUP_SHARE_SERVICE]: GroupShareService;
+    [SERVICE_NAMES.EXPENSE_METADATA_SERVICE]: ExpenseMetadataService;
+    [SERVICE_NAMES.FIRESTORE_VALIDATION_SERVICE]: FirestoreValidationService;
+    [SERVICE_NAMES.FIRESTORE_READER]: IFirestoreReader;
+    [SERVICE_NAMES.FIRESTORE_WRITER]: IFirestoreWriter;
+    [SERVICE_NAMES.METRICS_STORAGE]: IMetricsStorage;
+}
+
+/**
+ * Valid service name type (union of all service names)
+ */
+export type ServiceName = keyof ServiceTypeMap;
+
+/**
+ * Extended service name type that includes test services
+ * This allows flexibility for testing while maintaining type safety for production
+ */
+export type ExtendedServiceName = ServiceName | string;
 
 /**
  * Service Registry for managing service dependencies
@@ -6,13 +74,14 @@ import { logger } from '../logger';
  * Key features:
  * - Lazy initialization of services
  * - Circular dependency detection
- * - Flexible service types (no BaseService requirement)
+ * - Type-safe service registration and retrieval for production services
+ * - Flexible support for test services
  * - Singleton pattern for consistent instances
  */
 export class ServiceRegistry {
     private static instance: ServiceRegistry;
-    private serviceFactories: Map<string, () => any> = new Map();
-    private initializing: Set<string> = new Set();
+    private serviceFactories: Map<ExtendedServiceName, () => any> = new Map();
+    private initializing: Set<ExtendedServiceName> = new Set();
 
     private constructor() {}
 
@@ -24,9 +93,25 @@ export class ServiceRegistry {
     }
 
     /**
-     * Register a service with a factory function for lazy initialization
+     * Register a production service with full type safety
      */
-    public registerService<T>(name: string, factory: () => T): void {
+    public registerService<K extends ServiceName>(
+        name: K, 
+        factory: () => ServiceTypeMap[K]
+    ): void;
+    
+    /**
+     * Register any service (including test services) with basic type safety
+     */
+    public registerService<T>(
+        name: string, 
+        factory: () => T
+    ): void;
+    
+    public registerService<K extends ServiceName, T>(
+        name: K | string, 
+        factory: () => ServiceTypeMap[K] | T
+    ): void {
         if (this.serviceFactories.has(name)) {
             logger.warn(`Service ${name} is already registered, overwriting`);
         }
@@ -34,9 +119,18 @@ export class ServiceRegistry {
     }
 
     /**
-     * Get a service instance (creates new instance each time)
+     * Get a production service with full type inference
      */
-    public getService<T>(name: string): T {
+    public getService<K extends ServiceName>(name: K): ServiceTypeMap[K];
+    
+    /**
+     * Get any service (including test services)
+     */
+    public getService<T>(name: string): T;
+    
+    public getService<K extends ServiceName, T>(
+        name: K | string
+    ): ServiceTypeMap[K] | T {
         // Check for circular dependency
         if (this.initializing.has(name)) {
             throw new Error(`Circular dependency detected for service: ${name}`);
@@ -70,14 +164,14 @@ export class ServiceRegistry {
     /**
      * Check if a service is registered
      */
-    public hasService(name: string): boolean {
+    public hasService(name: ExtendedServiceName): boolean {
         return this.serviceFactories.has(name);
     }
 
     /**
      * Get list of all registered service names
      */
-    public getRegisteredServices(): string[] {
+    public getRegisteredServices(): ExtendedServiceName[] {
         return Array.from(this.serviceFactories.keys());
     }
 
@@ -93,8 +187,8 @@ export class ServiceRegistry {
      * Get dependency information for debugging
      */
     public getDependencyInfo(): { 
-        registered: string[], 
-        initializing: string[] 
+        registered: ExtendedServiceName[], 
+        initializing: ExtendedServiceName[] 
     } {
         return {
             registered: this.getRegisteredServices(),
@@ -102,6 +196,3 @@ export class ServiceRegistry {
         };
     }
 }
-
-// Export convenience function for getting the registry instance
-export const getServiceRegistry = () => ServiceRegistry.getInstance();

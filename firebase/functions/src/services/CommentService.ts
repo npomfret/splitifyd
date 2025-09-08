@@ -6,10 +6,11 @@ import {HTTP_STATUS} from '../constants';
 import {createOptimisticTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
-import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, FirestoreCollections, ListCommentsResponse,} from '@splitifyd/shared';
+import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
 import {isGroupMemberAsync} from '../utils/groupHelpers';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
+import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 
 /**
@@ -23,20 +24,7 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
-
-    /**
-     * Get reference to comments subcollection based on target type
-     */
-    private getCommentsCollection(targetType: CommentTargetType, targetId: string) {
-        // todo: move the queries into IFirestoreReader
-        if (targetType === CommentTargetTypes.GROUP) {
-            return getFirestore().collection(FirestoreCollections.GROUPS).doc(targetId).collection(FirestoreCollections.COMMENTS);
-        } else if (targetType === CommentTargetTypes.EXPENSE) {
-            return getFirestore().collection(FirestoreCollections.EXPENSES).doc(targetId).collection(FirestoreCollections.COMMENTS);
-        } else {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_TYPE', 'Invalid target type');
-        }
+    constructor(private readonly firestoreReader: IFirestoreReader) {
     }
 
     /**
@@ -185,6 +173,23 @@ export class CommentService {
             hasMore: result.hasMore,
             nextCursor: result.nextCursor,
         };
+    }
+
+    /**
+     * Get Firestore collection reference for comments on a target
+     */
+    private getCommentsCollection(targetType: CommentTargetType, targetId: string) {
+        if (targetType === CommentTargetTypes.GROUP) {
+            return getFirestore().collection(FirestoreCollections.GROUPS)
+                .doc(targetId)
+                .collection(FirestoreCollections.COMMENTS);
+        } else if (targetType === CommentTargetTypes.EXPENSE) {
+            return getFirestore().collection(FirestoreCollections.EXPENSES)
+                .doc(targetId)
+                .collection(FirestoreCollections.COMMENTS);
+        } else {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_TYPE', `Unsupported comment target type: ${targetType}`);
+        }
     }
 
     /**
