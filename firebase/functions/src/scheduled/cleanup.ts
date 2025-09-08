@@ -3,6 +3,7 @@ import {getFirestore} from '../firebase';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
+import { FirestoreReader } from '../services/firestore/FirestoreReader';
 
 /**
  * Core cleanup logic that can be called by both scheduled function and tests
@@ -17,6 +18,8 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
 
     const collections = [FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     let totalDeleted = 0;
+    
+    const firestoreReader = new FirestoreReader();
 
     // Process all collections in parallel
     const cleanupPromises = collections.map(async (collectionName) => {
@@ -30,15 +33,12 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
 
             // Continue deleting until no more documents are found
             while (hasMore) {
-                // Query for documents to delete
-                const snapshot = deleteAll || minutesToKeep === 0
-                    ? await getFirestore().collection(collectionName).limit(500).get()
-                    : await getFirestore().collection(collectionName)
-                        .where('timestamp', '<', cutoffDate)
-                        .limit(500)
-                        .get();
+                // Query for documents to delete using FirestoreReader
+                const docs = deleteAll || minutesToKeep === 0
+                    ? await firestoreReader.getOldDocuments(collectionName, new Date(0), 500) // Get all docs if deleteAll
+                    : await firestoreReader.getOldDocuments(collectionName, cutoffDate, 500);
 
-                if (snapshot.empty) {
+                if (docs.length === 0) {
                     hasMore = false;
                     continue;
                 }
@@ -47,7 +47,7 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
                 const batch = getFirestore().batch();
                 let batchDeleteCount = 0;
 
-                snapshot.docs.forEach((doc) => {
+                docs.forEach((doc) => {
                     batch.delete(doc.ref);
                     batchDeleteCount++;
                 });

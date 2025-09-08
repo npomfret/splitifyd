@@ -12,6 +12,7 @@ import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { getFirestore } from '../firebase';
 import { Timestamp } from 'firebase-admin/firestore';
 import { logger } from '../logger';
+import { FirestoreReader } from '../services/firestore/FirestoreReader';
 
 export interface CleanupConfig {
     rawMetricsRetentionDays: number;
@@ -38,6 +39,7 @@ export async function performMetricsCleanup(
 ): Promise<{ deletedCounts: Record<string, number>; totalDeleted: number }> {
     const finalConfig = { ...DEFAULT_CONFIG, ...config };
     const db = getFirestore();
+    const firestoreReader = new FirestoreReader();
     const deletedCounts: Record<string, number> = {};
     let totalDeleted = 0;
 
@@ -55,6 +57,7 @@ export async function performMetricsCleanup(
 
         // Clean up raw metrics collection
         const rawMetricsDeleted = await cleanupCollection(
+            firestoreReader,
             db,
             'performance-metrics',
             'timestamp',
@@ -67,6 +70,7 @@ export async function performMetricsCleanup(
 
         // Clean up aggregated stats
         const aggregatesDeleted = await cleanupCollection(
+            firestoreReader,
             db,
             'performance-aggregates',
             'periodEnd',
@@ -79,6 +83,7 @@ export async function performMetricsCleanup(
 
         // Clean up performance alerts (if collection exists)
         const alertsDeleted = await cleanupCollection(
+            firestoreReader,
             db,
             'performance-alerts',
             'timestamp',
@@ -91,6 +96,7 @@ export async function performMetricsCleanup(
 
         // Clean up system metrics (used by cleanup itself)
         const systemMetricsDeleted = await cleanupCollection(
+            firestoreReader,
             db,
             'system-metrics',
             'createdAt',
@@ -126,6 +132,7 @@ export async function performMetricsCleanup(
  * Clean up a specific collection
  */
 async function cleanupCollection(
+    firestoreReader: FirestoreReader,
     db: FirebaseFirestore.Firestore,
     collectionName: string,
     timestampField: string,
@@ -135,33 +142,33 @@ async function cleanupCollection(
 ): Promise<number> {
     let totalDeleted = 0;
     let hasMore = true;
-    const cutoffTimestamp = Timestamp.fromDate(cutoffDate);
 
     while (hasMore && totalDeleted < config.maxDeletesPerRun) {
         try {
-            // Query for old documents
-            const snapshot = await db
-                .collection(collectionName)
-                .where(timestampField, '<', cutoffTimestamp)
-                .limit(Math.min(config.batchSize, config.maxDeletesPerRun - totalDeleted))
-                .get();
+            // Query for old documents using FirestoreReader
+            const docs = await firestoreReader.getOldDocumentsByField(
+                collectionName,
+                timestampField,
+                cutoffDate,
+                Math.min(config.batchSize, config.maxDeletesPerRun - totalDeleted)
+            );
 
-            if (snapshot.empty) {
+            if (docs.length === 0) {
                 hasMore = false;
                 continue;
             }
 
             // Delete in batch
             const batch = db.batch();
-            snapshot.docs.forEach(doc => {
+            docs.forEach(doc => {
                 batch.delete(doc.ref);
             });
 
             await batch.commit();
-            totalDeleted += snapshot.size;
+            totalDeleted += docs.length;
 
             // Check if there might be more documents
-            hasMore = snapshot.size === config.batchSize;
+            hasMore = docs.length === config.batchSize;
 
             if (logMetrics && totalDeleted > 0 && totalDeleted % 1000 === 0) {
                 logger.info(`Cleanup progress`, {
@@ -190,6 +197,7 @@ async function cleanupCollection(
  * Delete an entire collection
  */
 async function deleteEntireCollection(
+    firestoreReader: FirestoreReader,
     db: FirebaseFirestore.Firestore,
     collectionName: string,
     batchSize: number,
@@ -200,25 +208,25 @@ async function deleteEntireCollection(
 
     while (hasMore && totalDeleted < maxDeletes) {
         try {
-            const snapshot = await db
-                .collection(collectionName)
-                .limit(Math.min(batchSize, maxDeletes - totalDeleted))
-                .get();
+            const docs = await firestoreReader.getDocumentsBatch(
+                collectionName,
+                Math.min(batchSize, maxDeletes - totalDeleted)
+            );
 
-            if (snapshot.empty) {
+            if (docs.length === 0) {
                 hasMore = false;
                 continue;
             }
 
             const batch = db.batch();
-            snapshot.docs.forEach(doc => {
+            docs.forEach(doc => {
                 batch.delete(doc.ref);
             });
 
             await batch.commit();
-            totalDeleted += snapshot.size;
+            totalDeleted += docs.length;
 
-            hasMore = snapshot.size === batchSize;
+            hasMore = docs.length === batchSize;
         } catch (error) {
             logger.error(`Failed to delete collection ${collectionName}`, error);
             hasMore = false;

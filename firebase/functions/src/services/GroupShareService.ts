@@ -24,43 +24,23 @@ export class GroupShareService {
     }
 
     private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLink }> {
-        const groupsSnapshot = await getFirestore().collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
-
-        if (groupsSnapshot.empty) {
+        const result = await this.firestoreReader.findShareLinkByToken(token);
+        
+        if (!result) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
         }
 
-        const shareLinkDoc = groupsSnapshot.docs[0];
-        const groupId = shareLinkDoc.ref.parent.parent!.id;
-        
-        // Validate and parse share link data
-        const rawData = shareLinkDoc.data();
-        if (!rawData) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'SHARELINK_DATA_NULL', 'Share link document data is null');
-        }
+        // Convert ParsedShareLink to ShareLink format expected by this service
+        const shareLink: ShareLink = {
+            id: result.shareLink.id,
+            token: result.shareLink.token,
+            createdBy: result.shareLink.createdBy,
+            createdAt: result.shareLink.createdAt,
+            expiresAt: result.shareLink.expiresAt,
+            isActive: result.shareLink.isActive,
+        };
 
-        const dataWithId = { ...rawData, id: shareLinkDoc.id };
-        let shareLink: ShareLink;
-        try {
-            const validatedShareLink = ShareLinkDocumentSchema.parse(dataWithId);
-            shareLink = {
-                id: validatedShareLink.id,
-                token: validatedShareLink.token,
-                createdBy: validatedShareLink.createdBy,
-                createdAt: validatedShareLink.createdAt,
-                expiresAt: validatedShareLink.expiresAt,
-                isActive: validatedShareLink.isActive,
-            };
-        } catch (error) {
-            logger.error('ShareLink document validation failed', error as Error, {
-                shareLinkId: shareLinkDoc.id,
-                groupId,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_SHARELINK_DATA', 'Share link document structure is invalid');
-        }
-
-        return { groupId, shareLink };
+        return { groupId: result.groupId, shareLink };
     }
 
 

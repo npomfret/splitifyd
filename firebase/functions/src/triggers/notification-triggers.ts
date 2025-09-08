@@ -13,7 +13,7 @@
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { NotificationService } from '../services/notification-service';
+import { notificationService } from '../services/notification-service';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { registerAllServices } from '../services/serviceRegistration';
 import type { IMetricsStorage } from '../utils/metrics-storage-factory';
@@ -27,8 +27,6 @@ function ensureServicesRegistered(metricsStorage: IMetricsStorage) {
         servicesRegistered = true;
     }
 }
-
-const notificationService = new NotificationService()
 
 /**
  * Create notification triggers with shared metrics storage

@@ -53,6 +53,25 @@ export class MockFirestoreReader implements IFirestoreReader {
     public queryPerformanceMetrics = vi.fn();
     public queryAggregatedStats = vi.fn();
 
+    // New methods added to interface
+    public getUserNotification = vi.fn();
+    public userNotificationExists = vi.fn();
+    public findShareLinkByToken = vi.fn();
+    public getShareLinksForGroup = vi.fn();
+    public getShareLink = vi.fn();
+    public getCommentsForTarget = vi.fn();
+    public getComment = vi.fn();
+    public getCommentByReference = vi.fn();
+    public getAvailableTestUser = vi.fn();
+    public getTestUser = vi.fn();
+    public getTestUserPoolStatus = vi.fn();
+    public getBorrowedTestUsers = vi.fn();
+    public getOldDocuments = vi.fn();
+    public getOldDocumentsByField = vi.fn();
+    public getDocumentsBatch = vi.fn();
+    public getMetricsDocuments = vi.fn();
+    public getCollectionSize = vi.fn();
+
     // ========================================================================
     // Test Utility Methods
     // ========================================================================

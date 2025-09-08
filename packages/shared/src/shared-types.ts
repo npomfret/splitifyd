@@ -250,6 +250,12 @@ export interface FirebaseUser extends BaseUser {
     uid: string;
 }
 
+export interface PooledTestUser {
+    password: string;
+    email: string;
+    uid: string;
+}
+
 export interface AuthenticatedFirebaseUser extends FirebaseUser {
     token: string;
 }

@@ -6,9 +6,8 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-import { NotificationService } from '../services/notification-service';
-
-const notificationService = new NotificationService();
+import { notificationService } from '../services/notification-service';
+import { FirestoreReader } from '../services/firestore/FirestoreReader';
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -47,16 +46,13 @@ export const trackGroupChanges = onDocumentWritten(
                 const affectedUsers: string[] = await stepTracker('member-fetch', async () => {
                     const users: string[] = [];
                     
-                    // For CREATE/UPDATE events, query the current subcollection
+                    // For CREATE/UPDATE events, query the current subcollection using FirestoreReader
                     try {
-                        const membersSnapshot = await getFirestore()
-                            .collection(FirestoreCollections.GROUPS)
-                            .doc(groupId)
-                            .collection('members')
-                            .get();
+                        const firestoreReader = new FirestoreReader();
+                        const members = await firestoreReader.getMembersFromSubcollection(groupId);
                         
-                        membersSnapshot.forEach(memberDoc => {
-                            users.push(memberDoc.id);
+                        members.forEach(member => {
+                            users.push(member.userId);
                         });
                         
                         logger.info('Fetched group members for change tracking', { 

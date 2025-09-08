@@ -3,6 +3,7 @@ import {getUserService} from '../services/serviceRegistration';
 import {RegisteredUser} from "@splitifyd/shared";
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import { Timestamp } from "firebase-admin/firestore";
+import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
 
 export interface PoolUser {
     user: RegisteredUser,
@@ -23,12 +24,12 @@ const POOL_COLLECTION = 'test-user-pool';
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
 
-    private constructor() {
+    private constructor(private readonly firestoreReader: IFirestoreReader) {
     }
 
-    static getInstance(): TestUserPoolService {
+    static getInstance(firestoreReader: IFirestoreReader): TestUserPoolService {
         if (!TestUserPoolService.instance) {
-            TestUserPoolService.instance = new TestUserPoolService();
+            TestUserPoolService.instance = new TestUserPoolService(firestoreReader);
         }
         return TestUserPoolService.instance;
     }
@@ -148,30 +149,19 @@ export class TestUserPoolService {
     }
 
     async getPoolStatus() {
-        const poolRef = getFirestore().collection(POOL_COLLECTION);
-        const [availableSnapshot, borrowedSnapshot] = await Promise.all([
-            poolRef.where('status', '==', 'available').get(),
-            poolRef.where('status', '==', 'borrowed').get()
-        ]);
-        
-        return {
-            available: availableSnapshot.size,
-            borrowed: borrowedSnapshot.size,
-            total: availableSnapshot.size + borrowedSnapshot.size,
-        }
+        return this.firestoreReader.getTestUserPoolStatus();
     }
 
     // Force cleanup all borrows (for testing/admin use)
     async resetPool(): Promise<void> {
-        const poolRef = getFirestore().collection(POOL_COLLECTION);
-        const borrowedSnapshot = await poolRef.where('status', '==', 'borrowed').get();
+        const borrowedDocs = await this.firestoreReader.getBorrowedTestUsers();
         
         const batch = getFirestore().batch();
-        borrowedSnapshot.docs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+        borrowedDocs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
             batch.update(doc.ref, { status: 'available' });
         });
         
-        if (borrowedSnapshot.size > 0) {
+        if (borrowedDocs.length > 0) {
             await batch.commit();
         }
     }

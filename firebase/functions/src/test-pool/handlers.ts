@@ -2,8 +2,10 @@ import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
 import { isEmulator } from '../firebase';
 import { logger } from '../logger';
+import { FirestoreReader } from '../services/firestore/FirestoreReader';
 
-const pool = TestUserPoolService.getInstance();
+const firestoreReader = new FirestoreReader();
+const pool = TestUserPoolService.getInstance(firestoreReader);
 
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {
     // Only allow in test environment

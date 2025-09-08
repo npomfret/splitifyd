@@ -9,7 +9,7 @@
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import {getFirestore} from '../../firebase';
 import { logger } from '../../logger';
-import { FirestoreCollections, SecurityPresets } from '@splitifyd/shared';
+import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp } from 'firebase-admin/firestore';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
 
@@ -23,6 +23,18 @@ import {
     GroupMemberDocumentSchema,
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
+import { 
+    UserNotificationDocumentSchema,
+    type UserNotificationDocument 
+} from '../../schemas/user-notifications';
+import { 
+    ShareLinkDocumentSchema,
+    type ParsedShareLink 
+} from '../../schemas/sharelink';
+import { 
+    CommentDocumentSchema,
+    type ParsedComment 
+} from '../../schemas/comment';
 
 // Import types
 import type {
@@ -848,6 +860,507 @@ export class FirestoreReader implements IFirestoreReader {
             return doc.exists;
         } catch (error) {
             logger.error('Failed to check document existence', error, { collection, documentId });
+            throw error;
+        }
+    }
+
+    // ========================================================================
+    // User Notification Operations
+    // ========================================================================
+
+    async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
+        try {
+            const notificationDoc = await this.db
+                .collection('user-notifications')
+                .doc(userId)
+                .get();
+
+            if (!notificationDoc.exists) {
+                return null;
+            }
+
+            const notificationData = UserNotificationDocumentSchema.parse(notificationDoc.data());
+            return notificationData;
+        } catch (error) {
+            logger.error('Failed to get user notification', error, { userId });
+            throw error;
+        }
+    }
+
+    async userNotificationExists(userId: string): Promise<boolean> {
+        try {
+            const doc = await this.db.collection('user-notifications').doc(userId).get();
+            return doc.exists;
+        } catch (error) {
+            logger.error('Failed to check user notification existence', error, { userId });
+            throw error;
+        }
+    }
+
+    // ========================================================================
+    // Share Link Operations
+    // ========================================================================
+
+    async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
+        try {
+            const snapshot = await this.db
+                .collectionGroup('shareLinks')
+                .where('token', '==', token)
+                .where('isActive', '==', true)
+                .limit(1)
+                .get();
+
+            if (snapshot.empty) {
+                return null;
+            }
+
+            const shareLinkDoc = snapshot.docs[0];
+            const groupId = shareLinkDoc.ref.parent.parent!.id;
+            
+            const rawData = shareLinkDoc.data();
+            if (!rawData) {
+                throw new Error('Share link document data is null');
+            }
+
+            const dataWithId = { ...rawData, id: shareLinkDoc.id };
+            const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
+
+            return { groupId, shareLink };
+        } catch (error) {
+            logger.error('Failed to find share link by token', error, { token });
+            throw error;
+        }
+    }
+
+    async getShareLinksForGroup(groupId: string): Promise<ParsedShareLink[]> {
+        try {
+            const snapshot = await this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('shareLinks')
+                .where('isActive', '==', true)
+                .orderBy('createdAt', 'desc')
+                .get();
+
+            const shareLinks: ParsedShareLink[] = [];
+            
+            for (const doc of snapshot.docs) {
+                try {
+                    const rawData = doc.data();
+                    const dataWithId = { ...rawData, id: doc.id };
+                    const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
+                    shareLinks.push(shareLink);
+                } catch (error) {
+                    logger.error('Invalid share link document in getShareLinksForGroup', {
+                        error,
+                        shareLinkId: doc.id,
+                        groupId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return shareLinks;
+        } catch (error) {
+            logger.error('Failed to get share links for group', error, { groupId });
+            throw error;
+        }
+    }
+
+    async getShareLink(groupId: string, shareLinkId: string): Promise<ParsedShareLink | null> {
+        try {
+            const doc = await this.db
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .collection('shareLinks')
+                .doc(shareLinkId)
+                .get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            const rawData = doc.data();
+            if (!rawData) {
+                return null;
+            }
+
+            const dataWithId = { ...rawData, id: doc.id };
+            const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
+            return shareLink;
+        } catch (error) {
+            logger.error('Failed to get share link', error, { groupId, shareLinkId });
+            throw error;
+        }
+    }
+
+    // ========================================================================
+    // Comment Operations
+    // ========================================================================
+
+    async getCommentsForTarget(
+        targetType: CommentTargetType,
+        targetId: string,
+        options: {
+            limit?: number;
+            cursor?: string;
+            orderBy?: 'createdAt' | 'updatedAt';
+            direction?: 'asc' | 'desc';
+        } = {}
+    ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }> {
+        try {
+            const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
+            
+            // Get the appropriate subcollection reference
+            let commentsCollection: FirebaseFirestore.CollectionReference;
+            if (targetType === CommentTargetTypes.GROUP) {
+                commentsCollection = this.db
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(targetId)
+                    .collection(FirestoreCollections.COMMENTS);
+            } else if (targetType === CommentTargetTypes.EXPENSE) {
+                commentsCollection = this.db
+                    .collection(FirestoreCollections.EXPENSES)
+                    .doc(targetId)
+                    .collection(FirestoreCollections.COMMENTS);
+            } else {
+                throw new Error(`Invalid target type: ${targetType}`);
+            }
+
+            // Build the query
+            let query = commentsCollection
+                .orderBy(orderBy, direction)
+                .limit(limit + 1); // +1 to check if there are more
+
+            // Apply cursor-based pagination if provided
+            if (cursor) {
+                const cursorDoc = await commentsCollection.doc(cursor).get();
+                if (cursorDoc.exists) {
+                    query = query.startAfter(cursorDoc);
+                }
+            }
+
+            const snapshot = await query.get();
+            const docs = snapshot.docs;
+
+            // Determine if there are more comments
+            const hasMore = docs.length > limit;
+            const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
+
+            // Transform documents to ParsedComment objects
+            const comments: ParsedComment[] = [];
+            for (const doc of commentsToReturn) {
+                try {
+                    const rawData = doc.data();
+                    const dataWithId = { ...rawData, id: doc.id };
+                    const comment = CommentDocumentSchema.parse(dataWithId);
+                    comments.push(comment);
+                } catch (error) {
+                    logger.error('Invalid comment document in getCommentsForTarget', {
+                        error,
+                        commentId: doc.id,
+                        targetType,
+                        targetId
+                    });
+                    // Skip invalid documents rather than failing the entire query
+                }
+            }
+
+            return {
+                comments,
+                hasMore,
+                nextCursor: hasMore && commentsToReturn.length > 0 
+                    ? commentsToReturn[commentsToReturn.length - 1].id 
+                    : undefined,
+            };
+        } catch (error) {
+            logger.error('Failed to get comments for target', error, { targetType, targetId });
+            throw error;
+        }
+    }
+
+    async getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getCommentByReference',
+            async () => {
+                try {
+                    const doc = await commentDocRef.get();
+                    if (!doc.exists) {
+                        return null;
+                    }
+
+                    const rawData = doc.data();
+                    if (!rawData) {
+                        return null;
+                    }
+
+                    const dataWithId = { ...rawData, id: doc.id };
+                    return CommentDocumentSchema.parse(dataWithId);
+                } catch (error) {
+                    logger.error('Failed to get comment by reference', error, {
+                        commentPath: commentDocRef.path
+                    });
+                    throw error;
+                }
+            },
+            { commentPath: commentDocRef.path }
+        );
+    }
+
+    async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
+        try {
+            // Get the appropriate subcollection reference
+            let commentsCollection: FirebaseFirestore.CollectionReference;
+            if (targetType === CommentTargetTypes.GROUP) {
+                commentsCollection = this.db
+                    .collection(FirestoreCollections.GROUPS)
+                    .doc(targetId)
+                    .collection(FirestoreCollections.COMMENTS);
+            } else if (targetType === CommentTargetTypes.EXPENSE) {
+                commentsCollection = this.db
+                    .collection(FirestoreCollections.EXPENSES)
+                    .doc(targetId)
+                    .collection(FirestoreCollections.COMMENTS);
+            } else {
+                throw new Error(`Invalid target type: ${targetType}`);
+            }
+
+            const doc = await commentsCollection.doc(commentId).get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            const rawData = doc.data();
+            if (!rawData) {
+                return null;
+            }
+
+            const dataWithId = { ...rawData, id: doc.id };
+            const comment = CommentDocumentSchema.parse(dataWithId);
+            return comment;
+        } catch (error) {
+            logger.error('Failed to get comment', error, { targetType, targetId, commentId });
+            throw error;
+        }
+    }
+
+    // ========================================================================
+    // Test User Pool Operations
+    // ========================================================================
+
+    async getAvailableTestUser(): Promise<any | null> {
+        try {
+            const snapshot = await this.db
+                .collection('test-user-pool')
+                .where('status', '==', 'available')
+                .limit(1)
+                .get();
+
+            if (snapshot.empty) {
+                return null;
+            }
+
+            const doc = snapshot.docs[0];
+            return {
+                id: doc.id,
+                ...doc.data()
+            };
+        } catch (error) {
+            logger.error('Failed to get available test user', error);
+            throw error;
+        }
+    }
+
+    async getTestUser(email: string): Promise<any | null> {
+        try {
+            const doc = await this.db
+                .collection('test-user-pool')
+                .doc(email)
+                .get();
+
+            if (!doc.exists) {
+                return null;
+            }
+
+            return {
+                id: doc.id,
+                ...doc.data()
+            };
+        } catch (error) {
+            logger.error('Failed to get test user', error, { email });
+            throw error;
+        }
+    }
+
+    async getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getTestUserPoolStatus',
+            async () => {
+                try {
+                    const [availableSnapshot, borrowedSnapshot] = await Promise.all([
+                        this.db.collection('test-user-pool').where('status', '==', 'available').get(),
+                        this.db.collection('test-user-pool').where('status', '==', 'borrowed').get()
+                    ]);
+                    
+                    return {
+                        available: availableSnapshot.size,
+                        borrowed: borrowedSnapshot.size,
+                        total: availableSnapshot.size + borrowedSnapshot.size,
+                    };
+                } catch (error) {
+                    logger.error('Failed to get test user pool status', error);
+                    throw error;
+                }
+            },
+            {}
+        );
+    }
+
+    async getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getBorrowedTestUsers',
+            async () => {
+                try {
+                    const snapshot = await this.db
+                        .collection('test-user-pool')
+                        .where('status', '==', 'borrowed')
+                        .get();
+                    
+                    return snapshot.docs;
+                } catch (error) {
+                    logger.error('Failed to get borrowed test users', error);
+                    throw error;
+                }
+            },
+            {}
+        );
+    }
+
+    // ========================================================================
+    // System Metrics Operations
+    // ========================================================================
+
+    async getOldDocuments(
+        collection: string,
+        cutoffDate: Date,
+        limit: number = 500
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        try {
+            let query: FirebaseFirestore.Query = this.db.collection(collection);
+            
+            // If collection supports timestamp-based queries, use cutoff date
+            if (collection !== 'system-metrics') {
+                query = query.where('timestamp', '<', cutoffDate);
+            }
+            
+            query = query.limit(limit);
+
+            const snapshot = await query.get();
+            return snapshot.docs;
+        } catch (error) {
+            logger.error('Failed to get old documents', error, { collection, cutoffDate, limit });
+            throw error;
+        }
+    }
+
+    async getOldDocumentsByField(
+        collection: string,
+        timestampField: string,
+        cutoffDate: Date,
+        limit: number = 500
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getOldDocumentsByField',
+            async () => {
+                try {
+                    const snapshot = await this.db
+                        .collection(collection)
+                        .where(timestampField, '<', cutoffDate)
+                        .limit(limit)
+                        .get();
+
+                    return snapshot.docs;
+                } catch (error) {
+                    logger.error('Failed to get old documents by field', error, { 
+                        collection, 
+                        timestampField, 
+                        cutoffDate, 
+                        limit 
+                    });
+                    throw error;
+                }
+            },
+            { collection, timestampField, limit }
+        );
+    }
+
+    async getDocumentsBatch(
+        collection: string,
+        limit: number = 500
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getDocumentsBatch',
+            async () => {
+                try {
+                    const snapshot = await this.db
+                        .collection(collection)
+                        .limit(limit)
+                        .get();
+
+                    return snapshot.docs;
+                } catch (error) {
+                    logger.error('Failed to get documents batch', error, { 
+                        collection, 
+                        limit 
+                    });
+                    throw error;
+                }
+            },
+            { collection, limit }
+        );
+    }
+
+    async getMetricsDocuments(
+        collection: string,
+        timestampField: string,
+        cutoffTimestamp: any,
+        limit: number = 500
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+        try {
+            const snapshot = await this.db
+                .collection(collection)
+                .where(timestampField, '<', cutoffTimestamp)
+                .limit(limit)
+                .get();
+
+            return snapshot.docs;
+        } catch (error) {
+            logger.error('Failed to get metrics documents', error, { 
+                collection, 
+                timestampField, 
+                cutoffTimestamp, 
+                limit 
+            });
+            throw error;
+        }
+    }
+
+    async getCollectionSize(collection: string): Promise<number> {
+        try {
+            const snapshot = await this.db
+                .collection(collection)
+                .count()
+                .get();
+
+            return snapshot.data().count;
+        } catch (error) {
+            logger.error('Failed to get collection size', error, { collection });
             throw error;
         }
     }

@@ -171,45 +171,29 @@ export class CommentService {
         // Verify user has access to view comments on this target
         await this.verifyCommentAccess(targetType, targetId, userId, resolvedGroupId);
 
-        // Build the query
-        const commentsCollection = this.getCommentsCollection(targetType, targetId);
-        let query: Query = commentsCollection.orderBy('createdAt', 'desc').limit(limit + 1); // Fetch one extra to check if there are more
-
-        // Apply cursor-based pagination if provided
-        if (cursor) {
-            try {
-                const cursorDoc = await commentsCollection.doc(cursor).get();
-                if (cursorDoc.exists) {
-                    query = query.startAfter(cursorDoc);
-                }
-            } catch (error) {
-                logger.info('Invalid cursor provided', { cursor, error });
-                // Continue without cursor if it's invalid
-            }
-        }
-
-        // Execute the query
-        const snapshot = await query.get();
-        const docs = snapshot.docs;
-
-        // Determine if there are more comments
-        const hasMore = docs.length > limit;
-        const commentsToReturn = hasMore ? docs.slice(0, limit) : docs;
-
-        // Transform documents to Comment API response objects
-        const comments: CommentApiResponse[] = commentsToReturn.map((doc) => {
-            const comment = this.transformCommentDocument(doc);
-            return {
-                ...comment,
-                createdAt: timestampToISO(comment.createdAt as Timestamp),
-                updatedAt: timestampToISO(comment.updatedAt as Timestamp),
-            };
+        // Use FirestoreReader to get comments with pagination
+        const result = await this.firestoreReader.getCommentsForTarget(targetType, targetId, {
+            limit,
+            cursor,
+            orderBy: 'createdAt',
+            direction: 'desc'
         });
+
+        // Transform ParsedComment objects to CommentApiResponse format
+        const comments: CommentApiResponse[] = result.comments.map((comment) => ({
+            id: comment.id,
+            authorId: comment.authorId,
+            authorName: comment.authorName,
+            authorAvatar: comment.authorAvatar || undefined,
+            text: comment.text,
+            createdAt: timestampToISO(comment.createdAt as Timestamp),
+            updatedAt: timestampToISO(comment.updatedAt as Timestamp),
+        }));
 
         return {
             comments,
-            hasMore,
-            nextCursor: hasMore && commentsToReturn.length > 0 ? commentsToReturn[commentsToReturn.length - 1].id : undefined,
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor,
         };
     }
 
@@ -275,13 +259,19 @@ export class CommentService {
         const commentsCollection = this.getCommentsCollection(targetType, targetId);
         const commentDocRef = await commentsCollection.add(validatedComment);
 
-        // Fetch the created comment to return it
-        const createdCommentDoc = await commentDocRef.get();
-        const createdComment = this.transformCommentDocument(createdCommentDoc);
+        // Fetch the created comment to return it using FirestoreReader
+        const createdComment = await this.firestoreReader.getCommentByReference(commentDocRef);
+        if (!createdComment) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
+        }
 
         // Convert timestamps to ISO strings for the API response
         return {
-            ...createdComment,
+            id: createdComment.id,
+            authorId: createdComment.authorId,
+            authorName: createdComment.authorName,
+            authorAvatar: createdComment.authorAvatar || undefined,
+            text: createdComment.text,
             createdAt: timestampToISO(createdComment.createdAt as Timestamp),
             updatedAt: timestampToISO(createdComment.updatedAt as Timestamp),
         };

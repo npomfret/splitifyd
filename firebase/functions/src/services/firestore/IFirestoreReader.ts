@@ -28,7 +28,10 @@ import type {
     SettlementDocument,
     PolicyDocument
 } from '../../schemas';
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
+import type { UserNotificationDocument } from '../../schemas/user-notifications';
+import type { ParsedShareLink } from '../../schemas/sharelink';
+import type { ParsedComment } from '../../schemas/comment';
 
 export interface IFirestoreReader {
     // ========================================================================
@@ -250,5 +253,181 @@ export interface IFirestoreReader {
      * @returns True if document exists, false otherwise
      */
     documentExists(collection: string, documentId: string): Promise<boolean>;
+
+    // ========================================================================
+    // User Notification Operations
+    // ========================================================================
+
+    /**
+     * Get a user notification document by user ID
+     * @param userId - The user ID
+     * @returns User notification document or null if not found
+     */
+    getUserNotification(userId: string): Promise<UserNotificationDocument | null>;
+
+    /**
+     * Check if a user notification document exists
+     * @param userId - The user ID
+     * @returns True if notification document exists, false otherwise
+     */
+    userNotificationExists(userId: string): Promise<boolean>;
+
+    // ========================================================================
+    // Share Link Operations
+    // ========================================================================
+
+    /**
+     * Find a share link by its token across all groups
+     * @param token - The share link token
+     * @returns Object with groupId and share link, or null if not found
+     */
+    findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
+
+    /**
+     * Get all active share links for a group
+     * @param groupId - The group ID
+     * @returns Array of share link documents
+     */
+    getShareLinksForGroup(groupId: string): Promise<ParsedShareLink[]>;
+
+    /**
+     * Get a specific share link by group and link ID
+     * @param groupId - The group ID
+     * @param shareLinkId - The share link ID
+     * @returns Share link document or null if not found
+     */
+    getShareLink(groupId: string, shareLinkId: string): Promise<ParsedShareLink | null>;
+
+    // ========================================================================
+    // Comment Operations
+    // ========================================================================
+
+    /**
+     * Get paginated comments for a target (group or expense)
+     * @param targetType - The target type (group or expense)
+     * @param targetId - The target ID
+     * @param options - Pagination and ordering options
+     * @returns Object with comments array, hasMore flag, and nextCursor
+     */
+    getCommentsForTarget(
+        targetType: CommentTargetType,
+        targetId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            orderBy?: 'createdAt' | 'updatedAt';
+            direction?: 'asc' | 'desc';
+        }
+    ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }>;
+
+    /**
+     * Get a specific comment by target and comment ID
+     * @param targetType - The target type (group or expense)
+     * @param targetId - The target ID
+     * @param commentId - The comment ID
+     * @returns Comment document or null if not found
+     */
+    getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null>;
+
+    /**
+     * Get a comment by its document reference
+     * @param commentDocRef - The comment document reference
+     * @returns Comment document or null if not found
+     */
+    getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null>;
+
+    // ========================================================================
+    // Test User Pool Operations
+    // ========================================================================
+
+    /**
+     * Get an available test user from the pool
+     * @returns Available test user or null if none available
+     */
+    getAvailableTestUser(): Promise<any | null>;
+
+    /**
+     * Get a test user by email
+     * @param email - The test user email
+     * @returns Test user document or null if not found
+     */
+    getTestUser(email: string): Promise<any | null>;
+
+    /**
+     * Get test user pool status with counts
+     * @returns Pool status with available, borrowed, and total counts
+     */
+    getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }>;
+
+    /**
+     * Get all borrowed test users for cleanup operations
+     * @returns Array of borrowed test user documents
+     */
+    getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]>;
+
+    // ========================================================================
+    // System Metrics Operations
+    // ========================================================================
+
+    /**
+     * Get old documents for cleanup operations
+     * @param collection - The collection name
+     * @param cutoffDate - The cutoff date for old documents
+     * @param limit - Maximum number of documents to return
+     * @returns Array of document snapshots
+     */
+    getOldDocuments(
+        collection: string,
+        cutoffDate: Date,
+        limit?: number
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    /**
+     * Get old documents for cleanup operations with custom timestamp field
+     * @param collection - The collection name
+     * @param timestampField - The timestamp field name
+     * @param cutoffDate - The cutoff date for old documents
+     * @param limit - Maximum number of documents to return
+     * @returns Array of old document snapshots
+     */
+    getOldDocumentsByField(
+        collection: string,
+        timestampField: string,
+        cutoffDate: Date,
+        limit?: number
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    /**
+     * Get a batch of documents from a collection (for deletion operations)
+     * @param collection - The collection name
+     * @param limit - Maximum number of documents to return
+     * @returns Array of document snapshots
+     */
+    getDocumentsBatch(
+        collection: string,
+        limit?: number
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    /**
+     * Get metrics documents based on timestamp field
+     * @param collection - The collection name
+     * @param timestampField - The timestamp field name
+     * @param cutoffTimestamp - The cutoff timestamp
+     * @param limit - Maximum number of documents to return
+     * @returns Array of document snapshots
+     */
+    getMetricsDocuments(
+        collection: string,
+        timestampField: string,
+        cutoffTimestamp: any,
+        limit?: number
+    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+
+    /**
+     * Get the size of a collection
+     * @param collection - The collection name
+     * @returns The number of documents in the collection
+     */
+    getCollectionSize(collection: string): Promise<number>;
 
 }

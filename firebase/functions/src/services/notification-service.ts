@@ -20,6 +20,7 @@
 import {FieldValue, type Firestore, Timestamp} from 'firebase-admin/firestore';
 import { FirestoreWriter } from './firestore/FirestoreWriter';
 import { FirestoreReader } from './firestore/FirestoreReader';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { WriteResult, BatchWriteResult } from './firestore/IFirestoreWriter';
 import { logger } from '../logger';
 import { getFirestore } from '../firebase';
@@ -35,7 +36,10 @@ export type ChangeType = 'transaction' | 'balance' | 'group';
 
 export class NotificationService {
 
-    constructor(private readonly db: Firestore = getFirestore()) {}
+    constructor(
+        private readonly db: Firestore = getFirestore(),
+        private readonly firestoreReader: IFirestoreReader = new FirestoreReader()
+    ) {}
 
     /**
      * Update a single user's notification document
@@ -133,10 +137,9 @@ export class NotificationService {
      * Creates the document with empty groups object if it doesn't exist
      */
     async initializeUserNotifications(userId: string): Promise<WriteResult> {
-        const docRef = this.db.doc(`user-notifications/${userId}`);
-        const existingDoc = await docRef.get();
+        const existingNotification = await this.firestoreReader.getUserNotification(userId);
         
-        if (existingDoc.exists) {
+        if (existingNotification) {
             // Document already exists, don't reinitialize
             logger.info('User notification document already exists, skipping initialization', { userId });
             return {
@@ -159,7 +162,7 @@ export class NotificationService {
         };
 
         // Create document only if it doesn't exist
-        await docRef.set(documentData);
+        await this.db.doc(`user-notifications/${userId}`).set(documentData);
         
         logger.info('User notification document initialized', { userId });
         
@@ -177,10 +180,9 @@ export class NotificationService {
      */
     async addUserToGroup(userId: string, groupId: string): Promise<WriteResult> {
         // First check if the user already has this group in their notifications
-        const docRef = this.db.doc(`user-notifications/${userId}`);
-        const existingDoc = await docRef.get();
+        const existingNotification = await this.firestoreReader.getUserNotification(userId);
         
-        if (existingDoc.exists && existingDoc.data()?.groups?.[groupId]) {
+        if (existingNotification?.groups?.[groupId]) {
             // User already has this group in their notifications, don't overwrite
             logger.info('User already in group notifications, skipping creation', { userId, groupId });
             return {
@@ -204,7 +206,7 @@ export class NotificationService {
         };
 
         // Use set with merge to ensure document exists
-        await docRef.set(groupUpdate, { merge: true });
+        await this.db.doc(`user-notifications/${userId}`).set(groupUpdate, { merge: true });
         logger.info('User added to group notifications', { userId, groupId });
         
         return {
@@ -276,4 +278,7 @@ export class NotificationService {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }
+
+// Export singleton instance
+export const notificationService = new NotificationService();
 
