@@ -3,7 +3,7 @@ import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../hel
 import { multiUserTest } from '../../../fixtures';
 import { singleMixedAuthTest } from '../../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
-import { GroupDetailPage, JoinGroupPage } from '../../../pages';
+import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
@@ -14,8 +14,12 @@ setupMCPDebugOnFailure();
 test.describe('Comprehensive Share Link Testing', () => {
     test.describe('Share Link - Already Logged In User', () => {
         multiUserTest('should allow logged-in user to join group via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-            const { page: page1, user: user1 } = authenticatedPage;
-            const { page: page2, user: user2 } = secondUser;
+            const { page: page1, dashboardPage: user1DashboardPage } = authenticatedPage;
+            const { page: page2, dashboardPage: user2DashboardPage } = secondUser;
+
+            const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+            const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
             const groupDetailPage2 = new GroupDetailPage(page2);
 
             // Create group with user1
@@ -37,8 +41,8 @@ test.describe('Comprehensive Share Link Testing', () => {
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible
-            await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
-            await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(user1DisplayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
         });
 
         multiUserTest('should show appropriate message when logged-in user is already a member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
@@ -93,7 +97,7 @@ test.describe('Comprehensive Share Link Testing', () => {
         });
 
         singleMixedAuthTest('should allow unregistered user to register and join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
-            const { page: page1, user: user1 } = authenticatedUsers[0];
+            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = authenticatedUsers[0];
             const { page: page2, registerPage, loginPage } = unauthenticatedUsers[0];
 
             // Create group with authenticated user
@@ -144,12 +148,12 @@ test.describe('Comprehensive Share Link Testing', () => {
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible
-            await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(await user1DashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
             await expect(groupDetailPage2.getTextElement(newUserName).first()).toBeVisible();
         });
 
         singleMixedAuthTest('should allow user to login and then join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
-            const { page: page1, user: user1 } = authenticatedUsers[0];
+            const { page: page1, user: user1, dashboardPage } = authenticatedUsers[0];
             const { page: page2, loginPage } = unauthenticatedUsers[0];
 
             // Create group with authenticated user
@@ -196,10 +200,11 @@ test.describe('Comprehensive Share Link Testing', () => {
             // Verify user is now in the group
             const groupDetailPage2 = new GroupDetailPage(page2);
             await groupDetailPage2.waitForMemberCount(2);
+            const user2DisplayName = await groupDetailPage2.getCurrentUserDisplayName();
 
             // Both users should be visible
-            await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
-            await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(await dashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
 
             // Clean up - release the user back to the pool
             userPool.releaseUser(user2);

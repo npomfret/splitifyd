@@ -6,14 +6,14 @@ import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import {getAuth, getFirestore} from '../../../firebase';
 import { getUserService } from '../../../services/serviceRegistration';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared/src";
+import {AuthenticatedFirebaseUser, PooledTestUser} from "@splitifyd/shared";
 import { setupTestServices } from '../../test-helpers/setup';
 
 describe('UserService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let userService: UserService;
 
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3)
@@ -325,7 +325,7 @@ describe('UserService - Integration Tests', () => {
     });
 
     describe('changePassword', () => {
-        let testUser: AuthenticatedFirebaseUser;
+        let testUser: PooledTestUser;
 
         beforeEach(() => {
             testUser = users[0];

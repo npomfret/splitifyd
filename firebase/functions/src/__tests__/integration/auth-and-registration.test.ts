@@ -3,14 +3,14 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, borrowTestUser, borrowTestUsers, generateTestEmail, generateNewUserDetails, UserRegistrationBuilder } from '@splitifyd/test-support';
-import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { ApiDriver, borrowTestUsers, generateTestEmail, generateNewUserDetails, UserRegistrationBuilder } from '@splitifyd/test-support';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Authentication and Registration', () => {
     const apiDriver = new ApiDriver();
 
     describe('Basic Authentication', () => {
-        let users: AuthenticatedFirebaseUser[];
+        let users: PooledTestUser[];
 
         beforeEach(async () => {
             users = await borrowTestUsers(2);

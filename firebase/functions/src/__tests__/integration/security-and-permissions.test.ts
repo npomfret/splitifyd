@@ -5,11 +5,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, ExpenseBuilder } from '@splitifyd/test-support';
-import { SecurityPresets, MemberRoles, PermissionLevels, Group, AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitifyd/shared';
+import {PooledTestUser, UserToken} from "@splitifyd/shared";
 
 describe('Security and Permissions', () => {
     const apiDriver = new ApiDriver();
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
@@ -157,8 +158,8 @@ describe('Security and Permissions', () => {
 
     describe('Permission System', () => {
         let group: Group;
-        let adminUser: AuthenticatedFirebaseUser;
-        let memberUser: AuthenticatedFirebaseUser;
+        let adminUser: UserToken;
+        let memberUser: UserToken;
 
         beforeEach(async () => {
             [adminUser, memberUser] = users;

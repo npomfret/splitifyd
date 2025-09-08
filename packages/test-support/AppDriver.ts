@@ -1,7 +1,7 @@
 import * as admin from "firebase-admin";
-import {ApiDriver, BalanceChangeDocument, ExpenseChangeDocument, GroupChangeDocument, MinimalChangeDocument, SettlementChangeDocument} from "./ApiDriver";
+import {ApiDriver} from "./ApiDriver";
 import {Matcher, pollUntil} from "./Polling";
-import {FirestoreCollections, AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 // Types for user notification documents (mirrors backend schema)
 interface UserNotificationGroup {

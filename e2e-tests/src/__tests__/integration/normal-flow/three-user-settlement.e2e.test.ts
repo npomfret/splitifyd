@@ -1,7 +1,7 @@
 import { expect, threeUserTest as test } from '../../../fixtures/three-user-test';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
+import {DashboardPage, JoinGroupPage} from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
 setupMCPDebugOnFailure();
@@ -23,17 +23,20 @@ test.describe('Three User Settlement Management', () => {
         expect(user1.email).not.toBe(user3.email);
         expect(user2.email).not.toBe(user3.email);
 
+        const user1DisplayName = await new DashboardPage(page).getCurrentUserDisplayName(); 
+        const user2DisplayName = await new DashboardPage(page2).getCurrentUserDisplayName(); 
+        const user3DisplayName = await new DashboardPage(page3).getCurrentUserDisplayName(); 
         // Assert all users have different display names
-        expect(user1.displayName).not.toBe(user2.displayName);
-        expect(user1.displayName).not.toBe(user3.displayName);
-        expect(user2.displayName).not.toBe(user3.displayName);
+        expect(user1DisplayName).not.toBe(user2DisplayName);
+        expect(user1DisplayName).not.toBe(user3DisplayName);
+        expect(user2DisplayName).not.toBe(user3DisplayName);
 
         // Verify correct users are shown in UI
         // The new UI shows display names in the user button but not as the accessible name
         // Use .first() to avoid strict mode violations when display name appears multiple times
-        await expect(groupDetailPage.getTextElement(user1.displayName).first()).toBeVisible();
-        await expect(secondUser.groupDetailPage.getTextElement(user2.displayName).first()).toBeVisible();
-        await expect(thirdUser.groupDetailPage.getTextElement(user3.displayName).first()).toBeVisible();
+        await expect(groupDetailPage.getTextElement(user1DisplayName).first()).toBeVisible();
+        await expect(secondUser.groupDetailPage.getTextElement(user2DisplayName).first()).toBeVisible();
+        await expect(thirdUser.groupDetailPage.getTextElement(user3DisplayName).first()).toBeVisible();
 
         // 1. Create a group with 3 users
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
@@ -93,16 +96,16 @@ test.describe('Three User Settlement Management', () => {
         // - User2 owes: $40 to User1
         // - User3 owes: $40 to User1
         const allPages = [
-            { page, groupDetailPage, userName: user1.displayName },
-            { page: page2, groupDetailPage: groupDetailPage2, userName: user2.displayName },
-            { page: page3, groupDetailPage: groupDetailPage3, userName: user3.displayName },
+            { page, groupDetailPage },
+            { page: page2, groupDetailPage: groupDetailPage2 },
+            { page: page3, groupDetailPage: groupDetailPage3 },
         ];
 
         await groupDetailPage.addExpenseAndSync(
             {
                 description: 'Group dinner expense',
                 amount: 120,
-                paidBy: user1.displayName,
+                paidBy: user1.uid,
                 currency: 'USD',
                 splitType: 'equal',
             },
@@ -122,8 +125,8 @@ test.describe('Three User Settlement Management', () => {
         // This represents the initial debt distribution after the group dinner
 
         // Verify both debts exist across all pages
-        await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$40.00');
-        await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
+        await groupDetailPage.verifyDebtAcrossPages(allPages, user2DisplayName, user1DisplayName, '$40.00');
+        await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
 
         // 4. User 2 makes partial settlement of 30
         // SETTLEMENT CALCULATION:
@@ -133,8 +136,8 @@ test.describe('Three User Settlement Management', () => {
 
         await groupDetailPage.recordSettlementAndSync(
             {
-                payerName: user2.displayName,
-                payeeName: user1.displayName,
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
                 amount: '30',
                 note: 'Partial payment from user2',
             },
@@ -154,8 +157,8 @@ test.describe('Three User Settlement Management', () => {
         // The partial payment reduces User2's debt but doesn't fully settle
 
         // Verify updated debts across all pages
-        await groupDetailPage.verifyDebtAcrossPages(allPages, user2.displayName, user1.displayName, '$10.00');
-        await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
+        await groupDetailPage.verifyDebtAcrossPages(allPages, user2DisplayName, user1DisplayName, '$10.00');
+        await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
 
         // 6. User 2 makes final settlement of remaining $10
         // FINAL SETTLEMENT CALCULATION:
@@ -165,8 +168,8 @@ test.describe('Three User Settlement Management', () => {
 
         await groupDetailPage.recordSettlementAndSync(
             {
-                payerName: user2.displayName,
-                payeeName: user1.displayName,
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
                 amount: '10',
                 note: 'Final payment from user2 - all settled!',
             },
@@ -185,10 +188,10 @@ test.describe('Three User Settlement Management', () => {
         // User2 should no longer appear in debt list (settled up)
         const balancesSection1 = groupDetailPage.getBalancesSection();
 
-        await expect(groupDetailPage.getDebtInfo(user2.displayName, user1.displayName)).not.toBeVisible();
+        await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
 
         // User3 should still owe $40
-        await groupDetailPage.verifyDebtAcrossPages(allPages, user3.displayName, user1.displayName, '$40.00');
+        await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
 
         // Verify both settlements appear in history
         await groupDetailPage.openHistory();

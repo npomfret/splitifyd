@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 /**
@@ -8,7 +8,7 @@ import { groupDetailUrlPattern } from './group-detail.page.ts';
  * Handles different authentication states and provides robust join operations.
  */
 export class JoinGroupPage extends BasePage {
-    constructor(page: Page, userInfo?: BaseUser) {
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
 

@@ -1,6 +1,7 @@
-import { AuthenticatedFirebaseUser, Group } from '@splitifyd/shared';
+import { Group } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
 import { generateShortId } from './test-helpers';
+import {UserToken} from "@splitifyd/shared";
 
 interface GroupOptions {
     memberCount?: number;  
@@ -8,22 +9,17 @@ interface GroupOptions {
     description?: string;
 }
 
-interface GroupCacheKey {
-    userIds: string[];
-    memberCount: number;
-}
-
 export class TestGroupManager {
     private static groupCache: Map<string, Promise<Group>> = new Map();
     private static apiDriver = new ApiDriver();
 
-    private static createCacheKey(users: AuthenticatedFirebaseUser[], memberCount: number): string {
+    private static createCacheKey(users: UserToken[], memberCount: number): string {
         const sortedUserIds = users.slice(0, memberCount).map(u => u.uid).sort();
         return `${sortedUserIds.join('|')}:${memberCount}`;
     }
 
     public static async getOrCreateGroup(
-        users: AuthenticatedFirebaseUser[], 
+        users: UserToken[],
         options: GroupOptions = {}
     ): Promise<Group> {
         const { memberCount = 2, fresh = false, description } = options;
@@ -47,13 +43,12 @@ export class TestGroupManager {
     }
 
     private static async createFreshGroup(
-        users: AuthenticatedFirebaseUser[], 
+        users: UserToken[],
         memberCount: number,
         description?: string
     ): Promise<Group> {
         const groupMembers = users.slice(0, memberCount);
         const groupName = `Reusable Test Group ${generateShortId()}`;
-        const groupDescription = description || `Shared test group for ${memberCount} members (${groupMembers.map(u => u.displayName).join(', ')})`;
 
         return this.apiDriver.createGroupWithMembers(
             groupName,

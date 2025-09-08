@@ -2,12 +2,12 @@ import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 import {beforeEach} from "vitest";
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {PooledTestUser, UserToken} from "@splitifyd/shared";
 
 describe('Group Members Integration Tests', () => {
     const apiDriver = new ApiDriver();
 
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(5);
@@ -16,7 +16,7 @@ describe('Group Members Integration Tests', () => {
     const _testUsers = (count: number) => users.slice(0, count);
 
     // Helper function to create a group with multiple members
-    const createGroupWithMembers = async (driver: ApiDriver, users: AuthenticatedFirebaseUser[]): Promise<string> => {
+    const createGroupWithMembers = async (driver: ApiDriver, users: UserToken[]): Promise<string> => {
         const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('Test group for member operations').build();
 
         const group = await driver.createGroup(groupData, users[0].token);

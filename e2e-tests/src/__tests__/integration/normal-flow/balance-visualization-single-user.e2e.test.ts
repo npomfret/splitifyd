@@ -7,10 +7,10 @@ setupMCPDebugOnFailure();
 
 test.describe('Single User Balance Visualization', () => {
     test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+        const { page, user, } = authenticatedPage;
 
         // Use cached group for better performance
-        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Balance section should show "All settled up!" for empty group
         // Check if Balances heading is visible
@@ -27,7 +27,7 @@ test.describe('Single User Balance Visualization', () => {
         }
 
         // Members section should show the creator - use first() since display name might appear multiple times
-        await expect(groupDetailPage.getMainSection().getByText(user.displayName).first()).toBeVisible();
+        await expect(groupDetailPage.getMainSection().getByText(await dashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
 
         // Expenses section should be present (group may have existing expenses when cached)
         await expect(groupDetailPage.getExpensesHeading()).toBeVisible();

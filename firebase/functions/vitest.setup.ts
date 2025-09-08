@@ -1,5 +1,4 @@
 import { afterEach, beforeEach } from 'vitest';
-import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
 
 // Mock firebase-functions logger to use console in tests
 // vi.mock('firebase-functions', () => ({

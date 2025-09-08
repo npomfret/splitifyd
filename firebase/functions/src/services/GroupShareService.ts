@@ -10,7 +10,7 @@ import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
-import { ShareLinkDocumentSchema, ShareLinkDataSchema } from '../schemas/sharelink';
+import { ShareLinkDataSchema } from '../schemas/sharelink';
 import { getGroupMemberService } from './serviceRegistration';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 

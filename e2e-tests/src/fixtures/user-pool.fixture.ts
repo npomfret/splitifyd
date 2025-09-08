@@ -1,5 +1,5 @@
-import type {RegisteredUser as BaseUser} from '@splitifyd/shared';
 import {ApiDriver} from '@splitifyd/test-support';
+import {PooledTestUser} from "@splitifyd/shared";
 
 /**
  * Thin wrapper around the remote test user pool API.
@@ -27,7 +27,7 @@ export class UserPool {
     /**
      * Claim a user from the remote API pool.
      */
-    async claimUser(_browser: any): Promise<BaseUser> {
+    async claimUser(_browser: any): Promise<PooledTestUser> {
         const poolUser = await this.apiDriver.borrowTestUser();
         this.usersInUse.add(poolUser.uid);
         return poolUser;
@@ -36,7 +36,7 @@ export class UserPool {
     /**
      * Release a user back to the remote API pool with retry logic.
      */
-    async releaseUser(user: BaseUser): Promise<void> {
+    async releaseUser(user: PooledTestUser): Promise<void> {
         if (!this.usersInUse.has(user.uid)) {
             console.log(`⚠️ Attempted to release unknown user: ${user.email}`);
             return;

@@ -4,13 +4,13 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ExpenseBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Optimistic Locking Integration Tests', () => {
     // vi.setTimeout(25000); // it takes about 18s
 
     const apiDriver = new ApiDriver();
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

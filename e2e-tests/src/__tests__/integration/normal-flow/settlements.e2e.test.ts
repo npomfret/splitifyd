@@ -23,8 +23,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData = {
-                payerName: authenticatedPage.user.displayName,
-                payeeName: secondUser.user.displayName,
+                payerName: await groupDetailPage.getCurrentUserDisplayName(),
+                payeeName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
                 amount: '100.50',
                 note: 'Test payment for history',
             };
@@ -63,8 +63,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData = {
-                payerName: secondUser.user.displayName, // Second user pays
-                payeeName: authenticatedPage.user.displayName, // Creator receives
+                payerName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
+                payeeName: await groupDetailPage.getCurrentUserDisplayName(),
                 amount: '75.00',
                 note: 'Creator receives payment',
             };
@@ -99,8 +99,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData = {
-                payerName: authenticatedPage.user.displayName,
-                payeeName: secondUser.user.displayName,
+                payerName: await groupDetailPage.getCurrentUserDisplayName(),
+                payeeName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
                 amount: '100.50',
                 note: 'Initial test payment',
             };
@@ -156,8 +156,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData = {
-                payerName: authenticatedPage.user.displayName,
-                payeeName: secondUser.user.displayName,
+                payerName: await groupDetailPage.getCurrentUserDisplayName(),
+                payeeName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
                 amount: '50.00',
                 note: 'Validation test payment',
             };
@@ -210,8 +210,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData = {
-                payerName: authenticatedPage.user.displayName,
-                payeeName: secondUser.user.displayName,
+                payerName: await groupDetailPage.getCurrentUserDisplayName(),
+                payeeName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
                 amount: '100.00',
                 note: 'Payment to be deleted',
             };
@@ -247,8 +247,8 @@ test.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData = {
-                payerName: authenticatedPage.user.displayName,
-                payeeName: secondUser.user.displayName,
+                payerName: await groupDetailPage.getCurrentUserDisplayName(),
+                payeeName: await secondUser.dashboardPage.getCurrentUserDisplayName(),
                 amount: '75.00',
                 note: 'Payment to keep',
             };

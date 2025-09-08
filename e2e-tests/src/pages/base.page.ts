@@ -2,13 +2,14 @@ import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
+import {PooledTestUser } from '@splitifyd/shared';
 
 export abstract class BasePage {
-    protected userInfo?: BaseUser;
+    protected userInfo?: PooledTestUser;
 
     constructor(
         protected _page: Page,
-        userInfo?: BaseUser,
+        userInfo?: PooledTestUser,
     ) {
         this.userInfo = userInfo;
 
@@ -498,13 +499,6 @@ export abstract class BasePage {
         }
         
         return textContent.trim();
-    }
-
-    /**
-     * @deprecated Use getCurrentUserDisplayName() instead for clarity
-     */
-    async getUserDisplayName(): Promise<string> {
-        return this.getCurrentUserDisplayName();
     }
 
     /**

@@ -9,12 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, Group } from '@splitifyd/shared';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Permission System Edge Cases', () => {
     const apiDriver = new ApiDriver();
 
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

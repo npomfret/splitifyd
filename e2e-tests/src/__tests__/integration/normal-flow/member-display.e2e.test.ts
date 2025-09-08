@@ -24,7 +24,7 @@ test.describe('Member Management E2E', () => {
         // Should show the current user as a member in the main content area
         // Use the groupDetailPage page object model instead of direct selectors
         const groupDetailPage = new GroupDetailPage(page);
-        await expect(groupDetailPage.getUserName(user.displayName)).toBeVisible();
+        await expect(groupDetailPage.getUserName(await dashboardPage.getCurrentUserDisplayName())).toBeVisible();
 
         // Look for members section showing 1 member
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
@@ -59,7 +59,7 @@ test.describe('Member Management E2E', () => {
         await expect(userCheckbox).toBeChecked();
 
         // User name should be visible in split section
-        const isUserInSplit = await expenseFormPage.isUserInSplitOptions(user.displayName);
+        const isUserInSplit = await expenseFormPage.isUserInSplitOptions(await dashboardPage.getCurrentUserDisplayName());
         expect(isUserInSplit).toBe(true);
     });
 

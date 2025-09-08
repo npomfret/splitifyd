@@ -33,10 +33,13 @@ authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
 
 multiUserTest.describe('Member Management - Multi-User Operations', () => {
     multiUserTest('non-owner member should be able to leave group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, user: member } = secondUser;
+        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
         const memberGroupDetailPage = secondUser.groupDetailPage;
 
+        const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Leave Test');
@@ -54,8 +57,8 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for both users to see each other in the member list
-        await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
-        await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
 
         // Verify member sees Leave Group button
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
@@ -73,12 +76,16 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.waitForMemberCount(1);
 
         // Verify the member who left is no longer in the list
-        await groupDetailPage.verifyMemberNotVisible(member.displayName);
+        await groupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
     multiUserTest('group owner should be able to remove a member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, user: member } = secondUser;
+        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+
+        const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
         const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
@@ -98,11 +105,11 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
-        await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
 
         // Owner removes the member
-        await groupDetailPage.clickRemoveMember(member.displayName);
+        await groupDetailPage.clickRemoveMember(memberDisplayName);
 
         // Confirm removal in dialog
         await groupDetailPage.confirmRemoveMember();
@@ -135,12 +142,16 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.waitForMemberCount(1);
 
         // Verify the removed member is no longer visible
-        await groupDetailPage.verifyMemberNotVisible(member.displayName);
+        await groupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
     multiUserTest('should prevent leaving group with outstanding balance', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, user: member } = secondUser;
+        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+
+        const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
         const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
@@ -157,8 +168,8 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
-        await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
 
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
@@ -166,7 +177,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             description: 'Test expense for balance',
             amount: 100,
             currency: 'USD',
-            paidBy: owner.displayName,
+            paidBy: ownerDisplayName,
             splitType: 'equal',
         });
 
@@ -188,7 +199,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         const settlementFormPage = await memberGroupDetailPage.clickSettleUpButton(2);
 
         // Fill and submit settlement for the full owed amount (50 in this case)
-        await settlementFormPage.fillAndSubmitSettlement('50', owner.displayName);
+        await settlementFormPage.fillAndSubmitSettlement('50', ownerDisplayName);
 
         // Wait for settlement to process and balances to update
         await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -203,8 +214,12 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
     });
 
     multiUserTest('should prevent owner from removing member with outstanding balance', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, user: member } = secondUser;
+        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+
+        const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
         const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
@@ -220,8 +235,8 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
-        await memberGroupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
 
         // Member adds expense creating a balance
         const expenseFormPage = await memberGroupDetailPage.clickAddExpenseButton(2);
@@ -229,7 +244,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             description: 'Member expense',
             amount: 60,
             currency: 'USD',
-            paidBy: member.displayName,
+            paidBy: memberDisplayName,
             splitType: 'equal',
         });
 
@@ -238,13 +253,16 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await memberGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // Owner tries to remove member - button should be disabled
-        const removeButton = groupDetailPage.getRemoveMemberButton(member.displayName);
+        const removeButton = groupDetailPage.getRemoveMemberButton(memberDisplayName);
         await expect(removeButton).toBeDisabled({ timeout: 5000 });
     });
 
     multiUserTest('should handle edge case of removing last non-owner member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, user: member } = secondUser;
+        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+
+        const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
@@ -259,10 +277,10 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(owner.displayName, member.displayName);
+        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
 
         // Owner removes the only other member
-        await groupDetailPage.clickRemoveMember(member.displayName);
+        await groupDetailPage.clickRemoveMember(memberDisplayName);
         await groupDetailPage.confirmRemoveMember();
 
         // Owner should still be in the group

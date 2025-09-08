@@ -3,7 +3,7 @@
 import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
 import type {Group} from '@splitifyd/shared';
 import {PREDEFINED_EXPENSE_CATEGORIES} from '@splitifyd/shared';
-import {UserRegistration} from "@splitifyd/shared/src";
+import {UserRegistration} from "@splitifyd/shared";
 import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 
 // Initialize ApiDriver which handles all configuration

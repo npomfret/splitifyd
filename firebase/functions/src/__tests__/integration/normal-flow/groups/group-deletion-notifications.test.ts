@@ -5,12 +5,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
 import { ApiDriver, CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import { AuthenticatedFirebaseUser } from "@splitifyd/shared";
 import { getFirestore } from '../../../../firebase';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Group Deletion Notifications', () => {
     const apiDriver = new ApiDriver();
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

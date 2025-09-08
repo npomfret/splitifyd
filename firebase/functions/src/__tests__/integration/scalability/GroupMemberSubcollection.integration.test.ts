@@ -1,14 +1,15 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { getGroupMemberService, getGroupService } from '../../../services/serviceRegistration';
 import { borrowTestUsers } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, MemberStatuses, AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { getThemeColorForMember } from '../../../utils/groupHelpers';
 import { setupTestServices } from '../../test-helpers/setup';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('GroupMemberService Subcollection Integration Tests', () => {
-    let users: AuthenticatedFirebaseUser[];
-    let testUser1: AuthenticatedFirebaseUser;
-    let testUser2: AuthenticatedFirebaseUser;
+    let users: PooledTestUser[];
+    let testUser1: PooledTestUser;
+    let testUser2: PooledTestUser;
     let testGroup: any;
 
     beforeAll(async () => {

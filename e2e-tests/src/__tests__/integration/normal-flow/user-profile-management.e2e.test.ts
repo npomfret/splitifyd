@@ -16,7 +16,7 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await settingsPage.navigate();
 
         // Verify profile information is displayed
-        const expectedDisplayName = user.displayName || user.email.split('@')[0];
+        const expectedDisplayName = await authenticatedPage.dashboardPage.getCurrentUserDisplayName();
         await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
 
         // Verify profile form elements are present
@@ -25,7 +25,7 @@ authenticatedPageTest.describe('User Profile Management', () => {
     });
 
     authenticatedPageTest('should allow user to update their display name', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
+        const { page } = authenticatedPage;
         const settingsPage = new SettingsPage(page);
 
         const newDisplayName = `Updated Name ${Date.now()}`;

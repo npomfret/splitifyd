@@ -1,6 +1,6 @@
 // Single shared type file for webapp
 // This file contains all type definitions used by the webapp client
-import type { ColorPattern } from './user-colors';
+import type {ColorPattern} from './user-colors';
 
 // ========================================================================
 // Type aliases for Firebase types (browser-safe)
@@ -135,41 +135,41 @@ export interface ExpenseCategory {
 }
 
 export const PREDEFINED_EXPENSE_CATEGORIES: ExpenseCategory[] = [
-    { name: 'food', displayName: 'Food & Dining', icon: '🍽️' },
-    { name: 'transport', displayName: 'Transportation', icon: '🚗' },
-    { name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡' },
-    { name: 'entertainment', displayName: 'Entertainment', icon: '🎬' },
-    { name: 'shopping', displayName: 'Shopping', icon: '🛍️' },
-    { name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️' },
-    { name: 'healthcare', displayName: 'Healthcare', icon: '🏥' },
-    { name: 'education', displayName: 'Education', icon: '📚' },
-    { name: 'Just the tip', displayName: 'Just the tip', icon: '😮' },
-    { name: 'bedroom_supplies', displayName: 'Bedroom Supplies', icon: '🍆' },
-    { name: 'pets', displayName: 'Pets & Animals', icon: '🐾' },
-    { name: 'alcohol', displayName: 'Drinks & Nightlife', icon: '🍺' },
-    { name: 'coffee', displayName: 'Coffee Addiction', icon: '☕' },
-    { name: 'tech', displayName: 'Gadgets & Electronics', icon: '💻' },
-    { name: 'gaming', displayName: 'Gaming', icon: '🎮' },
-    { name: 'home', displayName: 'Home & Garden', icon: '🏡' },
-    { name: 'subscriptions', displayName: 'Streaming & Subscriptions', icon: '📺' },
-    { name: 'gifts', displayName: 'Gifts & Generosity', icon: '🎁' },
-    { name: 'charity', displayName: 'Charity & Donations', icon: '🤝' },
-    { name: 'hobbies', displayName: 'Hobbies & Crafts', icon: '🎨' },
-    { name: 'sports', displayName: 'Sports & Fitness', icon: '🏋️' },
-    { name: 'beauty', displayName: 'Beauty & Personal Care', icon: '💅' },
-    { name: 'dating', displayName: 'Dating & Romance', icon: '💘' },
-    { name: 'therapy', displayName: 'Therapy & Self Care', icon: '🛋️' },
-    { name: 'kids', displayName: 'Children & Babysitting', icon: '🍼' },
-    { name: 'clubbing', displayName: 'Clubbing & Bad Decisions', icon: '💃' },
-    { name: 'lottery', displayName: 'Lottery Tickets & Regret', icon: '🎰' },
-    { name: 'junk_food', displayName: 'Midnight Snacks', icon: '🌭' },
-    { name: 'hangover', displayName: 'Hangover Recovery Supplies', icon: '🥤' },
-    { name: 'impulse', displayName: 'Impulse Purchases', icon: '🤷' },
-    { name: 'side_hustle', displayName: 'Side Hustle Expenses', icon: '💼' },
-    { name: 'bribery', displayName: 'Bribes (Totally Legal)', icon: '🤑' },
-    { name: 'lawsuits', displayName: 'Legal Trouble', icon: '⚖️' },
-    { name: 'weird_stuff', displayName: 'Weird Stuff Off the Internet', icon: '🦄' },
-    { name: 'other', displayName: 'Other', icon: '❓' },
+    {name: 'food', displayName: 'Food & Dining', icon: '🍽️'},
+    {name: 'transport', displayName: 'Transportation', icon: '🚗'},
+    {name: 'utilities', displayName: 'Bills & Utilities', icon: '⚡'},
+    {name: 'entertainment', displayName: 'Entertainment', icon: '🎬'},
+    {name: 'shopping', displayName: 'Shopping', icon: '🛍️'},
+    {name: 'accommodation', displayName: 'Travel & Accommodation', icon: '✈️'},
+    {name: 'healthcare', displayName: 'Healthcare', icon: '🏥'},
+    {name: 'education', displayName: 'Education', icon: '📚'},
+    {name: 'Just the tip', displayName: 'Just the tip', icon: '😮'},
+    {name: 'bedroom_supplies', displayName: 'Bedroom Supplies', icon: '🍆'},
+    {name: 'pets', displayName: 'Pets & Animals', icon: '🐾'},
+    {name: 'alcohol', displayName: 'Drinks & Nightlife', icon: '🍺'},
+    {name: 'coffee', displayName: 'Coffee Addiction', icon: '☕'},
+    {name: 'tech', displayName: 'Gadgets & Electronics', icon: '💻'},
+    {name: 'gaming', displayName: 'Gaming', icon: '🎮'},
+    {name: 'home', displayName: 'Home & Garden', icon: '🏡'},
+    {name: 'subscriptions', displayName: 'Streaming & Subscriptions', icon: '📺'},
+    {name: 'gifts', displayName: 'Gifts & Generosity', icon: '🎁'},
+    {name: 'charity', displayName: 'Charity & Donations', icon: '🤝'},
+    {name: 'hobbies', displayName: 'Hobbies & Crafts', icon: '🎨'},
+    {name: 'sports', displayName: 'Sports & Fitness', icon: '🏋️'},
+    {name: 'beauty', displayName: 'Beauty & Personal Care', icon: '💅'},
+    {name: 'dating', displayName: 'Dating & Romance', icon: '💘'},
+    {name: 'therapy', displayName: 'Therapy & Self Care', icon: '🛋️'},
+    {name: 'kids', displayName: 'Children & Babysitting', icon: '🍼'},
+    {name: 'clubbing', displayName: 'Clubbing & Bad Decisions', icon: '💃'},
+    {name: 'lottery', displayName: 'Lottery Tickets & Regret', icon: '🎰'},
+    {name: 'junk_food', displayName: 'Midnight Snacks', icon: '🌭'},
+    {name: 'hangover', displayName: 'Hangover Recovery Supplies', icon: '🥤'},
+    {name: 'impulse', displayName: 'Impulse Purchases', icon: '🤷'},
+    {name: 'side_hustle', displayName: 'Side Hustle Expenses', icon: '💼'},
+    {name: 'bribery', displayName: 'Bribes (Totally Legal)', icon: '🤑'},
+    {name: 'lawsuits', displayName: 'Legal Trouble', icon: '⚖️'},
+    {name: 'weird_stuff', displayName: 'Weird Stuff Off the Internet', icon: '🦄'},
+    {name: 'other', displayName: 'Other', icon: '❓'},
 ];
 
 // ========================================================================
@@ -250,14 +250,17 @@ export interface FirebaseUser extends BaseUser {
     uid: string;
 }
 
-export interface PooledTestUser {
+export interface PooledTestUser extends UserToken {
     password: string;
     email: string;
-    uid: string;
 }
 
-export interface AuthenticatedFirebaseUser extends FirebaseUser {
+export interface UserToken {
+    uid: string;
     token: string;
+}
+
+export interface AuthenticatedFirebaseUser extends FirebaseUser, UserToken {
 }
 
 export interface RegisteredUser extends FirebaseUser {
@@ -296,7 +299,8 @@ export interface Policy {
     versions: Record<string, PolicyVersion>; // Map of versionHash -> PolicyVersion
 }
 
-export interface PolicyDocument extends Policy, BaseDocument {}
+export interface PolicyDocument extends Policy, BaseDocument {
+}
 
 // Admin Policy Management Types
 export interface CreatePolicyRequest {

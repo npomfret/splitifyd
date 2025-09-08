@@ -14,12 +14,14 @@ export class AuthenticationWorkflow {
      * Logs in an existing test user (for use with user pool)
      * Expects to start from a clean state - will fail fast if not
      */
-    async loginExistingUser(user: BaseUser): Promise<void> {
+    async loginExistingUser(user: {email:string, password: string}): Promise<void> {
         const loginPage = new LoginPage(this.page);
         await loginPage.navigate();
 
         // Extract password from user creation pattern - all pool users use same password
-        await loginPage.login(user.email, DEFAULT_PASSWORD);
+        if(!user.email || !user.password)
+            throw Error(`inavlid user: ${JSON.stringify(user)}`)
+        await loginPage.login(user.email, user.password);
 
         // Wait for successful login and redirect to dashboard
         const dashboardPage = new DashboardPage(this.page);

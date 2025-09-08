@@ -1,13 +1,13 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, AppDriver, ApiDriver, borrowTestUsers, generateShortId} from '@splitifyd/test-support';
 import {getFirestore} from "../../../firebase";
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('User Notification System Integration Tests', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, getFirestore());
 
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

@@ -2,11 +2,11 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver} from "@splitifyd/test-support";
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Policy Validation Tests', () => {
     const apiDriver = new ApiDriver();
-    let user1: AuthenticatedFirebaseUser;
+    let user1: UserToken;
  
     beforeEach(async () => {
         ([user1] = await borrowTestUsers(3));

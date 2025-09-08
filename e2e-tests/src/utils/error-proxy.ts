@@ -6,7 +6,7 @@
 import { Page } from '@playwright/test';
 import { ProxiedMethodError } from '../errors/test-errors';
 import { collectPageState } from './page-state-collector';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import {PooledTestUser} from "@splitifyd/shared";
 
 /**
  * Configuration for the error handling proxy
@@ -100,7 +100,7 @@ function extractArgumentContext(args: any[]): Record<string, any> {
  * @param config - Optional proxy configuration
  * @returns Proxied instance with automatic error handling
  */
-export function createErrorHandlingProxy<T extends object>(instance: T, className: string, page: Page, userInfo?: BaseUser, config: ProxyConfig = {}): T {
+export function createErrorHandlingProxy<T extends object>(instance: T, className: string, page: Page, userInfo?: PooledTestUser, config: ProxyConfig = {}): T {
     const { excludeMethods = DEFAULT_EXCLUDED_METHODS, captureScreenshot = false, collectState = true } = config;
 
     return new Proxy(instance, {
@@ -154,7 +154,6 @@ export function createErrorHandlingProxy<T extends object>(instance: T, classNam
                         // Add user info if available
                         if (userInfo) {
                             errorContext.userInfo = {
-                                displayName: userInfo.displayName,
                                 email: userInfo.email,
                             };
                         }

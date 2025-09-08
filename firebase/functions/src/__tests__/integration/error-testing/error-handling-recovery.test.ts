@@ -4,13 +4,13 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Error Handling and Recovery Testing', () => {
     const apiDriver = new ApiDriver();
     let testGroup: Group;
 
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(2);

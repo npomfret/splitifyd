@@ -1,20 +1,21 @@
 // Comprehensive group management API integration tests
 // Consolidates tests from group-crud.test.ts, group-management.test.ts, GroupService.integration.test.ts
 
-import { beforeEach, describe, expect, test, afterEach } from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers, borrowTestUser } from '@splitifyd/test-support';
 import { GroupService } from '../../services/GroupService';
-import { SecurityPresets, FirestoreCollections, AuthenticatedFirebaseUser } from '@splitifyd/shared';
+import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 import { getGroupService } from '../../services/serviceRegistration';
 import { setupTestServices } from '../test-helpers/setup';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Groups API', () => {
     const apiDriver = new ApiDriver();
     let groupService: GroupService;
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

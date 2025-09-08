@@ -26,7 +26,12 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('should allow multiple users to add expenses to same group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user } = authenticatedPage;
+        const { page, user, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { dashboardPage: user2DashboardPage } = secondUser;
+
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        
         const memberCount = 2;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
@@ -58,10 +63,10 @@ test.describe('Multi-User Collaboration E2E', () => {
         }
 
         // Wait for synchronization of users
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
+        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // Also ensure second user sees both members
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -147,8 +152,13 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('balances update correctly with multiple users and expenses', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
+        const { page, user, dashboardPage: user1DashboardPage } = authenticatedPage;
+        const { dashboardPage: user2DashboardPage } = secondUser;
+
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
         const memberCount = 2;
-        const { page, user } = authenticatedPage;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
         const groupInfo = { user };
@@ -184,8 +194,8 @@ test.describe('Multi-User Collaboration E2E', () => {
         }
 
         // WAIT for user synchronization before adding expense
-        await groupDetailPage.waitForUserSynchronization(user1.displayName, user2.displayName);
-        await groupDetailPage2.waitForUserSynchronization(user1.displayName, user2.displayName);
+        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
+        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // User 1 pays for shared expense AFTER synchronization
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -225,8 +235,8 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // UI now uses arrow notation: "User A → User B" instead of "owes"
         // Check if the debt relationship exists in the DOM (regardless of visibility)
-        const hasArrowDebt = (await page.getByText(`${user2.displayName} → ${user1.displayName}`).count()) > 0;
-        const hasOwesDebt = (await page.getByText(`${user2.displayName} owes ${user1.displayName}`).count()) > 0;
+        const hasArrowDebt = (await page.getByText(`${user2DisplayName} → ${user1DisplayName}`).count()) > 0;
+        const hasOwesDebt = (await page.getByText(`${user2DisplayName} owes ${user1DisplayName}`).count()) > 0;
 
         // Verify that the debt relationship exists
         expect(hasArrowDebt || hasOwesDebt).toBeTruthy();

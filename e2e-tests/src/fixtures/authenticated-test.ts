@@ -2,14 +2,15 @@ import { test as base } from './base-test';
 import { Page } from '@playwright/test';
 import { AuthenticationWorkflow } from '../workflows';
 import { getUserPool } from './user-pool.fixture';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 
 export interface AuthenticatedFixtures {
     authenticatedPage: {
         page: Page;
-        user: BaseUser;
+        user: PooledTestUser;
     };
 }
+
 base.extend<AuthenticatedFixtures>({
     authenticatedPage: async ({ page, context, browser }, use, testInfo) => {
         const userPool = getUserPool();

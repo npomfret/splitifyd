@@ -2,16 +2,16 @@ import {beforeEach, describe, expect, it} from 'vitest';
 
 import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Balance Calculation Integration Test', () => {
     let apiDriver = new ApiDriver()
     let groupId: string;
     let shareLinkId: string;
 
-    let user1: AuthenticatedFirebaseUser;
-    let user2: AuthenticatedFirebaseUser;
-    let user3: AuthenticatedFirebaseUser;
+    let user1: UserToken;
+    let user2: UserToken;
+    let user3: UserToken;
 
     beforeEach(async () => {
         ([user1, user2, user3] = await borrowTestUsers(3));

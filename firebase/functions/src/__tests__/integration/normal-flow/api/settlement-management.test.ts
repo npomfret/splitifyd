@@ -7,20 +7,20 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, SettlementBuilder, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Settlement Management', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let settlementUsers: AuthenticatedFirebaseUser[];
-    let users: AuthenticatedFirebaseUser[];
+    let settlementUsers: UserToken[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(6);
     });
 
     // Helper to get users from pool
-    const getTestUsers = (count: number): AuthenticatedFirebaseUser[] => {
+    const getTestUsers = (count: number): UserToken[] => {
         return users.slice(0, count);
     };
 

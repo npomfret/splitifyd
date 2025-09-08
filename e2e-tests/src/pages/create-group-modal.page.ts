@@ -2,14 +2,15 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser   } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class CreateGroupModalPage extends BasePage {
-    constructor(page: Page, userInfo?: BaseUser) {
+    readonly modalTitle = translationEn.createGroupModal.title;
+
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
-    readonly modalTitle = translationEn.createGroupModal.title;
 
     async isOpen(): Promise<boolean> {
         // Modal either exists or it doesn't - no ambiguity

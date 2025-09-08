@@ -14,7 +14,7 @@ import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} f
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {UserDataSchema} from '../schemas/user';
 import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
-import {UserRegistration} from "@splitifyd/shared/src";
+import {UserRegistration} from "@splitifyd/shared";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 

@@ -1,13 +1,12 @@
 import {getAuth, getFirestore} from '../firebase';
 import {getUserService} from '../services/serviceRegistration';
-import {RegisteredUser} from "@splitifyd/shared";
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import { Timestamp } from "firebase-admin/firestore";
 import type { IFirestoreReader } from '../services/firestore/IFirestoreReader';
 
 export interface PoolUser {
-    user: RegisteredUser,
     token: string
+    email: string
     password: string
 }
 
@@ -54,7 +53,7 @@ export class TestUserPoolService {
                     transaction.update(doc.ref, { status: 'borrowed' });
                     
                     return {
-                        user: data.user,
+                        email: data.email,
                         token: data.token,
                         password: data.password
                     };
@@ -73,15 +72,18 @@ export class TestUserPoolService {
         );
         
         if (result) {
-            return result;
+            return {// todo: this should problably be a PooledTestUser
+                email: result.email!,
+                token: result.token!,
+                password: result.password!
+            };
         }
         
         // No available users found - create a new one
         // This is done outside transaction since createUser() involves Auth API calls
         const newUser = await this.createUser();
-        await poolRef.doc(newUser.user.email).set({
-            email: newUser.user.email,
-            user: newUser.user,
+        await poolRef.doc(newUser.email).set({
+            email: newUser.email,
             token: newUser.token,
             password: newUser.password,
             status: 'borrowed' as const,
@@ -145,7 +147,7 @@ export class TestUserPoolService {
 
         const token = await getAuth().createCustomToken(user.uid);
 
-        return {user, password: POOL_PASSWORD, token};
+        return {email, password: POOL_PASSWORD, token};
     }
 
     async getPoolStatus() {

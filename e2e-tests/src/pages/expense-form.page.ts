@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { FORM_LABELS } from '../constants/selectors';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 // Match the ExpenseData interface from GroupDetailPage
@@ -17,7 +17,7 @@ interface ExpenseData {
 export class ExpenseFormPage extends BasePage {
     readonly url = '/groups/[id]/add-expense';
 
-    constructor(page: Page, userInfo?: BaseUser) {
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
 

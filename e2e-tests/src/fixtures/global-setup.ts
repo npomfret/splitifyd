@@ -1,5 +1,4 @@
 import { EMULATOR_URL } from '../helpers';
-import { getFunctionsPort, getProjectId, getRegion } from '@splitifyd/test-support';
 
 async function globalSetup() {
     console.log('🚀 Starting e2e test global setup...');

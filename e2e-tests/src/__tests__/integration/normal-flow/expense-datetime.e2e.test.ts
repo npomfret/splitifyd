@@ -121,18 +121,8 @@ authenticatedPageTest.describe('Expense Date and Time Selection', () => {
         await timeInput.fill('7:30pm');
         await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
 
-        // Select the payer - find the payer radio button by display name
-        const payerLabel = page
-            .locator('label')
-            .filter({
-                has: page.locator('input[type="radio"][name="paidBy"]'),
-            })
-            .filter({
-                hasText: user.displayName,
-            })
-            .first();
-        await expect(payerLabel).toBeVisible();
-        await payerLabel.click();
+        // Select the payer using POM method
+        await expenseFormPage.selectPayer(await dashboardPage.getCurrentUserDisplayName());
 
         // Select participants for the split
         await expenseFormPage.clickSelectAllButton();

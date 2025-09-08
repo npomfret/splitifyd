@@ -18,10 +18,6 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         expect(user1.email).not.toBe(user3.email);
         expect(user2.email).not.toBe(user3.email);
 
-        expect(user1.displayName).not.toBe(user2.displayName);
-        expect(user1.displayName).not.toBe(user3.displayName);
-        expect(user2.displayName).not.toBe(user3.displayName);
-
         // Create group with first user
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
 
@@ -69,10 +65,9 @@ test.describe('Parallel Group Joining Edge Cases', () => {
         await thirdUser.groupDetailPage.waitForMemberCount(3);
 
         // Use the display names from the user fixtures instead of extracting from UI
-        const user1Name = user1.displayName;
-        const user2Name = user2.displayName;
-        const user3Name = user3.displayName;
-
+        const user1Name = await groupDetailPage.getCurrentUserDisplayName();
+        const user2Name = await secondUser.groupDetailPage.getCurrentUserDisplayName();
+        const user3Name = await thirdUser.groupDetailPage.getCurrentUserDisplayName();
 
         // Check that all 3 users can see all 3 members on their respective pages
         await expect(groupDetailPage.getTextElement(user1Name).first()).toBeVisible();

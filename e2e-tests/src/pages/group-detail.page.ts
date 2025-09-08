@@ -4,7 +4,8 @@ import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementFormPage } from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
+import {DashboardPage} from "./dashboard.page.ts";
 
 interface ExpenseData {
     description: string;
@@ -16,7 +17,7 @@ interface ExpenseData {
 }
 
 export class GroupDetailPage extends BasePage {
-    constructor(page: Page, userInfo?: BaseUser) {
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
 
@@ -301,25 +302,14 @@ export class GroupDetailPage extends BasePage {
                 }
 
                 // Get browser context info
-                const browserUser = this.userInfo?.displayName || this.userInfo?.email || 'Unknown User';
+                const browserUser = this.userInfo?.email || 'Unknown User';
                 const browserUserId = this.userInfo?.uid || 'unknown-id';
-
-                const expected = {
-                    users: allUserNames,
-                    userCount: totalUsers,
-                    operation: 'waitForUserSynchronization',
-                };
-
-                const actual = {
-                    visibleMembers: visibleMembers.map((m) => m.name),
-                    memberCount,
-                    missingUser: userName,
-                };
 
                 const context = {
                     browserContext: {
                         user: browserUser,
                         userId: browserUserId,
+                        displayName: this.getCurrentUserDisplayName(),
                         pageUrl,
                         viewingAs: `Browser of: ${browserUser} (${browserUserId})`,
                     },
@@ -418,13 +408,12 @@ export class GroupDetailPage extends BasePage {
      * This replaces manual reload() calls scattered throughout multi-user tests.
      * Auto-navigates users to the group page if they're not already there.
      */
-    async synchronizeMultiUserState(pages: Array<{ page: any; groupDetailPage: any; userName?: string }>, expectedMemberCount: number, groupId: string): Promise<void> {
+    async synchronizeMultiUserState(pages: Array<{ page: Page; groupDetailPage: any;}>, expectedMemberCount: number, groupId: string): Promise<void> {
         const targetGroupUrl = `/groups/${groupId}`;
 
         // Navigate all users to the specific group
         for (let i = 0; i < pages.length; i++) {
-            const { page, userName } = pages[i];
-            const userIdentifier = userName || `User ${i + 1}`;
+            const { page, } = pages[i];
 
             await this.navigatePageToUrl(page, targetGroupUrl);
 
@@ -433,66 +422,52 @@ export class GroupDetailPage extends BasePage {
 
             // Check if we got redirected to 404
             if (currentUrl.includes('/404')) {
-                throw new Error(`${userIdentifier} was redirected to 404 page. Group access denied or group doesn't exist.`);
+                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                throw new Error(`${currentUserDisplayName} was redirected to 404 page. Group access denied or group doesn't exist.`);
             }
 
             // If not on 404, check if we're on the dashboard (another redirect case)
             if (currentUrl.includes('/dashboard')) {
-                throw new Error(`${userIdentifier} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
+                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                throw new Error(`${currentUserDisplayName} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
             }
 
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
         }
 
         // Wait for all pages to show correct member count
         for (let i = 0; i < pages.length; i++) {
-            const { page, groupDetailPage, userName } = pages[i];
-            const userIdentifier = userName || `User ${i + 1}`;
+            const { page, groupDetailPage } = pages[i];
 
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
 
             try {
                 await groupDetailPage.waitForMemberCount(expectedMemberCount);
             } catch (error) {
-                throw new Error(`${userIdentifier} failed waiting for member count: ${error}`);
+                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                throw new Error(`${currentUserDisplayName} failed waiting for member count: ${error}`);
             }
 
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
         }
 
         // Wait for balances section to load on all pages
         for (let i = 0; i < pages.length; i++) {
-            const { page, groupDetailPage, userName } = pages[i];
-            const userIdentifier = userName || `User ${i + 1}`;
+            const { page, groupDetailPage } = pages[i];
 
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
 
-            try {
-                await groupDetailPage.waitForBalancesToLoad(groupId);
-            } catch (error) {
-                // Take screenshot on failure
-                const sanitizedUserName = userName ? userName.replace(/\s+/g, '-') : `user-${i + 1}`;
-                await page.screenshot({
-                    path: `playwright-report/ad-hoc/balance-load-failure-${sanitizedUserName}-${Date.now()}.png`,
-                    fullPage: false,
-                });
-                throw new Error(`${userIdentifier} failed waiting for balances to load: ${error}`);
-            }
+            await groupDetailPage.waitForBalancesToLoad(groupId);
 
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl, userIdentifier, page);
+            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
         }
     }
 
-    private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string, userName: string, page: any) {
+    private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string) {
         // Assert we're actually on the group page
         if (!currentUrl.includes(targetGroupUrl)) {
             // Take screenshot before throwing error
-            const sanitizedUserName = userName.replace(/\s+/g, '-');
-            await page.screenshot({
-                path: `playwright-report/ad-hoc/navigation-failure-${sanitizedUserName}-${Date.now()}.png`,
-                fullPage: false,
-            });
-            throw new Error(`Navigation failed for ${userName}. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
+            throw new Error(`Navigation failed. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
         }
     }
 

@@ -3,7 +3,7 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { EMULATOR_URL } from '../helpers';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage, JoinGroupPage } from '../pages';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 
 export interface UnauthenticatedUserFixture {
     page: Page;
@@ -18,7 +18,7 @@ export interface UnauthenticatedUserFixture {
 export interface MixedAuthFixtures {
     authenticatedUsers: Array<{
         page: Page;
-        user: BaseUser;
+        user: PooledTestUser;
         context: BrowserContext;
         dashboardPage: DashboardPage;
         groupDetailPage: GroupDetailPage;
@@ -31,7 +31,7 @@ export interface MixedAuthFixtures {
 
 async function createAuthenticatedUser(browser: any): Promise<{
     page: Page;
-    user: BaseUser;
+    user: PooledTestUser;
     context: BrowserContext;
     dashboardPage: DashboardPage;
     groupDetailPage: GroupDetailPage;

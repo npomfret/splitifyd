@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {ApiDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Additional Monetary Edge Cases', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

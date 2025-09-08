@@ -16,7 +16,7 @@ test.describe('Group Details E2E', () => {
         await expect(groupDetailPage.getGroupTitle()).toBeVisible();
         await expect(groupDetailPage.getGroupDescription()).toBeVisible();
 
-        const userNameElement = groupDetailPage.getUserName(user.displayName);
+        const userNameElement = groupDetailPage.getUserName(await groupDetailPage.getCurrentUserDisplayName());
         await expect(userNameElement).toBeVisible();
         await expect(groupDetailPage.getMembersCount()).toBeVisible();
 

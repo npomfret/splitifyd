@@ -1,6 +1,6 @@
 import { signal, batch } from '@preact/signals';
 import { UserNotificationDetector } from '@/utils/user-notification-detector';
-import { logApiResponse, logWarning, logError, logInfo } from '@/utils/browser-logger';
+import { logWarning, logError, logInfo } from '@/utils/browser-logger';
 import type { ExpenseData, Group, GroupBalances, GroupMemberWithProfile, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
 import { permissionsStore } from '../../stores/permissions-store';

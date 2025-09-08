@@ -1,10 +1,10 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 
 export class ExpenseDetailPage extends BasePage {
-    constructor(page: Page, userInfo?: BaseUser) {
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
 

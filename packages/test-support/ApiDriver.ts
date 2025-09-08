@@ -31,6 +31,7 @@ import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 import {Matcher, PollOptions, pollUntil} from "./Polling";
 import {UserRegistrationBuilder} from "./builders";
 import {GroupBalances} from "@splitifyd/shared";
+import {PooledTestUser, UserToken} from "@splitifyd/shared";
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -106,19 +107,39 @@ export class ApiDriver {
                 throw error;
             }
         }
-        return await this.firebaseSignIn(userRegistration);
+
+        const {uid, token} = await this.firebaseSignIn(userRegistration);
+
+        return {
+            uid,
+            token,
+            email: userRegistration.email,
+            displayName: userRegistration.displayName,
+        }
     }
 
-    async borrowTestUser(): Promise<AuthenticatedFirebaseUser> {
-        const poolUser = await this.apiRequest('/test-pool/borrow', 'POST', {});
-        const {user: {displayName, email, password}, token} = poolUser;
-        
+    async borrowTestUser(): Promise<PooledTestUser> {
+        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string, token: string, password: string };
+
+        const {email, password, token} = poolUser;
+
         // Always use the custom token approach - it's more reliable than caching ID tokens
         // The custom token won't be revoked and can be exchanged for a fresh ID token each time
-        return await this.firebaseSignIn({email, password, displayName, token})
+        const res = await this.firebaseSignIn({email, password, token});
+
+        if(!email)
+            throw Error();
+        if(!password)
+            throw Error();
+
+        return {
+            ...res,
+            email,
+            password
+        }
     }
 
-    private async firebaseSignIn(userInfo: { email: string; password: string; displayName: string, token?: string }): Promise<AuthenticatedFirebaseUser> {
+    private async firebaseSignIn(userInfo: { email: string; password: string; token?: string }): Promise<UserToken> {
         // Use Firebase Auth REST API to sign in
 
         let signInResponse: Response;
@@ -160,8 +181,6 @@ export class ApiDriver {
 
         return {
             uid: decodedToken.user_id,
-            displayName: userInfo.displayName,
-            email: userInfo.email,
             token: authData.idToken,
         };
     }
@@ -260,7 +279,7 @@ export class ApiDriver {
         return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
-    async createGroupWithMembers(name: string, members: AuthenticatedFirebaseUser[], creatorToken: string): Promise<Group> {
+    async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
         const groupData = {name, description: `Test group created at ${new Date().toISOString()}`};
 
@@ -273,7 +292,7 @@ export class ApiDriver {
         return updatedGroup;
     }
 
-    async addMembersViaShareLink(groupId: string, toAdd: AuthenticatedFirebaseUser[], creatorToken: string) {
+    async addMembersViaShareLink(groupId: string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
             const {linkId} = await this.generateShareLink(groupId, creatorToken);
 

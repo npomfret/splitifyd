@@ -1,11 +1,11 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class DashboardPage extends BasePage {
-    constructor(page: Page, userInfo?: BaseUser) {
+    constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
     // Selectors

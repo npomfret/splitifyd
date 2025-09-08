@@ -3,7 +3,7 @@ import { expect as expectThree, threeUserTest } from '../../../fixtures/three-us
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers';
-import { GroupDetailPage, JoinGroupPage, DashboardPage, SettingsPage } from '../../../pages';
+import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../../pages';
 
 setupMCPDebugOnFailure();
 
@@ -11,6 +11,7 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
     multiUserTest('should update both dashboards when owner deletes group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1 } = authenticatedPage;
         const { page: page2, user: user2 } = secondUser;
+
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
         const dashboardPage1 = new DashboardPage(page, user1);
         const dashboardPage2 = new DashboardPage(page2, user2);

@@ -17,7 +17,7 @@
  * - Atomic consistency using FieldValue operations
  */
 
-import {FieldValue, type Firestore, Timestamp} from 'firebase-admin/firestore';
+import {FieldValue, type Firestore} from 'firebase-admin/firestore';
 import { FirestoreWriter } from './firestore/FirestoreWriter';
 import { FirestoreReader } from './firestore/FirestoreReader';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
@@ -25,12 +25,8 @@ import type { WriteResult, BatchWriteResult } from './firestore/IFirestoreWriter
 import { logger } from '../logger';
 import { getFirestore } from '../firebase';
 import { 
-    UserNotificationDocumentSchema,
-    type UserNotificationDocument,
-    type CreateUserNotificationDocument 
+    type CreateUserNotificationDocument
 } from '../schemas/user-notifications';
-import { ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
 
 export type ChangeType = 'transaction' | 'balance' | 'group';
 

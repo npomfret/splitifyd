@@ -5,12 +5,13 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, TestGroupManager, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
-import { AuthenticatedFirebaseUser, Group } from '@splitifyd/shared';
+import { Group } from '@splitifyd/shared';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Input Validation', () => {
     const apiDriver = new ApiDriver();
     let testGroup: Group;
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

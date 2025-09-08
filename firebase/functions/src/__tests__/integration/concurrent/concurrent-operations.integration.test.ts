@@ -1,16 +1,17 @@
 import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { getGroupMemberService, getGroupService, getExpenseService } from '../../../services/serviceRegistration';
 import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
-import { GroupMemberDocument, MemberRoles, AuthenticatedFirebaseUser, SplitTypes, Group } from '@splitifyd/shared';
+import { GroupMemberDocument, MemberRoles, SplitTypes, Group } from '@splitifyd/shared';
 import { logger } from '../../../logger';
 import { setupTestServices } from '../../test-helpers/setup';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Concurrent Operations Integration Tests', () => {
-    let users: AuthenticatedFirebaseUser[];
-    let testUser1: AuthenticatedFirebaseUser;
-    let testUser2: AuthenticatedFirebaseUser;
-    let testUser3: AuthenticatedFirebaseUser;
-    let testUser4: AuthenticatedFirebaseUser;
+    let users: PooledTestUser[];
+    let testUser1: PooledTestUser;
+    let testUser2: PooledTestUser;
+    let testUser3: PooledTestUser;
+    let testUser4: PooledTestUser;
     let testGroup: Group;
 
     beforeAll(async () => {

@@ -1,11 +1,12 @@
 import { multiUserTest } from './multi-user-declarative';
 import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
+import {Page} from "@playwright/test";
 
 export interface AuthenticatedPageFixtures {
     authenticatedPage: {
-        page: any;
-        user: BaseUser;
+        page: Page;
+        user: PooledTestUser;
         dashboardPage: DashboardPage;
     };
     loginPage: LoginPage;

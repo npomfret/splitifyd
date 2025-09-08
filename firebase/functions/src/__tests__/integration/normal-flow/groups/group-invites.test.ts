@@ -8,12 +8,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, CreateGroupRequestBuilder} from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Invite Tracking', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3);

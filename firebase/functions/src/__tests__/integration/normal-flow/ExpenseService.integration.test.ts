@@ -5,18 +5,18 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
 import { getExpenseService } from '../../../services/serviceRegistration';
 import { setupTestServices } from '../../test-helpers/setup';
+import {UserToken} from "@splitifyd/shared";
 
 describe('ExpenseService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let expenseService: ExpenseService;
 
-    let alice: AuthenticatedFirebaseUser;
-    let bob: AuthenticatedFirebaseUser;
-    let charlie: AuthenticatedFirebaseUser;
-    let outsider: AuthenticatedFirebaseUser;
+    let alice: UserToken;
+    let bob: UserToken;
+    let charlie: UserToken;
+    let outsider: UserToken;
 
     let groupId: string;
 

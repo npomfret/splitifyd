@@ -2,7 +2,7 @@ import { test as base, Page, BrowserContext } from '@playwright/test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -19,7 +19,7 @@ export interface PageObjects {
 
 export interface UserFixture {
     page: Page;
-    user: BaseUser;
+    user: PooledTestUser;
     context: BrowserContext;
     pages: PageObjects;
 }
@@ -31,7 +31,7 @@ export interface MultiUserFixtures {
     secondaryUsers: UserFixture[];
 }
 
-function createPageObjects(page: Page, user?: BaseUser): PageObjects {
+function createPageObjects(page: Page, user?: PooledTestUser): PageObjects {
     return {
         login: new LoginPage(page, user),
         register: new RegisterPage(page, user),
@@ -54,7 +54,7 @@ async function createUserFixture(browser: any, userIndex: number = 0, existingPa
 
     // Set up console log capture for this user - use test info to create unique directory
     const testDir = testInfo ? testInfo.outputDir : path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
-    const logFile = path.join(testDir, `user-${userIndex}-${user.displayName.replace(/\s+/g, '-')}-console.log`);
+    const logFile = path.join(testDir, `user-${userIndex}-${user.email.replace(/\s+/g, '-')}-console.log`);
     
     // Ensure directory exists
     if (!fs.existsSync(testDir)) {
@@ -62,7 +62,7 @@ async function createUserFixture(browser: any, userIndex: number = 0, existingPa
     }
 
     // Clear existing log file
-    fs.writeFileSync(logFile, `Console logs for User ${userIndex}: ${user.displayName} (${user.email})\n`, 'utf8');
+    fs.writeFileSync(logFile, `Console logs for User ${userIndex}: ${user.email}\n`, 'utf8');
 
     // Set up console message listener
     page.on('console', (msg: any) => {

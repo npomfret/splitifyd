@@ -1,5 +1,4 @@
 import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { getChangedFields, getGroupChangedFields, calculatePriority, ChangeType } from '../utils/change-detection';
 import { FirestoreCollections } from '@splitifyd/shared';

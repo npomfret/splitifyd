@@ -6,17 +6,17 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, ExpenseBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
 import { ExpenseService } from '../../services/ExpenseService';
-import { SplitTypes, AuthenticatedFirebaseUser } from '@splitifyd/shared';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { getExpenseService } from '../../services/serviceRegistration';
 import { setupTestServices } from '../test-helpers/setup';
+import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Expenses API', () => {
     const apiDriver = new ApiDriver();
     let expenseService: ExpenseService;
     let testGroup: any;
-    let users: AuthenticatedFirebaseUser[];
+    let users: PooledTestUser[];
 
     // Setup services once for all tests
     setupTestServices();

@@ -1,6 +1,6 @@
 import { doc, onSnapshot, Unsubscribe, Timestamp } from 'firebase/firestore';
 import { getDb } from '../app/firebase';
-import { logInfo, logWarning, logError } from './browser-logger';
+import { logInfo, logError } from './browser-logger';
 
 /**
  * User notification detector callbacks

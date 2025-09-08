@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {ExpenseBuilder, CreateGroupRequestBuilder, ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Group Lifecycle Edge Cases', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;
-    let users: AuthenticatedFirebaseUser[];
+    let users: UserToken[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

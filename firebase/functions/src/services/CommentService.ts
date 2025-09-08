@@ -1,4 +1,4 @@
-import { DocumentSnapshot, Query, Timestamp } from 'firebase-admin/firestore';
+import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import {getAuth, getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';

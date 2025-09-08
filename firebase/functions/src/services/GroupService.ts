@@ -16,7 +16,6 @@ import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-lo
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import { createMinimalChangeDocument } from '../utils/change-detection';
 
 /**
  * Service for managing group operations

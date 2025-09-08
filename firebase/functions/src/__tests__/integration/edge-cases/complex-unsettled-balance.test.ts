@@ -2,14 +2,14 @@ import {describe, test, expect, beforeEach} from 'vitest';
 import {ApiDriver, CreateGroupRequestBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import {UserToken} from "@splitifyd/shared";
 
 describe('Complex Unsettled Balance - API Integration Test', () => {
     const apiDriver = new ApiDriver();
 
-    let user1: AuthenticatedFirebaseUser;
-    let user2: AuthenticatedFirebaseUser;
-    let user3: AuthenticatedFirebaseUser;
+    let user1: UserToken;
+    let user2: UserToken;
+    let user3: UserToken;
 
     beforeEach(async () => {
         ([user1, user2, user3] = await borrowTestUsers(3));

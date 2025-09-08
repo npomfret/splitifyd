@@ -1,8 +1,9 @@
-import { AuthenticatedFirebaseUser, Group } from '@splitifyd/shared';
+import { Group } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
 import { ExpenseBuilder } from './builders';
 import { generateShortId } from './test-helpers';
 import { TestGroupManager } from './TestGroupManager';
+import {UserToken} from "@splitifyd/shared";
 
 interface ExpenseOptions {
     amount?: number;
@@ -27,8 +28,8 @@ export class TestExpenseManager {
 
     public static async getOrCreateExpense(
         group: Group,
-        users: AuthenticatedFirebaseUser[],
-        payer: AuthenticatedFirebaseUser,
+        users: UserToken[],
+        payer: UserToken,
         options: ExpenseOptions = {}
     ): Promise<any> {
         const { amount = 50.0, description, category = 'food', fresh = false } = options;
@@ -50,8 +51,8 @@ export class TestExpenseManager {
 
     private static async createFreshExpense(
         group: Group,
-        users: AuthenticatedFirebaseUser[],
-        payer: AuthenticatedFirebaseUser,
+        users: UserToken[],
+        payer: UserToken,
         options: ExpenseOptions = {}
     ): Promise<any> {
         const { amount = 50.0, description, category = 'food' } = options;
@@ -76,7 +77,7 @@ export class TestExpenseManager {
      * Returns a group with a pre-existing expense for comment testing
      */
     public static async getGroupWithExpenseForComments(
-        users: AuthenticatedFirebaseUser[]
+        users: UserToken[]
     ): Promise<{ group: Group; expense: any }> {
         const group = await TestGroupManager.getOrCreateGroup(users, { memberCount: users.length });
         const expense = await this.getOrCreateExpense(group, users, users[0], {

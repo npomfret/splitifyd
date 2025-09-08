@@ -1,8 +1,8 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
-import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import {JoinGroupPage, ExpenseDetailPage, GroupDetailPage} from '../../../pages';
+import {generateTestGroupName, randomString} from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -38,13 +38,13 @@ test.describe('Real-time Comments E2E', () => {
 
         // Wait for both users to see the updated member count
         const allPages = [
-            { page: alicePage, groupDetailPage, userName: alice.displayName },
-            { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: bob.displayName },
+            { page: alicePage, groupDetailPage },
+            { page: bobPage, groupDetailPage: bobGroupDetailPage},
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
 
         // Test 1: Alice adds a comment, Bob should see it in real-time
-        const aliceComment = `Hello from ${alice.displayName}! Time: ${Date.now()}`;
+        const aliceComment = `alice comment ${randomString(4)}`;
 
         await groupDetailPage.addComment(aliceComment);
 
@@ -52,7 +52,7 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentToAppear(aliceComment);
 
         // Test 2: Bob adds a comment, Alice should see it in real-time
-        const bobComment = `Hello from ${bob.displayName}! Time: ${Date.now()}`;
+        const bobComment = `bob comment ${randomString(4)}`;
 
         await bobGroupDetailPage.addComment(bobComment);
 
@@ -69,9 +69,9 @@ test.describe('Real-time Comments E2E', () => {
 
         // Test 4: Multiple rapid comments to test real-time reliability
         const rapidComments = [
-            `Rapid comment 1 from ${alice.displayName}`,
-            `Rapid comment 2 from ${bob.displayName}`,
-            `Rapid comment 3 from ${alice.displayName}`
+            randomString(4),
+            randomString(4),
+            randomString(4)
         ];
 
         // Alice adds first rapid comment
@@ -112,8 +112,8 @@ test.describe('Real-time Comments E2E', () => {
 
         // Synchronize both users
         const allPages = [
-            { page: alicePage, groupDetailPage, userName: alice.displayName },
-            { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: bob.displayName },
+            { page: alicePage, groupDetailPage },
+            { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
 
@@ -123,7 +123,7 @@ test.describe('Real-time Comments E2E', () => {
             description: 'Test Expense for Comments',
             amount: 50.0,
             currency: 'USD',
-            paidBy: alice.displayName,
+            paidBy: alice.uid,
             splitType: 'equal',
         });
 
@@ -200,8 +200,8 @@ test.describe('Real-time Comments E2E', () => {
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         const allPages = [
-            { page: alicePage, groupDetailPage, userName: alice.displayName },
-            { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: bob.displayName },
+            { page: alicePage, groupDetailPage},
+            { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
 
@@ -254,15 +254,15 @@ test.describe('Real-time Comments E2E', () => {
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         const allPages = [
-            { page: alicePage, groupDetailPage, userName: alice.displayName },
-            { page: bobPage, groupDetailPage: bobGroupDetailPage, userName: bob.displayName },
+            { page: alicePage, groupDetailPage},
+            { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
 
         // Add comments in a specific order
-        const comment1 = `First comment from ${alice.displayName}`;
-        const comment2 = `Second comment from ${bob.displayName}`;
-        const comment3 = `Third comment from ${alice.displayName}`;
+        const comment1 = randomString(4);
+        const comment2 = randomString(4);
+        const comment3 = randomString(4);
 
         // Alice adds first comment
         await groupDetailPage.addComment(comment1);
@@ -286,7 +286,10 @@ test.describe('Real-time Comments E2E', () => {
 
         // Verify all comments are visible with correct author names
         // Comments should appear in chronological order (newest first in most chat UIs)
-        const authorNames = [alice.displayName, bob.displayName];
+        const authorNames = [
+            await groupDetailPage.getCurrentUserDisplayName(),
+            await bobGroupDetailPage.getCurrentUserDisplayName()
+        ];
         const allComments = [comment1, comment2, comment3];
 
         // Check that author names appear for both users

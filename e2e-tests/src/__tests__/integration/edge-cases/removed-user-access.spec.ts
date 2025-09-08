@@ -3,7 +3,7 @@ import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../../helpe
 import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
 import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {JoinGroupPage} from '../../../pages';
+import {DashboardPage, JoinGroupPage} from '../../../pages';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
 setupConsoleErrorReporting();
@@ -39,8 +39,8 @@ multiUserTest.describe('Multi-User Group Access', () => {
         await groupDetailPage2.waitForMemberCount(2);
 
         // Verify both users are visible in the group
-        await expect(groupDetailPage2.getTextElement(user1.displayName).first()).toBeVisible();
-        await expect(groupDetailPage2.getTextElement(user2.displayName).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(await new DashboardPage(user1Page).getCurrentUserDisplayName()).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(await groupDetailPage2.getCurrentUserDisplayName()).first()).toBeVisible();
 
         // User 2 adds an expense using ExpenseBuilder pattern with unique identifier
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
