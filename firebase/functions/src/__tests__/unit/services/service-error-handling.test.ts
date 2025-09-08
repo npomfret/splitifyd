@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 
 // Mock logger

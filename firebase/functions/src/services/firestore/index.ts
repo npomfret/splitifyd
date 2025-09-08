@@ -6,4 +6,3 @@
 
 export { IFirestoreReader } from './IFirestoreReader';
 export { FirestoreReader } from './FirestoreReader';
-export { MockFirestoreReader } from './MockFirestoreReader';

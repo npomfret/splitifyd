@@ -1,24 +1,16 @@
-import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
-import { z } from 'zod';
+import {DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
+import {z} from 'zod';
 import {getAuth, getFirestore} from '../firebase';
-import { ApiError } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
-import {
-    FirestoreCollections,
-    CommentTargetTypes,
-    CommentTargetType,
-    Comment,
-    CommentApiResponse,
-    CreateCommentRequest,
-    ListCommentsResponse,
-} from '@splitifyd/shared';
-import { isGroupMemberAsync } from '../utils/groupHelpers';
-import { PerformanceMonitor } from '../utils/performance-monitor';
-import { CommentDocumentSchema, CommentDataSchema } from '../schemas/comment';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import {ApiError} from '../utils/errors';
+import {HTTP_STATUS} from '../constants';
+import {createOptimisticTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {logger} from '../logger';
+import {LoggerContext} from '../utils/logger-context';
+import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, FirestoreCollections, ListCommentsResponse,} from '@splitifyd/shared';
+import {isGroupMemberAsync} from '../utils/groupHelpers';
+import {PerformanceMonitor} from '../utils/performance-monitor';
+import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -31,19 +23,17 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
-    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
-    private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
-    
     constructor(private readonly firestoreReader: IFirestoreReader) {}
 
     /**
      * Get reference to comments subcollection based on target type
      */
     private getCommentsCollection(targetType: CommentTargetType, targetId: string) {
+        // todo: move the queries into IFirestoreReader
         if (targetType === CommentTargetTypes.GROUP) {
-            return this.groupsCollection.doc(targetId).collection(FirestoreCollections.COMMENTS);
+            return getFirestore().collection(FirestoreCollections.GROUPS).doc(targetId).collection(FirestoreCollections.COMMENTS);
         } else if (targetType === CommentTargetTypes.EXPENSE) {
-            return this.expensesCollection.doc(targetId).collection(FirestoreCollections.COMMENTS);
+            return getFirestore().collection(FirestoreCollections.EXPENSES).doc(targetId).collection(FirestoreCollections.COMMENTS);
         } else {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_TYPE', 'Invalid target type');
         }

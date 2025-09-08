@@ -12,7 +12,7 @@
  */
 
 import { vi } from 'vitest';
-import type { IFirestoreReader } from './IFirestoreReader';
+import type { IFirestoreReader } from '../../services/firestore/IFirestoreReader';
 import type {
     PaginatedResult
 } from '../../types/firestore-reader-types';

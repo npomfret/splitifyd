@@ -16,7 +16,6 @@ import type {
     DocumentReference
 } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
-import { getFirestore } from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { PerformanceMonitor } from '../../utils/performance-monitor';
@@ -47,9 +46,7 @@ import type {
 } from './IFirestoreWriter';
 
 export class FirestoreWriter implements IFirestoreWriter {
-    constructor(
-        private readonly db: Firestore = getFirestore()
-    ) {}
+    constructor(private readonly db: Firestore) {}
 
     // ========================================================================
     // User Write Operations

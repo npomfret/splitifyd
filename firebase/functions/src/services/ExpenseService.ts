@@ -1,10 +1,11 @@
-import {DocumentReference} from 'firebase-admin/firestore';
+import {DocumentReference, Firestore} from 'firebase-admin/firestore';
 import {z} from 'zod';
 import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
 import {createOptimisticTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {logger, LoggerContext} from '../logger';
+import type {Group, GroupPermissions} from '@splitifyd/shared';
 import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
 import {calculateSplits, Expense} from '../expenses/validation';
 import {verifyGroupMembership} from '../utils/groupHelpers';
@@ -14,10 +15,9 @@ import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import {PerformanceMonitor} from '../utils/performance-monitor';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { GroupDocument } from '../schemas';
-import type { Group, GroupPermissions } from '@splitifyd/shared';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
+import type {GroupDocument} from '../schemas';
 
 // Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
@@ -46,12 +46,10 @@ function toGroup(groupDoc: GroupDocument): Group {
 
 export class ExpenseService {
     // Keep collection references for write operations (until we have IFirestoreWriter)
-    private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
-    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
-
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly firestore: Firestore,// todo: remove this!
     ) {}
 
     /**
@@ -66,7 +64,7 @@ export class ExpenseService {
         }
 
         // Keep docRef for write operations (until we have IFirestoreWriter)
-        const docRef = this.expensesCollection.doc(expenseId);
+        const docRef = this.firestore.collection(FirestoreCollections.EXPENSES).doc(expenseId);
 
         // Validate the expense data structure
         let expense: Expense;
@@ -202,7 +200,7 @@ export class ExpenseService {
 
         // Create the expense document
         const now = createOptimisticTimestamp();
-        const docRef = this.expensesCollection.doc();
+        const docRef = this.firestore.collection(FirestoreCollections.EXPENSES).doc();
 
         // Calculate splits based on split type
         const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
@@ -244,7 +242,7 @@ export class ExpenseService {
         // Use transaction to create expense atomically
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction
-            const groupDocRef = this.groupsCollection.doc(expenseData.groupId);
+            const groupDocRef = this.firestore.collection(FirestoreCollections.GROUPS).doc(expenseData.groupId);
             const groupDocInTx = await transaction.get(groupDocRef);
 
             if (!groupDocInTx.exists) {
@@ -556,7 +554,7 @@ export class ExpenseService {
                     }
 
                     // Get group doc to ensure it exists (though we already checked above)
-                    const groupDocRef = this.groupsCollection.doc(expense.groupId);
+                    const groupDocRef = this.firestore.collection(FirestoreCollections.GROUPS).doc(expense.groupId);
                     const groupDocInTx = await transaction.get(groupDocRef);
                     if (!groupDocInTx.exists) {
                         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
@@ -639,10 +637,7 @@ export class ExpenseService {
     /**
      * Get expense history/audit log
      */
-    async getExpenseHistory(expenseId: string, userId: string): Promise<{
-        history: any[];
-        count: number;
-    }> {
+    async getExpenseHistory(expenseId: string): Promise<{ history: any[]; count: number }> {
         // Verify user has access to this expense first
         await this.fetchExpense(expenseId);
 

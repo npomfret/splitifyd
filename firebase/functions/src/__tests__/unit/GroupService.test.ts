@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupService } from '../../services/GroupService';
-import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
-import type { GroupDocument, ExpenseDocument } from '../../schemas';
+import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import { Timestamp } from 'firebase-admin/firestore';
-import { SecurityPresets, MemberRoles, MemberStatuses, SplitTypes } from '@splitifyd/shared';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 
 // Mock dependencies
 
@@ -126,38 +125,10 @@ describe('GroupService - Unit Tests', () => {
         it('should return group data when group exists and user has access', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
-            const mockGroupData: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: userId,
-                members: {
-                    [userId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: {
-                            light: '#FF6B6B',
-                            dark: '#FF6B6B',
-                            name: 'red',
-                            pattern: 'solid',
-                            assignedAt: new Date().toISOString(),
-                            colorIndex: 0,
-                        },
-                    },
-                },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                securityPreset: SecurityPresets.OPEN,
-                presetAppliedAt: new Date().toISOString(),
-                permissions: {
-                    expenseEditing: 'all-members',
-                    expenseDeletion: 'creator-and-admins',
-                    memberInvitation: 'admins-only',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admins-only',
-                },
-            };
+            const mockGroupData = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .withName('Test Group')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
 
@@ -187,38 +158,9 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
             
-            const mockGroupData: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: userId,
-                members: {
-                    [userId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: {
-                            light: '#FF6B6B',
-                            dark: '#FF6B6B',
-                            name: 'red',
-                            pattern: 'solid',
-                            assignedAt: new Date().toISOString(),
-                            colorIndex: 0,
-                        },
-                    },
-                },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                securityPreset: SecurityPresets.OPEN,
-                presetAppliedAt: new Date().toISOString(),
-                permissions: {
-                    expenseEditing: 'all-members',
-                    expenseDeletion: 'creator-and-admins',
-                    memberInvitation: 'admins-only',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admins-only',
-                },
-            };
+            const mockGroupData = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             
@@ -251,57 +193,22 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
             
-            const mockGroupData: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: userId,
-                members: {
-                    [userId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: {
-                            light: '#FF6B6B',
-                            dark: '#FF6B6B',
-                            name: 'red',
-                            pattern: 'solid',
-                            assignedAt: new Date().toISOString(),
-                            colorIndex: 0,
-                        },
-                    },
-                },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                securityPreset: SecurityPresets.OPEN,
-                presetAppliedAt: new Date().toISOString(),
-                permissions: {
-                    expenseEditing: 'all-members',
-                    expenseDeletion: 'creator-and-admins',
-                    memberInvitation: 'admins-only',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admins-only',
-                },
-            };
+            const mockGroupData = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .build();
 
-            const mockExpense: ExpenseDocument = {
-                id: 'expense-1',
-                groupId: groupId,
-                createdBy: userId,
-                paidBy: userId,
-                amount: 100,
-                currency: 'USD',
-                description: 'Test Expense',
-                category: 'general',
-                date: Timestamp.now(),
-                splitType: SplitTypes.EQUAL,
-                participants: [userId],
-                splits: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense = new FirestoreExpenseBuilder()
+                .withId('expense-1')
+                .withGroupId(groupId)
+                .withCreatedBy(userId)
+                .withPaidBy(userId)
+                .withAmount(100)
+                .withCurrency('USD')
+                .withDescription('Test Expense')
+                .withCategory('general')
+                .withSplitType('equal')
+                .withParticipants([userId])
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             
@@ -347,38 +254,9 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
             
-            const mockGroupData: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: userId,
-                members: {
-                    [userId]: {
-                        role: MemberRoles.ADMIN,
-                        status: MemberStatuses.ACTIVE,
-                        joinedAt: new Date().toISOString(),
-                        color: {
-                            light: '#FF6B6B',
-                            dark: '#FF6B6B',
-                            name: 'red',
-                            pattern: 'solid',
-                            assignedAt: new Date().toISOString(),
-                            colorIndex: 0,
-                        },
-                    },
-                },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                securityPreset: SecurityPresets.OPEN,
-                presetAppliedAt: new Date().toISOString(),
-                permissions: {
-                    expenseEditing: 'all-members',
-                    expenseDeletion: 'creator-and-admins',
-                    memberInvitation: 'admins-only',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admins-only',
-                },
-            };
+            const mockGroupData = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
 
@@ -416,24 +294,18 @@ describe('GroupService - Unit Tests', () => {
         it('should batch fetch expenses and settlements for multiple groups', async () => {
             const groupIds = ['group1', 'group2'];
             
-            const mockExpense1: ExpenseDocument = {
-                id: 'expense-1',
-                groupId: 'group1',
-                createdBy: 'user1',
-                paidBy: 'user1',
-                amount: 100,
-                currency: 'USD',
-                description: 'Test Expense 1',
-                category: 'general',
-                date: Timestamp.now(),
-                splitType: SplitTypes.EQUAL,
-                participants: ['user1'],
-                splits: [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                deletedAt: null,
-                deletedBy: null,
-            };
+            const mockExpense1 = new FirestoreExpenseBuilder()
+                .withId('expense-1')
+                .withGroupId('group1')
+                .withCreatedBy('user1')
+                .withPaidBy('user1')
+                .withAmount(100)
+                .withCurrency('USD')
+                .withDescription('Test Expense 1')
+                .withCategory('general')
+                .withSplitType('equal')
+                .withParticipants(['user1'])
+                .build();
 
             mockFirestoreReader.getExpensesForGroup
                 .mockResolvedValueOnce([mockExpense1])

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupShareService } from '../../../services/GroupShareService';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import type { GroupDocument } from '../../../schemas';
+import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 
 // Mock external dependencies
 vi.mock('../../../utils/groupHelpers', () => ({
@@ -81,24 +81,12 @@ describe('GroupShareService', () => {
 
     describe('previewGroupByLink', () => {
         it('should return group preview when link is valid and group exists', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'A test group for sharing',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .withName('Test Group')
+                .withDescription('A test group for sharing')
+                .withCreatedBy('creator-id')
+                .build();
 
             // Mock the findShareLinkByToken method
             vi.spyOn(groupShareService as any, 'findShareLinkByToken').mockResolvedValue({
@@ -171,24 +159,10 @@ describe('GroupShareService', () => {
 
     describe('generateShareableLink', () => {
         it('should generate shareable link for group owner', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'A test group',
-                createdBy: 'owner-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .withCreatedBy('owner-id')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -216,24 +190,10 @@ describe('GroupShareService', () => {
         });
 
         it('should generate shareable link for group member', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'A test group',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .withCreatedBy('creator-id')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -260,24 +220,10 @@ describe('GroupShareService', () => {
         });
 
         it('should throw UNAUTHORIZED for non-members', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'A test group',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .withCreatedBy('creator-id')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -322,24 +268,10 @@ describe('GroupShareService', () => {
 
     describe('dependency injection', () => {
         it('should use injected FirestoreReader for group reads', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'A test group',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .withCreatedBy('creator-id')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');

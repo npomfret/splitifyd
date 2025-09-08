@@ -1,16 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { ApiDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { SecurityPresets } from '@splitifyd/shared';
 
 describe('Security Preset Validation - Integration Test', () => {
     const driver = new ApiDriver();
-    let firestore: FirebaseFirestore.Firestore;
+    const firestore = getFirestore();
     let testGroupId: string;
-
-    beforeEach(async () => {
-        firestore = getFirestore();
-    });
 
     afterEach(async () => {
         // Clean up test groups

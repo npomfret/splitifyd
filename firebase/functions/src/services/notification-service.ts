@@ -23,8 +23,7 @@ import { FirestoreReader } from './firestore/FirestoreReader';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { WriteResult, BatchWriteResult } from './firestore/IFirestoreWriter';
 import { logger } from '../logger';
-import { getFirestore } from '../firebase';
-import { 
+import {
     type CreateUserNotificationDocument
 } from '../schemas/user-notifications';
 
@@ -33,8 +32,8 @@ export type ChangeType = 'transaction' | 'balance' | 'group';
 export class NotificationService {
 
     constructor(
-        private readonly db: Firestore = getFirestore(),
-        private readonly firestoreReader: IFirestoreReader = new FirestoreReader()
+        private readonly db: Firestore,
+        private readonly firestoreReader: IFirestoreReader,
     ) {}
 
     /**
@@ -275,6 +274,4 @@ export class NotificationService {
     }
 }
 
-// Export singleton instance
-export const notificationService = new NotificationService();
 

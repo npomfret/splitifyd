@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DataFetcher } from '../../../services/balance/DataFetcher';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
 // Mock service registration  
 const mockGetUsers = vi.fn();

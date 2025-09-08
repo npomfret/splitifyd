@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
+import { IFirestoreReader } from "../services/firestore";
 
 /**
  * Core cleanup logic that can be called by both scheduled function and tests
@@ -18,8 +19,9 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
 
     const collections = [FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     let totalDeleted = 0;
-    
-    const firestoreReader = new FirestoreReader();
+
+    const firestore = getFirestore();
+    const firestoreReader: IFirestoreReader = new FirestoreReader(firestore);
 
     // Process all collections in parallel
     const cleanupPromises = collections.map(async (collectionName) => {
@@ -44,7 +46,7 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
                 }
 
                 // Delete in batches
-                const batch = getFirestore().batch();
+                const batch = firestore.batch();
                 let batchDeleteCount = 0;
 
                 docs.forEach((doc) => {

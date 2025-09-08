@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
 // Mock the problematic dependencies before importing
 vi.mock('../../../services/serviceRegistration', () => ({

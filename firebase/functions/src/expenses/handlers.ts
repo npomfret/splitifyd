@@ -1,19 +1,11 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
-import {getFirestore} from '../firebase';
 import { validateUserAuth } from '../auth/utils';
 import { ApiError, Errors } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { getExpenseService } from '../services/serviceRegistration';
-
-const getExpensesCollection = () => {
-    return getFirestore().collection(FirestoreCollections.EXPENSES);
-};
-
-
 
 export const createExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
@@ -141,7 +133,7 @@ export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
 
-    const result = await getExpenseService().getExpenseHistory(expenseId, userId);
+    const result = await getExpenseService().getExpenseHistory(expenseId);
 
     res.json(result);
 };

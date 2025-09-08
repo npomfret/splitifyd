@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import type { GroupDocument, ExpenseDocument } from '../../../schemas';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 
 // Mock the external dependencies
 vi.mock('../../../utils/groupHelpers', () => ({
@@ -46,24 +46,9 @@ describe('CommentService', () => {
 
     describe('verifyCommentAccess for GROUP comments', () => {
         it('should allow access when group exists and user is member', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -89,24 +74,9 @@ describe('CommentService', () => {
         });
 
         it('should throw FORBIDDEN when user is not a group member', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -125,43 +95,14 @@ describe('CommentService', () => {
 
     describe('verifyCommentAccess for EXPENSE comments', () => {
         it('should allow access when expense exists and user is group member', async () => {
-            const testExpense: ExpenseDocument = {
-                id: 'test-expense',
-                groupId: 'test-group',
-                createdBy: 'user-id',
-                paidBy: 'user-id',
-                amount: 100,
-                currency: 'USD',
-                description: 'Test Description',
-                category: 'category',
-                date: new Date().toISOString(),
-                splitType: 'equal' as const,
-                participants: ['user-id'],
-                splits: [{ userId: 'user-id', amount: 100 }],
-                deletedBy: null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testExpense = new FirestoreExpenseBuilder()
+                .withId('test-expense')
+                .withGroupId('test-group')
+                .build();
 
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .build();
 
             mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
@@ -188,43 +129,14 @@ describe('CommentService', () => {
         });
 
         it('should throw EXPENSE_GROUP_MISMATCH when expense belongs to different group', async () => {
-            const testExpense: ExpenseDocument = {
-                id: 'test-expense',
-                groupId: 'different-group', // Different from the provided groupId
-                createdBy: 'user-id',
-                paidBy: 'user-id',
-                amount: 100,
-                currency: 'USD',
-                description: 'Test Description',
-                category: 'category',
-                date: new Date().toISOString(),
-                splitType: 'equal' as const,
-                participants: ['user-id'],
-                splits: [{ userId: 'user-id', amount: 100 }],
-                deletedBy: null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testExpense = new FirestoreExpenseBuilder()
+                .withId('test-expense')
+                .withGroupId('different-group') // Different from the provided groupId
+                .build();
 
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .build();
 
             mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
@@ -244,24 +156,9 @@ describe('CommentService', () => {
 
     describe('dependency injection', () => {
         it('should use injected FirestoreReader for group reads', async () => {
-            const testGroup: GroupDocument = {
-                id: 'test-group',
-                name: 'Test Group',
-                description: 'Test Description',
-                createdBy: 'creator-id',
-                members: {},
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId('test-group')
+                .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
@@ -273,24 +170,10 @@ describe('CommentService', () => {
         });
 
         it('should use injected FirestoreReader for expense reads', async () => {
-            const testExpense: ExpenseDocument = {
-                id: 'test-expense',
-                groupId: 'test-group',
-                createdBy: 'user-id',
-                paidBy: 'user-id',
-                amount: 100,
-                currency: 'USD',
-                description: 'Test Description',
-                category: 'category',
-                date: new Date().toISOString(),
-                splitType: 'equal' as const,
-                participants: ['user-id'],
-                splits: [{ userId: 'user-id', amount: 100 }],
-                deletedBy: null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-                deletedAt: null,
-            };
+            const testExpense = new FirestoreExpenseBuilder()
+                .withId('test-expense')
+                .withGroupId('test-group')
+                .build();
 
             mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
 

@@ -1,10 +1,11 @@
 import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
-import { isEmulator } from '../firebase';
+import {getFirestore, isEmulator} from '../firebase';
 import { logger } from '../logger';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
+import {IFirestoreReader} from "../services/firestore";
 
-const firestoreReader = new FirestoreReader();
+const firestoreReader: IFirestoreReader = new FirestoreReader(getFirestore());
 const pool = TestUserPoolService.getInstance(firestoreReader);
 
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {

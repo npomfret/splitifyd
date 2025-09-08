@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GroupPermissionService } from '../../../services/GroupPermissionService';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
-import type { GroupDocument } from '../../../schemas';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 
 describe('GroupPermissionService', () => {
     let groupPermissionService: GroupPermissionService;
@@ -18,21 +18,10 @@ describe('GroupPermissionService', () => {
             const groupId = 'test-group';
             
             // Mock group exists
-            const testGroup: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                createdBy: 'creator-user',
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'owner-and-admin',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admin-only'
-                },
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .withSecurityPreset('open')  // Test checks this value
+                .build();
 
             mockFirestoreReader.mockGroupExists(groupId, testGroup);
 
@@ -72,21 +61,9 @@ describe('GroupPermissionService', () => {
             const groupId = 'test-group';
 
             // Mock group exists
-            const testGroup: GroupDocument = {
-                id: groupId,
-                name: 'Test Group',
-                createdBy: 'creator-user',
-                securityPreset: 'open',
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'owner-and-admin',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'admin-only'
-                },
-                createdAt: new Date(),
-                updatedAt: new Date()
-            };
+            const testGroup = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .build();
 
             mockFirestoreReader.mockGroupExists(groupId, testGroup);
 

@@ -60,9 +60,6 @@ describe('Groups API', () => {
             expect(group.securityPreset).toBe(SecurityPresets.OPEN);
             expect(group.permissions).toBeDefined();
             expect(group.presetAppliedAt).toBeDefined();
-
-            // Cleanup
-            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should be able to fetch balances immediately after creating group', async () => {

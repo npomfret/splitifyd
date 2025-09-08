@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getCurrentPolicyVersions } from '../../../auth/policy-helpers';
-import { MockFirestoreReader } from '../../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 

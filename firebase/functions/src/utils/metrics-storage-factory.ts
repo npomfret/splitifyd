@@ -29,7 +29,7 @@ export interface IMetricsStorage {
 export function createMetricsStorage(config?: Partial<MetricsStorageConfig>): IMetricsStorage {
     const db = getFirestore();
     const firestoreWriter = new FirestoreWriter(db);
-    const firestoreReader = new FirestoreReader();
+    const firestoreReader = new FirestoreReader(db);
     
     return new MetricsStorage(firestoreWriter, firestoreReader, config);
 }

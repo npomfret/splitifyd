@@ -38,6 +38,9 @@ import type { IMetricsStorage } from './utils/metrics-storage-factory';
 let servicesRegistered = false;
 let metricsStorageInstance: IMetricsStorage | null = null;
 
+// Get Firebase instances normally
+const firestoreDb = getFirestore();
+
 // Get or create the single metrics storage instance
 function getMetricsStorage(): IMetricsStorage {
     if (!metricsStorageInstance) {
@@ -97,9 +100,6 @@ function setupRoutes(app: express.Application): void {
     // Enhanced health check endpoint (no auth required)
     app.get('/health', async (req: express.Request, res: express.Response) => {
         const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
-
-        // Get Firebase instances normally
-        const firestoreDb = getFirestore();
 
         const firestoreStart = Date.now();
         const testRef = firestoreDb.collection('_health_check').doc('test');

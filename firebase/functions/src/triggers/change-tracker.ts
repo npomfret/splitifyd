@@ -5,8 +5,13 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { PerformanceMonitor } from '../utils/performance-monitor';
-import { notificationService } from '../services/notification-service';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
+import {getFirestore} from "../firebase";
+import {IFirestoreReader} from "../services/firestore";
+import { NotificationService } from "../services/notification-service";
+
+const firestore = getFirestore();
+const notificationService = new NotificationService(firestore, new FirestoreReader(firestore));
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -47,7 +52,7 @@ export const trackGroupChanges = onDocumentWritten(
                     
                     // For CREATE/UPDATE events, query the current subcollection using FirestoreReader
                     try {
-                        const firestoreReader = new FirestoreReader();
+                        const firestoreReader: IFirestoreReader = new FirestoreReader(getFirestore());
                         const members = await firestoreReader.getMembersFromSubcollection(groupId);
                         
                         members.forEach(member => {

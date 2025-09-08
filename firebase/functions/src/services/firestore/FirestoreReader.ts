@@ -7,7 +7,6 @@
  */
 
 import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/firestore';
-import {getFirestore} from '../../firebase';
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp } from 'firebase-admin/firestore';
@@ -59,7 +58,7 @@ import type {
 
 export class FirestoreReader implements IFirestoreReader {
     constructor(
-        private readonly db: Firestore = getFirestore()
+        private readonly db: Firestore
     ) {}
 
     // ========================================================================

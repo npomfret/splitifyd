@@ -16,6 +16,7 @@ import { FirestoreWriter } from './firestore/FirestoreWriter';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { IMetricsStorage } from '../utils/metrics-storage-factory';
+import {getFirestore} from "../firebase";
 
 /**
  * Register all services with the ServiceRegistry
@@ -72,7 +73,7 @@ export function registerAllServices(metricsStorage: IMetricsStorage): void {
         if (!expenseServiceInstance) {
             const firestoreReader = getFirestoreReader();
             const firestoreWriter = getFirestoreWriter();
-            expenseServiceInstance = new ExpenseService(firestoreReader, firestoreWriter);
+            expenseServiceInstance = new ExpenseService(firestoreReader, firestoreWriter,  getFirestore());
         }
         return expenseServiceInstance;
     });
@@ -149,14 +150,14 @@ export function registerAllServices(metricsStorage: IMetricsStorage): void {
 
     registry.registerService('FirestoreReader', () => {
         if (!firestoreReaderInstance) {
-            firestoreReaderInstance = new FirestoreReader();
+            firestoreReaderInstance = new FirestoreReader(getFirestore());
         }
         return firestoreReaderInstance;
     });
 
     registry.registerService('FirestoreWriter', () => {
         if (!firestoreWriterInstance) {
-            firestoreWriterInstance = new FirestoreWriter();
+            firestoreWriterInstance = new FirestoreWriter(getFirestore());
         }
         return firestoreWriterInstance;
     });

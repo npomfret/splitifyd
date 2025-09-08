@@ -13,10 +13,16 @@
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { notificationService } from '../services/notification-service';
 import { PerformanceMonitor } from '../utils/performance-monitor';
 import { registerAllServices } from '../services/serviceRegistration';
 import type { IMetricsStorage } from '../utils/metrics-storage-factory';
+import {getFirestore} from "../firebase";
+import { IFirestoreWriter } from "../services/firestore/IFirestoreWriter";
+import { NotificationService } from "../services/notification-service";
+import { FirestoreReader } from "../services/firestore";
+
+const firestore = getFirestore();
+const notificationService = new NotificationService(firestore, new FirestoreReader(firestore));
 
 // Services registration state
 let servicesRegistered = false;
@@ -145,7 +151,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                         // Delete the user's notification document
                         // Using FirestoreWriter's bulkDelete method
                         const { FirestoreWriter } = await import('../services/firestore/FirestoreWriter');
-                        const writer = new FirestoreWriter();
+                        const writer: IFirestoreWriter = new FirestoreWriter(firestore);
                         
                         const result = await writer.bulkDelete([`user-notifications/${userId}`]);
                         

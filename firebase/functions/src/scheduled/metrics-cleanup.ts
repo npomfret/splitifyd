@@ -13,6 +13,7 @@ import { getFirestore } from '../firebase';
 import { Timestamp } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
+import {IFirestoreReader} from "../services/firestore";
 
 export interface CleanupConfig {
     rawMetricsRetentionDays: number;
@@ -39,7 +40,7 @@ export async function performMetricsCleanup(
 ): Promise<{ deletedCounts: Record<string, number>; totalDeleted: number }> {
     const finalConfig = { ...DEFAULT_CONFIG, ...config };
     const db = getFirestore();
-    const firestoreReader = new FirestoreReader();
+    const firestoreReader: IFirestoreReader = new FirestoreReader(db);
     const deletedCounts: Record<string, number> = {};
     let totalDeleted = 0;
 
@@ -132,8 +133,8 @@ export async function performMetricsCleanup(
  * Clean up a specific collection
  */
 async function cleanupCollection(
-    firestoreReader: FirestoreReader,
-    db: FirebaseFirestore.Firestore,
+    firestoreReader: IFirestoreReader,
+    db: FirebaseFirestore.Firestore,// todo: remove db: FirebaseFirestore.Firestore
     collectionName: string,
     timestampField: string,
     cutoffDate: Date,

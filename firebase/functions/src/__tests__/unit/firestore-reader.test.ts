@@ -6,17 +6,20 @@
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';
-import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import { getFirestoreReader } from '../../services/serviceRegistration';
 import { setupTestServices } from '../test-helpers/setup';
+import {getFirestore} from "../../firebase";
 
 describe('FirestoreReader', () => {
+    const firestore = getFirestore();
+
     beforeEach(() => {
         setupTestServices();
     });
 
     test('should be instantiable', () => {
-        const reader = new FirestoreReader();
+        const reader = new FirestoreReader(firestore);
         expect(reader).toBeDefined();
         expect(typeof reader.getUser).toBe('function');
         expect(typeof reader.getGroup).toBe('function');
@@ -29,7 +32,7 @@ describe('FirestoreReader', () => {
     });
 
     test('should have all required interface methods', () => {
-        const reader = new FirestoreReader();
+        const reader = new FirestoreReader(firestore);
         
         // Document operations
         expect(typeof reader.getUser).toBe('function');

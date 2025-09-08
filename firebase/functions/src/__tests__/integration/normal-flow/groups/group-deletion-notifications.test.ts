@@ -10,6 +10,8 @@ import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Group Deletion Notifications', () => {
     const apiDriver = new ApiDriver();
+    const firestore = getFirestore();
+
     let users: PooledTestUser[];
 
     beforeEach(async () => {
@@ -34,10 +36,10 @@ describe('Group Deletion Notifications', () => {
         expect(members.members.length).toBe(2);
 
         // Get initial change versions for both users
-        const user1NotificationsBefore = await getFirestore()
+        const user1NotificationsBefore = await firestore
             .doc(`user-notifications/${users[0].uid}`)
             .get();
-        const user2NotificationsBefore = await getFirestore()
+        const user2NotificationsBefore = await firestore
             .doc(`user-notifications/${users[1].uid}`)
             .get();
 
@@ -56,10 +58,10 @@ describe('Group Deletion Notifications', () => {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Get user notification documents after deletion
-        const user1NotificationsAfter = await getFirestore()
+        const user1NotificationsAfter = await firestore
             .doc(`user-notifications/${users[0].uid}`)
             .get();
-        const user2NotificationsAfter = await getFirestore()
+        const user2NotificationsAfter = await firestore
             .doc(`user-notifications/${users[1].uid}`)
             .get();
 
@@ -105,7 +107,7 @@ describe('Group Deletion Notifications', () => {
         const group = await apiDriver.createGroup(groupData, users[0].token);
 
         // Get initial change version
-        const userNotificationsBefore = await getFirestore()
+        const userNotificationsBefore = await firestore
             .doc(`user-notifications/${users[0].uid}`)
             .get();
         const initialVersion = userNotificationsBefore.data()?.changeVersion || 0;
@@ -117,7 +119,7 @@ describe('Group Deletion Notifications', () => {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Get user notification document after deletion
-        const userNotificationsAfter = await getFirestore()
+        const userNotificationsAfter = await firestore
             .doc(`user-notifications/${users[0].uid}`)
             .get();
 

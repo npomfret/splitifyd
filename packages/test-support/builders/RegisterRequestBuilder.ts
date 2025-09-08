@@ -17,7 +17,7 @@ export interface RegisterRequest {
 export class RegisterRequestBuilder {
     private request: RegisterRequest = {
         email: randomEmail(),
-        password: `Pass${generateShortId()}!${randomString(4).toUpperCase()}`,
+        password: `Pass123!ABC`,
         displayName: `${randomChoice(['Alice', 'Bob', 'Charlie', 'Diana', 'Emma', 'Frank'])} ${randomString(6)}`,
         termsAccepted: randomBoolean(),
         cookiePolicyAccepted: randomBoolean(),

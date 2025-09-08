@@ -7,90 +7,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { MockFirestoreReader } from '../../services/firestore/MockFirestoreReader';
+import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import type { GroupDocument } from '../../schemas';
+import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 
-/**
- * Builder for creating GroupDocument test data
- * Reduces noise in tests and focuses on what's important
- */
-class GroupDocumentBuilder {
-    private group: Partial<GroupDocument> = {
-        id: 'group-1',
-        name: 'Test Group',
-        description: 'A test group',
-        createdBy: 'user-1',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
-        securityPreset: 'open',
-        permissions: {
-            expenseEditing: 'all-members',
-            expenseDeletion: 'all-members',
-            memberInvitation: 'all-members',
-            memberApproval: 'automatic',
-            settingsManagement: 'admins-only'
-        }
-    };
-
-    withId(id: string): GroupDocumentBuilder {
-        this.group.id = id;
-        return this;
-    }
-
-    withName(name: string): GroupDocumentBuilder {
-        this.group.name = name;
-        return this;
-    }
-
-    withDescription(description: string): GroupDocumentBuilder {
-        this.group.description = description;
-        return this;
-    }
-
-    withCreatedBy(userId: string): GroupDocumentBuilder {
-        this.group.createdBy = userId;
-        return this;
-    }
-
-    withCreatedAt(date: string): GroupDocumentBuilder {
-        this.group.createdAt = date;
-        return this;
-    }
-
-    withUpdatedAt(date: string): GroupDocumentBuilder {
-        this.group.updatedAt = date;
-        return this;
-    }
-
-    withSecurityPreset(preset: 'open' | 'managed' | 'custom'): GroupDocumentBuilder {
-        this.group.securityPreset = preset;
-        return this;
-    }
-
-    build(): GroupDocument {
-        return this.group as GroupDocument;
-    }
-
-    /**
-     * Helper to build multiple groups with sequential IDs
-     */
-    static buildMany(count: number, customizer?: (builder: GroupDocumentBuilder, index: number) => void): GroupDocument[] {
-        return Array.from({ length: count }, (_, i) => {
-            const builder = new GroupDocumentBuilder()
-                .withId(`group-${i + 1}`)
-                .withName(`Group ${i + 1}`)
-                .withDescription(`Test group ${i + 1}`)
-                .withCreatedAt(`2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`)
-                .withUpdatedAt(`2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`);
-            
-            if (customizer) {
-                customizer(builder, i);
-            }
-            
-            return builder.build();
-        });
-    }
-}
 
 describe('FirestoreReader Pagination Performance', () => {
     let mockReader: MockFirestoreReader;
@@ -105,17 +25,15 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('PaginatedResult Interface', () => {
         it('should return paginated result with all required fields', async () => {
-            const testGroups: GroupDocument[] = [
-                {
-                    id: 'group-1',
-                    name: 'Test Group 1',
-                    description: 'First test group',
-                    createdBy: 'user-1',
-                    createdAt: '2024-01-01T00:00:00Z',
-                    updatedAt: '2024-01-01T00:00:00Z',
-                    securityPreset: 'open',
-                    permissions: {}
-                } as GroupDocument
+            const testGroups = [
+                new FirestoreGroupBuilder()
+                    .withId('group-1')
+                    .withName('Test Group 1')
+                    .withDescription('First test group')
+                    .withCreatedBy('user-1')
+                    .withCreatedAt('2024-01-01T00:00:00Z')
+                    .withUpdatedAt('2024-01-01T00:00:00Z')
+                    .build()
             ];
 
             mockReader.mockGroupsForUser('test-user', testGroups, false);
@@ -135,9 +53,9 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should indicate hasMore=true when there are additional pages', async () => {
-            const testGroups: GroupDocument[] = [
-                { id: 'group-1', name: 'Group 1' } as GroupDocument,
-                { id: 'group-2', name: 'Group 2' } as GroupDocument
+            const testGroups = [
+                new FirestoreGroupBuilder().withId('group-1').build(),
+                new FirestoreGroupBuilder().withId('group-2').build()
             ];
 
             mockReader.mockGroupsForUser('test-user', testGroups, true, 'cursor-123');
@@ -152,16 +70,9 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('Cursor-Based Pagination', () => {
         it('should handle paginated requests with proper cursor behavior', async () => {
-            const allGroups: GroupDocument[] = Array.from({ length: 25 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`,
-                description: `Test group ${i + 1}`,
-                createdBy: 'test-user',
-                createdAt: `2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`,
-                updatedAt: `2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`,
-                securityPreset: 'open',
-                permissions: {}
-            } as GroupDocument));
+            const allGroups = FirestoreGroupBuilder.buildMany(25, (builder) => {
+                builder.withCreatedBy('test-user');
+            });
 
             mockReader.mockPaginatedGroups('test-user', allGroups, 10);
 
@@ -228,8 +139,8 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle single result efficiently', async () => {
-            const singleGroup: GroupDocument[] = [
-                { id: 'only-group', name: 'Only Group' } as GroupDocument
+            const singleGroup = [
+                new FirestoreGroupBuilder().withId('only-group').build()
             ];
 
             mockReader.mockGroupsForUser('test-user', singleGroup, false);
@@ -243,10 +154,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle exact page size boundary', async () => {
-            const exactPageGroups: GroupDocument[] = Array.from({ length: 10 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`
-            } as GroupDocument));
+            const exactPageGroups = FirestoreGroupBuilder.buildMany(10);
 
             mockReader.mockPaginatedGroups('test-user', exactPageGroups, 10);
 
@@ -263,12 +171,11 @@ describe('FirestoreReader Pagination Performance', () => {
             // This test validates that the new implementation avoids the
             // "fetch-all-then-paginate" anti-pattern that caused 100x performance issues
             
-            const manyGroups: GroupDocument[] = Array.from({ length: 1000 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`,
-                createdAt: `2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`,
-                updatedAt: `2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`
-            } as GroupDocument));
+            const manyGroups = FirestoreGroupBuilder.buildMany(1000, (builder, i) => {
+                builder
+                    .withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`)
+                    .withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
+            });
 
             mockReader.mockPaginatedGroups('heavy-user', manyGroups, 10);
 
@@ -291,10 +198,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
     describe('Query Options Integration', () => {
         it('should respect limit parameter', async () => {
-            const testGroups: GroupDocument[] = Array.from({ length: 20 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`
-            } as GroupDocument));
+            const testGroups = FirestoreGroupBuilder.buildMany(20);
 
             mockReader.mockPaginatedGroups('test-user', testGroups, 5);
 
@@ -305,10 +209,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should work without explicit limit (default pagination)', async () => {
-            const testGroups: GroupDocument[] = Array.from({ length: 15 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`
-            } as GroupDocument));
+            const testGroups = FirestoreGroupBuilder.buildMany(15);
 
             mockReader.mockPaginatedGroups('test-user', testGroups, 10); // Default page size
 
@@ -371,9 +272,9 @@ describe('MockFirestoreReader Pagination Support', () => {
 
     describe('Mock Helper Methods', () => {
         it('should support mockGroupsForUser with pagination parameters', async () => {
-            const testGroups: GroupDocument[] = [
-                { id: 'group-1', name: 'Group 1' } as GroupDocument,
-                { id: 'group-2', name: 'Group 2' } as GroupDocument
+            const testGroups = [
+                new FirestoreGroupBuilder().withId('group-1').build(),
+                new FirestoreGroupBuilder().withId('group-2').build()
             ];
 
             // Test the enhanced mockGroupsForUser signature
@@ -387,11 +288,9 @@ describe('MockFirestoreReader Pagination Support', () => {
         });
 
         it('should support mockPaginatedGroups for complex pagination testing', async () => {
-            const allGroups: GroupDocument[] = Array.from({ length: 7 }, (_, i) => ({
-                id: `group-${i + 1}`,
-                name: `Group ${i + 1}`,
-                updatedAt: `2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`
-            } as GroupDocument));
+            const allGroups = FirestoreGroupBuilder.buildMany(7, (builder, i) => {
+                builder.withUpdatedAt(`2024-01-${String(i + 1).padStart(2, '0')}T00:00:00Z`);
+            });
 
             mockReader.mockPaginatedGroups('test-user', allGroups, 3);
 
