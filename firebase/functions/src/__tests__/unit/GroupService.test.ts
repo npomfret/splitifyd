@@ -6,38 +6,6 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { SecurityPresets, MemberRoles, MemberStatuses, SplitTypes } from '@splitifyd/shared';
 
 // Mock dependencies
-vi.mock('../../firebase', () => ({
-    isTest: vi.fn(() => true),
-    getFirestore: vi.fn(() => ({
-        collection: vi.fn(() => ({
-            doc: vi.fn(() => ({
-                delete: vi.fn(),
-                get: vi.fn(),
-                set: vi.fn(),
-                collection: vi.fn(() => ({
-                    get: vi.fn().mockResolvedValue({ docs: [], size: 0 }),
-                })),
-            })),
-            where: vi.fn(() => ({
-                get: vi.fn().mockResolvedValue({ docs: [], size: 0 }),
-            })),
-        })),
-        runTransaction: vi.fn(async (transactionFn) => {
-            const mockTransaction = {
-                get: vi.fn().mockResolvedValue({
-                    forEach: vi.fn(),
-                }),
-                delete: vi.fn(),
-            };
-            return await transactionFn(mockTransaction);
-        }),
-        bulkWriter: vi.fn(() => ({
-            delete: vi.fn(),
-            close: vi.fn().mockResolvedValue(undefined),
-            onWriteError: vi.fn(),
-        })),
-    })),
-}));
 
 vi.mock('../../utils/performance-monitor', () => ({
     PerformanceMonitor: {
@@ -253,11 +221,29 @@ describe('GroupService - Unit Tests', () => {
             };
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
-            mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
+            
+            // Mock the getGroupDeletionData method with empty QuerySnapshot-like objects
+            const mockEmptyQuerySnapshot = {
+                size: 0,
+                docs: [],
+                forEach: vi.fn(),
+                empty: true
+            } as any;
+
+            mockFirestoreReader.getGroupDeletionData.mockResolvedValue({
+                expenses: mockEmptyQuerySnapshot,
+                settlements: mockEmptyQuerySnapshot,
+                transactionChanges: mockEmptyQuerySnapshot,
+                balanceChanges: mockEmptyQuerySnapshot,
+                shareLinks: mockEmptyQuerySnapshot,
+                groupComments: mockEmptyQuerySnapshot,
+                expenseComments: []
+            });
 
             const result = await groupService.deleteGroup(groupId, userId);
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
+            expect(mockFirestoreReader.getGroupDeletionData).toHaveBeenCalledWith(groupId);
             expect(result.message).toBe('Group and all associated data deleted permanently');
         });
 
@@ -318,11 +304,40 @@ describe('GroupService - Unit Tests', () => {
             };
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
-            mockFirestoreReader.getExpensesForGroup.mockResolvedValue([mockExpense]);
+            
+            // Mock the getGroupDeletionData method with QuerySnapshot containing expense
+            const mockExpenseQuerySnapshot = {
+                size: 1,
+                docs: [{
+                    ref: { path: 'expenses/expense-1' },
+                    id: 'expense-1',
+                    data: () => mockExpense
+                }],
+                forEach: vi.fn(),
+                empty: false
+            } as any;
+
+            const mockEmptyQuerySnapshot = {
+                size: 0,
+                docs: [],
+                forEach: vi.fn(),
+                empty: true
+            } as any;
+
+            mockFirestoreReader.getGroupDeletionData.mockResolvedValue({
+                expenses: mockExpenseQuerySnapshot,
+                settlements: mockEmptyQuerySnapshot,
+                transactionChanges: mockEmptyQuerySnapshot,
+                balanceChanges: mockEmptyQuerySnapshot,
+                shareLinks: mockEmptyQuerySnapshot,
+                groupComments: mockEmptyQuerySnapshot,
+                expenseComments: []
+            });
 
             const result = await groupService.deleteGroup(groupId, userId);
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
+            expect(mockFirestoreReader.getGroupDeletionData).toHaveBeenCalledWith(groupId);
             expect(result.message).toBe('Group and all associated data deleted permanently');
         });
     });

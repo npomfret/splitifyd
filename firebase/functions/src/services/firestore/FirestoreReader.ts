@@ -1365,4 +1365,347 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    // ========================================================================
+    // New Methods for Centralizing Firestore Access
+    // ========================================================================
+
+    async getUserExpenses(userId: string, options?: {
+        limit?: number;
+        cursor?: string;
+        includeDeleted?: boolean;
+    }): Promise<{
+        expenses: ExpenseDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getUserExpenses',
+            async () => {
+                try {
+                    const limit = Math.min(options?.limit || 50, 100);
+                    const cursor = options?.cursor;
+                    const includeDeleted = options?.includeDeleted || false;
+
+                    let query = this.db.collection(FirestoreCollections.EXPENSES)
+                        .where('participants', 'array-contains', userId)
+                        .select(
+                            'groupId',
+                            'createdBy',
+                            'paidBy',
+                            'amount',
+                            'currency',
+                            'description',
+                            'category',
+                            'date',
+                            'splitType',
+                            'participants',
+                            'splits',
+                            'receiptUrl',
+                            'createdAt',
+                            'updatedAt',
+                            'deletedAt',
+                            'deletedBy',
+                        )
+                        .orderBy('date', 'desc')
+                        .orderBy('createdAt', 'desc')
+                        .limit(limit + 1);
+
+                    // Filter out deleted expenses by default
+                    if (!includeDeleted) {
+                        query = query.where('deletedAt', '==', null);
+                    }
+
+                    if (cursor) {
+                        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+                        const cursorData = JSON.parse(decodedCursor);
+                        if (cursorData.date && cursorData.createdAt) {
+                            query = query.startAfter(
+                                Timestamp.fromDate(new Date(cursorData.date)),
+                                Timestamp.fromDate(new Date(cursorData.createdAt))
+                            );
+                        }
+                    }
+
+                    const snapshot = await query.get();
+                    const hasMore = snapshot.docs.length > limit;
+                    const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
+
+                    const expenses = docs.map(doc => 
+                        ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() })
+                    );
+
+                    let nextCursor: string | undefined;
+                    if (hasMore && docs.length > 0) {
+                        const lastDoc = docs[docs.length - 1];
+                        const lastData = lastDoc.data();
+                        const cursorData = {
+                            date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
+                            createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt
+                        };
+                        nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+                    }
+
+                    return {
+                        expenses,
+                        hasMore,
+                        nextCursor
+                    };
+                } catch (error) {
+                    logger.error('Failed to get user expenses', error, { userId, options });
+                    throw error;
+                }
+            },
+            { userId, limit: options?.limit, includeDeleted: options?.includeDeleted }
+        );
+    }
+
+    async getExpenseHistory(expenseId: string, limit: number = 20): Promise<{
+        history: any[];
+        count: number;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getExpenseHistory',
+            async () => {
+                try {
+                    const historySnapshot = await this.db
+                        .collection(FirestoreCollections.EXPENSES)
+                        .doc(expenseId)
+                        .collection('history')
+                        .orderBy('modifiedAt', 'desc')
+                        .limit(limit)
+                        .get();
+
+                    const history = historySnapshot.docs.map((doc) => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            modifiedAt: data.modifiedAt?.toDate?.()?.toISOString() || data.modifiedAt,
+                            modifiedBy: data.modifiedBy,
+                            changeType: data.changeType,
+                            changes: data.changes,
+                            previousAmount: data.amount,
+                            previousDescription: data.description,
+                            previousCategory: data.category,
+                            previousDate: data.date?.toDate?.()?.toISOString() || data.date,
+                            previousSplits: data.splits,
+                        };
+                    });
+
+                    return {
+                        history,
+                        count: history.length,
+                    };
+                } catch (error) {
+                    logger.error('Failed to get expense history', error, { expenseId, limit });
+                    throw error;
+                }
+            },
+            { expenseId, limit }
+        );
+    }
+
+    async getSystemDocument(docPath: string): Promise<any | null> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getSystemDocument',
+            async () => {
+                try {
+                    const doc = await this.db.doc(docPath).get();
+                    return doc.exists ? doc.data() : null;
+                } catch (error) {
+                    logger.error('Failed to get system document', error, { docPath });
+                    throw error;
+                }
+            },
+            { docPath }
+        );
+    }
+
+    async getHealthCheckDocument(): Promise<any | null> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getHealthCheckDocument',
+            async () => {
+                try {
+                    const testRef = this.db.collection('_health_check').doc('test');
+                    await testRef.get();
+                    return { status: 'ok', timestamp: new Date().toISOString() };
+                } catch (error) {
+                    logger.error('Failed to perform health check', error);
+                    throw error;
+                }
+            }
+        );
+    }
+
+    async getGroupDeletionData(groupId: string): Promise<{
+        expenses: FirebaseFirestore.QuerySnapshot;
+        settlements: FirebaseFirestore.QuerySnapshot;
+        transactionChanges: FirebaseFirestore.QuerySnapshot;
+        balanceChanges: FirebaseFirestore.QuerySnapshot;
+        shareLinks: FirebaseFirestore.QuerySnapshot;
+        groupComments: FirebaseFirestore.QuerySnapshot;
+        expenseComments: FirebaseFirestore.QuerySnapshot[];
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getGroupDeletionData',
+            async () => {
+                try {
+                    const [
+                        expensesSnapshot,
+                        settlementsSnapshot,
+                        transactionChangesSnapshot,
+                        balanceChangesSnapshot,
+                        shareLinksSnapshot,
+                        groupCommentsSnapshot,
+                    ] = await Promise.all([
+                        this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
+                        this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
+                        this.db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
+                        this.db.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
+                        this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
+                        this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
+                    ]);
+
+                    // Get comment subcollections for each expense
+                    const expenseComments = await Promise.all(
+                        expensesSnapshot.docs.map(expense =>
+                            this.db.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
+                        )
+                    );
+
+                    return {
+                        expenses: expensesSnapshot,
+                        settlements: settlementsSnapshot,
+                        transactionChanges: transactionChangesSnapshot,
+                        balanceChanges: balanceChangesSnapshot,
+                        shareLinks: shareLinksSnapshot,
+                        groupComments: groupCommentsSnapshot,
+                        expenseComments,
+                    };
+                } catch (error) {
+                    logger.error('Failed to get group deletion data', error, { groupId });
+                    throw error;
+                }
+            },
+            { groupId }
+        );
+    }
+
+    async getDocumentForTesting(collection: string, docId: string): Promise<any | null> {
+        try {
+            const doc = await this.db.collection(collection).doc(docId).get();
+            return doc.exists ? { id: doc.id, ...doc.data() } : null;
+        } catch (error) {
+            logger.error('Failed to get document for testing', error, { collection, docId });
+            throw error;
+        }
+    }
+
+    async verifyDocumentExists(collection: string, docId: string): Promise<boolean> {
+        try {
+            const doc = await this.db.collection(collection).doc(docId).get();
+            return doc.exists;
+        } catch (error) {
+            logger.error('Failed to verify document exists', error, { collection, docId });
+            throw error;
+        }
+    }
+
+    async getExpensesForGroupPaginated(groupId: string, options?: {
+        limit?: number;
+        cursor?: string;
+        includeDeleted?: boolean;
+    }): Promise<{
+        expenses: ExpenseDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }> {
+        return PerformanceMonitor.monitorServiceCall(
+            'FirestoreReader',
+            'getExpensesForGroupPaginated',
+            async () => {
+                try {
+                    const limit = Math.min(options?.limit || 20, 100);
+                    const cursor = options?.cursor;
+                    const includeDeleted = options?.includeDeleted || false;
+
+                    let query = this.db.collection(FirestoreCollections.EXPENSES)
+                        .where('groupId', '==', groupId);
+
+                    // Filter out deleted expenses by default
+                    if (!includeDeleted) {
+                        query = query.where('deletedAt', '==', null);
+                    }
+
+                    query = query
+                        .select(
+                            'groupId',
+                            'createdBy',
+                            'paidBy',
+                            'amount',
+                            'currency',
+                            'description',
+                            'category',
+                            'date',
+                            'splitType',
+                            'participants',
+                            'splits',
+                            'receiptUrl',
+                            'createdAt',
+                            'updatedAt',
+                            'deletedAt',
+                            'deletedBy',
+                        )
+                        .orderBy('date', 'desc')
+                        .orderBy('createdAt', 'desc')
+                        .limit(limit + 1);
+
+                    if (cursor) {
+                        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+                        const cursorData = JSON.parse(decodedCursor);
+                        if (cursorData.date && cursorData.createdAt) {
+                            query = query.startAfter(
+                                Timestamp.fromDate(new Date(cursorData.date)),
+                                Timestamp.fromDate(new Date(cursorData.createdAt))
+                            );
+                        }
+                    }
+
+                    const snapshot = await query.get();
+                    const hasMore = snapshot.docs.length > limit;
+                    const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
+
+                    const expenses = docs.map(doc => 
+                        ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() })
+                    );
+
+                    let nextCursor: string | undefined;
+                    if (hasMore && docs.length > 0) {
+                        const lastDoc = docs[docs.length - 1];
+                        const lastData = lastDoc.data();
+                        const cursorData = {
+                            date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
+                            createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt
+                        };
+                        nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+                    }
+
+                    return {
+                        expenses,
+                        hasMore,
+                        nextCursor
+                    };
+                } catch (error) {
+                    logger.error('Failed to get expenses for group paginated', error, { groupId, options });
+                    throw error;
+                }
+            },
+            { groupId, limit: options?.limit, includeDeleted: options?.includeDeleted }
+        );
+    }
+
 }

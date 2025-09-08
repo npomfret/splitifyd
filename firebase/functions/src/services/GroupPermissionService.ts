@@ -35,12 +35,12 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class GroupPermissionService {
+    // Keep collection reference for write operations (until we have IFirestoreWriter)
+    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
+    
     constructor(
         private readonly firestoreReader: IFirestoreReader
     ) {}
-    private getGroupsCollection() {
-        return getFirestore().collection(FirestoreCollections.GROUPS);
-    }
 
     /**
      * Validates a group document after an update operation
@@ -85,7 +85,7 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PRESET', 'Valid security preset is required');
         }
 
-        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        const groupDocRef = this.groupsCollection.doc(groupId);
         
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
@@ -196,7 +196,7 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERMISSIONS', 'Valid permissions object is required');
         }
 
-        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        const groupDocRef = this.groupsCollection.doc(groupId);
         
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
@@ -305,7 +305,7 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ROLE', 'Valid member role is required');
         }
 
-        const groupDocRef = this.getGroupsCollection().doc(groupId);
+        const groupDocRef = this.groupsCollection.doc(groupId);
         
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);

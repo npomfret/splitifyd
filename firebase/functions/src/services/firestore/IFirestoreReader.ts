@@ -138,6 +138,49 @@ export interface IFirestoreReader {
      */
     getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]>;
 
+    /**
+     * Get all expenses for a specific user (where user is a participant)
+     * @param userId - The user ID
+     * @param options - Query options for pagination and filtering
+     * @returns Object with expenses array, hasMore flag, and nextCursor
+     */
+    getUserExpenses(userId: string, options?: {
+        limit?: number;
+        cursor?: string;
+        includeDeleted?: boolean;
+    }): Promise<{
+        expenses: ExpenseDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
+
+    /**
+     * Get expense history for a specific expense
+     * @param expenseId - The expense ID
+     * @param limit - Maximum number of history records to return (default: 20)
+     * @returns Object with history array and count
+     */
+    getExpenseHistory(expenseId: string, limit?: number): Promise<{
+        history: any[];
+        count: number;
+    }>;
+
+    /**
+     * Get all expenses for a specific group with full pagination support
+     * @param groupId - The group ID
+     * @param options - Query options for pagination and filtering
+     * @returns Object with expenses array, hasMore flag, and nextCursor
+     */
+    getExpensesForGroupPaginated(groupId: string, options?: {
+        limit?: number;
+        cursor?: string;
+        includeDeleted?: boolean;
+    }): Promise<{
+        expenses: ExpenseDocument[];
+        hasMore: boolean;
+        nextCursor?: string;
+    }>;
+
 
     // ========================================================================
     // Collection Read Operations - Settlement-related
@@ -253,6 +296,19 @@ export interface IFirestoreReader {
      * @returns True if document exists, false otherwise
      */
     documentExists(collection: string, documentId: string): Promise<boolean>;
+
+    /**
+     * Get a system document by path
+     * @param docPath - The document path (e.g., 'system/colorAssignment')
+     * @returns Document data or null if not found
+     */
+    getSystemDocument(docPath: string): Promise<any | null>;
+
+    /**
+     * Get health check document for testing Firestore connectivity
+     * @returns Health check result
+     */
+    getHealthCheckDocument(): Promise<any | null>;
 
     // ========================================================================
     // User Notification Operations
@@ -429,5 +485,44 @@ export interface IFirestoreReader {
      * @returns The number of documents in the collection
      */
     getCollectionSize(collection: string): Promise<number>;
+
+    // ========================================================================
+    // Group Related Collections Operations
+    // ========================================================================
+
+    /**
+     * Get all related data for a group deletion operation
+     * @param groupId - The group ID
+     * @returns Object containing all related collections data
+     */
+    getGroupDeletionData(groupId: string): Promise<{
+        expenses: FirebaseFirestore.QuerySnapshot;
+        settlements: FirebaseFirestore.QuerySnapshot;
+        transactionChanges: FirebaseFirestore.QuerySnapshot;
+        balanceChanges: FirebaseFirestore.QuerySnapshot;
+        shareLinks: FirebaseFirestore.QuerySnapshot;
+        groupComments: FirebaseFirestore.QuerySnapshot;
+        expenseComments: FirebaseFirestore.QuerySnapshot[];
+    }>;
+
+    // ========================================================================
+    // Test and Development Helper Operations
+    // ========================================================================
+
+    /**
+     * Get a document for testing purposes (generic method)
+     * @param collection - The collection name
+     * @param docId - The document ID
+     * @returns Document data or null if not found
+     */
+    getDocumentForTesting(collection: string, docId: string): Promise<any | null>;
+
+    /**
+     * Verify if a document exists for testing purposes
+     * @param collection - The collection name
+     * @param docId - The document ID
+     * @returns True if document exists, false otherwise
+     */
+    verifyDocumentExists(collection: string, docId: string): Promise<boolean>;
 
 }

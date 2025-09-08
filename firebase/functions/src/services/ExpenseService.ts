@@ -45,6 +45,7 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class ExpenseService {
+    // Keep collection references for write operations (until we have IFirestoreWriter)
     private expensesCollection = getFirestore().collection(FirestoreCollections.EXPENSES);
     private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
 
@@ -487,112 +488,20 @@ export class ExpenseService {
         // Verify user is a member of the group
         await verifyGroupMembership(groupId, userId);
 
-        const limit = Math.min(options.limit || 20, 100);
-        const cursor = options.cursor;
-        const includeDeleted = options.includeDeleted || false;
-
-        let query = this.expensesCollection.where('groupId', '==', groupId);
-
-        // Filter out deleted expenses by default
-        if (!includeDeleted) {
-            query = query.where(DELETED_AT_FIELD, '==', null);
-        }
-
-        query = query
-            .select(
-                'groupId',
-                'createdBy',
-                'paidBy',
-                'amount',
-                'currency',
-                'description',
-                'category',
-                'date',
-                'splitType',
-                'participants',
-                'splits',
-                'receiptUrl',
-                'createdAt',
-                'updatedAt',
-                'deletedAt',
-                'deletedBy',
-            )
-            .orderBy('date', 'desc')
-            .orderBy('createdAt', 'desc')
-            .limit(limit + 1);
-
-        if (cursor) {
-            try {
-                const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-                const cursorData = JSON.parse(decodedCursor);
-
-                if (cursorData.date && cursorData.createdAt) {
-                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createOptimisticTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createOptimisticTimestamp());
-                }
-            } catch (error) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
-            }
-        }
-
-        const snapshot = await query.get();
-
-        const hasMore = snapshot.docs.length > limit;
-        const expenses = snapshot.docs.slice(0, limit).map((doc) => {
-            const rawData = doc.data();
-            if (!rawData) {
-                logger.warn('Empty expense document in pagination', { docId: doc.id, groupId });
-                return null;
-            }
-
-            const dataWithId = { ...rawData, id: doc.id };
-            let validatedExpense;
-            try {
-                validatedExpense = ExpenseDocumentSchema.parse(dataWithId);
-            } catch (error) {
-                logger.error('Invalid expense document in pagination', error as Error, {
-                    docId: doc.id,
-                    groupId,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                });
-                return null; // Skip invalid documents
-            }
-
-            return {
-                id: doc.id,
-                ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
-            };
-        }).filter(expense => expense !== null);
-
-        let nextCursor: string | undefined;
-        if (hasMore && expenses.length > 0) {
-            const lastDoc = snapshot.docs[limit - 1];
-            const rawData = lastDoc.data();
-            if (rawData) {
-                const dataWithId = { ...rawData, id: lastDoc.id };
-                try {
-                    const lastDocData = ExpenseDocumentSchema.parse(dataWithId);
-                    const cursorData = {
-                        date: timestampToISO(lastDocData.date),
-                        createdAt: timestampToISO(lastDocData.createdAt),
-                        id: lastDoc.id,
-                    };
-                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                } catch (error) {
-                    logger.error('Invalid last document for cursor generation', error as Error, {
-                        docId: lastDoc.id,
-                        groupId,
-                        validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                    });
-                    // Don't set nextCursor if validation fails
-                }
-            }
-        }
+        // Use the centralized FirestoreReader method
+        const result = await this.firestoreReader.getExpensesForGroupPaginated(groupId, options);
+        
+        // Transform the validated expense documents to response format
+        const expenses = result.expenses.map(validatedExpense => ({
+            id: validatedExpense.id,
+            ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
+        }));
 
         return {
             expenses,
             count: expenses.length,
-            hasMore,
-            nextCursor,
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor,
         };
     }
 
@@ -710,111 +619,20 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        const limit = Math.min(options.limit || 50, 100);
-        const cursor = options.cursor;
-        const includeDeleted = options.includeDeleted || false;
-
-        let query = this.expensesCollection
-            .where('participants', 'array-contains', userId)
-            .select(
-                'groupId',
-                'createdBy',
-                'paidBy',
-                'amount',
-                'currency',
-                'description',
-                'category',
-                'date',
-                'splitType',
-                'participants',
-                'splits',
-                'receiptUrl',
-                'createdAt',
-                'updatedAt',
-                'deletedAt',
-                'deletedBy',
-            )
-            .orderBy('date', 'desc')
-            .orderBy('createdAt', 'desc')
-            .limit(limit + 1);
-
-        // Filter out deleted expenses by default
-        if (!includeDeleted) {
-            query = query.where(DELETED_AT_FIELD, '==', null);
-        }
-
-        if (cursor) {
-            try {
-                const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-                const cursorData = JSON.parse(decodedCursor);
-
-                if (cursorData.date && cursorData.createdAt) {
-                    query = query.startAfter(parseISOToTimestamp(cursorData.date) || createOptimisticTimestamp(), parseISOToTimestamp(cursorData.createdAt) || createOptimisticTimestamp());
-                }
-            } catch (error) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_CURSOR', 'Invalid cursor format');
-            }
-        }
-
-        const snapshot = await query.get();
-
-        const hasMore = snapshot.docs.length > limit;
-        const expenses = snapshot.docs.slice(0, limit).map((doc) => {
-            const rawData = doc.data();
-            if (!rawData) {
-                logger.warn('Empty expense document in user expense pagination', { docId: doc.id, userId });
-                return null;
-            }
-
-            const dataWithId = { ...rawData, id: doc.id };
-            let validatedExpense;
-            try {
-                validatedExpense = ExpenseDocumentSchema.parse(dataWithId);
-            } catch (error) {
-                logger.error('Invalid expense document in user expense pagination', error as Error, {
-                    docId: doc.id,
-                    userId,
-                    validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                });
-                return null; // Skip invalid documents
-            }
-
-            return {
-                id: doc.id,
-                ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
-            };
-        }).filter(expense => expense !== null);
-
-        let nextCursor: string | undefined;
-        if (hasMore && expenses.length > 0) {
-            const lastDoc = snapshot.docs[limit - 1];
-            const rawData = lastDoc.data();
-            if (rawData) {
-                const dataWithId = { ...rawData, id: lastDoc.id };
-                try {
-                    const lastDocData = ExpenseDocumentSchema.parse(dataWithId);
-                    const cursorData = {
-                        date: timestampToISO(lastDocData.date),
-                        createdAt: timestampToISO(lastDocData.createdAt),
-                        id: lastDoc.id,
-                    };
-                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                } catch (error) {
-                    logger.error('Invalid last document for cursor generation in user expenses', error as Error, {
-                        docId: lastDoc.id,
-                        userId,
-                        validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-                    });
-                    // Don't set nextCursor if validation fails
-                }
-            }
-        }
+        // Use the centralized FirestoreReader method
+        const result = await this.firestoreReader.getUserExpenses(userId, options);
+        
+        // Transform the validated expense documents to response format
+        const expenses = result.expenses.map(validatedExpense => ({
+            id: validatedExpense.id,
+            ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
+        }));
 
         return {
             expenses,
             count: expenses.length,
-            hasMore,
-            nextCursor,
+            hasMore: result.hasMore,
+            nextCursor: result.nextCursor,
         };
     }
 
@@ -828,33 +646,8 @@ export class ExpenseService {
         // Verify user has access to this expense first
         await this.fetchExpense(expenseId);
 
-        const historySnapshot = await this.expensesCollection
-            .doc(expenseId)
-            .collection('history')
-            .orderBy('modifiedAt', 'desc')
-            .limit(20)
-            .get();
-
-        const history = historySnapshot.docs.map((doc) => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                modifiedAt: timestampToISO(data.modifiedAt),
-                modifiedBy: data.modifiedBy,
-                changeType: data.changeType,
-                changes: data.changes,
-                previousAmount: data.amount,
-                previousDescription: data.description,
-                previousCategory: data.category,
-                previousDate: data.date ? timestampToISO(data.date) : undefined,
-                previousSplits: data.splits,
-            };
-        });
-
-        return {
-            history,
-            count: history.length,
-        };
+        // Use the centralized FirestoreReader method
+        return await this.firestoreReader.getExpenseHistory(expenseId, 20);
     }
 
     /**

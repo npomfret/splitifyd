@@ -1,7 +1,7 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
 import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
-import {JoinGroupPage, ExpenseDetailPage, GroupDetailPage} from '../../../pages';
+import {JoinGroupPage, ExpenseDetailPage} from '../../../pages';
 import {generateTestGroupName, randomString} from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { v4 as uuidv4 } from 'uuid';

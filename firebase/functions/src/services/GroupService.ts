@@ -14,7 +14,6 @@ import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, p
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
 import {PerformanceMonitor} from '../utils/performance-monitor';
-import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
@@ -23,6 +22,8 @@ import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
  */
 export class GroupService {
     private balanceService: BalanceCalculationService;
+    // Keep collection reference for write operations (until we have IFirestoreWriter)
+    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
     
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -33,6 +34,7 @@ export class GroupService {
     
     /**
      * Helper to safely convert any date-like value to ISO string
+     * todo: this is bullshit - it implies we don't understand our own data model
      */
     private safeDateToISO(value: any): string {
         if (value instanceof Timestamp) {
@@ -48,12 +50,6 @@ export class GroupService {
         return new Date().toISOString();
     }
     
-    /**
-     * Get the groups collection reference
-     */
-    private getGroupsCollection() {
-        return getFirestore().collection(FirestoreCollections.GROUPS);
-    }
 
     /**
      * Add computed fields to Group (balance, last activity)
@@ -110,7 +106,7 @@ export class GroupService {
      * Fetch a group and verify user access
      */
     private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: DocumentReference; group: Group }> {
-        const docRef = this.getGroupsCollection().doc(groupId);
+        const docRef = this.groupsCollection.doc(groupId);
         const groupData = await this.firestoreReader.getGroup(groupId);
 
         if (!groupData) {
@@ -333,9 +329,9 @@ export class GroupService {
         // Step 1: Query groups and metadata using FirestoreReader
         const { paginatedGroups, recentGroupChanges } = await stepTracker('query-groups-and-metadata', async () => {
             // Get groups for user using FirestoreReader (returns PaginatedResult)
-            // Request extra groups to detect if there are more pages
+            // FirestoreReader already handles pagination internally
             const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, {
-                limit: limit * 2, // Get more than needed to detect hasMore reliably
+                limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
                 cursor: cursor,
                 orderBy: {
                     field: 'updatedAt',
@@ -354,9 +350,8 @@ export class GroupService {
             // Extract groups data from paginated result
             const groupsData = paginatedGroups.data;
             
-            // Determine if there are more results (we requested more than limit)
-            const hasMore = groupsData.length > limit;
-            const returnedGroups = hasMore ? groupsData.slice(0, limit) : groupsData;
+            // FirestoreReader already handled pagination, use all returned groups
+            const returnedGroups = groupsData;
 
             // Convert GroupDocument to Group format (the reader returns validated data)
             const groups: Group[] = returnedGroups.map((groupData: any) => ({
@@ -560,9 +555,9 @@ export class GroupService {
 
         // Step 7: Generate pagination and response
         return await stepTracker('generate-response', async () => {
-            // Calculate pagination information correctly
-            const hasMore = paginatedGroups.data.length > limit;
-            const nextCursor = hasMore ? paginatedGroups.nextCursor : undefined;
+            // Use pagination information from FirestoreReader
+            const hasMore = paginatedGroups.hasMore;
+            const nextCursor = paginatedGroups.nextCursor;
 
             const response: ListGroupsResponse = {
                 groups: groupsWithBalances,
@@ -605,7 +600,7 @@ export class GroupService {
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<Group> {
         // Initialize group structure with server timestamps
-        const docRef = this.getGroupsCollection().doc();
+        const docRef = this.groupsCollection.doc();
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
 
@@ -773,25 +768,16 @@ export class GroupService {
         // PHASE 1: Discover all related data
         logger.info('Discovering all related data for comprehensive deletion', { groupId });
 
-        // Get all top-level collections with groupId references
-        const [expenses, settlements, transactionChanges, balanceChanges] = await Promise.all([
-            getFirestore().collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
-            getFirestore().collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-            getFirestore().collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
-            getFirestore().collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
-        ]);
-
-        // Get subcollections of the group
-        const [shareLinks, groupComments] = await Promise.all([
-            getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
-            getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
-        ]);
-
-        // Get comments on all expenses belonging to this group
-        const expenseCommentPromises = expenses.docs.map(expense =>
-            getFirestore().collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
-        );
-        const expenseCommentSnapshots = await Promise.all(expenseCommentPromises);
+        // Get all related data using centralized FirestoreReader
+        const {
+            expenses,
+            settlements,
+            transactionChanges,
+            balanceChanges,
+            shareLinks,
+            groupComments,
+            expenseComments: expenseCommentSnapshots
+        } = await this.firestoreReader.getGroupDeletionData(groupId);
 
         // Calculate total documents to delete for logging
         const totalDocuments = expenses.size + settlements.size + 

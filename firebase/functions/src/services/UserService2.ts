@@ -1,7 +1,7 @@
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import {Timestamp} from 'firebase-admin/firestore';
-import {getAuth, getFirestore} from '../firebase';
-import {AuthErrors, FirestoreCollections, SystemUserRoles, RegisteredUser, UserThemeColor} from '@splitifyd/shared';
+import {getAuth} from '../firebase';
+import {AuthErrors, SystemUserRoles, RegisteredUser, UserThemeColor} from '@splitifyd/shared';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {ApiError, Errors} from '../utils/errors';

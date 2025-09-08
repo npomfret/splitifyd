@@ -1,6 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
-import type { RegisteredUser as BaseUser } from '@splitifyd/shared';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import {PooledTestUser } from '@splitifyd/shared';
 

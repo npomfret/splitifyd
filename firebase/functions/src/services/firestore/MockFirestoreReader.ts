@@ -71,6 +71,16 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getDocumentsBatch = vi.fn();
     public getMetricsDocuments = vi.fn();
     public getCollectionSize = vi.fn();
+    
+    // New methods added for centralized Firestore access
+    public getUserExpenses = vi.fn();
+    public getExpenseHistory = vi.fn();
+    public getExpensesForGroupPaginated = vi.fn();
+    public getSystemDocument = vi.fn();
+    public getHealthCheckDocument = vi.fn();
+    public getGroupDeletionData = vi.fn();
+    public getDocumentForTesting = vi.fn();
+    public verifyDocumentExists = vi.fn();
 
     // ========================================================================
     // Test Utility Methods

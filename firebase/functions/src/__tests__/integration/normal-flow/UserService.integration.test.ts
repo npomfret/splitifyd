@@ -5,13 +5,15 @@ import { UserService } from '../../../services/UserService2';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import {getAuth, getFirestore} from '../../../firebase';
-import { getUserService } from '../../../services/serviceRegistration';
+import { getUserService, getFirestoreReader } from '../../../services/serviceRegistration';
 import {AuthenticatedFirebaseUser, PooledTestUser} from "@splitifyd/shared";
 import { setupTestServices } from '../../test-helpers/setup';
+import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
 
 describe('UserService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
     let userService: UserService;
+    let firestoreReader: IFirestoreReader;
 
     let users: PooledTestUser[];
 
@@ -23,6 +25,7 @@ describe('UserService - Integration Tests', () => {
         // Register all services before creating instances
         setupTestServices();
         userService = getUserService();
+        firestoreReader = getFirestoreReader();
     });
 
     describe('registerUser', () => {
@@ -53,24 +56,22 @@ describe('UserService - Integration Tests', () => {
             expect(authUser.email).toBe(userData.email);
             expect(authUser.displayName).toBe(userData.displayName);
 
-            // Verify Firestore document was created
-            const userDoc = await getFirestore().collection('users').doc(result.user.uid!).get();
-            expect(userDoc.exists).toBe(true);
-            
-            const userData_firestore = userDoc.data()!;
-            expect(userData_firestore.email).toBe(userData.email);
-            expect(userData_firestore.displayName).toBe(userData.displayName);
-            expect(userData_firestore.role).toBe(SystemUserRoles.SYSTEM_USER);
-            expect(userData_firestore.themeColor).toBeDefined();
-            expect(userData_firestore.acceptedPolicies).toBeDefined();
-            expect(userData_firestore.termsAcceptedAt).toBeDefined();
-            expect(userData_firestore.cookiePolicyAcceptedAt).toBeDefined();
-            expect(userData_firestore.createdAt).toBeDefined();
-            expect(userData_firestore.updatedAt).toBeDefined();
+            // Verify Firestore document was created using centralized reader
+            const userData_firestore = await firestoreReader.getDocumentForTesting('users', result.user.uid!);
+            expect(userData_firestore).toBeDefined();
+            expect(userData_firestore!.email).toBe(userData.email);
+            expect(userData_firestore!.displayName).toBe(userData.displayName);
+            expect(userData_firestore!.role).toBe(SystemUserRoles.SYSTEM_USER);
+            expect(userData_firestore!.themeColor).toBeDefined();
+            expect(userData_firestore!.acceptedPolicies).toBeDefined();
+            expect(userData_firestore!.termsAcceptedAt).toBeDefined();
+            expect(userData_firestore!.cookiePolicyAcceptedAt).toBeDefined();
+            expect(userData_firestore!.createdAt).toBeDefined();
+            expect(userData_firestore!.updatedAt).toBeDefined();
 
             // Cleanup
             await getAuth().deleteUser(result.user.uid!);
-            await userDoc.ref.delete();
+            await getFirestore().collection('users').doc(result.user.uid!).delete();
         });
 
         test('should reject registration with existing email', async () => {
