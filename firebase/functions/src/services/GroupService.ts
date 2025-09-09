@@ -332,9 +332,9 @@ export class GroupService {
 
         // Step 1: Query groups and metadata using FirestoreReader
         const { paginatedGroups } = await (async () => {
-            // Get groups for user using FirestoreReader (returns PaginatedResult)
-            // FirestoreReader already handles pagination internally
-            const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, {
+            // Get groups for user using V2 implementation (top-level collection)
+            // This provides proper database-level ordering and fixes pagination issues
+            const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
                 limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
                 cursor: cursor,
                 orderBy: {

@@ -104,6 +104,18 @@ export interface IFirestoreReader {
     getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>>;
 
     /**
+     * Get all groups where the user is a member using V2 implementation (top-level collection)
+     * This method provides proper database-level ordering and fixes pagination issues
+     * @param userId - The user ID
+     * @param options - Query options for pagination and filtering
+     * @returns Paginated result containing group documents, hasMore flag, and nextCursor
+     */
+    getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: {
+        field: string;
+        direction: 'asc' | 'desc';
+    }}): Promise<PaginatedResult<GroupDocument[]>>;
+
+    /**
      * Get group members for a specific group
      * @param groupId - The group ID
      * @param options - Options for filtering members

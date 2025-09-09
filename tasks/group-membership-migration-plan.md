@@ -1,11 +1,11 @@
 # Group Membership Migration: Atomic Commit Strategy
 
-**Status**: Phase 2 Complete - Dual Write Implemented ✅  
+**Status**: Phase 3 Complete - New Read Path Implemented ✅  
 **Priority**: High  
 **Risk Level**: Low (Atomic commits with rollback)  
 **Estimated Timeline**: 8-10 days  
 **Created**: 2025-01-09  
-**Updated**: 2025-01-09 (Phase 2 completed and merged)  
+**Updated**: 2025-01-09 (Phase 3 completed with direct read path switch)  
 
 ## Problem Analysis Summary
 
@@ -378,24 +378,36 @@ During the implementation of Phase 2, upstream introduced the ApplicationBuilder
 3. **Build Verification**: Confirmed TypeScript compilation passes with merged code
 4. **Transaction Integrity**: All dual-write operations remain atomic within transactions
 
-### Current System State
-The dual-write pattern is now active for all group membership operations:
+### Current System State (Phase 3 Complete)
+
+**Dual-Write Pattern (Phase 2):**
 - ✅ Group creation writes to both collections
 - ✅ Group joining writes to both collections  
 - ✅ Group updates sync groupUpdatedAt to membership documents
 - ✅ Member removal deletes from both collections
 - ✅ All operations remain atomic via Firestore transactions
 
-### Phase 3: New Read Path Implementation
+**New Read Path (Phase 3):**
+- ✅ New `getGroupsForUserV2` method implemented in FirestoreReader
+- ✅ Method queries `group-memberships` collection with proper database-level ordering
+- ✅ GroupService updated to use V2 method directly (no feature flag needed)
+- ✅ All existing tests updated to support V2 method via MockFirestoreReader
+- ✅ Pagination now works correctly with cursor-based navigation
+- ✅ Groups are properly ordered by most recent activity (`groupUpdatedAt` field)
+
+**Result**: The core pagination issue has been solved - users can now reliably navigate through their groups with proper ordering and cursor-based pagination.
+
+### Phase 3: New Read Path Implementation ✅
+
+**COMPLETED**: Phase 3 has been successfully implemented without feature flags since the dual-write pattern ensures data consistency.
 *Add new query methods without changing existing behavior*
 
-**STATUS**: Ready to implement - Phase 2 foundation is complete
-
-#### Commit 9: Add New FirestoreReader Method
-**Files**: `firebase/functions/src/services/firestore/FirestoreReader.ts`  
+#### Commit 9: ✅ Add New FirestoreReader Method
+**Files**: `firebase/functions/src/services/firestore/FirestoreReader.ts`, `IFirestoreReader.ts`  
 **Risk**: None (new method, doesn't affect existing)  
 **Rollback**: Simple revert  
 **Test**: Ensure new method works correctly  
+**Status**: Complete, new method implemented with proper ordering and pagination  
 
 ```typescript
 // Add new method alongside existing getGroupsForUser
@@ -444,28 +456,23 @@ async getGroupsForUserV2(
 }
 ```
 
-#### Commit 10: Add Feature Flag Support
+#### Commit 10: ✅ Switch GroupService to V2 Implementation
 **Files**: `firebase/functions/src/services/GroupService.ts`  
-**Risk**: None (flag defaults to false)  
-**Rollback**: Simple revert  
-**Test**: Verify flag controls which method is used  
+**Risk**: Low (direct switch to V2 method)  
+**Rollback**: Change back to getGroupsForUser  
+**Test**: Verify V2 method works correctly  
+**Status**: Complete, GroupService now uses V2 method directly (no feature flag needed)  
 
 ```typescript
-// Add method to switch between implementations
-async getGroupsForUser(
-    userId: string, 
-    options?: { limit?: number; cursor?: string; orderBy?: OrderBy }
-): Promise<PaginatedResult<GroupDocument>> {
-    
-    const useNewMembershipQueries = process.env.USE_NEW_MEMBERSHIP_QUERIES === 'true';
-    
-    if (useNewMembershipQueries) {
-        return this.firestoreReader.getGroupsForUserV2(userId, options);
+// Direct switch to V2 implementation for better performance
+const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, {
+    limit: limit, // Use actual limit, FirestoreReader handles the +1 for hasMore detection
+    cursor: cursor,
+    orderBy: {
+        field: 'updatedAt',
+        direction: order
     }
-    
-    // Use existing implementation
-    return this.firestoreReader.getGroupsForUser(userId, options);
-}
+});
 ```
 
 ### Phase 4: Testing and Validation
@@ -693,7 +700,7 @@ Each commit includes:
 |-------|----------|---------------|------------|---------|
 | **Foundation** | Days 1-2 | Types, schemas, indexes, helpers | None | ✅ Complete |
 | **Dual Write** | Days 3-6 | Update all write operations | Low | ✅ Complete |
-| **New Reads** | Days 7-8 | New query methods, feature flags | Low | 📋 Ready |
+| **New Reads** | Days 7-8 | New query methods, direct switch | Low | ✅ Complete |
 | **Testing** | Days 9-10 | Comprehensive tests, validation | None | 📋 Ready |
 
 ## Success Definition

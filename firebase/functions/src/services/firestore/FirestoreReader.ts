@@ -44,7 +44,7 @@ import type {
     SettlementDocument,
     PolicyDocument
 } from '../../schemas';
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader } from './IFirestoreReader';
 import type {
@@ -425,6 +425,91 @@ export class FirestoreReader implements IFirestoreReader {
                     nextCursor,
                     totalEstimate: hasMore ? groupIds.length + 10 : groupIds.length // Rough estimate
                 };
+        });
+    }
+
+    /**
+     * ✅ NEW: Enhanced group retrieval using top-level group-memberships collection
+     * 
+     * This method fixes the pagination issues by:
+     * 1. Querying the top-level group-memberships collection with database-level ordering
+     * 2. Using groupUpdatedAt field for proper activity-based sorting
+     * 3. Supporting efficient cursor-based pagination
+     * 
+     * @param userId - User ID to fetch groups for
+     * @param options - Query options including limit, cursor, and orderBy
+     * @returns Paginated result with groups ordered by most recent activity
+     */
+    async getGroupsForUserV2(
+        userId: string,
+        options?: { limit?: number; cursor?: string; orderBy?: OrderBy }
+    ): Promise<PaginatedResult<GroupDocument[]>> {
+        return measureDb('USER_GROUPS_V2', async () => {
+            const limit = options?.limit || 10;
+            
+            // Build query with database-level ordering by groupUpdatedAt
+            const orderDirection = options?.orderBy?.direction || 'desc';
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('userId', '==', userId)
+                .orderBy('groupUpdatedAt', orderDirection);
+            
+            // Apply cursor pagination
+            if (options?.cursor) {
+                try {
+                    const cursorData = this.decodeCursor(options.cursor);
+                    // Use lastUpdatedAt which should contain groupUpdatedAt for V2 cursors
+                    query = query.startAfter(cursorData.lastUpdatedAt);
+                } catch (error) {
+                    logger.warn('Invalid cursor provided for V2 method, ignoring');
+                }
+            }
+            
+            query = query.limit(limit + 1); // +1 to detect hasMore
+            
+            const snapshot = await query.get();
+            const hasMore = snapshot.docs.length > limit;
+            const memberships = (hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs)
+                .map(doc => doc.data() as TopLevelGroupMemberDocument);
+            
+            if (memberships.length === 0) {
+                return { 
+                    data: [] as GroupDocument[], 
+                    hasMore: false 
+                };
+            }
+            
+            // Get group documents and preserve the membership query order
+            const groupIds = memberships.map(m => m.groupId);
+            
+            // Fetch groups without additional sorting since we want membership order
+            const fetchedGroups = await this.getGroupsByIds(groupIds, { 
+                limit: groupIds.length, // Get all groups since they're already limited
+                orderBy: { field: 'updatedAt', direction: 'desc' }
+            });
+            
+            // Preserve the order from the membership query by sorting fetchedGroups by groupIds order
+            const groupsMap = new Map(fetchedGroups.map(group => [group.id, group]));
+            const groups = groupIds
+                .map(id => groupsMap.get(id))
+                .filter((group): group is GroupDocument => group !== undefined);
+            
+            // Generate next cursor if there are more results
+            let nextCursor: string | undefined;
+            if (hasMore) {
+                const lastMembership = memberships[memberships.length - 1];
+                nextCursor = this.encodeCursor({
+                    lastGroupId: lastMembership.groupId,
+                    lastUpdatedAt: lastMembership.groupUpdatedAt, // Use groupUpdatedAt for V2
+                    membershipCursor: lastMembership.groupId
+                });
+            }
+            
+            return {
+                data: groups,
+                hasMore,
+                nextCursor,
+                totalEstimate: hasMore ? groups.length + 10 : groups.length
+            };
         });
     }
 

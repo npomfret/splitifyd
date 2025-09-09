@@ -40,6 +40,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getAllPolicies = vi.fn();
     public getUsersById = vi.fn();
     public getGroupsForUser = vi.fn();
+    public getGroupsForUserV2 = vi.fn();
     public getGroupMembers = vi.fn();
     public getMemberFromSubcollection = vi.fn();
     public getMembersFromSubcollection = vi.fn();
@@ -210,6 +211,27 @@ export class MockFirestoreReader implements IFirestoreReader {
     }
 
     /**
+     * Mock multiple groups for a user with V2 implementation (same behavior as V1 for testing)
+     */
+    public mockGroupsForUserV2(userId: string, groups: GroupDocument[], hasMore: boolean = false, nextCursor?: string): void {
+        const paginatedResult: PaginatedResult<GroupDocument[]> = {
+            data: groups,
+            hasMore,
+            nextCursor,
+            totalEstimate: groups.length + (hasMore ? 10 : 0)
+        };
+        
+        this.getGroupsForUserV2.mockResolvedValue(paginatedResult);
+        
+        // Also mock individual group gets
+        groups.forEach(group => {
+            if (!this.getGroup.getMockImplementation()) {
+                this.mockGroupExists(group.id, group);
+            }
+        });
+    }
+
+    /**
      * Mock paginated groups with specific pagination behavior
      * Useful for testing pagination edge cases
      */
@@ -219,6 +241,50 @@ export class MockFirestoreReader implements IFirestoreReader {
         pageSize: number = 10
     ): void {
         this.getGroupsForUser.mockImplementation(async (uid, options) => {
+            if (uid !== userId) {
+                return { data: [], hasMore: false };
+            }
+            
+            const limit = options?.limit || pageSize;
+            const cursor = options?.cursor;
+            
+            let startIndex = 0;
+            if (cursor) {
+                try {
+                    const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
+                    const cursorIndex = allGroups.findIndex(group => group.id === cursorData.lastGroupId);
+                    if (cursorIndex >= 0) {
+                        startIndex = cursorIndex + 1;
+                    }
+                } catch (error) {
+                    // Invalid cursor, start from beginning
+                }
+            }
+            
+            const endIndex = startIndex + limit;
+            const pageData = allGroups.slice(startIndex, endIndex);
+            const hasMore = endIndex < allGroups.length;
+            
+            let nextCursor: string | undefined;
+            if (hasMore && pageData.length > 0) {
+                const lastGroup = pageData[pageData.length - 1];
+                const cursorData = {
+                    lastGroupId: lastGroup.id,
+                    lastUpdatedAt: lastGroup.updatedAt
+                };
+                nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+            }
+            
+            return {
+                data: pageData,
+                hasMore,
+                nextCursor,
+                totalEstimate: allGroups.length
+            };
+        });
+
+        // Also mock the V2 method with the same implementation
+        this.getGroupsForUserV2.mockImplementation(async (uid, options) => {
             if (uid !== userId) {
                 return { data: [], hasMore: false };
             }
