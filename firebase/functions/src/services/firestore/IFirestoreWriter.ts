@@ -15,6 +15,27 @@
  */
 
 import type { Transaction, WriteBatch, DocumentReference, Timestamp } from 'firebase-admin/firestore';
+
+/**
+ * Options for configuring transaction behavior including retry logic
+ */
+export interface TransactionOptions {
+    /** Maximum number of retry attempts (default: 3) */
+    maxAttempts?: number;
+    /** Base delay in milliseconds for retry backoff (default: 100) */
+    baseDelayMs?: number;
+    /** Context information for logging and debugging */
+    context?: {
+        /** Operation name for logging */
+        operation?: string;
+        /** User ID involved in the transaction */
+        userId?: string;
+        /** Group ID involved in the transaction */
+        groupId?: string;
+        /** Additional context properties */
+        [key: string]: any;
+    };
+}
 import type {
     UserDocument,
     GroupDocument,
@@ -331,11 +352,15 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Run a transaction with custom logic
+     * Run a transaction with custom logic and retry support
      * @param updateFunction - Function that performs transactional operations
+     * @param options - Optional transaction configuration including retry behavior
      * @returns Transaction result
      */
-    runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T>;
+    runTransaction<T>(
+        updateFunction: (transaction: Transaction) => Promise<T>,
+        options?: TransactionOptions
+    ): Promise<T>;
 
     /**
      * Create a document within a transaction

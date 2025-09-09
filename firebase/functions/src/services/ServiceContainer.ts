@@ -159,7 +159,10 @@ export class ServiceContainer implements IServiceProvider {
 
     public getGroupPermissionService(): GroupPermissionService {
         if (!this.groupPermissionService) {
-            this.groupPermissionService = new GroupPermissionService(this.firestoreReader);
+            this.groupPermissionService = new GroupPermissionService(
+                this.firestoreReader, 
+                this.firestoreWriter
+            );
         }
         return this.groupPermissionService;
     }

@@ -1,6 +1,5 @@
 import { measureDb } from '../monitoring/measure';
 import {FieldValue} from 'firebase-admin/firestore';
-import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {logger} from '../logger';
 import {HTTP_STATUS} from '../constants';
@@ -8,9 +7,9 @@ import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets,
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {createOptimisticTimestamp} from '../utils/dateHelpers';
 
-import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { MemberStatuses } from '@splitifyd/shared';
@@ -20,14 +19,7 @@ import type { GroupDocument } from '../schemas';
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
 function toGroup(groupDoc: GroupDocument): Group {
-    const defaultPermissions: GroupPermissions = {
-        expenseEditing: 'anyone',
-        expenseDeletion: 'owner-and-admin',
-        memberInvitation: 'anyone',
-        memberApproval: 'automatic',
-        settingsManagement: 'admin-only'
-    };
-    
+
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,
@@ -36,11 +28,9 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class GroupPermissionService {
-    // Keep collection reference for write operations (until we have IFirestoreWriter)
-    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
-    
     constructor(
-        private readonly firestoreReader: IFirestoreReader
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
     ) {}
 
     /**
@@ -80,8 +70,6 @@ export class GroupPermissionService {
         if (!preset || !Object.values(SecurityPresets).includes(preset)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PRESET', 'Valid security preset is required');
         }
-
-        const groupDocRef = this.groupsCollection.doc(groupId);
         
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
@@ -107,10 +95,10 @@ export class GroupPermissionService {
         const now = new Date().toISOString();
 
         // Use transaction with optimistic locking
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
                 if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
@@ -144,7 +132,7 @@ export class GroupPermissionService {
 
                 updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
-                transaction.update(groupDocRef, updateData);
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
             },
             {
                 maxAttempts: 3,
@@ -158,7 +146,7 @@ export class GroupPermissionService {
         );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDocRef, 'security preset application');
+        await this.validateUpdatedGroupDocument({ id: groupId } as any, 'security preset application');
 
         // Cache invalidation removed - fetching fresh data on every request
 
@@ -190,8 +178,6 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERMISSIONS', 'Valid permissions object is required');
         }
 
-        const groupDocRef = this.groupsCollection.doc(groupId);
-        
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -213,10 +199,10 @@ export class GroupPermissionService {
         const updatedPermissions = { ...group.permissions, ...permissions };
 
         // Use transaction with optimistic locking
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
                 if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
@@ -249,7 +235,7 @@ export class GroupPermissionService {
 
                 updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
-                transaction.update(groupDocRef, updateData);
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
             },
             {
                 maxAttempts: 3,
@@ -262,7 +248,7 @@ export class GroupPermissionService {
         );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDocRef, 'group permissions update');
+        await this.validateUpdatedGroupDocument({ id: groupId } as any, 'group permissions update');
 
         // Cache invalidation removed - fetching fresh data on every request
 
@@ -297,8 +283,6 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_ROLE', 'Valid member role is required');
         }
 
-        const groupDocRef = this.groupsCollection.doc(groupId);
-        
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -331,10 +315,10 @@ export class GroupPermissionService {
         const oldRole = targetMember.memberRole;
 
         // Use transaction with optimistic locking
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
                 if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
@@ -365,7 +349,17 @@ export class GroupPermissionService {
 
                 updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
-                transaction.update(groupDocRef, updateData);
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
+                
+                // Also update the member subcollection in the same transaction
+                this.firestoreWriter.updateInTransaction(
+                    transaction, 
+                    `${FirestoreCollections.GROUPS}/${groupId}/members/${targetUserId}`, 
+                    {
+                        memberRole: role,
+                        lastPermissionChange: now,
+                    }
+                );
             },
             {
                 maxAttempts: 3,
@@ -380,19 +374,7 @@ export class GroupPermissionService {
         );
         
         // Validate the group document after update
-        await this.validateUpdatedGroupDocument(groupDocRef, 'member role change');
-
-        // Dual-write: Also update the subcollection for the new architecture
-        const memberDocRef = getFirestore()
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(targetUserId);
-            
-        await memberDocRef.update({
-            memberRole: role,
-            lastPermissionChange: now,
-        });
+        await this.validateUpdatedGroupDocument({ id: groupId } as any, 'member role change');
 
         // Cache invalidation removed - fetching fresh data on every request
         // Cache invalidation removed - fetching fresh data on every request

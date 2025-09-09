@@ -35,6 +35,9 @@ export function removeUndefinedFields(obj: any): any {
 /**
  * Executes a Firestore transaction with automatic retry logic for lock contention.
  * Particularly useful in the Firebase emulator which has stricter locking behavior.
+ * 
+ * @deprecated Use FirestoreWriter.runTransaction instead for better integration with the service layer
+ * @see FirestoreWriter.runTransaction
  */
 export async function runTransactionWithRetry<T>(
     transactionFn: (transaction: FirebaseFirestore.Transaction) => Promise<T>,

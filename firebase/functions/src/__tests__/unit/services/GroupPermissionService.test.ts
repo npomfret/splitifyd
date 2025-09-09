@@ -1,15 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupPermissionService } from '../../../services/GroupPermissionService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
 
 describe('GroupPermissionService', () => {
     let groupPermissionService: GroupPermissionService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockFirestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
-        groupPermissionService = new GroupPermissionService(mockFirestoreReader);
+        mockFirestoreWriter = {
+            runTransaction: vi.fn(),
+            updateInTransaction: vi.fn(),
+        } as any;
+        groupPermissionService = new GroupPermissionService(mockFirestoreReader, mockFirestoreWriter);
     });
 
     describe('getUserPermissions', () => {

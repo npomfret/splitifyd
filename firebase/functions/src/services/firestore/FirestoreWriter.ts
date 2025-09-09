@@ -42,8 +42,25 @@ import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { 
     IFirestoreWriter, 
     WriteResult, 
-    BatchWriteResult 
+    BatchWriteResult,
+    TransactionOptions
 } from './IFirestoreWriter';
+
+/**
+ * Transaction error classification for monitoring and retry decisions
+ */
+type TransactionErrorType = 'concurrency' | 'timeout' | 'aborted' | 'not_found' | 'permission' | 'other';
+
+/**
+ * Individual transaction retry attempt metric for detailed monitoring
+ */
+interface TransactionRetryMetric {
+    attempt: number;
+    duration: number;
+    errorType: TransactionErrorType;
+    errorMessage: string;
+    retryDelay: number;
+}
 
 export class FirestoreWriter implements IFirestoreWriter {
     constructor(private readonly db: Firestore) {}
@@ -922,9 +939,111 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Transaction Operations
     // ========================================================================
 
-    async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T> {
-        return measureDb('custom-transaction', async () => {
-            return this.db.runTransaction(updateFunction);
+    async runTransaction<T>(
+        updateFunction: (transaction: Transaction) => Promise<T>,
+        options: TransactionOptions = {}
+    ): Promise<T> {
+        const { maxAttempts = 3, baseDelayMs = 100, context = {} } = options;
+        const operationName = context.operation || 'transaction';
+        
+        return measureDb(operationName, async () => {
+            let attempts = 0;
+            let retryDelayTotal = 0;
+            const retryMetrics: TransactionRetryMetric[] = [];
+            
+            while (attempts < maxAttempts) {
+                const attemptStartTime = Date.now();
+                
+                try {
+                    const result = await this.db.runTransaction(updateFunction);
+                    const totalDuration = Date.now() - attemptStartTime + retryDelayTotal;
+                    
+                    // Log transaction completion metrics if there were retries
+                    if (attempts > 0) {
+                        logger.info('Transaction completed after retries', {
+                            ...context,
+                            operation: operationName,
+                            totalAttempts: attempts + 1,
+                            totalDuration,
+                            retryDelayTotal,
+                            retryPattern: retryMetrics.map(m => ({
+                                attempt: m.attempt,
+                                duration: m.duration,
+                                delay: m.retryDelay,
+                                errorType: m.errorType
+                            }))
+                        });
+                    }
+                    
+                    return result;
+                } catch (error) {
+                    attempts++;
+                    const attemptDuration = Date.now() - attemptStartTime;
+                    
+                    // Classify the error type for better monitoring
+                    const errorType = this.classifyTransactionError(error);
+                    const isTransactionError = errorType !== 'other';
+                    
+                    // Record retry attempt metric
+                    retryMetrics.push({
+                        attempt: attempts,
+                        duration: attemptDuration,
+                        errorType,
+                        errorMessage: error instanceof Error ? error.message : String(error),
+                        retryDelay: 0 // Will be set below if we retry
+                    });
+                    
+                    if (isTransactionError && attempts < maxAttempts) {
+                        // Exponential backoff with jitter
+                        const delayMs = baseDelayMs * Math.pow(2, attempts - 1) + Math.random() * 50;
+                        retryDelayTotal += delayMs;
+                        
+                        // Update the retry metric with the delay
+                        retryMetrics[retryMetrics.length - 1].retryDelay = delayMs;
+                        
+                        logger.warn(`Transaction retry attempt ${attempts}/${maxAttempts}`, {
+                            ...context,
+                            operation: operationName,
+                            attempt: attempts,
+                            maxAttempts,
+                            delayMs: Math.round(delayMs),
+                            totalRetryDelay: retryDelayTotal,
+                            errorType,
+                            error: error instanceof Error ? error.message : String(error),
+                        });
+                        
+                        await new Promise(resolve => setTimeout(resolve, delayMs));
+                        continue;
+                    }
+                    
+                    // Record failed transaction metrics
+                    const totalDuration = Date.now() - attemptStartTime + retryDelayTotal;
+                    
+                    // Log final failure if we're out of retries
+                    if (isTransactionError && attempts >= maxAttempts) {
+                        logger.error(`Transaction failed after ${maxAttempts} attempts`, {
+                            ...context,
+                            operation: operationName,
+                            totalAttempts: attempts,
+                            totalDuration,
+                            totalRetryDelay: retryDelayTotal,
+                            errorType,
+                            error: error instanceof Error ? error.message : String(error),
+                            retryPattern: retryMetrics.map(m => ({
+                                attempt: m.attempt,
+                                duration: m.duration,
+                                errorType: m.errorType,
+                                delay: m.retryDelay
+                            })),
+                            recommendation: this.getRetryRecommendation(errorType, retryMetrics)
+                        });
+                    }
+                    
+                    throw error; // Re-throw if not retryable or max attempts reached
+                }
+            }
+            
+            throw new Error('Transaction retry loop exited unexpectedly');
         });
     }
 
@@ -1186,6 +1305,57 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     generateDocumentId(collection: string): string {
         return this.db.collection(collection).doc().id;
+    }
+
+    /**
+     * Classify transaction errors for better monitoring and retry decisions
+     */
+    private classifyTransactionError(error: any): TransactionErrorType {
+        if (!(error instanceof Error)) {
+            return 'other';
+        }
+        
+        const message = error.message.toLowerCase();
+        
+        if (message.includes('concurrent') || message.includes('contention')) {
+            return 'concurrency';
+        }
+        if (message.includes('timeout') || message.includes('deadline')) {
+            return 'timeout';
+        }
+        if (message.includes('aborted') || message.includes('transaction was aborted')) {
+            return 'aborted';
+        }
+        if (message.includes('not found')) {
+            return 'not_found';
+        }
+        if (message.includes('permission') || message.includes('unauthorized')) {
+            return 'permission';
+        }
+        
+        return 'other';
+    }
+
+    /**
+     * Get recommendation based on error patterns for monitoring insights
+     */
+    private getRetryRecommendation(errorType: TransactionErrorType, retryMetrics: TransactionRetryMetric[]): string {
+        const avgDuration = retryMetrics.reduce((sum, m) => sum + m.duration, 0) / retryMetrics.length;
+        
+        switch (errorType) {
+            case 'concurrency':
+                return avgDuration > 1000 ? 
+                    'Consider optimistic locking or reducing transaction scope' :
+                    'Normal concurrency - consider increasing retry attempts';
+            case 'timeout':
+                return avgDuration > 2000 ?
+                    'Transaction too slow - optimize queries or reduce scope' :
+                    'Increase timeout or reduce concurrent load';
+            case 'aborted':
+                return 'Check for data consistency issues or conflicting operations';
+            default:
+                return 'Review error details and consider alternative approach';
+        }
     }
 
 }
