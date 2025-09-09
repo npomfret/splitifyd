@@ -12,6 +12,7 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import {MemberRoles} from "@splitifyd/shared";
 import {DataFetcher} from "./balance/DataFetcher";
+import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
     private balanceService: BalanceCalculationService;
@@ -107,6 +108,13 @@ export class GroupMemberService {
         // Also remove from subcollection
         await this.deleteMemberFromSubcollection(groupId, userId);
 
+        // NEW: Also delete from top-level collection
+        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+        const topLevelRef = getFirestore()
+            .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+            .doc(topLevelDocId);
+        await topLevelRef.delete();
+
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-left', { id: userId, groupId });
 
@@ -191,6 +199,13 @@ export class GroupMemberService {
 
         // Also remove from subcollection
         await this.deleteMemberFromSubcollection(groupId, memberId);
+
+        // NEW: Also delete from top-level collection
+        const topLevelDocId = getTopLevelMembershipDocId(memberId, groupId);
+        const topLevelRef = getFirestore()
+            .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+            .doc(topLevelDocId);
+        await topLevelRef.delete();
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-removed', { id: memberId, groupId });

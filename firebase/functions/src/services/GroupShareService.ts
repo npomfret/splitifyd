@@ -6,12 +6,13 @@ import {logger, LoggerContext} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
 import {checkAndUpdateWithTimestamp, getUpdatedAtTimestamp} from '../utils/optimistic-locking';
-import {createTrueServerTimestamp} from '../utils/dateHelpers';
+import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {measureDb} from '../monitoring/measure';
 import {ShareLinkDataSchema} from '../schemas/sharelink';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import type {GroupMemberService} from './GroupMemberService';
+import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 export class GroupShareService {
     constructor(
@@ -249,6 +250,22 @@ export class GroupShareService {
 
                 // Create member subcollection document
                 transaction.set(memberRef, memberDocWithTimestamps);
+
+                // NEW: Also write to top-level collection for improved querying
+                const now = new Date();
+                const topLevelMemberDoc = createTopLevelMembershipDocument(
+                    memberDoc,
+                    timestampToISO(now) // Use current timestamp since group was just updated
+                );
+                const topLevelRef = getFirestore()
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .doc(getTopLevelMembershipDocId(userId, groupId));
+                    
+                transaction.set(topLevelRef, {
+                    ...topLevelMemberDoc,
+                    createdAt: serverTimestamp,
+                    updatedAt: serverTimestamp,
+                });
 
                 return {
                     groupName: preCheckGroup.name,

@@ -24,6 +24,7 @@ import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
 import {GroupShareService} from "./GroupShareService";
 import {DataFetcher} from "./balance/DataFetcher";
+import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 /**
  * Service for managing group operations
@@ -660,6 +661,22 @@ export class GroupService {
                 userId,
                 memberDocWithTimestamps
             );
+            
+            // NEW: Also write to top-level collection for improved querying
+            const topLevelMemberDoc = createTopLevelMembershipDocument(
+                memberDoc,
+                timestampToISO(now)
+            );
+            this.firestoreWriter.createInTransaction(
+                transaction,
+                FirestoreCollections.GROUP_MEMBERSHIPS,
+                getTopLevelMembershipDocId(userId, docRef.id),
+                {
+                    ...topLevelMemberDoc,
+                    createdAt: memberServerTimestamp,
+                    updatedAt: memberServerTimestamp,
+                }
+            );
         });
 
         // Initialize group notifications for creator
@@ -727,6 +744,22 @@ export class GroupService {
                 },
                 originalUpdatedAt,
             );
+            
+            // NEW: Update denormalized groupUpdatedAt in all membership documents
+            const memberships = await getFirestore()
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId)
+                .get();
+            
+            if (!memberships.empty) {
+                const newGroupUpdatedAt = updatedData.updatedAt.toISOString();
+                for (const membershipDoc of memberships.docs) {
+                    transaction.update(membershipDoc.ref, {
+                        groupUpdatedAt: newGroupUpdatedAt,
+                        updatedAt: createTrueServerTimestamp()
+                    });
+                }
+            }
         });
 
         // Set group context

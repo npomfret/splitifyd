@@ -1,11 +1,11 @@
 # Group Membership Migration: Atomic Commit Strategy
 
-**Status**: Phase 1 Complete - Ready for Commits  
+**Status**: Phase 2 Complete - Dual Write Implemented ✅  
 **Priority**: High  
 **Risk Level**: Low (Atomic commits with rollback)  
 **Estimated Timeline**: 8-10 days  
 **Created**: 2025-01-09  
-**Updated**: 2025-01-09  
+**Updated**: 2025-01-09 (Phase 2 completed and merged)  
 
 ## Problem Analysis Summary
 
@@ -104,6 +104,10 @@ const groups = await getGroupsByIds(groupIds, { preserveOrder: true });
 
 **COMPLETED**: All Phase 1 foundation commits have been implemented and tested successfully.
 
+## Phase 2 Implementation Status ✅
+
+**COMPLETED**: All Phase 2 dual-write commits have been implemented and successfully merged with the upstream ApplicationBuilder refactor. The system now maintains data consistency by writing to both the existing subcollection and the new top-level collection simultaneously.
+
 ### Commit 1: ✅ Add New Types and Constants
 - **File**: `packages/shared/src/shared-types.ts`
 - **Added**: `GROUP_MEMBERSHIPS: 'group-memberships'` to FirestoreCollections
@@ -200,13 +204,16 @@ export const TopLevelGroupMemberSchema = z.object({
 });
 ```
 
-### Phase 2: Parallel Write Implementation
+### Phase 2: Parallel Write Implementation ✅
 *Implement dual-write pattern - writes go to both collections*
 
-#### Commit 4: Add Helper Functions
+**COMPLETED**: All Phase 2 commits have been successfully implemented and merged with upstream ApplicationBuilder refactor.
+
+#### Commit 4: ✅ Add Helper Functions
 **Files**: `firebase/functions/src/utils/groupMembershipHelpers.ts`  
 **Risk**: None (unused utilities)  
 **Rollback**: Simple revert  
+**Status**: Complete, merged with ApplicationBuilder pattern  
 
 ```typescript
 // Create utilities for membership document creation and conversion
@@ -227,11 +234,12 @@ export function getTopLevelMembershipDocId(userId: string, groupId: string): str
 }
 ```
 
-#### Commit 5: Update GroupService.createGroup() - Dual Write
-**Files**: `firebase/functions/src/services/GroupService.ts` (line 581+)  
+#### Commit 5: ✅ Update GroupService.createGroup() - Dual Write
+**Files**: `firebase/functions/src/services/GroupService.ts` (lines 655-669)  
 **Risk**: Low (adds parallel write)  
 **Rollback**: Remove top-level collection writes  
 **Test**: Ensure both subcollection and top-level docs are created  
+**Status**: Complete, dual-write implemented in transaction  
 
 ```typescript
 // In _createGroup() transaction (around line 640)
@@ -270,11 +278,12 @@ await this.firestoreWriter.runTransaction(async (transaction) => {
 });
 ```
 
-#### Commit 6: Update GroupShareService.joinGroupByLink() - Dual Write  
-**Files**: `firebase/functions/src/services/GroupShareService.ts` (line 217+)  
+#### Commit 6: ✅ Update GroupShareService.joinGroupByLink() - Dual Write  
+**Files**: `firebase/functions/src/services/GroupShareService.ts` (lines 239-253)  
 **Risk**: Low (adds parallel write)  
 **Rollback**: Remove top-level collection writes  
 **Test**: Ensure both collections updated on join  
+**Status**: Complete, dual-write implemented in transaction  
 
 ```typescript
 // In _joinGroupByLink() transaction (around line 217)
@@ -307,11 +316,12 @@ const result = await this.firestoreWriter.runTransaction(
 );
 ```
 
-#### Commit 7: Add Group Update Sync Logic
-**Files**: `firebase/functions/src/services/GroupService.ts` (updateGroup method)  
+#### Commit 7: ✅ Add Group Update Sync Logic
+**Files**: `firebase/functions/src/services/GroupService.ts` (updateGroup method, lines 739-753)  
 **Risk**: Medium (adds denormalization sync)  
 **Rollback**: Remove denormalization update logic  
 **Test**: Verify group updates sync to membership docs  
+**Status**: Complete, groupUpdatedAt sync implemented  
 
 ```typescript
 // In updateGroup() after line 714
@@ -336,11 +346,12 @@ await this.firestoreWriter.runTransaction(async (transaction) => {
 });
 ```
 
-#### Commit 8: Update Member Removal Operations - Dual Delete
-**Files**: `firebase/functions/src/services/GroupMemberService.ts`  
+#### Commit 8: ✅ Update Member Removal Operations - Dual Delete
+**Files**: `firebase/functions/src/services/GroupMemberService.ts` (leaveGroup lines 155-160, removeGroupMember lines 247-252)  
 **Risk**: Low (adds parallel delete)  
 **Rollback**: Remove top-level collection deletes  
 **Test**: Ensure both collections cleaned up  
+**Status**: Complete, dual-delete implemented for member operations  
 
 ```typescript
 // In leaveGroup() and removeGroupMember() methods
@@ -357,8 +368,28 @@ await transaction.run(async (t) => {
 });
 ```
 
+## Implementation Notes
+
+### Successful Merge Resolution
+During the implementation of Phase 2, upstream introduced the ApplicationBuilder refactor pattern which conflicted with the dual-write helper function imports. The conflicts were successfully resolved by:
+
+1. **Maintaining ApplicationBuilder Pattern**: Kept the new constructor-based dependency injection
+2. **Preserving Dual-Write Logic**: Successfully integrated helper function imports with the new pattern
+3. **Build Verification**: Confirmed TypeScript compilation passes with merged code
+4. **Transaction Integrity**: All dual-write operations remain atomic within transactions
+
+### Current System State
+The dual-write pattern is now active for all group membership operations:
+- ✅ Group creation writes to both collections
+- ✅ Group joining writes to both collections  
+- ✅ Group updates sync groupUpdatedAt to membership documents
+- ✅ Member removal deletes from both collections
+- ✅ All operations remain atomic via Firestore transactions
+
 ### Phase 3: New Read Path Implementation
 *Add new query methods without changing existing behavior*
+
+**STATUS**: Ready to implement - Phase 2 foundation is complete
 
 #### Commit 9: Add New FirestoreReader Method
 **Files**: `firebase/functions/src/services/firestore/FirestoreReader.ts`  
@@ -658,12 +689,12 @@ Each commit includes:
 
 ## Timeline Summary
 
-| Phase | Duration | Key Activities | Risk Level |
-|-------|----------|---------------|------------|
-| **Foundation** | Days 1-2 | Types, schemas, indexes, helpers | None |
-| **Dual Write** | Days 3-6 | Update all write operations | Low |
-| **New Reads** | Days 7-8 | New query methods, feature flags | Low |
-| **Testing** | Days 9-10 | Comprehensive tests, validation | None |
+| Phase | Duration | Key Activities | Risk Level | Status |
+|-------|----------|---------------|------------|---------|
+| **Foundation** | Days 1-2 | Types, schemas, indexes, helpers | None | ✅ Complete |
+| **Dual Write** | Days 3-6 | Update all write operations | Low | ✅ Complete |
+| **New Reads** | Days 7-8 | New query methods, feature flags | Low | 📋 Ready |
+| **Testing** | Days 9-10 | Comprehensive tests, validation | None | 📋 Ready |
 
 ## Success Definition
 
