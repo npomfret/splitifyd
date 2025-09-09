@@ -19,7 +19,6 @@ import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import type {GroupDocument} from '../schemas';
 
-// Re-export schemas for backward compatibility
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
 
 /**
@@ -39,8 +38,8 @@ function toGroup(groupDoc: GroupDocument): Group {
     
     return {
         ...groupDoc,
-        securityPreset: groupDoc.securityPreset || 'open',
-        permissions: (groupDoc.permissions as GroupPermissions) || defaultPermissions
+        securityPreset: groupDoc.securityPreset!,
+        permissions: groupDoc.permissions as GroupPermissions
     };
 }
 
@@ -99,7 +98,7 @@ export class ExpenseService {
     private normalizeValidatedExpense(validatedData: any): Expense {
         return {
             ...validatedData,
-            receiptUrl: validatedData.receiptUrl ?? undefined, // Convert null to undefined
+            receiptUrl: validatedData.receiptUrl,
         };
     }
 
@@ -124,7 +123,7 @@ export class ExpenseService {
             createdAt: timestampToISO(expense.createdAt),
             updatedAt: timestampToISO(expense.updatedAt),
             deletedAt: expense.deletedAt ? timestampToISO(expense.deletedAt) : null,
-            deletedBy: expense.deletedBy || null,
+            deletedBy: expense.deletedBy,
         };
     }
 
@@ -204,7 +203,7 @@ export class ExpenseService {
             currency: expenseData.currency,
             description: expenseData.description,
             category: expenseData.category,
-            date: parseISOToTimestamp(expenseData.date) || createOptimisticTimestamp(),
+            date: parseISOToTimestamp(expenseData.date)!,
             splitType: expenseData.splitType,
             participants: expenseData.participants,
             splits,
@@ -314,7 +313,7 @@ export class ExpenseService {
 
         // Handle date conversion
         if (updateData.date) {
-            updates.date = parseISOToTimestamp(updateData.date) || createOptimisticTimestamp();
+            updates.date = parseISOToTimestamp(updateData.date);
         }
 
         // Handle split recalculation if needed
@@ -655,7 +654,7 @@ export class ExpenseService {
         const group = {
             id: groupData.id,
             name: groupData.name,
-            description: groupData.description || '',
+            description: groupData.description,
             createdBy: groupData.createdBy,
             createdAt: groupData.createdAt.toDate().toISOString(),
             updatedAt: groupData.updatedAt.toDate().toISOString(),

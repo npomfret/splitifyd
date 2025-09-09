@@ -30,8 +30,8 @@ function toGroup(groupDoc: GroupDocument): Group {
     
     return {
         ...groupDoc,
-        securityPreset: groupDoc.securityPreset || 'open',
-        permissions: (groupDoc.permissions as GroupPermissions) || defaultPermissions
+        securityPreset: groupDoc.securityPreset!,
+        permissions: groupDoc.permissions as GroupPermissions
     };
 }
 

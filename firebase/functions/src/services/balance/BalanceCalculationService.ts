@@ -66,8 +66,10 @@ export class BalanceCalculationService {
         const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
         const debtSimplificationTime = Date.now() - debtSimplificationStart;
 
-        // 5. Create legacy userBalances field from first currency (for backward compatibility)
-        const userBalances = this.createLegacyUserBalances(balancesByCurrency);
+        // 5. Get userBalances from balancesByCurrency
+        const userBalances = Object.keys(balancesByCurrency).length > 0 
+            ? balancesByCurrency[Object.keys(balancesByCurrency)[0]]
+            : {};
 
         // 6. Create and validate result
         const result = {
@@ -99,17 +101,4 @@ export class BalanceCalculationService {
         return BalanceCalculationResultSchema.parse(result);
     }
 
-    private createLegacyUserBalances(balancesByCurrency: CurrencyBalances): Record<string, UserBalance> {
-        // For backward compatibility, populate userBalances with the first currency's data
-        // This maintains the existing API contract while supporting multi-currency
-        const currencies = Object.keys(balancesByCurrency);
-
-        if (currencies.length === 0) {
-            return {};
-        }
-
-        // Use the first currency found for the legacy field
-        const firstCurrency = currencies[0];
-        return balancesByCurrency[firstCurrency] || {};
-    }
 }

@@ -52,7 +52,7 @@ export class ExpenseMetadataService {
             lastExpense: {
                 description: latestExpense.description,
                 amount: latestExpense.amount,
-                date: latestExpense.date?.toDate() ?? latestExpense.createdAt?.toDate() ?? createOptimisticTimestamp().toDate(),
+                date: latestExpense.date?.toDate()!,
             },
         };
     }

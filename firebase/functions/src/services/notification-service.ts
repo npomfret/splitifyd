@@ -18,14 +18,13 @@
  */
 
 import {FieldValue, type Firestore} from 'firebase-admin/firestore';
-import { FirestoreWriter } from './firestore/FirestoreWriter';
-import { FirestoreReader } from './firestore/FirestoreReader';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { WriteResult, BatchWriteResult } from './firestore/IFirestoreWriter';
-import { logger } from '../logger';
-import {
-    type CreateUserNotificationDocument
-} from '../schemas/user-notifications';
+import {FirestoreWriter} from './firestore/FirestoreWriter';
+import {FirestoreReader} from './firestore/FirestoreReader';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {BatchWriteResult, WriteResult} from './firestore/IFirestoreWriter';
+import {logger} from '../logger';
+import {type CreateUserNotificationDocument} from '../schemas/user-notifications';
+import {measureDb} from '../monitoring/measure';
 
 export type ChangeType = 'transaction' | 'balance' | 'group';
 
@@ -45,45 +44,37 @@ export class NotificationService {
         groupId: string,
         changeType: ChangeType
     ): Promise<WriteResult> {
-        logger.info('🔔 updateUserNotification start', { userId, groupId, changeType });
-        
-        // Map changeType to proper field names
-        const fieldMap = {
-            'transaction': { count: 'transactionChangeCount', last: 'lastTransactionChange' },
-            'balance': { count: 'balanceChangeCount', last: 'lastBalanceChange' },
-            'group': { count: 'groupDetailsChangeCount', last: 'lastGroupDetailsChange' }
-        };
-        
-        const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
-        
-        // Use dot notation with update() to avoid overwriting nested objects
-        const updates = {
-            changeVersion: FieldValue.increment(1),
-            lastModified: FieldValue.serverTimestamp(),
-            [`groups.${groupId}.${lastChangeFieldName}`]: FieldValue.serverTimestamp(),
-            [`groups.${groupId}.${countFieldName}`]: FieldValue.increment(1)
-        };
-        
-        logger.info('🔔 updateUserNotification got updates', { userId, groupId, changeType, updates });
-        
-        try {
-            // Try update() first to preserve existing nested object fields
-            await this.db.doc(`user-notifications/${userId}`).update(updates);
-            logger.info('🔔 updateUserNotification completed via update', { userId, groupId, changeType });
-        } catch (error) {
-            // If update fails (document or path doesn't exist), fall back to set with merge
-            logger.info('🔔 updateUserNotification update failed, falling back to set with merge', { userId, groupId, changeType });
+        return measureDb('NotificationService.updateUserNotification', async () => {
+            // Map changeType to proper field names
+            const fieldMap = {
+                'transaction': { count: 'transactionChangeCount', last: 'lastTransactionChange' },
+                'balance': { count: 'balanceChangeCount', last: 'lastBalanceChange' },
+                'group': { count: 'groupDetailsChangeCount', last: 'lastGroupDetailsChange' }
+            };
             
-            const fallbackUpdates = this.buildUpdateData(groupId, changeType);
-            await this.db.doc(`user-notifications/${userId}`).set(fallbackUpdates, { merge: true });
-            logger.info('🔔 updateUserNotification completed via set', { userId, groupId, changeType });
-        }
-        
-        return {
-            id: userId,
-            success: true,
-            timestamp: new Date() as any
-        };
+            const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
+            
+            // Use dot notation with update() to avoid overwriting nested objects
+            const updates = {
+                changeVersion: FieldValue.increment(1),
+                lastModified: FieldValue.serverTimestamp(),
+                [`groups.${groupId}.${lastChangeFieldName}`]: FieldValue.serverTimestamp(),
+                [`groups.${groupId}.${countFieldName}`]: FieldValue.increment(1)
+            };
+            
+            // Try update() first, fall back to set with merge if document doesn't exist
+            try {
+                await this.db.doc(`user-notifications/${userId}`).update(updates);
+            } catch (error) {
+                const fallbackUpdates = this.buildUpdateData(groupId, changeType);
+                await this.db.doc(`user-notifications/${userId}`).set(fallbackUpdates, { merge: true });
+            }
+            
+            return {
+                id: userId,
+                success: true
+            };
+        });
     }
 
     /**
@@ -95,77 +86,54 @@ export class NotificationService {
         groupId: string,
         changeType: ChangeType
     ): Promise<BatchWriteResult> {
-        logger.info('🔔 batchUpdateNotifications called', {
-            userIds: userIds.length,
-            userIdsList: userIds,
-            groupId,
-            changeType
+        return measureDb('NotificationService.batchUpdateNotifications', async () => {
+            for (const userId of userIds) {
+                await this.initializeUserNotifications(userId);
+                await this.addUserToGroupNotificationTracking(userId, groupId);
+                await this.updateUserNotification(userId, groupId, changeType);
+            }
+
+            return {
+                successCount: userIds.length,
+                failureCount: 0,
+                results: []
+            };
         });
-
-        for (const userId of userIds) {
-            await this.ensureUserInGroup(userId, groupId);
-            await this.updateUserNotification(userId, groupId, changeType);
-        }
-
-        return {
-            successCount: userIds.length,
-            failureCount: 0,
-            results: []
-        };
     }
-
-    /**
-     * Ensure a user has a notification document and is set up for a specific group
-     * This is idempotent and safe to call multiple times
-     */
-    async ensureUserInGroup(userId: string, groupId: string): Promise<void> {
-        logger.info('🔔 ensureUserInGroup called', { userId, groupId });
-        
-        await this.initializeUserNotifications(userId);
-        await this.addUserToGroup(userId, groupId);
-        
-        logger.info('🔔 ensureUserInGroup completed', { userId, groupId });
-    }
-
     /**
      * Initialize a new user's notification document
      * Creates the document with empty groups object if it doesn't exist
      */
     async initializeUserNotifications(userId: string): Promise<WriteResult> {
-        const existingNotification = await this.firestoreReader.getUserNotification(userId);
-        
-        if (existingNotification) {
-            // Document already exists, don't reinitialize
-            logger.info('User notification document already exists, skipping initialization', { userId });
+        return measureDb('NotificationService.initializeUserNotifications', async () => {
+            const existingNotification = await this.firestoreReader.getUserNotification(userId);
+            
+            if (existingNotification) {
+                return {
+                    id: userId,
+                    success: true
+                };
+            }
+
+            const initialData: CreateUserNotificationDocument = {
+                groups: {},
+                recentChanges: []
+            };
+
+            const documentData = {
+                id: userId,
+                changeVersion: 0,
+                lastModified: FieldValue.serverTimestamp(),
+                ...initialData
+            };
+
+            await this.db.doc(`user-notifications/${userId}`).set(documentData);
+            
             return {
                 id: userId,
-                success: true,
-                timestamp: new Date() as any
+                success: true
             };
-        }
-
-        const initialData: CreateUserNotificationDocument = {
-            groups: {},
-            recentChanges: []
-        };
-
-        const documentData = {
-            id: userId,
-            changeVersion: 0,
-            lastModified: FieldValue.serverTimestamp(),
-            ...initialData
-        };
-
-        // Create document only if it doesn't exist
-        await this.db.doc(`user-notifications/${userId}`).set(documentData);
-        
-        logger.info('User notification document initialized', { userId });
-        
-        return {
-            id: userId,
-            success: true,
-            timestamp: new Date() as any
-        };
+        });
     }
 
     /**
@@ -173,42 +141,37 @@ export class NotificationService {
      * Creates the group entry in their notification document only if it doesn't exist
      * If the user notification document doesn't exist, it will be created
      */
-    async addUserToGroup(userId: string, groupId: string): Promise<WriteResult> {
-        // First check if the user already has this group in their notifications
-        const existingNotification = await this.firestoreReader.getUserNotification(userId);
-        
-        if (existingNotification?.groups?.[groupId]) {
-            // User already has this group in their notifications, don't overwrite
-            logger.info('User already in group notifications, skipping creation', { userId, groupId });
+    async addUserToGroupNotificationTracking(userId: string, groupId: string): Promise<WriteResult> {
+        return measureDb('NotificationService.addUserToGroup', async () => {
+            const existingNotification = await this.firestoreReader.getUserNotification(userId);
+            
+            if (existingNotification?.groups?.[groupId]) {
+                return {
+                    id: userId,
+                    success: true
+                };
+            }
+
+            const groupUpdate = {
+                groups: {
+                    [groupId]: {
+                        lastTransactionChange: null,
+                        lastBalanceChange: null,
+                        lastGroupDetailsChange: null,
+                        transactionChangeCount: 0,
+                        balanceChangeCount: 0,
+                        groupDetailsChangeCount: 0
+                    }
+                }
+            };
+
+            await this.db.doc(`user-notifications/${userId}`).set(groupUpdate, { merge: true });
+            
             return {
                 id: userId,
-                success: true,
-                timestamp: new Date() as any
+                success: true
             };
-        }
-
-        const groupUpdate = {
-            groups: {
-                [groupId]: {
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastGroupDetailsChange: null,
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    groupDetailsChangeCount: 0
-                }
-            }
-        };
-
-        // Use set with merge to ensure document exists
-        await this.db.doc(`user-notifications/${userId}`).set(groupUpdate, { merge: true });
-        logger.info('User added to group notifications', { userId, groupId });
-        
-        return {
-            id: userId,
-            success: true,
-            timestamp: new Date() as any
-        };
+        });
     }
 
     /**
@@ -216,19 +179,18 @@ export class NotificationService {
      * Deletes the group entry from their notification document
      */
     async removeUserFromGroup(userId: string, groupId: string): Promise<WriteResult> {
-        const removeUpdate = {
-            [`groups.${groupId}`]: FieldValue.delete()
-        };
+        return measureDb('NotificationService.removeUserFromGroup', async () => {
+            const removeUpdate = {
+                [`groups.${groupId}`]: FieldValue.delete()
+            };
 
-        // Use update here since we're only removing a field and document should exist
-        await this.db.doc(`user-notifications/${userId}`).update(removeUpdate);
-        logger.info('User removed from group notifications', { userId, groupId });
-        
-        return {
-            id: userId,
-            success: true,
-            timestamp: new Date() as any
-        };
+            await this.db.doc(`user-notifications/${userId}`).update(removeUpdate);
+            
+            return {
+                id: userId,
+                success: true
+            };
+        });
     }
 
     /**
@@ -255,8 +217,6 @@ export class NotificationService {
                 }
             }
         };
-
-        logger.info('🔔 buildUpdateData', { groupId, changeType, countFieldName, lastChangeFieldName });
 
         return updateData;
     }

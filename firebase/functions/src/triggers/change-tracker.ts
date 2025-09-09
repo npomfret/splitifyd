@@ -96,7 +96,7 @@ export const trackExpenseChanges = onDocumentWritten(
             const afterData = after?.data();
 
             // Get groupId from expense data
-            const groupId = afterData?.groupId || beforeData?.groupId;
+            const groupId = afterData?.groupId;
             if (!groupId) {
                 return;
             }
@@ -112,14 +112,11 @@ export const trackExpenseChanges = onDocumentWritten(
 
             if (afterData) {
                 affectedUsers.add(afterData.paidBy);
-                // Handle both old (splitBetween) and new (participants) formats
-                const participants = afterData.participants || afterData.splitBetween || [];
-                participants.forEach((userId: string) => affectedUsers.add(userId));
+                afterData.participants.forEach((userId: string) => affectedUsers.add(userId));
             }
             if (beforeData) {
                 affectedUsers.add(beforeData.paidBy);
-                const participants = beforeData.participants || beforeData.splitBetween || [];
-                participants.forEach((userId: string) => affectedUsers.add(userId));
+                beforeData.participants.forEach((userId: string) => affectedUsers.add(userId));
             }
 
             // Update user notifications for transaction and balance changes
@@ -144,36 +141,28 @@ export const trackSettlementChanges = onDocumentWritten(
     async (event) => {
         const settlementId = event.params.settlementId;
         const { before, after, changeType } = extractDataChange(event);
-        const documentPath = `settlements/${settlementId}`;
 
         return measureTrigger('trackGroupChanges', async () => {
                 const beforeData = before?.data();
                 const afterData = after?.data();
 
                 // Get groupId from settlement data
-                const groupId = afterData?.groupId || beforeData?.groupId;
+                const groupId = afterData?.groupId;
                 if (!groupId) {
-                    // Settlement has no groupId
                     return;
                 }
 
-                // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
+                // Get affected users (payerId and payeeId)
                 const affectedUsers = await (async (): Promise<string[]> => {
                     const users = new Set<string>();
 
                     if (afterData) {
-                        // Support both new API format (payerId/payeeId) and legacy format (from/to)
-                        const payer = afterData.payerId || afterData.from;
-                        const payee = afterData.payeeId || afterData.to;
-                        if (payer) users.add(payer);
-                        if (payee) users.add(payee);
+                        users.add(afterData.payerId);
+                        users.add(afterData.payeeId);
                     }
                     if (beforeData) {
-                        // Support both new API format (payerId/payeeId) and legacy format (from/to)
-                        const payer = beforeData.payerId || beforeData.from;
-                        const payee = beforeData.payeeId || beforeData.to;
-                        if (payer) users.add(payer);
-                        if (payee) users.add(payee);
+                        users.add(beforeData.payerId);
+                        users.add(beforeData.payeeId);
                     }
 
                     return Array.from(users);

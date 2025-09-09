@@ -69,13 +69,13 @@ export function createNotificationTriggers() {
                 const groupId = event.params.groupId;
                 const userId = event.params.userId;
                 
-                return measureTrigger('initializeUserNotifications',
+                return measureTrigger('addUserToGroupNotifications',
                     async () => {
                         // First ensure user has notification document
                         await notificationService.initializeUserNotifications(userId);
                         
                         // Then add them to the group
-                        await notificationService.addUserToGroup(userId, groupId);
+                        await notificationService.addUserToGroupNotificationTracking(userId, groupId);
                         
                         // Send group change notification to the new user
                         await notificationService.updateUserNotification(userId, groupId, 'group');
@@ -98,17 +98,11 @@ export function createNotificationTriggers() {
                 const groupId = event.params.groupId;
                 const userId = event.params.userId;
                 
-                return measureTrigger('initializeUserNotifications',
+                return measureTrigger('removeUserFromGroupNotifications',
                     async () => {
                         // CRITICAL: Notify the user about the group change BEFORE removing them
                         // This ensures they receive real-time updates about group deletion/removal
                         await notificationService.updateUserNotification(userId, groupId, 'group');
-                        
-                        logger.info('Group change notification sent before member removal', { 
-                            userId,
-                            groupId,
-                            trigger: 'member-removed'
-                        });
                         
                         // Then remove user from group notifications
                         await notificationService.removeUserFromGroup(userId, groupId);
@@ -130,7 +124,7 @@ export function createNotificationTriggers() {
             async (event) => {
                 const userId = event.params.userId;
                 
-                return measureTrigger('initializeUserNotifications', async () => {
+                return measureTrigger('cleanupUserNotifications', async () => {
                         // Delete the user's notification document
                         // Using FirestoreWriter's bulkDelete method
                         const { FirestoreWriter } = await import('../services/firestore/FirestoreWriter');

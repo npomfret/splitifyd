@@ -79,24 +79,5 @@ describe('ExpenseMetadataService', () => {
                 .toThrow('Group ID is required');
         });
 
-        it('should handle expense without date field', async () => {
-            const groupId = 'test-group-id';
-            const mockExpenses = [
-                {
-                    id: 'expense-1',
-                    description: 'No Date Expense',
-                    amount: 75,
-                    date: undefined,
-                    createdAt: { toDate: () => new Date('2024-01-15T10:00:00Z') }
-                }
-            ];
-
-            mockFirestoreReader.getExpensesForGroup.mockResolvedValue(mockExpenses as any);
-
-            const result = await expenseMetadataService.calculateExpenseMetadata(groupId);
-
-            expect(result.expenseCount).toBe(1);
-            expect(result.lastExpense?.date).toEqual(new Date('2024-01-15T10:00:00Z'));
-        });
     });
 });

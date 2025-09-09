@@ -119,13 +119,13 @@ export class GroupService {
         const group: Group = {
             id: groupData.id,
             name: groupData.name,
-            description: groupData.description ?? '',
+            description: groupData.description,
             createdBy: groupData.createdBy,
             createdAt: this.safeDateToISO(groupData.createdAt),
             updatedAt: this.safeDateToISO(groupData.updatedAt),
-            securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
-            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
-            permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+            securityPreset: groupData.securityPreset!,
+            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+            permissions: groupData.permissions as any,
         };
 
         // Check if user is the owner
@@ -345,13 +345,13 @@ export class GroupService {
             const groups: Group[] = returnedGroups.map((groupData: any) => ({
                 id: groupData.id,
                 name: groupData.name,
-                description: groupData.description ?? '',
+                description: groupData.description,
                 createdBy: groupData.createdBy,
                 createdAt: this.safeDateToISO(groupData.createdAt),
                 updatedAt: this.safeDateToISO(groupData.updatedAt),
-                securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
-                presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
-                permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+                securityPreset: groupData.securityPreset!,
+                presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+                permissions: groupData.permissions as any,
             }));
             const groupIds = groups.map((group) => group.id);
             
@@ -660,13 +660,13 @@ export class GroupService {
         const group: Group = {
             id: groupData.id,
             name: groupData.name,
-            description: groupData.description ?? '',
+            description: groupData.description,
             createdBy: groupData.createdBy,
             createdAt: this.safeDateToISO(groupData.createdAt),
             updatedAt: this.safeDateToISO(groupData.updatedAt),
-            securityPreset: groupData.securityPreset ?? SecurityPresets.OPEN,
-            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt ?? groupData.createdAt),
-            permissions: groupData.permissions as any ?? PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+            securityPreset: groupData.securityPreset!,
+            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+            permissions: groupData.permissions as any,
         };
 
         // Add computed fields before returning
