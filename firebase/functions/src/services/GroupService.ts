@@ -13,7 +13,7 @@ import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
-import { measureDb, measureApi } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { BalanceCalculationResult } from './balance';

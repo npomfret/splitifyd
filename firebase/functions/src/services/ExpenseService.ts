@@ -1,6 +1,5 @@
 import {DocumentReference, Firestore} from 'firebase-admin/firestore';
 import {z} from 'zod';
-import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
 import {createOptimisticTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';

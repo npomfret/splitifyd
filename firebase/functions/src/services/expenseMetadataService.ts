@@ -1,4 +1,3 @@
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
 export interface ExpenseMetadata {
