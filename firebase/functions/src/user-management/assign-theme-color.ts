@@ -1,12 +1,14 @@
 import { FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { COLOR_PATTERNS, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
-import { getFirestoreReader } from '../services/serviceRegistration';
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
 export async function assignThemeColor(userId: string): Promise<UserThemeColor> {
-    const db = getFirestore();
-    const systemDoc = db.collection('system').doc('colorAssignment');
-    const firestoreReader = getFirestoreReader();
+    const firestore = getFirestore();
+    const applicationBuilder = new ApplicationBuilder(firestore);
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
+
+    const systemDoc = firestore.collection('system').doc('colorAssignment');
 
     // Atomic counter increment with transaction
     const result = await runTransactionWithRetry(

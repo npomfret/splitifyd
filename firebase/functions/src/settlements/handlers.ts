@@ -14,8 +14,12 @@ import {
     GetSettlementResponse,
     ListSettlementsApiResponse,
 } from '@splitifyd/shared';
-import { getSettlementService } from '../services/serviceRegistration';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const settlementService = applicationBuilder.buildSettlementService();
 
 export const createSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
@@ -27,7 +31,7 @@ export const createSettlement = async (req: AuthenticatedRequest, res: Response)
 
     const settlementData: CreateSettlementRequest = value;
 
-    const responseData = await getSettlementService().createSettlement(settlementData, userId);
+    const responseData = await settlementService.createSettlement(settlementData, userId);
 
     LoggerContext.setBusinessContext({ settlementId: responseData.id });
     logger.info('settlement-created', { id: responseData.id });
@@ -54,7 +58,7 @@ export const updateSettlement = async (req: AuthenticatedRequest, res: Response)
 
     const updateData: UpdateSettlementRequest = value;
 
-    const responseData = await getSettlementService().updateSettlement(settlementId, updateData, userId);
+    const responseData = await settlementService.updateSettlement(settlementId, updateData, userId);
 
     LoggerContext.setBusinessContext({ settlementId });
     logger.info('settlement-updated', { id: settlementId });
@@ -74,7 +78,7 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
     }
 
-    await getSettlementService().deleteSettlement(settlementId, userId);
+    await settlementService.deleteSettlement(settlementId, userId);
 
     LoggerContext.setBusinessContext({ settlementId });
     logger.info('settlement-deleted', { id: settlementId });
@@ -94,7 +98,7 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
     }
 
-    const responseData = await getSettlementService().getSettlement(settlementId, userId);
+    const responseData = await settlementService.getSettlement(settlementId, userId);
 
     const response: GetSettlementResponse = {
         success: true,
@@ -114,7 +118,7 @@ export const listSettlements = async (req: AuthenticatedRequest, res: Response):
 
     const { groupId, limit, cursor, userId: filterUserId, startDate, endDate } = value;
 
-    const result = await getSettlementService().listSettlements(groupId, userId, {
+    const result = await settlementService.listSettlements(groupId, userId, {
         limit,
         cursor,
         userId: filterUserId,

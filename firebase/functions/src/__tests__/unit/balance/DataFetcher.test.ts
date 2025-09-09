@@ -6,24 +6,28 @@ import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 const mockGetUsers = vi.fn();
 const mockGetMembersFromSubcollection = vi.fn();
 
-vi.mock('../../../services/serviceRegistration', () => ({
-    getUserService: () => ({
-        getUsers: mockGetUsers
-    }),
-    getGroupMemberService: () => ({
-        getMembersFromSubcollection: mockGetMembersFromSubcollection
-    }),
-    getFirestoreReader: () => new MockFirestoreReader(),
-    registerAllServices: vi.fn()
-}));
+const createMockUserService = () => ({
+    getUsers: mockGetUsers,
+    getMembersFromSubcollection: mockGetMembersFromSubcollection
+});
+
+const createMockGroupMemberService = () => ({
+    isGroupMemberAsync: vi.fn(),
+    getMemberFromSubcollection: vi.fn(),
+    getMembersFromSubcollection: mockGetMembersFromSubcollection,
+});
 
 describe('DataFetcher', () => {
     let dataFetcher: DataFetcher;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let mockUserService: ReturnType<typeof createMockUserService>;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
-        dataFetcher = new DataFetcher(mockFirestoreReader);
+        mockUserService = createMockUserService();
+        mockGroupMemberService = createMockGroupMemberService();
+        dataFetcher = new DataFetcher(mockFirestoreReader as any, mockUserService as any);
         mockFirestoreReader.resetAllMocks();
         mockGetUsers.mockClear();
         mockGetMembersFromSubcollection.mockClear();

@@ -1,103 +1,91 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import { Timestamp } from 'firebase-admin/firestore';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
+import {SettlementService} from "../../services/SettlementService";
+import {GroupMemberService} from "../../services/GroupMemberService";
+import {GroupShareService} from "../../services/GroupShareService";
 
-// Mock dependencies
+// Create mock services for GroupService dependencies
+const createMockUserService = () => ({
+    getUsers: vi.fn().mockResolvedValue(new Map()),
+    getUser: vi.fn(),
+    updateProfile: vi.fn(),
+    changePassword: vi.fn(),
+    deleteAccount: vi.fn(),
+    registerUser: vi.fn(),
+    createUserDirect: vi.fn(),
+    getMembersFromSubcollection: vi.fn().mockResolvedValue([])
+});
 
-vi.mock('../../utils/performance-monitor', () => ({
-    PerformanceMonitor: {
-        monitorServiceCall: vi.fn((service, method, fn) => fn()),
-        monitorBatchOperation: vi.fn((operation, fn) => fn(() => {})),
-    },
-}));
+const createMockExpenseService = () => ({
+    listGroupExpenses: vi.fn(),
+    getExpense: vi.fn(),
+    createExpense: vi.fn(),
+    updateExpense: vi.fn(),
+    deleteExpense: vi.fn()
+});
 
-vi.mock('../../utils/logger-context', () => ({
-    LoggerContext: {
-        update: vi.fn(),
-        get: vi.fn(() => ({ userId: 'test-user' })),
-        setBusinessContext: vi.fn(),
-    },
-}));
+const createMockSettlementService = () => ({
+    listSettlements: vi.fn(),
+    getSettlement: vi.fn(),
+    createSettlement: vi.fn(),
+    updateSettlement: vi.fn(),
+    deleteSettlement: vi.fn()
+});
 
-vi.mock('../../../src/services/serviceRegistration', () => ({
-    getGroupMemberService: vi.fn(() => ({
-        createMemberSubcollection: vi.fn(),
-        getGroupMembersResponse: vi.fn(() => ({ members: [] })),
-    })),
-    getUserService: vi.fn(() => ({
-        getUsers: vi.fn((userIds) => {
-            const userMap = new Map();
-            // Mock a user for the test
-            userMap.set('test-user-123', {
-                uid: 'test-user-123',
-                email: 'test@example.com',
-                displayName: 'Test User',
-            });
-            return Promise.resolve(userMap);
-        }),
-    })),
-    getExpenseService: vi.fn(() => ({
-        listGroupExpenses: vi.fn(),
-    })),
-    getSettlementService: vi.fn(() => ({
-        _getGroupSettlementsData: vi.fn(),
-    })),
-}));
+const createMockGroupMemberService = () => ({
+    isGroupMemberAsync: vi.fn().mockResolvedValue(true),
+    isGroupOwnerAsync: vi.fn().mockResolvedValue(true),
+    getMemberFromSubcollection: vi.fn(),
+    getMembersFromSubcollection: vi.fn().mockResolvedValue([]),
+    getGroupMembersResponseFromSubcollection: vi.fn()
+});
 
-vi.mock('../../services/balance/BalanceCalculationService', () => ({
-    BalanceCalculationService: vi.fn(() => ({
-        calculateGroupBalances: vi.fn((groupId) => Promise.resolve({
-            groupId: groupId,
-            balancesByCurrency: {},
-            userBalances: {},
-            simplifiedDebts: [],
-            lastUpdated: Timestamp.now(),
-        })),
-    })),
-}));
+const createMockNotificationService = () => ({
+    initializeUserNotifications: vi.fn(),
+    updateUserNotification: vi.fn(),
+    getUserNotifications: vi.fn()
+});
 
-vi.mock('../../services/serviceRegistration', () => ({
-    getExpenseMetadataService: vi.fn(() => ({
-        calculateExpenseMetadata: vi.fn(() => Promise.resolve({
-            expenseCount: 0,
-            lastExpenseTime: undefined,
-        })),
-    })),
-    getUserService: vi.fn(() => ({
-        getUsers: vi.fn((userIds: string[]) => Promise.resolve(new Map(
-            userIds.map((id: string) => [id, { uid: id, displayName: 'Test User', email: 'test@example.com' }])
-        )))
-    })),
-    getGroupMemberService: vi.fn(() => ({
-        getMembersFromSubcollection: vi.fn(() => Promise.resolve([]))
-    })),
-    getSettlementService: vi.fn(() => ({
-        _getGroupSettlementsData: vi.fn(() => Promise.resolve({ settlements: [], hasMore: false }))
-    })),
-    getExpenseService: vi.fn(() => ({
-        _getGroupExpensesData: vi.fn(() => Promise.resolve({ expenses: [], hasMore: false }))
-    })),
-}));
+const createMockExpenseMetadataService = () => ({
+    calculateExpenseMetadata: vi.fn().mockResolvedValue({
+        expenseCount: 0,
+        lastExpenseTime: undefined,
+    })
+});
 
-vi.mock('../../utils/groupHelpers', () => ({
-    isGroupOwner: vi.fn(() => true),
-    isGroupMember: vi.fn(() => true),
-    isGroupOwnerAsync: vi.fn(() => Promise.resolve(true)),
-    isGroupMemberAsync: vi.fn(() => Promise.resolve(true)),
-    getThemeColorForMember: vi.fn(() => ({ light: '#FF6B6B' })),
-}));
+const createMockGroupShareService = () => ({
+    generateShareableLink: vi.fn(),
+    previewGroupByLink: vi.fn(),
+    joinGroupByLink: vi.fn()
+});
 
-vi.mock('../../user-management/assign-theme-color', () => ({
-    assignThemeColor: vi.fn(() => Promise.resolve('#FF6B6B')),
+// Mock Firebase dependencies
+vi.mock('../../firebase', () => ({
+    getFirestore: vi.fn(() => ({
+        collection: vi.fn(() => ({
+            doc: vi.fn(() => ({
+                get: vi.fn(),
+                set: vi.fn(),
+                update: vi.fn(),
+                delete: vi.fn()
+            }))
+        }))
+    }))
 }));
 
 describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
     let mockFirestoreReader: MockFirestoreReader;
     let mockFirestoreWriter: any;
-    let mockServiceProvider: any;
+    let mockUserService: ReturnType<typeof createMockUserService>;
+    let mockExpenseService: ReturnType<typeof createMockExpenseService>;
+    let mockSettlementService: ReturnType<typeof createMockSettlementService>;
+    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let mockNotificationService: ReturnType<typeof createMockNotificationService>;
+    let mockExpenseMetadataService: ReturnType<typeof createMockExpenseMetadataService>;
+    let mockGroupShareService: ReturnType<typeof createMockGroupShareService>;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
@@ -106,19 +94,31 @@ describe('GroupService - Unit Tests', () => {
             bulkDelete: vi.fn(),
             createInTransaction: vi.fn(),
             updateInTransaction: vi.fn(),
-            deleteInTransaction: vi.fn()
+            deleteInTransaction: vi.fn(),
+            createUser: vi.fn(),
+            updateUser: vi.fn(),
+            deleteUser: vi.fn()
         };
-        mockServiceProvider = {
-            getUserProfiles: vi.fn(),
-            getGroupMembers: vi.fn(),
-            getGroupMember: vi.fn(),
-            getMembersFromSubcollection: vi.fn(),
-            listGroupExpenses: vi.fn(),
-            getExpenseMetadata: vi.fn(),
-            getGroupSettlementsData: vi.fn(),
-            runTransaction: vi.fn()
-        };
-        groupService = new GroupService(mockFirestoreReader, mockFirestoreWriter, mockServiceProvider);
+        
+        mockUserService = createMockUserService();
+        mockExpenseService = createMockExpenseService();
+        mockSettlementService = createMockSettlementService();
+        mockGroupMemberService = createMockGroupMemberService();
+        mockNotificationService = createMockNotificationService();
+        mockExpenseMetadataService = createMockExpenseMetadataService();
+        mockGroupShareService = createMockGroupShareService();
+        
+        groupService = new GroupService(
+            mockFirestoreReader,
+            mockFirestoreWriter,
+            mockUserService as any,
+            mockExpenseService as any,
+            mockSettlementService as any,
+            mockGroupMemberService as any,
+            mockNotificationService as any,
+            mockExpenseMetadataService as any,
+            mockGroupShareService as any
+        );
 
         // Reset all mocks
         vi.clearAllMocks();
@@ -133,6 +133,10 @@ describe('GroupService - Unit Tests', () => {
         
         // Default mock for ExpenseMetadataService dependency
         mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
+        mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
+        
+        // Mock expense metadata service
+        mockExpenseMetadataService.calculateExpenseMetadata.mockResolvedValue({});
     });
 
     describe('fetchGroupWithAccess', () => {
@@ -145,6 +149,12 @@ describe('GroupService - Unit Tests', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
+            // Mock user access - make sure user is a member
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
+            // Mock members for balance calculation
+            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+                { userId: userId, memberRole: 'member', memberStatus: 'active' }
+            ]);
 
             // Access the private method via type assertion
             const result = await (groupService as any).fetchGroupWithAccess(groupId, userId);
@@ -177,6 +187,12 @@ describe('GroupService - Unit Tests', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
+            // Mock user as group owner for write access
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+            // Mock members for balance calculation
+            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
+            ]);
             
             // Mock the getGroupDeletionData method with empty QuerySnapshot-like objects
             const mockEmptyQuerySnapshot = {
@@ -225,6 +241,12 @@ describe('GroupService - Unit Tests', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
+            // Mock user as group owner for write access
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+            // Mock members for balance calculation
+            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
+            ]);
             
             // Mock the getGroupDeletionData method with QuerySnapshot containing expense
             const mockExpenseQuerySnapshot = {
@@ -274,10 +296,22 @@ describe('GroupService - Unit Tests', () => {
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             
-            // Mock getUserProfiles to return a Map with the user
+            // Mock required data for balance calculations
+            mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
+            mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
+            
+            // Mock getUsers to return a Map with the user
             const mockUserProfile = { uid: userId, email: 'test@example.com', displayName: 'Test User' };
             const userProfilesMap = new Map([[userId, mockUserProfile]]);
-            mockServiceProvider.getUserProfiles.mockResolvedValue(userProfilesMap);
+            mockUserService.getUsers.mockResolvedValue(userProfilesMap);
+            
+            // Mock group member check to return true (user is a member)
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
+            
+            // Mock group members for balance calculation (DataFetcher calls userService.getMembersFromSubcollection)
+            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+                { userId: userId, memberRole: 'member', memberStatus: 'active' }
+            ]);
 
             const result = await groupService.getGroupBalances(groupId, userId);
 

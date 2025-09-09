@@ -5,45 +5,18 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
-import type { IServiceProvider } from '../../../services/IServiceProvider';
 
-// Mock external dependencies
-vi.mock('../../../utils/groupHelpers', () => ({
-    isGroupOwnerAsync: vi.fn(),
-    isGroupMemberAsync: vi.fn(),
-    getThemeColorForMember: vi.fn(() => ({
-        light: '#007bff',
-        dark: '#0066cc',
-        name: 'Blue',
-        pattern: 'solid',
-        assignedAt: new Date().toISOString(),
-        colorIndex: 0,
-    })),
-}));
-
-vi.mock('../../../services/serviceRegistration', () => ({
-    getGroupMemberService: vi.fn(() => ({
-        getMembersFromSubcollection: vi.fn().mockResolvedValue([
-            { userId: 'user1', role: 'admin' },
-            { userId: 'user2', role: 'member' },
-        ]),
-        getMemberFromSubcollection: vi.fn().mockResolvedValue(null),
-    })),
-    getMetricsStorage: vi.fn(() => ({
-        storeMetric: vi.fn().mockResolvedValue(undefined),
-        storeMetrics: vi.fn().mockResolvedValue(undefined),
-        flush: vi.fn().mockResolvedValue(undefined),
-        queryRecentMetrics: vi.fn().mockResolvedValue([]),
-        queryAggregatedStats: vi.fn().mockResolvedValue([]),
-        storeAggregatedStats: vi.fn().mockResolvedValue({ id: 'mock-result' }),
-        getStats: vi.fn().mockReturnValue({ 
-            bufferSize: 0, 
-            isShuttingDown: false, 
-            config: {} 
-        }),
-        reset: vi.fn(),
-    })),
-}));
+// Create mock GroupMemberService
+const createMockGroupMemberService = () => ({
+    isGroupMemberAsync: vi.fn().mockResolvedValue(false),
+    isGroupOwnerAsync: vi.fn().mockResolvedValue(false),
+    getMembersFromSubcollection: vi.fn().mockResolvedValue([
+        { userId: 'user1', role: 'admin' },
+        { userId: 'user2', role: 'member' },
+    ]),
+    getMemberFromSubcollection: vi.fn().mockResolvedValue(null),
+    getGroupMembersResponseFromSubcollection: vi.fn()
+});
 
 vi.mock('../../../firebase', () => ({
     isTest: vi.fn(() => true),
@@ -72,7 +45,7 @@ describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let mockFirestoreReader: MockFirestoreReader;
     let mockFirestoreWriter: IFirestoreWriter;
-    let mockServiceProvider: IServiceProvider;
+    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -80,15 +53,14 @@ describe('GroupShareService', () => {
         mockFirestoreWriter = {
             runTransaction: vi.fn(),
             updateInTransaction: vi.fn(),
+            createInTransaction: vi.fn(),
+            deleteInTransaction: vi.fn(),
+            createUser: vi.fn(),
+            updateUser: vi.fn(),
+            deleteUser: vi.fn()
         } as any;
-        mockServiceProvider = {
-            getMembersFromSubcollection: vi.fn().mockResolvedValue([
-                { userId: 'user1', role: 'admin' },
-                { userId: 'user2', role: 'member' },
-            ]),
-            getGroupMember: vi.fn().mockResolvedValue(null),
-        } as any;
-        groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter, mockServiceProvider);
+        mockGroupMemberService = createMockGroupMemberService();
+        groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
     });
 
     describe('previewGroupByLink', () => {
@@ -113,8 +85,7 @@ describe('GroupShareService', () => {
             });
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             const result = await groupShareService.previewGroupByLink('user-id', 'test-token');
 
@@ -127,7 +98,7 @@ describe('GroupShareService', () => {
             });
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
+            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
@@ -177,9 +148,8 @@ describe('GroupShareService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupOwnerAsync).mockResolvedValue(true);
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             // Mock the Firestore transaction
             const { getFirestore } = await import('../../../firebase');
@@ -198,7 +168,7 @@ describe('GroupShareService', () => {
             expect(result.linkId.length).toBeGreaterThan(0);
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(isGroupOwnerAsync).toHaveBeenCalledWith('test-group', 'owner-id');
+            expect(mockGroupMemberService.isGroupOwnerAsync).toHaveBeenCalledWith('test-group', 'owner-id');
         });
 
         it('should generate shareable link for group member', async () => {
@@ -208,9 +178,8 @@ describe('GroupShareService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupOwnerAsync).mockResolvedValue(false);
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(false);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             // Mock the Firestore transaction
             const { getFirestore } = await import('../../../firebase');
@@ -228,7 +197,7 @@ describe('GroupShareService', () => {
             expect(result.linkId).toBeDefined();
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'member-id');
+            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'member-id');
         });
 
         it('should throw UNAUTHORIZED for non-members', async () => {
@@ -238,9 +207,8 @@ describe('GroupShareService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupOwnerAsync).mockResolvedValue(false);
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(false);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             await expect(
                 groupShareService.generateShareableLink('unauthorized-user', 'test-group')
@@ -286,9 +254,8 @@ describe('GroupShareService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupOwnerAsync, isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupOwnerAsync).mockResolvedValue(true);
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             // Mock the Firestore transaction
             const { getFirestore } = await import('../../../firebase');

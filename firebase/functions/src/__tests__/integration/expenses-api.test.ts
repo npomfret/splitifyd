@@ -5,22 +5,17 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, ExpenseBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
-import { ExpenseService } from '../../services/ExpenseService';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
-import { getExpenseService } from '../../services/serviceRegistration';
-import { setupTestServices } from '../test-helpers/setup';
 import {PooledTestUser} from "@splitifyd/shared";
+import {ApplicationBuilder} from "../../services/ApplicationBuilder";
+import {getFirestore} from "../../firebase";
 
 describe('Expenses API', () => {
     const apiDriver = new ApiDriver();
-    let expenseService: ExpenseService;
+    const expenseService = new ApplicationBuilder(getFirestore()).buildExpenseService()
     let testGroup: any;
     let users: PooledTestUser[];
-
-    // Setup services once for all tests
-    setupTestServices();
-    expenseService = getExpenseService();
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);

@@ -49,7 +49,7 @@ describe('Policy Helpers', () => {
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
-            const result = await getCurrentPolicyVersions();
+            const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(mockFirestoreReader.getAllPolicies).toHaveBeenCalledWith();
             expect(result).toEqual({
@@ -62,7 +62,7 @@ describe('Policy Helpers', () => {
         it('should return empty object when no policies exist', async () => {
             mockFirestoreReader.getAllPolicies.mockResolvedValue([]);
 
-            const result = await getCurrentPolicyVersions();
+            const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(result).toEqual({});
         });
@@ -88,7 +88,7 @@ describe('Policy Helpers', () => {
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
-            const result = await getCurrentPolicyVersions();
+            const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(result).toEqual({
                 'policy1': 'hash1',
@@ -117,7 +117,7 @@ describe('Policy Helpers', () => {
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
-            const result = await getCurrentPolicyVersions();
+            const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             // Empty string should be excluded
             expect(result).toEqual({
@@ -130,10 +130,10 @@ describe('Policy Helpers', () => {
             const firestoreError = new Error('Firestore connection failed');
             mockFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
 
-            await expect(getCurrentPolicyVersions()).rejects.toThrow(ApiError);
+            await expect(getCurrentPolicyVersions(mockFirestoreReader)).rejects.toThrow(ApiError);
             
             try {
-                await getCurrentPolicyVersions();
+                await getCurrentPolicyVersions(mockFirestoreReader);
             } catch (error) {
                 expect(error).toBeInstanceOf(ApiError);
                 expect((error as ApiError).statusCode).toBe(HTTP_STATUS.INTERNAL_ERROR);
@@ -147,7 +147,7 @@ describe('Policy Helpers', () => {
             mockFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
 
             try {
-                await getCurrentPolicyVersions();
+                await getCurrentPolicyVersions(mockFirestoreReader);
             } catch (error) {
                 // Expected to throw
             }
@@ -177,7 +177,7 @@ describe('Policy Helpers', () => {
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
 
-            const result = await getCurrentPolicyVersions();
+            const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(result).toEqual({
                 'policy1': 'hash1',

@@ -1,21 +1,24 @@
-import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
-import { getGroupMemberService, getGroupService } from '../../../services/serviceRegistration';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { getThemeColorForMember } from '../../../utils/groupHelpers';
-import { setupTestServices } from '../../test-helpers/setup';
 import {PooledTestUser} from "@splitifyd/shared";
+import {getFirestore} from "../../../firebase";
+import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 
-describe('GroupMemberService Subcollection Integration Tests', () => {
+// todo: use builders here !!
+
+describe('groupMemberService Subcollection Integration Tests', () => {
+    const firestore = getFirestore();
+    const applicationBuilder = new ApplicationBuilder(firestore);
+    const groupService = applicationBuilder.buildGroupService();
+    const groupMemberService = applicationBuilder.buildGroupMemberService();
+    const groupShareService = applicationBuilder.buildGroupShareService();
+    const userService = applicationBuilder.buildUserService();
+
     let users: PooledTestUser[];
     let testUser1: PooledTestUser;
     let testUser2: PooledTestUser;
     let testGroup: any;
-
-    beforeAll(async () => {
-        // Register all services before creating instances
-        setupTestServices();
-    });
 
     beforeEach(async () => {
         // Create test users
@@ -24,7 +27,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
         testUser2 = users[1];
 
         // Create test group
-        testGroup = await getGroupService().createGroup(testUser1.uid, {
+        testGroup = await groupService.createGroup(testUser1.uid, {
             name: 'Test Subcollection Group',
             description: 'Testing subcollection functionality',
         });
@@ -36,16 +39,16 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser2.uid,
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
 
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
             // Verify member was created
-            const retrievedMember = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            const retrievedMember = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
             expect(retrievedMember).toBeDefined();
             expect(retrievedMember?.userId).toBe(testUser2.uid);
             expect(retrievedMember?.groupId).toBe(testGroup.id);
@@ -57,12 +60,12 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
 
     describe('getMemberFromSubcollection', () => {
         test('should return null for non-existent member', async () => {
-            const result = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, 'non-existent-user');
+            const result = await groupMemberService.getMemberFromSubcollection(testGroup.id, 'non-existent-user');
             expect(result).toBeNull();
         });
 
         test('should return null for non-existent group', async () => {
-            const result = await getGroupMemberService().getMemberFromSubcollection('non-existent-group', testUser1.uid);
+            const result = await groupMemberService.getMemberFromSubcollection('non-existent-group', testUser1.uid);
             expect(result).toBeNull();
         });
     });
@@ -74,15 +77,15 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser2.uid,
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
             // Get all members
-            const members = await getGroupMemberService().getMembersFromSubcollection(testGroup.id);
+            const members = await groupMemberService.getMembersFromSubcollection(testGroup.id);
             
             expect(members).toHaveLength(2); // testUser1 (creator) + testUser2
             
@@ -95,15 +98,15 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
         });
 
         test('should return empty array for group with no subcollection members', async () => {
-            const newGroup = await getGroupService().createGroup(testUser1.uid, {
+            const newGroup = await groupService.createGroup(testUser1.uid, {
                 name: 'Empty Subcollection Group',
                 description: 'No subcollection members yet',
             });
 
             // Delete the auto-created subcollection member for this test
-            await getGroupMemberService().deleteMemberFromSubcollection(newGroup.id, testUser1.uid);
+            await groupMemberService.deleteMemberFromSubcollection(newGroup.id, testUser1.uid);
             
-            const members = await getGroupMemberService().getMembersFromSubcollection(newGroup.id);
+            const members = await groupMemberService.getMembersFromSubcollection(newGroup.id);
             expect(members).toHaveLength(0);
         });
     });
@@ -115,21 +118,21 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser2.uid,
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
             // Update the member
-            await getGroupMemberService().updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+            await groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
                 memberRole:MemberRoles.ADMIN,
                 memberStatus:MemberStatuses.PENDING,
             });
 
             // Verify update
-            const updatedMember = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            const updatedMember = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
             expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
             expect(updatedMember?.memberStatus).toBe(MemberStatuses.PENDING);
             expect(updatedMember?.userId).toBe(testUser2.uid); // Other fields unchanged
@@ -143,40 +146,40 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser2.uid,
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
             // Verify member exists
-            let member = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            let member = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
             expect(member).toBeDefined();
 
             // Delete member
-            await getGroupMemberService().deleteMemberFromSubcollection(testGroup.id, testUser2.uid);
+            await groupMemberService.deleteMemberFromSubcollection(testGroup.id, testUser2.uid);
 
             // Verify member is deleted
-            member = await getGroupMemberService().getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            member = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
             expect(member).toBeNull();
         });
 
         test('should not throw error when deleting non-existent member', async () => {
             // Should not throw - let it bubble up if there's an actual error
-            await getGroupMemberService().deleteMemberFromSubcollection(testGroup.id, 'non-existent-user');
+            await groupMemberService.deleteMemberFromSubcollection(testGroup.id, 'non-existent-user');
         });
     });
 
     describe('getUserGroupsViaSubcollection - Scalable Query', () => {
         test('should return groups where user is a member via collectionGroup query', async () => {
             // Create additional groups
-            const group2 = await getGroupService().createGroup(testUser2.uid, {
+            const group2 = await groupService.createGroup(testUser2.uid, {
                 name: 'User2 Group',
                 description: 'Second group',
             });
 
-            const group3 = await getGroupService().createGroup(testUser1.uid, {
+            const group3 = await groupService.createGroup(testUser1.uid, {
                 name: 'Another Group',
                 description: 'Third group',
             });
@@ -186,15 +189,15 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser1.uid,
                 groupId: group2.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser2.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(group2.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(group2.id, memberDoc);
 
             // Query for testUser1's groups using scalable query
-            const userGroups = await getGroupMemberService().getUserGroupsViaSubcollection(testUser1.uid);
+            const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);
             
             // Should find groups where testUser1 is a member (including our test groups)
             expect(userGroups).toContain(testGroup.id); // Creator of testGroup
@@ -207,17 +210,17 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
             const testUser = users[4]; // Use pre-borrowed user
             
             // Check current groups for this user
-            const initialGroups = await getGroupMemberService().getUserGroupsViaSubcollection(testUser.uid);
+            const initialGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser.uid);
             const initialCount = initialGroups.length;
             
             // Create a new group for this user
-            const newGroup = await getGroupService().createGroup(testUser.uid, {
+            const newGroup = await groupService.createGroup(testUser.uid, {
                 name: 'New Test Group for User4',
                 description: 'Testing query functionality',
             });
             
             // Query again - should include the new group
-            const updatedGroups = await getGroupMemberService().getUserGroupsViaSubcollection(testUser.uid);
+            const updatedGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser.uid);
             expect(updatedGroups).toContain(newGroup.id);
             expect(updatedGroups.length).toBe(initialCount + 1);
         });
@@ -227,7 +230,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
             const groupPromises = [];
             for (let i = 0; i < 10; i++) {
                 groupPromises.push(
-                    getGroupService().createGroup(testUser1.uid, {
+                    groupService.createGroup(testUser1.uid, {
                         name: `Scale Test Group ${i}`,
                         description: `Group ${i} for scalability testing`,
                     })
@@ -236,7 +239,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
             const groups = await Promise.all(groupPromises);
 
             // Query should efficiently find all groups
-            const userGroups = await getGroupMemberService().getUserGroupsViaSubcollection(testUser1.uid);
+            const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);
             
             // Should include original testGroup + 10 new groups = 11 total
             expect(userGroups.length).toBeGreaterThanOrEqual(11);
@@ -256,15 +259,15 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: testUser2.uid,
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(1),
+                theme: groupShareService.getThemeColorForMember(1),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
             // Get members response
-            const response = await getGroupMemberService().getGroupMembersResponseFromSubcollection(testGroup.id);
+            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
             
             expect(response.members).toHaveLength(2);
             expect(response.hasMore).toBe(false);
@@ -295,14 +298,14 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                 userId: 'unknown-user-id',
                 groupId: testGroup.id,
                 memberRole:MemberRoles.MEMBER,
-                theme: getThemeColorForMember(2),
+                theme: groupShareService.getThemeColorForMember(2),
                 joinedAt: new Date().toISOString(),
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await getGroupMemberService().createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
 
-            const response = await getGroupMemberService().getGroupMembersResponseFromSubcollection(testGroup.id);
+            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
             
             const unknownMember = response.members.find(m => m.uid === 'unknown-user-id');
             expect(unknownMember).toBeDefined();
@@ -322,7 +325,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                     userId: user3.uid,
                     groupId: testGroup.id,
                     memberRole:MemberRoles.MEMBER,
-                    theme: getThemeColorForMember(2),
+                    theme: groupShareService.getThemeColorForMember(2),
                     joinedAt: new Date().toISOString(),
                     memberStatus:MemberStatuses.ACTIVE,
                     invitedBy: testUser1.uid,
@@ -331,7 +334,7 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
                     userId: user4.uid,
                     groupId: testGroup.id,
                     memberRole:MemberRoles.MEMBER,
-                    theme: getThemeColorForMember(3),
+                    theme: groupShareService.getThemeColorForMember(3),
                     joinedAt: new Date().toISOString(),
                     memberStatus:MemberStatuses.ACTIVE,
                     invitedBy: testUser1.uid,
@@ -339,10 +342,10 @@ describe('GroupMemberService Subcollection Integration Tests', () => {
             ];
 
             for (const doc of memberDocs) {
-                await getGroupMemberService().createMemberSubcollection(testGroup.id, doc);
+                await groupMemberService.createMemberSubcollection(testGroup.id, doc);
             }
 
-            const response = await getGroupMemberService().getGroupMembersResponseFromSubcollection(testGroup.id);
+            const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
             
             // Verify sorting behavior without relying on exact names
             const displayNames = response.members.map(m => m.displayName);

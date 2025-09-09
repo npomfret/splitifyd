@@ -8,19 +8,18 @@ import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers, 
 import { GroupService } from '../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
-import { getGroupService, getFirestoreReader } from '../../services/serviceRegistration';
-import { setupTestServices } from '../test-helpers/setup';
 import {PooledTestUser} from "@splitifyd/shared";
+import {ApplicationBuilder} from "../../services/ApplicationBuilder";
 
 describe('Groups API', () => {
     const apiDriver = new ApiDriver();
-    let groupService: GroupService;
+    const applicationBuilder = new ApplicationBuilder(getFirestore());
+    const groupService = applicationBuilder.buildGroupService();
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
     let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(4);
-        setupTestServices();
-        groupService = getGroupService();
     });
 
     describe('Group Creation', () => {
@@ -323,7 +322,7 @@ describe('Groups API', () => {
             expect(group.updatedAt).toBeDefined();
 
             // Verify Firestore document was created correctly
-            const firestoreGroup = await getFirestoreReader().getGroup(group.id);
+            const firestoreGroup = await firestoreReader.getGroup(group.id);
             expect(firestoreGroup).not.toBeNull();
             expect(firestoreGroup!.name).toBe('Test Group');
             expect(firestoreGroup!.createdBy).toBe(creator.uid);

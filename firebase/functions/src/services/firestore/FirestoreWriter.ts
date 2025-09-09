@@ -42,7 +42,6 @@ import type {
     SettlementDocument
 } from '../../schemas';
 import type {
-    UserNotificationDocument,
     UserNotificationGroup,
     CreateUserNotificationDocument
 } from '../../schemas/user-notifications';

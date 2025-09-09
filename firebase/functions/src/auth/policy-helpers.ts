@@ -1,15 +1,13 @@
 import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { getFirestoreReader } from '../services/serviceRegistration';
+import { IFirestoreReader } from "../services/firestore";
 
 /**
- * Get current version hashes for all policies
- * Used during user registration to capture what policies they're accepting
+ * todo: move this to teh PolicyService
  */
-export async function getCurrentPolicyVersions(): Promise<Record<string, string>> {
+export async function getCurrentPolicyVersions(firestoreReader: IFirestoreReader): Promise<Record<string, string>> {
     try {
-        const firestoreReader = getFirestoreReader();
         const policies = await firestoreReader.getAllPolicies();
 
         const acceptedPolicies: Record<string, string> = {};

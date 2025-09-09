@@ -1,32 +1,25 @@
-import { beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
-import {ApiDriver, borrowTestUsers, borrowTestUser, UserRegistrationBuilder} from '@splitifyd/test-support';
-import { UserService } from '../../../services/UserService2';
-import { SystemUserRoles } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
+import {ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder} from '@splitifyd/test-support';
+import {AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles} from '@splitifyd/shared';
+import {ApiError} from '../../../utils/errors';
 import {getAuth, getFirestore} from '../../../firebase';
-import { getUserService, getFirestoreReader } from '../../../services/serviceRegistration';
-import {AuthenticatedFirebaseUser, PooledTestUser} from "@splitifyd/shared";
-import { setupTestServices } from '../../test-helpers/setup';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import type {IFirestoreReader} from '../../../services/firestore/IFirestoreReader';
+import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 
 describe('UserService - Integration Tests', () => {
-    const apiDriver = new ApiDriver();
     const firestore = getFirestore();
+    const applicationBuilder = new ApplicationBuilder(firestore);
+    const groupService = applicationBuilder.buildGroupService();
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
+    const userService = applicationBuilder.buildUserService();
 
-    let userService: UserService;
-    let firestoreReader: IFirestoreReader;
+    const apiDriver = new ApiDriver();
+
     let users: PooledTestUser[];
 
     beforeEach(async () => {
         users = await borrowTestUsers(3)
-    });
-
-    beforeAll(async () => {
-        // Register all services before creating instances
-        setupTestServices();
-        userService = getUserService();
-        firestoreReader = getFirestoreReader();
     });
 
     describe('registerUser', () => {
@@ -265,7 +258,7 @@ describe('UserService - Integration Tests', () => {
             expect(authUser.displayName).toBe(newDisplayName);
 
             // Verify Firestore was updated
-            const updatedUserData = await getFirestoreReader().getUser(testUser.uid);
+            const updatedUserData = await firestoreReader.getUser(testUser.uid);
             expect(updatedUserData).not.toBeNull();
             expect(updatedUserData!.displayName).toBe(newDisplayName);
             expect(updatedUserData!.updatedAt).toBeDefined();
@@ -281,7 +274,7 @@ describe('UserService - Integration Tests', () => {
             expect(updatedProfile.preferredLanguage).toBe(newLanguage);
 
             // Verify Firestore was updated
-            const userData = await getFirestoreReader().getUser(testUser.uid);
+            const userData = await firestoreReader.getUser(testUser.uid);
             expect(userData).not.toBeNull();
             expect(userData!.preferredLanguage).toBe(newLanguage);
         });
@@ -296,7 +289,7 @@ describe('UserService - Integration Tests', () => {
             expect(authUser.photoURL).toBeUndefined();
 
             // Verify Firestore was updated  
-            const userData = await getFirestoreReader().getUser(testUser.uid);
+            const userData = await firestoreReader.getUser(testUser.uid);
             expect(userData).not.toBeNull();
             expect(userData!.photoURL).toBeNull();
         });
@@ -348,7 +341,7 @@ describe('UserService - Integration Tests', () => {
             expect(result.message).toBe('Password changed successfully');
 
             // Verify Firestore document was updated with proper timestamps
-            const userData = await getFirestoreReader().getUser(testUser.uid);
+            const userData = await firestoreReader.getUser(testUser.uid);
             expect(userData).not.toBeNull();
             
             // Verify passwordChangedAt timestamp exists and is recent
@@ -423,7 +416,7 @@ describe('UserService - Integration Tests', () => {
                 .rejects.toThrow();
 
             // Verify user was deleted from Firestore
-            const deletedUserData = await getFirestoreReader().getUser(userId);
+            const deletedUserData = await firestoreReader.getUser(userId);
             expect(deletedUserData).toBeNull();
         });
 

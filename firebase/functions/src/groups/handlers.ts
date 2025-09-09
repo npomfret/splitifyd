@@ -4,10 +4,12 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { Errors } from '../utils/errors';
 import { HTTP_STATUS, DOCUMENT_CONFIG } from '../constants';
 import { validateCreateGroup, validateUpdateGroup, validateGroupId, sanitizeGroupData } from './validation';
-import { logger } from '../logger';
-import { getGroupService } from '../services/serviceRegistration';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
-// Group schemas are now centralized in ../schemas/
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const groupService = applicationBuilder.buildGroupService();
 
 /**
  * Create a new group
@@ -25,7 +27,7 @@ export const createGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const sanitizedData = sanitizeGroupData(groupData);
 
     // Use GroupService to create the group
-    const group = await getGroupService().createGroup(userId, sanitizedData);
+    const group = await groupService.createGroup(userId, sanitizedData);
 
     res.status(HTTP_STATUS.CREATED).json(group);
 };
@@ -47,7 +49,7 @@ export const updateGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const sanitizedUpdates = sanitizeGroupData(updates);
 
     // Use GroupService to update the group
-    const response = await getGroupService().updateGroup(groupId, userId, sanitizedUpdates);
+    const response = await groupService.updateGroup(groupId, userId, sanitizedUpdates);
 
     res.json(response);
 };
@@ -63,7 +65,7 @@ export const deleteGroup = async (req: AuthenticatedRequest, res: Response): Pro
     const groupId = validateGroupId(req.params.id);
 
     // Use GroupService to delete the group
-    const response = await getGroupService().deleteGroup(groupId, userId);
+    const response = await groupService.deleteGroup(groupId, userId);
 
     res.json(response);
 };
@@ -83,7 +85,7 @@ export const listGroups = async (req: AuthenticatedRequest, res: Response): Prom
     const order = (req.query.order as 'asc' | 'desc') ?? 'desc';
     const includeMetadata = req.query.includeMetadata === 'true';
 
-    const response = await getGroupService().listGroups(userId, {
+    const response = await groupService.listGroups(userId, {
         limit,
         cursor,
         order,
@@ -111,7 +113,7 @@ export const getGroupFullDetails = async (req: AuthenticatedRequest, res: Respon
     const settlementLimit = parseInt(req.query.settlementLimit as string) || 20;
     const settlementCursor = req.query.settlementCursor as string;
 
-    const result = await getGroupService().getGroupFullDetails(groupId, userId, {
+    const result = await groupService.getGroupFullDetails(groupId, userId, {
         expenseLimit,
         expenseCursor,
         settlementLimit,

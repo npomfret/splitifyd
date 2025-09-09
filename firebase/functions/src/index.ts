@@ -30,31 +30,22 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
 import { metrics } from './monitoring/lightweight-metrics';
 
-// Initialize service container directly
-import { ServiceContainer } from './services/ServiceContainer';
-import { FirestoreReader } from './services/firestore/FirestoreReader';
-import { FirestoreWriter } from './services/firestore/FirestoreWriter';
+// Initialize ApplicationBuilder
+import { ApplicationBuilder } from './services/ApplicationBuilder';
 
-// Lazy initialization flags
-let serviceContainer: ServiceContainer | null = null;
+// Lazy initialization
+let appBuilder: ApplicationBuilder | null = null;
 
-// Export function to get the initialized service container
-export function getServiceContainer(): ServiceContainer {
-    ensureServiceContainer();
-    return serviceContainer!;
+// Export function to get the initialized ApplicationBuilder
+export function getAppBuilder(): ApplicationBuilder {
+    if (!appBuilder) {
+        appBuilder = new ApplicationBuilder(getFirestore());
+    }
+    return appBuilder;
 }
 
 // Get Firebase instances normally
 const firestoreDb = getFirestore();
-
-// Ensure service container is initialized before handling any request
-function ensureServiceContainer() {
-    if (!serviceContainer) {
-        const firestoreReader = new FirestoreReader(firestoreDb);
-        const firestoreWriter = new FirestoreWriter(firestoreDb);
-        serviceContainer = new ServiceContainer(firestoreReader, firestoreWriter, firestoreDb);
-    }
-}
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
@@ -71,8 +62,7 @@ function getApp(): express.Application {
     if (!app) {
         app = express();
         
-        // Ensure service container is initialized when app is first created
-        ensureServiceContainer();
+        // No need to initialize services - ApplicationBuilder handles it lazily
 
         // Disable ETags to prevent 304 responses
         disableETags(app);

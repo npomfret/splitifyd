@@ -1,27 +1,24 @@
-import { beforeEach, describe, expect, test } from 'vitest';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
-import { GroupService } from '../../../services/GroupService';
-import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {GroupService} from '../../../services/GroupService';
+import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
+import {ApiError} from '../../../utils/errors';
 import {getFirestore} from '../../../firebase';
-import { getGroupService, getFirestoreReader } from '../../../services/serviceRegistration';
-import {PooledTestUser} from "@splitifyd/shared";
-import { setupTestServices } from '../../test-helpers/setup';
+import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
 
 // NOTE: GroupService returns the raw Group interface which uses group.members object format
 // This is different from the API endpoints which return GroupMemberWithProfile[] arrays
 describe('GroupService - Integration Tests', () => {
     const firestore = getFirestore();
+    const applicationBuilder = new ApplicationBuilder(firestore);
+    const groupService = applicationBuilder.buildGroupService();
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
     const apiDriver = new ApiDriver();
-    let groupService: GroupService;
+
     let testUsers: PooledTestUser[] = [];
 
     beforeEach(async () => {
         testUsers = await borrowTestUsers(4);
-
-        // Register all services before creating instances
-        setupTestServices();
-        groupService = getGroupService();
     });
 
     describe('createGroup', () => {
@@ -44,7 +41,7 @@ describe('GroupService - Integration Tests', () => {
             expect(group.updatedAt).toBeDefined();
 
             // Verify Firestore document was created correctly
-            const firestoreGroup = await getFirestoreReader().getGroup(group.id);
+            const firestoreGroup = await firestoreReader.getGroup(group.id);
             expect(firestoreGroup).not.toBeNull();
             expect(firestoreGroup!.name).toBe('Test Group');
             expect(firestoreGroup!.createdBy).toBe(creator.uid);
@@ -214,7 +211,7 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group updated successfully');
 
             // Verify the timestamp was updated
-            const updatedGroup = await getFirestoreReader().getGroup(testGroupId);
+            const updatedGroup = await firestoreReader.getGroup(testGroupId);
             expect(updatedGroup).not.toBeNull();
             expect(updatedGroup!.updatedAt).toBeDefined();
         });
@@ -242,7 +239,7 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group was deleted
-            const deletedGroup = await getFirestoreReader().getGroup(testGroupId);
+            const deletedGroup = await firestoreReader.getGroup(testGroupId);
             expect(deletedGroup).toBeNull();
         });
 
@@ -271,10 +268,10 @@ describe('GroupService - Integration Tests', () => {
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group and expense were both deleted
-            const deletedGroup2 = await getFirestoreReader().getGroup(testGroupId);
+            const deletedGroup2 = await firestoreReader.getGroup(testGroupId);
             expect(deletedGroup2).toBeNull();
             
-            const deletedExpense = await getFirestoreReader().getExpense(expense.id);
+            const deletedExpense = await firestoreReader.getExpense(expense.id);
             expect(deletedExpense).toBeNull();
         });
 

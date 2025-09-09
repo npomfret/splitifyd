@@ -7,16 +7,15 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import { getFirestoreReader } from '../../services/serviceRegistration';
-import { setupTestServices } from '../test-helpers/setup';
 import {getFirestore} from "../../firebase";
+import {ApplicationBuilder} from "../../services/ApplicationBuilder";
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
-
-    beforeEach(() => {
-        setupTestServices();
-    });
+    const applicationBuilder = new ApplicationBuilder(firestore);
+    const groupService = applicationBuilder.buildGroupService();
+    const firestoreReader = applicationBuilder.buildFirestoreReader();
+    const userService = applicationBuilder.buildUserService();
 
     test('should be instantiable', () => {
         const reader = new FirestoreReader(firestore);
@@ -26,7 +25,7 @@ describe('FirestoreReader', () => {
     });
 
     test('should be available via ServiceRegistry', () => {
-        const reader = getFirestoreReader();
+        const reader = firestoreReader;
         expect(reader).toBeDefined();
         expect(typeof reader.getUser).toBe('function');
     });

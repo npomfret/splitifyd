@@ -16,12 +16,11 @@ import {
     RegisteredUser,
     FirestoreCollections,
 } from '@splitifyd/shared';
-import { verifyGroupMembership } from '../utils/groupHelpers';
 import { measureDb } from '../monitoring/measure';
-import { getGroupMemberService } from './serviceRegistration';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { GroupMemberService } from "./GroupMemberService";
 
 // Re-export schema for backward compatibility
 export { SettlementDocumentSchema };
@@ -42,12 +41,11 @@ const UserDataSchema = z
  */
 export class SettlementService {
     private settlementsCollection = getFirestore().collection(FirestoreCollections.SETTLEMENTS);
-    private usersCollection = getFirestore().collection(FirestoreCollections.USERS);
-    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
-
+ 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly groupMemberService: GroupMemberService,
     ) {}
 
 
@@ -63,7 +61,7 @@ export class SettlementService {
 
         // Verify each user is a member using subcollection
         for (const userId of userIds) {
-            const member = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+            const member = await this.groupMemberService.getMemberFromSubcollection(groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${userId} is not a member of this group`);
             }
@@ -118,7 +116,7 @@ export class SettlementService {
         // Settlement data is already validated by FirestoreReader
         const settlement = settlementData;
 
-        await verifyGroupMembership(settlement.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
         const [payerData, payeeData] = await Promise.all([
             this.fetchUserData(settlement.payerId),
@@ -179,7 +177,7 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({ userId, operation: 'list-settlements' });
         
-        await verifyGroupMembership(groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(groupId, userId);
 
         return this._getGroupSettlementsData(groupId, options);
     }
@@ -195,7 +193,7 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
         
-        await verifyGroupMembership(settlementData.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
         const now = createOptimisticTimestamp();
@@ -258,7 +256,7 @@ export class SettlementService {
         // Settlement data is already validated by FirestoreReader
         const settlement = settlementData;
 
-        await verifyGroupMembership(settlement.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
         if (settlement.createdBy !== userId) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can update this settlement');
@@ -353,7 +351,7 @@ export class SettlementService {
         // Settlement data is already validated by FirestoreReader
         const settlement = settlementData;
 
-        await verifyGroupMembership(settlement.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
         if (settlement.createdBy !== userId) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_SETTLEMENT_CREATOR', 'Only the creator can delete this settlement');

@@ -2,15 +2,20 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
-import { getPolicyService } from '../services/serviceRegistration';
 import { validateCreatePolicy, validateUpdatePolicy, validatePublishPolicy } from './validation';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
+
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const policyService = applicationBuilder.buildPolicyService();
 
 /**
  * GET /admin/policies - List all policies
  */
 export const listPolicies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const result = await getPolicyService().listPolicies();
+        const result = await policyService.listPolicies();
 
         logger.info('Policies listed', {
             userId: req.user?.uid,
@@ -33,7 +38,7 @@ export const getPolicy = async (req: AuthenticatedRequest, res: Response): Promi
     const { id } = req.params;
 
     try {
-        const policy = await getPolicyService().getPolicy(id);
+        const policy = await policyService.getPolicy(id);
 
         logger.info('Policy retrieved', {
             userId: req.user?.uid,
@@ -57,7 +62,7 @@ export const getPolicyVersion = async (req: AuthenticatedRequest, res: Response)
     const { id, hash } = req.params;
 
     try {
-        const version = await getPolicyService().getPolicyVersion(id, hash);
+        const version = await policyService.getPolicyVersion(id, hash);
 
         logger.info('Policy version retrieved', {
             userId: req.user?.uid,
@@ -86,7 +91,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
     const { text, publish = false } = validateUpdatePolicy(req.body);
 
     try {
-        const result = await getPolicyService().updatePolicy(id, text, publish);
+        const result = await policyService.updatePolicy(id, text, publish);
 
         logger.info('Policy updated', {
             userId: req.user?.uid,
@@ -115,7 +120,7 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
  * Internal function to publish a policy version (bypasses HTTP layer)
  */
 export const publishPolicyInternal = async (id: string, versionHash: string): Promise<{ currentVersionHash: string }> => {
-    return getPolicyService().publishPolicyInternal(id, versionHash);
+    return policyService.publishPolicyInternal(id, versionHash);
 };
 
 /**
@@ -128,7 +133,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
     const { versionHash } = validatePublishPolicy(req.body);
 
     try {
-        const result = await getPolicyService().publishPolicy(id, versionHash);
+        const result = await policyService.publishPolicy(id, versionHash);
 
         logger.info('Policy published', {
             userId: req.user?.uid,
@@ -155,7 +160,7 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
  * Internal function to create a policy (bypasses HTTP layer)
  */
 export const createPolicyInternal = async (policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> => {
-    return getPolicyService().createPolicyInternal(policyName, text, customId);
+    return policyService.createPolicyInternal(policyName, text, customId);
 };
 
 /**
@@ -166,7 +171,7 @@ export const createPolicy = async (req: AuthenticatedRequest, res: Response): Pr
     const { policyName, text } = validateCreatePolicy(req.body);
 
     try {
-        const result = await getPolicyService().createPolicy(policyName, text);
+        const result = await policyService.createPolicy(policyName, text);
 
         logger.info('Policy created', {
             userId: req.user?.uid,
@@ -197,7 +202,7 @@ export const deletePolicyVersion = async (req: AuthenticatedRequest, res: Respon
     const { id, hash } = req.params;
 
     try {
-        await getPolicyService().deletePolicyVersion(id, hash);
+        await policyService.deletePolicyVersion(id, hash);
 
         logger.info('Policy version deleted', {
             userId: req.user?.uid,

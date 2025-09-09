@@ -1,7 +1,7 @@
 import {UpdateRequest, UserRecord} from "firebase-admin/auth";
 import {Timestamp} from 'firebase-admin/firestore';
 import {getAuth} from '../firebase';
-import {AuthErrors, SystemUserRoles, RegisteredUser, UserThemeColor} from '@splitifyd/shared';
+import {AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor} from '@splitifyd/shared';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {ApiError, Errors} from '../utils/errors';
@@ -11,13 +11,14 @@ import {getCurrentPolicyVersions} from '../auth/policy-helpers';
 import {assignThemeColor} from '../user-management/assign-theme-color';
 import {validateRegisterRequest} from '../auth/validation';
 import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
-import { measureDb } from '../monitoring/measure';
+import {measureDb} from '../monitoring/measure';
 import {UserDataSchema} from '../schemas/user';
-import {getFirestoreValidationService, getGroupMemberService, getNotificationService} from './serviceRegistration';
-import {UserRegistration} from "@splitifyd/shared";
+import {FirestoreValidationService} from './FirestoreValidationService';
+import {NotificationService} from './notification-service';
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
+import {type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile} from "@splitifyd/shared/src";
 
 /**
  * User profile interface for consistent user data across the application
@@ -68,7 +69,9 @@ interface FirestoreUserDocument {
 export class UserService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly validationService: FirestoreValidationService,
+        private readonly notificationService: NotificationService
     ) {}
 
     /**
@@ -233,8 +236,7 @@ export class UserService {
 
             // Validate update object before applying to Firestore
             try {
-                const validationService = getFirestoreValidationService();
-                validationService.validateBeforeWrite(
+                this.validationService.validateBeforeWrite(
                     UserDataSchema,
                     firestoreUpdate,
                     'UserData',
@@ -338,7 +340,7 @@ export class UserService {
         try {
             // Check if user has any groups or outstanding balances using scalable query
             // This is a simplified check - in production you'd want more thorough validation
-            const userGroupIds = await getGroupMemberService().getUserGroupsViaSubcollection(userId);
+            const userGroupIds = await this.getUserGroupsViaSubcollection(userId);
 
             if (userGroupIds.length > 0) {
                 throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
@@ -365,6 +367,76 @@ export class UserService {
             logger.error('Failed to delete user account', error as unknown as Error);
             throw error;
         }
+    }
+
+    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
+        return this.firestoreReader.getMembersFromSubcollection(groupId);
+    }
+
+    async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
+        // Use a high limit to maintain backward compatibility
+        // This method is expected to return ALL groups for a user
+        const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, { limit: 1000 });
+        return paginatedGroups.data.map((group: any) => group.id);
+    }
+
+    async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
+        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberIds = memberDocs.map(doc => doc.userId);
+
+        const memberProfiles = await this.getUsers(memberIds);
+
+        const members: GroupMemberWithProfile[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberWithProfile => {
+            const profile = memberProfiles.get(memberDoc.userId);
+
+            if (!profile) {
+                return {
+                    uid: memberDoc.userId,
+                    initials: '?',
+                    email: '',
+                    displayName: 'Unknown User',
+                    themeColor: memberDoc.theme,
+                    // Group membership metadata
+                    joinedAt: memberDoc.joinedAt,
+                    memberRole: memberDoc.memberRole,
+                    invitedBy: memberDoc.invitedBy,
+                    memberStatus: memberDoc.memberStatus,
+                    lastPermissionChange: memberDoc.lastPermissionChange,
+                };
+            }
+
+            return {
+                uid: memberDoc.userId,
+                initials: this.getInitials(profile.displayName),
+                email: profile.email,
+                displayName: profile.displayName,
+                themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
+                preferredLanguage: profile.preferredLanguage,
+                // Group membership metadata
+                joinedAt: memberDoc.joinedAt,
+                memberRole: memberDoc.memberRole,
+                invitedBy: memberDoc.invitedBy,
+                memberStatus: memberDoc.memberStatus,
+                lastPermissionChange: memberDoc.lastPermissionChange,
+            };
+        });
+
+        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
+
+        return {
+            members,
+            hasMore: false,
+        };
+    }
+
+    private getInitials(nameOrEmail: string): string {
+        const name = nameOrEmail || '';
+        const parts = name.split(/[\s@]+/).filter(Boolean);
+
+        if (parts.length === 0) return '?';
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
     /**
@@ -404,7 +476,7 @@ export class UserService {
             LoggerContext.update({userId: userRecord.uid});
 
             // Get current policy versions for user acceptance
-            const currentPolicyVersions = await getCurrentPolicyVersions();
+            const currentPolicyVersions = await getCurrentPolicyVersions(this.firestoreReader);
 
             // Assign theme color for new user
             const themeColor = await assignThemeColor(userRecord.uid);
@@ -430,7 +502,7 @@ export class UserService {
 
             // Validate user document before writing to Firestore
             try {
-                const validationService = getFirestoreValidationService();
+                const validationService = this.validationService;
                 validationService.validateBeforeWrite(
                     UserDataSchema,
                     userDoc,
@@ -452,8 +524,7 @@ export class UserService {
             await this.firestoreWriter.createUser(userRecord.uid, userDoc as any);
 
             // Initialize notification document for new user
-            const notificationService = getNotificationService();
-            await notificationService.initializeUserNotifications(userRecord.uid);
+            await this.notificationService.initializeUserNotifications(userRecord.uid);
 
             return {
                 uid: userRecord.uid,

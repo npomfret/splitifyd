@@ -5,13 +5,14 @@ import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import { getExpenseService } from '../../../services/serviceRegistration';
-import { setupTestServices } from '../../test-helpers/setup';
 import {UserToken} from "@splitifyd/shared";
+import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
+import {getFirestore} from "../../../firebase";
 
 describe('ExpenseService - Integration Tests', () => {
     const apiDriver = new ApiDriver();
-    let expenseService: ExpenseService;
+    const applicationBuilder = new ApplicationBuilder(getFirestore());
+    const expenseService = applicationBuilder.buildExpenseService();
 
     let alice: UserToken;
     let bob: UserToken;
@@ -22,10 +23,6 @@ describe('ExpenseService - Integration Tests', () => {
 
     beforeEach(async () => {
         ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
-
-        // Register all services for testing
-        setupTestServices();
-        expenseService = getExpenseService();
 
         // Create a fresh group for each test with managed permissions
         const group = await apiDriver.createGroupWithMembers('ExpenseService Test Group', [alice, bob, charlie], alice.token);

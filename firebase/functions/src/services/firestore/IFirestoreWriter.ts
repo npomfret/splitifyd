@@ -44,7 +44,7 @@ import type {
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
-import type { UserNotificationDocument, UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
+import type { UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;

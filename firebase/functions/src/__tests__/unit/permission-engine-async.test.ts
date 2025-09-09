@@ -1,16 +1,11 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { Group, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 import { PermissionEngineAsync } from '../../permissions/permission-engine-async';
-import { getFirestoreReader } from '../../services/serviceRegistration';
+import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 
-vi.mock('../../services/serviceRegistration');
+let mockFirestoreReader: MockFirestoreReader;
 
-const mockFirestoreReader = {
-    getMemberFromSubcollection: vi.fn(),
-    getMembersFromSubcollection: vi.fn(),
-};
-
-vi.mocked(getFirestoreReader).mockReturnValue(mockFirestoreReader as any);
+// todo: use builders here !
 
 describe('PermissionEngineAsync', () => {
     let testGroup: Group;
@@ -18,6 +13,7 @@ describe('PermissionEngineAsync', () => {
     const testGroupId = 'group456';
 
     beforeEach(() => {
+        mockFirestoreReader = new MockFirestoreReader();
         vi.clearAllMocks();
         
         testGroup = {
@@ -42,7 +38,7 @@ describe('PermissionEngineAsync', () => {
         test('should return false if user is not a member', async () => {
             mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue(null);
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
             expect(mockFirestoreReader.getMemberFromSubcollection).toHaveBeenCalledWith(testGroupId, testUserId);
@@ -58,7 +54,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
@@ -73,7 +69,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'viewGroup');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(false); // Still false because status is PENDING, not ACTIVE
         });
@@ -88,7 +84,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'viewGroup');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'viewGroup');
 
             expect(result).toBe(true);
         });
@@ -103,7 +99,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(false);
         });
@@ -118,7 +114,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'expenseEditing');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseEditing');
 
             expect(result).toBe(true);
         });
@@ -133,7 +129,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'memberInvitation');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(true);
         });
@@ -148,7 +144,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'memberInvitation');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'memberInvitation');
 
             expect(result).toBe(false);
         });
@@ -163,7 +159,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.checkPermission(testGroup, testUserId, 'expenseDeletion');
+            const result = await PermissionEngineAsync.checkPermission(mockFirestoreReader, testGroup, testUserId, 'expenseDeletion');
 
             expect(result).toBe(true);
         });
@@ -198,6 +194,7 @@ describe('PermissionEngineAsync', () => {
             };
 
             const result = await PermissionEngineAsync.checkPermission(
+                mockFirestoreReader,
                 testGroup, 
                 testUserId, 
                 'expenseDeletion',
@@ -219,7 +216,7 @@ describe('PermissionEngineAsync', () => {
             });
 
             await expect(
-                PermissionEngineAsync.checkPermission(groupWithoutPermissions, testUserId, 'expenseEditing')
+                PermissionEngineAsync.checkPermission(mockFirestoreReader, groupWithoutPermissions, testUserId, 'expenseEditing')
             ).rejects.toThrow('Group group456 is missing permissions configuration');
         });
 
@@ -238,7 +235,7 @@ describe('PermissionEngineAsync', () => {
             });
 
             await expect(
-                PermissionEngineAsync.checkPermission(groupWithMissingPermission, testUserId, 'expenseEditing')
+                PermissionEngineAsync.checkPermission(mockFirestoreReader, groupWithMissingPermission, testUserId, 'expenseEditing')
             ).rejects.toThrow('Group group456 is missing permission setting for action: expenseEditing');
         });
     });
@@ -257,7 +254,8 @@ describe('PermissionEngineAsync', () => {
                 });
 
             const result = await PermissionEngineAsync.canChangeRole(
-                testGroupId, 
+                mockFirestoreReader,
+                testGroupId,
                 'creator123', 
                 testUserId, 
                 'target123', 
@@ -280,6 +278,7 @@ describe('PermissionEngineAsync', () => {
                 .mockResolvedValueOnce(null); // Target not found
 
             const result = await PermissionEngineAsync.canChangeRole(
+                mockFirestoreReader,
                 testGroupId,
                 'creator123',
                 testUserId,
@@ -310,6 +309,7 @@ describe('PermissionEngineAsync', () => {
                 });
 
             const result = await PermissionEngineAsync.canChangeRole(
+                mockFirestoreReader,
                 testGroupId,
                 'creator123',
                 testUserId,
@@ -352,6 +352,7 @@ describe('PermissionEngineAsync', () => {
             ]);
 
             const result = await PermissionEngineAsync.canChangeRole(
+                mockFirestoreReader,
                 testGroupId,
                 'creator123',
                 testUserId,     // Actor
@@ -386,6 +387,7 @@ describe('PermissionEngineAsync', () => {
                 });
 
             const result = await PermissionEngineAsync.canChangeRole(
+                mockFirestoreReader,
                 testGroupId,
                 creatorId,      // Created by
                 testUserId,     // Actor
@@ -419,6 +421,7 @@ describe('PermissionEngineAsync', () => {
                 });
 
             const result = await PermissionEngineAsync.canChangeRole(
+                mockFirestoreReader,
                 testGroupId,
                 'creator123',
                 testUserId,
@@ -441,7 +444,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.getUserPermissions(testGroup, testUserId);
+            const result = await PermissionEngineAsync.getUserPermissions(mockFirestoreReader, testGroup, testUserId);
 
             expect(result).toEqual({
                 canEditAnyExpense: true,
@@ -463,7 +466,7 @@ describe('PermissionEngineAsync', () => {
                 theme: { name: 'blue', light: '#0000FF', dark: '#000080' },
             });
 
-            const result = await PermissionEngineAsync.getUserPermissions(testGroup, testUserId);
+            const result = await PermissionEngineAsync.getUserPermissions(mockFirestoreReader, testGroup, testUserId);
 
             expect(result).toEqual({
                 canEditAnyExpense: true,      // ANYONE permission

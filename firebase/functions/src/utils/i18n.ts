@@ -2,7 +2,6 @@ import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import path from 'path';
 import { Request } from 'express';
-import { getFirestoreReader } from '../services/serviceRegistration';
 
 export interface LocalizedRequest extends Request {
     language?: string;
@@ -92,68 +91,6 @@ export function detectLanguageFromHeader(acceptLanguage?: string): string {
     }
 
     return 'en'; // Default fallback
-}
-
-/**
- * Get user's preferred language from their profile
- */
-async function getUserPreferredLanguage(userId?: string): Promise<string | null> {
-    if (!userId) return null;
-
-    try {
-        return await getFirestoreReader().getUserLanguagePreference(userId);
-    } catch (error) {
-        console.error('Error fetching user preferred language:', error);
-    }
-
-    return null;
-}
-
-/**
- * Middleware to add translation capabilities to requests
- */
-export function i18nMiddleware() {
-    return async (req: LocalizedRequest, res: any, next: any) => {
-        try {
-            // Ensure i18n is initialized
-            await initializeI18n();
-
-            // Detect language from various sources (in order of preference):
-            // 1. User profile preference (if authenticated)
-            // 2. Accept-Language header
-            // 3. Default to English
-
-            let selectedLanguage = 'en';
-
-            // Try to get user's preferred language if authenticated
-            const userId = (req as any).user?.uid;
-            if (userId) {
-                const userLanguage = await getUserPreferredLanguage(userId);
-                if (userLanguage) {
-                    selectedLanguage = userLanguage;
-                } else {
-                    // Fall back to Accept-Language header
-                    selectedLanguage = detectLanguageFromHeader(req.get('Accept-Language'));
-                }
-            } else {
-                // For non-authenticated requests, use Accept-Language header
-                selectedLanguage = detectLanguageFromHeader(req.get('Accept-Language'));
-            }
-
-            req.language = selectedLanguage;
-
-            // Add translation function to request
-            req.t = getTranslationFunction(req.language);
-
-            next();
-        } catch (error) {
-            console.error('i18n middleware error:', error);
-            // Continue with English as fallback
-            req.language = 'en';
-            req.t = getTranslationFunction('en');
-            next();
-        }
-    };
 }
 
 /**

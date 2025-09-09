@@ -1,22 +1,28 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import {getFirestore} from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
-import { getUserService, getNotificationService } from './serviceRegistration';
+import { UserService } from './UserService2';
+import { NotificationService } from './notification-service';
 import { logger, LoggerContext } from '../logger';
-import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
+import { FirestoreCollections } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { measureDb } from '../monitoring/measure';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import {MemberRoles} from "@splitifyd/shared";
+import {DataFetcher} from "./balance/DataFetcher";
 
 export class GroupMemberService {
     private balanceService: BalanceCalculationService;
     
     constructor(
-        private readonly firestoreReader: IFirestoreReader
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly userService: UserService,
+        private readonly notificationService: NotificationService,
     ) {
-        this.balanceService = new BalanceCalculationService(firestoreReader);
+        const dataFetcher = new DataFetcher(firestoreReader, userService);
+        this.balanceService = new BalanceCalculationService(dataFetcher);
     }
 
     private getInitials(nameOrEmail: string): string {
@@ -28,56 +34,6 @@ export class GroupMemberService {
 
         return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
-
-    async getGroupMembersResponse(membersMap: Record<string, any>): Promise<GroupMembersResponse> {
-        const memberIds = Object.keys(membersMap);
-
-        const memberProfiles = await getUserService().getUsers(memberIds);
-
-        const members: GroupMemberWithProfile[] = memberIds.map((memberId: string) => {
-            const profile = memberProfiles.get(memberId);
-            const memberInfo = membersMap[memberId];
-
-            if (!profile) {
-                return {
-                    uid: memberId,
-                    initials: '?',
-                    email: '',
-                    displayName: 'Unknown User',
-                    themeColor: memberInfo.theme,
-                    // Group membership metadata
-                    joinedAt: memberInfo.joinedAt,
-                    memberRole: memberInfo.memberRole,
-                    invitedBy: memberInfo.invitedBy,
-                    memberStatus: memberInfo.memberStatus,
-                    lastPermissionChange: memberInfo.lastPermissionChange,
-                };
-            }
-
-            return {
-                uid: memberId,
-                initials: this.getInitials(profile.displayName),
-                email: profile.email,
-                displayName: profile.displayName,
-                themeColor: profile.themeColor || memberInfo.theme,
-                preferredLanguage: profile.preferredLanguage,
-                // Group membership metadata
-                joinedAt: memberInfo.joinedAt,
-                memberRole: memberInfo.memberRole,
-                invitedBy: memberInfo.invitedBy,
-                memberStatus: memberInfo.status,
-                lastPermissionChange: memberInfo.lastPermissionChange,
-            };
-        });
-
-        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-        return {
-            members,
-            hasMore: false,
-        };
-    }
-
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
         return measureDb('GroupMemberService.leaveGroup', async () => this._leaveGroup(userId, groupId));
@@ -337,8 +293,7 @@ export class GroupMemberService {
                 await memberRef.delete();
 
                 // Remove notification tracking for departed member
-                const notificationService = getNotificationService();
-                await notificationService.removeUserFromGroup(userId, groupId);
+                await this.notificationService.removeUserFromGroup(userId, groupId);
 
                 logger.info('Member deleted from subcollection', { groupId, userId });
             }
@@ -356,56 +311,13 @@ export class GroupMemberService {
         return paginatedGroups.data.map((group: any) => group.id);
     }
 
-    /**
-     * Get GroupMembersResponse using subcollection data
-     * This maintains compatibility with existing API consumers
-     */
-    async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
-        const memberIds = memberDocs.map(doc => doc.userId);
+    async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {
+        const member = await this.getMemberFromSubcollection(groupId, userId);
+        return member !== null;
+    }
 
-        const memberProfiles = await getUserService().getUsers(memberIds);
-
-        const members: GroupMemberWithProfile[] = memberDocs.map((memberDoc: GroupMemberDocument): GroupMemberWithProfile => {
-            const profile = memberProfiles.get(memberDoc.userId);
-
-            if (!profile) {
-                return {
-                    uid: memberDoc.userId,
-                    initials: '?',
-                    email: '',
-                    displayName: 'Unknown User',
-                    themeColor: memberDoc.theme,
-                    // Group membership metadata
-                    joinedAt: memberDoc.joinedAt,
-                    memberRole: memberDoc.memberRole,
-                    invitedBy: memberDoc.invitedBy,
-                    memberStatus: memberDoc.memberStatus,
-                    lastPermissionChange: memberDoc.lastPermissionChange,
-                };
-            }
-
-            return {
-                uid: memberDoc.userId,
-                initials: this.getInitials(profile.displayName),
-                email: profile.email,
-                displayName: profile.displayName,
-                themeColor: (typeof profile.themeColor === 'object' ? profile.themeColor : memberDoc.theme) as UserThemeColor,
-                preferredLanguage: profile.preferredLanguage,
-                // Group membership metadata
-                joinedAt: memberDoc.joinedAt,
-                memberRole: memberDoc.memberRole,
-                invitedBy: memberDoc.invitedBy,
-                memberStatus: memberDoc.memberStatus,
-                lastPermissionChange: memberDoc.lastPermissionChange,
-            };
-        });
-
-        members.sort((a, b) => a.displayName.localeCompare(b.displayName));
-
-        return {
-            members,
-            hasMore: false,
-        };
+    async isGroupOwnerAsync(groupId: string, userId: string): Promise<boolean> {
+        const member = await this.getMemberFromSubcollection(groupId, userId);
+        return member?.memberRole === MemberRoles.ADMIN || false;
     }
 }

@@ -191,7 +191,7 @@ export class GroupPermissionService {
         }
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
-        if (!(await PermissionEngineAsync.checkPermission(toGroup(group), userId, 'settingsManagement'))) {
+        if (!(await PermissionEngineAsync.checkPermission(this.firestoreReader, toGroup(group), userId, 'settingsManagement'))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to manage group settings');
         }
 
@@ -303,7 +303,7 @@ export class GroupPermissionService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
         }
 
-        const roleChangeResult = await PermissionEngineAsync.canChangeRole(groupId, group.createdBy, userId, targetUserId, role);
+        const roleChangeResult = await PermissionEngineAsync.canChangeRole(this.firestoreReader, groupId, group.createdBy, userId, targetUserId, role);
         if (!roleChangeResult.allowed) {
             const isLastAdminError = roleChangeResult.reason?.includes('last admin');
             const statusCode = isLastAdminError ? HTTP_STATUS.BAD_REQUEST : HTTP_STATUS.FORBIDDEN;

@@ -1,13 +1,17 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { getPolicyService } from '../services/serviceRegistration';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
+
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const policyService = applicationBuilder.buildPolicyService();
 
 /**
  * GET /policies/current - List all current policy versions (public endpoint)
  */
 export const getCurrentPolicies = async (req: Request, res: Response): Promise<void> => {
     try {
-        const policyService = getPolicyService();
         const result = await policyService.getCurrentPolicies();
         res.json(result);
     } catch (error) {
@@ -23,7 +27,6 @@ export const getCurrentPolicy = async (req: Request, res: Response): Promise<voi
     const { id } = req.params;
 
     try {
-        const policyService = getPolicyService();
         const result = await policyService.getCurrentPolicy(id);
         res.json(result);
     } catch (error) {

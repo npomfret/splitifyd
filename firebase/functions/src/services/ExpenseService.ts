@@ -7,15 +7,15 @@ import {logger, LoggerContext} from '../logger';
 import type {Group, GroupPermissions} from '@splitifyd/shared';
 import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
 import {calculateSplits, Expense} from '../expenses/validation';
-import {verifyGroupMembership} from '../utils/groupHelpers';
-import {isMemberInArray} from '../utils/memberHelpers';
-import type {IServiceProvider} from './IServiceProvider';
+import {getMemberDocFromArray} from '../utils/memberHelpers';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import { measureDb } from '../monitoring/measure';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import type {GroupDocument} from '../schemas';
+import {GroupMemberService} from "./GroupMemberService";
+import {UserService} from "./UserService2";
 
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
 
@@ -26,14 +26,7 @@ export { ExpenseDocumentSchema, ExpenseSplitSchema };
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
 function toGroup(groupDoc: GroupDocument): Group {
-    const defaultPermissions: GroupPermissions = {
-        expenseEditing: 'anyone',
-        expenseDeletion: 'owner-and-admin',
-        memberInvitation: 'anyone',
-        memberApproval: 'automatic',
-        settingsManagement: 'admin-only'
-    };
-    
+
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,
@@ -45,7 +38,8 @@ export class ExpenseService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly serviceProvider: IServiceProvider
+        private readonly groupMemberService: GroupMemberService,
+        private readonly userService: UserService,
     ) {}
 
     /**
@@ -150,7 +144,7 @@ export class ExpenseService {
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
         // Verify user is a member of the group
-        await verifyGroupMembership(expenseData.groupId, userId);
+        await this.firestoreReader.verifyGroupMembership(expenseData.groupId, userId);
 
         // Get group data and verify permissions using FirestoreReader
         const groupData = await this.firestoreReader.getGroup(expenseData.groupId);
@@ -162,21 +156,20 @@ export class ExpenseService {
         const group = toGroup(groupData);
 
         // Check if user can create expenses in this group
-        const canCreateExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseEditing');
+        const canCreateExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing');
         if (!canCreateExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to create expenses in this group');
         }
 
         // Get current members to validate participants
-        const membersData = await this.serviceProvider.getGroupMembers(expenseData.groupId);
-        const members = membersData.members;
+        const members = await this.groupMemberService.getMembersFromSubcollection(expenseData.groupId);
 
-        if (!isMemberInArray(members, expenseData.paidBy)) {
+        if (!getMemberDocFromArray(members, expenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         for (const participantId of expenseData.participants) {
-            if (!isMemberInArray(members, participantId)) {
+            if (!getMemberDocFromArray(members, participantId)) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
             }
         }
@@ -283,22 +276,21 @@ export class ExpenseService {
         // Check if user can edit expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canEditExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseEditing', { expense: expenseData });
+        const canEditExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseEditing', { expense: expenseData });
         if (!canEditExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to edit this expense');
         }
 
         // If updating paidBy or participants, validate they are group members
-        const membersData = await this.serviceProvider.getGroupMembers(expense.groupId);
-        const members = membersData.members;
+        const members = await this.groupMemberService.getMembersFromSubcollection(expense.groupId);
 
-        if (updateData.paidBy && !isMemberInArray(members, updateData.paidBy)) {
+        if (updateData.paidBy && !getMemberDocFromArray(members, updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
         }
 
         if (updateData.participants) {
             for (const participantId of updateData.participants) {
-                if (!isMemberInArray(members, participantId)) {
+                if (!getMemberDocFromArray(members, participantId)) {
                     throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PARTICIPANT', `Participant ${participantId} is not a member of the group`);
                 }
             }
@@ -450,7 +442,10 @@ export class ExpenseService {
         nextCursor?: string;
     }> {
         // Verify user is a member of the group
-        await verifyGroupMembership(groupId, userId);
+        const isMember = await this.firestoreReader.verifyGroupMembership(groupId, userId);
+        if (!isMember) {
+            throw Errors.FORBIDDEN();
+        }
 
         // Use the centralized FirestoreReader method
         const result = await this.firestoreReader.getExpensesForGroupPaginated(groupId, options);
@@ -491,7 +486,7 @@ export class ExpenseService {
         // Check if user can delete expenses in this group
         // Convert expense to ExpenseData format for permission check
         const expenseData = this.transformExpenseToResponse(expense);
-        const canDeleteExpense = await PermissionEngineAsync.checkPermission(group, userId, 'expenseDeletion', { expense: expenseData });
+        const canDeleteExpense = await PermissionEngineAsync.checkPermission(this.firestoreReader, group, userId, 'expenseDeletion', { expense: expenseData });
         if (!canDeleteExpense) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to delete this expense');
         }
@@ -626,7 +621,7 @@ export class ExpenseService {
         // Check if user is a participant in this expense or a group member (access control for viewing)
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
-            const member = await this.serviceProvider.getGroupMember(expense.groupId, userId);
+            const member = await this.groupMemberService.getMemberFromSubcollection(expense.groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }
@@ -646,8 +641,8 @@ export class ExpenseService {
             updatedAt: groupData.updatedAt.toDate().toISOString(),
         };
 
-        // Get members data from subcollection
-        const members = await this.serviceProvider.getGroupMembers(expense.groupId);
+        // Get members data from subcollection (formatted with profiles)
+        const members = await this.userService.getGroupMembersResponseFromSubcollection(expense.groupId);
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);

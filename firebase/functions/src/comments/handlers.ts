@@ -6,7 +6,7 @@ import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateComment } from './validation';
 import { CommentTargetTypes, CommentTargetType, CreateCommentResponse } from '@splitifyd/shared';
-import { getCommentService } from '../services/serviceRegistration';
+import { getAppBuilder } from '../index';
 
 /**
  * Create a new comment
@@ -30,7 +30,7 @@ export const createComment = async (req: AuthenticatedRequest, res: Response): P
             targetId,
         });
 
-        const responseData = await getCommentService().createComment(targetType, targetId, validatedRequest, userId);
+        const responseData = await getAppBuilder().buildCommentService().createComment(targetType, targetId, validatedRequest, userId);
 
         const response: CreateCommentResponse = {
             success: true,

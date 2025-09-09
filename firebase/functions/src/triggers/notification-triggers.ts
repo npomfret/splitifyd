@@ -14,33 +14,19 @@ import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/fire
 import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { measureTrigger } from '../monitoring/measure';
-import { registerAllServices } from '../services/serviceRegistration';
 import {getFirestore} from "../firebase";
 import { IFirestoreWriter } from "../services/firestore/IFirestoreWriter";
-import { NotificationService } from "../services/notification-service";
-import { FirestoreReader, FirestoreWriter } from "../services/firestore";
+import { FirestoreWriter } from "../services/firestore";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
 const firestore = getFirestore();
-const firestoreReader = new FirestoreReader(firestore);
-const firestoreWriter = new FirestoreWriter(firestore);
-const notificationService = new NotificationService(firestoreReader, firestoreWriter);
-
-// Services registration state
-let servicesRegistered = false;
-
-function ensureServicesRegistered() {
-    if (!servicesRegistered) {
-        registerAllServices(firestore);
-        servicesRegistered = true;
-    }
-}
+const applicationBuilder = new ApplicationBuilder(firestore);
+const notificationService = applicationBuilder.buildNotificationService();
 
 /**
  * Create notification triggers
  */
 export function createNotificationTriggers() {
-    // Ensure services are registered once
-    ensureServicesRegistered();
 
     return {
         initializeUserNotifications: onDocumentCreated(

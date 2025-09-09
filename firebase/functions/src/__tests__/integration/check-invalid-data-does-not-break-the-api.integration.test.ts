@@ -10,10 +10,9 @@
 
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { getFirestoreReader } from '../../services/serviceRegistration';
 import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { setupTestServices } from '../test-helpers/setup';
+import {FirestoreReader} from "../../services/firestore";
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();
@@ -23,8 +22,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
     const createdGroupIds: string[] = []; // Track all created groups for cleanup
 
     beforeAll(async () => {
-        setupTestServices();
-
         // Create a test user for API calls
         testUser = await apiDriver.createUser(
             new UserRegistrationBuilder()
@@ -151,7 +148,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         });
 
         test('FirestoreReader.getGroupsForUser should handle invalid securityPreset values', async () => {
-            const firestoreReader = getFirestoreReader();
+            const firestoreReader = new FirestoreReader(getFirestore());
             
             // This should not throw even with invalid data in the database
             let paginatedResult: any;

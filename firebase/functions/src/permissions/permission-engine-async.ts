@@ -1,22 +1,22 @@
 import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
-import { getFirestoreReader } from '../services/serviceRegistration';
+import {IFirestoreReader} from "../services/firestore";
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;
     targetUserId?: string;
 }
 
+// todo: this do not belong in here - move them to GroupPermissionService.ts
 export class PermissionEngineAsync {
     /**
      * Check if a user has permission to perform an action in a group (async version)
      */
-    static async checkPermission(group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): Promise<boolean> {
+    static async checkPermission(firestoreReader: IFirestoreReader, group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): Promise<boolean> {
         if (!group.permissions) {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }
 
-        const firestoreReader = getFirestoreReader();
         const member = await firestoreReader.getMemberFromSubcollection(group.id, userId);
         if (!member) {
             return false;
@@ -79,8 +79,7 @@ export class PermissionEngineAsync {
     /**
      * Check if user can change another user's role (async version)
      */
-    static async canChangeRole(groupId: string, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): Promise<{ allowed: boolean; reason?: string }> {
-        const firestoreReader = getFirestoreReader();
+    static async canChangeRole(firestoreReader: IFirestoreReader, groupId: string, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): Promise<{ allowed: boolean; reason?: string }> {
         const [actorMember, targetMember] = await Promise.all([
             firestoreReader.getMemberFromSubcollection(groupId, actorUserId),
             firestoreReader.getMemberFromSubcollection(groupId, targetUserId),
@@ -119,14 +118,14 @@ export class PermissionEngineAsync {
     /**
      * Get user's effective permissions in a group (async version)
      */
-    static async getUserPermissions(group: Group, userId: string): Promise<Record<string, boolean>> {
+    static async getUserPermissions(firestoreReader: IFirestoreReader, group: Group, userId: string): Promise<Record<string, boolean>> {
         return {
-            canEditAnyExpense: await this.checkPermission(group, userId, 'expenseEditing'),
-            canDeleteAnyExpense: await this.checkPermission(group, userId, 'expenseDeletion'),
-            canInviteMembers: await this.checkPermission(group, userId, 'memberInvitation'),
-            canManageSettings: await this.checkPermission(group, userId, 'settingsManagement'),
-            canApproveMembers: await this.checkPermission(group, userId, 'memberApproval'),
-            canViewGroup: await this.checkPermission(group, userId, 'viewGroup'),
+            canEditAnyExpense: await this.checkPermission(firestoreReader, group, userId, 'expenseEditing'),
+            canDeleteAnyExpense: await this.checkPermission(firestoreReader, group, userId, 'expenseDeletion'),
+            canInviteMembers: await this.checkPermission(firestoreReader, group, userId, 'memberInvitation'),
+            canManageSettings: await this.checkPermission(firestoreReader, group, userId, 'settingsManagement'),
+            canApproveMembers: await this.checkPermission(firestoreReader, group, userId, 'memberApproval'),
+            canViewGroup: await this.checkPermission(firestoreReader, group, userId, 'viewGroup'),
         };
     }
 

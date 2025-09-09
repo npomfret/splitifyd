@@ -7,11 +7,11 @@ import {createOptimisticTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
-import {isGroupMemberAsync} from '../utils/groupHelpers';
 import { measureDb } from '../monitoring/measure';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
 import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import {GroupMemberService} from "./GroupMemberService";
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -24,7 +24,7 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
-    constructor(private readonly firestoreReader: IFirestoreReader) {
+    constructor(private readonly firestoreReader: IFirestoreReader, private groupMemberService: GroupMemberService) {
     }
 
     /**
@@ -38,7 +38,7 @@ export class CommentService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            if (!(await isGroupMemberAsync(group.id, userId))) {
+            if (!(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
         } else if (targetType === CommentTargetTypes.EXPENSE) {
@@ -58,7 +58,7 @@ export class CommentService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
-            if (!(await isGroupMemberAsync(group.id, userId))) {
+            if (!(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
             }
 

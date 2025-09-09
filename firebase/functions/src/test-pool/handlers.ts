@@ -3,10 +3,14 @@ import { TestUserPoolService } from './TestUserPoolService';
 import {getFirestore, isEmulator} from '../firebase';
 import { logger } from '../logger';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
-import {IFirestoreReader} from "../services/firestore";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
-const firestoreReader: IFirestoreReader = new FirestoreReader(getFirestore());
-const pool = TestUserPoolService.getInstance(firestoreReader);
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const firestoreReader = applicationBuilder.buildFirestoreReader();
+const userService = applicationBuilder.buildUserService();
+
+const pool = TestUserPoolService.getInstance(firestoreReader, userService);
 
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {
     // Only allow in test environment

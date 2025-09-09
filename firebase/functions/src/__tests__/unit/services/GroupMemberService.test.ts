@@ -1,73 +1,52 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
-import { ServiceRegistry } from '../../../services/ServiceRegistry';
-import { setupTestServices } from '../../test-helpers/setup';
 import type { GroupMemberDocument } from '@splitifyd/shared';
-import type { UserService } from '../../../services/UserService2';
+
+// Create mock services
+const createMockUserService = () => ({
+    getUsers: vi.fn().mockResolvedValue(new Map()),
+    getUser: vi.fn(),
+    updateProfile: vi.fn(),
+    changePassword: vi.fn(),
+    deleteAccount: vi.fn(),
+    registerUser: vi.fn(),
+    createUserDirect: vi.fn()
+});
+
+const createMockNotificationService = () => ({
+    initializeUserNotifications: vi.fn(),
+    updateUserNotification: vi.fn(),
+    getUserNotifications: vi.fn()
+});
+
+const createMockGroupMemberService = () => ({
+    isGroupMemberAsync: vi.fn(),
+    getMemberFromSubcollection: vi.fn(),
+    getMembersFromSubcollection: vi.fn(),
+    getGroupMembersResponseFromSubcollection: vi.fn()
+});
 
 describe('GroupMemberService', () => {
     let groupMemberService: GroupMemberService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockUserService: ReturnType<typeof createMockUserService>;
+    let mockNotificationService: ReturnType<typeof createMockNotificationService>;
+    let mockGroupMemberServiceRef: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
-        // Setup all services including ServiceContainer
-        setupTestServices();
-        
         mockFirestoreReader = new MockFirestoreReader();
-        groupMemberService = new GroupMemberService(mockFirestoreReader);
+        mockUserService = createMockUserService();
+        mockNotificationService = createMockNotificationService();
+        mockGroupMemberServiceRef = createMockGroupMemberService();
+        groupMemberService = new GroupMemberService(
+            mockFirestoreReader,
+            mockUserService as any,
+            mockNotificationService as any
+        );
     });
 
-    describe('getGroupMembersResponseFromSubcollection', () => {
-        it('should return members with profile data', async () => {
-            // Mock UserService for profile enrichment
-            const mockUserService: Partial<UserService> = {
-                getUsers: vi.fn().mockResolvedValue(new Map())
-            };
-            const registry = ServiceRegistry.getInstance();
-            registry.registerService('UserService', () => mockUserService as UserService);
-            
-            const groupId = 'test-group';
-            const testMembers: GroupMemberDocument[] = [
-                mockFirestoreReader.createTestGroupMemberDocument({
-                    userId: 'user1',
-                    groupId,
-                    memberRole: 'admin'
-                }),
-                mockFirestoreReader.createTestGroupMemberDocument({
-                    userId: 'user2', 
-                    groupId,
-                    memberRole: 'member'
-                })
-            ];
-
-            // Mock the subcollection data
-            mockFirestoreReader.mockGroupMembersSubcollection(groupId, testMembers);
-
-            const result = await groupMemberService.getGroupMembersResponseFromSubcollection(groupId);
-
-            expect(result.members).toHaveLength(2);
-            expect(result.hasMore).toBe(false);
-            expect(mockFirestoreReader.getMembersFromSubcollection).toHaveBeenCalledWith(groupId);
-        });
-
-        it('should handle empty member list', async () => {
-            // Mock UserService for profile enrichment
-            const mockUserService: Partial<UserService> = {
-                getUsers: vi.fn().mockResolvedValue(new Map())
-            };
-            const registry = ServiceRegistry.getInstance();
-            registry.registerService('UserService', () => mockUserService as UserService);
-            
-            const groupId = 'empty-group';
-            mockFirestoreReader.mockGroupMembersSubcollection(groupId, []);
-
-            const result = await groupMemberService.getGroupMembersResponseFromSubcollection(groupId);
-
-            expect(result.members).toHaveLength(0);
-            expect(result.hasMore).toBe(false);
-        });
-    });
+    // Note: getGroupMembersResponseFromSubcollection method was moved to UserService
 
     describe('getMemberFromSubcollection', () => {
         it('should return member if exists', async () => {

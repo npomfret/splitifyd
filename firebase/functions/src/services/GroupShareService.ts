@@ -1,30 +1,44 @@
-import { randomBytes } from 'crypto';
-import { z } from 'zod';
+import {randomBytes} from 'crypto';
+import {z} from 'zod';
 import {getFirestore} from '../firebase';
-import { ApiError } from '../utils/errors';
-import { logger, LoggerContext } from '../logger';
-import { HTTP_STATUS } from '../constants';
-import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, MemberStatuses } from '@splitifyd/shared';
-import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
-import { createTrueServerTimestamp } from '../utils/dateHelpers';
-import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
-import { measureDb } from '../monitoring/measure';
-import { ShareLinkDataSchema } from '../schemas/sharelink';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { IServiceProvider } from './IServiceProvider';
+import {ApiError} from '../utils/errors';
+import {logger, LoggerContext} from '../logger';
+import {HTTP_STATUS} from '../constants';
+import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
+import {checkAndUpdateWithTimestamp, getUpdatedAtTimestamp} from '../utils/optimistic-locking';
+import {createTrueServerTimestamp} from '../utils/dateHelpers';
+import {measureDb} from '../monitoring/measure';
+import {ShareLinkDataSchema} from '../schemas/sharelink';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
+import type {GroupMemberService} from './GroupMemberService';
 
 export class GroupShareService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly serviceProvider: IServiceProvider
+        private readonly groupMemberService: GroupMemberService
     ) {}
     
     private generateShareToken(): string {
         const bytes = randomBytes(12);
         const base64url = bytes.toString('base64url');
         return base64url.substring(0, 16);
+    }
+    getThemeColorForMember(memberIndex: number): UserThemeColor {
+        const colorIndex = memberIndex % USER_COLORS.length;
+        const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;
+        const color = USER_COLORS[colorIndex];
+        const pattern = COLOR_PATTERNS[patternIndex];
+
+        return {
+            light: color.light,
+            dark: color.dark,
+            name: color.name,
+            pattern,
+            assignedAt: new Date().toISOString(),
+            colorIndex,
+        };
     }
 
     private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLink }> {
@@ -68,7 +82,7 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        if (!(await isGroupOwnerAsync(group.id, userId)) && !(await isGroupMemberAsync(group.id, userId))) {
+        if (!(await this.groupMemberService.isGroupOwnerAsync(group.id, userId)) && !(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'UNAUTHORIZED', 'Only group members can generate share links');
         }
 
@@ -133,10 +147,10 @@ export class GroupShareService {
         if (!group) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
-        const isAlreadyMember = await isGroupMemberAsync(group.id, userId);
+        const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
         
         // Get member count from subcollection
-        const memberDocs = await this.serviceProvider.getMembersFromSubcollection(group.id);
+        const memberDocs = await this.groupMemberService.getMembersFromSubcollection(group.id);
 
         return {
             groupId: group.id,
@@ -178,17 +192,17 @@ export class GroupShareService {
         }
 
         // Early membership check to avoid transaction if user is already a member
-        const existingMember = await this.serviceProvider.getGroupMember(groupId, userId);
+        const existingMember = await this.groupMemberService.getMemberFromSubcollection(groupId, userId);
         if (existingMember) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
-        if (await isGroupOwnerAsync(preCheckGroup.id, userId)) {
+        if (await this.groupMemberService.isGroupOwnerAsync(preCheckGroup.id, userId)) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already the owner of this group');
         }
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
-        const existingMembers = await this.serviceProvider.getMembersFromSubcollection(groupId);
+        const existingMembers = await this.groupMemberService.getMembersFromSubcollection(groupId);
         const memberIndex = existingMembers.length;
         
         const memberRef = getFirestore()
@@ -201,7 +215,7 @@ export class GroupShareService {
             userId: userId,
             groupId: groupId,
             memberRole: MemberRoles.MEMBER,
-            theme: getThemeColorForMember(memberIndex),
+            theme: this.getThemeColorForMember(memberIndex),
             joinedAt,
             memberStatus: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,

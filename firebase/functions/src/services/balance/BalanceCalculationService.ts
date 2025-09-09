@@ -8,16 +8,13 @@ import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '.
 import { measureDb } from '../../monitoring/measure';
 import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';
-import type { IFirestoreReader } from '../firestore/IFirestoreReader';
 
 export class BalanceCalculationService {
-    private dataFetcher: DataFetcher;
     private expenseProcessor: ExpenseProcessor;
     private settlementProcessor: SettlementProcessor;
     private debtSimplificationService: DebtSimplificationService;
 
-    constructor(firestoreReader: IFirestoreReader) {
-        this.dataFetcher = new DataFetcher(firestoreReader);
+    constructor(private readonly dataFetcher: DataFetcher) {
         this.expenseProcessor = new ExpenseProcessor();
         this.settlementProcessor = new SettlementProcessor();
         this.debtSimplificationService = new DebtSimplificationService();

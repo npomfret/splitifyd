@@ -5,8 +5,6 @@ import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {GroupDataSchema} from '../schemas';
-import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
-import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService, getNotificationService} from './serviceRegistration';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
@@ -16,10 +14,16 @@ import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-lo
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { IServiceProvider } from './IServiceProvider';
 import type { BalanceCalculationResult } from './balance';
 import type { UserProfile } from '../services/UserService2';
 import { ExpenseMetadataService } from './expenseMetadataService';
+import { UserService } from './UserService2';
+import { ExpenseService } from './ExpenseService';
+import { SettlementService } from './SettlementService';
+import { GroupMemberService } from './GroupMemberService';
+import { NotificationService } from './notification-service';
+import {GroupShareService} from "./GroupShareService";
+import {DataFetcher} from "./balance/DataFetcher";
 
 /**
  * Service for managing group operations
@@ -32,9 +36,16 @@ export class GroupService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly serviceProvider: IServiceProvider
+        private readonly userService: UserService,
+        private readonly expenseService: ExpenseService,
+        private readonly settlementService: SettlementService,
+        private readonly groupMemberService: GroupMemberService,
+        private readonly notificationService: NotificationService,
+        private readonly expenseMetadataService: ExpenseMetadataService,
+        private readonly groupShareService: GroupShareService,
     ) {
-        this.balanceService = new BalanceCalculationService(firestoreReader);
+        const dataFetcher = new DataFetcher(firestoreReader, userService);
+        this.balanceService = new BalanceCalculationService(dataFetcher);
     }
     
     /**
@@ -68,8 +79,7 @@ export class GroupService {
 
         // Calculate expense metadata on-demand
         // TODO: Update ExpenseMetadata interface to include lastExpenseTime
-        const expenseMetadataService = new ExpenseMetadataService(this.firestoreReader);
-        const expenseMetadata = await expenseMetadataService.calculateExpenseMetadata(group.id);
+        const expenseMetadata = await this.expenseMetadataService.calculateExpenseMetadata(group.id);
 
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<string, {
@@ -134,7 +144,7 @@ export class GroupService {
         };
 
         // Check if user is the owner
-        if (await isGroupOwnerAsync(group.id, userId)) {
+        if (await this.groupMemberService.isGroupOwnerAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
             return { docRef, group: groupWithComputed };
         }
@@ -145,7 +155,7 @@ export class GroupService {
         }
 
         // For read operations, check if user is a member
-        if (await isGroupMemberAsync(group.id, userId)) {
+        if (await this.groupMemberService.isGroupMemberAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
             return { docRef, group: groupWithComputed };
         }
@@ -377,7 +387,7 @@ export class GroupService {
             
             // Fetch members for each group from subcollections
             const memberPromises = groups.map((group: Group) => 
-                this.serviceProvider.getMembersFromSubcollection(group.id)
+                this.groupMemberService.getMembersFromSubcollection(group.id)
             );
             const membersArrays = await Promise.all(memberPromises);
             
@@ -389,7 +399,7 @@ export class GroupService {
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
             
-            const allMemberProfiles = await this.serviceProvider.getUserProfiles(Array.from(allMemberIds));
+            const allMemberProfiles = await this.userService.getUsers(Array.from(allMemberIds));
             
             return { allMemberProfiles, membersByGroup };
         })();
@@ -624,7 +634,7 @@ export class GroupService {
             userId: userId,
             groupId: docRef.id,
             memberRole: MemberRoles.ADMIN,
-            theme: getThemeColorForMember(0),
+            theme: this.groupShareService.getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(),
             memberStatus: MemberStatuses.ACTIVE,
         };
@@ -653,8 +663,7 @@ export class GroupService {
         });
 
         // Initialize group notifications for creator
-        const notificationService = getNotificationService();
-        await notificationService.addUserToGroupNotificationTracking(userId, docRef.id);
+        await this.notificationService.addUserToGroupNotificationTracking(userId, docRef.id);
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });
@@ -890,13 +899,13 @@ export class GroupService {
         const validatedGroup = groupData;
 
         // Validate user access using scalable membership check
-        const membersData = await this.serviceProvider.getUserProfiles([userId]);
+        const membersData = await this.userService.getUsers([userId]);
         if (!membersData.has(userId)) {
             throw Errors.FORBIDDEN();
         }
         
         // Check if user is a member using the async helper
-        if (!(await isGroupMemberAsync(groupId, userId))) {
+        if (!(await this.groupMemberService.isGroupMemberAsync(groupId, userId))) {
             throw Errors.FORBIDDEN();
         }
 
@@ -943,10 +952,10 @@ export class GroupService {
         // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
             // Get members using service layer
-            this.serviceProvider.getGroupMembers(groupId),
+            this.userService.getGroupMembersResponseFromSubcollection(groupId),
 
             // Get expenses using service layer with pagination
-            this.serviceProvider.listGroupExpenses(groupId, userId, {
+            this.expenseService.listGroupExpenses(groupId, userId, {
                 limit: expenseLimit,
                 cursor: options.expenseCursor,
             }),
@@ -955,7 +964,7 @@ export class GroupService {
             this.balanceService.calculateGroupBalances(groupId),
 
             // Get settlements using service layer with pagination
-            this.serviceProvider.getGroupSettlementsData(groupId, {
+            this.settlementService.listSettlements(groupId, userId, {
                 limit: settlementLimit,
                 cursor: options.settlementCursor,
             }),

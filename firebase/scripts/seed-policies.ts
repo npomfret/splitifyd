@@ -2,12 +2,10 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { Firestore } from 'firebase-admin/firestore';
 import assert from 'node:assert';
 import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
-import { registerAllServices } from '../functions/src/services/serviceRegistration';
 
 /*
  * This script seeds policy files to either the emulator or production
@@ -25,27 +23,14 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
-// We'll get these instances dynamically
-let firestoreDb: Firestore;
-let createPolicyInternal: any;
-let publishPolicyInternal: any;
+import { getFirestore } from '../functions/src/firebase';
+import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
+import { PolicyService } from '../functions/src/services/PolicyService';
 
-/**
- * Initialize Firebase handlers
- */
-async function initializeHandlers() {
-    // Emulator mode - import everything normally
-    const firebaseModule = await import('../functions/src/firebase');
-    const handlers = await import('../functions/src/policies/handlers');
-
-    firestoreDb = firebaseModule.getFirestore();
-
-    // Register all services before importing handlers
-    registerAllServices(firestoreDb);
-
-    createPolicyInternal = handlers.createPolicyInternal;
-    publishPolicyInternal = handlers.publishPolicyInternal;
-}
+// Get Firebase instances
+const firestoreDb = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestoreDb);
+const policyService = applicationBuilder.buildPolicyService();
 
 /**
  * Read policy file from docs/policies directory
@@ -78,13 +63,13 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
         // Read policy text
         const text = readPolicyFile(filename);
 
-        // Create policy using internal function with custom ID
-        const createResponse = await createPolicyInternal(policyName, text, policyId);
+        // Create policy using PolicyService with custom ID
+        const createResponse = await policyService.createPolicy(policyName, text, policyId);
 
         console.log(`✅ Created policy: ${createResponse.id}`);
 
-        // Publish the policy immediately using internal function
-        const publishResponse = await publishPolicyInternal(createResponse.id, createResponse.currentVersionHash);
+        // Publish the policy immediately using PolicyService
+        const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
 
         console.log(`✅ Published policy: ${policyId} (hash: ${publishResponse.currentVersionHash})`);
     } catch (error) {
@@ -141,8 +126,6 @@ export async function seedPolicies() {
     assert(process.env.GCLOUD_PROJECT, 'GCLOUD_PROJECT must be set');
 
     // Initialize Firebase handlers
-    await initializeHandlers();
-
     try {
         // Verify all policy files exist first
         readPolicyFile('terms-and-conditions.md');

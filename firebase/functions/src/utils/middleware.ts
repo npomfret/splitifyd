@@ -5,11 +5,17 @@ import { validateRequestStructure, validateContentType } from '../middleware/val
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
 import { LoggerContext } from '../logger';
-import { i18nMiddleware } from './i18n';
+import {detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest} from './i18n';
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import {getFirestore} from "../firebase";
 
 export interface MiddlewareOptions {
     functionName?: string;
 }
+
+// Initialize services
+const applicationBuilder = new ApplicationBuilder(getFirestore())
+const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**
  * Apply standard middleware stack to Express app
@@ -55,3 +61,51 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Request logging is minimal - only log when something changes
     // Errors are logged by error handlers
 };
+
+
+/**
+ * Middleware to add translation capabilities to requests
+ */
+export function i18nMiddleware() {
+    return async (req: LocalizedRequest, res: any, next: any) => {
+        try {
+            // Ensure i18n is initialized
+            await initializeI18n();
+
+            // Detect language from various sources (in order of preference):
+            // 1. User profile preference (if authenticated)
+            // 2. Accept-Language header
+            // 3. Default to English
+
+            let selectedLanguage = 'en';
+
+            // Try to get user's preferred language if authenticated
+            const userId = (req as any).user?.uid;
+            if (userId) {
+                const userLanguage = await firestoreReader.getUserLanguagePreference(userId);
+                if (userLanguage) {
+                    selectedLanguage = userLanguage;
+                } else {
+                    // Fall back to Accept-Language header
+                    selectedLanguage = detectLanguageFromHeader(req.get('Accept-Language'));
+                }
+            } else {
+                // For non-authenticated requests, use Accept-Language header
+                selectedLanguage = detectLanguageFromHeader(req.get('Accept-Language'));
+            }
+
+            req.language = selectedLanguage;
+
+            // Add translation function to request
+            req.t = getTranslationFunction(req.language);
+
+            next();
+        } catch (error) {
+            console.error('i18n middleware error:', error);
+            // Continue with English as fallback
+            req.language = 'en';
+            req.t = getTranslationFunction('en');
+            next();
+        }
+    };
+}

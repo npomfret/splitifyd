@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import {getAuth} from '../firebase';
+import {getAuth, getFirestore} from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { SystemUserRoles } from '@splitifyd/shared';
 import { LoggerContext } from '../logger';
-import { getFirestoreReader } from '../services/serviceRegistration';
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
+
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**
  * Extended Express Request with user information
@@ -52,7 +56,6 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
         }
 
         // Fetch user role from Firestore using centralized reader
-        const firestoreReader = getFirestoreReader();
         const userDocument = await firestoreReader.getUser(userRecord.uid);
 
         const userRole = userDocument!.role;

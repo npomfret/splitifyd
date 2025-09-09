@@ -3,7 +3,7 @@ import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { LocalizedRequest } from '../utils/i18n';
 import { Errors } from '../utils/errors';
-import { getUserService } from '../services/serviceRegistration';
+import { getAppBuilder } from '../index';
 
 /**
  * Get current user's profile
@@ -14,7 +14,7 @@ export const getUserProfile = async (req: AuthenticatedRequest, res: Response): 
         throw Errors.UNAUTHORIZED();
     }
 
-    const userService = getUserService();
+    const userService = getAppBuilder().buildUserService();
     const userProfile = await userService.getUser(userId);
     res.status(HTTP_STATUS.OK).json(userProfile);
 };
@@ -28,7 +28,7 @@ export const updateUserProfile = async (req: AuthenticatedRequest & LocalizedReq
         throw Errors.UNAUTHORIZED();
     }
 
-    const userService = getUserService();
+    const userService = getAppBuilder().buildUserService();
     const updatedProfile = await userService.updateProfile(userId, req.body, req.language);
     res.status(HTTP_STATUS.OK).json(updatedProfile);
 };
@@ -43,7 +43,7 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
         throw Errors.UNAUTHORIZED();
     }
 
-    const userService = getUserService();
+    const userService = getAppBuilder().buildUserService();
     const result = await userService.changePassword(userId, req.body);
     res.status(HTTP_STATUS.OK).json(result);
 };
@@ -58,7 +58,7 @@ export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response
         throw Errors.UNAUTHORIZED();
     }
 
-    const userService = getUserService();
+    const userService = getAppBuilder().buildUserService();
     const result = await userService.deleteAccount(userId, req.body);
     res.status(HTTP_STATUS.OK).json(result);
 };

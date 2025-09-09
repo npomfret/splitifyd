@@ -2,8 +2,12 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateGroupId } from './validation';
 import { logger } from '../logger';
-import { getGroupMemberService } from '../services/serviceRegistration';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const groupMemberService = applicationBuilder.buildGroupMemberService();
 
 /**
  * Leave a group
@@ -14,7 +18,7 @@ export const leaveGroup = async (req: AuthenticatedRequest, res: Response): Prom
     const groupId = validateGroupId(req.params.id);
 
     try {
-        const result = await getGroupMemberService().leaveGroup(userId!, groupId);
+        const result = await groupMemberService.leaveGroup(userId!, groupId);
         res.json(result);
     } catch (error) {
         logger.error('Error in leaveGroup', error, {
@@ -35,7 +39,7 @@ export const removeGroupMember = async (req: AuthenticatedRequest, res: Response
     const memberId = req.params.memberId;
 
     try {
-        const result = await getGroupMemberService().removeGroupMember(userId!, groupId, memberId);
+        const result = await groupMemberService.removeGroupMember(userId!, groupId, memberId);
         res.json(result);
     } catch (error) {
         logger.error('Error in removeGroupMember', error, {

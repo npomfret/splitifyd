@@ -12,14 +12,48 @@ vi.mock('../../../logger', () => ({
     },
 }));
 
+// Create mock services
+const createMockUserService = () => ({
+    getUsers: vi.fn().mockResolvedValue(new Map()),
+    getUser: vi.fn(),
+    updateProfile: vi.fn(),
+    changePassword: vi.fn(),
+    deleteAccount: vi.fn(),
+    registerUser: vi.fn(),
+    createUserDirect: vi.fn()
+});
+
+const createMockNotificationService = () => ({
+    initializeUserNotifications: vi.fn(),
+    updateUserNotification: vi.fn(),
+    getUserNotifications: vi.fn()
+});
+
+const createMockGroupMemberService = () => ({
+    isGroupMemberAsync: vi.fn(),
+    getMemberFromSubcollection: vi.fn(),
+    getMembersFromSubcollection: vi.fn(),
+    getGroupMembersResponseFromSubcollection: vi.fn()
+});
+
 describe('Service-Level Error Handling - Subcollection Queries', () => {
     let mockFirestoreReader: MockFirestoreReader;
     let groupMemberService: GroupMemberService;
+    let mockUserService: ReturnType<typeof createMockUserService>;
+    let mockNotificationService: ReturnType<typeof createMockNotificationService>;
+    let mockGroupMemberServiceRef: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         mockFirestoreReader = new MockFirestoreReader();
-        groupMemberService = new GroupMemberService(mockFirestoreReader);
+        mockUserService = createMockUserService();
+        mockNotificationService = createMockNotificationService();
+        mockGroupMemberServiceRef = createMockGroupMemberService();
+        groupMemberService = new GroupMemberService(
+            mockFirestoreReader,
+            mockUserService as any,
+            mockNotificationService as any
+        );
     });
 
     // Note: This test file focuses on subcollection query error handling patterns.

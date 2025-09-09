@@ -1,8 +1,8 @@
 import {getAuth, getFirestore} from '../firebase';
-import {getUserService} from '../services/serviceRegistration';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {Timestamp} from "firebase-admin/firestore";
 import type {IFirestoreReader} from '../services/firestore/IFirestoreReader';
+import {UserService} from "../services/UserService2";
 
 export interface PoolUser {
     token: string
@@ -23,12 +23,12 @@ const POOL_COLLECTION = 'test-user-pool';
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
 
-    private constructor(private readonly firestoreReader: IFirestoreReader) {
+    private constructor(private readonly firestoreReader: IFirestoreReader, private readonly userService: UserService) {
     }
 
-    static getInstance(firestoreReader: IFirestoreReader): TestUserPoolService {
+    static getInstance(firestoreReader: IFirestoreReader, userService: UserService): TestUserPoolService {
         if (!TestUserPoolService.instance) {
-            TestUserPoolService.instance = new TestUserPoolService(firestoreReader);
+            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, userService);
         }
         return TestUserPoolService.instance;
     }
@@ -131,9 +131,7 @@ export class TestUserPoolService {
 
         const email = `${POOL_PREFIX}.${id}@${POOL_DOMAIN}`;
 
-        const userService = getUserService();
-
-        const user = await userService.createUserDirect({
+        const user = await this.userService.createUserDirect({
             email,
             password: POOL_PASSWORD,
             displayName:`pool user ${id}`,

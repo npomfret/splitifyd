@@ -5,43 +5,24 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 
-// Mock the external dependencies
-vi.mock('../../../utils/groupHelpers', () => ({
+// Create a mock GroupMemberService with the methods CommentService needs
+const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
-}));
-
-vi.mock('../../../firebase', () => ({
-    isTest: vi.fn(() => true),
-    getAuth: vi.fn(() => ({
-        getUser: vi.fn(),
-    })),
-    getFirestore: vi.fn(() => ({
-        collection: vi.fn(() => ({
-            doc: vi.fn(() => ({
-                collection: vi.fn(() => ({
-                    doc: vi.fn(() => ({
-                        get: vi.fn(),
-                        set: vi.fn(),
-                    })),
-                    orderBy: vi.fn(() => ({
-                        limit: vi.fn(() => ({
-                            get: vi.fn(),
-                        })),
-                    })),
-                })),
-            })),
-        })),
-    })),
-}));
+    // Add other methods that CommentService might call
+    getMemberFromSubcollection: vi.fn(),
+    getMembersFromSubcollection: vi.fn(),
+});
 
 describe('CommentService', () => {
     let commentService: CommentService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         mockFirestoreReader = new MockFirestoreReader();
-        commentService = new CommentService(mockFirestoreReader);
+        mockGroupMemberService = createMockGroupMemberService();
+        commentService = new CommentService(mockFirestoreReader, mockGroupMemberService as any);
     });
 
     describe('verifyCommentAccess for GROUP comments', () => {
@@ -51,8 +32,7 @@ describe('CommentService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             // Should not throw
             await expect(
@@ -60,7 +40,7 @@ describe('CommentService', () => {
             ).resolves.not.toThrow();
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
+            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
         });
 
         it('should throw NOT_FOUND when group does not exist', async () => {
@@ -79,8 +59,7 @@ describe('CommentService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(false);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
             await expect(
                 (commentService as any).verifyCommentAccess('group', 'test-group', 'unauthorized-user')
@@ -106,8 +85,7 @@ describe('CommentService', () => {
 
             mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             await expect(
                 (commentService as any).verifyCommentAccess('expense', 'test-expense', 'user-id', 'test-group')
@@ -115,7 +93,7 @@ describe('CommentService', () => {
 
             expect(mockFirestoreReader.getExpense).toHaveBeenCalledWith('test-expense');
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('test-group');
-            expect(isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
+            expect(mockGroupMemberService.isGroupMemberAsync).toHaveBeenCalledWith('test-group', 'user-id');
         });
 
         it('should throw NOT_FOUND when expense does not exist', async () => {
@@ -140,8 +118,7 @@ describe('CommentService', () => {
 
             mockFirestoreReader.getExpense.mockResolvedValue(testExpense);
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             await expect(
                 (commentService as any).verifyCommentAccess('expense', 'test-expense', 'user-id', 'test-group')
@@ -161,8 +138,7 @@ describe('CommentService', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
-            const { isGroupMemberAsync } = await import('../../../utils/groupHelpers');
-            vi.mocked(isGroupMemberAsync).mockResolvedValue(true);
+            mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
 
             await (commentService as any).verifyCommentAccess('group', 'test-group', 'user-id');
 

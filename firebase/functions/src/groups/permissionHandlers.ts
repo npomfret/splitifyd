@@ -2,8 +2,12 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { logger } from '../logger';
-import { getGroupPermissionService } from '../services/serviceRegistration';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const groupPermissionService = applicationBuilder.buildGroupPermissionService();
 
 /**
  * Apply a security preset to a group
@@ -14,7 +18,7 @@ export const applySecurityPreset = async (req: AuthenticatedRequest, res: Respon
     const { preset } = req.body;
 
     try {
-        const result = await getGroupPermissionService().applySecurityPreset(userId, groupId, preset);
+        const result = await groupPermissionService.applySecurityPreset(userId, groupId, preset);
         res.json(result);
     } catch (error) {
         logger.error('Error in applySecurityPreset', error, {
@@ -35,7 +39,7 @@ export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Res
     const { permissions } = req.body;
 
     try {
-        const result = await getGroupPermissionService().updateGroupPermissions(userId, groupId, permissions);
+        const result = await groupPermissionService.updateGroupPermissions(userId, groupId, permissions);
         res.json(result);
     } catch (error) {
         logger.error('Error in updateGroupPermissions', error, {
@@ -57,7 +61,7 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
     const { role } = req.body;
 
     try {
-        const result = await getGroupPermissionService().setMemberRole(userId, groupId, targetUserId, role);
+        const result = await groupPermissionService.setMemberRole(userId, groupId, targetUserId, role);
         res.json(result);
     } catch (error) {
         logger.error('Error in setMemberRole', error, {
@@ -78,7 +82,7 @@ export const getUserPermissions = async (req: AuthenticatedRequest, res: Respons
     const groupId = req.params.id;
 
     try {
-        const result = await getGroupPermissionService().getUserPermissions(userId, groupId);
+        const result = await groupPermissionService.getUserPermissions(userId, groupId);
         res.json(result);
     } catch (error) {
         logger.error('Error in getUserPermissions', error, {

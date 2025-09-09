@@ -7,21 +7,14 @@
  * These tests use the Firebase emulator to verify actual Firestore operations.
  */
 
-import { describe, test, expect, beforeAll, afterAll } from 'vitest';
-import { getFirestoreReader } from '../../services/serviceRegistration';
+import { describe, test, expect } from 'vitest';
 import {ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder} from '@splitifyd/test-support';
-import { setupTestServices } from '../test-helpers/setup';
+import {FirestoreReader} from "../../services/firestore";
+import {getFirestore} from "../../firebase";
 
 describe('FirestoreReader Integration Tests', () => {
     const apiDriver = new ApiDriver();
-
-    beforeAll(async () => {
-        setupTestServices();
-    });
-
-    afterAll(async () => {
-        // Cleanup handled by Firebase SDK
-    });
+    const firestoreReader = new FirestoreReader(getFirestore());
 
     describe('getGroupsForUser', () => {
         test('should return groups for user using subcollection architecture', async () => {
@@ -43,7 +36,6 @@ describe('FirestoreReader Integration Tests', () => {
             const groupId = createResponse.id;
 
             // Now test FirestoreReader.getGroupsForUser
-            const firestoreReader = getFirestoreReader();
             const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
 
             // Should find the created group
@@ -68,7 +60,6 @@ describe('FirestoreReader Integration Tests', () => {
                     .build()
             );
 
-            const firestoreReader = getFirestoreReader();
             const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
 
             expect(paginatedGroups.data).toHaveLength(0);
@@ -97,8 +88,6 @@ describe('FirestoreReader Integration Tests', () => {
                 const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
                 groupIds.push(createResponse.id);
             }
-
-            const firestoreReader = getFirestoreReader();
 
             // Test limit - should return paginated result with hasMore=true
             const limitedGroups = await firestoreReader.getGroupsForUser(testUser.uid, { limit: 2 });
@@ -135,7 +124,6 @@ describe('FirestoreReader Integration Tests', () => {
             const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
             const groupId = createResponse.id;
 
-            const firestoreReader = getFirestoreReader();
             const group = await firestoreReader.getGroup(groupId);
 
             expect(group).toBeDefined();
@@ -144,7 +132,6 @@ describe('FirestoreReader Integration Tests', () => {
         });
 
         test('should return null for non-existent group', async () => {
-            const firestoreReader = getFirestoreReader();
             const group = await firestoreReader.getGroup('non-existent-id');
 
             expect(group).toBeNull();

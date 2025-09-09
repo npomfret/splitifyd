@@ -1,19 +1,23 @@
-import { getUserService, getGroupMemberService } from '../serviceRegistration';
 import { DELETED_AT_FIELD } from '@splitifyd/shared';
-import { Expense, Settlement, GroupData, BalanceCalculationInput } from './types';
-import { logger } from '../../logger';
+import { Expense, Settlement, GroupData, BalanceCalculationInput, GroupMember } from './types';
 import { timestampToISO } from '../../utils/dateHelpers';
 import type { IFirestoreReader } from '../firestore/IFirestoreReader';
+import {UserService} from "../UserService2";
 
 export class DataFetcher {
-    constructor(private firestoreReader: IFirestoreReader) {}
+    constructor(private firestoreReader: IFirestoreReader, private userService: UserService) {}
+
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, groupData] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
+        const [expenses, settlements, groupData] = await Promise.all([
+            this.fetchExpenses(groupId),
+            this.fetchSettlements(groupId),
+            this.fetchGroupData(groupId)
+        ]);
 
         // Fetch member profiles after we have group data
         const memberIds = Object.keys(groupData.members);
-        const memberProfiles = await getUserService().getUsers(memberIds);
+        const memberProfiles = await this.userService.getUsers(memberIds);
 
         return {
             groupId,
@@ -85,13 +89,13 @@ export class DataFetcher {
         }
 
         // Fetch members from subcollection
-        const memberDocs = await getGroupMemberService().getMembersFromSubcollection(groupId);
+        const memberDocs = await this.userService.getMembersFromSubcollection(groupId);
         if (memberDocs.length === 0) {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }
 
         // Convert GroupMemberDocument[] to Record<string, GroupMember> for compatibility
-        const members: Record<string, import('./types').GroupMember> = {};
+        const members: Record<string, GroupMember> = {};
         for (const memberDoc of memberDocs) {
             members[memberDoc.userId] = {
                 memberRole: memberDoc.memberRole,
