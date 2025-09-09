@@ -162,7 +162,7 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const members = await this.groupMemberService.getMembersFromSubcollection(expenseData.groupId);
+        const members = await this.groupMemberService.getAllGroupMembers(expenseData.groupId);
 
         if (!getMemberDocFromArray(members, expenseData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
@@ -282,7 +282,7 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const members = await this.groupMemberService.getMembersFromSubcollection(expense.groupId);
+        const members = await this.groupMemberService.getAllGroupMembers(expense.groupId);
 
         if (updateData.paidBy && !getMemberDocFromArray(members, updateData.paidBy)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PAYER', 'Payer must be a member of the group');
@@ -621,7 +621,7 @@ export class ExpenseService {
         // Check if user is a participant in this expense or a group member (access control for viewing)
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
-            const member = await this.groupMemberService.getMemberFromSubcollection(expense.groupId, userId);
+            const member = await this.groupMemberService.getGroupMember(expense.groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }

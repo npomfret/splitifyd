@@ -59,9 +59,9 @@ export class SettlementService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        // Verify each user is a member using subcollection
+        // Verify each user is a member
         for (const userId of userIds) {
-            const member = await this.groupMemberService.getMemberFromSubcollection(groupId, userId);
+            const member = await this.groupMemberService.getGroupMember(groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'USER_NOT_IN_GROUP', `User ${userId} is not a member of this group`);
             }

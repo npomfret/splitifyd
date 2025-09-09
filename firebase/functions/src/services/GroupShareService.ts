@@ -151,7 +151,7 @@ export class GroupShareService {
         const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
         
         // Get member count from subcollection
-        const memberDocs = await this.groupMemberService.getMembersFromSubcollection(group.id);
+        const memberDocs = await this.groupMemberService.getAllGroupMembers(group.id);
 
         return {
             groupId: group.id,
@@ -193,7 +193,7 @@ export class GroupShareService {
         }
 
         // Early membership check to avoid transaction if user is already a member
-        const existingMember = await this.groupMemberService.getMemberFromSubcollection(groupId, userId);
+        const existingMember = await this.groupMemberService.getGroupMember(groupId, userId);
         if (existingMember) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
@@ -203,15 +203,9 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
-        const existingMembers = await this.groupMemberService.getMembersFromSubcollection(groupId);
+        const existingMembers = await this.groupMemberService.getAllGroupMembers(groupId);
         const memberIndex = existingMembers.length;
         
-        const memberRef = getFirestore()
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(userId);
-            
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: groupId,
@@ -248,10 +242,7 @@ export class GroupShareService {
                     this.firestoreReader
                 );
 
-                // Create member subcollection document
-                transaction.set(memberRef, memberDocWithTimestamps);
-
-                // NEW: Also write to top-level collection for improved querying
+                // Write to top-level collection for improved querying
                 const now = new Date();
                 const topLevelMemberDoc = createTopLevelMembershipDocument(
                     memberDoc,

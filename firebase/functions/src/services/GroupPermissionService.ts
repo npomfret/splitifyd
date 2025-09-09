@@ -85,7 +85,7 @@ export class GroupPermissionService {
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check permissions
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         
         if (!isAdminInDocArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to change security presets');
@@ -297,7 +297,7 @@ export class GroupPermissionService {
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check target user exists
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
 
         if (!getMemberDocFromArray(memberDocs, targetUserId)) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'MEMBER_NOT_FOUND', 'Target member not found in group');
@@ -351,13 +351,16 @@ export class GroupPermissionService {
 
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
                 
-                // Also update the member subcollection in the same transaction
+                // Also update the member in the top-level collection in the same transaction
+                const { getTopLevelMembershipDocId } = await import('../utils/groupMembershipHelpers');
+                const topLevelDocId = getTopLevelMembershipDocId(targetUserId, groupId);
                 this.firestoreWriter.updateInTransaction(
                     transaction, 
-                    `${FirestoreCollections.GROUPS}/${groupId}/members/${targetUserId}`, 
+                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, 
                     {
                         memberRole: role,
                         lastPermissionChange: now,
+                        updatedAt: createOptimisticTimestamp(),
                     }
                 );
             },
@@ -405,7 +408,7 @@ export class GroupPermissionService {
         }
 
         // Get members to check user membership
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         
         if (!getMemberDocFromArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');

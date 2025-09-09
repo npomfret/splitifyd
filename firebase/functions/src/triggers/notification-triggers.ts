@@ -50,12 +50,19 @@ export function createNotificationTriggers() {
 
         addUserToGroupNotifications: onDocumentCreated(
             {
-                document: `${FirestoreCollections.GROUPS}/{groupId}/members/{userId}`,
+                document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
                 region: 'us-central1',
             },
             async (event) => {
-                const groupId = event.params.groupId;
-                const userId = event.params.userId;
+                // Extract userId and groupId from the membership document data
+                const membershipData = event.data?.data();
+                if (!membershipData) {
+                    logger.warn('No membership data found in trigger event', { membershipId: event.params.membershipId });
+                    return;
+                }
+                
+                const groupId = membershipData.groupId;
+                const userId = membershipData.userId;
                 
                 return measureTrigger('addUserToGroupNotifications',
                     async () => {
@@ -79,12 +86,19 @@ export function createNotificationTriggers() {
 
         removeUserFromGroupNotifications: onDocumentDeleted(
             {
-                document: `${FirestoreCollections.GROUPS}/{groupId}/members/{userId}`,
+                document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
                 region: 'us-central1',
             },
             async (event) => {
-                const groupId = event.params.groupId;
-                const userId = event.params.userId;
+                // Extract userId and groupId from the deleted membership document data
+                const membershipData = event.data?.data();
+                if (!membershipData) {
+                    logger.warn('No membership data found in deleted document trigger event', { membershipId: event.params.membershipId });
+                    return;
+                }
+                
+                const groupId = membershipData.groupId;
+                const userId = membershipData.userId;
                 
                 return measureTrigger('removeUserFromGroupNotifications',
                     async () => {

@@ -10,11 +10,11 @@ import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWri
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn().mockResolvedValue(false),
     isGroupOwnerAsync: vi.fn().mockResolvedValue(false),
-    getMembersFromSubcollection: vi.fn().mockResolvedValue([
+    getAllGroupMembers: vi.fn().mockResolvedValue([
         { userId: 'user1', role: 'admin' },
         { userId: 'user2', role: 'member' },
     ]),
-    getMemberFromSubcollection: vi.fn().mockResolvedValue(null),
+    getGroupMember: vi.fn().mockResolvedValue(null),
     getGroupMembersResponseFromSubcollection: vi.fn()
 });
 

@@ -166,36 +166,6 @@ export interface IFirestoreWriter {
     deleteSettlement(settlementId: string): Promise<WriteResult>;
 
     // ========================================================================
-    // Member Write Operations (Subcollection)
-    // ========================================================================
-
-    /**
-     * Add a member to a group
-     * @param groupId - The group ID
-     * @param userId - The user ID to add
-     * @param memberData - The member data
-     * @returns Write result
-     */
-    addGroupMember(groupId: string, userId: string, memberData: Omit<GroupMemberDocument, 'id'>): Promise<WriteResult>;
-
-    /**
-     * Update a group member
-     * @param groupId - The group ID
-     * @param userId - The user ID
-     * @param updates - Partial member data to update
-     * @returns Write result
-     */
-    updateGroupMember(groupId: string, userId: string, updates: Partial<Omit<GroupMemberDocument, 'id'>>): Promise<WriteResult>;
-
-    /**
-     * Remove a member from a group
-     * @param groupId - The group ID
-     * @param userId - The user ID to remove
-     * @returns Write result
-     */
-    removeGroupMember(groupId: string, userId: string): Promise<WriteResult>;
-
-    // ========================================================================
     // Comment Write Operations
     // ========================================================================
 
@@ -280,20 +250,6 @@ export interface IFirestoreWriter {
     // ========================================================================
     // Member Operations in Transactions
     // ========================================================================
-
-    /**
-     * Add a member to a group within a transaction
-     * @param transaction - The transaction object
-     * @param groupId - The group ID
-     * @param userId - The user ID
-     * @param memberData - The member data
-     */
-    addGroupMemberInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        userId: string,
-        memberData: Omit<GroupMemberDocument, 'id'>
-    ): void;
 
     /**
      * Update a group within a transaction

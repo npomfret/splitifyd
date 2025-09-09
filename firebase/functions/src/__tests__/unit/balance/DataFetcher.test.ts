@@ -8,13 +8,13 @@ const mockGetMembersFromSubcollection = vi.fn();
 
 const createMockUserService = () => ({
     getUsers: mockGetUsers,
-    getMembersFromSubcollection: mockGetMembersFromSubcollection
+    getAllGroupMembers: mockGetMembersFromSubcollection
 });
 
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
-    getMemberFromSubcollection: vi.fn(),
-    getMembersFromSubcollection: mockGetMembersFromSubcollection,
+    getGroupMember: vi.fn(),
+    getAllGroupMembers: mockGetMembersFromSubcollection,
 });
 
 describe('DataFetcher', () => {

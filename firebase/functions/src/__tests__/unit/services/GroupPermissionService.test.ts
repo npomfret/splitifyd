@@ -46,7 +46,7 @@ describe('GroupPermissionService', () => {
             expect(result.role).toBe('member');
             expect(result.groupSecurityPreset).toBe('open');
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
-            expect(mockFirestoreReader.getMembersFromSubcollection).toHaveBeenCalledWith(groupId);
+            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(groupId);
         });
 
         it('should throw NOT_FOUND error when group does not exist', async () => {
@@ -81,7 +81,7 @@ describe('GroupPermissionService', () => {
             ).rejects.toThrow('You are not a member of this group');
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
-            expect(mockFirestoreReader.getMembersFromSubcollection).toHaveBeenCalledWith(groupId);
+            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(groupId);
         });
     });
 });

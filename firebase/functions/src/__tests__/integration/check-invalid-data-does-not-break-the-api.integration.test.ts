@@ -13,6 +13,7 @@ import { getFirestore } from '../../firebase';
 import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
 import {FirestoreReader} from "../../services/firestore";
+import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
     const firestore = getFirestore();
@@ -105,14 +106,27 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
                 await groupRef.set(groupData);
                 testGroupIds.push(groupRef.id); // Track for cleanup
                 
-                // Add user as member in subcollection (required for group to show up in queries)
-                await groupRef.collection('members').doc(testUser.uid).set({
+                // Add user as member in top-level collection (required for group to show up in queries)
+                const memberDoc = {
                     userId: testUser.uid,
                     groupId: groupRef.id,
-                    memberRole: 'admin',
-                    memberStatus: 'active',
-                    joinedAt: new Date(),
-                });
+                    memberRole: 'admin' as any,
+                    memberStatus: 'active' as any,
+                    joinedAt: new Date().toISOString(),
+                    theme: {
+                        light: '#FF6B6B',
+                        dark: '#FF5252',
+                        name: 'red',
+                        pattern: 'solid' as const,
+                        assignedAt: new Date().toISOString(),
+                        colorIndex: 0
+                    }
+                };
+                
+                const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
+                const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, groupRef.id);
+                const topLevelRef = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
+                await topLevelRef.set(topLevelMemberDoc);
             }
         });
         
@@ -147,7 +161,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             console.log(`API returned ${response.groups.length} groups successfully`);
         });
 
-        test('FirestoreReader.getGroupsForUser should handle invalid securityPreset values', async () => {
+        test('FirestoreReader.getGroupsForUserV2 should handle invalid securityPreset values', async () => {
             const firestoreReader = new FirestoreReader(getFirestore());
             
             // This should not throw even with invalid data in the database
@@ -155,7 +169,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             let error;
             
             try {
-                paginatedResult = await firestoreReader.getGroupsForUser(testUser.uid);
+                paginatedResult = await firestoreReader.getGroupsForUserV2(testUser.uid);
             } catch (e) {
                 error = e;
             }
@@ -170,7 +184,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             const validGroup = paginatedResult.data.find((g: any) => g.id === validGroupId);
             expect(validGroup).toBeDefined();
 
-            console.log(`FirestoreReader returned ${paginatedResult.data.length} groups successfully`);
+            console.log(`FirestoreReader V2 returned ${paginatedResult.data.length} groups successfully`);
         });
 
         test('GET /groups/:id should handle invalid securityPreset for specific group', async () => {
@@ -187,13 +201,26 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             testGroupIds.push(invalidGroupRef.id); // Track for cleanup
 
             // Add user as member
-            await invalidGroupRef.collection('members').doc(testUser.uid).set({
+            const memberDoc2 = {
                 userId: testUser.uid,
                 groupId: invalidGroupRef.id,
-                memberRole: 'admin',
-                memberStatus: 'active',
-                joinedAt: new Date(),
-            });
+                memberRole: 'admin' as any,
+                memberStatus: 'active' as any,
+                joinedAt: new Date().toISOString(),
+                theme: {
+                    light: '#FF6B6B',
+                    dark: '#FF5252',
+                    name: 'red',
+                    pattern: 'solid' as const,
+                    assignedAt: new Date().toISOString(),
+                    colorIndex: 0
+                }
+            };
+            
+            const topLevelMemberDoc2 = createTopLevelMembershipDocument(memberDoc2, new Date().toISOString());
+            const topLevelDocId2 = getTopLevelMembershipDocId(testUser.uid, invalidGroupRef.id);
+            const topLevelRef2 = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId2);
+            await topLevelRef2.set(topLevelMemberDoc2);
 
             // Try to get the group through the API
             let response;

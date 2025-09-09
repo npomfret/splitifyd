@@ -22,8 +22,8 @@ const createMockNotificationService = () => ({
 
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
-    getMemberFromSubcollection: vi.fn(),
-    getMembersFromSubcollection: vi.fn(),
+    getGroupMember: vi.fn(),
+    getAllGroupMembers: vi.fn(),
     getGroupMembersResponseFromSubcollection: vi.fn()
 });
 
@@ -48,7 +48,7 @@ describe('GroupMemberService', () => {
 
     // Note: getGroupMembersResponseFromSubcollection method was moved to UserService
 
-    describe('getMemberFromSubcollection', () => {
+    describe('getGroupMember', () => {
         it('should return member if exists', async () => {
             const groupId = 'test-group';
             const userId = 'test-user';
@@ -59,26 +59,26 @@ describe('GroupMemberService', () => {
 
             mockFirestoreReader.mockMemberInSubcollection(groupId, testMember);
 
-            const result = await groupMemberService.getMemberFromSubcollection(groupId, userId);
+            const result = await groupMemberService.getGroupMember(groupId, userId);
 
             expect(result).toEqual(testMember);
-            expect(mockFirestoreReader.getMemberFromSubcollection).toHaveBeenCalledWith(groupId, userId);
+            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(groupId, userId);
         });
 
         it('should return null if member does not exist', async () => {
             const groupId = 'test-group';
             const userId = 'nonexistent-user';
 
-            mockFirestoreReader.getMemberFromSubcollection.mockResolvedValue(null);
+            mockFirestoreReader.getGroupMember.mockResolvedValue(null);
 
-            const result = await groupMemberService.getMemberFromSubcollection(groupId, userId);
+            const result = await groupMemberService.getGroupMember(groupId, userId);
 
             expect(result).toBeNull();
-            expect(mockFirestoreReader.getMemberFromSubcollection).toHaveBeenCalledWith(groupId, userId);
+            expect(mockFirestoreReader.getGroupMember).toHaveBeenCalledWith(groupId, userId);
         });
     });
 
-    describe('getMembersFromSubcollection', () => {
+    describe('getAllGroupMembers', () => {
         it('should return all members for a group', async () => {
             const groupId = 'test-group';
             const testMembers: GroupMemberDocument[] = [
@@ -94,10 +94,10 @@ describe('GroupMemberService', () => {
 
             mockFirestoreReader.mockGroupMembersSubcollection(groupId, testMembers);
 
-            const result = await groupMemberService.getMembersFromSubcollection(groupId);
+            const result = await groupMemberService.getAllGroupMembers(groupId);
 
             expect(result).toEqual(testMembers);
-            expect(mockFirestoreReader.getMembersFromSubcollection).toHaveBeenCalledWith(groupId);
+            expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(groupId);
         });
     });
 });

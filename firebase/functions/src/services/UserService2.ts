@@ -369,19 +369,19 @@ export class UserService {
         }
     }
 
-    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
-        return this.firestoreReader.getMembersFromSubcollection(groupId);
+    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+        return this.firestoreReader.getAllGroupMembers(groupId);
     }
 
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
         // Use a high limit to maintain backward compatibility
         // This method is expected to return ALL groups for a user
-        const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, { limit: 1000 });
+        const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, { limit: 1000 });
         return paginatedGroups.data.map((group: any) => group.id);
     }
 
     async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIds = memberDocs.map(doc => doc.userId);
 
         const memberProfiles = await this.getUsers(memberIds);

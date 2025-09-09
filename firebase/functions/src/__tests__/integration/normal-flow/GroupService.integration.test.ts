@@ -398,14 +398,6 @@ describe('GroupService - Integration Tests', () => {
                     try {
                         // Fallback to direct deletion if service fails
                         await firestore.collection(FirestoreCollections.GROUPS).doc(groupId).delete();
-                        // Also clean up members subcollection
-                        const membersSnapshot = await firestore.collection(FirestoreCollections.GROUPS)
-                            .doc(groupId)
-                            .collection('members')
-                            .get();
-                        const batch = firestore.batch();
-                        membersSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-                        await batch.commit();
                     } catch (cleanupError) {
                         // Ignore cleanup errors
                     }

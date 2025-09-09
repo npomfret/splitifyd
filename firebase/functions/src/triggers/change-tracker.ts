@@ -46,14 +46,14 @@ export const trackGroupChanges = onDocumentWritten(
                 // Calculate priority (not currently used)
                 calculatePriority(changeType, changedFields, 'group');
 
-                // Get affected users from the group subcollection
+                // Get affected users from the group
                 const affectedUsers = await (async (): Promise<string[]> => {
                     const users: string[] = [];
                     
-                    // For CREATE/UPDATE events, query the current subcollection using FirestoreReader
+                    // For CREATE/UPDATE events, query the current group members using FirestoreReader
                     try {
                         const firestoreReader: IFirestoreReader = new FirestoreReader(getFirestore());
-                        const members = await firestoreReader.getMembersFromSubcollection(groupId);
+                        const members = await firestoreReader.getAllGroupMembers(groupId);
                         
                         members.forEach(member => {
                             users.push(member.userId);

@@ -17,7 +17,7 @@ export class PermissionEngineAsync {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }
 
-        const member = await firestoreReader.getMemberFromSubcollection(group.id, userId);
+        const member = await firestoreReader.getGroupMember(group.id, userId);
         if (!member) {
             return false;
         }
@@ -81,8 +81,8 @@ export class PermissionEngineAsync {
      */
     static async canChangeRole(firestoreReader: IFirestoreReader, groupId: string, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): Promise<{ allowed: boolean; reason?: string }> {
         const [actorMember, targetMember] = await Promise.all([
-            firestoreReader.getMemberFromSubcollection(groupId, actorUserId),
-            firestoreReader.getMemberFromSubcollection(groupId, targetUserId),
+            firestoreReader.getGroupMember(groupId, actorUserId),
+            firestoreReader.getGroupMember(groupId, targetUserId),
         ]);
 
         if (!actorMember || !targetMember) {
@@ -94,7 +94,7 @@ export class PermissionEngineAsync {
         }
 
         if (actorUserId === targetUserId && actorMember.memberRole === MemberRoles.ADMIN && newRole !== MemberRoles.ADMIN) {
-            const allMembers = await firestoreReader.getMembersFromSubcollection(groupId);
+            const allMembers = await firestoreReader.getAllGroupMembers(groupId);
             const adminCount = allMembers.filter((m) => m.memberRole === MemberRoles.ADMIN && m.memberStatus === MemberStatuses.ACTIVE).length;
 
             if (adminCount === 1) {

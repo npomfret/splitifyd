@@ -42,8 +42,8 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getGroupsForUser = vi.fn();
     public getGroupsForUserV2 = vi.fn();
     public getGroupMembers = vi.fn();
-    public getMemberFromSubcollection = vi.fn();
-    public getMembersFromSubcollection = vi.fn();
+    public getGroupMember = vi.fn();
+    public getAllGroupMembers = vi.fn();
     public getExpensesForGroup = vi.fn();
     public getSettlementsForGroup = vi.fn();
     // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
@@ -511,14 +511,14 @@ export class MockFirestoreReader implements IFirestoreReader {
     }
 
     /**
-     * Mock group members subcollection data
+     * Mock group members data
      */
     public mockGroupMembersSubcollection(groupId: string, members: GroupMemberDocument[]): void {
-        this.getMembersFromSubcollection.mockImplementation(async (id) => {
+        this.getAllGroupMembers.mockImplementation(async (id) => {
             return id === groupId ? members : [];
         });
 
-        this.getMemberFromSubcollection.mockImplementation(async (id, userId) => {
+        this.getGroupMember.mockImplementation(async (id, userId) => {
             if (id === groupId) {
                 return members.find(m => m.userId === userId) || null;
             }
@@ -527,10 +527,10 @@ export class MockFirestoreReader implements IFirestoreReader {
     }
 
     /**
-     * Mock a single member in a group's subcollection
+     * Mock a single member in a group
      */
     public mockMemberInSubcollection(groupId: string, member: GroupMemberDocument): void {
-        this.getMemberFromSubcollection.mockImplementation(async (id, userId) => {
+        this.getGroupMember.mockImplementation(async (id, userId) => {
             return (id === groupId && userId === member.userId) ? member : null;
         });
     }

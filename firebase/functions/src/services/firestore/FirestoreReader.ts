@@ -12,6 +12,7 @@ import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type Comment
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp } from '../../utils/dateHelpers';
+import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import all schemas for validation
 import {
@@ -515,20 +516,18 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
         try {
-            const membersRef = this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('members');
-
-            let query: FirebaseFirestore.Query = membersRef;
+            // Use top-level collection instead of subcollection
+            let query = this.db
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId);
 
             // Apply filters if specified
             if (options?.includeInactive === false) {
-                query = query.where('status', '==', 'active');
+                query = query.where('memberStatus', '==', 'active');
             }
 
             if (options?.roles && options.roles.length > 0) {
-                query = query.where('role', 'in', options.roles);
+                query = query.where('memberRole', 'in', options.roles);
             }
 
             const snapshot = await query.get();
@@ -536,9 +535,20 @@ export class FirestoreReader implements IFirestoreReader {
 
             for (const doc of snapshot.docs) {
                 try {
+                    const topLevelData = doc.data() as TopLevelGroupMemberDocument;
+                    // Convert top-level document back to GroupMemberDocument format
                     const memberData = GroupMemberDocumentSchema.parse({
-                        id: doc.id,
-                        ...doc.data()
+                        id: topLevelData.userId, // Use userId as the document ID
+                        userId: topLevelData.userId,
+                        groupId: topLevelData.groupId,
+                        memberRole: topLevelData.memberRole,
+                        memberStatus: topLevelData.memberStatus,
+                        joinedAt: topLevelData.joinedAt,
+                        theme: topLevelData.theme,
+                        invitedBy: topLevelData.invitedBy,
+                        lastPermissionChange: topLevelData.lastPermissionChange,
+                        createdAt: topLevelData.createdAt,
+                        updatedAt: topLevelData.updatedAt
                     });
                     parsedMembers.push(memberData);
                 } catch (error) {
@@ -554,48 +564,70 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
         return measureDb('GET_MEMBER',
             async () => {
+                // Use top-level collection instead of subcollection
+                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
                 const memberRef = this.db
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .doc(userId);
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .doc(topLevelDocId);
 
                 const memberDoc = await memberRef.get();
                 if (!memberDoc.exists) {
                     return null;
                 }
 
+                const topLevelData = memberDoc.data() as TopLevelGroupMemberDocument;
+                // Convert top-level document back to GroupMemberDocument format
                 const parsedMember = GroupMemberDocumentSchema.parse({
-                    id: memberDoc.id,
-                    ...memberDoc.data()
+                    id: topLevelData.userId, // Use userId as the document ID
+                    userId: topLevelData.userId,
+                    groupId: topLevelData.groupId,
+                    memberRole: topLevelData.memberRole,
+                    memberStatus: topLevelData.memberStatus,
+                    joinedAt: topLevelData.joinedAt,
+                    theme: topLevelData.theme,
+                    invitedBy: topLevelData.invitedBy,
+                    lastPermissionChange: topLevelData.lastPermissionChange,
+                    createdAt: topLevelData.createdAt,
+                    updatedAt: topLevelData.updatedAt
                 });
                 return parsedMember;
         });
     }
 
-    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
+    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
         return measureDb('GET_MEMBERS',
             async () => {
-                const membersRef = this.db
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members');
+                // Use top-level collection instead of subcollection
+                const membersQuery = this.db
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .where('groupId', '==', groupId);
 
-                const snapshot = await membersRef.get();
+                const snapshot = await membersQuery.get();
                 const parsedMembers: ParsedGroupMemberDocument[] = [];
 
                 for (const doc of snapshot.docs) {
                     try {
+                        const topLevelData = doc.data() as TopLevelGroupMemberDocument;
+                        // Convert top-level document back to GroupMemberDocument format
                         const memberData = GroupMemberDocumentSchema.parse({
-                            id: doc.id,
-                            ...doc.data()
+                            id: topLevelData.userId, // Use userId as the document ID
+                            userId: topLevelData.userId,
+                            groupId: topLevelData.groupId,
+                            memberRole: topLevelData.memberRole,
+                            memberStatus: topLevelData.memberStatus,
+                            joinedAt: topLevelData.joinedAt,
+                            theme: topLevelData.theme,
+                            invitedBy: topLevelData.invitedBy,
+                            lastPermissionChange: topLevelData.lastPermissionChange,
+                            createdAt: topLevelData.createdAt,
+                            updatedAt: topLevelData.updatedAt
                         });
                         parsedMembers.push(memberData);
                     } catch (error) {
-                        logger.error('Invalid group member document in getMembersFromSubcollection', error);
+                        logger.error('Invalid group member document in getAllGroupMembers', error);
                         // Skip invalid documents rather than failing the entire query
                     }
                 }
@@ -1795,12 +1827,11 @@ export class FirestoreReader implements IFirestoreReader {
 
     async verifyGroupMembership(groupId: string, userId: string): Promise<boolean> {
         try {
-            // Check if user is a member using subcollection lookup
+            // Check if user is a member using top-level collection lookup
+            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
             const memberDoc = await this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('members')
-                .doc(userId)
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .doc(topLevelDocId)
                 .get();
 
             return memberDoc.exists;

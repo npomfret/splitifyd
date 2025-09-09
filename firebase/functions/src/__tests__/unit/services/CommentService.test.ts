@@ -9,8 +9,8 @@ import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     // Add other methods that CommentService might call
-    getMemberFromSubcollection: vi.fn(),
-    getMembersFromSubcollection: vi.fn(),
+    getGroupMember: vi.fn(),
+    getAllGroupMembers: vi.fn(),
 });
 
 describe('CommentService', () => {

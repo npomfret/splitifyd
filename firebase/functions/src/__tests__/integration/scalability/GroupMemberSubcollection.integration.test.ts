@@ -33,7 +33,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
         });
     });
 
-    describe('createMemberSubcollection', () => {
+    describe('createMember', () => {
         test('should create member document in subcollection', async () => {
             const memberDoc: GroupMemberDocument = {
                 userId: testUser2.uid,
@@ -45,10 +45,10 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 invitedBy: testUser1.uid,
             };
 
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Verify member was created
-            const retrievedMember = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            const retrievedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
             expect(retrievedMember).toBeDefined();
             expect(retrievedMember?.userId).toBe(testUser2.uid);
             expect(retrievedMember?.groupId).toBe(testGroup.id);
@@ -58,19 +58,19 @@ describe('groupMemberService Subcollection Integration Tests', () => {
         });
     });
 
-    describe('getMemberFromSubcollection', () => {
+    describe('getGroupMember', () => {
         test('should return null for non-existent member', async () => {
-            const result = await groupMemberService.getMemberFromSubcollection(testGroup.id, 'non-existent-user');
+            const result = await groupMemberService.getGroupMember(testGroup.id, 'non-existent-user');
             expect(result).toBeNull();
         });
 
         test('should return null for non-existent group', async () => {
-            const result = await groupMemberService.getMemberFromSubcollection('non-existent-group', testUser1.uid);
+            const result = await groupMemberService.getGroupMember('non-existent-group', testUser1.uid);
             expect(result).toBeNull();
         });
     });
 
-    describe('getMembersFromSubcollection', () => {
+    describe('getAllGroupMembers', () => {
         test('should return all members for a group', async () => {
             // Add second member to subcollection
             const memberDoc: GroupMemberDocument = {
@@ -82,10 +82,10 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Get all members
-            const members = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const members = await groupMemberService.getAllGroupMembers(testGroup.id);
             
             expect(members).toHaveLength(2); // testUser1 (creator) + testUser2
             
@@ -104,14 +104,14 @@ describe('groupMemberService Subcollection Integration Tests', () => {
             });
 
             // Delete the auto-created subcollection member for this test
-            await groupMemberService.deleteMemberFromSubcollection(newGroup.id, testUser1.uid);
+            await groupMemberService.deleteMember(newGroup.id, testUser1.uid);
             
-            const members = await groupMemberService.getMembersFromSubcollection(newGroup.id);
+            const members = await groupMemberService.getAllGroupMembers(newGroup.id);
             expect(members).toHaveLength(0);
         });
     });
 
-    describe('updateMemberInSubcollection', () => {
+    describe('updateMember', () => {
         test('should update member role and status', async () => {
             // Add member first
             const memberDoc: GroupMemberDocument = {
@@ -123,23 +123,23 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Update the member
-            await groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+            await groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                 memberRole:MemberRoles.ADMIN,
                 memberStatus:MemberStatuses.PENDING,
             });
 
             // Verify update
-            const updatedMember = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            const updatedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
             expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
             expect(updatedMember?.memberStatus).toBe(MemberStatuses.PENDING);
             expect(updatedMember?.userId).toBe(testUser2.uid); // Other fields unchanged
         });
     });
 
-    describe('deleteMemberFromSubcollection', () => {
+    describe('deleteMember', () => {
         test('should delete member from subcollection', async () => {
             // Add member first
             const memberDoc: GroupMemberDocument = {
@@ -151,23 +151,23 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Verify member exists
-            let member = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            let member = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
             expect(member).toBeDefined();
 
             // Delete member
-            await groupMemberService.deleteMemberFromSubcollection(testGroup.id, testUser2.uid);
+            await groupMemberService.deleteMember(testGroup.id, testUser2.uid);
 
             // Verify member is deleted
-            member = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            member = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
             expect(member).toBeNull();
         });
 
         test('should not throw error when deleting non-existent member', async () => {
             // Should not throw - let it bubble up if there's an actual error
-            await groupMemberService.deleteMemberFromSubcollection(testGroup.id, 'non-existent-user');
+            await groupMemberService.deleteMember(testGroup.id, 'non-existent-user');
         });
     });
 
@@ -194,7 +194,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser2.uid,
             };
-            await groupMemberService.createMemberSubcollection(group2.id, memberDoc);
+            await groupMemberService.createMember(group2.id, memberDoc);
 
             // Query for testUser1's groups using scalable query
             const userGroups = await groupMemberService.getUserGroupsViaSubcollection(testUser1.uid);
@@ -264,7 +264,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Get members response
             const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
@@ -303,7 +303,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
                 memberStatus:MemberStatuses.ACTIVE,
                 invitedBy: testUser1.uid,
             };
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);
             
@@ -342,7 +342,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
             ];
 
             for (const doc of memberDocs) {
-                await groupMemberService.createMemberSubcollection(testGroup.id, doc);
+                await groupMemberService.createMember(testGroup.id, doc);
             }
 
             const response = await userService.getGroupMembersResponseFromSubcollection(testGroup.id);

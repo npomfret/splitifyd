@@ -15,7 +15,7 @@ const createMockUserService = () => ({
     deleteAccount: vi.fn(),
     registerUser: vi.fn(),
     createUserDirect: vi.fn(),
-    getMembersFromSubcollection: vi.fn().mockResolvedValue([])
+    getAllGroupMembers: vi.fn().mockResolvedValue([])
 });
 
 const createMockExpenseService = () => ({
@@ -37,8 +37,8 @@ const createMockSettlementService = () => ({
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn().mockResolvedValue(true),
     isGroupOwnerAsync: vi.fn().mockResolvedValue(true),
-    getMemberFromSubcollection: vi.fn(),
-    getMembersFromSubcollection: vi.fn().mockResolvedValue([]),
+    getGroupMember: vi.fn(),
+    getAllGroupMembers: vi.fn().mockResolvedValue([]),
     getGroupMembersResponseFromSubcollection: vi.fn()
 });
 
@@ -152,7 +152,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user access - make sure user is a member
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+            mockUserService.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'member', memberStatus: 'active' }
             ]);
 
@@ -190,7 +190,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+            mockUserService.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'admin', memberStatus: 'active' }
             ]);
             
@@ -244,7 +244,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+            mockUserService.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'admin', memberStatus: 'active' }
             ]);
             
@@ -308,8 +308,8 @@ describe('GroupService - Unit Tests', () => {
             // Mock group member check to return true (user is a member)
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
             
-            // Mock group members for balance calculation (DataFetcher calls userService.getMembersFromSubcollection)
-            mockUserService.getMembersFromSubcollection.mockResolvedValue([
+            // Mock group members for balance calculation (DataFetcher calls userService.getAllGroupMembers)
+            mockUserService.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'member', memberStatus: 'active' }
             ]);
 

@@ -56,14 +56,14 @@ describe('Concurrent Operations Integration Tests', () => {
 
             // Execute all member additions concurrently
             const addPromises = memberDocs.map(memberDoc => 
-                groupMemberService.createMemberSubcollection(testGroup.id, memberDoc)
+                groupMemberService.createMember(testGroup.id, memberDoc)
             );
 
             // All operations should complete successfully
             await Promise.all(addPromises);
 
             // Verify all members were added
-            const finalMembers = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(finalMembers).toHaveLength(4); // testUser1 (admin) + 3 new members
 
             const memberIds = finalMembers.map(m => m.userId);
@@ -79,26 +79,26 @@ describe('Concurrent Operations Integration Tests', () => {
                 .withThemeIndex(1)
                 .withInvitedBy(testUser1.uid)
                 .build();
-            await groupMemberService.createMemberSubcollection(testGroup.id, initialMember);
+            await groupMemberService.createMember(testGroup.id, initialMember);
 
             // Run concurrent operations: queries while adding/removing members
             const operations = [
                 // Query operations
-                () => groupMemberService.getMembersFromSubcollection(testGroup.id),
-                () => groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid),
+                () => groupMemberService.getAllGroupMembers(testGroup.id),
+                () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
                 () => groupMemberService.getUserGroupsViaSubcollection(testUser1.uid),
                 
                 // Modification operations
-                () => groupMemberService.createMemberSubcollection(testGroup.id, 
+                () => groupMemberService.createMember(testGroup.id, 
                     new GroupMemberDocumentBuilder(testUser3.uid, testGroup.id)
                         .withThemeIndex(2)
                         .withInvitedBy(testUser1.uid)
                         .build()
                 ),
-                () => groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+                () => groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                     memberRole: MemberRoles.ADMIN,
                 }),
-                () => groupMemberService.deleteMemberFromSubcollection(testGroup.id, testUser2.uid),
+                () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
             ];
 
             // Execute all operations concurrently
@@ -113,7 +113,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded).toBeGreaterThan(0); // At least some operations should succeed
             
             // System should be in a consistent state
-            const finalMembers = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
         });
 
@@ -123,17 +123,17 @@ describe('Concurrent Operations Integration Tests', () => {
                 .withThemeIndex(1)
                 .withInvitedBy(testUser1.uid)
                 .build();
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Execute multiple role updates concurrently
             const updatePromises = [
-                groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                     memberRole: MemberRoles.ADMIN,
                 }),
-                groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                     memberRole: MemberRoles.VIEWER,
                 }),
-                groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                     memberRole: MemberRoles.MEMBER,
                 }),
             ];
@@ -142,7 +142,7 @@ describe('Concurrent Operations Integration Tests', () => {
             await Promise.allSettled(updatePromises);
 
             // Verify member still exists with one of the roles
-            const updatedMember = await groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid);
+            const updatedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
             expect(updatedMember).toBeDefined();
             expect([MemberRoles.ADMIN, MemberRoles.VIEWER, MemberRoles.MEMBER]).toContain(updatedMember!.memberRole);
         });
@@ -159,7 +159,7 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             for (const memberDoc of memberDocs) {
-                await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+                await groupMemberService.createMember(testGroup.id, memberDoc);
             }
 
             // Create concurrent expenses
@@ -219,7 +219,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 .withThemeIndex(1)
                 .withInvitedBy(testUser1.uid)
                 .build();
-            await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+            await groupMemberService.createMember(testGroup.id, memberDoc);
 
             // Create expense
             await expenseService.createExpense(testUser1.uid, {
@@ -238,11 +238,11 @@ describe('Concurrent Operations Integration Tests', () => {
             // Simulate concurrent operations: balance queries and member removal
             const operations = [
                 // Balance-related queries that might be running
-                () => groupMemberService.getMembersFromSubcollection(testGroup.id),
+                () => groupMemberService.getAllGroupMembers(testGroup.id),
                 () => expenseService.listGroupExpenses(testGroup.id, testUser1.uid),
                 
                 // Member removal during balance calculation
-                () => groupMemberService.deleteMemberFromSubcollection(testGroup.id, testUser2.uid),
+                () => groupMemberService.deleteMember(testGroup.id, testUser2.uid),
             ];
 
             // Execute operations concurrently
@@ -254,7 +254,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded).toBeGreaterThan(0);
 
             // Check final state is consistent
-            const finalMembers = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
         });
     });
@@ -270,7 +270,7 @@ describe('Concurrent Operations Integration Tests', () => {
                 
                 // Add member
                 operations.push(
-                    groupMemberService.createMemberSubcollection(testGroup.id, 
+                    groupMemberService.createMember(testGroup.id, 
                         new GroupMemberDocumentBuilder(userId, testGroup.id)
                             .withThemeIndex(i % 10)
                             .withInvitedBy(testUser1.uid)
@@ -281,7 +281,7 @@ describe('Concurrent Operations Integration Tests', () => {
 
                 // Immediately try to remove (some will fail due to timing)
                 operations.push(
-                    groupMemberService.deleteMemberFromSubcollection(testGroup.id, userId)
+                    groupMemberService.deleteMember(testGroup.id, userId)
                     .then(() => ({ operation: 'remove', userId, success: true }))
                     .catch(error => ({ operation: 'remove', userId, success: false, error }))
                 );
@@ -294,7 +294,7 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(results).toHaveLength(iterations * 2);
             
             // Final state should be consistent
-            const finalMembers = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
             expect(finalMembers.length).toBeGreaterThanOrEqual(1); // At least testUser1 should remain
             
@@ -317,7 +317,7 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             for (const memberDoc of memberDocs) {
-                await groupMemberService.createMemberSubcollection(testGroup.id, memberDoc);
+                await groupMemberService.createMember(testGroup.id, memberDoc);
             }
 
             // Run concurrent collectionGroup queries while modifying data
@@ -326,11 +326,11 @@ describe('Concurrent Operations Integration Tests', () => {
             );
 
             const modificationPromises = [
-                groupMemberService.updateMemberInSubcollection(testGroup.id, testUser2.uid, {
+                groupMemberService.updateMember(testGroup.id, testUser2.uid, {
                     memberRole: MemberRoles.ADMIN,
                 }),
-                groupMemberService.deleteMemberFromSubcollection(testGroup.id, testUser3.uid),
-                groupMemberService.createMemberSubcollection(testGroup.id, 
+                groupMemberService.deleteMember(testGroup.id, testUser3.uid),
+                groupMemberService.createMember(testGroup.id, 
                     new GroupMemberDocumentBuilder(users[5].uid, testGroup.id)
                         .withThemeIndex(4)
                         .withInvitedBy(testUser1.uid)
@@ -360,7 +360,7 @@ describe('Concurrent Operations Integration Tests', () => {
     describe('Error Recovery During Concurrent Operations', () => {
         test('should handle partial failures gracefully', async () => {
             // Add a member first
-            await groupMemberService.createMemberSubcollection(testGroup.id, 
+            await groupMemberService.createMember(testGroup.id, 
                 new GroupMemberDocumentBuilder(testUser2.uid, testGroup.id)
                     .withThemeIndex(1)
                     .withInvitedBy(testUser1.uid)
@@ -370,12 +370,12 @@ describe('Concurrent Operations Integration Tests', () => {
             // Create operations where some will succeed and some will fail
             const operations = [
                 // Valid operations
-                () => groupMemberService.getMembersFromSubcollection(testGroup.id),
-                () => groupMemberService.getMemberFromSubcollection(testGroup.id, testUser2.uid),
+                () => groupMemberService.getAllGroupMembers(testGroup.id),
+                () => groupMemberService.getGroupMember(testGroup.id, testUser2.uid),
                 
                 // Operations that will fail - trying to access non-existent member
-                () => groupMemberService.getMemberFromSubcollection(testGroup.id, 'non-existent-user-id'),
-                () => groupMemberService.updateMemberInSubcollection(testGroup.id, 'non-existent-user-id', {
+                () => groupMemberService.getGroupMember(testGroup.id, 'non-existent-user-id'),
+                () => groupMemberService.updateMember(testGroup.id, 'non-existent-user-id', {
                     memberRole: MemberRoles.ADMIN,
                 }),
             ];
@@ -391,11 +391,11 @@ describe('Concurrent Operations Integration Tests', () => {
             expect(succeeded.length + failed.length).toBe(operations.length);
 
             // Verify valid operations returned expected results
-            expect(results[0].status).toBe('fulfilled'); // getMembersFromSubcollection should succeed
-            expect(results[1].status).toBe('fulfilled'); // getMemberFromSubcollection for existing user should succeed
+            expect(results[0].status).toBe('fulfilled'); // getAllGroupMembers should succeed
+            expect(results[1].status).toBe('fulfilled'); // getGroupMember for existing user should succeed
 
             // System should still be in valid state
-            const finalMembers = await groupMemberService.getMembersFromSubcollection(testGroup.id);
+            const finalMembers = await groupMemberService.getAllGroupMembers(testGroup.id);
             expect(Array.isArray(finalMembers)).toBe(true);
             expect(finalMembers.some(m => m.userId === testUser2.uid)).toBe(true);
         });

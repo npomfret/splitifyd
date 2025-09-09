@@ -17,38 +17,37 @@ describe('FirestoreReader Integration Tests', () => {
     const firestoreReader = new FirestoreReader(getFirestore());
 
     describe('getGroupsForUser', () => {
-        test('should return groups for user using subcollection architecture', async () => {
+        test('should return groups for user using V2 top-level collection architecture', async () => {
             // Create fresh user for this specific test
             const testUser = await apiDriver.createUser(
                 new UserRegistrationBuilder()
-                    .withEmail(`firestore-test-subcollection-${Date.now()}@test.com`)
-                    .withDisplayName('Test User Subcollection')
+                    .withEmail(`firestore-test-v2-${Date.now()}@test.com`)
+                    .withDisplayName('Test User V2')
                     .build()
             );
 
-            // Create a group using the API (which properly creates subcollections)
+            // Create a group using the API (which now creates both subcollection and top-level membership)
             const groupRequest = new CreateGroupRequestBuilder()
-                .withName('FirestoreReader Test Group')
-                .withDescription('Test group for FirestoreReader integration')
+                .withName('FirestoreReader Test Group V2')
+                .withDescription('Test group for FirestoreReader V2 integration')
                 .build();
 
             const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
             const groupId = createResponse.id;
 
-            // Now test FirestoreReader.getGroupsForUser
-            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
+            // Test the V2 method which queries the top-level GROUP_MEMBERSHIPS collection
+            const paginatedGroups = await firestoreReader.getGroupsForUserV2(testUser.uid);
 
             // Should find the created group
             expect(paginatedGroups.data).toHaveLength(1);
             expect(paginatedGroups.data[0].id).toBe(groupId);
-            expect(paginatedGroups.data[0].name).toBe('FirestoreReader Test Group');
+            expect(paginatedGroups.data[0].name).toBe('FirestoreReader Test Group V2');
             expect(paginatedGroups.hasMore).toBe(false);
 
-            // This test would have FAILED before the fix because:
-            // 1. Old implementation: .where(`members.${userId}`, '!=', null)
-            // 2. New subcollections don't have members field on Group document
-            // 3. Query would return empty array
-            // 4. Test would fail: expect(groups).toHaveLength(1) ❌ but got 0
+            // This tests the V2 implementation that uses:
+            // 1. Top-level GROUP_MEMBERSHIPS collection query
+            // 2. Database-level ordering for proper pagination
+            // 3. Improved performance for large user datasets
         });
 
         test('should return empty array for user with no groups', async () => {
@@ -60,18 +59,18 @@ describe('FirestoreReader Integration Tests', () => {
                     .build()
             );
 
-            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid);
+            const paginatedGroups = await firestoreReader.getGroupsForUserV2(testUser.uid);
 
             expect(paginatedGroups.data).toHaveLength(0);
             expect(paginatedGroups.hasMore).toBe(false);
         });
 
-        test('should handle pagination options correctly', async () => {
+        test('should handle pagination options correctly with V2 method', async () => {
             // Create a fresh user specifically for this pagination test
             const testUser = await apiDriver.createUser(
                 new UserRegistrationBuilder()
-                    .withEmail(`firestore-test-pagination-${Date.now()}@test.com`)
-                    .withDisplayName('Test User Pagination')
+                    .withEmail(`firestore-test-pagination-v2-${Date.now()}@test.com`)
+                    .withDisplayName('Test User Pagination V2')
                     .build()
             );
 
@@ -90,20 +89,21 @@ describe('FirestoreReader Integration Tests', () => {
             }
 
             // Test limit - should return paginated result with hasMore=true
-            const limitedGroups = await firestoreReader.getGroupsForUser(testUser.uid, { limit: 2 });
+            const limitedGroups = await firestoreReader.getGroupsForUserV2(testUser.uid, { limit: 2 });
             expect(limitedGroups.data).toHaveLength(2);
             expect(limitedGroups.hasMore).toBe(true);
             expect(limitedGroups.nextCursor).toBeDefined();
 
-            // Test ordering
-            const paginatedGroups = await firestoreReader.getGroupsForUser(testUser.uid, {
-                orderBy: { field: 'name', direction: 'asc' }
+            // Test getting all groups (V2 uses database-level ordering by groupUpdatedAt)
+            const allGroups = await firestoreReader.getGroupsForUserV2(testUser.uid, {
+                orderBy: { field: 'updatedAt', direction: 'desc' }
             });
-            expect(paginatedGroups.data).toHaveLength(3);
-            expect(paginatedGroups.data[0].name).toBe('Group A');
-            expect(paginatedGroups.data[1].name).toBe('Group B');
-            expect(paginatedGroups.data[2].name).toBe('Group C');
-            expect(paginatedGroups.hasMore).toBe(false);
+            expect(allGroups.data).toHaveLength(3);
+            expect(allGroups.hasMore).toBe(false);
+            
+            // Verify all created groups are present
+            const groupNamesInResult = allGroups.data.map(g => g.name).sort();
+            expect(groupNamesInResult).toEqual(['Group A', 'Group B', 'Group C']);
         });
     });
 

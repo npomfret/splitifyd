@@ -12,7 +12,7 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import {MemberRoles} from "@splitifyd/shared";
 import {DataFetcher} from "./balance/DataFetcher";
-import { getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
     private balanceService: BalanceCalculationService;
@@ -53,7 +53,7 @@ export class GroupMemberService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        const memberDoc = await this.firestoreReader.getMemberFromSubcollection(groupId, userId);
+        const memberDoc = await this.firestoreReader.getGroupMember(groupId, userId);
         if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
         }
@@ -62,7 +62,7 @@ export class GroupMemberService {
             throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
         }
 
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         if (memberDocs.length === 1) {
             throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
         }
@@ -105,15 +105,7 @@ export class GroupMemberService {
             updatedAt: FieldValue.serverTimestamp(),
         });
 
-        // Also remove from subcollection
-        await this.deleteMemberFromSubcollection(groupId, userId);
-
-        // NEW: Also delete from top-level collection
-        const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-        const topLevelRef = getFirestore()
-            .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-            .doc(topLevelDocId);
-        await topLevelRef.delete();
+        await this.deleteMember(groupId, userId);
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-left', { id: userId, groupId });
@@ -149,7 +141,7 @@ export class GroupMemberService {
             throw Errors.FORBIDDEN();
         }
 
-        const memberDoc = await this.firestoreReader.getMemberFromSubcollection(groupId, memberId);
+        const memberDoc = await this.firestoreReader.getGroupMember(groupId, memberId);
         if (!memberDoc) {
             throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
         }
@@ -198,14 +190,7 @@ export class GroupMemberService {
         });
 
         // Also remove from subcollection
-        await this.deleteMemberFromSubcollection(groupId, memberId);
-
-        // NEW: Also delete from top-level collection
-        const topLevelDocId = getTopLevelMembershipDocId(memberId, groupId);
-        const topLevelRef = getFirestore()
-            .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-            .doc(topLevelDocId);
-        await topLevelRef.delete();
+        await this.deleteMember(groupId, memberId);
 
         LoggerContext.setBusinessContext({ groupId });
         logger.info('member-removed', { id: memberId, groupId });
@@ -221,26 +206,30 @@ export class GroupMemberService {
     // ========================================================================
 
     /**
-     * Create a member document in the subcollection
-     * Path: groups/{groupId}/members/{userId}
+     * Create a member document in the top-level collection
+     * Path: group-memberships/{userId}_{groupId}
      */
-    async createMemberSubcollection(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
+    async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
         return measureDb(
             'CREATE_MEMBER',
             async () => {
-                const memberRef = getFirestore()
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .doc(memberDoc.userId);
+                const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+                const topLevelRef = getFirestore()
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .doc(topLevelDocId);
 
-                await memberRef.set({
-                    ...memberDoc,
+                const topLevelMemberDoc = createTopLevelMembershipDocument(
+                    memberDoc,
+                    new Date().toISOString()
+                );
+
+                await topLevelRef.set({
+                    ...topLevelMemberDoc,
                     createdAt: createOptimisticTimestamp(),
                     updatedAt: createOptimisticTimestamp(),
                 });
 
-                logger.info('Member added to subcollection', { 
+                logger.info('Member added to top-level collection', { 
                     groupId, 
                     userId: memberDoc.userId,
                     memberRole: memberDoc.memberRole 
@@ -250,40 +239,39 @@ export class GroupMemberService {
     }
 
     /**
-     * Get a single member from subcollection
-     * @deprecated Use firestoreReader.getMemberFromSubcollection() instead
+     * Get a single member from a group
+     * @deprecated Use firestoreReader.getGroupMember() instead
      */
-    async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        return this.firestoreReader.getMemberFromSubcollection(groupId, userId);
+    async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
+        return this.firestoreReader.getGroupMember(groupId, userId);
     }
 
     /**
-     * Get all members for a group from subcollection
-     * @deprecated Use firestoreReader.getMembersFromSubcollection() instead
+     * Get all members for a group
+     * @deprecated Use firestoreReader.getAllGroupMembers() instead
      */
-    async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
-        return this.firestoreReader.getMembersFromSubcollection(groupId);
+    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
+        return this.firestoreReader.getAllGroupMembers(groupId);
     }
 
     /**
-     * Update a member in the subcollection
+     * Update a member in the top-level collection
      */
-    async updateMemberInSubcollection(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
+    async updateMember(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
         return measureDb(
             'UPDATE_MEMBER',
             async () => {
-                const memberRef = getFirestore()
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .doc(userId);
+                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+                const topLevelRef = getFirestore()
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .doc(topLevelDocId);
 
-                await memberRef.update({
+                await topLevelRef.update({
                     ...updates,
                     updatedAt: createOptimisticTimestamp(),
                 });
 
-                logger.info('Member updated in subcollection', { 
+                logger.info('Member updated in top-level collection', { 
                     groupId, 
                     userId,
                     updates: Object.keys(updates)
@@ -293,46 +281,44 @@ export class GroupMemberService {
     }
 
     /**
-     * Delete a member from the subcollection
+     * Delete a member from top-level collection
      */
-    async deleteMemberFromSubcollection(groupId: string, userId: string): Promise<void> {
+    async deleteMember(groupId: string, userId: string): Promise<void> {
         return measureDb(
             'DELETE_MEMBER',
             async () => {
-                const memberRef = getFirestore()
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(groupId)
-                    .collection('members')
-                    .doc(userId);
-
-                await memberRef.delete();
+                const topLevelRef = getFirestore()
+                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                    .doc(getTopLevelMembershipDocId(userId, groupId));
+                
+                await topLevelRef.delete();
 
                 // Remove notification tracking for departed member
                 await this.notificationService.removeUserFromGroup(userId, groupId);
 
-                logger.info('Member deleted from subcollection', { groupId, userId });
+                logger.info('Member deleted from top-level collection', { groupId, userId });
             }
         );
     }
 
     /**
-     * Get all groups for a user using scalable collectionGroup query
-     * @deprecated Use firestoreReader.getGroupsForUser() instead
+     * Get all groups for a user using top-level collection query
+     * @deprecated Use firestoreReader.getGroupsForUserV2() instead
      */
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
         // Use a high limit to maintain backward compatibility 
         // This method is expected to return ALL groups for a user
-        const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, { limit: 1000 });
+        const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, { limit: 1000 });
         return paginatedGroups.data.map((group: any) => group.id);
     }
 
     async isGroupMemberAsync(groupId: string, userId: string): Promise<boolean> {
-        const member = await this.getMemberFromSubcollection(groupId, userId);
+        const member = await this.getGroupMember(groupId, userId);
         return member !== null;
     }
 
     async isGroupOwnerAsync(groupId: string, userId: string): Promise<boolean> {
-        const member = await this.getMemberFromSubcollection(groupId, userId);
+        const member = await this.getGroupMember(groupId, userId);
         return member?.memberRole === MemberRoles.ADMIN || false;
     }
 }

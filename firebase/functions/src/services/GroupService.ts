@@ -382,13 +382,13 @@ export class GroupService {
 
         // Step 4: Batch fetch user profiles and create member mapping
         const { allMemberProfiles, membersByGroup } = await (async () => {
-            // Batch fetch user profiles for all members across all groups using subcollections
+            // Batch fetch user profiles for all members across all groups
             const allMemberIds = new Set<string>();
             const membersByGroup = new Map<string, string[]>();
             
-            // Fetch members for each group from subcollections
+            // Fetch members for each group
             const memberPromises = groups.map((group: Group) => 
-                this.groupMemberService.getMembersFromSubcollection(group.id)
+                this.groupMemberService.getAllGroupMembers(group.id)
             );
             const membersArrays = await Promise.all(memberPromises);
             
@@ -624,12 +624,7 @@ export class GroupService {
             throw Errors.INVALID_INPUT();
         }
 
-        // Pre-calculate member subcollection data outside transaction for speed
-        const memberRef = getFirestore()
-            .collection(FirestoreCollections.GROUPS)
-            .doc(docRef.id)
-            .collection('members')
-            .doc(userId);
+        // Pre-calculate member data outside transaction for speed
             
         const memberDoc: GroupMemberDocument = {
             userId: userId,
@@ -655,14 +650,7 @@ export class GroupService {
                 docRef.id,
                 documentToWrite
             );
-            this.firestoreWriter.createInTransaction(
-                transaction,
-                `${FirestoreCollections.GROUPS}/${docRef.id}/members`,
-                userId,
-                memberDocWithTimestamps
-            );
-            
-            // NEW: Also write to top-level collection for improved querying
+            // Write to top-level collection for improved querying
             const topLevelMemberDoc = createTopLevelMembershipDocument(
                 memberDoc,
                 timestampToISO(now)
@@ -781,7 +769,7 @@ export class GroupService {
         const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Get member list BEFORE deletion for change tracking
-        const memberDocs = await this.firestoreReader.getMembersFromSubcollection(groupId);
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
         
         logger.info('Initiating hard delete for group', { 
@@ -850,18 +838,36 @@ export class GroupService {
             snapshot.docs.forEach(doc => documentPaths.push(doc.ref.path));
         });
 
-        // Delete members
+        // Delete members from top-level collection
         if (memberDocs) {
             memberDocs.forEach(memberDoc => {
-                const memberPath = `${FirestoreCollections.GROUPS}/${groupId}/members/${memberDoc.userId}`;
-                documentPaths.push(memberPath);
+                const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+                const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
+                documentPaths.push(topLevelPath);
             });
         }
 
         // Delete main group document last
         documentPaths.push(docRef.path);
 
-        // Execute bulk deletion
+        // PHASE 4: Clean up notifications for all members before deletion
+        logger.info('Cleaning up notifications for all group members', { groupId, memberCount: memberIds.length });
+        if (memberDocs && memberDocs.length > 0) {
+            for (const memberDoc of memberDocs) {
+                try {
+                    await this.notificationService.removeUserFromGroup(memberDoc.userId, groupId);
+                } catch (error) {
+                    logger.warn('Failed to remove user from group notifications during group deletion', {
+                        groupId,
+                        userId: memberDoc.userId,
+                        error: error instanceof Error ? error.message : String(error)
+                    });
+                    // Continue with other members - don't fail the entire deletion
+                }
+            }
+        }
+
+        // PHASE 5: Execute bulk deletion
         logger.info('Executing bulk deletion operations', { groupId, totalDocuments });
         const bulkDeleteResult = await this.firestoreWriter.bulkDelete(documentPaths);
         

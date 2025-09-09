@@ -88,8 +88,8 @@ export class DataFetcher {
             throw new Error('Group not found');
         }
 
-        // Fetch members from subcollection
-        const memberDocs = await this.userService.getMembersFromSubcollection(groupId);
+        // Fetch members from group membership collection
+        const memberDocs = await this.userService.getAllGroupMembers(groupId);
         if (memberDocs.length === 0) {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }

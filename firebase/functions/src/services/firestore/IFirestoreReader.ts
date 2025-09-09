@@ -124,19 +124,20 @@ export interface IFirestoreReader {
     getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]>;
 
     /**
-     * Get a single member from group's member subcollection
+     * Get a single member from a group
      * @param groupId - The group ID
      * @param userId - The user ID to find
      * @returns Group member document or null if not found
      */
-    getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null>;
+    getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null>;
 
     /**
-     * Get all members for a group from the member subcollection
+     * Get all members for a group (simplified method)
      * @param groupId - The group ID
      * @returns Array of group member documents
      */
-    getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]>;
+    getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]>;
+
 
     // ========================================================================
     // Collection Read Operations - Expense-related
