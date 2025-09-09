@@ -10,7 +10,7 @@ import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/f
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
-import { measureDb, measureApi } from '../../monitoring/measure';
+import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp } from '../../utils/dateHelpers';
 
 // Import all schemas for validation

@@ -4,7 +4,6 @@ import { validateFirestoreDocument, validateBeforeWrite } from '../schemas/valid
 import { getValidationMetrics } from '../schemas/validation-monitor';
 import { ContextualLogger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { logger } from '../logger';
 
 /**

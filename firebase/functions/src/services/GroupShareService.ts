@@ -8,7 +8,7 @@ import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, Memb
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDataSchema } from '../schemas/sharelink';
 import { getGroupMemberService } from './serviceRegistration';

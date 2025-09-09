@@ -5,7 +5,7 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**

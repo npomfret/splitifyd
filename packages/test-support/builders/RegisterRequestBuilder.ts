@@ -2,8 +2,7 @@ import {
     randomString, 
     randomChoice, 
     randomEmail, 
-    randomBoolean,
-    generateShortId 
+    randomBoolean
 } from '../test-helpers';
 
 export interface RegisterRequest {

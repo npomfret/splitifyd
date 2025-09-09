@@ -1,5 +1,5 @@
 
-import { FieldValue, Filter, Query } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
@@ -17,7 +17,7 @@ import {
     FirestoreCollections,
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import { getGroupMemberService } from './serviceRegistration';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { SettlementDocumentSchema } from '../schemas/settlement';

@@ -4,7 +4,7 @@
 
 import {getFirestore} from '../firebase';
 import { logger } from '../logger';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 
 /**
  * Recursively removes undefined values from an object before saving to Firestore.

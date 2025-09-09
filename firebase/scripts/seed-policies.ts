@@ -2,7 +2,6 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import * as admin from 'firebase-admin';
 import { Firestore } from 'firebase-admin/firestore';
 import assert from 'node:assert';
 import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';

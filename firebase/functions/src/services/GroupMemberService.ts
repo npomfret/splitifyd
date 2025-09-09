@@ -6,7 +6,7 @@ import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
-import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 

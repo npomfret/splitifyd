@@ -13,7 +13,6 @@ import { getFirestore } from '../../firebase';
 import { getFirestoreReader } from '../../services/serviceRegistration';
 import { ApiDriver, CreateGroupRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
-import type { Firestore } from 'firebase-admin/firestore';
 import { setupTestServices } from '../test-helpers/setup';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {

@@ -1,7 +1,6 @@
-import { FirestoreCollections, MemberRoles, UserThemeColor, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
+import { MemberRoles, UserThemeColor, USER_COLORS, COLOR_PATTERNS } from '@splitifyd/shared';
 import { ApiError } from './errors';
 import { HTTP_STATUS } from '../constants';
-import {getFirestore} from '../firebase';
 import { getGroupMemberService, getFirestoreReader } from '../services/serviceRegistration';
 
 /**

@@ -8,7 +8,7 @@ import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
 import {isGroupMemberAsync} from '../utils/groupHelpers';
-import { measureDb, measureApi } from '../monitoring/measure';
+import { measureDb } from '../monitoring/measure';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
 import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
