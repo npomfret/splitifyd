@@ -88,6 +88,12 @@ export {
     type ParsedGroupMemberDocument,
 } from './group';
 
+// Group membership schemas
+export {
+    TopLevelGroupMemberSchema,
+    type ParsedTopLevelGroupMemberDocument,
+} from './group-membership';
+
 // Validation monitoring and utilities
 export {
     validateWithMonitoring,

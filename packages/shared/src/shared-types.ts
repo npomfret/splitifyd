@@ -25,6 +25,8 @@ export const FirestoreCollections = {
     // Note: GROUP_CHANGES removed as it was unused
     TRANSACTION_CHANGES: 'transaction-changes',
     BALANCE_CHANGES: 'balance-changes',
+    // Group membership top-level collection
+    GROUP_MEMBERSHIPS: 'group-memberships',
 } as const;
 
 // Type-safe collection names
@@ -375,6 +377,29 @@ export interface GroupMemberDocument {
     memberStatus: MemberStatus;
     invitedBy?: string; // UID of the user who created the share link that was used to join
     lastPermissionChange?: string; // ISO string - Track permission updates
+}
+
+/**
+ * Document structure for top-level group memberships collection: group-memberships/{userId}_{groupId}
+ * This enables efficient pagination queries ordered by group activity
+ */
+export interface TopLevelGroupMemberDocument {
+    // Core membership data (identical to subcollection)
+    userId: string;
+    groupId: string;
+    memberRole: MemberRole;
+    memberStatus: MemberStatus;
+    joinedAt: string;
+    theme: UserThemeColor;
+    invitedBy?: string;
+    lastPermissionChange?: string;
+    
+    // Essential denormalized field for database-level sorting
+    groupUpdatedAt: string;  // From group.updatedAt - enables proper ordering
+    
+    // Standard metadata
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface ShareLink {
