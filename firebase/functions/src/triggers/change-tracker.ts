@@ -4,7 +4,7 @@ import { getChangedFields, getGroupChangedFields, calculatePriority, ChangeType 
 import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureTrigger } from '../monitoring/measure';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
 import {getFirestore} from "../firebase";
 import {IFirestoreReader} from "../services/firestore";
@@ -36,10 +36,7 @@ export const trackGroupChanges = onDocumentWritten(
             return;
         }
 
-        return PerformanceMonitor.monitorTriggerExecution(
-            'CHANGE_TRACKER',
-            documentPath,
-            async (stepTracker) => {
+        return measureTrigger('trackGroupChanges', async () => {
                 // Get changed fields (groups use flat structure)
                 const changedFields = getGroupChangedFields(before, after);
 
@@ -47,7 +44,7 @@ export const trackGroupChanges = onDocumentWritten(
                 calculatePriority(changeType, changedFields, 'group');
 
                 // Get affected users from the group subcollection
-                const affectedUsers: string[] = await stepTracker('member-fetch', async () => {
+                const affectedUsers = await (async (): Promise<string[]> => {
                     const users: string[] = [];
                     
                     // For CREATE/UPDATE events, query the current subcollection using FirestoreReader
@@ -72,16 +69,12 @@ export const trackGroupChanges = onDocumentWritten(
                     }
                     
                     return users;
-                });
+                })();
 
                 // Update user notifications for CREATE/UPDATE events
-                await stepTracker('notification-update', async () => {
-                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
-                    logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
-                });
-            },
-            { changeType, changedFieldsCount: Object.keys(getGroupChangedFields(before, after)).length }
-        );
+                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
+                logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+        });
     },
 );
 
@@ -153,10 +146,7 @@ export const trackSettlementChanges = onDocumentWritten(
         const { before, after, changeType } = extractDataChange(event);
         const documentPath = `settlements/${settlementId}`;
 
-        return PerformanceMonitor.monitorTriggerExecution(
-            'CHANGE_TRACKER',
-            documentPath,
-            async (stepTracker) => {
+        return measureTrigger('trackGroupChanges', async () => {
                 const beforeData = before?.data();
                 const afterData = after?.data();
 
@@ -168,7 +158,7 @@ export const trackSettlementChanges = onDocumentWritten(
                 }
 
                 // Get affected users (payerId and payeeId for API settlements, or from/to for legacy)
-                const affectedUsers: string[] = await stepTracker('user-extraction', async () => {
+                const affectedUsers = await (async (): Promise<string[]> => {
                     const users = new Set<string>();
 
                     if (afterData) {
@@ -187,20 +177,16 @@ export const trackSettlementChanges = onDocumentWritten(
                     }
 
                     return Array.from(users);
-                });
+                })();
 
                 // Update user notifications for transaction and balance changes
-                await stepTracker('notification-update', async () => {
-                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
-                    await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
-                    
-                    logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
-                });
+                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
+                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
+                
+                logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
 
                 return { groupId, affectedUserCount: affectedUsers.length };
-            },
-            { changeType, entityType: 'settlement' }
-        );
+        });
     },
 );
 

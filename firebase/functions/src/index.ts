@@ -28,32 +28,21 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
+import { metrics } from './monitoring/lightweight-metrics';
 
-// Initialize service registry - moved to lazy initialization below
+// Initialize service registry
 import { registerAllServices } from './services/serviceRegistration';
-import { createMetricsStorage } from './utils/metrics-storage-factory';
-import type { IMetricsStorage } from './utils/metrics-storage-factory';
 
 // Lazy initialization flags
 let servicesRegistered = false;
-let metricsStorageInstance: IMetricsStorage | null = null;
 
 // Get Firebase instances normally
 const firestoreDb = getFirestore();
 
-// Get or create the single metrics storage instance
-function getMetricsStorage(): IMetricsStorage {
-    if (!metricsStorageInstance) {
-        metricsStorageInstance = createMetricsStorage();
-    }
-    return metricsStorageInstance;
-}
-
 // Ensure services are registered before handling any request
 function ensureServicesRegistered() {
     if (!servicesRegistered) {
-        const metricsStorage = getMetricsStorage();
-        registerAllServices(metricsStorage, firestoreDb);
+        registerAllServices(firestoreDb);
         servicesRegistered = true;
     }
 }
@@ -61,8 +50,7 @@ function ensureServicesRegistered() {
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
 import { cleanupChanges } from './scheduled/cleanup';
-import { aggregateMetrics, aggregateMetricsDaily } from './scheduled/metrics-aggregation';
-import { cleanupMetrics, aggressiveMetricsCleanup } from './scheduled/metrics-cleanup';
+import { logMetrics } from './scheduled/metrics-logger';
 
 // Removed emulator connection test at module level to prevent connection creation
 // The emulator connection will be tested lazily when first needed
@@ -137,6 +125,49 @@ function setupRoutes(app: express.Application): void {
             nodeVersion: process.version,
             environment: process.env.NODE_ENV!,
         });
+    });
+
+    // Performance metrics endpoint (for monitoring current stats)
+    app.get('/metrics', (req: express.Request, res: express.Response) => {
+        const snapshot = metrics.getSnapshot();
+        
+        // Calculate aggregated stats for each metric type
+        const calculateStats = (metricsList: any[]) => {
+            if (!metricsList.length) return null;
+            
+            const durations = metricsList.map(m => m.duration).sort((a, b) => a - b);
+            const successCount = metricsList.filter(m => m.success).length;
+            
+            return {
+                count: metricsList.length,
+                successRate: successCount / metricsList.length,
+                avgDuration: Math.round(durations.reduce((a, b) => a + b, 0) / durations.length),
+                p50: durations[Math.floor(durations.length * 0.5)] || 0,
+                p95: durations[Math.floor(durations.length * 0.95)] || 0,
+                p99: durations[Math.floor(durations.length * 0.99)] || 0,
+                minDuration: durations[0] || 0,
+                maxDuration: durations[durations.length - 1] || 0
+            };
+        };
+
+        const report = {
+            timestamp: new Date().toISOString(),
+            samplingRate: '5%',
+            bufferSize: 100,
+            metrics: {
+                api: calculateStats(snapshot.api),
+                db: calculateStats(snapshot.db), 
+                trigger: calculateStats(snapshot.trigger)
+            },
+            rawCounts: {
+                api: snapshot.api.length,
+                db: snapshot.db.length,
+                trigger: snapshot.trigger.length,
+                total: snapshot.api.length + snapshot.db.length + snapshot.trigger.length
+            }
+        };
+
+        res.json(report);
     });
 
     // Environment variables endpoint (for debugging)
@@ -411,8 +442,8 @@ export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
 // Create notification triggers with shared metrics storage
 import { createNotificationTriggers } from './triggers/notification-triggers';
 
-// Initialize notification triggers with shared metrics storage
-const notificationTriggers = createNotificationTriggers(getMetricsStorage());
+// Initialize notification triggers
+const notificationTriggers = createNotificationTriggers();
 
 // Export notification triggers for user lifecycle events
 export const { 
@@ -425,10 +456,7 @@ export const {
 // Export scheduled functions
 export { 
     cleanupChanges,
-    aggregateMetrics,
-    aggregateMetricsDaily,
-    cleanupMetrics,
-    aggressiveMetricsCleanup
+    logMetrics
 };
 
 // Export test endpoints (only work in non-production)

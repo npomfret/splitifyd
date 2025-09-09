@@ -4,7 +4,7 @@ import { validateFirestoreDocument, validateBeforeWrite } from '../schemas/valid
 import { getValidationMetrics } from '../schemas/validation-monitor';
 import { ContextualLogger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { logger } from '../logger';
 
 /**
@@ -55,29 +55,18 @@ export class FirestoreValidationService {
             additionalContext?: Record<string, any>;
         } = {}
     ): z.infer<T> {
-        return PerformanceMonitor.monitorSyncValidation(
-            'schema',
-            schemaName,
-            () => {
-                // Set business context for logging
-                LoggerContext.update({
-                    documentId: doc.id,
-                    collection: doc.ref.parent.id,
-                    operation: context.operation || 'read',
-                });
+        // Set business context for logging
+        LoggerContext.update({
+            documentId: doc.id,
+            collection: doc.ref.parent.id,
+            operation: context.operation || 'read',
+        });
 
-                if (context.userId) {
-                    LoggerContext.update({ userId: context.userId });
-                }
+        if (context.userId) {
+            LoggerContext.update({ userId: context.userId });
+        }
 
-                return validateFirestoreDocument(schema, doc, schemaName, this.logger);
-            },
-            {
-                documentId: doc.id,
-                collection: doc.ref.parent.id,
-                userId: context.userId
-            }
-        );
+        return validateFirestoreDocument(schema, doc, schemaName, this.logger);
     }
 
     /**
@@ -100,34 +89,23 @@ export class FirestoreValidationService {
             additionalContext?: Record<string, any>;
         } = {}
     ): z.infer<T> {
-        return PerformanceMonitor.monitorSyncValidation(
-            'schema',
-            schemaName,
-            () => {
-                // Set business context for logging
-                LoggerContext.update({
-                    operation: context.operation || 'write',
-                    documentId: context.documentId,
-                    collection: context.collection,
-                });
+        // Set business context for logging
+        LoggerContext.update({
+            operation: context.operation || 'write',
+            documentId: context.documentId,
+            collection: context.collection,
+        });
 
-                if (context.userId) {
-                    LoggerContext.update({ userId: context.userId });
-                }
+        if (context.userId) {
+            LoggerContext.update({ userId: context.userId });
+        }
 
-                return validateBeforeWrite(schema, data, schemaName, {
-                    documentId: context.documentId,
-                    collection: context.collection,
-                    userId: context.userId,
-                    logger: this.logger,
-                });
-            },
-            {
-                documentId: context.documentId,
-                collection: context.collection,
-                userId: context.userId
-            }
-        );
+        return validateBeforeWrite(schema, data, schemaName, {
+            documentId: context.documentId,
+            collection: context.collection,
+            userId: context.userId,
+            logger: this.logger,
+        });
     }
 
     /**

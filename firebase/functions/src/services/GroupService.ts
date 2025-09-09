@@ -13,9 +13,11 @@ import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
-import {PerformanceMonitor} from '../utils/performance-monitor';
+import { measureDb, measureApi } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { BalanceCalculationResult } from './balance';
+import type { UserProfile } from '../services/UserService2';
 
 /**
  * Service for managing group operations
@@ -280,12 +282,7 @@ export class GroupService {
             includeMetadata?: boolean;
         } = {},
     ): Promise<ListGroupsResponse> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupService',
-            'listGroups',
-            async () => this._listGroups(userId, options),
-            { userId, limit: options.limit }
-        );
+        return measureDb('listGroups', async () => this._listGroups(userId, options));
     }
 
     private async _listGroups(
@@ -297,17 +294,9 @@ export class GroupService {
             includeMetadata?: boolean;
         } = {},
     ): Promise<ListGroupsResponse> {
-        return PerformanceMonitor.monitorBatchOperation(
-            'list-groups',
-            async (stepTracker) => {
-                return this._executeListGroups(userId, options, stepTracker);
-            },
-            {
-                userId,
-                limit: options.limit,
-                includeMetadata: options.includeMetadata
-            }
-        );
+        return measureDb('list-groups', async () => {
+            return this._executeListGroups(userId, options);
+        });
     }
 
     private async _executeListGroups(
@@ -318,7 +307,6 @@ export class GroupService {
             order?: 'asc' | 'desc';
             includeMetadata?: boolean;
         } = {},
-        stepTracker: (stepName: string, stepOperation: () => Promise<any>) => Promise<any>
     ): Promise<ListGroupsResponse> {
         // Parse options with defaults
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
@@ -327,7 +315,7 @@ export class GroupService {
         const includeMetadata = options.includeMetadata === true;
 
         // Step 1: Query groups and metadata using FirestoreReader
-        const { paginatedGroups, recentGroupChanges } = await stepTracker('query-groups-and-metadata', async () => {
+        const { paginatedGroups } = await (async () => {
             // Get groups for user using FirestoreReader (returns PaginatedResult)
             // FirestoreReader already handles pagination internally
             const paginatedGroups = await this.firestoreReader.getGroupsForUser(userId, {
@@ -343,10 +331,10 @@ export class GroupService {
             return {
                 paginatedGroups
             };
-        });
+        })();
 
         // Step 2: Process group documents
-        const { groups, groupIds } = await stepTracker('process-group-documents', async () => {
+        const { groups, groupIds } = await (async () => {
             // Extract groups data from paginated result
             const groupsData = paginatedGroups.data;
             
@@ -368,16 +356,16 @@ export class GroupService {
             const groupIds = groups.map((group) => group.id);
             
             return { groups, groupIds };
-        });
+        })();
 
         // Step 3: Batch fetch group data
-        const { expenseMetadataByGroup } = await stepTracker('batch-fetch-group-data', async () => {
+        const { expenseMetadataByGroup } = await (async () => {
             // 🚀 PERFORMANCE FIX: Batch fetch all data for all groups in 3 queries instead of N×4
             return this.batchFetchGroupData(groupIds);
-        });
+        })();
 
         // Step 4: Batch fetch user profiles and create member mapping
-        const { allMemberProfiles, membersByGroup } = await stepTracker('batch-fetch-user-profiles', async () => {
+        const { allMemberProfiles, membersByGroup } = await (async () => {
             // Batch fetch user profiles for all members across all groups using subcollections
             const allMemberIds = new Set<string>();
             const membersByGroup = new Map<string, string[]>();
@@ -399,10 +387,10 @@ export class GroupService {
             const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
             
             return { allMemberProfiles, membersByGroup };
-        });
+        })();
 
         // Step 5: Calculate balances for groups with expenses
-        const balanceMap = await stepTracker('calculate-group-balances', async () => {
+        const balanceMap = await (async () => {
             // Calculate balances for groups that have expenses
             const groupsWithExpenses = groups.filter((group: Group) => {
                 const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
@@ -417,29 +405,29 @@ export class GroupService {
                         balancesByCurrency: {},
                         userBalances: {},
                         simplifiedDebts: [],
-                        lastUpdated: Timestamp.now(),
+                        lastUpdated: new Date().toISOString(),
                     };
                 })
             );
 
             const balanceResults = await Promise.all(balancePromises);
-            const balanceMap = new Map<string, import('./balance').BalanceCalculationResult>();
+            const balanceMap = new Map<string, BalanceCalculationResult>();
             groupsWithExpenses.forEach((group: Group, index: number) => {
                 balanceMap.set(group.id, balanceResults[index]);
             });
 
             return balanceMap;
-        });
+        })();
 
         // Step 6: Process each group using batched data - no more database calls!
-        const groupsWithBalances: Group[] = await stepTracker('process-groups-with-balances', async () => {
+        const groupsWithBalances: Group[] = await (async () => {
             return groups.map((group: Group) => {
             // Get pre-fetched data for this group (no database calls)
             const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
             // Get member profiles for this group
             const memberIds = membersByGroup.get(group.id) || [];
-            const memberProfiles = new Map<string, import('../services/UserService2').UserProfile>();
+            const memberProfiles = new Map<string, UserProfile>();
             for (const memberId of memberIds) {
                 const profile = allMemberProfiles.get(memberId);
                 if (profile) {
@@ -551,10 +539,10 @@ export class GroupService {
                 lastActivityRaw,
             };
             });
-        });
+        })();
 
         // Step 7: Generate pagination and response
-        return await stepTracker('generate-response', async () => {
+        return await (async () => {
             // Use pagination information from FirestoreReader
             const hasMore = paginatedGroups.hasMore;
             const nextCursor = paginatedGroups.nextCursor;
@@ -570,19 +558,10 @@ export class GroupService {
                 },
             };
 
-            // Add metadata if requested
-            if (includeMetadata && recentGroupChanges) {
-                const lastChange = recentGroupChanges[0]; // Already sorted by timestamp desc
-                response.metadata = {
-                    lastChangeTimestamp: lastChange?.timestamp?.toMillis?.() || 0,
-                    changeCount: recentGroupChanges.length,
-                    serverTime: Date.now(),
-                    hasRecentChanges: recentGroupChanges.length > 0,
-                };
-            }
+            // Metadata functionality removed as GROUP_CHANGES collection was unused
 
             return response;
-        });
+        })();
     }
 
     /**
@@ -590,11 +569,7 @@ export class GroupService {
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
     async createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupService',
-            'createGroup',
-            async () => this._createGroup(userId, groupData),
-            { userId }
+        return measureDb('createGroup', async () => this._createGroup(userId, groupData)
         );
     }
 
@@ -877,11 +852,7 @@ export class GroupService {
         lastUpdated: string;
         balancesByCurrency: Record<string, any>;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupService',
-            'getGroupBalances',
-            async () => this._getGroupBalances(groupId, userId),
-            { groupId, userId }
+        return measureDb('getGroupBalances', async () => this._getGroupBalances(groupId, userId)
         );
     }
 

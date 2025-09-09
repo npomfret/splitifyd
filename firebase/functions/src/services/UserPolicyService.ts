@@ -5,7 +5,7 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
 
 /**
@@ -68,12 +68,7 @@ export class UserPolicyService {
      * Accept a single policy version for a user
      */
     async acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserPolicyService',
-            'acceptPolicy',
-            async () => this._acceptPolicy(userId, policyId, versionHash),
-            { userId, policyId, versionHash }
-        );
+        return measureDb('UserPolicyService.acceptPolicy', async () => this._acceptPolicy(userId, policyId, versionHash));
     }
 
     private async _acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
@@ -112,12 +107,7 @@ export class UserPolicyService {
      * Accept multiple policy versions for a user
      */
     async acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserPolicyService',
-            'acceptMultiplePolicies',
-            async () => this._acceptMultiplePolicies(userId, acceptances),
-            { userId, count: acceptances.length }
-        );
+        return measureDb('UserPolicyService.acceptMultiplePolicies', async () => this._acceptMultiplePolicies(userId, acceptances));
     }
 
     private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {

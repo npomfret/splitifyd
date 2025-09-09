@@ -17,7 +17,7 @@ import {
     FirestoreCollections,
 } from '@splitifyd/shared';
 import { verifyGroupMembership } from '../utils/groupHelpers';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { getGroupMemberService } from './serviceRegistration';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { SettlementDocumentSchema } from '../schemas/settlement';
@@ -100,12 +100,7 @@ export class SettlementService {
      * Get a single settlement with user data
      */
     async getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
-        return PerformanceMonitor.monitorServiceCall(
-            'SettlementService',
-            'getSettlement',
-            async () => this._getSettlement(settlementId, userId),
-            { settlementId, userId }
-        );
+        return measureDb('SettlementService.getSettlement', async () => this._getSettlement(userId, settlementId));
     }
 
     private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
@@ -159,12 +154,7 @@ export class SettlementService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'SettlementService',
-            'listSettlements',
-            async () => this._listSettlements(groupId, userId, options),
-            { groupId, userId, limit: options.limit }
-        );
+        return measureDb('SettlementService.listSettlements', async () => this._listSettlements(groupId, userId, options));
     }
 
     private async _listSettlements(
@@ -195,12 +185,7 @@ export class SettlementService {
      * Create a new settlement
      */
     async createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
-        return PerformanceMonitor.monitorServiceCall(
-            'SettlementService',
-            'createSettlement',
-            async () => this._createSettlement(settlementData, userId),
-            { userId, groupId: settlementData.groupId, amount: settlementData.amount }
-        );
+        return measureDb('SettlementService.createSettlement', async () => this._createSettlement(settlementData, userId));
     }
 
     private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
@@ -253,12 +238,7 @@ export class SettlementService {
      * Update an existing settlement
      */
     async updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
-        return PerformanceMonitor.monitorServiceCall(
-            'SettlementService',
-            'updateSettlement',
-            async () => this._updateSettlement(settlementId, updateData, userId),
-            { settlementId, userId }
-        );
+        return measureDb('SettlementService.updateSettlement', async () => this._updateSettlement(settlementId, updateData, userId));
     }
 
     private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
@@ -353,12 +333,7 @@ export class SettlementService {
      * Delete a settlement
      */
     async deleteSettlement(settlementId: string, userId: string): Promise<void> {
-        return PerformanceMonitor.monitorServiceCall(
-            'SettlementService',
-            'deleteSettlement',
-            async () => this._deleteSettlement(settlementId, userId),
-            { settlementId, userId }
-        );
+        return measureDb('SettlementService.deleteSettlement', async () => this._deleteSettlement(settlementId, userId));
     }
 
     private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {

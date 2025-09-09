@@ -13,7 +13,7 @@ import {isMemberInArray} from '../utils/memberHelpers';
 import {getGroupMemberService} from './serviceRegistration';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
-import {PerformanceMonitor} from '../utils/performance-monitor';
+import { measureDb } from '../monitoring/measure';
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
@@ -132,12 +132,7 @@ export class ExpenseService {
      * Get a single expense by ID
      */
     async getExpense(expenseId: string, userId: string): Promise<any> {
-        return PerformanceMonitor.monitorServiceCall(
-            'ExpenseService',
-            'getExpense',
-            async () => this._getExpense(expenseId, userId),
-            { expenseId, userId }
-        );
+        return measureDb('ExpenseService.getExpense', async () => this._getExpense(expenseId, userId));
     }
 
     private async _getExpense(expenseId: string, userId: string): Promise<any> {
@@ -157,12 +152,7 @@ export class ExpenseService {
      * Create a new expense
      */
     async createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
-        return PerformanceMonitor.monitorServiceCall(
-            'ExpenseService',
-            'createExpense',
-            async () => this._createExpense(userId, expenseData),
-            { userId, groupId: expenseData.groupId, amount: expenseData.amount }
-        );
+        return measureDb('ExpenseService.createExpense', async () => this._createExpense(userId, expenseData));
     }
 
     private async _createExpense(userId: string, expenseData: CreateExpenseRequest): Promise<any> {
@@ -275,12 +265,7 @@ export class ExpenseService {
      * Update an existing expense
      */
     async updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
-        return PerformanceMonitor.monitorServiceCall(
-            'ExpenseService',
-            'updateExpense',
-            async () => this._updateExpense(expenseId, userId, updateData),
-            { expenseId, userId }
-        );
+        return measureDb('ExpenseService.updateExpense', async () => this._updateExpense(expenseId, userId, updateData));
     }
 
     private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
@@ -461,12 +446,7 @@ export class ExpenseService {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'ExpenseService',
-            'listGroupExpenses',
-            async () => this._listGroupExpenses(groupId, userId, options),
-            { groupId, userId, limit: options.limit, includeDeleted: options.includeDeleted }
-        );
+        return measureDb('ExpenseService.listGroupExpenses', async () => this._listGroupExpenses(groupId, userId, options));
     }
 
     private async _listGroupExpenses(
@@ -507,12 +487,7 @@ export class ExpenseService {
      * Delete an expense (soft delete)
      */
     async deleteExpense(expenseId: string, userId: string): Promise<void> {
-        return PerformanceMonitor.monitorServiceCall(
-            'ExpenseService',
-            'deleteExpense',
-            async () => this._deleteExpense(expenseId, userId),
-            { expenseId, userId }
-        );
+        return measureDb('ExpenseService.deleteExpense', async () => this._deleteExpense(expenseId, userId));
     }
 
     private async _deleteExpense(expenseId: string, userId: string): Promise<void> {

@@ -15,9 +15,7 @@ import { FirestoreReader } from './firestore/FirestoreReader';
 import { FirestoreWriter } from './firestore/FirestoreWriter';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { IMetricsStorage } from '../utils/metrics-storage-factory';
-import {getFirestore} from "../firebase";
-import {Firestore} from "firebase-admin/firestore";
+import { Firestore } from "firebase-admin/firestore";
 
 /**
  * Register all services with the ServiceRegistry
@@ -45,15 +43,11 @@ let firestoreWriterInstance: IFirestoreWriter | null = null;
 /**
  * Initialize all service registrations
  */
-export function registerAllServices(metricsStorage: IMetricsStorage, firestore: Firestore): void {
+export function registerAllServices(firestore: Firestore): void {
     const registry = ServiceRegistry.getInstance();
 
     const firestoreReader: IFirestoreReader = new FirestoreReader(firestore);
-    const firestoreWriter: IFirestoreWriter = new FirestoreWriter(firestore)
-
-    // Register MetricsStorage as a service
-    registry.registerService('MetricsStorage', () => metricsStorage);
-
+    const firestoreWriter: IFirestoreWriter = new FirestoreWriter(firestore);
     // Register services with factory functions for lazy initialization
     registry.registerService('UserService', () => {
         if (!userServiceInstance) {
@@ -213,10 +207,6 @@ export function getExpenseMetadataService(): ExpenseMetadataService {
 
 export function getFirestoreReader(): IFirestoreReader {
     return ServiceRegistry.getInstance().getService(SERVICE_NAMES.FIRESTORE_READER);
-}
-
-export function getMetricsStorage(): IMetricsStorage {
-    return ServiceRegistry.getInstance().getService(SERVICE_NAMES.METRICS_STORAGE);
 }
 
 export function getFirestoreWriter(): IFirestoreWriter {

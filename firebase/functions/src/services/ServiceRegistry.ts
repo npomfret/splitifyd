@@ -13,7 +13,6 @@ import type { ExpenseMetadataService } from './expenseMetadataService';
 import type { FirestoreValidationService } from './FirestoreValidationService';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { IMetricsStorage } from '../utils/metrics-storage-factory';
 
 /**
  * Service name constants for type-safe service retrieval
@@ -32,8 +31,7 @@ export const SERVICE_NAMES = {
     EXPENSE_METADATA_SERVICE: 'ExpenseMetadataService',
     FIRESTORE_VALIDATION_SERVICE: 'FirestoreValidationService',
     FIRESTORE_READER: 'FirestoreReader',
-    FIRESTORE_WRITER: 'FirestoreWriter',
-    METRICS_STORAGE: 'MetricsStorage'
+    FIRESTORE_WRITER: 'FirestoreWriter'
 } as const;
 
 /**
@@ -54,7 +52,6 @@ export interface ServiceTypeMap {
     [SERVICE_NAMES.FIRESTORE_VALIDATION_SERVICE]: FirestoreValidationService;
     [SERVICE_NAMES.FIRESTORE_READER]: IFirestoreReader;
     [SERVICE_NAMES.FIRESTORE_WRITER]: IFirestoreWriter;
-    [SERVICE_NAMES.METRICS_STORAGE]: IMetricsStorage;
 }
 
 /**

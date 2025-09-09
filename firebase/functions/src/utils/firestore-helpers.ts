@@ -4,8 +4,7 @@
 
 import {getFirestore} from '../firebase';
 import { logger } from '../logger';
-import { PerformanceMonitor } from './performance-monitor';
-import { performanceMetricsCollector } from './performance-metrics-collector';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 
 /**
  * Recursively removes undefined values from an object before saving to Firestore.
@@ -53,9 +52,7 @@ export async function runTransactionWithRetry<T>(
     const { maxAttempts = 3, baseDelayMs = 100, context = {} } = options;
     const operationName = context.operation || 'unknown-transaction';
     
-    return PerformanceMonitor.monitorTransaction(
-        operationName,
-        async () => {
+    return measureDb(operationName, async () => {
             let attempts = 0;
             let retryDelayTotal = 0;
             const retryMetrics: TransactionRetryMetric[] = [];
@@ -68,20 +65,7 @@ export async function runTransactionWithRetry<T>(
                     const totalDuration = Date.now() - attemptStartTime + retryDelayTotal;
                     
                     // Record successful transaction metrics
-                    performanceMetricsCollector.recordDbOperation(
-                        'transaction',
-                        context.collection || 'unknown',
-                        totalDuration,
-                        true,
-                        undefined,
-                        {
-                            ...context,
-                            totalAttempts: attempts + 1,
-                            retryCount: attempts,
-                            totalRetryDelay: retryDelayTotal,
-                            finalAttemptDuration: Date.now() - attemptStartTime
-                        }
-                    );
+                    // TODO: Update to use new metrics system
                     
                     // Log transaction completion metrics if there were retries
                     if (attempts > 0) {
@@ -143,21 +127,7 @@ export async function runTransactionWithRetry<T>(
                     
                     // Record failed transaction metrics
                     const totalDuration = Date.now() - attemptStartTime + retryDelayTotal;
-                    performanceMetricsCollector.recordDbOperation(
-                        'transaction',
-                        context.collection || 'unknown',
-                        totalDuration,
-                        false,
-                        undefined,
-                        {
-                            ...context,
-                            totalAttempts: attempts,
-                            retryCount: attempts - 1,
-                            totalRetryDelay: retryDelayTotal,
-                            finalErrorType: errorType,
-                            allRetryMetrics: retryMetrics
-                        }
-                    );
+                    // TODO: Update to use new metrics system
                     
                     // Log final failure if we're out of retries
                     if (isTransactionError && attempts >= maxAttempts) {
@@ -184,9 +154,7 @@ export async function runTransactionWithRetry<T>(
             }
             
             throw new Error('Transaction retry loop exited unexpectedly');
-        },
-        context
-    );
+        });
 }
 
 /**

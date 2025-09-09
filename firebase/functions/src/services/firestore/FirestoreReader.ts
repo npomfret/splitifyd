@@ -10,7 +10,7 @@ import type { Firestore, Transaction, DocumentReference } from 'firebase-admin/f
 import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
-import { PerformanceMonitor } from '../../utils/performance-monitor';
+import { measureDb, measureApi } from '../../monitoring/measure';
 import { safeParseISOToTimestamp } from '../../utils/dateHelpers';
 
 // Import all schemas for validation
@@ -84,7 +84,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return userData;
         } catch (error) {
-            logger.error('Failed to get user', error, { userId });
+            logger.error('Failed to get user', error);
             throw error;
         }
     }
@@ -112,7 +112,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return groupData;
         } catch (error) {
-            logger.error('Failed to get group', error, { groupId });
+            logger.error('Failed to get group', error);
             throw error;
         }
     }
@@ -135,7 +135,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return expenseData;
         } catch (error) {
-            logger.error('Failed to get expense', error, { expenseId });
+            logger.error('Failed to get expense', error);
             throw error;
         }
     }
@@ -158,7 +158,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return settlementData;
         } catch (error) {
-            logger.error('Failed to get settlement', error, { settlementId });
+            logger.error('Failed to get settlement', error);
             throw error;
         }
     }
@@ -181,7 +181,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return policyData;
         } catch (error) {
-            logger.error('Failed to get policy', error, { policyId });
+            logger.error('Failed to get policy', error);
             throw error;
         }
     }
@@ -202,10 +202,7 @@ export class FirestoreReader implements IFirestoreReader {
                     });
                     policies.push(policyData);
                 } catch (validationError) {
-                    logger.warn('Skipping invalid policy document during getAllPolicies', {
-                        policyId: doc.id,
-                        error: validationError instanceof Error ? validationError.message : 'Unknown validation error',
-                    });
+                    logger.warn('Skipping invalid policy document during getAllPolicies');
                 }
             });
 
@@ -231,11 +228,7 @@ export class FirestoreReader implements IFirestoreReader {
         if (sanitized.securityPreset !== undefined) {
             const validPresets = Object.values(SecurityPresets);
             if (!validPresets.includes(sanitized.securityPreset)) {
-                logger.warn('Invalid securityPreset value detected, defaulting to OPEN', {
-                    groupId: sanitized.id,
-                    invalidValue: sanitized.securityPreset,
-                    validValues: validPresets
-                });
+                logger.warn('Invalid securityPreset value detected, defaulting to OPEN');
                 // Default to OPEN for invalid values
                 sanitized.securityPreset = SecurityPresets.OPEN;
             }
@@ -315,11 +308,7 @@ export class FirestoreReader implements IFirestoreReader {
                     // Hard stop if we reach the limit
                     if (allGroups.length >= options.limit) break;
                 } catch (error) {
-                    logger.error('Invalid group document in getGroupsByIds', {
-                        error,
-                        groupId: doc.id,
-                        field: options.orderBy.field
-                    });
+                    logger.error('Invalid group document in getGroupsByIds', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
@@ -368,10 +357,7 @@ export class FirestoreReader implements IFirestoreReader {
      * - Reduces resource usage by 90%+ for users with many groups
      */
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>> {
-        return PerformanceMonitor.monitorCollectionGroupQuery(
-            'USER_GROUPS',
-            userId,
-            async () => {
+        return measureDb('USER_GROUPS', async () => {
                 const limit = options?.limit || 10;
                 const effectiveLimit = limit + 1; // +1 to detect "hasMore"
                 
@@ -386,10 +372,7 @@ export class FirestoreReader implements IFirestoreReader {
                         const cursorData = this.decodeCursor(options.cursor);
                         membershipQuery = membershipQuery.startAfter(cursorData.lastGroupId);
                     } catch (error) {
-                        logger.warn('Invalid cursor provided, ignoring', { 
-                            cursor: options.cursor, 
-                            error: error instanceof Error ? error.message : 'Unknown error' 
-                        });
+                        logger.warn('Invalid cursor provided, ignoring');
                     }
                 }
                 
@@ -416,11 +399,7 @@ export class FirestoreReader implements IFirestoreReader {
                 
                 // PHASE 2: Get group documents with proper ordering and limits
                 const orderBy: OrderBy = options?.orderBy || { field: 'updatedAt', direction: 'desc' };
-                const groups = await this.getGroupsByIds(groupIds, {
-                    orderBy,
-                    limit: effectiveLimit
-                });
-                
+                const groups = await this.getGroupsByIds(groupIds, { limit: limit + 1, orderBy });
                 // Detect if more results exist
                 const hasMore = groups.length > limit;
                 const returnedGroups = hasMore ? groups.slice(0, limit) : groups;
@@ -446,12 +425,7 @@ export class FirestoreReader implements IFirestoreReader {
                     nextCursor,
                     totalEstimate: hasMore ? groupIds.length + 10 : groupIds.length // Rough estimate
                 };
-            },
-            { 
-                collectionGroupQuery: true,
-                options: JSON.stringify(options) 
-            }
-        );
+        });
     }
 
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
@@ -483,25 +457,20 @@ export class FirestoreReader implements IFirestoreReader {
                     });
                     parsedMembers.push(memberData);
                 } catch (error) {
-                    logger.error('Invalid group member document in getGroupMembers', error, {
-                        memberId: doc.id,
-                        groupId
-                    });
+                    logger.error('Invalid group member document in getGroupMembers', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
 
             return parsedMembers;
         } catch (error) {
-            logger.error('Failed to get group members', error, { groupId });
+            logger.error('Failed to get group members', error);
             throw error;
         }
     }
 
     async getMemberFromSubcollection(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        return PerformanceMonitor.monitorSubcollectionQuery(
-            'GET_MEMBER',
-            groupId,
+        return measureDb('GET_MEMBER',
             async () => {
                 const memberRef = this.db
                     .collection(FirestoreCollections.GROUPS)
@@ -519,15 +488,11 @@ export class FirestoreReader implements IFirestoreReader {
                     ...memberDoc.data()
                 });
                 return parsedMember;
-            },
-            { userId }
-        );
+        });
     }
 
     async getMembersFromSubcollection(groupId: string): Promise<GroupMemberDocument[]> {
-        return PerformanceMonitor.monitorSubcollectionQuery(
-            'GET_MEMBERS',
-            groupId,
+        return measureDb('GET_MEMBERS',
             async () => {
                 const membersRef = this.db
                     .collection(FirestoreCollections.GROUPS)
@@ -545,17 +510,13 @@ export class FirestoreReader implements IFirestoreReader {
                         });
                         parsedMembers.push(memberData);
                     } catch (error) {
-                        logger.error('Invalid group member document in getMembersFromSubcollection', error, {
-                            memberId: doc.id,
-                            groupId
-                        });
+                        logger.error('Invalid group member document in getMembersFromSubcollection', error);
                         // Skip invalid documents rather than failing the entire query
                     }
                 }
 
                 return parsedMembers;
-            }
-        );
+        });
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
@@ -582,7 +543,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
                     query = query.startAfter(cursorData.createdAt, cursorData.id);
                 } catch (err) {
-                    logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
+                    logger.warn('Invalid cursor provided, ignoring');
                 }
             }
 
@@ -597,18 +558,14 @@ export class FirestoreReader implements IFirestoreReader {
                     });
                     expenses.push(expenseData);
                 } catch (error) {
-                    logger.error('Invalid expense document in getExpensesForGroup', {
-                        error,
-                        expenseId: doc.id,
-                        groupId
-                    });
+                    logger.error('Invalid expense document in getExpensesForGroup', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
 
             return expenses;
         } catch (error) {
-            logger.error('Failed to get expenses for group', { error, groupId });
+            logger.error('Failed to get expenses for group', error);
             throw error;
         }
     }
@@ -638,7 +595,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const cursorData = JSON.parse(Buffer.from(options.cursor, 'base64').toString());
                     query = query.startAfter(cursorData.createdAt, cursorData.id);
                 } catch (err) {
-                    logger.warn('Invalid cursor provided, ignoring', { cursor: options.cursor });
+                    logger.warn('Invalid cursor provided, ignoring');
                 }
             }
 
@@ -653,18 +610,14 @@ export class FirestoreReader implements IFirestoreReader {
                     });
                     settlements.push(settlementData);
                 } catch (error) {
-                    logger.error('Invalid settlement document in getSettlementsForGroup', {
-                        error,
-                        settlementId: doc.id,
-                        groupId
-                    });
+                    logger.error('Invalid settlement document in getSettlementsForGroup', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
 
             return settlements;
         } catch (error) {
-            logger.error('Failed to get settlements for group', { error, groupId });
+            logger.error('Failed to get settlements for group', error);
             throw error;
         }
     }
@@ -695,7 +648,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return groupData;
         } catch (error) {
-            logger.error('Failed to get group in transaction', error, { groupId });
+            logger.error('Failed to get group in transaction', error);
             throw error;
         }
     }
@@ -716,7 +669,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return userData;
         } catch (error) {
-            logger.error('Failed to get user in transaction', error, { userId });
+            logger.error('Failed to get user in transaction', error);
             throw error;
         }
     }
@@ -769,10 +722,7 @@ export class FirestoreReader implements IFirestoreReader {
             success?: boolean;
         }
     ): Promise<any[]> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'queryPerformanceMetrics',
-            async () => {
+        return measureDb('FirestoreReader.queryPerformanceMetrics', async () => {
                 try {
                     const cutoff = new Date();
                     cutoff.setMinutes(cutoff.getMinutes() - minutes);
@@ -808,11 +758,10 @@ export class FirestoreReader implements IFirestoreReader {
                         };
                     });
                 } catch (error) {
-                    logger.error('Failed to query performance metrics', error, { collectionName, minutes, filters });
+                    logger.error('Failed to query performance metrics', error);
                     return [];
                 }
-            },
-            { collectionName, minutes, hasFilters: !!filters }
+            }
         );
     }
 
@@ -821,10 +770,7 @@ export class FirestoreReader implements IFirestoreReader {
         period: 'hour' | 'day' | 'week',
         lookbackCount: number = 24
     ): Promise<any[]> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'queryAggregatedStats',
-            async () => {
+        return measureDb('FirestoreReader.queryAggregatedStats', async () => {
                 try {
                     const snapshot = await this.db
                         .collection(collectionName)
@@ -842,11 +788,10 @@ export class FirestoreReader implements IFirestoreReader {
                         };
                     });
                 } catch (error) {
-                    logger.error('Failed to query aggregated stats', error, { collectionName, period, lookbackCount });
+                    logger.error('Failed to query aggregated stats', error);
                     return [];
                 }
-            },
-            { collectionName, period, lookbackCount }
+            }
         );
     }
 
@@ -859,7 +804,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await this.db.collection(collection).doc(documentId).get();
             return doc.exists;
         } catch (error) {
-            logger.error('Failed to check document existence', error, { collection, documentId });
+            logger.error('Failed to check document existence', error);
             throw error;
         }
     }
@@ -882,7 +827,7 @@ export class FirestoreReader implements IFirestoreReader {
             const notificationData = UserNotificationDocumentSchema.parse(notificationDoc.data());
             return notificationData;
         } catch (error) {
-            logger.error('Failed to get user notification', error, { userId });
+            logger.error('Failed to get user notification', error);
             throw error;
         }
     }
@@ -892,7 +837,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await this.db.collection('user-notifications').doc(userId).get();
             return doc.exists;
         } catch (error) {
-            logger.error('Failed to check user notification existence', error, { userId });
+            logger.error('Failed to check user notification existence', error);
             throw error;
         }
     }
@@ -927,7 +872,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return { groupId, shareLink };
         } catch (error) {
-            logger.error('Failed to find share link by token', error, { token });
+            logger.error('Failed to find share link by token', error);
             throw error;
         }
     }
@@ -951,18 +896,14 @@ export class FirestoreReader implements IFirestoreReader {
                     const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
                     shareLinks.push(shareLink);
                 } catch (error) {
-                    logger.error('Invalid share link document in getShareLinksForGroup', {
-                        error,
-                        shareLinkId: doc.id,
-                        groupId
-                    });
+                    logger.error('Invalid share link document in getShareLinksForGroup', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
 
             return shareLinks;
         } catch (error) {
-            logger.error('Failed to get share links for group', error, { groupId });
+            logger.error('Failed to get share links for group', error);
             throw error;
         }
     }
@@ -989,7 +930,7 @@ export class FirestoreReader implements IFirestoreReader {
             const shareLink = ShareLinkDocumentSchema.parse(dataWithId);
             return shareLink;
         } catch (error) {
-            logger.error('Failed to get share link', error, { groupId, shareLinkId });
+            logger.error('Failed to get share link', error);
             throw error;
         }
     }
@@ -1056,12 +997,7 @@ export class FirestoreReader implements IFirestoreReader {
                     const comment = CommentDocumentSchema.parse(dataWithId);
                     comments.push(comment);
                 } catch (error) {
-                    logger.error('Invalid comment document in getCommentsForTarget', {
-                        error,
-                        commentId: doc.id,
-                        targetType,
-                        targetId
-                    });
+                    logger.error('Invalid comment document in getCommentsForTarget', error);
                     // Skip invalid documents rather than failing the entire query
                 }
             }
@@ -1074,16 +1010,13 @@ export class FirestoreReader implements IFirestoreReader {
                     : undefined,
             };
         } catch (error) {
-            logger.error('Failed to get comments for target', error, { targetType, targetId });
+            logger.error('Failed to get comments for target', error);
             throw error;
         }
     }
 
     async getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getCommentByReference',
-            async () => {
+        return measureDb('FirestoreReader.getCommentByReference', async () => {
                 try {
                     const doc = await commentDocRef.get();
                     if (!doc.exists) {
@@ -1098,14 +1031,10 @@ export class FirestoreReader implements IFirestoreReader {
                     const dataWithId = { ...rawData, id: doc.id };
                     return CommentDocumentSchema.parse(dataWithId);
                 } catch (error) {
-                    logger.error('Failed to get comment by reference', error, {
-                        commentPath: commentDocRef.path
-                    });
+                    logger.error('Failed to get comment by reference', error);
                     throw error;
                 }
-            },
-            { commentPath: commentDocRef.path }
-        );
+            });
     }
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
@@ -1141,7 +1070,7 @@ export class FirestoreReader implements IFirestoreReader {
             const comment = CommentDocumentSchema.parse(dataWithId);
             return comment;
         } catch (error) {
-            logger.error('Failed to get comment', error, { targetType, targetId, commentId });
+            logger.error('Failed to get comment', error);
             throw error;
         }
     }
@@ -1189,16 +1118,13 @@ export class FirestoreReader implements IFirestoreReader {
                 ...doc.data()
             };
         } catch (error) {
-            logger.error('Failed to get test user', error, { email });
+            logger.error('Failed to get test user', error);
             throw error;
         }
     }
 
     async getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getTestUserPoolStatus',
-            async () => {
+        return measureDb('FirestoreReader.getTestUserPoolStatus', async () => {
                 try {
                     const [availableSnapshot, borrowedSnapshot] = await Promise.all([
                         this.db.collection('test-user-pool').where('status', '==', 'available').get(),
@@ -1214,16 +1140,11 @@ export class FirestoreReader implements IFirestoreReader {
                     logger.error('Failed to get test user pool status', error);
                     throw error;
                 }
-            },
-            {}
-        );
+            });
     }
 
     async getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getBorrowedTestUsers',
-            async () => {
+        return measureDb('FirestoreReader.getBorrowedTestUsers', async () => {
                 try {
                     const snapshot = await this.db
                         .collection('test-user-pool')
@@ -1235,9 +1156,7 @@ export class FirestoreReader implements IFirestoreReader {
                     logger.error('Failed to get borrowed test users', error);
                     throw error;
                 }
-            },
-            {}
-        );
+            });
     }
 
     // ========================================================================
@@ -1262,7 +1181,7 @@ export class FirestoreReader implements IFirestoreReader {
             const snapshot = await query.get();
             return snapshot.docs;
         } catch (error) {
-            logger.error('Failed to get old documents', error, { collection, cutoffDate, limit });
+            logger.error('Failed to get old documents', error);
             throw error;
         }
     }
@@ -1273,10 +1192,7 @@ export class FirestoreReader implements IFirestoreReader {
         cutoffDate: Date,
         limit: number = 500
     ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getOldDocumentsByField',
-            async () => {
+        return measureDb('FirestoreReader.getOldDocumentsByField', async () => {
                 try {
                     const snapshot = await this.db
                         .collection(collection)
@@ -1286,27 +1202,17 @@ export class FirestoreReader implements IFirestoreReader {
 
                     return snapshot.docs;
                 } catch (error) {
-                    logger.error('Failed to get old documents by field', error, { 
-                        collection, 
-                        timestampField, 
-                        cutoffDate, 
-                        limit 
-                    });
+                    logger.error('Failed to get old documents by field', error);
                     throw error;
                 }
-            },
-            { collection, timestampField, limit }
-        );
+            });
     }
 
     async getDocumentsBatch(
         collection: string,
         limit: number = 500
     ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getDocumentsBatch',
-            async () => {
+        return measureDb('FirestoreReader.getDocumentsBatch', async () => {
                 try {
                     const snapshot = await this.db
                         .collection(collection)
@@ -1315,15 +1221,10 @@ export class FirestoreReader implements IFirestoreReader {
 
                     return snapshot.docs;
                 } catch (error) {
-                    logger.error('Failed to get documents batch', error, { 
-                        collection, 
-                        limit 
-                    });
+                    logger.error('Failed to get documents batch', error);
                     throw error;
                 }
-            },
-            { collection, limit }
-        );
+            });
     }
 
     async getMetricsDocuments(
@@ -1341,12 +1242,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return snapshot.docs;
         } catch (error) {
-            logger.error('Failed to get metrics documents', error, { 
-                collection, 
-                timestampField, 
-                cutoffTimestamp, 
-                limit 
-            });
+            logger.error('Failed to get metrics documents', error);
             throw error;
         }
     }
@@ -1360,7 +1256,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return snapshot.data().count;
         } catch (error) {
-            logger.error('Failed to get collection size', error, { collection });
+            logger.error('Failed to get collection size', error);
             throw error;
         }
     }
@@ -1378,10 +1274,7 @@ export class FirestoreReader implements IFirestoreReader {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getUserExpenses',
-            async () => {
+        return measureDb('FirestoreReader.getUserExpenses', async () => {
                 try {
                     const limit = Math.min(options?.limit || 50, 100);
                     const cursor = options?.cursor;
@@ -1452,22 +1345,17 @@ export class FirestoreReader implements IFirestoreReader {
                         nextCursor
                     };
                 } catch (error) {
-                    logger.error('Failed to get user expenses', error, { userId, options });
+                    logger.error('Failed to get user expenses', error);
                     throw error;
                 }
-            },
-            { userId, limit: options?.limit, includeDeleted: options?.includeDeleted }
-        );
+            });
     }
 
     async getExpenseHistory(expenseId: string, limit: number = 20): Promise<{
         history: any[];
         count: number;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getExpenseHistory',
-            async () => {
+        return measureDb('FirestoreReader.getExpenseHistory', async () => {
                 try {
                     const historySnapshot = await this.db
                         .collection(FirestoreCollections.EXPENSES)
@@ -1498,36 +1386,26 @@ export class FirestoreReader implements IFirestoreReader {
                         count: history.length,
                     };
                 } catch (error) {
-                    logger.error('Failed to get expense history', error, { expenseId, limit });
+                    logger.error('Failed to get expense history', error);
                     throw error;
                 }
-            },
-            { expenseId, limit }
-        );
+            });
     }
 
     async getSystemDocument(docPath: string): Promise<any | null> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getSystemDocument',
-            async () => {
+        return measureDb('FirestoreReader.getSystemDocument', async () => {
                 try {
                     const doc = await this.db.doc(docPath).get();
                     return doc.exists ? doc.data() : null;
                 } catch (error) {
-                    logger.error('Failed to get system document', error, { docPath });
+                    logger.error('Failed to get system document', error);
                     throw error;
                 }
-            },
-            { docPath }
-        );
+            });
     }
 
     async getHealthCheckDocument(): Promise<any | null> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getHealthCheckDocument',
-            async () => {
+        return measureDb('FirestoreReader.getHealthCheckDocument', async () => {
                 try {
                     const testRef = this.db.collection('_health_check').doc('test');
                     await testRef.get();
@@ -1549,10 +1427,7 @@ export class FirestoreReader implements IFirestoreReader {
         groupComments: FirebaseFirestore.QuerySnapshot;
         expenseComments: FirebaseFirestore.QuerySnapshot[];
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getGroupDeletionData',
-            async () => {
+        return measureDb('FirestoreReader.getGroupDeletionData', async () => {
                 try {
                     const [
                         expensesSnapshot,
@@ -1587,12 +1462,10 @@ export class FirestoreReader implements IFirestoreReader {
                         expenseComments,
                     };
                 } catch (error) {
-                    logger.error('Failed to get group deletion data', error, { groupId });
+                    logger.error('Failed to get group deletion data', error);
                     throw error;
                 }
-            },
-            { groupId }
-        );
+            });
     }
 
     async getDocumentForTesting(collection: string, docId: string): Promise<any | null> {
@@ -1600,7 +1473,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await this.db.collection(collection).doc(docId).get();
             return doc.exists ? { id: doc.id, ...doc.data() } : null;
         } catch (error) {
-            logger.error('Failed to get document for testing', error, { collection, docId });
+            logger.error('Failed to get document for testing', error);
             throw error;
         }
     }
@@ -1610,7 +1483,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await this.db.collection(collection).doc(docId).get();
             return doc.exists;
         } catch (error) {
-            logger.error('Failed to verify document exists', error, { collection, docId });
+            logger.error('Failed to verify document exists', error);
             throw error;
         }
     }
@@ -1624,10 +1497,7 @@ export class FirestoreReader implements IFirestoreReader {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getExpensesForGroupPaginated',
-            async () => {
+        return measureDb('FirestoreReader.getExpensesForGroupPaginated', async () => {
                 try {
                     const limit = Math.min(options?.limit || 20, 100);
                     const cursor = options?.cursor;
@@ -1700,12 +1570,10 @@ export class FirestoreReader implements IFirestoreReader {
                         nextCursor
                     };
                 } catch (error) {
-                    logger.error('Failed to get expenses for group paginated', error, { groupId, options });
+                    logger.error('Failed to get expenses for group paginated', error);
                     throw error;
                 }
-            },
-            { groupId, limit: options?.limit, includeDeleted: options?.includeDeleted }
-        );
+            });
     }
 
     // ========================================================================
@@ -1726,10 +1594,7 @@ export class FirestoreReader implements IFirestoreReader {
         hasMore: boolean;
         nextCursor?: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreReader',
-            'getSettlementsForGroupPaginated',
-            async () => {
+        return measureDb('FirestoreReader.getSettlementsForGroupPaginated', async () => {
                 try {
                     const limit = Math.min(options?.limit || 20, 100);
                     const { cursor, filterUserId, startDate, endDate } = options || {};
@@ -1737,7 +1602,7 @@ export class FirestoreReader implements IFirestoreReader {
                     let query: FirebaseFirestore.Query = this.db.collection(FirestoreCollections.SETTLEMENTS)
                         .where('groupId', '==', groupId)
                         .orderBy('date', 'desc')
-                        .limit(limit);
+                        .limit(limit + 1); // +1 to check if there are more
 
                     if (filterUserId) {
                         query = query.where(
@@ -1768,21 +1633,20 @@ export class FirestoreReader implements IFirestoreReader {
                         SettlementDocumentSchema.parse({ id: doc.id, ...doc.data() })
                     );
 
-                    const hasMore = settlements.length === limit;
-                    const nextCursor = hasMore && settlements.length > 0 ? settlements[settlements.length - 1].id : undefined;
+                    const hasMore = settlements.length > limit;
+                    const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
+                    const nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
 
                     return {
-                        settlements,
+                        settlements: settlementsToReturn,
                         hasMore,
                         nextCursor
                     };
                 } catch (error) {
-                    logger.error('Failed to get settlements for group paginated', error, { groupId, options });
+                    logger.error('Failed to get settlements for group paginated', error);
                     throw error;
                 }
-            },
-            { groupId, ...options }
-        );
+            });
     }
 
     async getSystemMetrics(metricType: string): Promise<any | null> {
@@ -1800,7 +1664,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = snapshot.docs[0];
             return { id: doc.id, ...doc.data() };
         } catch (error) {
-            logger.error('Failed to get system metrics', error, { metricType });
+            logger.error('Failed to get system metrics', error);
             throw error;
         }
     }
@@ -1810,7 +1674,7 @@ export class FirestoreReader implements IFirestoreReader {
             const docRef = await this.db.collection('system-metrics').add(metricData);
             return docRef.id;
         } catch (error) {
-            logger.error('Failed to add system metrics', error, { metricData });
+            logger.error('Failed to add system metrics', error);
             throw error;
         }
     }
@@ -1827,7 +1691,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return memberDoc.exists;
         } catch (error) {
-            logger.error('Failed to verify group membership', error, { groupId, userId });
+            logger.error('Failed to verify group membership', error);
             throw error;
         }
     }
@@ -1848,9 +1712,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return doc.exists ? { id: doc.id, ...doc.data() } : null;
         } catch (error) {
-            logger.error('Failed to get subcollection document', error, { 
-                parentCollection, parentDocId, subcollectionName, docId 
-            });
+            logger.error('Failed to get subcollection document', error);
             throw error;
         }
     }
@@ -1865,7 +1727,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return snapshot.docs;
         } catch (error) {
-            logger.error('Failed to get test users by status', error, { status, limit });
+            logger.error('Failed to get test users by status', error);
             throw error;
         }
     }
@@ -1879,7 +1741,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = await transaction.get(docRef);
             return doc.exists ? { id: doc.id, ...doc.data() } : null;
         } catch (error) {
-            logger.error('Failed to get test user in transaction', error, { email });
+            logger.error('Failed to get test user in transaction', error);
             throw error;
         }
     }
@@ -1923,7 +1785,7 @@ export class FirestoreReader implements IFirestoreReader {
             const snapshot = await query.get();
             return snapshot.docs;
         } catch (error) {
-            logger.error('Failed to query with complex filters', error, { collection, filters, options });
+            logger.error('Failed to query with complex filters', error);
             throw error;
         }
     }
@@ -1938,7 +1800,7 @@ export class FirestoreReader implements IFirestoreReader {
             const userData = userDoc.data();
             return userData?.language || userData?.locale || null;
         } catch (error) {
-            logger.error('Failed to get user language preference', error, { userId });
+            logger.error('Failed to get user language preference', error);
             throw error;
         }
     }

@@ -8,7 +8,7 @@ import { FirestoreCollections, GroupMemberDocument, ShareLink, MemberRoles, Memb
 import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/optimistic-locking';
 import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDataSchema } from '../schemas/sharelink';
 import { getGroupMemberService } from './serviceRegistration';
@@ -48,12 +48,7 @@ export class GroupShareService {
         shareablePath: string;
         linkId: string;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupShareService',
-            'generateShareableLink',
-            async () => this._generateShareableLink(userId, groupId),
-            { userId, groupId }
-        );
+        return measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
     }
 
     private async _generateShareableLink(userId: string, groupId: string): Promise<{
@@ -154,12 +149,7 @@ export class GroupShareService {
         message: string;
         success: boolean;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupShareService',
-            'joinGroupByLink',
-            async () => this._joinGroupByLink(userId, userEmail, linkId),
-            { userId, linkId }
-        );
+        return measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
     }
 
     private async _joinGroupByLink(userId: string, userEmail: string, linkId: string): Promise<{

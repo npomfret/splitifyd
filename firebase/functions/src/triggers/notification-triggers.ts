@@ -13,9 +13,8 @@
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureTrigger } from '../monitoring/measure';
 import { registerAllServices } from '../services/serviceRegistration';
-import type { IMetricsStorage } from '../utils/metrics-storage-factory';
 import {getFirestore} from "../firebase";
 import { IFirestoreWriter } from "../services/firestore/IFirestoreWriter";
 import { NotificationService } from "../services/notification-service";
@@ -27,19 +26,19 @@ const notificationService = new NotificationService(firestore, new FirestoreRead
 // Services registration state
 let servicesRegistered = false;
 
-function ensureServicesRegistered(metricsStorage: IMetricsStorage) {
+function ensureServicesRegistered() {
     if (!servicesRegistered) {
-        registerAllServices(metricsStorage, firestore);
+        registerAllServices(firestore);
         servicesRegistered = true;
     }
 }
 
 /**
- * Create notification triggers with shared metrics storage
+ * Create notification triggers
  */
-export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
+export function createNotificationTriggers() {
     // Ensure services are registered once
-    ensureServicesRegistered(metricsStorage);
+    ensureServicesRegistered();
 
     return {
         initializeUserNotifications: onDocumentCreated(
@@ -50,19 +49,14 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
             async (event) => {
                 const userId = event.params.userId;
                 
-                return PerformanceMonitor.monitorTriggerExecution(
-                    'NOTIFICATION_TRIGGER',
-                    `users/${userId}`,
-                    async () => {
+                return measureTrigger('initializeUserNotifications', async () => {
                         await notificationService.initializeUserNotifications(userId);
                         
                         logger.info('User notification document initialized', { 
                             userId,
                             trigger: 'user-created'
                         });
-                    },
-                    { userId, action: 'initialize' }
-                );
+                });
             }
         ),
 
@@ -75,9 +69,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                 const groupId = event.params.groupId;
                 const userId = event.params.userId;
                 
-                return PerformanceMonitor.monitorTriggerExecution(
-                    'NOTIFICATION_TRIGGER',
-                    `groups/${groupId}/members/${userId}`,
+                return measureTrigger('initializeUserNotifications',
                     async () => {
                         // First ensure user has notification document
                         await notificationService.initializeUserNotifications(userId);
@@ -93,9 +85,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                             groupId,
                             trigger: 'member-added'
                         });
-                    },
-                    { userId, groupId, action: 'add-to-group' }
-                );
+                });
             }
         ),
 
@@ -108,9 +98,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                 const groupId = event.params.groupId;
                 const userId = event.params.userId;
                 
-                return PerformanceMonitor.monitorTriggerExecution(
-                    'NOTIFICATION_TRIGGER',
-                    `groups/${groupId}/members/${userId}`,
+                return measureTrigger('initializeUserNotifications',
                     async () => {
                         // CRITICAL: Notify the user about the group change BEFORE removing them
                         // This ensures they receive real-time updates about group deletion/removal
@@ -130,9 +118,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                             groupId,
                             trigger: 'member-removed'
                         });
-                    },
-                    { userId, groupId, action: 'remove-from-group' }
-                );
+                });
             }
         ),
 
@@ -144,10 +130,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
             async (event) => {
                 const userId = event.params.userId;
                 
-                return PerformanceMonitor.monitorTriggerExecution(
-                    'NOTIFICATION_TRIGGER',
-                    `users/${userId}`,
-                    async () => {
+                return measureTrigger('initializeUserNotifications', async () => {
                         // Delete the user's notification document
                         // Using FirestoreWriter's bulkDelete method
                         const { FirestoreWriter } = await import('../services/firestore/FirestoreWriter');
@@ -166,9 +149,7 @@ export function createNotificationTriggers(metricsStorage: IMetricsStorage) {
                                 failureCount: result.failureCount
                             });
                         }
-                    },
-                    { userId, action: 'cleanup' }
-                );
+                });
             }
         )
     };

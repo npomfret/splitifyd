@@ -11,7 +11,7 @@ import {getCurrentPolicyVersions} from '../auth/policy-helpers';
 import {assignThemeColor} from '../user-management/assign-theme-color';
 import {validateRegisterRequest} from '../auth/validation';
 import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
-import {PerformanceMonitor} from '../utils/performance-monitor';
+import { measureDb } from '../monitoring/measure';
 import {UserDataSchema} from '../schemas/user';
 import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
 import {UserRegistration} from "@splitifyd/shared";
@@ -105,12 +105,7 @@ export class UserService {
      * @throws If user is not found or an error occurs
      */
     async getUser(userId: string): Promise<UserProfile> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserService2',
-            'getUser',
-            async () => this._getUser(userId),
-            {userId}
-        );
+        return measureDb('UserService2.getUser', async () => this._getUser(userId));
     }
 
     private async _getUser(userId: string): Promise<UserProfile> {
@@ -147,12 +142,7 @@ export class UserService {
      * Get multiple user profiles by UIDs (batch operation)
      */
     async getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserService2',
-            'getUsers',
-            async () => this._getUsers(uids),
-            {userCount: uids.length}
-        );
+        return measureDb('UserService2.getUsers', async () => this._getUsers(uids));
     }
 
     private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
@@ -205,12 +195,7 @@ export class UserService {
      * @throws ApiError if update fails
      */
     async updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserService2',
-            'updateProfile',
-            async () => this._updateProfile(userId, requestBody, language),
-            {userId}
-        );
+        return measureDb('UserService2.updateProfile', async () => this._updateProfile(userId, requestBody, language));
     }
 
     private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
@@ -389,11 +374,7 @@ export class UserService {
      * @throws ApiError if registration fails
      */
     async registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'UserService2',
-            'registerUser',
-            async () => this._registerUser(requestBody)
-        );
+        return measureDb('UserService2.registerUser', async () => this._registerUser(requestBody));
     }
 
     private async _registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {

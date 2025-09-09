@@ -302,19 +302,4 @@ export interface IFirestoreWriter {
     // Performance Metrics Operations
     // ========================================================================
 
-    /**
-     * Write performance metrics to Firestore
-     * @param collectionName - The metrics collection name (e.g., 'performance-metrics')
-     * @param metrics - Array of metrics to write
-     * @returns Write result
-     */
-    writePerformanceMetrics(collectionName: string, metrics: any[]): Promise<WriteResult>;
-
-    /**
-     * Write aggregated performance stats
-     * @param collectionName - The aggregates collection name (e.g., 'performance-aggregates')
-     * @param stats - Aggregated stats to write
-     * @returns Write result
-     */
-    writePerformanceStats(collectionName: string, stats: any): Promise<WriteResult>;
 }

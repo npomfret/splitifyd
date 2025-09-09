@@ -10,7 +10,7 @@ import {
     PolicyDocument,
     PolicyVersion,
 } from '@splitifyd/shared';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
 import { z } from 'zod';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
@@ -183,12 +183,7 @@ export class PolicyService {
      * Create new draft version (not published)
      */
     async updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'PolicyService',
-            'updatePolicy',
-            async () => this._updatePolicy(id, text, publish),
-            { policyId: id, publish }
-        );
+        return measureDb('PolicyService.updatePolicy', async () => this._updatePolicy(id, text, publish));
     }
 
     private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
@@ -318,12 +313,7 @@ export class PolicyService {
      * Publish a policy version
      */
     async publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'PolicyService',
-            'publishPolicy',
-            async () => this._publishPolicy(id, versionHash),
-            { policyId: id, versionHash }
-        );
+        return measureDb('PolicyService.publishPolicy', async () => this._publishPolicy(id, versionHash));
     }
 
     private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
@@ -407,12 +397,7 @@ export class PolicyService {
      * Create a new policy
      */
     async createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'PolicyService',
-            'createPolicy',
-            async () => this._createPolicy(policyName, text, customId),
-            { policyName, customId }
-        );
+        return measureDb('PolicyService.createPolicy', async () => this._createPolicy(policyName, text, customId));
     }
 
     private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {

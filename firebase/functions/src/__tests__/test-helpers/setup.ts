@@ -1,8 +1,7 @@
-import { createMetricsStorage } from '../../utils/metrics-storage-factory';
 import { registerAllServices } from '../../services/serviceRegistration';
-import {getFirestore} from "../../firebase";
+import { getFirestore } from "../../firebase";
 
 export function setupTestServices(): void {
-    const metricsStorage = createMetricsStorage();
-    registerAllServices(metricsStorage, getFirestore());
+    // Pass Firestore instance to service registration (metrics storage removed)
+    registerAllServices(getFirestore());
 }

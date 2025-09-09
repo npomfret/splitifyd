@@ -26,7 +26,7 @@ describe('Settlement Management', () => {
 
     beforeEach(async () => {
         settlementUsers = getTestUsers(2);
-        testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 2 });
+        testGroup = await TestGroupManager.getOrCreateGroup(settlementUsers, { memberCount: 2, fresh: true });
     });
 
     describe('Settlement Creation', () => {

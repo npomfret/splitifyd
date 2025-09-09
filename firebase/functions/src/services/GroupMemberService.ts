@@ -1,4 +1,3 @@
-
 import { FieldValue } from 'firebase-admin/firestore';
 import {getFirestore} from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
@@ -7,7 +6,7 @@ import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
-import { PerformanceMonitor } from '../utils/performance-monitor';
+import { measureDb, measureApi, measureTrigger } from '../monitoring/measure';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 
@@ -81,12 +80,7 @@ export class GroupMemberService {
 
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupMemberService',
-            'leaveGroup',
-            async () => this._leaveGroup(userId, groupId),
-            { userId, groupId }
-        );
+        return measureDb('GroupMemberService.leaveGroup', async () => this._leaveGroup(userId, groupId));
     }
 
     private async _leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
@@ -167,12 +161,7 @@ export class GroupMemberService {
     }
 
     async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupMemberService',
-            'removeGroupMember',
-            async () => this._removeGroupMember(userId, groupId, memberId),
-            { userId, groupId, memberId }
-        );
+        return measureDb('GroupMemberService.removeGroupMember', async () => this._removeGroupMember(userId, groupId, memberId));
     }
 
     private async _removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
@@ -265,9 +254,8 @@ export class GroupMemberService {
      * Path: groups/{groupId}/members/{userId}
      */
     async createMemberSubcollection(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
-        return PerformanceMonitor.monitorSubcollectionQuery(
+        return measureDb(
             'CREATE_MEMBER',
-            groupId,
             async () => {
                 const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
@@ -286,8 +274,7 @@ export class GroupMemberService {
                     userId: memberDoc.userId,
                     memberRole: memberDoc.memberRole 
                 });
-            },
-            { userId: memberDoc.userId, memberRole: memberDoc.memberRole }
+            }
         );
     }
 
@@ -311,9 +298,8 @@ export class GroupMemberService {
      * Update a member in the subcollection
      */
     async updateMemberInSubcollection(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
-        return PerformanceMonitor.monitorSubcollectionQuery(
+        return measureDb(
             'UPDATE_MEMBER',
-            groupId,
             async () => {
                 const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
@@ -331,8 +317,7 @@ export class GroupMemberService {
                     userId,
                     updates: Object.keys(updates)
                 });
-            },
-            { userId, updateFieldsCount: Object.keys(updates).length }
+            }
         );
     }
 
@@ -340,9 +325,8 @@ export class GroupMemberService {
      * Delete a member from the subcollection
      */
     async deleteMemberFromSubcollection(groupId: string, userId: string): Promise<void> {
-        return PerformanceMonitor.monitorSubcollectionQuery(
+        return measureDb(
             'DELETE_MEMBER',
-            groupId,
             async () => {
                 const memberRef = getFirestore()
                     .collection(FirestoreCollections.GROUPS)
@@ -353,8 +337,7 @@ export class GroupMemberService {
                 await memberRef.delete();
 
                 logger.info('Member deleted from subcollection', { groupId, userId });
-            },
-            { userId }
+            }
         );
     }
 

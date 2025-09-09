@@ -8,7 +8,7 @@ import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
 import {isGroupMemberAsync} from '../utils/groupHelpers';
-import {PerformanceMonitor} from '../utils/performance-monitor';
+import { measureDb, measureApi } from '../monitoring/measure';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
 import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
@@ -113,12 +113,7 @@ export class CommentService {
             groupId?: string;
         } = {},
     ): Promise<ListCommentsResponse> {
-        return PerformanceMonitor.monitorServiceCall(
-            'CommentService',
-            'listComments',
-            async () => this._listComments(targetType, targetId, userId, options),
-            { targetType, targetId, userId, limit: options.limit }
-        );
+        return measureDb('CommentService.listComments', async () => this._listComments(targetType, targetId, userId, options));
     }
 
     private async _listComments(
@@ -202,12 +197,7 @@ export class CommentService {
         userId: string,
         groupId?: string,
     ): Promise<CommentApiResponse> {
-        return PerformanceMonitor.monitorServiceCall(
-            'CommentService',
-            'createComment',
-            async () => this._createComment(targetType, targetId, commentData, userId, groupId),
-            { targetType, targetId, userId }
-        );
+        return measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId, groupId));
     }
 
     private async _createComment(

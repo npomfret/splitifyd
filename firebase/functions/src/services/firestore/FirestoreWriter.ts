@@ -18,7 +18,7 @@ import type {
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { PerformanceMonitor } from '../../utils/performance-monitor';
+import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
 import {
@@ -53,56 +53,49 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async createUser(userId: string, userData: Omit<UserDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'createUser',
-            async () => {
-                try {
-                    // Validate data before writing
-                    const validatedData = UserDocumentSchema.parse({ 
-                        id: userId, 
-                        ...userData 
-                    });
+        return measureDb('FirestoreWriter.createUser', async () => {
+            try {
+                // Validate data before writing
+                const validatedData = UserDocumentSchema.parse({ 
+                    id: userId, 
+                    ...userData 
+                });
 
-                    // Remove id from data to write
-                    const { id, ...dataToWrite } = validatedData;
+                // Remove id from data to write
+                const { id, ...dataToWrite } = validatedData;
 
-                    // Add server timestamp
-                    const finalData = {
-                        ...dataToWrite,
-                        createdAt: FieldValue.serverTimestamp(),
-                        updatedAt: FieldValue.serverTimestamp()
-                    };
+                // Add server timestamp
+                const finalData = {
+                    ...dataToWrite,
+                    createdAt: FieldValue.serverTimestamp(),
+                    updatedAt: FieldValue.serverTimestamp()
+                };
 
-                    await this.db
-                        .collection(FirestoreCollections.USERS)
-                        .doc(userId)
-                        .set(finalData);
+                await this.db
+                    .collection(FirestoreCollections.USERS)
+                    .doc(userId)
+                    .set(finalData);
 
-                    logger.info('User document created', { userId });
+                logger.info('User document created', { userId });
 
-                    return {
-                        id: userId,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to create user document', error, { userId });
-                    return {
-                        id: userId,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            },
-            { userId }
-        );
+                return {
+                    id: userId,
+                    success: true,
+                    timestamp: new Date() as any
+                };
+            } catch (error) {
+                logger.error('Failed to create user document', error, { userId });
+                return {
+                    id: userId,
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                };
+            }
+        });
     }
 
     async updateUser(userId: string, updates: Partial<Omit<UserDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateUser',
+        return measureDb('FirestoreWriter.updateUser',
             async () => {
                 try {
                     // Add updated timestamp
@@ -131,15 +124,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { userId, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
     async deleteUser(userId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'deleteUser',
+        return measureDb('FirestoreWriter.deleteUser',
             async () => {
                 try {
                     await this.db
@@ -162,9 +151,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { userId }
-        );
+            });
     }
 
     // ========================================================================
@@ -172,9 +159,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async createGroup(groupData: Omit<GroupDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'createGroup',
+        return measureDb('FirestoreWriter.createGroup',
             async () => {
                 try {
                     // Create document reference to get ID
@@ -213,15 +198,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupName: String(groupData.name) }
-        );
+            });
     }
 
     async updateGroup(groupId: string, updates: Partial<Omit<GroupDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateGroup',
+        return measureDb('FirestoreWriter.updateGroup',
             async () => {
                 try {
                     // Add updated timestamp
@@ -250,15 +231,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
     async deleteGroup(groupId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'deleteGroup',
+        return measureDb('FirestoreWriter.deleteGroup',
             async () => {
                 try {
                     // Note: This only deletes the group document
@@ -285,9 +262,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId }
-        );
+            });
     }
 
     // ========================================================================
@@ -295,9 +270,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async createExpense(expenseData: Omit<ExpenseDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'createExpense',
+        return measureDb('FirestoreWriter.createExpense',
             async () => {
                 try {
                     // Create document reference to get ID
@@ -339,15 +312,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId: String(expenseData.groupId), amount: Number(expenseData.amount) }
-        );
+            });
     }
 
     async updateExpense(expenseId: string, updates: Partial<Omit<ExpenseDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateExpense',
+        return measureDb('FirestoreWriter.updateExpense',
             async () => {
                 try {
                     // Add updated timestamp
@@ -376,15 +345,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { expenseId, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
     async deleteExpense(expenseId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'deleteExpense',
+        return measureDb('FirestoreWriter.deleteExpense',
             async () => {
                 try {
                     await this.db
@@ -407,9 +372,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { expenseId }
-        );
+            });
     }
 
     // ========================================================================
@@ -417,9 +380,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async createSettlement(settlementData: Omit<SettlementDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'createSettlement',
+        return measureDb('FirestoreWriter.createSettlement',
             async () => {
                 try {
                     // Create document reference to get ID
@@ -461,15 +422,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId: String(settlementData.groupId), amount: Number(settlementData.amount) }
-        );
+            });
     }
 
     async updateSettlement(settlementId: string, updates: Partial<Omit<SettlementDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateSettlement',
+        return measureDb('FirestoreWriter.updateSettlement',
             async () => {
                 try {
                     // Add updated timestamp
@@ -498,15 +455,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { settlementId, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
     async deleteSettlement(settlementId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'deleteSettlement',
+        return measureDb('FirestoreWriter.deleteSettlement',
             async () => {
                 try {
                     await this.db
@@ -529,9 +482,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { settlementId }
-        );
+            });
     }
 
     // ========================================================================
@@ -539,9 +490,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async addGroupMember(groupId: string, userId: string, memberData: Omit<GroupMemberDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'addGroupMember',
+        return measureDb('FirestoreWriter.addGroupMember',
             async () => {
                 try {
                     // Validate member data
@@ -582,15 +531,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId, userId }
-        );
+            });
     }
 
     async updateGroupMember(groupId: string, userId: string, updates: Partial<Omit<GroupMemberDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateGroupMember',
+        return measureDb('FirestoreWriter.updateGroupMember',
             async () => {
                 try {
                     // Add updated timestamp
@@ -621,15 +566,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId, userId, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
     async removeGroupMember(groupId: string, userId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'removeGroupMember',
+        return measureDb('FirestoreWriter.removeGroupMember',
             async () => {
                 try {
                     await this.db
@@ -654,9 +595,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { groupId, userId }
-        );
+            });
     }
 
     // ========================================================================
@@ -664,9 +603,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async addComment(targetType: 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'addComment',
+        return measureDb('FirestoreWriter.addComment',
             async () => {
                 try {
                     const collection = targetType === 'expense' 
@@ -709,15 +646,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { targetType, targetId }
-        );
+            });
     }
 
     async updateComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string, updates: Partial<Omit<CommentDocument, 'id'>>): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateComment',
+        return measureDb('FirestoreWriter.updateComment',
             async () => {
                 try {
                     const collection = targetType === 'expense' 
@@ -746,15 +679,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { targetType, targetId, commentId }
-        );
+            });
     }
 
     async deleteComment(targetType: 'expense' | 'settlement', targetId: string, commentId: string): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'deleteComment',
+        return measureDb('FirestoreWriter.deleteComment',
             async () => {
                 try {
                     const collection = targetType === 'expense' 
@@ -783,9 +712,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { targetType, targetId, commentId }
-        );
+            });
     }
 
     // ========================================================================
@@ -793,9 +720,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async batchWrite(operations: (batch: WriteBatch) => void): Promise<BatchWriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'batchWrite',
+        return measureDb('FirestoreWriter.batchWrite',
             async () => {
                 try {
                     const batch = this.db.batch();
@@ -827,9 +752,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     async bulkCreate<T>(collection: string, documents: T[]): Promise<BatchWriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'bulkCreate',
+        return measureDb('FirestoreWriter.bulkCreate',
             async () => {
                 const batch = this.db.batch();
                 const results: WriteResult[] = [];
@@ -883,15 +806,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         }))
                     };
                 }
-            },
-            { collection, documentCount: documents.length }
-        );
+            });
     }
 
     async bulkUpdate(updates: Map<string, any>): Promise<BatchWriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'bulkUpdate',
+        return measureDb('FirestoreWriter.bulkUpdate',
             async () => {
                 const batch = this.db.batch();
                 const results: WriteResult[] = [];
@@ -943,15 +862,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                         }))
                     };
                 }
-            },
-            { updateCount: updates.size }
-        );
+            });
     }
 
     async bulkDelete(documentPaths: string[]): Promise<BatchWriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'bulkDelete',
+        return measureDb('FirestoreWriter.bulkDelete',
             async () => {
                 const batch = this.db.batch();
                 const results: WriteResult[] = [];
@@ -1000,9 +915,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         }))
                     };
                 }
-            },
-            { deleteCount: documentPaths.length }
-        );
+            });
     }
 
     // ========================================================================
@@ -1010,12 +923,9 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T> {
-        return PerformanceMonitor.monitorTransaction(
-            'custom-transaction',
-            async () => {
-                return this.db.runTransaction(updateFunction);
-            }
-        );
+        return measureDb('custom-transaction', async () => {
+            return this.db.runTransaction(updateFunction);
+        });
     }
 
     createInTransaction(
@@ -1062,9 +972,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     // ========================================================================
 
     async updateDocument(documentPath: string, updates: any): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'updateDocument',
+        return measureDb('FirestoreWriter.updateDocument',
             async () => {
                 try {
                     // Add updated timestamp
@@ -1090,83 +998,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                         error: error instanceof Error ? error.message : 'Unknown error'
                     };
                 }
-            },
-            { documentPath, updateFields: Object.keys(updates).join(',') }
-        );
+            });
     }
 
-    // ========================================================================
-    // Performance Metrics Operations
-    // ========================================================================
-
-    async writePerformanceMetrics(collectionName: string, metrics: any[]): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'writePerformanceMetrics',
-            async () => {
-                try {
-                    const batch = this.db.batch();
-                    const collection = this.db.collection(collectionName);
-
-                    for (const metric of metrics) {
-                        const docRef = collection.doc();
-                        batch.set(docRef, {
-                            ...metric,
-                            createdAt: FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    await batch.commit();
-
-                    logger.info('Performance metrics written', { count: metrics.length, collection: collectionName });
-
-                    return {
-                        id: 'batch',
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to write performance metrics', error);
-                    return {
-                        id: 'batch',
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            },
-            { metricsCount: metrics.length }
-        );
-    }
-
-    async writePerformanceStats(collectionName: string, stats: any): Promise<WriteResult> {
-        return PerformanceMonitor.monitorServiceCall(
-            'FirestoreWriter',
-            'writePerformanceStats',
-            async () => {
-                try {
-                    const docRef = this.db.collection(collectionName).doc();
-                    
-                    await docRef.set({
-                        ...stats,
-                        createdAt: FieldValue.serverTimestamp()
-                    });
-
-                    logger.info('Performance stats written', { statsId: docRef.id, collection: collectionName });
-
-                    return {
-                        id: docRef.id,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to write performance stats', error);
-                    return {
-                        id: '',
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            }
-        );
-    }
 }

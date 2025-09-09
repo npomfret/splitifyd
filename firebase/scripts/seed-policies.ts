@@ -9,7 +9,6 @@ import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 import { registerAllServices } from '../functions/src/services/serviceRegistration';
-import { createMetricsStorage } from '../functions/src/utils/metrics-storage-factory';
 
 /*
  * This script seeds policy files to either the emulator or production
@@ -43,8 +42,7 @@ async function initializeHandlers() {
     firestoreDb = firebaseModule.getFirestore();
 
     // Register all services before importing handlers
-    const metricsStorage = createMetricsStorage();
-    registerAllServices(metricsStorage, firestoreDb);
+    registerAllServices(firestoreDb);
 
     createPolicyInternal = handlers.createPolicyInternal;
     publishPolicyInternal = handlers.publishPolicyInternal;

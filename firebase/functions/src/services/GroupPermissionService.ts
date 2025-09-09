@@ -1,3 +1,4 @@
+import { measureDb } from '../monitoring/measure';
 import {FieldValue} from 'firebase-admin/firestore';
 import {getFirestore} from '../firebase';
 import {ApiError, Errors} from '../utils/errors';
@@ -6,7 +7,7 @@ import {HTTP_STATUS} from '../constants';
 import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels} from '@splitifyd/shared';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {createOptimisticTimestamp} from '../utils/dateHelpers';
-import {PerformanceMonitor} from '../utils/performance-monitor';
+
 import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
@@ -64,12 +65,7 @@ export class GroupPermissionService {
         preset: any;
         permissions: any;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupPermissionService',
-            'applySecurityPreset',
-            async () => this._applySecurityPreset(userId, groupId, preset),
-            { userId, groupId, preset }
-        );
+        return measureDb('GroupPermissionService.applySecurityPreset', async () => this._applySecurityPreset(userId, groupId, preset));
     }
 
     private async _applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
@@ -176,12 +172,7 @@ export class GroupPermissionService {
         message: string;
         permissions: any;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupPermissionService',
-            'updateGroupPermissions',
-            async () => this._updateGroupPermissions(userId, groupId, permissions),
-            { userId, groupId }
-        );
+        return measureDb('GroupPermissionService.updateGroupPermissions', async () => this._updateGroupPermissions(userId, groupId, permissions));
     }
 
     private async _updateGroupPermissions(userId: string, groupId: string, permissions: any): Promise<{
@@ -283,12 +274,7 @@ export class GroupPermissionService {
         oldRole: any;
         newRole: any;
     }> {
-        return PerformanceMonitor.monitorServiceCall(
-            'GroupPermissionService',
-            'setMemberRole',
-            async () => this._setMemberRole(userId, groupId, targetUserId, role),
-            { userId, groupId, targetUserId, role }
-        );
+        return measureDb('GroupPermissionService.setMemberRole', async () => this._setMemberRole(userId, groupId, targetUserId, role));
     }
 
     private async _setMemberRole(userId: string, groupId: string, targetUserId: string, role: any): Promise<{

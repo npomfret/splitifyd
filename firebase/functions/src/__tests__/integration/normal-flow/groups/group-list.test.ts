@@ -72,10 +72,24 @@ describe('GET /groups - List Groups', () => {
     });
 
     test('should support ordering', async () => {
+        // Create an additional group with a slight delay to ensure different timestamps
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const latestGroup = await apiDriver.createGroup(
+            new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), 
+            users[0].token
+        );
+
         const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
         const responseAsc = await apiDriver.listGroups(users[0].token, { order: 'asc' });
 
-        // The most recently updated should be first in desc, last in asc
+        // Ensure we have enough groups to test ordering
+        expect(responseDesc.groups.length).toBeGreaterThanOrEqual(2);
+        expect(responseAsc.groups.length).toBeGreaterThanOrEqual(2);
+
+        // The most recently created group should be first in desc order
+        expect(responseDesc.groups[0].id).toBe(latestGroup.id);
+        
+        // The groups should be in different order for desc vs asc
         expect(responseDesc.groups[0].id).not.toBe(responseAsc.groups[0].id);
     });
 
