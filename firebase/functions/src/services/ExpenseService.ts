@@ -9,7 +9,7 @@ import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes
 import {calculateSplits, Expense} from '../expenses/validation';
 import {verifyGroupMembership} from '../utils/groupHelpers';
 import {isMemberInArray} from '../utils/memberHelpers';
-import {getGroupMemberService} from './serviceRegistration';
+import type {IServiceProvider} from './IServiceProvider';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import { measureDb } from '../monitoring/measure';
@@ -48,21 +48,19 @@ export class ExpenseService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly firestore: Firestore,// todo: remove this!
+        private readonly serviceProvider: IServiceProvider
     ) {}
 
     /**
      * Fetch and validate an expense document
      */
-    private async fetchExpense(expenseId: string): Promise<{ docRef: DocumentReference; expense: Expense }> {
+    private async fetchExpense(expenseId: string): Promise<Expense> {
         // Use FirestoreReader for read operation
         const expenseData = await this.firestoreReader.getExpense(expenseId);
         
         if (!expenseData) {
             throw Errors.NOT_FOUND('Expense');
         }
-
-        // Keep docRef for write operations (until we have IFirestoreWriter)
-        const docRef = this.firestore.collection(FirestoreCollections.EXPENSES).doc(expenseId);
 
         // Validate the expense data structure
         let expense: Expense;
@@ -88,7 +86,7 @@ export class ExpenseService {
             throw Errors.NOT_FOUND('Expense');
         }
 
-        return { docRef, expense };
+        return expense;
     }
 
     /**
@@ -134,7 +132,7 @@ export class ExpenseService {
     }
 
     private async _getExpense(expenseId: string, userId: string): Promise<any> {
-        const { expense } = await this.fetchExpense(expenseId);
+        const expense = await this.fetchExpense(expenseId);
 
         // Verify user has access to view this expense
         // Check if user is a participant in this expense
@@ -173,7 +171,7 @@ export class ExpenseService {
         }
 
         // Get current members to validate participants
-        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expenseData.groupId);
+        const membersData = await this.serviceProvider.getGroupMembers(expenseData.groupId);
         const members = membersData.members;
 
         if (!isMemberInArray(members, expenseData.paidBy)) {
@@ -188,13 +186,12 @@ export class ExpenseService {
 
         // Create the expense document
         const now = createOptimisticTimestamp();
-        const docRef = this.firestore.collection(FirestoreCollections.EXPENSES).doc();
 
         // Calculate splits based on split type
         const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
 
         const expense: Expense = {
-            id: docRef.id,
+            id: '', // Will be set by FirestoreWriter
             groupId: expenseData.groupId,
             createdBy: userId,
             paidBy: expenseData.paidBy,
@@ -267,7 +264,7 @@ export class ExpenseService {
 
     private async _updateExpense(expenseId: string, userId: string, updateData: UpdateExpenseRequest): Promise<any> {
         // Fetch the existing expense
-        const { docRef, expense } = await this.fetchExpense(expenseId);
+        const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
         const groupData = await this.firestoreReader.getGroup(expense.groupId);
@@ -286,7 +283,7 @@ export class ExpenseService {
         }
 
         // If updating paidBy or participants, validate they are group members
-        const membersData = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expense.groupId);
+        const membersData = await this.serviceProvider.getGroupMembers(expense.groupId);
         const members = membersData.members;
 
         if (updateData.paidBy && !isMemberInArray(members, updateData.paidBy)) {
@@ -475,7 +472,7 @@ export class ExpenseService {
 
     private async _deleteExpense(expenseId: string, userId: string): Promise<void> {
         // Fetch the existing expense
-        const { docRef, expense } = await this.fetchExpense(expenseId);
+        const expense = await this.fetchExpense(expenseId);
 
         // Get group data and verify permissions
         const groupData = await this.firestoreReader.getGroup(expense.groupId);
@@ -612,7 +609,7 @@ export class ExpenseService {
         members: any;
     }> {
         // Fetch the expense
-        const { expense } = await this.fetchExpense(expenseId);
+        const expense = await this.fetchExpense(expenseId);
 
         // Get group document for permission check and data
         const groupData = await this.firestoreReader.getGroup(expense.groupId);
@@ -623,7 +620,7 @@ export class ExpenseService {
         // Check if user is a participant in this expense or a group member (access control for viewing)
         if (!expense.participants || !expense.participants.includes(userId)) {
             // Additional check: allow group members to view expenses they're not participants in
-            const member = await getGroupMemberService().getMemberFromSubcollection(expense.groupId, userId);
+            const member = await this.serviceProvider.getGroupMember(expense.groupId, userId);
             if (!member) {
                 throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
             }
@@ -644,7 +641,7 @@ export class ExpenseService {
         };
 
         // Get members data from subcollection
-        const members = await getGroupMemberService().getGroupMembersResponseFromSubcollection(expense.groupId);
+        const members = await this.serviceProvider.getGroupMembers(expense.groupId);
 
         // Format expense response
         const expenseResponse = this.transformExpenseToResponse(expense);

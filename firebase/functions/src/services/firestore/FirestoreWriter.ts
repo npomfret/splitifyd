@@ -18,6 +18,7 @@ import type {
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
+import type { ShareLink, GroupMemberDocument } from '@splitifyd/shared';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
@@ -965,6 +966,185 @@ export class FirestoreWriter implements IFirestoreWriter {
     ): void {
         const docRef = this.db.doc(documentPath);
         transaction.delete(docRef);
+    }
+
+    // ========================================================================
+    // Share Link Operations
+    // ========================================================================
+
+    createShareLinkInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        shareLinkData: Omit<ShareLink, 'id'>
+    ): DocumentReference {
+        const shareLinksRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
+        const shareLinkDoc = shareLinksRef.doc();
+        
+        transaction.set(shareLinkDoc, {
+            ...shareLinkData,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+        });
+        
+        return shareLinkDoc;
+    }
+
+    // ========================================================================
+    // Member Operations in Transactions
+    // ========================================================================
+
+    addGroupMemberInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        userId: string,
+        memberData: Omit<GroupMemberDocument, 'id'>
+    ): void {
+        const memberRef = this.db
+            .collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+
+        transaction.set(memberRef, {
+            ...memberData,
+            id: userId,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+        });
+    }
+
+    updateGroupInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        updates: any
+    ): void {
+        const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+        transaction.update(groupRef, {
+            ...updates,
+            updatedAt: FieldValue.serverTimestamp()
+        });
+    }
+
+    // ========================================================================
+    // Notification Operations
+    // ========================================================================
+
+    async updateUserNotifications(userId: string, updates: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateUserNotifications',
+            async () => {
+                try {
+                    const docPath = `user-notifications/${userId}`;
+                    await this.db.doc(docPath).update(updates);
+
+                    logger.info('User notifications updated', { userId, fields: Object.keys(updates) });
+
+                    return {
+                        id: docPath,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update user notifications', error, { userId });
+                    return {
+                        id: `user-notifications/${userId}`,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async setUserNotifications(userId: string, data: any, merge: boolean = false): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.setUserNotifications',
+            async () => {
+                try {
+                    const docPath = `user-notifications/${userId}`;
+                    const options = merge ? { merge: true } : {};
+                    await this.db.doc(docPath).set(data, options);
+
+                    logger.info('User notifications set', { userId, merge });
+
+                    return {
+                        id: docPath,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to set user notifications', error, { userId });
+                    return {
+                        id: `user-notifications/${userId}`,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    // ========================================================================
+    // Policy Operations
+    // ========================================================================
+
+    async createPolicy(policyId: string | null, policyData: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createPolicy',
+            async () => {
+                try {
+                    const docRef = policyId 
+                        ? this.db.collection(FirestoreCollections.POLICIES).doc(policyId)
+                        : this.db.collection(FirestoreCollections.POLICIES).doc();
+
+                    const finalData = {
+                        ...policyData,
+                        createdAt: FieldValue.serverTimestamp(),
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await docRef.set(finalData);
+
+                    logger.info('Policy created', { policyId: docRef.id });
+
+                    return {
+                        id: docRef.id,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to create policy', error, { policyId });
+                    return {
+                        id: policyId || 'unknown',
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updatePolicy',
+            async () => {
+                try {
+                    const finalUpdates = {
+                        ...updates,
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).update(finalUpdates);
+
+                    logger.info('Policy updated', { policyId, fields: Object.keys(updates) });
+
+                    return {
+                        id: policyId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update policy', error, { policyId });
+                    return {
+                        id: policyId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
     }
 
     // ========================================================================

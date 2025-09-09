@@ -22,7 +22,7 @@ import type {
     SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { GroupMemberDocument } from '@splitifyd/shared';
+import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
 
 export interface WriteResult {
     id: string;
@@ -237,6 +237,94 @@ export interface IFirestoreWriter {
      * @returns Batch write result
      */
     bulkDelete(documentPaths: string[]): Promise<BatchWriteResult>;
+
+    // ========================================================================
+    // Share Link Operations
+    // ========================================================================
+
+    /**
+     * Create a share link within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param shareLinkData - The share link data
+     * @returns Document reference
+     */
+    createShareLinkInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        shareLinkData: Omit<ShareLink, 'id'>
+    ): DocumentReference;
+
+    // ========================================================================
+    // Member Operations in Transactions
+    // ========================================================================
+
+    /**
+     * Add a member to a group within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param userId - The user ID
+     * @param memberData - The member data
+     */
+    addGroupMemberInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        userId: string,
+        memberData: Omit<GroupMemberDocument, 'id'>
+    ): void;
+
+    /**
+     * Update a group within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param updates - The update data
+     */
+    updateGroupInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        updates: any
+    ): void;
+
+    // ========================================================================
+    // Notification Operations
+    // ========================================================================
+
+    /**
+     * Update user notifications
+     * @param userId - The user ID
+     * @param updates - The notification updates
+     * @returns Write result
+     */
+    updateUserNotifications(userId: string, updates: any): Promise<WriteResult>;
+
+    /**
+     * Set user notifications with merge option
+     * @param userId - The user ID
+     * @param data - The notification data
+     * @param merge - Whether to merge with existing data
+     * @returns Write result
+     */
+    setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult>;
+
+    // ========================================================================
+    // Policy Operations
+    // ========================================================================
+
+    /**
+     * Create a policy document
+     * @param policyId - The policy ID (optional, auto-generated if not provided)
+     * @param policyData - The policy data
+     * @returns Write result
+     */
+    createPolicy(policyId: string | null, policyData: any): Promise<WriteResult>;
+
+    /**
+     * Update a policy document
+     * @param policyId - The policy ID
+     * @param updates - The policy updates
+     * @returns Write result
+     */
+    updatePolicy(policyId: string, updates: any): Promise<WriteResult>;
 
     // ========================================================================
     // Transaction Operations
