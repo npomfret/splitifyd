@@ -51,38 +51,262 @@ There are several places in the code where multiple documents are updated or cre
 
 - **`UserPolicyService.acceptPolicy`**: If a user accepts multiple policies at once, each acceptance is handled in a separate operation. This could be optimized by using a batch write.
 
-## 3. Remediation Plan
+## 3. Detailed Implementation Plan
 
-This plan outlines the steps to address the identified issues, prioritized by risk and impact.
+This plan transforms the audit findings into actionable implementation steps, addressing all identified issues through systematic refactoring.
 
-### Phase 1: Centralize and Strengthen Transaction Logic (High Priority)
+### Phase 1: Centralize Transaction Infrastructure
 
-1.  **Deprecate `runTransactionWithRetry`**:
-    -   Move the retry logic from `runTransactionWithRetry` into `FirestoreWriter.runTransaction`.
-    -   Update all call sites of `runTransactionWithRetry` to use `firestoreWriter.runTransaction` instead.
+#### Step 1.1: Enhance FirestoreWriter.runTransaction
+**Files to modify:** `src/services/firestore/FirestoreWriter.ts`, `src/services/firestore/IFirestoreWriter.ts`
 
-2.  **Wrap Core Service Operations in Transactions**:
-    -   **`GroupService`**:
-        -   Refactor `deleteGroup` to perform the group document deletion and the subcollection deletion within a single transaction (or a series of batched transactions if the number of documents is large).
-    -   **`ExpenseService`**:
-        -   Refactor `createExpense`, `updateExpense`, and `deleteExpense` to atomically update the group document's metadata (e.g., `lastActivity`, `totalExpenses`). This may require moving the trigger-based logic into the service layer.
-    -   **`SettlementService`**:
-        -   Wrap all settlement creation, update, and deletion operations in transactions that also update the relevant group and user balances.
-    -   **`UserPolicyService`**:
-        -   Wrap `acceptPolicy` in a transaction that updates the user document and creates the policy acceptance document.
+1. **Add retry logic from `runTransactionWithRetry` to `FirestoreWriter.runTransaction`:**
+   - Add optional `TransactionOptions` parameter with retry configuration
+   - Implement exponential backoff with jitter
+   - Add transaction error classification (`concurrency`, `timeout`, `aborted`, etc.)
+   - Include comprehensive logging and metrics
+   - Support custom context for better debugging
 
-### Phase 2: Harden Triggers and Batch Operations (Medium Priority)
+2. **Update interface to support new options:**
+   ```typescript
+   runTransaction<T>(
+     updateFunction: (transaction: Transaction) => Promise<T>,
+     options?: TransactionOptions
+   ): Promise<T>
+   ```
 
-1.  **Make Triggers Transactional**:
-    -   Refactor the `change-tracker.ts` trigger to perform its multiple writes within a single transaction.
+3. **TransactionOptions interface:**
+   ```typescript
+   interface TransactionOptions {
+     maxAttempts?: number;
+     baseDelayMs?: number;
+     context?: {
+       operation?: string;
+       userId?: string;
+       groupId?: string;
+       [key: string]: any;
+     };
+   }
+   ```
 
-2.  **Improve Batch Error Handling**:
-    -   Refactor the `bulkCreate`, `bulkUpdate`, and `bulkDelete` methods in `FirestoreWriter.ts` to ensure that if any operation fails to be added to the batch, the entire batch is aborted.
+#### Step 1.2: Deprecate runTransactionWithRetry
+**File to modify:** `src/utils/firestore-helpers.ts`
 
-### Phase 3: Code Cleanup and Optimization (Low Priority)
+1. **Mark `runTransactionWithRetry` as deprecated:**
+   - Add `@deprecated` JSDoc annotation
+   - Update function to delegate to `FirestoreWriter.runTransaction`
+   - Add migration comments pointing to new method
+   - Keep function for backward compatibility during transition
 
-1.  **Identify and Implement Batching Opportunities**:
-    -   Review the codebase for loops that perform multiple writes and convert them to use `WriteBatch` where appropriate.
+#### Step 1.3: Migrate Existing Usage
+**Files to modify:**
+- `src/services/ExpenseService.ts`
+- `src/services/GroupPermissionService.ts`
+- `src/services/GroupShareService.ts`
+- `src/services/SettlementService.ts`
+- `src/user-management/assign-theme-color.ts`
+
+1. **Replace all `runTransactionWithRetry` calls with `firestoreWriter.runTransaction`**
+2. **Pass appropriate context options for logging**
+3. **Update imports to remove firestore-helpers dependency**
+
+### Phase 2: Fix Critical Service Operations
+
+#### Step 2.1: GroupService.deleteGroup
+**File:** `src/services/GroupService.ts`
+
+1. **Wrap entire deletion process in a transaction:**
+   - Group document deletion
+   - All subcollection deletions (members, expenses, settlements, comments)
+   - Member removal operations
+   - Change tracking document creation
+
+2. **Handle large document sets:**
+   - If too many documents for single transaction, use batched transactions with proper rollback
+   - Implement chunked deletion with consistency checks
+   - Add progress tracking for large deletions
+
+3. **Add comprehensive error handling:**
+   - Rollback partially completed operations
+   - Log detailed failure information
+   - Provide clear error messages to users
+
+#### Step 2.2: ExpenseService Operations
+**File:** `src/services/ExpenseService.ts`
+
+1. **createExpense transaction:**
+   - Create expense document
+   - Update group's `lastActivity`, `totalExpenses`, `lastExpenseDate`
+   - Update member participation counts
+   - Create initial change tracking entry
+   - All operations in single transaction
+
+2. **updateExpense transaction:**
+   - Update expense document
+   - Recalculate and update group metadata
+   - Handle split changes (member additions/removals)
+   - Update change tracking
+   - Maintain referential integrity
+
+3. **deleteExpense transaction:**
+   - Soft-delete expense document (set `deletedAt`)
+   - Update group metadata (expense counts, totals)
+   - Clean up related comments
+   - Create deletion change tracking entry
+   - All operations atomic
+
+#### Step 2.3: SettlementService Operations
+**File:** `src/services/SettlementService.ts`
+
+1. **createSettlement transaction:**
+   - Create settlement document
+   - Update involved user balances
+   - Update group settlement metadata
+   - Create change tracking entry
+   - Validate settlement doesn't exceed debts
+
+2. **updateSettlement transaction:**
+   - Update settlement document
+   - Recalculate affected balances
+   - Update group metadata
+   - Maintain balance consistency
+
+3. **deleteSettlement transaction:**
+   - Soft-delete settlement document
+   - Revert balance changes
+   - Update group metadata
+   - Create deletion tracking entry
+
+#### Step 2.4: UserPolicyService.acceptPolicy
+**File:** `src/services/UserPolicyService.ts`
+
+1. **Wrap acceptPolicy in single transaction:**
+   - Update user document with policy acceptance timestamp
+   - Create policy acceptance document
+   - Update user policy compliance status
+   - Log acceptance for audit trail
+
+### Phase 3: Harden Triggers
+
+#### Step 3.1: Fix change-tracker.ts
+**File:** `src/triggers/change-tracker.ts`
+
+1. **Make `trackExpenseChanges` transactional:**
+   - Write to `transaction-changes` collection
+   - Write to `balance-changes` collection
+   - Both operations in single transaction
+   - Add proper error handling and rollback
+
+2. **Enhance change detection:**
+   - Add validation before writing changes
+   - Include context for better debugging
+   - Handle concurrent trigger executions
+
+#### Step 3.2: Review Other Triggers
+**Files:** All files in `src/triggers/`
+
+1. **Audit all trigger functions:**
+   - `notification-triggers.ts` - user lifecycle events
+   - Other triggers performing multiple writes
+
+2. **Apply transaction patterns:**
+   - Identify triggers with multiple writes
+   - Wrap multi-write operations in transactions
+   - Add retry logic where appropriate
+   - Ensure proper error handling
+
+### Phase 4: Fix Batch Operations
+
+#### Step 4.1: Improve Batch Error Handling
+**File:** `src/services/firestore/FirestoreWriter.ts`
+
+1. **Fix `bulkCreate`, `bulkUpdate`, `bulkDelete`:**
+   - Validate all operations before starting batch
+   - Collect all operations first, then validate
+   - If any operation fails validation, abort entire batch
+   - Return detailed results including specific failures
+   - Add proper error classification and logging
+
+2. **Add transaction support for batch operations:**
+   - When batch size is small, use transactions instead
+   - Provide fallback from batch to transaction for error cases
+   - Support mixed operation types in single batch
+
+3. **Improve batch size management:**
+   - Implement automatic chunking for large batches
+   - Optimize chunk sizes based on operation type
+   - Add progress tracking for large operations
+
+### Phase 5: Testing & Validation
+
+#### Step 5.1: Unit Tests
+1. **Transaction infrastructure tests:**
+   - Test enhanced `runTransaction` with retry logic
+   - Test transaction rollback scenarios
+   - Test concurrent transaction handling
+   - Test error classification and retry decisions
+
+2. **Service operation tests:**
+   - Test each critical service operation under various failure scenarios
+   - Test atomic behavior of multi-step operations
+   - Verify proper rollback on partial failures
+
+#### Step 5.2: Integration Tests
+1. **Multi-user scenarios:**
+   - Test concurrent operations on same resources
+   - Test race conditions and proper locking
+   - Verify data consistency after concurrent operations
+
+2. **Failure resilience:**
+   - Test network failures mid-transaction
+   - Test timeout scenarios
+   - Test partial operation failures
+
+3. **Load testing:**
+   - Test transaction performance under load
+   - Verify retry logic under contention
+   - Monitor for deadlocks and performance degradation
+
+### Phase 6: Monitoring & Observability
+
+#### Step 6.1: Enhanced Metrics
+1. **Transaction metrics:**
+   - Success/failure rates by operation type
+   - Retry patterns and success rates
+   - Transaction duration and timeout rates
+   - Contention and deadlock detection
+
+2. **Service-level metrics:**
+   - Operation success rates
+   - Data consistency checks
+   - Performance impact measurements
+
+#### Step 6.2: Alerting
+1. **Critical alerts:**
+   - High transaction failure rates
+   - Consistency check failures
+   - Unusual retry patterns
+   - Performance degradation
+
+## Implementation Strategy
+
+### Migration Approach
+1. **Backward compatible changes first** - Enhance FirestoreWriter without breaking existing code
+2. **Incremental migration** - Migrate services one at a time, starting with least critical
+3. **Feature flags** - Use configuration to enable new transaction handling progressively
+4. **Thorough testing** - Each phase includes comprehensive testing before proceeding
+
+### Risk Mitigation
+1. **Rollback capability** - Keep deprecated functions available for quick rollback
+2. **Monitoring** - Add detailed metrics before, during, and after migration
+3. **Gradual rollout** - Start with less critical operations, move to critical ones
+4. **Validation checks** - Add data consistency verification throughout
+
+### Success Criteria
+1. **Zero partial state** - No operations leave database in inconsistent state
+2. **High reliability** - >95% of retryable transactions succeed within configured attempts
+3. **Performance maintained** - Minimal increase in operation latency
+4. **Error reduction** - Significant reduction in transaction-related errors and inconsistencies
 
 ## 4. Conclusion
 
