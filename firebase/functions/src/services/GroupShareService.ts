@@ -9,13 +9,16 @@ import { getUpdatedAtTimestamp, checkAndUpdateWithTimestamp } from '../utils/opt
 import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
 import { measureDb } from '../monitoring/measure';
-import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { ShareLinkDataSchema } from '../schemas/sharelink';
 import { getGroupMemberService } from './serviceRegistration';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 export class GroupShareService {
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
+    ) {}
     
     private generateShareToken(): string {
         const bytes = randomBytes(12);
@@ -211,7 +214,7 @@ export class GroupShareService {
         };
 
         // Atomic transaction: check group exists and create member subcollection
-        const result = await runTransactionWithRetry(
+        const result = await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
                 const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);

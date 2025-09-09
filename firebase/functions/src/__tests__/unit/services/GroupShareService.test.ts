@@ -4,6 +4,7 @@ import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
+import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
 
 // Mock external dependencies
 vi.mock('../../../utils/groupHelpers', () => ({
@@ -65,18 +66,20 @@ vi.mock('../../../firebase', () => ({
     })),
 }));
 
-vi.mock('../../../utils/firestore-helpers', () => ({
-    runTransactionWithRetry: vi.fn(),
-}));
 
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockFirestoreWriter: IFirestoreWriter;
 
     beforeEach(() => {
         vi.clearAllMocks();
         mockFirestoreReader = new MockFirestoreReader();
-        groupShareService = new GroupShareService(mockFirestoreReader);
+        mockFirestoreWriter = {
+            runTransaction: vi.fn(),
+            updateInTransaction: vi.fn(),
+        } as any;
+        groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter);
     });
 
     describe('previewGroupByLink', () => {

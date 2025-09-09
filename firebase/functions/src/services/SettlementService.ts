@@ -19,9 +19,9 @@ import {
 import { verifyGroupMembership } from '../utils/groupHelpers';
 import { measureDb } from '../monitoring/measure';
 import { getGroupMemberService } from './serviceRegistration';
-import { runTransactionWithRetry } from '../utils/firestore-helpers';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 // Re-export schema for backward compatibility
 export { SettlementDocumentSchema };
@@ -45,7 +45,10 @@ export class SettlementService {
     private usersCollection = getFirestore().collection(FirestoreCollections.USERS);
     private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
 
-    constructor(private readonly firestoreReader: IFirestoreReader) {}
+    constructor(
+        private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter
+    ) {}
 
 
     /**
@@ -287,7 +290,7 @@ export class SettlementService {
         }
 
         // Update with optimistic locking
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);
                 if (!freshDoc) {
@@ -357,7 +360,7 @@ export class SettlementService {
         }
 
         // Delete with optimistic locking to prevent concurrent modifications
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Step 1: Do ALL reads first
                 const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);

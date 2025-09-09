@@ -103,7 +103,8 @@ export class ServiceContainer implements IServiceProvider {
     public getSettlementService(): SettlementService {
         if (!this.settlementService) {
             this.settlementService = new SettlementService(
-                this.firestoreReader
+                this.firestoreReader,
+                this.firestoreWriter
             );
         }
         return this.settlementService;
@@ -169,7 +170,10 @@ export class ServiceContainer implements IServiceProvider {
 
     public getGroupShareService(): GroupShareService {
         if (!this.groupShareService) {
-            this.groupShareService = new GroupShareService(this.firestoreReader);
+            this.groupShareService = new GroupShareService(
+                this.firestoreReader,
+                this.firestoreWriter
+            );
         }
         return this.groupShareService;
     }

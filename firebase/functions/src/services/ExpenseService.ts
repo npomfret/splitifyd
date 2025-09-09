@@ -13,7 +13,6 @@ import type {IServiceProvider} from './IServiceProvider';
 import {PermissionEngineAsync} from '../permissions/permission-engine-async';
 import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
 import { measureDb } from '../monitoring/measure';
-import {runTransactionWithRetry} from '../utils/firestore-helpers';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import type {GroupDocument} from '../schemas';
@@ -341,7 +340,7 @@ export class ExpenseService {
         }
 
         // Use transaction to update expense atomically with optimistic locking
-        await runTransactionWithRetry(
+        await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Re-fetch expense within transaction to check for concurrent updates
                 const expenseDocInTx = await this.firestoreReader.getRawExpenseDocumentInTransaction(transaction, expenseId);
@@ -499,7 +498,7 @@ export class ExpenseService {
 
         try {
             // Use transaction to soft delete expense atomically
-            await runTransactionWithRetry(
+            await this.firestoreWriter.runTransaction(
                 async (transaction) => {
                     // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
