@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupMemberService } from '../../../services/GroupMemberService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ServiceRegistry } from '../../../services/ServiceRegistry';
+import { setupTestServices } from '../../test-helpers/setup';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { UserService } from '../../../services/UserService2';
 
@@ -10,6 +11,9 @@ describe('GroupMemberService', () => {
     let mockFirestoreReader: MockFirestoreReader;
 
     beforeEach(() => {
+        // Setup all services including ServiceContainer
+        setupTestServices();
+        
         mockFirestoreReader = new MockFirestoreReader();
         groupMemberService = new GroupMemberService(mockFirestoreReader);
     });

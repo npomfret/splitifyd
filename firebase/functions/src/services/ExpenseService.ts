@@ -187,11 +187,14 @@ export class ExpenseService {
         // Create the expense document
         const now = createOptimisticTimestamp();
 
+        // Generate a unique ID for the expense
+        const expenseId = this.firestore.collection(FirestoreCollections.EXPENSES).doc().id;
+
         // Calculate splits based on split type
         const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);
 
         const expense: Expense = {
-            id: '', // Will be set by FirestoreWriter
+            id: expenseId,
             groupId: expenseData.groupId,
             createdBy: userId,
             paidBy: expenseData.paidBy,
@@ -224,7 +227,8 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
         }
 
-        // Use transaction to create expense atomically
+        // Use transaction to create expense atomically  
+        let createdExpenseRef: DocumentReference | undefined;
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction
             const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, expenseData.groupId);
@@ -238,18 +242,23 @@ export class ExpenseService {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group data is missing');
             }
 
-            // Create the expense
-            this.firestoreWriter.createInTransaction(
+            // Create the expense with the pre-generated ID
+            createdExpenseRef = this.firestoreWriter.createInTransaction(
                 transaction,
                 FirestoreCollections.EXPENSES,
-                docRef.id,
+                expenseId, // Use the specific ID we generated
                 expense
             );
         });
 
+        // Ensure the expense was created successfully
+        if (!createdExpenseRef) {
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'EXPENSE_CREATION_FAILED', 'Failed to create expense');
+        }
+
         // Set business context for logging
-        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: docRef.id });
-        logger.info('expense-created', { id: docRef.id, groupId: expenseData.groupId });
+        LoggerContext.setBusinessContext({ groupId: expenseData.groupId, expenseId: createdExpenseRef.id });
+        logger.info('expense-created', { id: createdExpenseRef.id, groupId: expenseData.groupId });
 
         // Return the expense in response format
         return this.transformExpenseToResponse(expense);
@@ -371,7 +380,7 @@ export class ExpenseService {
                 };
 
                 // Save history and update expense
-                const historyRef = docRef.collection('history').doc();
+                const historyRef = expenseDocInTx.ref.collection('history').doc();
                 this.firestoreWriter.createInTransaction(
                     transaction,
                     `${FirestoreCollections.EXPENSES}/${expenseId}/history`,
@@ -380,7 +389,7 @@ export class ExpenseService {
                 );
                 this.firestoreWriter.updateInTransaction(
                     transaction,
-                    docRef.path,
+                    expenseDocInTx.ref.path,
                     updates
                 );
             },
@@ -523,7 +532,7 @@ export class ExpenseService {
                     // Step 3: Now do ALL writes - soft delete the expense
                     this.firestoreWriter.updateInTransaction(
                         transaction,
-                        docRef.path,
+                        expenseDoc.ref.path,
                         {
                             [DELETED_AT_FIELD]: createOptimisticTimestamp(),
                             deletedBy: userId,

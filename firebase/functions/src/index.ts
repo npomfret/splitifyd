@@ -30,20 +30,27 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
 import { metrics } from './monitoring/lightweight-metrics';
 
-// Initialize service registry
-import { registerAllServices } from './services/serviceRegistration';
+// Initialize service container directly
+import { ServiceContainer } from './services/ServiceContainer';
+import { FirestoreReader } from './services/firestore/FirestoreReader';
+import { FirestoreWriter } from './services/firestore/FirestoreWriter';
 
 // Lazy initialization flags
-let servicesRegistered = false;
+let serviceContainer: ServiceContainer | null = null;
 
 // Get Firebase instances normally
 const firestoreDb = getFirestore();
 
-// Ensure services are registered before handling any request
-function ensureServicesRegistered() {
-    if (!servicesRegistered) {
-        registerAllServices(firestoreDb);
-        servicesRegistered = true;
+// Ensure service container is initialized before handling any request
+function ensureServiceContainer() {
+    if (!serviceContainer) {
+        const firestoreReader = new FirestoreReader(firestoreDb);
+        const firestoreWriter = new FirestoreWriter(firestoreDb);
+        serviceContainer = new ServiceContainer(firestoreReader, firestoreWriter, firestoreDb);
+        
+        // Update the compatibility layer to use our container
+        const { setServiceContainer } = require('./services/serviceRegistration');
+        setServiceContainer(serviceContainer);
     }
 }
 
@@ -62,8 +69,8 @@ function getApp(): express.Application {
     if (!app) {
         app = express();
         
-        // Ensure services are registered when app is first created
-        ensureServicesRegistered();
+        // Ensure service container is initialized when app is first created
+        ensureServiceContainer();
 
         // Disable ETags to prevent 304 responses
         disableETags(app);

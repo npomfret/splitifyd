@@ -39,7 +39,6 @@ import type {
     SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { GroupMemberDocument } from '@splitifyd/shared';
 import type { 
     IFirestoreWriter, 
     WriteResult, 

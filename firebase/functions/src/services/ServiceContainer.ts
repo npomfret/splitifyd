@@ -20,11 +20,9 @@ import type {
 } from './IServiceProvider';
 import type {
     GroupMembersResponse,
-    GroupMemberDocument,
-    UserWithProfile,
-    ExpenseListResponse,
-    SettlementsData
+    GroupMemberDocument
 } from '@splitifyd/shared';
+import type { UserWithProfile, ExpenseListResponse, SettlementsData } from './IServiceProvider';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
@@ -42,6 +40,7 @@ import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
+import { NotificationService } from './notification-service';
 import type { Firestore } from 'firebase-admin/firestore';
 
 /**
@@ -62,6 +61,7 @@ export class ServiceContainer implements IServiceProvider {
     private expenseMetadataService?: ExpenseMetadataService;
     private firestoreValidationService?: FirestoreValidationService;
     private balanceCalculationService?: BalanceCalculationService;
+    private notificationService?: NotificationService;
 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -73,25 +73,23 @@ export class ServiceContainer implements IServiceProvider {
     // Service Getters (Lazy Initialization)
     // ========================================================================
 
-    private getUserService(): UserService {
+    public getUserService(): UserService {
         if (!this.userService) {
             this.userService = new UserService(this.firestoreReader, this.firestoreWriter);
         }
         return this.userService;
     }
 
-    private getGroupMemberService(): GroupMemberService {
+    public getGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
             this.groupMemberService = new GroupMemberService(
-                this.firestoreReader,
-                this.firestoreWriter,
-                this // Pass the container as IServiceProvider
+                this.firestoreReader
             );
         }
         return this.groupMemberService;
     }
 
-    private getExpenseService(): ExpenseService {
+    public getExpenseService(): ExpenseService {
         if (!this.expenseService) {
             this.expenseService = new ExpenseService(
                 this.firestoreReader,
@@ -103,31 +101,92 @@ export class ServiceContainer implements IServiceProvider {
         return this.expenseService;
     }
 
-    private getSettlementService(): SettlementService {
+    public getSettlementService(): SettlementService {
         if (!this.settlementService) {
             this.settlementService = new SettlementService(
-                this.firestoreReader,
-                this // Pass the container as IServiceProvider
+                this.firestoreReader
             );
         }
         return this.settlementService;
     }
 
-    private getExpenseMetadataService(): ExpenseMetadataService {
+    public getExpenseMetadataService(): ExpenseMetadataService {
         if (!this.expenseMetadataService) {
             this.expenseMetadataService = new ExpenseMetadataService(this.firestoreReader);
         }
         return this.expenseMetadataService;
     }
 
-    private getBalanceCalculationService(): BalanceCalculationService {
+    public getBalanceCalculationService(): BalanceCalculationService {
         if (!this.balanceCalculationService) {
             this.balanceCalculationService = new BalanceCalculationService(
-                this.firestoreReader,
-                this // Pass the container as IServiceProvider
+                this.firestoreReader
             );
         }
         return this.balanceCalculationService;
+    }
+
+    public getGroupService(): GroupService {
+        if (!this.groupService) {
+            this.groupService = new GroupService(
+                this.firestoreReader,
+                this.firestoreWriter,
+                this // Pass the container as IServiceProvider
+            );
+        }
+        return this.groupService;
+    }
+
+    public getCommentService(): CommentService {
+        if (!this.commentService) {
+            this.commentService = new CommentService(this.firestoreReader);
+        }
+        return this.commentService;
+    }
+
+    public getPolicyService(): PolicyService {
+        if (!this.policyService) {
+            this.policyService = new PolicyService(this.firestoreReader);
+        }
+        return this.policyService;
+    }
+
+    public getUserPolicyService(): UserPolicyService {
+        if (!this.userPolicyService) {
+            this.userPolicyService = new UserPolicyService(this.firestoreReader);
+        }
+        return this.userPolicyService;
+    }
+
+    public getGroupPermissionService(): GroupPermissionService {
+        if (!this.groupPermissionService) {
+            this.groupPermissionService = new GroupPermissionService(this.firestoreReader);
+        }
+        return this.groupPermissionService;
+    }
+
+    public getGroupShareService(): GroupShareService {
+        if (!this.groupShareService) {
+            this.groupShareService = new GroupShareService(this.firestoreReader);
+        }
+        return this.groupShareService;
+    }
+
+    public getFirestoreValidationService(): FirestoreValidationService {
+        if (!this.firestoreValidationService) {
+            this.firestoreValidationService = FirestoreValidationService.getInstance();
+        }
+        return this.firestoreValidationService;
+    }
+
+    public getNotificationService(): NotificationService {
+        if (!this.notificationService) {
+            this.notificationService = new NotificationService(
+                this.firestore,
+                this.firestoreReader
+            );
+        }
+        return this.notificationService;
     }
 
     // ========================================================================
@@ -151,24 +210,40 @@ export class ServiceContainer implements IServiceProvider {
     }
 
     async listGroupExpenses(groupId: string, userId: string, options: ExpenseListOptions): Promise<ExpenseListResponse> {
-        return this.getExpenseService().listGroupExpenses(groupId, userId, options);
+        const result = await this.getExpenseService().listGroupExpenses(groupId, userId, options);
+        return {
+            ...result,
+            hasNext: result.hasMore
+        };
     }
 
     async getExpenseMetadata(groupId: string): Promise<ExpenseMetadata> {
         const metadata = await this.getExpenseMetadataService().calculateExpenseMetadata(groupId);
         return {
-            totalExpenses: metadata.count,
-            totalAmount: metadata.totalAmount || 0,
-            currencies: metadata.currencies || [],
-            dateRange: metadata.dateRange
+            totalExpenses: metadata.expenseCount,
+            totalAmount: 0, // TODO: implement totalAmount calculation
+            currencies: [], // TODO: implement currencies calculation
+            dateRange: undefined // TODO: implement date range
         };
     }
 
     async getGroupSettlementsData(groupId: string, options: SettlementListOptions): Promise<SettlementsData> {
-        return this.getSettlementService()._getGroupSettlementsData(groupId, options);
+        const result = await this.getSettlementService()._getGroupSettlementsData(groupId, options);
+        return {
+            ...result,
+            hasNext: result.hasMore
+        };
     }
 
     async runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>): Promise<T> {
         return this.firestoreWriter.runTransaction(updateFunction);
+    }
+
+    public getFirestoreReader(): IFirestoreReader {
+        return this.firestoreReader;
+    }
+
+    public getFirestoreWriter(): IFirestoreWriter {
+        return this.firestoreWriter;
     }
 }

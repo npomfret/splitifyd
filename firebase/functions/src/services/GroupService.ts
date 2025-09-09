@@ -16,8 +16,10 @@ import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-lo
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IServiceProvider } from './IServiceProvider';
 import type { BalanceCalculationResult } from './balance';
 import type { UserProfile } from '../services/UserService2';
+import { ExpenseMetadataService } from './expenseMetadataService';
 
 /**
  * Service for managing group operations
@@ -29,7 +31,8 @@ export class GroupService {
     
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly serviceProvider: IServiceProvider
     ) {
         this.balanceService = new BalanceCalculationService(firestoreReader);
     }
@@ -64,7 +67,9 @@ export class GroupService {
         const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
 
         // Calculate expense metadata on-demand
-        const expenseMetadata = await getExpenseMetadataService().calculateExpenseMetadata(group.id);
+        // TODO: Update ExpenseMetadata interface to include lastExpenseTime
+        const expenseMetadataService = new ExpenseMetadataService(this.firestoreReader);
+        const expenseMetadata = await expenseMetadataService.calculateExpenseMetadata(group.id);
 
         // Calculate currency-specific balances with proper typing
         const balancesByCurrency: Record<string, {
@@ -372,7 +377,7 @@ export class GroupService {
             
             // Fetch members for each group from subcollections
             const memberPromises = groups.map((group: Group) => 
-                getGroupMemberService().getMembersFromSubcollection(group.id)
+                this.serviceProvider.getMembersFromSubcollection(group.id)
             );
             const membersArrays = await Promise.all(memberPromises);
             
@@ -384,7 +389,7 @@ export class GroupService {
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
             
-            const allMemberProfiles = await getUserService().getUsers(Array.from(allMemberIds));
+            const allMemberProfiles = await this.serviceProvider.getUserProfiles(Array.from(allMemberIds));
             
             return { allMemberProfiles, membersByGroup };
         })();
@@ -881,7 +886,7 @@ export class GroupService {
         const validatedGroup = groupData;
 
         // Validate user access using scalable membership check
-        const membersData = await getUserService().getUsers([userId]);
+        const membersData = await this.serviceProvider.getUserProfiles([userId]);
         if (!membersData.has(userId)) {
             throw Errors.FORBIDDEN();
         }
@@ -934,10 +939,10 @@ export class GroupService {
         // Fetch all data in parallel using proper service layer methods
         const [membersData, expensesData, balancesData, settlementsData] = await Promise.all([
             // Get members using service layer
-            getGroupMemberService().getGroupMembersResponseFromSubcollection(groupId),
+            this.serviceProvider.getGroupMembers(groupId),
 
             // Get expenses using service layer with pagination
-            getExpenseService().listGroupExpenses(groupId, userId, {
+            this.serviceProvider.listGroupExpenses(groupId, userId, {
                 limit: expenseLimit,
                 cursor: options.expenseCursor,
             }),
@@ -946,7 +951,7 @@ export class GroupService {
             this.balanceService.calculateGroupBalances(groupId),
 
             // Get settlements using service layer with pagination
-            getSettlementService()._getGroupSettlementsData(groupId, {
+            this.serviceProvider.getGroupSettlementsData(groupId, {
                 limit: settlementLimit,
                 cursor: options.settlementCursor,
             }),

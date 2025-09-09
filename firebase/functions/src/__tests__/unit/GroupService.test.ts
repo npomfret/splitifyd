@@ -97,6 +97,7 @@ describe('GroupService - Unit Tests', () => {
     let groupService: GroupService;
     let mockFirestoreReader: MockFirestoreReader;
     let mockFirestoreWriter: any;
+    let mockServiceProvider: any;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
@@ -107,7 +108,17 @@ describe('GroupService - Unit Tests', () => {
             updateInTransaction: vi.fn(),
             deleteInTransaction: vi.fn()
         };
-        groupService = new GroupService(mockFirestoreReader, mockFirestoreWriter);
+        mockServiceProvider = {
+            getUserProfiles: vi.fn(),
+            getGroupMembers: vi.fn(),
+            getGroupMember: vi.fn(),
+            getMembersFromSubcollection: vi.fn(),
+            listGroupExpenses: vi.fn(),
+            getExpenseMetadata: vi.fn(),
+            getGroupSettlementsData: vi.fn(),
+            runTransaction: vi.fn()
+        };
+        groupService = new GroupService(mockFirestoreReader, mockFirestoreWriter, mockServiceProvider);
 
         // Reset all mocks
         vi.clearAllMocks();
@@ -119,6 +130,9 @@ describe('GroupService - Unit Tests', () => {
             failureCount: 0,
             results: [{ id: 'test-group-123', success: true }]
         });
+        
+        // Default mock for ExpenseMetadataService dependency
+        mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
     });
 
     describe('fetchGroupWithAccess', () => {
@@ -259,6 +273,11 @@ describe('GroupService - Unit Tests', () => {
                 .build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
+            
+            // Mock getUserProfiles to return a Map with the user
+            const mockUserProfile = { uid: userId, email: 'test@example.com', displayName: 'Test User' };
+            const userProfilesMap = new Map([[userId, mockUserProfile]]);
+            mockServiceProvider.getUserProfiles.mockResolvedValue(userProfilesMap);
 
             const result = await groupService.getGroupBalances(groupId, userId);
 

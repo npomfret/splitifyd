@@ -15,11 +15,26 @@
 import type { Transaction } from 'firebase-admin/firestore';
 import type {
     GroupMembersResponse,
-    GroupMemberDocument,
-    UserWithProfile,
-    ExpenseListResponse,
-    SettlementsData
+    GroupMemberDocument
 } from '@splitifyd/shared';
+import type { UserProfile } from './UserService2';
+
+// TODO: Move these types to @splitifyd/shared
+export type UserWithProfile = UserProfile;
+export interface ExpenseListResponse {
+    expenses: any[];
+    hasNext: boolean;
+    nextCursor?: string;
+    count: number;
+    hasMore: boolean;
+}
+export interface SettlementsData {
+    settlements: any[];
+    hasNext: boolean;
+    nextCursor?: string;
+    count: number;
+    hasMore: boolean;
+}
 
 export interface ExpenseListOptions {
     limit?: number;
