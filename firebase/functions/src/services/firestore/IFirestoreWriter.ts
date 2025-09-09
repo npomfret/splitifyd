@@ -44,6 +44,7 @@ import type {
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
+import type { UserNotificationDocument, UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {
     id: string;
@@ -421,6 +422,43 @@ export interface IFirestoreWriter {
      * @returns Generated document ID
      */
     generateDocumentId(collection: string): string;
+
+    // ========================================================================
+    // User Notification Operations
+    // ========================================================================
+
+    /**
+     * Create a new user notification document
+     * @param userId - The user ID
+     * @param notificationData - The notification document data
+     * @returns Write result with document ID
+     */
+    createUserNotification(userId: string, notificationData: CreateUserNotificationDocument): Promise<WriteResult>;
+
+    /**
+     * Update user notification document
+     * @param userId - The user ID
+     * @param updates - The update data (validated before writing)
+     * @returns Write result
+     */
+    updateUserNotification(userId: string, updates: Record<string, any>): Promise<WriteResult>;
+
+    /**
+     * Add or update a group in user's notification tracking
+     * @param userId - The user ID
+     * @param groupId - The group ID
+     * @param groupData - The group notification data
+     * @returns Write result
+     */
+    setUserNotificationGroup(userId: string, groupId: string, groupData: UserNotificationGroup): Promise<WriteResult>;
+
+    /**
+     * Remove a group from user's notification tracking
+     * @param userId - The user ID
+     * @param groupId - The group ID to remove
+     * @returns Write result
+     */
+    removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult>;
 
     // ========================================================================
     // Performance Metrics Operations

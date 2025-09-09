@@ -17,12 +17,9 @@
  * - Atomic consistency using FieldValue operations
  */
 
-import {FieldValue, type Firestore} from 'firebase-admin/firestore';
-import {FirestoreWriter} from './firestore/FirestoreWriter';
-import {FirestoreReader} from './firestore/FirestoreReader';
+import {FieldValue} from 'firebase-admin/firestore';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {BatchWriteResult, WriteResult} from './firestore/IFirestoreWriter';
-import {logger} from '../logger';
+import type {IFirestoreWriter, BatchWriteResult, WriteResult} from './firestore/IFirestoreWriter';
 import {type CreateUserNotificationDocument} from '../schemas/user-notifications';
 import {measureDb} from '../monitoring/measure';
 
@@ -31,8 +28,8 @@ export type ChangeType = 'transaction' | 'balance' | 'group';
 export class NotificationService {
 
     constructor(
-        private readonly db: Firestore,
         private readonly firestoreReader: IFirestoreReader,
+        private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
     /**
@@ -57,23 +54,11 @@ export class NotificationService {
             // Use dot notation with update() to avoid overwriting nested objects
             const updates = {
                 changeVersion: FieldValue.increment(1),
-                lastModified: FieldValue.serverTimestamp(),
                 [`groups.${groupId}.${lastChangeFieldName}`]: FieldValue.serverTimestamp(),
                 [`groups.${groupId}.${countFieldName}`]: FieldValue.increment(1)
             };
             
-            // Try update() first, fall back to set with merge if document doesn't exist
-            try {
-                await this.db.doc(`user-notifications/${userId}`).update(updates);
-            } catch (error) {
-                const fallbackUpdates = this.buildUpdateData(groupId, changeType);
-                await this.db.doc(`user-notifications/${userId}`).set(fallbackUpdates, { merge: true });
-            }
-            
-            return {
-                id: userId,
-                success: true
-            };
+            return await this.firestoreWriter.updateUserNotification(userId, updates);
         });
     }
 
@@ -88,8 +73,6 @@ export class NotificationService {
     ): Promise<BatchWriteResult> {
         return measureDb('NotificationService.batchUpdateNotifications', async () => {
             for (const userId of userIds) {
-                await this.initializeUserNotifications(userId);
-                await this.addUserToGroupNotificationTracking(userId, groupId);
                 await this.updateUserNotification(userId, groupId, changeType);
             }
 
@@ -120,19 +103,7 @@ export class NotificationService {
                 recentChanges: []
             };
 
-            const documentData = {
-                id: userId,
-                changeVersion: 0,
-                lastModified: FieldValue.serverTimestamp(),
-                ...initialData
-            };
-
-            await this.db.doc(`user-notifications/${userId}`).set(documentData);
-            
-            return {
-                id: userId,
-                success: true
-            };
+            return await this.firestoreWriter.createUserNotification(userId, initialData);
         });
     }
 
@@ -152,25 +123,16 @@ export class NotificationService {
                 };
             }
 
-            const groupUpdate = {
-                groups: {
-                    [groupId]: {
-                        lastTransactionChange: null,
-                        lastBalanceChange: null,
-                        lastGroupDetailsChange: null,
-                        transactionChangeCount: 0,
-                        balanceChangeCount: 0,
-                        groupDetailsChangeCount: 0
-                    }
-                }
+            const groupData = {
+                lastTransactionChange: null,
+                lastBalanceChange: null,
+                lastGroupDetailsChange: null,
+                transactionChangeCount: 0,
+                balanceChangeCount: 0,
+                groupDetailsChangeCount: 0
             };
 
-            await this.db.doc(`user-notifications/${userId}`).set(groupUpdate, { merge: true });
-            
-            return {
-                id: userId,
-                success: true
-            };
+            return await this.firestoreWriter.setUserNotificationGroup(userId, groupId, groupData);
         });
     }
 
@@ -180,58 +142,11 @@ export class NotificationService {
      */
     async removeUserFromGroup(userId: string, groupId: string): Promise<WriteResult> {
         return measureDb('NotificationService.removeUserFromGroup', async () => {
-            const removeUpdate = {
-                [`groups.${groupId}`]: FieldValue.delete()
-            };
-
-            await this.db.doc(`user-notifications/${userId}`).update(removeUpdate);
-            
-            return {
-                id: userId,
-                success: true
-            };
+            return await this.firestoreWriter.removeUserNotificationGroup(userId, groupId);
         });
     }
 
-    /**
-     * Build the update data for a notification change
-     * Uses atomic operations for consistency
-     */
-    private buildUpdateData(groupId: string, changeType: ChangeType): any {
-        // Map changeType to proper field names
-        const fieldMap = {
-            'transaction': { count: 'transactionChangeCount', last: 'lastTransactionChange' },
-            'balance': { count: 'balanceChangeCount', last: 'lastBalanceChange' },
-            'group': { count: 'groupDetailsChangeCount', last: 'lastGroupDetailsChange' }
-        };
-        
-        const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
-        
-        const updateData: any = {
-            changeVersion: FieldValue.increment(1),
-            lastModified: FieldValue.serverTimestamp(),
-            groups: {
-                [groupId]: {
-                    [lastChangeFieldName]: FieldValue.serverTimestamp(),
-                    [countFieldName]: FieldValue.increment(1)
-                }
-            }
-        };
 
-        return updateData;
-    }
-
-    /**
-     * Trim recent changes array to prevent unbounded growth
-     * Runs asynchronously to avoid blocking main operations
-     */
-    private async trimRecentChanges(userId: string): Promise<void> {
-        // Implementation removed for simplicity
-    }
-
-    private capitalizeFirst(str: string): string {
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
 }
 
 

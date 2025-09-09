@@ -13,7 +13,7 @@ import {validateRegisterRequest} from '../auth/validation';
 import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
 import { measureDb } from '../monitoring/measure';
 import {UserDataSchema} from '../schemas/user';
-import {getFirestoreValidationService, getGroupMemberService} from './serviceRegistration';
+import {getFirestoreValidationService, getGroupMemberService, getNotificationService} from './serviceRegistration';
 import {UserRegistration} from "@splitifyd/shared";
 import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
@@ -450,6 +450,10 @@ export class UserService {
             }
 
             await this.firestoreWriter.createUser(userRecord.uid, userDoc as any);
+
+            // Initialize notification document for new user
+            const notificationService = getNotificationService();
+            await notificationService.initializeUserNotifications(userRecord.uid);
 
             return {
                 uid: userRecord.uid,

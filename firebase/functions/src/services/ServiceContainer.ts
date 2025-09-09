@@ -188,8 +188,8 @@ export class ServiceContainer implements IServiceProvider {
     public getNotificationService(): NotificationService {
         if (!this.notificationService) {
             this.notificationService = new NotificationService(
-                this.firestore,
-                this.firestoreReader
+                this.firestoreReader,
+                this.firestoreWriter
             );
         }
         return this.notificationService;

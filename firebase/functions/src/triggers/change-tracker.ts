@@ -6,12 +6,15 @@ import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { measureTrigger } from '../monitoring/measure';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
+import { FirestoreWriter } from '../services/firestore/FirestoreWriter';
 import {getFirestore} from "../firebase";
 import {IFirestoreReader} from "../services/firestore";
 import { NotificationService } from "../services/notification-service";
 
 const firestore = getFirestore();
-const notificationService = new NotificationService(firestore, new FirestoreReader(firestore));
+const firestoreReader = new FirestoreReader(firestore);
+const firestoreWriter = new FirestoreWriter(firestore);
+const notificationService = new NotificationService(firestoreReader, firestoreWriter);
 
 /**
  * Track changes to groups and create change documents for realtime updates

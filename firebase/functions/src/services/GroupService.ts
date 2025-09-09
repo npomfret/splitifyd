@@ -6,7 +6,7 @@ import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberD
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
 import {GroupDataSchema} from '../schemas';
 import {getThemeColorForMember, isGroupMemberAsync, isGroupOwnerAsync} from '../utils/groupHelpers';
-import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService} from './serviceRegistration';
+import {getExpenseService, getGroupMemberService, getSettlementService, getUserService, getExpenseMetadataService, getNotificationService} from './serviceRegistration';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
@@ -651,6 +651,10 @@ export class GroupService {
                 memberDocWithTimestamps
             );
         });
+
+        // Initialize group notifications for creator
+        const notificationService = getNotificationService();
+        await notificationService.addUserToGroupNotificationTracking(userId, docRef.id);
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: docRef.id });

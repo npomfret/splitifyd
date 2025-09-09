@@ -18,10 +18,12 @@ import { registerAllServices } from '../services/serviceRegistration';
 import {getFirestore} from "../firebase";
 import { IFirestoreWriter } from "../services/firestore/IFirestoreWriter";
 import { NotificationService } from "../services/notification-service";
-import { FirestoreReader } from "../services/firestore";
+import { FirestoreReader, FirestoreWriter } from "../services/firestore";
 
 const firestore = getFirestore();
-const notificationService = new NotificationService(firestore, new FirestoreReader(firestore));
+const firestoreReader = new FirestoreReader(firestore);
+const firestoreWriter = new FirestoreWriter(firestore);
+const notificationService = new NotificationService(firestoreReader, firestoreWriter);
 
 // Services registration state
 let servicesRegistered = false;

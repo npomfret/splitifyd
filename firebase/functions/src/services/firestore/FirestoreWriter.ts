@@ -18,7 +18,6 @@ import type {
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
-import type { ShareLink, GroupMemberDocument } from '@splitifyd/shared';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
@@ -30,6 +29,10 @@ import {
     GroupMemberDocumentSchema,
     CommentDataSchema
 } from '../../schemas';
+import {
+    UserNotificationDocumentSchema,
+    UserNotificationGroupSchema
+} from '../../schemas/user-notifications';
 
 // Import types
 import type {
@@ -38,7 +41,13 @@ import type {
     ExpenseDocument,
     SettlementDocument
 } from '../../schemas';
+import type {
+    UserNotificationDocument,
+    UserNotificationGroup,
+    CreateUserNotificationDocument
+} from '../../schemas/user-notifications';
 import type { ParsedComment as CommentDocument } from '../../schemas';
+import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
 import type { 
     IFirestoreWriter, 
     WriteResult, 
@@ -1087,185 +1096,6 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     // ========================================================================
-    // Share Link Operations
-    // ========================================================================
-
-    createShareLinkInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        shareLinkData: Omit<ShareLink, 'id'>
-    ): DocumentReference {
-        const shareLinksRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
-        const shareLinkDoc = shareLinksRef.doc();
-        
-        transaction.set(shareLinkDoc, {
-            ...shareLinkData,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
-        });
-        
-        return shareLinkDoc;
-    }
-
-    // ========================================================================
-    // Member Operations in Transactions
-    // ========================================================================
-
-    addGroupMemberInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        userId: string,
-        memberData: Omit<GroupMemberDocument, 'id'>
-    ): void {
-        const memberRef = this.db
-            .collection(FirestoreCollections.GROUPS)
-            .doc(groupId)
-            .collection('members')
-            .doc(userId);
-
-        transaction.set(memberRef, {
-            ...memberData,
-            id: userId,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
-        });
-    }
-
-    updateGroupInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        updates: any
-    ): void {
-        const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
-        transaction.update(groupRef, {
-            ...updates,
-            updatedAt: FieldValue.serverTimestamp()
-        });
-    }
-
-    // ========================================================================
-    // Notification Operations
-    // ========================================================================
-
-    async updateUserNotifications(userId: string, updates: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updateUserNotifications',
-            async () => {
-                try {
-                    const docPath = `user-notifications/${userId}`;
-                    await this.db.doc(docPath).update(updates);
-
-                    logger.info('User notifications updated', { userId, fields: Object.keys(updates) });
-
-                    return {
-                        id: docPath,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to update user notifications', error, { userId });
-                    return {
-                        id: `user-notifications/${userId}`,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            });
-    }
-
-    async setUserNotifications(userId: string, data: any, merge: boolean = false): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.setUserNotifications',
-            async () => {
-                try {
-                    const docPath = `user-notifications/${userId}`;
-                    const options = merge ? { merge: true } : {};
-                    await this.db.doc(docPath).set(data, options);
-
-                    logger.info('User notifications set', { userId, merge });
-
-                    return {
-                        id: docPath,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to set user notifications', error, { userId });
-                    return {
-                        id: `user-notifications/${userId}`,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            });
-    }
-
-    // ========================================================================
-    // Policy Operations
-    // ========================================================================
-
-    async createPolicy(policyId: string | null, policyData: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.createPolicy',
-            async () => {
-                try {
-                    const docRef = policyId 
-                        ? this.db.collection(FirestoreCollections.POLICIES).doc(policyId)
-                        : this.db.collection(FirestoreCollections.POLICIES).doc();
-
-                    const finalData = {
-                        ...policyData,
-                        createdAt: FieldValue.serverTimestamp(),
-                        updatedAt: FieldValue.serverTimestamp()
-                    };
-
-                    await docRef.set(finalData);
-
-                    logger.info('Policy created', { policyId: docRef.id });
-
-                    return {
-                        id: docRef.id,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to create policy', error, { policyId });
-                    return {
-                        id: policyId || 'unknown',
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            });
-    }
-
-    async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
-        return measureDb('FirestoreWriter.updatePolicy',
-            async () => {
-                try {
-                    const finalUpdates = {
-                        ...updates,
-                        updatedAt: FieldValue.serverTimestamp()
-                    };
-
-                    await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).update(finalUpdates);
-
-                    logger.info('Policy updated', { policyId, fields: Object.keys(updates) });
-
-                    return {
-                        id: policyId,
-                        success: true,
-                        timestamp: new Date() as any
-                    };
-                } catch (error) {
-                    logger.error('Failed to update policy', error, { policyId });
-                    return {
-                        id: policyId,
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error'
-                    };
-                }
-            });
-    }
-
-    // ========================================================================
     // Generic Document Operations
     // ========================================================================
 
@@ -1305,6 +1135,479 @@ export class FirestoreWriter implements IFirestoreWriter {
 
     generateDocumentId(collection: string): string {
         return this.db.collection(collection).doc().id;
+    }
+
+    // ========================================================================
+    // User Notification Operations
+    // ========================================================================
+
+    async createUserNotification(userId: string, notificationData: CreateUserNotificationDocument): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createUserNotification',
+            async () => {
+                try {
+                    // Validate data before writing
+                    const validatedData = UserNotificationDocumentSchema.parse({
+                        changeVersion: 0,
+                        lastModified: FieldValue.serverTimestamp(),
+                        ...notificationData
+                    });
+
+                    // Remove server timestamp for the data to write (it will be added by Firestore)
+                    const { lastModified, ...dataToWrite } = validatedData;
+
+                    const finalData = {
+                        ...dataToWrite,
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(`user-notifications/${userId}`).set(finalData);
+
+                    logger.info('User notification document created', { userId });
+
+                    return {
+                        id: userId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to create user notification document', error, { userId });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async updateUserNotification(userId: string, updates: Record<string, any>): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateUserNotification',
+            async () => {
+                try {
+                    // Check if updates contain FieldValue operations (increment, serverTimestamp, etc.)
+                    const hasFieldValueOperations = Object.values(updates).some(value => 
+                        value && typeof value === 'object' && 
+                        (value.constructor?.name === 'NumericIncrementTransform' || 
+                         value.constructor?.name === 'ServerTimestampTransform' ||
+                         value.operand !== undefined) // FieldValue.increment has operand property
+                    );
+
+                    if (hasFieldValueOperations) {
+                        // For updates with FieldValue operations, use direct update() 
+                        // Cannot validate these as they contain transform objects, not final values
+                        const finalUpdates = {
+                            ...updates,
+                            lastModified: FieldValue.serverTimestamp()
+                        };
+
+                        await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
+
+                        logger.info('User notification document updated', { userId, fields: Object.keys(updates) });
+
+                        return {
+                            id: userId,
+                            success: true,
+                            timestamp: new Date() as any
+                        };
+                    } else {
+                        // For regular updates without FieldValue operations, use read-merge-validate-write
+                        const docRef = this.db.doc(`user-notifications/${userId}`);
+                        const docSnapshot = await docRef.get();
+                        
+                        let existingData: any = {};
+                        if (docSnapshot.exists) {
+                            existingData = docSnapshot.data() || {};
+                        }
+
+                        // Merge updates with existing data
+                        const mergedData = {
+                            ...existingData,
+                            ...updates,
+                            lastModified: FieldValue.serverTimestamp()
+                        };
+
+                        // Ensure all group entries have required count fields
+                        if (mergedData.groups) {
+                            for (const groupId in mergedData.groups) {
+                                const group = mergedData.groups[groupId];
+                                mergedData.groups[groupId] = {
+                                    lastTransactionChange: group.lastTransactionChange || null,
+                                    lastBalanceChange: group.lastBalanceChange || null,
+                                    lastGroupDetailsChange: group.lastGroupDetailsChange || null,
+                                    transactionChangeCount: group.transactionChangeCount ?? 0,
+                                    balanceChangeCount: group.balanceChangeCount ?? 0,
+                                    groupDetailsChangeCount: group.groupDetailsChangeCount ?? 0
+                                };
+                            }
+                        }
+
+                        // Ensure required fields exist
+                        const completeData = {
+                            groups: {},
+                            recentChanges: [],
+                            changeVersion: 0,
+                            ...mergedData
+                        };
+
+                        // Validate the complete document (excluding FieldValue transforms)
+                        const validatedData = UserNotificationDocumentSchema.parse(completeData);
+
+                        // Write the complete validated document
+                        await docRef.set(validatedData);
+
+                        logger.info('User notification document updated', { userId, fields: Object.keys(updates) });
+
+                        return {
+                            id: userId,
+                            success: true,
+                            timestamp: new Date() as any
+                        };
+                    }
+                } catch (error) {
+                    logger.error('Failed to update user notification document', error, { userId, updates });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async setUserNotificationGroup(userId: string, groupId: string, groupData: UserNotificationGroup): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.setUserNotificationGroup',
+            async () => {
+                try {
+                    // Validate group data before writing
+                    const validatedGroupData = UserNotificationGroupSchema.parse(groupData);
+
+                    // Use dot notation to properly set nested group data with set() and merge: true
+                    // This ensures the document exists and all fields are properly set
+                    const updates: Record<string, any> = {
+                        [`groups.${groupId}`]: {
+                            lastTransactionChange: validatedGroupData.lastTransactionChange,
+                            lastBalanceChange: validatedGroupData.lastBalanceChange,
+                            lastGroupDetailsChange: validatedGroupData.lastGroupDetailsChange,
+                            transactionChangeCount: validatedGroupData.transactionChangeCount,
+                            balanceChangeCount: validatedGroupData.balanceChangeCount,
+                            groupDetailsChangeCount: validatedGroupData.groupDetailsChangeCount
+                        },
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(`user-notifications/${userId}`).set(updates, { merge: true });
+
+                    logger.info('User notification group updated', { userId, groupId });
+
+                    return {
+                        id: userId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update user notification group', error, { userId, groupId });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.removeUserNotificationGroup',
+            async () => {
+                try {
+                    const updates = {
+                        [`groups.${groupId}`]: FieldValue.delete(),
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(`user-notifications/${userId}`).update(updates);
+
+                    logger.info('User notification group removed', { userId, groupId });
+
+                    return {
+                        id: userId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    // If the document doesn't exist, consider the removal successful (idempotent)
+                    if (error instanceof Error && error.message.includes('NOT_FOUND')) {
+                        logger.info('User notification document not found - removal considered successful', { userId, groupId });
+                        return {
+                            id: userId,
+                            success: true,
+                            timestamp: new Date() as any
+                        };
+                    }
+                    
+                    logger.error('Failed to remove user notification group', error, { userId, groupId });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    // ========================================================================
+    // Share Link Operations
+    // ========================================================================
+
+    /**
+     * Create a share link within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param shareLinkData - The share link data
+     * @returns Document reference
+     */
+    createShareLinkInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        shareLinkData: Omit<ShareLink, 'id'>
+    ): DocumentReference {
+        const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('share-links');
+        
+        const shareLinkRef = shareLinksCollection.doc();
+        
+        const finalData = {
+            ...shareLinkData,
+            id: shareLinkRef.id,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+        };
+        
+        transaction.create(shareLinkRef, finalData);
+        
+        logger.info('Share link created in transaction', { 
+            groupId, 
+            shareLinkId: shareLinkRef.id 
+        });
+        
+        return shareLinkRef;
+    }
+
+    // ========================================================================
+    // Member Operations in Transactions
+    // ========================================================================
+
+    /**
+     * Add a member to a group within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param userId - The user ID
+     * @param memberData - The member data
+     */
+    addGroupMemberInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        userId: string,
+        memberData: Omit<GroupMemberDocument, 'id'>
+    ): void {
+        const memberRef = this.db.collection(FirestoreCollections.GROUPS)
+            .doc(groupId)
+            .collection('members')
+            .doc(userId);
+        
+        const finalData = {
+            ...memberData,
+            id: userId,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp()
+        };
+        
+        transaction.create(memberRef, finalData);
+        
+        logger.info('Group member added in transaction', { 
+            groupId, 
+            userId 
+        });
+    }
+
+    /**
+     * Update a group within a transaction
+     * @param transaction - The transaction object
+     * @param groupId - The group ID
+     * @param updates - The update data
+     */
+    updateGroupInTransaction(
+        transaction: Transaction,
+        groupId: string,
+        updates: any
+    ): void {
+        const groupRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+        
+        const finalUpdates = {
+            ...updates,
+            updatedAt: FieldValue.serverTimestamp()
+        };
+        
+        transaction.update(groupRef, finalUpdates);
+        
+        logger.info('Group updated in transaction', { 
+            groupId, 
+            fields: Object.keys(updates) 
+        });
+    }
+
+    // ========================================================================
+    // Notification Operations
+    // ========================================================================
+
+    /**
+     * Update user notifications
+     * @param userId - The user ID
+     * @param updates - The notification updates
+     * @returns Write result
+     */
+    async updateUserNotifications(userId: string, updates: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateUserNotifications',
+            async () => {
+                try {
+                    const finalUpdates = {
+                        ...updates,
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(`user-notifications/${userId}`).update(finalUpdates);
+
+                    logger.info('User notifications updated', { userId, fields: Object.keys(updates) });
+
+                    return {
+                        id: userId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update user notifications', error, { userId });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    /**
+     * Set user notifications with merge option
+     * @param userId - The user ID
+     * @param data - The notification data
+     * @param merge - Whether to merge with existing data
+     * @returns Write result
+     */
+    async setUserNotifications(userId: string, data: any, merge?: boolean): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.setUserNotifications',
+            async () => {
+                try {
+                    const finalData = {
+                        ...data,
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(`user-notifications/${userId}`).set(finalData, { merge: merge || false });
+
+                    logger.info('User notifications set', { userId, merge, fields: Object.keys(data) });
+
+                    return {
+                        id: userId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to set user notifications', error, { userId });
+                    return {
+                        id: userId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    // ========================================================================
+    // Policy Operations
+    // ========================================================================
+
+    /**
+     * Create a policy document
+     * @param policyId - The policy ID (optional, auto-generated if not provided)
+     * @param policyData - The policy data
+     * @returns Write result
+     */
+    async createPolicy(policyId: string | null, policyData: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createPolicy',
+            async () => {
+                try {
+                    const policiesCollection = this.db.collection('policies');
+                    const policyRef = policyId ? policiesCollection.doc(policyId) : policiesCollection.doc();
+                    
+                    const finalData = {
+                        ...policyData,
+                        id: policyRef.id,
+                        createdAt: FieldValue.serverTimestamp(),
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await policyRef.set(finalData);
+
+                    logger.info('Policy document created', { policyId: policyRef.id });
+
+                    return {
+                        id: policyRef.id,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to create policy document', error, { policyId });
+                    return {
+                        id: policyId || '',
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    /**
+     * Update a policy document
+     * @param policyId - The policy ID
+     * @param updates - The policy updates
+     * @returns Write result
+     */
+    async updatePolicy(policyId: string, updates: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updatePolicy',
+            async () => {
+                try {
+                    const finalUpdates = {
+                        ...updates,
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.collection('policies').doc(policyId).update(finalUpdates);
+
+                    logger.info('Policy document updated', { policyId, fields: Object.keys(updates) });
+
+                    return {
+                        id: policyId,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update policy document', error, { policyId });
+                    return {
+                        id: policyId,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
     }
 
     /**
@@ -1357,5 +1660,4 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return 'Review error details and consider alternative approach';
         }
     }
-
 }

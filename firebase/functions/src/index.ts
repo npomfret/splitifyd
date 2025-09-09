@@ -48,9 +48,9 @@ function ensureServiceContainer() {
         const firestoreWriter = new FirestoreWriter(firestoreDb);
         serviceContainer = new ServiceContainer(firestoreReader, firestoreWriter, firestoreDb);
         
-        // Update the compatibility layer to use our container
-        const { setServiceContainer } = require('./services/serviceRegistration');
-        setServiceContainer(serviceContainer);
+        // Register all services with the ServiceRegistry
+        const { registerAllServices } = require('./services/serviceRegistration');
+        registerAllServices(firestoreDb);
     }
 }
 

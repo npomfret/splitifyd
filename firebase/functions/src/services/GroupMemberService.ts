@@ -1,7 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import {getFirestore} from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
-import { getUserService } from './serviceRegistration';
+import { getUserService, getNotificationService } from './serviceRegistration';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections, GroupMembersResponse, GroupMemberWithProfile, UserThemeColor } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
@@ -335,6 +335,10 @@ export class GroupMemberService {
                     .doc(userId);
 
                 await memberRef.delete();
+
+                // Remove notification tracking for departed member
+                const notificationService = getNotificationService();
+                await notificationService.removeUserFromGroup(userId, groupId);
 
                 logger.info('Member deleted from subcollection', { groupId, userId });
             }
