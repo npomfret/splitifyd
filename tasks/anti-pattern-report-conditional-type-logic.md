@@ -8,27 +8,40 @@ This report details all instances of conditional logic (`if`, `switch`) based on
 
 ### 1. `firebase/functions/src/services/CommentService.ts`
 
-- **Location:** `firebase/functions/src/services/CommentService.ts`
-- **Analysis:** The `CommentService` uses `if/else if` blocks to handle different `targetType` values (`GROUP` or `EXPENSE`). This logic is repeated across multiple methods (`getCommentsCollection`, `verifyCommentAccess`, `_listComments`, `_createComment`). This is a strong signal that `GROUP` and `EXPENSE` targets could be represented by polymorphic classes with a common interface for comment-related operations.
-- **Recommendation:** Refactor to use a strategy or factory pattern. Create separate classes for `GroupCommentStrategy` and `ExpenseCommentStrategy` that encapsulate the unique logic for each target type. The `CommentService` would then use a factory to select the appropriate strategy based on the `targetType`.
+-   **Location:** `firebase/functions/src/services/CommentService.ts`
+-   **Analysis:** The `CommentService` uses `if/else if` blocks to handle different `targetType` values (`GROUP` or `EXPENSE`). This logic is repeated across multiple methods (`getCommentsCollection`, `verifyCommentAccess`, `_listComments`, `_createComment`). This is a strong signal that `GROUP` and `EXPENSE` targets could be represented by polymorphic classes with a common interface for comment-related operations.
+-   **Recommendation:** Refactor to use a strategy or factory pattern. Create separate classes for `GroupCommentStrategy` and `ExpenseCommentStrategy` that encapsulate the unique logic for each target type. The `CommentService` would then use a factory to select the appropriate strategy based on the `targetType`.
 
 ### 2. `firebase/functions/src/triggers/change-tracker.ts`
 
-- **Location:** `firebase/functions/src/triggers/change-tracker.ts`
-- **Analysis:** The `createMinimalChangeDocument` function checks the `entityType` to decide whether to add a `groupId`. This is a minor violation, but it adds complexity to the function and makes it harder to maintain as new entity types are added.
-- **Recommendation:** Use a builder pattern or separate functions for creating change documents for different entity types. This would encapsulate the logic for each type and make the code more modular.
+-   **Location:** `firebase/functions/src/triggers/change-tracker.ts`
+-   **Analysis:** The `createMinimalChangeDocument` function checks the `entityType` to decide whether to add a `groupId`. This is a minor violation, but it adds complexity to the function and makes it harder to maintain as new entity types are added.
+-   **Recommendation:** Use a builder pattern or separate functions for creating change documents for different entity types. This would encapsulate the logic for each type and make the code more modular.
 
 ### 3. `firebase/functions/src/utils/change-detection.ts`
 
-- **Location:** `firebase/functions/src/utils/change-detection.ts`
-- **Analysis:** The `calculatePriority` function uses a dictionary lookup based on `documentType` to determine which fields are critical or important. While not a direct `if/else` or `switch`, it's still a form of dispatch-on-type that can be improved.
-- **Recommendation:** Co-locate the priority definitions with the entity schemas themselves. Each entity's configuration or class could expose its own critical and important fields, removing the need for a centralized dictionary.
+-   **Location:** `firebase/functions/src/utils/change-detection.ts`
+-   **Analysis:** The `calculatePriority` function uses a dictionary lookup based on `documentType` to determine which fields are critical or important. While not a direct `if/else` or `switch`, it's still a form of dispatch-on-type that can be improved.
+-   **Recommendation:** Co-locate the priority definitions with the entity schemas themselves. Each entity's configuration or class could expose its own critical and important fields, removing the need for a centralized dictionary.
 
 ### 4. `webapp-v2/src/components/group/ActivityFeed.tsx`
 
-- **Location:** `webapp-v2/src/components/group/ActivityFeed.tsx`
-- **Analysis:** The `ActivityFeed` component uses two `switch` statements based on the `type` of the activity to render different icons and text. This is a classic example of this anti-pattern in UI development. As new activity types are added, this component will become increasingly large and complex.
-- **Recommendation:** Refactor this into a more component-based architecture. Create separate components for each activity type (e.g., `ExpenseAddedActivity`, `UserJoinedActivity`). A parent `ActivityFeed` component can then use a mapping from `activity.type` to the corresponding component to dynamically render the correct one. This makes the system much easier to extend.
+-   **Location:** `webapp-v2/src/components/group/ActivityFeed.tsx`
+-   **Analysis:** The `ActivityFeed` component uses two `switch` statements based on the `type` of the activity to render different icons and text. This is a classic example of this anti-pattern in UI development. As new activity types are added, this component will become increasingly large and complex.
+-   **Recommendation:** Refactor this into a more component-based architecture. Create separate components for each activity type (e.g., `ExpenseAddedActivity`, `UserJoinedActivity`). A parent `ActivityFeed` component can then use a mapping from `activity.type` to the corresponding component to dynamically render the correct one. This makes the system much easier to extend.
+
+### 5. Inconsistent Data Types and Runtime Type Checking
+
+-   **Location:** `firebase/functions/src/services/GroupService.ts`, `firebase/functions/src/expenses/validation.ts`, `firebase/functions/src/utils/pagination.ts`
+-   **Analysis:** The codebase exhibits inconsistent typing for date/timestamp fields such as `createdAt` and `updatedAt`. These fields are sometimes treated as Firestore `Timestamp` objects and other times as ISO-formatted `string`s. This forces the use of `typeof` checks and conditional logic at runtime to determine the actual type and perform necessary conversions (e.g., `new Date(value).getTime()` or `value.toMillis()`). This indicates a lack of a clear, enforced data contract for these fields, leading to brittle code that is prone to errors if the assumed type at a given point is incorrect.
+    -   **Specific examples:**
+        -   `GroupService.ts`: `safeDateToISO`, `batchFetchGroupData` (lines 51, 224, 225, 232, 490)
+        -   `utils/pagination.ts`: `if (!cursorData.updatedAt || typeof cursorData.updatedAt !== 'string')` (line 14)
+-   **Recommendation:** Establish a strict and consistent data type for all date/timestamp fields across the application, preferably using Firestore `Timestamp` objects for storage and converting to ISO strings only at the API boundary or for display purposes. Implement clear serialization/deserialization logic at the data access layer (e.g., `FirestoreReader`, `FirestoreWriter`) to ensure that services always receive and return a consistent type (e.g., `Date` objects or `Timestamp` objects). This will eliminate the need for runtime `typeof` checks and conditional logic, improving type safety and code clarity.
+
+-   **Location:** `firebase/functions/src/services/GroupMemberService.ts`
+-   **Analysis:** In `GroupMemberService.ts` (line 389), the `themeColor` property of `profile` is conditionally assigned based on `typeof profile.themeColor === 'object'`. This suggests that `profile.themeColor` can be of different types, requiring a runtime check to handle its structure. This indicates an ambiguous or inconsistent type definition for `themeColor`, making the code less predictable and harder to maintain.
+-   **Recommendation:** Define a clear and consistent type for `themeColor` in the relevant schemas and interfaces. Ensure that data flowing into and out of the system adheres to this single, well-defined type. If `themeColor` can genuinely represent different structures (e.g., a simple string or a complex object), consider using a discriminated union or a more robust parsing mechanism to handle these variations explicitly and safely, rather than relying on generic `typeof 'object'` checks.
 
 ---
 
