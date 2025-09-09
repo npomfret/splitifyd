@@ -1,4 +1,4 @@
-import {DocumentReference, Firestore} from 'firebase-admin/firestore';
+import {DocumentReference} from 'firebase-admin/firestore';
 import {z} from 'zod';
 import {ApiError, Errors} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
@@ -43,11 +43,9 @@ function toGroup(groupDoc: GroupDocument): Group {
 }
 
 export class ExpenseService {
-    // Keep collection references for write operations (until we have IFirestoreWriter)
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly firestore: Firestore,// todo: remove this!
         private readonly serviceProvider: IServiceProvider
     ) {}
 
@@ -188,7 +186,7 @@ export class ExpenseService {
         const now = createOptimisticTimestamp();
 
         // Generate a unique ID for the expense
-        const expenseId = this.firestore.collection(FirestoreCollections.EXPENSES).doc().id;
+        const expenseId = this.firestoreWriter.generateDocumentId(FirestoreCollections.EXPENSES);
 
         // Calculate splits based on split type
         const splits = calculateSplits(expenseData.amount, expenseData.splitType, expenseData.participants, expenseData.splits);

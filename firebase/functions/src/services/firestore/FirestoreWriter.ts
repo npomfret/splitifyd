@@ -1180,4 +1180,12 @@ export class FirestoreWriter implements IFirestoreWriter {
             });
     }
 
+    // ========================================================================
+    // Utility Operations
+    // ========================================================================
+
+    generateDocumentId(collection: string): string {
+        return this.db.collection(collection).doc().id;
+    }
+
 }

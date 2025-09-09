@@ -94,7 +94,6 @@ export class ServiceContainer implements IServiceProvider {
             this.expenseService = new ExpenseService(
                 this.firestoreReader,
                 this.firestoreWriter,
-                this.firestore, // TODO: remove this when ExpenseService is fully refactored
                 this // Pass the container as IServiceProvider
             );
         }

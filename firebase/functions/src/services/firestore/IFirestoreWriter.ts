@@ -387,6 +387,17 @@ export interface IFirestoreWriter {
     updateDocument(documentPath: string, updates: any): Promise<WriteResult>;
 
     // ========================================================================
+    // Utility Operations
+    // ========================================================================
+
+    /**
+     * Generate a new document ID for a collection
+     * @param collection - The collection name to generate ID for
+     * @returns Generated document ID
+     */
+    generateDocumentId(collection: string): string;
+
+    // ========================================================================
     // Performance Metrics Operations
     // ========================================================================
 
