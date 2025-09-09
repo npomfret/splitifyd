@@ -1805,4 +1805,150 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    async getRawDocument(collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const doc = await this.db.collection(collection).doc(docId).get();
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw document', error, { collection, docId });
+            throw error;
+        }
+    }
+
+    async getRawDocumentInTransaction(transaction: FirebaseFirestore.Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection(collection).doc(docId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw document in transaction', error, { collection, docId });
+            throw error;
+        }
+    }
+
+    async findShareLinkByTokenInTransaction(transaction: FirebaseFirestore.Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
+        try {
+            const groupsSnapshot = await this.db.collection(FirestoreCollections.GROUPS).get();
+            
+            for (const groupDoc of groupsSnapshot.docs) {
+                const shareLinksRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupDoc.id).collection('shareLinks');
+                const shareLinksSnapshot = await shareLinksRef.where('token', '==', token).limit(1).get();
+                
+                if (!shareLinksSnapshot.empty) {
+                    const shareLinkDoc = shareLinksSnapshot.docs[0];
+                    const shareLinkData = shareLinkDoc.data();
+                    
+                    try {
+                        const parsedShareLink = ShareLinkDocumentSchema.parse({
+                            ...shareLinkData,
+                            id: shareLinkDoc.id
+                        });
+                        
+                        return {
+                            groupId: groupDoc.id,
+                            shareLink: parsedShareLink
+                        };
+                    } catch (parseError) {
+                        logger.warn('Invalid share link data found', { 
+                            groupId: groupDoc.id, 
+                            shareLinkId: shareLinkDoc.id,
+                            parseError 
+                        });
+                        continue;
+                    }
+                }
+            }
+            
+            return null;
+        } catch (error) {
+            logger.error('Failed to find share link by token in transaction', error, { token });
+            throw error;
+        }
+    }
+
+    async getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw group document', error, { groupId });
+            throw error;
+        }
+    }
+
+    async getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const doc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw policy document', error, { policyId });
+            throw error;
+        }
+    }
+
+    async getRawGroupDocumentInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw group document in transaction', error, { groupId });
+            throw error;
+        }
+    }
+
+    async getRawExpenseDocumentInTransaction(transaction: FirebaseFirestore.Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw expense document in transaction', error, { expenseId });
+            throw error;
+        }
+    }
+
+    async getRawSettlementDocumentInTransaction(transaction: FirebaseFirestore.Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw settlement document in transaction', error, { settlementId });
+            throw error;
+        }
+    }
+
+    async getRawUserDocumentInTransaction(transaction: FirebaseFirestore.Transaction, userId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection(FirestoreCollections.USERS).doc(userId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw user document in transaction', error, { userId });
+            throw error;
+        }
+    }
+
+    async getRawDocumentInTransactionWithRef(transaction: FirebaseFirestore.Transaction, docRef: DocumentReference): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get raw document in transaction with ref', error, { docRefPath: docRef.path });
+            throw error;
+        }
+    }
+
+    async getSystemDocumentInTransaction(transaction: FirebaseFirestore.Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            const docRef = this.db.collection('system').doc(docId);
+            const doc = await transaction.get(docRef);
+            return doc.exists ? doc : null;
+        } catch (error) {
+            logger.error('Failed to get system document in transaction', error, { docId });
+            throw error;
+        }
+    }
+
 }

@@ -627,4 +627,96 @@ export interface IFirestoreReader {
      */
     getUserLanguagePreference(userId: string): Promise<string | null>;
 
+    // ========================================================================
+    // Raw Document Access (for special cases like optimistic locking)
+    // ========================================================================
+
+    /**
+     * Get raw document data with metadata for optimistic locking scenarios
+     * @param collection - Collection name
+     * @param docId - Document ID
+     * @returns Raw document snapshot or null if not found
+     * @deprecated - the collection should be encapsulated
+     */
+    getRawDocument(collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw document data in a transaction
+     * @param transaction - Firestore transaction
+     * @param collection - Collection name  
+     * @param docId - Document ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawDocumentInTransaction(transaction: Transaction, collection: string, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Find share link by token in a transaction
+     * @param transaction - Firestore transaction
+     * @param token - Share link token
+     * @returns Share link data and group ID or null if not found
+     */
+    findShareLinkByTokenInTransaction(transaction: Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null>;
+
+    /**
+     * Get raw group document for optimistic locking scenarios
+     * @param groupId - The group ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw policy document for optimistic locking scenarios  
+     * @param policyId - The policy ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawPolicyDocument(policyId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw group document in a transaction for optimistic locking
+     * @param transaction - Firestore transaction
+     * @param groupId - The group ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawGroupDocumentInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw expense document in a transaction for optimistic locking
+     * @param transaction - Firestore transaction
+     * @param expenseId - The expense ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawExpenseDocumentInTransaction(transaction: Transaction, expenseId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw settlement document in a transaction for optimistic locking
+     * @param transaction - Firestore transaction
+     * @param settlementId - The settlement ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawSettlementDocumentInTransaction(transaction: Transaction, settlementId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get raw user document in a transaction for optimistic locking
+     * @param transaction - Firestore transaction
+     * @param userId - The user ID
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawUserDocumentInTransaction(transaction: Transaction, userId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get any raw document in a transaction with DocumentReference for optimistic locking
+     * @param transaction - Firestore transaction
+     * @param docRef - The document reference
+     * @returns Raw document snapshot or null if not found
+     */
+    getRawDocumentInTransactionWithRef(transaction: Transaction, docRef: DocumentReference): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
+    /**
+     * Get system document in a transaction
+     * @param transaction - Firestore transaction
+     * @param docId - The document ID in the system collection
+     * @returns Raw document snapshot or null if not found
+     */
+    getSystemDocumentInTransaction(transaction: Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
 }

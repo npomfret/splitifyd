@@ -35,12 +35,20 @@ export const updateWithTimestamp = async (transaction: Transaction, docRef: Docu
  * 🎯 CORRECT: Check timestamp conflict and update document in proper transaction order
  * This function follows Firestore's requirement: ALL reads must come before ANY writes
  */
-export const checkAndUpdateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
+export const checkAndUpdateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp, firestoreReader?: any): Promise<void> => {
     // Step 1: READ FIRST (as required by Firestore)
-    const freshDoc = await transaction.get(docRef);
-
-    if (!freshDoc.exists) {
-        throw Errors.NOT_FOUND('Document');
+    let freshDoc;
+    if (firestoreReader) {
+        freshDoc = await firestoreReader.getRawDocumentInTransactionWithRef(transaction, docRef);
+        if (!freshDoc) {
+            throw Errors.NOT_FOUND('Document');
+        }
+    } else {
+        // Fallback to direct transaction.get for backward compatibility
+        freshDoc = await transaction.get(docRef);
+        if (!freshDoc.exists) {
+            throw Errors.NOT_FOUND('Document');
+        }
     }
 
     // Step 2: VALIDATE timestamp

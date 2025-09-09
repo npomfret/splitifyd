@@ -94,9 +94,9 @@ export class TestUserPoolService {
         // Use transaction to atomically return user
         await runTransactionWithRetry(
             async (transaction) => {
-                const doc = await transaction.get(poolRef.doc(email));
+                const doc = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, poolRef.doc(email));
                 
-                if (!doc.exists) {
+                if (!doc) {
                     throw Error(`User ${email} not found in pool`);
                 }
                 

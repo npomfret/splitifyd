@@ -31,8 +31,8 @@ export class PolicyService {
         operationType: 'update' | 'publish' | 'version deletion',
         additionalContext: Record<string, any> = {}
     ): Promise<void> {
-        const updatedDoc = await this.policiesCollection.doc(policyId).get();
-        if (!updatedDoc.exists) {
+        const updatedDoc = await this.firestoreReader.getRawPolicyDocument(policyId);
+        if (!updatedDoc) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);
         }
 
@@ -190,9 +190,9 @@ export class PolicyService {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
         
         try {
-            const doc = await this.policiesCollection.doc(id).get();
+            const doc = await this.firestoreReader.getRawPolicyDocument(id);
 
-            if (!doc.exists) {
+            if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
@@ -268,9 +268,9 @@ export class PolicyService {
         }
 
         try {
-            const doc = await this.policiesCollection.doc(id).get();
+            const doc = await this.firestoreReader.getRawPolicyDocument(id);
 
-            if (!doc.exists) {
+            if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 
@@ -345,8 +345,8 @@ export class PolicyService {
             const id = customId || this.generatePolicyId(policyName);
 
             // Check if policy already exists
-            const existingDoc = await this.policiesCollection.doc(id).get();
-            if (existingDoc.exists) {
+            const existingDoc = await this.firestoreReader.getRawPolicyDocument(id);
+            if (existingDoc) {
                 throw new ApiError(HTTP_STATUS.CONFLICT, 'POLICY_EXISTS', 'Policy already exists');
             }
 
@@ -411,9 +411,9 @@ export class PolicyService {
      */
     async deletePolicyVersion(id: string, hash: string): Promise<void> {
         try {
-            const doc = await this.policiesCollection.doc(id).get();
+            const doc = await this.firestoreReader.getRawPolicyDocument(id);
 
-            if (!doc.exists) {
+            if (!doc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', 'Policy not found');
             }
 

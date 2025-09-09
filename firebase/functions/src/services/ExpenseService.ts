@@ -230,10 +230,9 @@ export class ExpenseService {
         // Use transaction to create expense atomically
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction
-            const groupDocRef = this.firestore.collection(FirestoreCollections.GROUPS).doc(expenseData.groupId);
-            const groupDocInTx = await transaction.get(groupDocRef);
+            const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, expenseData.groupId);
 
-            if (!groupDocInTx.exists) {
+            if (!groupDocInTx) {
                 throw Errors.NOT_FOUND('Group');
             }
 
@@ -341,9 +340,9 @@ export class ExpenseService {
         await runTransactionWithRetry(
             async (transaction) => {
                 // Re-fetch expense within transaction to check for concurrent updates
-                const expenseDocInTx = await transaction.get(docRef);
+                const expenseDocInTx = await this.firestoreReader.getRawExpenseDocumentInTransaction(transaction, expenseId);
 
-                if (!expenseDocInTx.exists) {
+                if (!expenseDocInTx) {
                     throw Errors.NOT_FOUND('Expense');
                 }
 
@@ -404,26 +403,12 @@ export class ExpenseService {
         logger.info('expense-updated', { id: expenseId, changes: Object.keys(updateData) });
 
         // Fetch and return the updated expense
-        const updatedDoc = await docRef.get();
-        
-        const rawData = updatedDoc.data();
-        if (!rawData) {
+        const updatedExpense = await this.firestoreReader.getExpense(expenseId);
+        if (!updatedExpense) {
             throw Errors.NOT_FOUND('Expense');
         }
 
-        // Validate the updated expense data
-        const dataWithId = { ...rawData, id: updatedDoc.id };
-        let updatedExpense;
-        try {
-            updatedExpense = ExpenseDocumentSchema.parse(dataWithId);
-        } catch (error) {
-            logger.error('Invalid updated expense document structure', error as Error, {
-                expenseId,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_EXPENSE_DATA', 'Updated expense data is corrupted');
-        }
-
+        // The expense from IFirestoreReader is already validated and includes the ID
         return this.transformExpenseToResponse(this.normalizeValidatedExpense(updatedExpense));
     }
 
@@ -515,8 +500,8 @@ export class ExpenseService {
                     // IMPORTANT: All reads must happen before any writes in Firestore transactions
 
                     // Step 1: Do ALL reads first
-                    const expenseDoc = await transaction.get(docRef);
-                    if (!expenseDoc.exists) {
+                    const expenseDoc = await this.firestoreReader.getRawExpenseDocumentInTransaction(transaction, expenseId);
+                    if (!expenseDoc) {
                         throw Errors.NOT_FOUND('Expense');
                     }
 
@@ -527,9 +512,8 @@ export class ExpenseService {
                     }
 
                     // Get group doc to ensure it exists (though we already checked above)
-                    const groupDocRef = this.firestore.collection(FirestoreCollections.GROUPS).doc(expense.groupId);
-                    const groupDocInTx = await transaction.get(groupDocRef);
-                    if (!groupDocInTx.exists) {
+                    const groupDocInTx = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, expense.groupId);
+                    if (!groupDocInTx) {
                         throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_GROUP', 'Group not found');
                     }
 

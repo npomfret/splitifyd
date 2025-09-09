@@ -5,12 +5,13 @@ import { runTransactionWithRetry } from '../utils/firestore-helpers';
 export async function assignThemeColor(userId: string): Promise<UserThemeColor> {
     const db = getFirestore();
     const systemDoc = db.collection('system').doc('colorAssignment');
+    const firestoreReader = getFirestoreReader();
 
     // Atomic counter increment with transaction
     const result = await runTransactionWithRetry(
         async (transaction) => {
-            const doc = await transaction.get(systemDoc);
-            const currentIndex = doc.exists ? doc.data()?.lastColorIndex || 0 : 0;
+            const doc = await firestoreReader.getSystemDocumentInTransaction(transaction, 'colorAssignment');
+            const currentIndex = doc?.data()?.lastColorIndex || 0;
             const nextIndex = (currentIndex + 1) % USER_COLORS.length;
 
             transaction.set(

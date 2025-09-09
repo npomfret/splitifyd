@@ -582,4 +582,22 @@ export class MockFirestoreReader implements IFirestoreReader {
     queryWithComplexFilters = vi.fn().mockResolvedValue([]);
 
     getUserLanguagePreference = vi.fn().mockResolvedValue('en');
+
+    getRawDocument = vi.fn().mockResolvedValue(null);
+
+    getRawDocumentInTransaction = vi.fn().mockResolvedValue(null);
+
+    findShareLinkByTokenInTransaction = vi.fn().mockResolvedValue(null);
+
+    // New encapsulated raw document methods
+    getRawGroupDocument = vi.fn().mockResolvedValue(null);
+    getRawPolicyDocument = vi.fn().mockResolvedValue(null);
+    getRawGroupDocumentInTransaction = vi.fn().mockResolvedValue(null);
+    
+    // Additional transaction methods for complete migration
+    getRawExpenseDocumentInTransaction = vi.fn().mockResolvedValue(null);
+    getRawSettlementDocumentInTransaction = vi.fn().mockResolvedValue(null);
+    getRawUserDocumentInTransaction = vi.fn().mockResolvedValue(null);
+    getRawDocumentInTransactionWithRef = vi.fn().mockResolvedValue(null);
+    getSystemDocumentInTransaction = vi.fn().mockResolvedValue(null);
 }

@@ -289,8 +289,8 @@ export class SettlementService {
         // Update with optimistic locking
         await runTransactionWithRetry(
             async (transaction) => {
-                const freshDoc = await transaction.get(settlementRef);
-                if (!freshDoc.exists) {
+                const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);
+                if (!freshDoc) {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
                 }
 
@@ -360,8 +360,8 @@ export class SettlementService {
         await runTransactionWithRetry(
             async (transaction) => {
                 // Step 1: Do ALL reads first
-                const freshDoc = await transaction.get(settlementRef);
-                if (!freshDoc.exists) {
+                const freshDoc = await this.firestoreReader.getRawSettlementDocumentInTransaction(transaction, settlementId);
+                if (!freshDoc) {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
                 }
 

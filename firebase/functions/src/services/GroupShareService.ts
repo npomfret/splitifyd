@@ -72,8 +72,8 @@ export class GroupShareService {
 
         await getFirestore().runTransaction(async (transaction) => {
             const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
-            const freshGroupDoc = await transaction.get(groupRef);
-            if (!freshGroupDoc.exists) {
+            const freshGroupDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
+            if (!freshGroupDoc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
 
@@ -214,9 +214,9 @@ export class GroupShareService {
         const result = await runTransactionWithRetry(
             async (transaction) => {
                 const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
-                const groupSnapshot = await transaction.get(groupRef);
+                const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
 
-                if (!groupSnapshot.exists) {
+                if (!groupSnapshot) {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
                 }
 
@@ -226,6 +226,7 @@ export class GroupShareService {
                     groupRef,
                     {},
                     getUpdatedAtTimestamp(groupSnapshot.data()),
+                    this.firestoreReader
                 );
 
                 // Create member subcollection document

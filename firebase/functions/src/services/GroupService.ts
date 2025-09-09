@@ -683,8 +683,8 @@ export class GroupService {
 
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            const freshDoc = await transaction.get(docRef);
-            if (!freshDoc.exists) {
+            const freshDoc = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, docRef);
+            if (!freshDoc) {
                 throw Errors.NOT_FOUND('Group');
             }
 

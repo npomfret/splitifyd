@@ -90,7 +90,10 @@ export class GroupPermissionService {
         }
 
         // Get raw document for optimistic locking
-        const groupDoc = await groupDocRef.get();
+        const groupDoc = await this.firestoreReader.getRawGroupDocument(groupId);
+        if (!groupDoc) {
+            throw Errors.NOT_FOUND('Group');
+        }
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check permissions
@@ -107,8 +110,8 @@ export class GroupPermissionService {
         await runTransactionWithRetry(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await transaction.get(groupDocRef);
-                if (!groupDocInTx.exists) {
+                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
 
@@ -196,7 +199,10 @@ export class GroupPermissionService {
         }
 
         // Get raw document for optimistic locking
-        const groupDoc = await groupDocRef.get();
+        const groupDoc = await this.firestoreReader.getRawGroupDocument(groupId);
+        if (!groupDoc) {
+            throw Errors.NOT_FOUND('Group');
+        }
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         if (!(await PermissionEngineAsync.checkPermission(toGroup(group), userId, 'settingsManagement'))) {
@@ -210,8 +216,8 @@ export class GroupPermissionService {
         await runTransactionWithRetry(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await transaction.get(groupDocRef);
-                if (!groupDocInTx.exists) {
+                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
 
@@ -300,7 +306,10 @@ export class GroupPermissionService {
         }
 
         // Get raw document for optimistic locking
-        const groupDoc = await groupDocRef.get();
+        const groupDoc = await this.firestoreReader.getRawGroupDocument(groupId);
+        if (!groupDoc) {
+            throw Errors.NOT_FOUND('Group');
+        }
         const originalUpdatedAt = groupDoc.data()?.updatedAt; // Store raw Firestore Timestamp for optimistic locking
 
         // Get members to check target user exists
@@ -325,8 +334,8 @@ export class GroupPermissionService {
         await runTransactionWithRetry(
             async (transaction) => {
                 // Re-fetch within transaction
-                const groupDocInTx = await transaction.get(groupDocRef);
-                if (!groupDocInTx.exists) {
+                const groupDocInTx = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, groupDocRef);
+                if (!groupDocInTx) {
                     throw Errors.NOT_FOUND('Group');
                 }
 
