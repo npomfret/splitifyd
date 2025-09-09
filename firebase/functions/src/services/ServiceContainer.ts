@@ -172,7 +172,8 @@ export class ServiceContainer implements IServiceProvider {
         if (!this.groupShareService) {
             this.groupShareService = new GroupShareService(
                 this.firestoreReader,
-                this.firestoreWriter
+                this.firestoreWriter,
+                this // Pass the container as IServiceProvider
             );
         }
         return this.groupShareService;

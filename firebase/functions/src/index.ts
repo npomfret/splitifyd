@@ -38,6 +38,12 @@ import { FirestoreWriter } from './services/firestore/FirestoreWriter';
 // Lazy initialization flags
 let serviceContainer: ServiceContainer | null = null;
 
+// Export function to get the initialized service container
+export function getServiceContainer(): ServiceContainer {
+    ensureServiceContainer();
+    return serviceContainer!;
+}
+
 // Get Firebase instances normally
 const firestoreDb = getFirestore();
 
@@ -47,10 +53,6 @@ function ensureServiceContainer() {
         const firestoreReader = new FirestoreReader(firestoreDb);
         const firestoreWriter = new FirestoreWriter(firestoreDb);
         serviceContainer = new ServiceContainer(firestoreReader, firestoreWriter, firestoreDb);
-        
-        // Register all services with the ServiceRegistry
-        const { registerAllServices } = require('./services/serviceRegistration');
-        registerAllServices(firestoreDb);
     }
 }
 

@@ -10,14 +10,15 @@ import { createTrueServerTimestamp } from '../utils/dateHelpers';
 import { getThemeColorForMember, isGroupOwnerAsync, isGroupMemberAsync } from '../utils/groupHelpers';
 import { measureDb } from '../monitoring/measure';
 import { ShareLinkDataSchema } from '../schemas/sharelink';
-import { getGroupMemberService } from './serviceRegistration';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IServiceProvider } from './IServiceProvider';
 
 export class GroupShareService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly serviceProvider: IServiceProvider
     ) {}
     
     private generateShareToken(): string {
@@ -135,7 +136,7 @@ export class GroupShareService {
         const isAlreadyMember = await isGroupMemberAsync(group.id, userId);
         
         // Get member count from subcollection
-        const memberDocs = await getGroupMemberService().getMembersFromSubcollection(group.id);
+        const memberDocs = await this.serviceProvider.getMembersFromSubcollection(group.id);
 
         return {
             groupId: group.id,
@@ -177,7 +178,7 @@ export class GroupShareService {
         }
 
         // Early membership check to avoid transaction if user is already a member
-        const existingMember = await getGroupMemberService().getMemberFromSubcollection(groupId, userId);
+        const existingMember = await this.serviceProvider.getGroupMember(groupId, userId);
         if (existingMember) {
             throw new ApiError(HTTP_STATUS.CONFLICT, 'ALREADY_MEMBER', 'You are already a member of this group');
         }
@@ -187,7 +188,7 @@ export class GroupShareService {
 
         // Pre-compute member data outside transaction for speed
         const joinedAt = new Date().toISOString();
-        const existingMembers = await getGroupMemberService().getMembersFromSubcollection(groupId);
+        const existingMembers = await this.serviceProvider.getMembersFromSubcollection(groupId);
         const memberIndex = existingMembers.length;
         
         const memberRef = getFirestore()

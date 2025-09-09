@@ -119,7 +119,7 @@ export function registerAllServices(firestore: Firestore): void {
 
     registry.registerService('GroupShareService', () => {
         if (!groupShareServiceInstance) {
-            groupShareServiceInstance = new GroupShareService(firestoreReader, firestoreWriter);
+            groupShareServiceInstance = new GroupShareService(firestoreReader, firestoreWriter, serviceProvider);
         }
         return groupShareServiceInstance;
     });

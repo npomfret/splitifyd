@@ -5,6 +5,7 @@ import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
+import type { IServiceProvider } from '../../../services/IServiceProvider';
 
 // Mock external dependencies
 vi.mock('../../../utils/groupHelpers', () => ({
@@ -71,6 +72,7 @@ describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let mockFirestoreReader: MockFirestoreReader;
     let mockFirestoreWriter: IFirestoreWriter;
+    let mockServiceProvider: IServiceProvider;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -79,7 +81,14 @@ describe('GroupShareService', () => {
             runTransaction: vi.fn(),
             updateInTransaction: vi.fn(),
         } as any;
-        groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter);
+        mockServiceProvider = {
+            getMembersFromSubcollection: vi.fn().mockResolvedValue([
+                { userId: 'user1', role: 'admin' },
+                { userId: 'user2', role: 'member' },
+            ]),
+            getGroupMember: vi.fn().mockResolvedValue(null),
+        } as any;
+        groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter, mockServiceProvider);
     });
 
     describe('previewGroupByLink', () => {
