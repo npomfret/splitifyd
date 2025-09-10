@@ -702,8 +702,6 @@ export class GroupService {
                 throw Errors.NOT_FOUND('Group');
             }
 
-            // Get memberships before any writes
-            const memberships = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
             const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
@@ -724,16 +722,16 @@ export class GroupService {
                 updatedAt: updatedData.updatedAt,
             });
             
-            // Update denormalized groupUpdatedAt in all membership documents
-            if (!memberships.empty) {
-                const newGroupUpdatedAt = updatedData.updatedAt.toISOString();
-                for (const membershipDoc of memberships.docs) {
-                    transaction.update(membershipDoc.ref, {
-                        groupUpdatedAt: newGroupUpdatedAt,
-                        updatedAt: createTrueServerTimestamp()
-                    });
+            // PHASE 2: Atomically update denormalized groupUpdatedAt in all membership documents
+            const membershipUpdateCount = await this.firestoreWriter.queryAndUpdateInTransaction(
+                transaction,
+                FirestoreCollections.GROUP_MEMBERSHIPS,
+                [{ field: 'groupId', op: '==', value: groupId }],
+                {
+                    groupUpdatedAt: updatedData.updatedAt.toISOString(),
+                    // updatedAt will be added automatically by the helper
                 }
-            }
+            );
         });
 
         // Set group context

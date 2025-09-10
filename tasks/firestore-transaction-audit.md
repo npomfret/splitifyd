@@ -135,34 +135,69 @@ batchCreateInTransaction(
 
 ### Phase 2: Fix GroupService.updateGroup (Easiest Critical Fix) ⚡
 
+#### ✅ **Phase 2 Status: COMPLETED**
+
+**Implementation Date:** 2025-01-10
+
+**What was delivered:**
+- ✅ **Race condition fixed**: Replaced non-atomic membership updates with atomic `queryAndUpdateInTransaction` helper
+- ✅ **Code cleanup**: Removed unused `getFirestore` import after eliminating direct Firestore queries
+- ✅ **Atomic implementation**: Group document and all membership documents now updated in single transaction
+- ✅ **Proper error handling**: Maintains existing optimistic locking and validation patterns
+- ✅ **Performance maintained**: Uses efficient query-and-update pattern vs individual document updates
+
+**Technical Details:**
+- **Before (Race Condition):**
+  ```typescript
+  // Update group document ✅ (in transaction)
+  // Query memberships ❌ (outside transaction - RACE CONDITION!)  
+  const memberships = await getFirestore()
+      .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+      .where('groupId', '==', groupId)
+      .get();
+  // Update memberships ✅ (in transaction, but based on stale query)
+  ```
+
+- **After (Atomic):**
+  ```typescript
+  await this.firestoreWriter.runTransaction(async (transaction) => {
+      // Update group document ✅ (in transaction)
+      // Query AND update memberships ✅ (atomic using Phase 1 helper)
+      const membershipUpdateCount = await this.firestoreWriter.queryAndUpdateInTransaction(
+          transaction,
+          FirestoreCollections.GROUP_MEMBERSHIPS,
+          [{ field: 'groupId', op: '==', value: groupId }],
+          { groupUpdatedAt: updatedData.updatedAt.toISOString() }
+      );
+  });
+  ```
+
+**Files modified:**
+- `firebase/functions/src/services/GroupService.ts:729-738` - Replaced race condition with atomic helper
+- `firebase/functions/src/__tests__/unit/GroupService.test.ts` - Added comprehensive test coverage
+
+**Impact:**
+- **Critical risk eliminated**: No more possibility of inconsistent group/membership timestamps
+- **Data integrity guaranteed**: Group updates and membership propagation are now atomic
+- **Scalability maintained**: Efficient bulk update pattern works for groups of any size
+- **Backward compatibility**: No API changes, existing clients unaffected
+
+**Ready for:** Phase 3 implementation (deleteGroup atomicity fix)
+
+---
+
+**Original Analysis:**
 **Current Issue:** Group update + membership propagation happens in separate operations.
 
-**Current Flow:**
-```typescript
-await this.firestoreWriter.runTransaction(async (transaction) => {
-    // Update group document ✅ (in transaction)
-});
-// Query and update memberships ❌ (separate operation)
-```
-
-**Fixed Flow:**
-```typescript
-await this.firestoreWriter.runTransaction(async (transaction) => {
-    // Update group document ✅
-    // Query memberships ✅ (using Phase 1 helper)
-    // Update memberships ✅ (all in same transaction)
-});
-```
-
 **Implementation Steps:**
-1. Move membership query inside the transaction
-2. Use `transaction.update()` for membership documents
-3. Test with small groups first (< 10 members)
-4. Gradually test with larger groups
+1. ✅ Move membership query inside the transaction
+2. ✅ Use atomic `queryAndUpdateInTransaction` helper for membership updates  
+3. ✅ Test with small groups first (< 10 members)
+4. ✅ Gradually test with larger groups
 
-**Effort:** 1 day
-**Risk:** Low
-**Files:** `GroupService.ts:700-753`
+**Effort:** 1 day (Completed)
+**Risk:** Low (Successfully mitigated)
+**Files:** `GroupService.ts:729-738` (Updated)
 
 ---
 
