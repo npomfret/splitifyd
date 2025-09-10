@@ -2096,4 +2096,16 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
+    async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
+        try {
+            const query = this.db
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId);
+            return await transaction.get(query);
+        } catch (error) {
+            logger.error('Failed to get group memberships in transaction', error, { groupId });
+            throw error;
+        }
+    }
+
 }

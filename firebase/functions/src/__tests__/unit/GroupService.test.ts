@@ -153,7 +153,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user access - make sure user is a member
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getAllGroupMembers.mockResolvedValue([
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'member', memberStatus: 'active' }
             ]);
 
@@ -191,7 +191,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getAllGroupMembers.mockResolvedValue([
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'admin', memberStatus: 'active' }
             ]);
             
@@ -245,7 +245,7 @@ describe('GroupService - Unit Tests', () => {
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockUserService.getAllGroupMembers.mockResolvedValue([
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'admin', memberStatus: 'active' }
             ]);
             
@@ -310,7 +310,7 @@ describe('GroupService - Unit Tests', () => {
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
             
             // Mock group members for balance calculation (DataFetcher calls userService.getAllGroupMembers)
-            mockUserService.getAllGroupMembers.mockResolvedValue([
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
                 { userId: userId, memberRole: 'member', memberStatus: 'active' }
             ]);
 

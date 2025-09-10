@@ -369,10 +369,6 @@ export class UserService {
         }
     }
 
-    async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
-        return this.firestoreReader.getAllGroupMembers(groupId);
-    }
-
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
         // Use a high limit to maintain backward compatibility
         // This method is expected to return ALL groups for a user

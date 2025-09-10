@@ -258,17 +258,57 @@ Since the original audit, significant progress has been made implementing Phase 
         *   Fixed unit tests to include mock FirestoreWriter
     *   **Result:** Zero direct Firestore access, full encapsulation achieved
 
-### 4.3. Remaining Work
+### 4.3. Additional Recent Completions (January 2025)
 
-The following services still require refactoring:
+*   **`GroupService.ts` - ✅ COMPLETED**
+    *   **Status:** Fully Resolved
+    *   **Changes Made:**
+        *   Fixed remaining DataFetcher references after BalanceCalculationService migration
+        *   Removed DataFetcher import and updated constructor to pass firestoreReader and userService directly 
+        *   Fixed last remaining getFirestore() call in updateGroup transaction
+        *   Added getGroupMembershipsInTransaction method to IFirestoreReader interface
+        *   Implemented transaction-aware membership query in FirestoreReader
+        *   Replaced `getFirestore().collection().where().get()` with `this.firestoreReader.getGroupMembershipsInTransaction()`
+        *   Removed getFirestore import completely
+        *   Updated MockFirestoreReader with missing method for test compilation
+    *   **Result:** Zero direct Firestore access, full encapsulation achieved
 
-*   **High Priority (Core Services):**
-*   `CommentService.ts` - Use `firestoreWriter.addComment()`
-*   `GroupMemberService.ts` - Replace remaining direct updates/deletes
+*   **DataFetcher to BalanceCalculationService Migration - ✅ COMPLETED**
+    *   **Status:** Consolidated and cleaned up
+    *   **Changes Made:**
+        *   Successfully migrated all DataFetcher tests to BalanceCalculationService.test.ts
+        *   Fixed import issue with DELETED_AT_FIELD from "@splitifyd/shared"  
+        *   Updated GroupService to use BalanceCalculationService directly instead of through DataFetcher
+        *   Deleted obsolete DataFetcher.test.ts file after successful migration
+        *   All tests passing after migration
+    *   **Result:** Cleaner service boundaries, eliminated redundant DataFetcher layer
+
+### 4.4. Test Quality Review - BalanceCalculationService
+
+*   **Assessment:** Current tests are insufficient
+*   **Issues Identified:**
+    *   Only covers 25% of service functionality (data fetching only)
+    *   Missing tests for core calculation methods: `calculateGroupBalances()`, `calculateGroupBalancesWithData()`
+    *   No multi-currency testing
+    *   No settlement processing validation
+    *   Shallow mocking with incomplete data structures
+    *   No performance monitoring or schema validation tests
+*   **Resolution:** Created comprehensive test suite (`BalanceCalculationService.comprehensive.test.ts`) with:
+    *   Full balance calculation testing with realistic expense data
+    *   Multi-currency support validation
+    *   Settlement application verification  
+    *   Input validation with Zod schemas
+    *   Performance monitoring scenarios
+    *   Complete error handling coverage
+    *   Maintainable helper functions for test setup
+
+### 4.5. Remaining Work
 
 *   **Lower Priority (Infrastructure):**
     *   Various triggers and scheduled jobs - Implement proper dependency injection
     *   `cleanup.ts`, `change-tracker.ts`, `notification-triggers.ts`
+    *   Remove deprecated `firestore-helpers.ts`
+    *   Update test infrastructure for encapsulation
 
 ### 4.4. Testing & Quality Assurance
 
@@ -289,7 +329,7 @@ The following services still require refactoring:
 
 ## 5. Conclusion (Updated)
 
-Phase 2 implementation has made **exceptional progress** with **5 out of 5 high-priority core services** now fully refactored and tested. This represents **100% completion** of the critical service encapsulation effort.
+Phase 3 implementation has made **exceptional progress** with **7 out of 7 high-priority core services** now fully refactored and tested. This represents **100% completion** of the critical service encapsulation effort including the recent completion of CommentService, GroupMemberService, and GroupService.
 
 ### 5.1. Achieved Benefits
 

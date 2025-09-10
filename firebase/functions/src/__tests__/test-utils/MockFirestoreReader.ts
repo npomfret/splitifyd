@@ -666,4 +666,5 @@ export class MockFirestoreReader implements IFirestoreReader {
     getRawUserDocumentInTransaction = vi.fn().mockResolvedValue(null);
     getRawDocumentInTransactionWithRef = vi.fn().mockResolvedValue(null);
     getSystemDocumentInTransaction = vi.fn().mockResolvedValue(null);
+    getGroupMembershipsInTransaction = vi.fn().mockResolvedValue({ empty: true, docs: [] });
 }

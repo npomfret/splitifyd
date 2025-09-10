@@ -1,4 +1,3 @@
-import { FieldValue } from 'firebase-admin/firestore';
 import { Errors, ApiError } from '../utils/errors';
 import { UserService } from './UserService2';
 import { NotificationService } from './notification-service';
@@ -10,7 +9,6 @@ import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import {MemberRoles} from "@splitifyd/shared";
-import {DataFetcher} from "./balance/DataFetcher";
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
@@ -22,8 +20,7 @@ export class GroupMemberService {
         userService: UserService,
         private readonly notificationService: NotificationService,
     ) {
-        const dataFetcher = new DataFetcher(firestoreReader, userService);
-        this.balanceService = new BalanceCalculationService(dataFetcher);
+        this.balanceService = new BalanceCalculationService(firestoreReader, userService);
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {

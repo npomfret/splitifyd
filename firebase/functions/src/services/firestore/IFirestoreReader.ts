@@ -732,4 +732,12 @@ export interface IFirestoreReader {
      */
     getSystemDocumentInTransaction(transaction: Transaction, docId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
+    /**
+     * Get group membership documents in a transaction
+     * @param transaction - The Firestore transaction  
+     * @param groupId - The group ID to query memberships for
+     * @returns Array of raw document snapshots
+     */
+    getGroupMembershipsInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot>;
+
 }

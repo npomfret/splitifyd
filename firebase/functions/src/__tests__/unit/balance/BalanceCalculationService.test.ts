@@ -1,36 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DataFetcher } from '../../../services/balance/DataFetcher';
+import { BalanceCalculationService } from '../../../services/balance/BalanceCalculationService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
 // Mock service registration  
 const mockGetUsers = vi.fn();
-const mockGetMembersFromSubcollection = vi.fn();
 
 const createMockUserService = () => ({
-    getUsers: mockGetUsers,
-    getAllGroupMembers: mockGetMembersFromSubcollection
+    getUsers: mockGetUsers
 });
 
-const createMockGroupMemberService = () => ({
-    isGroupMemberAsync: vi.fn(),
-    getGroupMember: vi.fn(),
-    getAllGroupMembers: mockGetMembersFromSubcollection,
-});
-
-describe('DataFetcher', () => {
-    let dataFetcher: DataFetcher;
+describe('BalanceCalculationService', () => {
+    let balanceCalculationService: BalanceCalculationService;
     let mockFirestoreReader: MockFirestoreReader;
-    let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
     let mockUserService: ReturnType<typeof createMockUserService>;
 
     beforeEach(() => {
         mockFirestoreReader = new MockFirestoreReader();
         mockUserService = createMockUserService();
-        mockGroupMemberService = createMockGroupMemberService();
-        dataFetcher = new DataFetcher(mockFirestoreReader as any, mockUserService as any);
+        balanceCalculationService = new BalanceCalculationService(mockFirestoreReader as any, mockUserService as any);
         mockFirestoreReader.resetAllMocks();
         mockGetUsers.mockClear();
-        mockGetMembersFromSubcollection.mockClear();
     });
 
     describe('fetchBalanceCalculationData', () => {
@@ -101,10 +90,10 @@ describe('DataFetcher', () => {
             mockFirestoreReader.getSettlementsForGroup.mockResolvedValue(mockSettlements as any);
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroup as any);
             mockGetUsers.mockResolvedValue(mockUserProfiles);
-            mockGetMembersFromSubcollection.mockResolvedValue(mockGroupMemberDocs as any);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue(mockGroupMemberDocs as any);
 
             // Execute
-            const result = await dataFetcher.fetchBalanceCalculationData(groupId);
+            const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
 
             // Verify
             expect(result.groupId).toBe(groupId);
@@ -128,7 +117,7 @@ describe('DataFetcher', () => {
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
             // Execute and verify error
-            await expect(dataFetcher.fetchBalanceCalculationData(groupId))
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
                 .rejects
                 .toThrow('Group not found');
         });
@@ -143,10 +132,10 @@ describe('DataFetcher', () => {
                 members: {}
             } as any);
             mockGetUsers.mockResolvedValue([]);
-            mockGetMembersFromSubcollection.mockResolvedValue([]);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([]);
 
             // Execute and verify error
-            await expect(dataFetcher.fetchBalanceCalculationData(groupId))
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
                 .rejects
                 .toThrow(`Group ${groupId} has no members for balance calculation`);
         });
@@ -182,10 +171,10 @@ describe('DataFetcher', () => {
                 }
             } as any);
             mockGetUsers.mockResolvedValue([{ uid: userId1 }]);
-            mockGetMembersFromSubcollection.mockResolvedValue([{ userId: userId1 }] as any);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId1 }] as any);
 
             // Execute
-            const result = await dataFetcher.fetchBalanceCalculationData(groupId);
+            const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
 
             // Verify only active expense is returned
             expect(result.expenses).toHaveLength(1);

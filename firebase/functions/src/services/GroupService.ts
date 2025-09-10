@@ -1,5 +1,4 @@
 import {Timestamp} from 'firebase-admin/firestore';
-import {getFirestore} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
@@ -23,7 +22,6 @@ import { SettlementService } from './SettlementService';
 import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
 import {GroupShareService} from "./GroupShareService";
-import {DataFetcher} from "./balance/DataFetcher";
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 /**
@@ -43,8 +41,7 @@ export class GroupService {
         private readonly expenseMetadataService: ExpenseMetadataService,
         private readonly groupShareService: GroupShareService,
     ) {
-        const dataFetcher = new DataFetcher(firestoreReader, userService);
-        this.balanceService = new BalanceCalculationService(dataFetcher);
+        this.balanceService = new BalanceCalculationService(firestoreReader, userService);
     }
     
     /**
@@ -703,10 +700,14 @@ export class GroupService {
 
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
         await this.firestoreWriter.runTransaction(async (transaction) => {
+            // IMPORTANT: All reads must happen before any writes in Firestore transactions
             const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshDoc) {
                 throw Errors.NOT_FOUND('Group');
             }
+
+            // Get memberships before any writes
+            const memberships = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
             const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
@@ -718,6 +719,7 @@ export class GroupService {
                 updatedAt: now.toDate(),
             };
 
+            // Now perform all writes after all reads are complete
             // Update group document using FirestoreWriter
             const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
@@ -726,12 +728,7 @@ export class GroupService {
                 updatedAt: updatedData.updatedAt,
             });
             
-            // NEW: Update denormalized groupUpdatedAt in all membership documents
-            const memberships = await getFirestore()
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId)
-                .get();
-            
+            // Update denormalized groupUpdatedAt in all membership documents
             if (!memberships.empty) {
                 const newGroupUpdatedAt = updatedData.updatedAt.toISOString();
                 for (const membershipDoc of memberships.docs) {
