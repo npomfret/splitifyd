@@ -1,7 +1,6 @@
 
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
@@ -40,8 +39,6 @@ const UserDataSchema = z
  * Service for managing settlement operations
  */
 export class SettlementService {
-    private settlementsCollection = getFirestore().collection(FirestoreCollections.SETTLEMENTS);
- 
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
@@ -199,10 +196,7 @@ export class SettlementService {
         const now = createOptimisticTimestamp();
         const settlementDate = settlementData.date ? safeParseISOToTimestamp(settlementData.date) : now;
 
-        const settlementId = this.settlementsCollection.doc().id;
-
-        const settlement: any = {
-            id: settlementId,
+        const settlementDataToCreate: any = {
             groupId: settlementData.groupId,
             payerId: settlementData.payerId,
             payeeId: settlementData.payeeId,
@@ -216,16 +210,21 @@ export class SettlementService {
 
         // Only add note if it's provided
         if (settlementData.note) {
-            settlement.note = settlementData.note;
+            settlementDataToCreate.note = settlementData.note;
         }
 
-        // Validate settlement document structure before writing to Firestore
-        const validatedSettlement = SettlementDocumentSchema.parse(settlement);
-
-        await this.settlementsCollection.doc(settlementId).set(validatedSettlement);
+        // Create settlement - FirestoreWriter will generate ID and handle validation
+        const createResult = await this.firestoreWriter.createSettlement(settlementDataToCreate);
+        const settlementId = createResult.id;
         
         // Update context with the created settlement ID
         LoggerContext.setBusinessContext({ settlementId });
+
+        // Build the complete settlement object for the response
+        const settlement = {
+            id: settlementId,
+            ...settlementDataToCreate,
+        };
 
         return {
             ...settlement,
@@ -246,7 +245,6 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'update-settlement' });
         
-        const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -296,7 +294,11 @@ export class SettlementService {
                 }
 
                 const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
-                await updateWithTimestamp(transaction, settlementRef, updates, originalUpdatedAt);
+                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+                this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                    ...updates,
+                    updatedAt: createOptimisticTimestamp(),
+                });
             },
             {
                 maxAttempts: 3,
@@ -341,7 +343,6 @@ export class SettlementService {
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'delete-settlement' });
         
-        const settlementRef = this.settlementsCollection.doc(settlementId);
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -376,7 +377,8 @@ export class SettlementService {
 
                 // Step 3: Now do ALL writes
                 // Delete the settlement
-                transaction.delete(settlementRef);
+                const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
+                this.firestoreWriter.deleteInTransaction(transaction, documentPath);
             },
             {
                 maxAttempts: 3,

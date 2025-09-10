@@ -113,14 +113,20 @@ export class ApplicationBuilder {
 
     buildPolicyService(): PolicyService {
         if (!this.policyService) {
-            this.policyService = new PolicyService(this.buildFirestoreReader());
+            this.policyService = new PolicyService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter()
+            );
         }
         return this.policyService;
     }
 
     buildUserPolicyService(): UserPolicyService {
         if (!this.userPolicyService) {
-            this.userPolicyService = new UserPolicyService(this.buildFirestoreReader());
+            this.userPolicyService = new UserPolicyService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter()
+            );
         }
         return this.userPolicyService;
     }

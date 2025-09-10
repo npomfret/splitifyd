@@ -1,4 +1,3 @@
-import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
@@ -7,6 +6,7 @@ import { LoggerContext } from '../utils/logger-context';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
+import { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 /**
  * Interface for policy acceptance status
@@ -40,10 +40,10 @@ export interface AcceptPolicyRequest {
  * Service for managing user policy acceptance operations
  */
 export class UserPolicyService {
-    private policiesCollection = getFirestore().collection(FirestoreCollections.POLICIES);
-    private usersCollection = getFirestore().collection(FirestoreCollections.USERS);
-    
-    constructor(private firestoreReader: IFirestoreReader) {}
+    constructor(
+        private firestoreReader: IFirestoreReader,
+        private firestoreWriter: IFirestoreWriter
+    ) {}
 
     /**
      * Validate that a policy exists and the version hash is valid
@@ -79,8 +79,7 @@ export class UserPolicyService {
             await this.validatePolicyAndVersion(policyId, versionHash);
 
             // Update user's acceptedPolicies
-            const userDocRef = this.usersCollection.doc(userId);
-            await userDocRef.update({
+            await this.firestoreWriter.updateUser(userId, {
                 [`acceptedPolicies.${policyId}`]: versionHash,
                 updatedAt: createOptimisticTimestamp(),
             });
@@ -126,7 +125,6 @@ export class UserPolicyService {
             }
 
             // Build the update object for user document
-            const userDocRef = this.usersCollection.doc(userId);
             const updateData: any = {
                 updatedAt: createOptimisticTimestamp(),
             };
@@ -135,10 +133,8 @@ export class UserPolicyService {
                 updateData[`acceptedPolicies.${acceptance.policyId}`] = acceptance.versionHash;
             });
 
-            // Use batch to ensure atomicity
-            const batch = getFirestore().batch();
-            batch.update(userDocRef, updateData);
-            await batch.commit();
+            // Update user document with all acceptances
+            await this.firestoreWriter.updateUser(userId, updateData);
 
             const acceptedAt = new Date().toISOString();
 

@@ -1,12 +1,10 @@
 import * as crypto from 'crypto';
-import {getFirestore} from '../firebase';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import {
-    FirestoreCollections,
     PolicyDocument,
     PolicyVersion,
 } from '@splitifyd/shared';
@@ -14,14 +12,16 @@ import { measureDb } from '../monitoring/measure';
 import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
 import { z } from 'zod';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
+import { IFirestoreWriter } from './firestore/IFirestoreWriter';
 
 /**
  * Service for managing policy operations
  */
 export class PolicyService {
-    private policiesCollection = getFirestore().collection(FirestoreCollections.POLICIES);
-    
-    constructor(private firestoreReader: IFirestoreReader) {}
+    constructor(
+        private firestoreReader: IFirestoreReader,
+        private firestoreWriter: IFirestoreWriter
+    ) {}
 
     /**
      * Validates that a policy document remains valid after an update operation
@@ -238,7 +238,7 @@ export class PolicyService {
                 currentVersionHash = versionHash;
             }
 
-            await this.policiesCollection.doc(id).update(updates);
+            await this.firestoreWriter.updatePolicy(id, updates);
 
             // Validate the updated document to ensure it's still valid
             await this.validatePolicyAfterUpdate(id, 'update');
@@ -289,7 +289,7 @@ export class PolicyService {
             }
 
             // Update current version hash
-            await this.policiesCollection.doc(id).update({
+            await this.firestoreWriter.updatePolicy(id, {
                 currentVersionHash: versionHash,
                 updatedAt: createOptimisticTimestamp(),
             });
@@ -371,7 +371,7 @@ export class PolicyService {
             // Validate policy data before writing to Firestore
             try {
                 const validatedPolicyData = PolicyDataSchema.parse(policyData);
-                await this.policiesCollection.doc(id).set(validatedPolicyData);
+                await this.firestoreWriter.createPolicy(id, validatedPolicyData);
             } catch (validationError) {
                 logger.error('Policy data validation failed before creation', validationError as Error, {
                     policyName,
@@ -455,7 +455,7 @@ export class PolicyService {
             const updatedVersions = { ...versions };
             delete updatedVersions[hash];
 
-            await this.policiesCollection.doc(id).update({
+            await this.firestoreWriter.updatePolicy(id, {
                 versions: updatedVersions,
                 updatedAt: createOptimisticTimestamp(),
             });
