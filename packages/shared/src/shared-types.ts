@@ -16,17 +16,17 @@ export type FirestoreTimestamp = Date | { toDate(): Date; seconds: number; nanos
 
 export const FirestoreCollections = {
     GROUPS: 'groups',
+    GROUP_MEMBERSHIPS: 'group-memberships',
     EXPENSES: 'expenses',
     SETTLEMENTS: 'settlements',
     USERS: 'users',
     POLICIES: 'policies',
     COMMENTS: 'comments',
+
     // Change tracking collections
     // Note: GROUP_CHANGES removed as it was unused
     TRANSACTION_CHANGES: 'transaction-changes',
     BALANCE_CHANGES: 'balance-changes',
-    // Group membership top-level collection
-    GROUP_MEMBERSHIPS: 'group-memberships',
 } as const;
 
 // Type-safe collection names
