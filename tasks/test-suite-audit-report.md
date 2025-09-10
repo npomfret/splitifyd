@@ -37,10 +37,16 @@ There is significant duplication in tests covering the same "happy path" user jo
 
 Despite the high volume of tests, there are dangerous gaps in coverage for critical logic.
 
-*   **Gap 1: Debt Simplification Logic**
+*   **Gap 1: Debt Simplification Logic** ✅ **RESOLVED**
     *   **Location:** `firebase/functions/src/__tests__/integration/normal-flow/balance-calculation.test.ts`
     *   **Issue:** The main test for balance calculation contains the comment `// Verify individual debts` but has **no assertions** for the `simplifiedDebts` array. This critical piece of the financial logic is not being tested.
-    *   **Recommendation:** Immediately add assertions to validate the structure and correctness of the `simplifiedDebts` array.
+    *   **Resolution:** Added comprehensive assertions for the `simplifiedDebts` array including:
+        - Structure validation (array exists, contains expected number of debts)
+        - Individual debt validation (from/to users, amounts, currencies)
+        - Optimal simplification verification (no user both owes and is owed money)
+        - Multi-currency debt separation (USD, EUR, GBP tested separately)
+        - Complex scenarios: circular debts, zero-sum scenarios, exchange rate edge cases
+        - Conservation of money validation across all currencies
 
 *   **Gap 2: Comprehensive Group Deletion**
     *   **Issue:** There is no integration test that verifies the hard deletion of a group containing *all* its sub-collections (expenses, settlements, comments, share links). Given that the `deleteGroup` service method is non-transactional, this is a high-risk gap.
@@ -63,3 +69,64 @@ Complex business logic within services is often tested only at the integration l
 *   **Issue:** While builders are used well in many places, their application is inconsistent. Some tests, particularly older ones, still rely on large, manually-constructed data objects or verbose `apiDriver` calls.
 *   **Location:** `firebase/functions/src/__tests__/integration/edge-cases/permission-edge-cases.test.ts`
 *   **Recommendation:** Create a `GroupBuilder` and `SettlementBuilder` in the `@splitifyd/test-support` package. Refactor the remaining tests to use these builders for a cleaner, more declarative, and more maintainable test setup.
+
+---
+
+## 3. Progress Update - Phase 1 Implementation (September 2025)
+
+### ✅ Completed Improvements
+
+#### Critical Gap Resolution: Debt Simplification Testing
+
+**Status:** COMPLETED ✅  
+**File:** `firebase/functions/src/__tests__/integration/normal-flow/balance-calculation.test.ts`
+
+**Enhancements Made:**
+1. **Comprehensive `simplifiedDebts` Assertions:**
+   - Added detailed validation of debt structure (from/to users, amounts, currencies)
+   - Verified optimal debt simplification (no user both owes and is owed money)
+   - Added conservation of money checks (balances sum to zero)
+
+2. **Multi-Currency Debt Simplification Testing:**
+   - Added comprehensive test for USD, EUR, and GBP currencies  
+   - Verified currency separation (debts don't cross currencies)
+   - Tested complex international scenarios with 3 users and 4 expenses
+
+3. **Complex Debt Scenarios:**
+   - Added circular debt simplification test
+   - Added zero-sum scenario validation
+   - Added edge cases for exchange rate timing
+
+4. **Builder Pattern Cleanup:**
+   - Removed unnecessary parameters (`.withCategory()`, `.withDescription()`)
+   - Kept only essential parameters needed for balance calculations
+   - Improved test focus and maintainability
+
+**Test Results:** All 5 comprehensive balance calculation tests passing ✅
+
+#### Impact Assessment:
+- **Risk Reduction:** HIGH - Critical financial logic now has comprehensive test coverage
+- **Test Quality:** Improved focus on essential parameters only
+- **Multi-Currency Support:** Verified debt simplification works correctly across currencies
+- **Edge Case Coverage:** Complex scenarios (circular debts, zero-sum) now tested
+
+### 📋 Next Phase Priorities
+
+The following items remain from the original audit and should be prioritized:
+
+1. **Gap 2: Comprehensive Group Deletion Test** (HIGH PRIORITY)
+   - Create integration test for complete group deletion with all sub-collections
+
+2. **Gap 3: Expense Split Editing E2E Test** (HIGH PRIORITY) 
+   - Add E2E test for editing expense split types
+
+3. **Finding 1: UI-Based Store Tests** (MEDIUM PRIORITY)
+   - Complete Playwright store tests with full UI interactions
+   - Consolidate with E2E test suite
+
+4. **Finding 4: Unit Test Opportunities** (MEDIUM PRIORITY)
+   - Create GroupService unit tests with extracted pure functions
+
+5. **Finding 2 & 5: Test Redundancy & Setup** (LOW PRIORITY)
+   - Consolidate redundant integration/E2E tests
+   - Create missing builders and refactor consistently
