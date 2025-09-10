@@ -7,11 +7,12 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, NotificationDriver} from '@splitifyd/test-support';
 import {PooledTestUser} from "@splitifyd/shared";
 
 describe('Invite Tracking', () => {
     const apiDriver = new ApiDriver();
+    const notificationDriver = new NotificationDriver();
     let testGroup: any;
     let users: PooledTestUser[];
 
@@ -102,5 +103,32 @@ describe('Invite Tracking', () => {
         const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
         const found = members.members.find((m) => m.uid === users[2].uid)!;
         expect(found).toHaveProperty('invitedBy', users[1].uid);
+    });
+
+    test('should initialize notification document when user joins group via share link', async () => {
+        // User 0 creates a share link
+        const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+        
+        // User 1 joins using the share link
+        const joinResponse = await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+        expect(joinResponse.success).toBe(true);
+
+        // Wait a moment for background processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Check that user 1 now has a notification document with this group
+        const user1Notifications = await notificationDriver.getCurrentNotifications(users[1].uid);
+        expect(user1Notifications).toBeTruthy();
+        expect(user1Notifications!.groups).toBeTruthy();
+        expect(Object.keys(user1Notifications!.groups)).toContain(testGroup.id);
+
+        // Verify the group-specific notification data is properly initialized
+        const groupNotificationData = user1Notifications!.groups[testGroup.id];
+        expect(groupNotificationData).toBeTruthy();
+        expect(groupNotificationData.groupDetailsChangeCount).toBeGreaterThanOrEqual(1);
+        expect(groupNotificationData.transactionChangeCount).toBe(0);
+        expect(groupNotificationData.balanceChangeCount).toBe(0);
+        
+        console.log('✅ User notification document properly initialized when joining group');
     });
 });

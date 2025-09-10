@@ -18,6 +18,7 @@
  */
 
 import {FieldValue} from 'firebase-admin/firestore';
+import {logger} from 'firebase-functions';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter, BatchWriteResult, WriteResult} from './firestore/IFirestoreWriter';
 import {type CreateUserNotificationDocument} from '../schemas/user-notifications';
@@ -42,6 +43,14 @@ export class NotificationService {
         changeType: ChangeType
     ): Promise<WriteResult> {
         return measureDb('NotificationService.updateUserNotification', async () => {
+            // DEBUGGING: Log the notification update attempt
+            logger.info('NotificationService.updateUserNotification called', {
+                userId: userId.slice(-8),
+                groupId: groupId.slice(-8),
+                changeType,
+                operation: 'update-notification'
+            });
+
             // Map changeType to proper field names
             const fieldMap = {
                 'transaction': { count: 'transactionChangeCount', last: 'lastTransactionChange' },
@@ -57,8 +66,40 @@ export class NotificationService {
                 [`groups.${groupId}.${lastChangeFieldName}`]: FieldValue.serverTimestamp(),
                 [`groups.${groupId}.${countFieldName}`]: FieldValue.increment(1)
             };
+
+            // DEBUGGING: Log the exact update being attempted
+            logger.info('NotificationService update details', {
+                userId: userId.slice(-8),
+                groupId: groupId.slice(-8),
+                changeType,
+                countFieldName,
+                lastChangeFieldName,
+                updateKeys: Object.keys(updates)
+            });
             
-            return await this.firestoreWriter.updateUserNotification(userId, updates);
+            try {
+                const result = await this.firestoreWriter.updateUserNotification(userId, updates);
+                
+                // DEBUGGING: Log successful update
+                logger.info('NotificationService.updateUserNotification succeeded', {
+                    userId: userId.slice(-8),
+                    groupId: groupId.slice(-8),
+                    changeType,
+                    success: result.success
+                });
+                
+                return result;
+            } catch (error) {
+                // DEBUGGING: Log failed update with details
+                logger.error('NotificationService.updateUserNotification failed', error as Error, {
+                    userId: userId.slice(-8),
+                    groupId: groupId.slice(-8),
+                    changeType,
+                    updateKeys: Object.keys(updates),
+                    errorMessage: error instanceof Error ? error.message : 'Unknown error'
+                });
+                throw error;
+            }
         });
     }
 
@@ -72,14 +113,78 @@ export class NotificationService {
         changeType: ChangeType
     ): Promise<BatchWriteResult> {
         return measureDb('NotificationService.batchUpdateNotifications', async () => {
+            // DEBUGGING: Log the batch update attempt
+            logger.info('NotificationService.batchUpdateNotifications started', {
+                userCount: userIds.length,
+                users: userIds.map(uid => uid.slice(-8)),
+                groupId: groupId.slice(-8),
+                changeType,
+                operation: 'batch-update-start'
+            });
+
+            let successCount = 0;
+            let failureCount = 0;
+            const results = [];
+
             for (const userId of userIds) {
-                await this.updateUserNotification(userId, groupId, changeType);
+                try {
+                    // DEBUGGING: Log each individual update attempt
+                    logger.info('NotificationService.batchUpdateNotifications processing user', {
+                        userId: userId.slice(-8),
+                        groupId: groupId.slice(-8),
+                        changeType,
+                        operation: 'individual-update-start'
+                    });
+
+                    const result = await this.updateUserNotification(userId, groupId, changeType);
+                    
+                    // VALIDATION: Verify the write was successful
+                    if (result.success) {
+                        successCount++;
+                        logger.info('NotificationService.batchUpdateNotifications user update succeeded', {
+                            userId: userId.slice(-8),
+                            groupId: groupId.slice(-8),
+                            changeType,
+                            operation: 'individual-update-success'
+                        });
+                    } else {
+                        failureCount++;
+                        logger.error('NotificationService.batchUpdateNotifications user update failed (success=false)', new Error('Update returned success=false'), {
+                            userId: userId.slice(-8),
+                            groupId: groupId.slice(-8),
+                            changeType,
+                            operation: 'individual-update-failed'
+                        });
+                    }
+                    
+                    results.push(result);
+                } catch (error) {
+                    failureCount++;
+                    logger.error('NotificationService.batchUpdateNotifications user update threw error', error as Error, {
+                        userId: userId.slice(-8),
+                        groupId: groupId.slice(-8),
+                        changeType,
+                        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                        operation: 'individual-update-error'
+                    });
+                    results.push({ id: userId, success: false });
+                }
             }
 
+            // DEBUGGING: Log the final batch result
+            logger.info('NotificationService.batchUpdateNotifications completed', {
+                totalUsers: userIds.length,
+                successCount,
+                failureCount,
+                groupId: groupId.slice(-8),
+                changeType,
+                operation: 'batch-update-complete'
+            });
+
             return {
-                successCount: userIds.length,
-                failureCount: 0,
-                results: []
+                successCount,
+                failureCount,
+                results
             };
         });
     }

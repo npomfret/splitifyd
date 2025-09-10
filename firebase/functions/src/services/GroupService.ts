@@ -1,4 +1,4 @@
-import {Timestamp} from 'firebase-admin/firestore';
+import {Timestamp, FieldValue} from 'firebase-admin/firestore';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
@@ -629,10 +629,10 @@ export class GroupService {
         const notificationGroupData: UserNotificationGroup = {
             lastTransactionChange: null,
             lastBalanceChange: null,
-            lastGroupDetailsChange: null,
+            lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is creating the group
             transactionChangeCount: 0,
             balanceChangeCount: 0,
-            groupDetailsChangeCount: 0
+            groupDetailsChangeCount: 1 // Set to 1 because the user is creating the group
         };
 
         // Atomic transaction: create group, member, and notification documents

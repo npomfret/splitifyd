@@ -34,7 +34,6 @@ export const trackGroupChanges = onDocumentWritten(
         }
 
         return measureTrigger('trackGroupChanges', async () => {
-            // Use singleton ApplicationBuilder
             // Get changed fields (groups use flat structure)
             const changedFields = getGroupChangedFields(before, after);
 
@@ -88,42 +87,86 @@ export const trackExpenseChanges = onDocumentWritten(
         const {before, after, changeType} = extractDataChange(event);
 
         // Process expense changes immediately
-        try {
-            const beforeData = before?.data();
-            const afterData = after?.data();
+        const beforeData = before?.data();
+        const afterData = after?.data();
 
-            // Get groupId from expense data
-            const groupId = afterData?.groupId;
-            if (!groupId) {
-                return;
-            }
-
-            // Get changed fields
-            const changedFields = getChangedFields(before, after);
-
-            // Calculate priority (not currently used)
-            calculatePriority(changeType, changedFields, 'expense');
-
-            // Get affected users (paidBy and participants)
-            const affectedUsers = new Set<string>();
-
-            if (afterData) {
-                affectedUsers.add(afterData.paidBy);
-                afterData.participants.forEach((userId: string) => affectedUsers.add(userId));
-            }
-            if (beforeData) {
-                affectedUsers.add(beforeData.paidBy);
-                beforeData.participants.forEach((userId: string) => affectedUsers.add(userId));
-            }
-
-            // Update user notifications for transaction and balance changes
-            await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'transaction');
-            await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'balance');
-
-            logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.size});
-        } catch (error) {
-            logger.error('Failed to track expense change', error as Error, {expenseId});
+        // Get groupId from expense data
+        const groupId = afterData?.groupId;
+        if (!groupId) {
+            throw Error(`groupId missing from ${JSON.stringify(event)}`)
         }
+
+        logger.info("trackExpenseChanges", {groupId});
+
+        // Get changed fields
+        const changedFields = getChangedFields(before, after);
+
+        // Calculate priority (not currently used)
+        calculatePriority(changeType, changedFields, 'expense');
+
+        // Get affected users (paidBy and participants)
+        const affectedUsers = new Set<string>();
+
+        if (afterData) {
+            affectedUsers.add(afterData.paidBy);
+            afterData.participants.forEach((userId: string) => affectedUsers.add(userId));
+        }
+        if (beforeData) {
+            affectedUsers.add(beforeData.paidBy);
+            beforeData.participants.forEach((userId: string) => affectedUsers.add(userId));
+        }
+
+        // DEBUGGING: Log the raw expense document data first
+        logger.info('trackExpenseChanges raw expense data', {
+            expenseId: expenseId,
+            groupId: groupId,
+            changeType,
+            afterData: afterData ? {
+                paidBy: afterData.paidBy,
+                participants: afterData.participants?.map((uid: string) => uid),
+                amount: afterData.amount,
+                description: afterData.description?.slice(0, 50)
+            } : null,
+            beforeData: beforeData ? {
+                paidBy: beforeData.paidBy,
+                participants: beforeData.participants?.map((uid: string) => uid),
+                amount: beforeData.amount
+            } : null
+        });
+
+        // DEBUGGING: Log detailed information about the expense change and affected users
+        logger.info('trackExpenseChanges processing', {
+            expenseId: expenseId,
+            groupId: groupId!,
+            changeType,
+            affectedUserCount: affectedUsers.size,
+            affectedUsers: Array.from(affectedUsers).map(uid => uid),
+            paidBy: afterData?.paidBy || beforeData?.paidBy,
+            participantCount: afterData?.participants?.length || beforeData?.participants?.length,
+            participants: (afterData?.participants || beforeData?.participants || []).map((uid: string) => uid)
+        });
+
+        // Update user notifications for transaction and balance changes
+        logger.info('trackExpenseChanges about to update transaction notifications', {
+            groupId: groupId!,
+            users: Array.from(affectedUsers).map(uid => uid)
+        });
+        
+        await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'transaction');
+        
+        logger.info('trackExpenseChanges about to update balance notifications', {
+            groupId: groupId!,
+            users: Array.from(affectedUsers).map(uid => uid)
+        });
+        
+        await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'balance');
+
+        logger.info('expense-changed completed', {
+            id: expenseId, 
+            groupId: groupId!, 
+            usersNotified: affectedUsers.size,
+            users: Array.from(affectedUsers).map(uid => uid)
+        });
     },
 );
 
@@ -140,8 +183,6 @@ export const trackSettlementChanges = onDocumentWritten(
         const {before, after, changeType} = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
-            // Use singleton ApplicationBuilder
-            const notificationService = getAppBuilder().buildNotificationService();
             const beforeData = before?.data();
             const afterData = after?.data();
 

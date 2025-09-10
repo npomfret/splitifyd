@@ -341,6 +341,13 @@ export class NotificationListener {
             groupIds: Object.keys(data.groups || {}).map(id => id.slice(-8))
         });
         
+        // Handle version reset/corruption - reset listener state if document version went backwards
+        if (data.changeVersion < this.lastVersion) {
+            console.log(`🔧 Document version went backwards (${this.lastVersion} → ${data.changeVersion}), resetting listener state for user [${this.userId.slice(-8)}]`);
+            this.lastVersion = data.changeVersion - 1; // Set to one less so this update gets processed
+            this.lastGroupStates.clear();
+        }
+        
         // Skip if no new changes
         if (data.changeVersion <= this.lastVersion) {
             console.log(`⏭️ Skipping - no new changes for user [${this.userId.slice(-8)}]`);

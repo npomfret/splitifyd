@@ -1274,8 +1274,16 @@ export class FirestoreWriter implements IFirestoreWriter {
             // Validate group data before writing
             const validatedGroupData = UserNotificationGroupSchema.parse(groupData);
 
-            // Use dot notation to properly set nested group data with set() and merge: true
-            // This ensures the document exists and all fields are properly set
+            const docRef = this.db.doc(`user-notifications/${userId}`);
+            
+            // First, ensure the base document exists with proper structure
+            transaction.set(docRef, {
+                changeVersion: 0,
+                groups: {},
+                lastModified: FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            // Then update with the specific group data using dot notation (which requires update(), not set())
             const updates: Record<string, any> = {
                 [`groups.${groupId}`]: {
                     lastTransactionChange: validatedGroupData.lastTransactionChange,
@@ -1288,8 +1296,8 @@ export class FirestoreWriter implements IFirestoreWriter {
                 lastModified: FieldValue.serverTimestamp()
             };
 
-            const docRef = this.db.doc(`user-notifications/${userId}`);
-            transaction.set(docRef, updates, { merge: true });
+            // Use update() for dot notation paths to work correctly
+            transaction.update(docRef, updates);
 
             logger.info('User notification group updated in transaction', { userId, groupId });
         } catch (error) {

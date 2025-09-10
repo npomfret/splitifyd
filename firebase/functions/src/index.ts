@@ -445,9 +445,9 @@ import { createNotificationTriggers } from './triggers/notification-triggers';
 const notificationTriggers = createNotificationTriggers();
 
 // Export notification triggers for user lifecycle events
+// Note: addUserToGroupNotifications was removed - notification initialization now handled in transactions
 export const { 
     initializeUserNotifications, 
-    addUserToGroupNotifications, 
     removeUserFromGroupNotifications, 
     cleanupUserNotifications 
 } = notificationTriggers;

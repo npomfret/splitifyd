@@ -28,13 +28,22 @@ vi.mock('firebase-admin/firestore', () => {
         return new (MockTimestamp as any)(seconds, 0);
     };
 
+    const MockFieldValue = {
+        serverTimestamp: () => ({ _type: 'serverTimestamp' }),
+        increment: (n: number) => ({ _type: 'increment', operand: n }),
+        arrayUnion: (...elements: any[]) => ({ _type: 'arrayUnion', elements }),
+        arrayRemove: (...elements: any[]) => ({ _type: 'arrayRemove', elements }),
+        delete: () => ({ _type: 'delete' })
+    };
+
     return {
         Timestamp: MockTimestamp,
+        FieldValue: MockFieldValue,
         getFirestore: vi.fn()
     };
 });
 
-import { Timestamp, getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue, getFirestore } from 'firebase-admin/firestore';
 
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
@@ -290,10 +299,10 @@ describe('GroupService - Unit Tests', () => {
             expect(notificationCall[3]).toEqual({
                 lastTransactionChange: null,
                 lastBalanceChange: null,
-                lastGroupDetailsChange: null,
+                lastGroupDetailsChange: { _type: "serverTimestamp" },
                 transactionChangeCount: 0,
                 balanceChangeCount: 0,
-                groupDetailsChangeCount: 0
+                groupDetailsChangeCount: 1
             });
         });
 

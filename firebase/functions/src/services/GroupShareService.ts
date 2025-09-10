@@ -1,5 +1,6 @@
 import {randomBytes} from 'crypto';
 import {z} from 'zod';
+import {FieldValue} from 'firebase-admin/firestore';
 import {ApiError} from '../utils/errors';
 import {logger, LoggerContext} from '../logger';
 import {HTTP_STATUS} from '../constants';
@@ -7,6 +8,7 @@ import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, 
 import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {measureDb} from '../monitoring/measure';
 import {ShareLinkDataSchema} from '../schemas/sharelink';
+import type {UserNotificationGroup} from '../schemas/user-notifications';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import type {GroupMemberService} from './GroupMemberService';
@@ -249,6 +251,22 @@ export class GroupShareService {
                         createdAt: serverTimestamp,
                         updatedAt: serverTimestamp,
                     }
+                );
+
+                const groupNotificationData: UserNotificationGroup = {
+                    lastTransactionChange: null,
+                    lastBalanceChange: null,
+                    lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is joining the group
+                    transactionChangeCount: 0,
+                    balanceChangeCount: 0,
+                    groupDetailsChangeCount: 1 // Set to 1 because the user is joining the group
+                };
+
+                this.firestoreWriter.setUserNotificationGroupInTransaction(
+                    transaction,
+                    userId,
+                    groupId,
+                    groupNotificationData
                 );
 
                 return {

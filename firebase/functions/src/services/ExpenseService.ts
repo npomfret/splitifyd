@@ -217,6 +217,16 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_EXPENSE_DATA', 'Invalid expense data format');
         }
 
+        // DEBUGGING: Log the participants before saving to Firestore
+        logger.info('ExpenseService creating expense with participants', {
+            expenseId: expenseId.slice(-8),
+            groupId: expenseData.groupId.slice(-8),
+            paidBy: expenseData.paidBy.slice(-8),
+            participants: expenseData.participants.map(p => p.slice(-8)),
+            participantCount: expenseData.participants.length,
+            description: expenseData.description
+        });
+
         // Use transaction to create expense atomically  
         let createdExpenseRef: DocumentReference | undefined;
         await this.firestoreWriter.runTransaction(async (transaction) => {

@@ -45,42 +45,16 @@ export function createNotificationTriggers() {
             }
         ),
 
-        addUserToGroupNotifications: onDocumentCreated(
-            {
-                document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
-                region: 'us-central1',
-            },
-            async (event) => {
-                // Extract userId and groupId from the membership document data
-                const membershipData = event.data?.data();
-                if (!membershipData) {
-                    logger.warn('No membership data found in trigger event', {membershipId: event.params.membershipId});
-                    return;
-                }
-
-                const groupId = membershipData.groupId;
-                const userId = membershipData.userId;
-
-                return measureTrigger('addUserToGroupNotifications',
-                    async () => {
-
-                        // First ensure user has notification document
-                        await notificationService.initializeUserNotifications(userId);
-
-                        // Then add them to the group
-                        await notificationService.addUserToGroupNotificationTracking(userId, groupId);
-
-                        // Send group change notification to the new user
-                        await notificationService.updateUserNotification(userId, groupId, 'group');
-
-                        logger.info('User added to group notifications', {
-                            userId,
-                            groupId,
-                            trigger: 'member-added'
-                        });
-                    });
-            }
-        ),
+        // DISABLED: addUserToGroupNotifications trigger is no longer needed
+        // Notification initialization is now handled atomically in transactions:
+        // - GroupService.createGroup initializes owner notifications
+        // - GroupShareService.joinGroupByLink initializes member notifications
+        // This eliminates all race conditions between membership creation and expense notifications
+        //
+        // Previous trigger logic moved to atomic transactions to ensure:
+        // 1. No race conditions between membership and expense triggers
+        // 2. All notification documents properly initialized before any updates
+        // 3. Follows "no fallbacks" principle from project guidelines
 
         removeUserFromGroupNotifications: onDocumentDeleted(
             {
