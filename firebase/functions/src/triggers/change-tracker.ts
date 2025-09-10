@@ -6,8 +6,11 @@ import {DocumentSnapshot} from 'firebase-admin/firestore';
 import {ParamsOf} from 'firebase-functions';
 import {measureTrigger} from '../monitoring/measure';
 import {getAppBuilder} from '../index';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
-const appBuilder = getAppBuilder();
+const firestore = getFirestore();
+const appBuilder = new ApplicationBuilder(firestore);
 const firestoreReader = appBuilder.buildFirestoreReader();
 const notificationService = appBuilder.buildNotificationService();
 

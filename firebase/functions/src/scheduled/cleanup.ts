@@ -3,9 +3,12 @@ import {logger} from '../logger';
 import {FirestoreCollections} from '@splitifyd/shared';
 import {IFirestoreReader, IFirestoreWriter} from "../services/firestore";
 import {getAppBuilder} from "../index";
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
 // Use singleton ApplicationBuilder
-const appBuilder = getAppBuilder();
+const firestore = getFirestore();
+const appBuilder = new ApplicationBuilder(firestore);
 const firestoreReader = appBuilder.buildFirestoreReader();
 const firestoreWriter = appBuilder.buildFirestoreWriter();
 

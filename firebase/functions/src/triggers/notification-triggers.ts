@@ -14,10 +14,12 @@ import {onDocumentCreated, onDocumentDeleted} from 'firebase-functions/v2/firest
 import {FirestoreCollections} from '@splitifyd/shared';
 import {logger} from '../logger';
 import {measureTrigger} from '../monitoring/measure';
-import {getAppBuilder} from '../index';
+import {getFirestore} from "../firebase";
+import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
-// Use singleton ApplicationBuilder
-const notificationService = getAppBuilder().buildNotificationService();
+const firestore = getFirestore();
+const appBuilder = new ApplicationBuilder(firestore);
+const notificationService = appBuilder.buildNotificationService();
 
 /**
  * Create notification triggers
@@ -101,7 +103,7 @@ export function createNotificationTriggers() {
 
                 return measureTrigger('cleanupUserNotifications', async () => {
                     // Use singleton ApplicationBuilder
-                    const firestoreWriter = getAppBuilder().buildFirestoreWriter();
+                    const firestoreWriter = appBuilder.buildFirestoreWriter();
 
                     // Delete the user's notification document
                     const result = await firestoreWriter.bulkDelete([`user-notifications/${userId}`]);

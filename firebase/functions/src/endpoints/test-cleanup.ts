@@ -4,6 +4,11 @@ import { logger } from '../logger';
 import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
+const firestore = getFirestore();
+const applicationBuilder = new ApplicationBuilder(firestore);
+const firestoreReader = applicationBuilder.buildFirestoreReader();
+const firestoreWriter = applicationBuilder.buildFirestoreWriter();
+
 /**
  * HTTP endpoint for cleaning up change documents during tests
  * ONLY works in non-production environments for safety
@@ -34,12 +39,6 @@ export const testCleanup = onRequest(
 
         try {
             logger.info('Test cleanup endpoint called');
-            
-            // Create services with dependency injection
-            const firestore = getFirestore();
-            const applicationBuilder = new ApplicationBuilder(firestore);
-            const firestoreReader = applicationBuilder.buildFirestoreReader();
-            const firestoreWriter = applicationBuilder.buildFirestoreWriter();
             
             // Delete all change documents (minutesToKeep = 0, no metrics logging)
             const totalCleaned = await performCleanup(firestoreReader, firestoreWriter, false, false, 0);
