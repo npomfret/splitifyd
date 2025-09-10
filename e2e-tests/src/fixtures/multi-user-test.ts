@@ -1,4 +1,3 @@
-import { multiUserTest as baseMultiUserTest } from './multi-user-declarative';
 import { authenticatedPageTest } from './authenticated-page-test';
 import type { Page } from '@playwright/test';
 import type { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, CreateGroupModalPage } from '../pages';
@@ -17,10 +16,6 @@ export interface MultiUserFixtures {
         createGroupModalPage: CreateGroupModalPage;
     };
 }
-
-const twoUserBase = baseMultiUserTest.extend({
-    userCount: 2,
-});
 
 export const multiUserTest = authenticatedPageTest.extend<MultiUserFixtures>({
     userCount: 2,

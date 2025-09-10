@@ -1485,6 +1485,38 @@ export class GroupDetailPage extends BasePage {
             await expect(commentsSection.getByText(commentText)).toBeVisible();
         }
     }
+
+    /**
+     * Remove a group member (owner only)
+     */
+    async removeGroupMember(userId: string): Promise<void> {
+        // This method would need UI implementation
+        // For now, throw a descriptive error
+        throw new Error('removeGroupMember method not yet implemented - requires member management UI');
+    }
+
+    /**
+     * Leave the group (non-owner members)
+     */
+    async leaveGroup(): Promise<void> {
+        // Look for a leave group button in GroupActions component
+        const leaveGroupButton = this.page.getByRole('button', { name: /leave group/i });
+        await expect(leaveGroupButton).toBeVisible();
+        await this.clickButton(leaveGroupButton, { buttonName: 'Leave Group' });
+        
+        // Wait for Leave Group dialog to appear
+        const dialog = this.page.getByRole('dialog');
+        await expect(dialog).toBeVisible();
+        await expect(dialog.getByRole('heading', { name: /leave group/i })).toBeVisible();
+        
+        // Click confirm button with data-testid
+        const confirmButton = dialog.getByTestId('confirm-button');
+        await expect(confirmButton).toBeEnabled();
+        await confirmButton.click();
+        
+        // Wait for dialog to close and navigation to occur
+        await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    }
 }
 
 /**

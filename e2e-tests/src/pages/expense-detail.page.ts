@@ -169,4 +169,32 @@ export class ExpenseDetailPage extends BasePage {
         await expect(sendButton).toBeDisabled();
     }
 
+    /**
+     * Delete the expense via the ExpenseActions component
+     */
+    async deleteExpense(): Promise<void> {
+        // Find and click the Delete button (red/danger variant)
+        const deleteButton = this.page.getByRole('button', { name: /delete/i });
+        await expect(deleteButton).toBeVisible();
+        await this.clickButton(deleteButton, { buttonName: 'Delete Expense' });
+        
+        // Wait for the confirmation dialog to appear
+        const confirmDialog = this.page.getByTestId('confirmation-dialog');
+        await expect(confirmDialog).toBeVisible();
+        
+        // Verify the dialog shows the expense deletion message
+        await expect(confirmDialog.getByText(/delete.*this action cannot be undone/i)).toBeVisible();
+        
+        // Click the confirm button to actually delete
+        const confirmButton = confirmDialog.getByTestId('confirm-button');
+        await expect(confirmButton).toBeEnabled();
+        await confirmButton.click();
+        
+        // Wait for the dialog to close and navigation to occur
+        await expect(confirmDialog).not.toBeVisible({ timeout: 5000 });
+        
+        // The ExpenseDetailPage should redirect back to the group page after successful deletion
+        // We'll let the test verify the URL change rather than asserting it here
+    }
+
 }
