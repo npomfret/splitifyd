@@ -1731,8 +1731,6 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                     await this.db.collection('test-user-pool').doc(email).update(updates);
 
-                    logger.info('Test user status updated', { email, status });
-
                     return {
                         id: email,
                         success: true,
