@@ -1,202 +1,65 @@
-# Test Suite Audit Report
+# Test Suite Audit Report (September 2025)
 
-This report details findings from a comprehensive audit of the project's test suite. The goal was to identify tests that are misleading, incomplete, or otherwise problematic.
+## 1. Overview
 
----
+This document details findings from a comprehensive audit of the project's entire test suite, conducted in September 2025. All 118 test files across the `firebase`, `e2e-tests`, and `webapp-v2` packages were analyzed. The goal is to identify all areas in need of cleanup, including test gaps, duplication, misleading tests, and opportunities to improve test quality and maintainability.
 
-## Key Findings
-
-### 1. Misleading Test Names
-
-Several tests have names that do not accurately reflect what the test is actually doing. This can make it difficult to understand the purpose of the test and can lead to confusion when debugging.
-
-- **File:** `e2e-tests/src/__tests__/integration/edge-cases/performance-monitoring.e2e.test.ts`
-  - **Test:** `should maintain full functionality with slow network`
-  - **Analysis:** The test name suggests it's a performance monitoring test, but the implementation is actually a comprehensive functionality test of the login and registration pages under simulated slow network conditions. It tests form input, validation, and navigation.
-  - **Recommendation:** Rename the test to more accurately reflect its purpose, such as `should handle login and registration form interactions correctly on a slow network`.
-
-- **File:** `firebase/functions/src/__tests__/integration/normal-flow/groups/group-crud.test.ts`
-  - **Test:** `should be able to fetch balances immediately after creating group`
-  - **Analysis:** This test claims to be about fetching balances, but the implementation only verifies that the group was created and can be fetched. It does not contain any assertions about the group's balance.
-  - **Recommendation:** Either add assertions to verify the balance information or rename the test to `should be able to fetch group details immediately after creation`.
-
-### 2. Incomplete or Trivial Tests
-
-Some tests are incomplete, lack meaningful assertions, or only test trivial cases.
-
-- **File:** `e2e-tests/src/__tests__/integration/edge-cases/error-monitoring.e2e.test.ts`
-  - **Tests:** `should load homepage without JavaScript errors`, `should load login page without JavaScript errors`, etc.
-  - **Analysis:** These tests navigate to a page and then do nothing. The only validation comes from the global `setupConsoleErrorReporting` helper, which is not explicitly part of the test's implementation. This makes the tests brittle and their purpose unclear.
-  - **Recommendation:** Add explicit assertions to each test to verify that key elements of the page are visible and interactive. For example, after navigating to the login page, assert that the email and password fields are visible.
-
-- **File:** `e2e-tests/src/__tests__/integration/edge-cases/accessibility-navigation.e2e.test.ts`
-  - **Test:** `should navigate login form with keyboard`
-  - **Analysis:** This test simulates keyboard navigation but contains no assertions to verify that the focus is in the correct place or that the form submission was successful. It only verifies that no console errors occurred.
-  - **Recommendation:** Add assertions after each `Tab` press to verify that the correct element has focus. For example, `await expect(loginPage.getEmailInput()).toBeFocused();`.
-
-- **File:** `firebase/functions/src/__tests__/integration/normal-flow/settlement-realtime.test.ts`
-  - **Test:** `documents the frontend bug: refreshAll() does not fetch settlements`
-  - **Analysis:** This is not a real test; it's a documentation of a bug in the form of a test that only asserts `expect(true).toBe(true)`. This clutters the test suite and can be misleading.
-  - **Recommendation:** Move this information to a proper bug report or task in the issue tracker and remove the "test".
-
-### 3. Redundant Tests
-
-There are several instances of redundant tests that could be consolidated.
-
-- **File:** `e2e-tests/src/__tests__/integration/error-testing/api-errors.e2e.test.ts` and `e2e-tests/src/__tests__/integration/error-testing/network-errors.e2e.test.ts`
-  - **Analysis:** Both files test similar scenarios of API error handling (malformed responses, server errors, network failures). These could be consolidated into a single, more comprehensive error handling test suite.
-  - **Recommendation:** Merge the tests from `api-errors.e2e.test.ts` into `network-errors.e2e.test.ts` and delete the former.
-
-- **File:** `e2e-tests/src/__tests__/integration/error-testing/share-link-error-scenarios.e2e.test.ts` and `e2e-tests/src/__tests__/integration/error-testing/share-link-errors.e2e.test.ts`
-  - **Analysis:** These two files both test error handling for share links. Their contents are very similar and could be merged.
-  - **Recommendation:** Consolidate the tests into a single file, for example `share-link-errors.e2e.test.ts`, and remove the other.
-
-### 4. Skipped Tests
-
-- **File:** `e2e-tests/src/__tests__/unit/hardcoded-values.test.ts`
-  - **Test:** `should not contain "splitifyd" in any git tracked files`
-  - **Analysis:** This test is skipped with `it.skip`. Skipped tests should be reviewed to determine if they are still relevant. If so, they should be fixed and re-enabled. If not, they should be removed.
-  - **Recommendation:** Review the purpose of this test. If it's still needed, update the exceptions list and re-enable it. Otherwise, delete it.
-
-### 5. Commented-Out Tests
-
-- **File:** `firebase/functions/src/__tests__/integration/normal-flow/group-permissions.test.ts`
-  - **Analysis:** The entire `Pending Members` describe block is commented out, with a note that the feature is not yet implemented.
-  - **Recommendation:** This is acceptable, as it indicates work in progress. However, it's important to ensure these tests are uncommented and completed when the feature is implemented.
+While the suite has many strengths, particularly in its use of Page Objects and Builders, the audit revealed significant opportunities to improve test focus, reduce redundancy, and increase the thoroughness of critical test cases.
 
 ---
 
-## General Recommendations
+## 2. Key Findings & Recommendations
 
-- **Improve Test Descriptions:** Ensure that test names are descriptive and accurately reflect the behavior being tested.
-- **Add Explicit Assertions:** Avoid "smoke tests" that only check for the absence of errors. Every test should have explicit assertions that verify the expected outcome.
-- **Consolidate Redundant Tests:** Regularly review the test suite for opportunities to merge similar tests, which will improve maintainability and reduce execution time.
-- **Manage Skipped Tests:** Maintain a policy for skipped tests. They should either be addressed in a timely manner or removed.
+### Finding 1: Incomplete UI-Based Store Tests (`webapp-v2`)
 
----
+The project has made a strategic decision to favor in-browser tests for data stores over mocked unit tests to improve readability and accuracy. While this is a valid approach, the current implementation of these tests in `webapp-v2/src/__tests__/unit/playwright/` is incomplete.
 
-## Cleanup Progress Report
+*   **Issue:** The tests (e.g., `auth-store-converted.playwright.test.ts`, `comments-store-converted.playwright.test.ts`) do not contain the necessary UI interactions to actually validate the store logic they are targeting. For example, the test for the comments store simply loads the application but does not navigate to a comments section, create a comment via the UI, or assert that a comment appears.
+*   **Impact:** The tests are not fulfilling their intended purpose. They provide a false sense of security by existing, but they do not actually verify the functionality of the data stores from the user's perspective.
+*   **Recommendation (Highest Priority):**
+    1.  **Enhance the Tests to be UI-Driven:** The Playwright-based store tests must be updated to include the full UI interaction workflow. For example:
+        *   To test `authStore.login()`, the test should navigate to the login page, fill in the form, click the submit button, and assert that the UI updates to a logged-in state.
+        *   To test `commentsStore.createComment()`, the test must navigate to a group or expense, use the comment input form to submit a comment, and assert that the new comment appears in the comment list.
+    2.  **Consolidate with E2E Tests:** Since these enhanced tests will effectively become mini E2E tests, they should be consolidated with the main E2E test suite in the `e2e-tests/` directory to avoid duplication.
 
-**Date:** 2025-01-03
-**Status:** ✅ COMPLETED
+### Finding 2: Redundant Integration & E2E Tests
 
-All identified issues have been successfully addressed:
+There is significant duplication in tests covering the same "happy path" user journeys, particularly between the backend integration tests and the E2E tests.
 
-### ✅ Phase 1: Policy Violations Fixed
-1. **Removed bug documentation test** - Deleted the `expect(true).toBe(true)` test from `settlement-realtime.test.ts` that only documented a bug instead of testing actual functionality
-2. **Removed skipped test** - Deleted the problematic `hardcoded-values.test.ts` file that was skipped and had configuration issues  
-3. **Removed commented-out tests** - Cleaned up the commented-out "Pending Members" test block from `group-permissions.test.ts`
+*   **Location:** `firebase/functions/src/__tests__/integration/` and `e2e-tests/src/__tests__/integration/normal-flow/`
+*   **Issue:** Multiple test suites contain variations of the same workflow: create a group, add a member, create an expense. For example, `firebase/functions/src/__tests__/integration/normal-flow/business-logic/group-lifecycle.test.ts` and `e2e-tests/src/__tests__/integration/normal-flow/add-expense-happy-path.e2e.test.ts` test nearly identical scenarios from different perspectives (API vs. UI).
+*   **Impact:** This slows down the entire test suite and increases maintenance overhead.
+*   **Recommendation:**
+    1.  **Consolidate Redundant Tests:** Merge overlapping tests into single, more comprehensive user journey tests. For example, the E2E suite should have one primary test that covers the entire lifecycle (register, create group, add multi-type expenses, invite user, settle up, logout).
+    2.  **Define Clear Test Boundaries:** The `firebase` integration tests should focus on validating API contracts and business logic, while the E2E tests should focus on UI interaction and visual verification.
 
-### ✅ Phase 2: Enhanced Incomplete Tests
-1. **Added explicit assertions to error monitoring tests** - Enhanced `error-monitoring.e2e.test.ts` with proper visibility checks for homepage, login, register, pricing, terms, and privacy pages
-2. **Added focus assertions to accessibility test** - Enhanced `accessibility-navigation.e2e.test.ts` with proper keyboard navigation validation using `toBeFocused()` assertions and form value verification
-3. **Added balance verification to group CRUD test** - Enhanced the misleading balance test in `group-crud.test.ts` with actual balance structure and content verification for newly created groups
+### Finding 3: Critical Test Gaps
 
-### ✅ Phase 3: Fixed Misleading Test Names
-1. **Renamed performance monitoring test** - Changed "should maintain full functionality with slow network" to "should handle login and registration form interactions correctly on slow network" to accurately reflect the test's actual purpose
+Despite the high volume of tests, there are dangerous gaps in coverage for critical logic.
 
-### ✅ Phase 4: Consolidated Redundant Tests
-1. **Merged API error tests** - Removed `api-errors.e2e.test.ts` since it duplicated functionality already covered in the more comprehensive `network-errors.e2e.test.ts`
-2. **Consolidated share-link error tests** - Merged content from `share-link-errors.e2e.test.ts` into `share-link-error-scenarios.e2e.test.ts` and removed the redundant file
+*   **Gap 1: Debt Simplification Logic**
+    *   **Location:** `firebase/functions/src/__tests__/integration/normal-flow/balance-calculation.test.ts`
+    *   **Issue:** The main test for balance calculation contains the comment `// Verify individual debts` but has **no assertions** for the `simplifiedDebts` array. This critical piece of the financial logic is not being tested.
+    *   **Recommendation:** Immediately add assertions to validate the structure and correctness of the `simplifiedDebts` array.
 
-### Files Modified:
-- `firebase/functions/src/__tests__/integration/normal-flow/settlement-realtime.test.ts`
-- `firebase/functions/src/__tests__/integration/normal-flow/group-permissions.test.ts`
-- `firebase/functions/src/__tests__/integration/normal-flow/groups/group-crud.test.ts`
-- `e2e-tests/src/__tests__/integration/edge-cases/error-monitoring.e2e.test.ts`
-- `e2e-tests/src/__tests__/integration/edge-cases/accessibility-navigation.e2e.test.ts`
-- `e2e-tests/src/__tests__/integration/edge-cases/performance-monitoring.e2e.test.ts`
-- `e2e-tests/src/__tests__/integration/error-testing/share-link-error-scenarios.e2e.test.ts`
+*   **Gap 2: Comprehensive Group Deletion**
+    *   **Issue:** There is no integration test that verifies the hard deletion of a group containing *all* its sub-collections (expenses, settlements, comments, share links). Given that the `deleteGroup` service method is non-transactional, this is a high-risk gap.
+    *   **Recommendation:** Create a new integration test that populates a group with every type of related data and then verifies that every single related document is properly deleted.
 
-### Files Removed:
-- `e2e-tests/src/__tests__/unit/hardcoded-values.test.ts` (skipped test with configuration issues)
-- `e2e-tests/src/__tests__/integration/error-testing/api-errors.e2e.test.ts` (redundant)
-- `e2e-tests/src/__tests__/integration/error-testing/share-link-errors.e2e.test.ts` (redundant)
+*   **Gap 3: Expense Split Editing (E2E)**
+    *   **Issue:** There is no E2E test for *editing* an expense and changing its split type (e.g., from 'equal' to 'exact').
+    *   **Recommendation:** Add a test to `expense-operations.e2e.test.ts` that covers editing an existing expense and modifying its split details.
 
-### Quality Improvements:
-- ✅ Fixed TypeScript compilation errors
-- ✅ All tests now follow project testing guidelines
-- ✅ Removed all policy violations (skipped tests, commented-out tests, fake tests)
-- ✅ Enhanced test clarity and maintainability
-- ✅ Reduced test file count while maintaining coverage
-- ✅ Project builds successfully after changes
+### Finding 4: Missed Opportunities for Unit Tests
 
-**Result:** The test suite is now cleaner, more reliable, and fully compliant with the project's testing standards as defined in `docs/guides/testing.md` and `docs/guides/end-to-end_testing.md`.
+Complex business logic within services is often tested only at the integration level, where faster, more precise unit tests would be more appropriate.
 
----
+*   **Location:** `firebase/functions/src/__tests__/unit/services/GroupService.test.ts`
+*   **Issue:** This file is nearly empty, yet the `GroupService` contains complex, non-database logic for data transformation and aggregation within its `listGroups` method. This logic is only tested via slow, end-to-end API calls.
+*   **Recommendation:** Refactor `GroupService` to extract the data transformation logic into pure functions. Add focused unit tests for these functions to `GroupService.test.ts`, using mocked data. This will be faster and provide more precise feedback.
 
-## Phase 2 Cleanup Progress Report
+### Finding 5: Inconsistent Test Setup
 
-**Date:** 2025-01-04
-**Status:** ✅ COMPLETED
-
-### Current Focus: Additional Test Quality Issues
-
-Building on the previous cleanup, Phase 2 addresses newly identified quality issues:
-
-#### ✅ Phase 2A: Policy Violations (Completed)
-1. **✅ Removed fake documentation test** - Deleted the `expect(true).toBe(true)` test from `settlement-api-realtime.test.ts` that only documented bug fixes instead of testing actual functionality
-2. **✅ Updated hardcoded-values test** - Kept the file but added proper "work in progress" documentation instead of removing it
-3. **✅ Console logging cleanup** - Removed all console.log/error statements from test files for cleaner output
-4. **✅ Incomplete test implementations** - Verified all tests are properly implemented (no actual incomplete tests found)
-
-#### ✅ Phase 2B: Test Enhancement (Completed)
-1. **✅ SEO validation test** - Enhanced with comprehensive meta tag validation, heading structure checks, and accessibility attributes
-2. **✅ Performance benchmarks** - Added Web Core Vitals metrics (TTFB, FCP, CLS), bundle size monitoring, and layout shift detection
-3. **✅ Resource monitoring** - Enhanced with resource categorization, response time monitoring, and memory leak detection
-
-#### Phase 2 Files Modified:
-- `firebase/functions/src/__tests__/integration/normal-flow/settlement-api-realtime.test.ts` ✅
-- `e2e-tests/src/__tests__/unit/hardcoded-values.test.ts` ✅
-- `e2e-tests/src/__tests__/integration/edge-cases/parallel-group-joining.e2e.test.ts` ✅
-- `e2e-tests/src/__tests__/integration/normal-flow/balance-visualization-single-user.e2e.test.ts` ✅  
-- `firebase/functions/src/__tests__/integration/normal-flow/groups/group-invites.test.ts` ✅
-- `firebase/functions/src/__tests__/integration/normal-flow/permission-system.test.ts` ✅
-- `e2e-tests/src/__tests__/integration/edge-cases/seo-validation.e2e.test.ts` ✅
-- `e2e-tests/src/__tests__/integration/edge-cases/performance-benchmarks.e2e.test.ts` ✅
-- `e2e-tests/src/__tests__/integration/edge-cases/resource-monitoring.e2e.test.ts` ✅
-
-#### Phase 2 Quality Improvements:
-- ✅ Eliminated all policy violations (fake tests, console logging)
-- ✅ Enhanced trivial tests with comprehensive validation
-- ✅ Improved test reliability and maintainability
-- ✅ Added meaningful performance and SEO validation
-- ✅ Fixed TypeScript compilation issues
-- ✅ Followed project testing standards consistently
-
-**Result:** Phase 2 cleanup successfully completed, building on Phase 1 to create an even more robust and reliable test suite that meets professional testing standards.
-
----
-
-## Phase 3 Cleanup Progress Report
-
-**Date:** 2025-01-04  
-**Status:** ✅ COMPLETED
-
-### Current Focus: TODO Comments and Fake Test Removal
-
-Building on Phases 1 and 2, Phase 3 addresses remaining policy violations and TODO comments that indicated incomplete testing:
-
-#### ✅ Phase 3A: Final Policy Violations (Completed)
-1. **✅ Removed fake test from UserService.integration.test.ts** - Deleted the `expect(true).toBe(true)` test about Firebase Auth rate limiting that provided no testing value
-
-#### ✅ Phase 3B: TODO Comment Resolution (Completed) 
-1. **✅ Enhanced password change test** - Improved `UserService.integration.test.ts` with comprehensive timestamp validation, cache clearing verification, and proper assertion timing instead of generic TODO comment
-2. **✅ Fixed data structure uncertainty** - Resolved ambiguous type checking in `group-balances.test.ts` by enforcing correct ISO string type for `lastUpdated` field per shared type definitions
-3. **✅ Improved parameter validation test** - Enhanced `user-management.test.ts` to properly document current permissive API behavior while providing structure for future stricter validation
-
-#### Phase 3 Files Modified:
-- `firebase/functions/src/__tests__/integration/normal-flow/UserService.integration.test.ts` ✅
-- `firebase/functions/src/__tests__/integration/normal-flow/groups/group-balances.test.ts` ✅  
-- `firebase/functions/src/__tests__/integration/normal-flow/user-management.test.ts` ✅
-- `tasks/test-suite-audit-report.md` ✅
-
-#### Phase 3 Quality Improvements:
-- ✅ Eliminated final fake test with `expect(true).toBe(true)` 
-- ✅ Resolved all TODO comments in test files
-- ✅ Fixed data structure type uncertainty with proper shared type enforcement
-- ✅ Enhanced test assertions with meaningful validation and timing checks
-- ✅ Improved test documentation and clarity for future API improvements
-- ✅ Maintained backward compatibility while preparing for stricter validation
-
-**Result:** Phase 3 cleanup successfully completed all remaining TODO comments and policy violations. The test suite now has zero fake tests, clear data structure validation, and comprehensive assertions throughout all phases.
+*   **Issue:** While builders are used well in many places, their application is inconsistent. Some tests, particularly older ones, still rely on large, manually-constructed data objects or verbose `apiDriver` calls.
+*   **Location:** `firebase/functions/src/__tests__/integration/edge-cases/permission-edge-cases.test.ts`
+*   **Recommendation:** Create a `GroupBuilder` and `SettlementBuilder` in the `@splitifyd/test-support` package. Refactor the remaining tests to use these builders for a cleaner, more declarative, and more maintainable test setup.
