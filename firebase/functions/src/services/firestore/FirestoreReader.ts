@@ -11,7 +11,7 @@ import { logger } from '../../logger';
 import { FirestoreCollections, SecurityPresets, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
-import { safeParseISOToTimestamp } from '../../utils/dateHelpers';
+import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 // Import all schemas for validation
@@ -235,8 +235,19 @@ export class FirestoreReader implements IFirestoreReader {
             }
         }
         
+        // Assert timestamp fields are proper Timestamp objects
+        // This enforces our data contract and prevents mixed-type date handling
+        sanitized.createdAt = assertTimestamp(sanitized.createdAt, 'createdAt');
+        sanitized.updatedAt = assertTimestamp(sanitized.updatedAt, 'updatedAt');
+        
+        // Optional timestamp fields
+        if (sanitized.presetAppliedAt !== undefined && sanitized.presetAppliedAt !== null) {
+            sanitized.presetAppliedAt = assertTimestamp(sanitized.presetAppliedAt, 'presetAppliedAt');
+        }
+        
         return sanitized;
     }
+
 
     // ========================================================================
     // Pagination Utility Methods

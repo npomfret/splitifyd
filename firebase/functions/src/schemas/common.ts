@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Common schema fragments for consistent validation patterns across all schemas
@@ -7,12 +8,12 @@ import { z } from 'zod';
 /**
  * Standard Firestore Timestamp schema
  * 
- * Firestore timestamps can come in different forms depending on context:
- * - Actual Timestamp objects when read from Firestore
- * - Server timestamp placeholders when writing
- * - ISO strings in some contexts
+ * Note: This uses z.any() for compatibility during the transition to eliminate
+ * conditional type logic. The actual validation happens in sanitizeGroupData()
+ * which asserts that fields are Timestamps before allowing them through.
  * 
- * For maximum compatibility, we use z.any() but document the expected type.
+ * Data contract: Firestore documents return Timestamp objects from doc.data(),
+ * FirestoreReader asserts this and converts to ISO strings at the boundary.
  */
 export const FirestoreTimestampSchema = z.any().describe('Firestore Timestamp object');
 

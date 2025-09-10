@@ -93,6 +93,7 @@ export class GroupPermissionService {
 
         const newPermissions = this.getDefaultPermissions(preset);
         const now = new Date().toISOString();
+        const firestoreNow = createOptimisticTimestamp();
 
         // Use transaction with optimistic locking
         await this.firestoreWriter.runTransaction(
@@ -118,7 +119,7 @@ export class GroupPermissionService {
                 // Perform the update
                 const updateData: any = {
                     securityPreset: preset,
-                    presetAppliedAt: now,
+                    presetAppliedAt: firestoreNow,
                     permissions: newPermissions,
                     updatedAt: createOptimisticTimestamp(),
                 };

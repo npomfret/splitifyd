@@ -1,5 +1,6 @@
 import { SecurityPresets, MemberRoles, MemberStatuses, type UserThemeColor } from '@splitifyd/shared';
 import { randomString, generateShortId, randomChoice } from '../test-helpers';
+import { Timestamp } from 'firebase-admin/firestore';
 
 // Note: GroupDocument should be imported from the consuming project's schemas
 // This builder is generic and will work with any compatible GroupDocument type
@@ -28,10 +29,10 @@ export class FirestoreGroupBuilder {
                     color: this.createDefaultThemeColor(),
                 },
             },
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: Timestamp.now(),
+            updatedAt: Timestamp.now(),
             securityPreset: SecurityPresets.OPEN,
-            presetAppliedAt: new Date().toISOString(),
+            presetAppliedAt: Timestamp.now(),
             permissions: {
                 expenseEditing: 'all-members',
                 expenseDeletion: 'creator-and-admins',
@@ -108,12 +109,12 @@ export class FirestoreGroupBuilder {
     }
 
     withCreatedAt(date: string | Date): this {
-        this.group.createdAt = typeof date === 'string' ? date : date.toISOString();
+        this.group.createdAt = date instanceof Date ? Timestamp.fromDate(date) : Timestamp.fromDate(new Date(date));
         return this;
     }
 
     withUpdatedAt(date: string | Date): this {
-        this.group.updatedAt = typeof date === 'string' ? date : date.toISOString();
+        this.group.updatedAt = date instanceof Date ? Timestamp.fromDate(date) : Timestamp.fromDate(new Date(date));
         return this;
     }
 

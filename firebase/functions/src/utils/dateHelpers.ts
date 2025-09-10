@@ -200,6 +200,24 @@ export const parseUTCOnly = (isoString: string): Timestamp | null => {
 };
 
 /**
+ * Asserts that a value is a Firestore Timestamp
+ * Throws descriptive error if the data contract is violated
+ * 
+ * @param value - Value to check
+ * @param fieldName - Name of the field for error message
+ * @throws Error if value is not a Timestamp
+ */
+export const assertTimestamp = (value: unknown, fieldName: string): Timestamp => {
+    if (!(value instanceof Timestamp)) {
+        throw new Error(
+            `Data contract violation: Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}. ` +
+            `This indicates corrupted data or inconsistent timestamp handling.`
+        );
+    }
+    return value;
+};
+
+/**
  * Validates that a date string is in UTC format and within acceptable range
  * @param isoString - ISO 8601 date string
  * @param maxYearsAgo - Maximum years in the past (default 10)

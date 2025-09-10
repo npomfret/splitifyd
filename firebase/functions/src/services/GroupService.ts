@@ -7,7 +7,7 @@ import {GroupDataSchema} from '../schemas';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
-import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp} from '../utils/optimistic-locking';
 import { measureDb } from '../monitoring/measure';
@@ -45,21 +45,17 @@ export class GroupService {
     }
     
     /**
-     * Helper to safely convert any date-like value to ISO string
-     * todo: this is bullshit - it implies we don't understand our own data model
+     * Asserts that value is a Firestore Timestamp and converts to ISO string
+     * This enforces our data contract and fails fast with descriptive errors
      */
-    private safeDateToISO(value: any): string {
-        if (value instanceof Timestamp) {
-            return value.toDate().toISOString();
+    private assertTimestampAndConvert(value: unknown, fieldName: string): string {
+        if (!(value instanceof Timestamp)) {
+            throw new Error(
+                `Data contract violation: Expected Firestore Timestamp for ${fieldName} but got ${typeof value}. ` +
+                `This indicates corrupted data or inconsistent timestamp handling.`
+            );
         }
-        if (value instanceof Date) {
-            return value.toISOString();
-        }
-        if (typeof value === 'string') {
-            return value;
-        }
-        // Fallback for unknown types - use current timestamp
-        return new Date().toISOString();
+        return timestampToISO(value);
     }
     
 
@@ -131,10 +127,10 @@ export class GroupService {
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
-            createdAt: this.safeDateToISO(groupData.createdAt),
-            updatedAt: this.safeDateToISO(groupData.updatedAt),
+            createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+            updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
             securityPreset: groupData.securityPreset!,
-            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+            presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
             permissions: groupData.permissions as any,
         };
 
@@ -225,19 +221,15 @@ export class GroupService {
         for (const [groupId, expenses] of expensesByGroup.entries()) {
             const nonDeletedExpenses = expenses.filter((expense) => !expense[DELETED_AT_FIELD]);
             const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
-                // Handle both Firestore Timestamps and ISO strings
-                const aTime = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : (a.createdAt?.toMillis() || 0);
-                const bTime = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : (b.createdAt?.toMillis() || 0);
-                return bTime - aTime; // DESC order
+                // Assert that all createdAt fields are Timestamps - enforced by FirestoreReader
+                const aTimestamp = assertTimestamp(a.createdAt, 'expense.createdAt');
+                const bTimestamp = assertTimestamp(b.createdAt, 'expense.createdAt');
+                return bTimestamp.toMillis() - aTimestamp.toMillis(); // DESC order
             });
 
             expenseMetadataByGroup.set(groupId, {
                 count: nonDeletedExpenses.length,
-                lastExpenseTime: sortedExpenses.length > 0 ? (
-                    typeof sortedExpenses[0].createdAt === 'string' 
-                        ? new Date(sortedExpenses[0].createdAt) 
-                        : sortedExpenses[0].createdAt?.toDate()
-                ) : undefined,
+                lastExpenseTime: sortedExpenses.length > 0 ? assertTimestamp(sortedExpenses[0].createdAt, 'expense.createdAt').toDate() : undefined,
             });
         }
 
@@ -357,10 +349,10 @@ export class GroupService {
                 name: groupData.name,
                 description: groupData.description,
                 createdBy: groupData.createdBy,
-                createdAt: this.safeDateToISO(groupData.createdAt),
-                updatedAt: this.safeDateToISO(groupData.updatedAt),
+                createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+                updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
                 securityPreset: groupData.securityPreset!,
-                presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+                presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
                 permissions: groupData.permissions as any,
             }));
             const groupIds = groups.map((group) => group.id);
@@ -484,22 +476,19 @@ export class GroupService {
             }
 
             // Format last activity using pre-fetched metadata
+            // expenseMetadata.lastExpenseTime is Date | undefined, group.updatedAt is ISO string
             const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
             let lastActivity: string;
             let lastActivityRaw: string;
             
             try {
-                if (lastActivityDate instanceof Date && !isNaN(lastActivityDate.getTime())) {
-                    lastActivityRaw = lastActivityDate.toISOString();
-                    lastActivity = this.formatRelativeTime(lastActivityRaw);
-                } else if (typeof lastActivityDate === 'string') {
-                    lastActivityRaw = lastActivityDate;
-                    lastActivity = this.formatRelativeTime(lastActivityDate);
-                } else {
-                    // Fallback to group's updatedAt
-                    lastActivityRaw = group.updatedAt;
-                    lastActivity = this.formatRelativeTime(group.updatedAt);
+                // lastActivityDate should always be a Date at this point
+                if (!(lastActivityDate instanceof Date) || isNaN(lastActivityDate.getTime())) {
+                    throw new Error(`Expected valid Date for lastActivityDate but got ${typeof lastActivityDate}`);
                 }
+                
+                lastActivityRaw = lastActivityDate.toISOString();
+                lastActivity = this.formatRelativeTime(lastActivityRaw);
             } catch (error) {
                 logger.warn('Failed to format last activity time, using group updatedAt', { 
                     error, 
@@ -606,6 +595,7 @@ export class GroupService {
             ...newGroup,
             createdAt: serverTimestamp,
             updatedAt: serverTimestamp,
+            presetAppliedAt: serverTimestamp,
         };
 
         try {
@@ -679,10 +669,10 @@ export class GroupService {
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
-            createdAt: this.safeDateToISO(groupData.createdAt),
-            updatedAt: this.safeDateToISO(groupData.updatedAt),
+            createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+            updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
             securityPreset: groupData.securityPreset!,
-            presetAppliedAt: this.safeDateToISO(groupData.presetAppliedAt),
+            presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
             permissions: groupData.permissions as any,
         };
 
