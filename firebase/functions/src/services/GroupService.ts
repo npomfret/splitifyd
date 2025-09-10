@@ -701,44 +701,46 @@ export class GroupService {
         // Fetch group with write access check
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
-        // Update with optimistic locking (timestamp is handled by optimistic locking system)
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            // IMPORTANT: All reads must happen before any writes in Firestore transactions
-            
-            // PHASE 1: ALL READS FIRST
-            const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
-            if (!freshDoc) {
-                throw Errors.NOT_FOUND('Group');
-            }
+        // Update with optimistic locking and transaction retry logic
+        await this.retryTransaction(async () => {
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                // IMPORTANT: All reads must happen before any writes in Firestore transactions
+                
+                // PHASE 1: ALL READS FIRST
+                const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
+                if (!freshDoc) {
+                    throw Errors.NOT_FOUND('Group');
+                }
 
-            // Read membership documents that need updating
-            const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
+                // Read membership documents that need updating
+                const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
-            // Optimistic locking validation could use originalUpdatedAt if needed
-            // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+                // Optimistic locking validation could use originalUpdatedAt if needed
+                // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
-            // Create updated data with current timestamp (will be converted to ISO in the data field)
-            const now = createOptimisticTimestamp();
-            const updatedData = {
-                ...group,
-                ...updates,
-                updatedAt: now.toDate(),
-            };
+                // Create updated data with current timestamp (will be converted to ISO in the data field)
+                const now = createOptimisticTimestamp();
+                const updatedData = {
+                    ...group,
+                    ...updates,
+                    updatedAt: now.toDate(),
+                };
 
-            // PHASE 2: ALL WRITES AFTER ALL READS
-            // Update group document using FirestoreWriter
-            const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
-            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
-                name: updatedData.name,
-                description: updatedData.description,
-                updatedAt: updatedData.updatedAt,
-            });
-            
-            // Update denormalized groupUpdatedAt in all membership documents
-            membershipSnapshot.docs.forEach(doc => {
-                transaction.update(doc.ref, {
-                    groupUpdatedAt: updatedData.updatedAt.toISOString(),
-                    updatedAt: createTrueServerTimestamp(),
+                // PHASE 2: ALL WRITES AFTER ALL READS
+                // Update group document using FirestoreWriter
+                const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+                this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                    name: updatedData.name,
+                    description: updatedData.description,
+                    updatedAt: updatedData.updatedAt,
+                });
+                
+                // Update denormalized groupUpdatedAt in all membership documents
+                membershipSnapshot.docs.forEach(doc => {
+                    transaction.update(doc.ref, {
+                        groupUpdatedAt: updatedData.updatedAt.toISOString(),
+                        updatedAt: createTrueServerTimestamp(),
+                    });
                 });
             });
         });
@@ -1427,6 +1429,55 @@ export class GroupService {
             balances: validatedBalances, // Now properly validated instead of unsafe cast
             settlements: settlementsData,
         };
+    }
+
+    private async retryTransaction<T>(operation: () => Promise<T>, maxRetries: number = 3): Promise<T> {
+        let attempt = 0;
+        
+        while (attempt < maxRetries) {
+            try {
+                return await operation();
+            } catch (error: any) {
+                attempt++;
+                
+                // Check if this is a transaction conflict error
+                const isTransactionConflict = 
+                    error?.message?.includes('Transaction is invalid or closed') ||
+                    error?.message?.includes('concurrent') ||
+                    error?.message?.includes('conflict') ||
+                    error?.code === 'ABORTED' ||
+                    error?.code === 'FAILED_PRECONDITION';
+                
+                if (isTransactionConflict && attempt < maxRetries) {
+                    // Add exponential backoff with jitter
+                    const baseDelay = Math.pow(2, attempt) * 100; // 100ms, 200ms, 400ms
+                    const jitter = Math.random() * 50; // 0-50ms
+                    const delay = baseDelay + jitter;
+                    
+                    logger.info('transaction-retry', { 
+                        attempt, 
+                        maxRetries, 
+                        delayMs: Math.round(delay),
+                        errorMessage: error.message 
+                    });
+                    
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    continue;
+                }
+                
+                // If it's a transaction conflict on the final attempt, throw a proper conflict error
+                if (isTransactionConflict && attempt >= maxRetries) {
+                    const conflictError = new Error(`Concurrent update detected after ${maxRetries} attempts. Please try again.`);
+                    conflictError.name = 'ConcurrentUpdateError';
+                    throw conflictError;
+                }
+                
+                // For non-transaction errors, throw immediately
+                throw error;
+            }
+        }
+        
+        throw new Error('Transaction retry logic error'); // Should never reach here
     }
 }
 
