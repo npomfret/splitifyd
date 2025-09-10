@@ -13,7 +13,7 @@ start_dev_instance() {
     case $instance in
         1) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 26214, 0}" ;; # Dark Green
         2) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 13107, 39321}" ;; # Dark Blue  
-        3) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {39321, 26214, 0}" ;; # Dark Orange
+        3) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {0, 26214, 39321}" ;; # Dark Cyan
         4) osascript -e "tell application \"Terminal\" to set background color of selected tab of window 1 to {26214, 0, 26214}" ;; # Dark Magenta
     esac
     
@@ -29,7 +29,7 @@ start_dev_instance() {
     case $instance in
         1) export PS1="\[\033[42m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Green bg, white text
         2) export PS1="\[\033[44m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Blue bg, white text  
-        3) export PS1="\[\033[43m\033[1;30m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Orange bg, black text
+        3) export PS1="\[\033[46m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Cyan bg, white text
         4) export PS1="\[\033[45m\033[1;37m\][DEV-${instance}]\[\033[0m\] \$ " ;; # Magenta bg, white text
     esac
     
