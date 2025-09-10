@@ -1319,6 +1319,44 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(cancelButton, { buttonName: 'Cancel Leave' });
     }
 
+    async waitForOutstandingBalanceError(): Promise<void> {
+        // First try the specific test ID approach (more reliable)
+        try {
+            await this.verifyLeaveErrorMessage();
+            return;
+        } catch {
+            // Fallback to text-based approach
+            const errorMessage = this.page.getByText(/outstanding balance|settle up before leaving/i);
+            await expect(errorMessage).toBeVisible({ timeout: 5000 });
+        }
+    }
+
+    async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
+        await expect(async () => {
+            const currentUrl = this.page.url();
+            
+            // Check if we're already on the 404 page
+            if (currentUrl.includes('/404')) {
+                return;
+            }
+            
+            // Check if we're on an error page or redirected away from the group
+            if (!currentUrl.includes(`/groups/${groupId}`)) {
+                return;
+            }
+            
+            // If still on group page, wait a moment for error handling to kick in
+            await this.page.waitForTimeout(1000);
+            const newUrl = this.page.url();
+            
+            if (newUrl.includes('/404') || !newUrl.includes(`/groups/${groupId}`)) {
+                return;
+            }
+            
+            throw new Error(`Expected 404 or redirect away from group, but still on: ${newUrl}`);
+        }).toPass({ timeout: 10000, intervals: [1000] });
+    }
+
     async clickRemoveMember(memberName: string): Promise<void> {
         const memberItem = this.getMemberItem(memberName);
         try {
@@ -1504,18 +1542,17 @@ export class GroupDetailPage extends BasePage {
         await expect(leaveGroupButton).toBeVisible();
         await this.clickButton(leaveGroupButton, { buttonName: 'Leave Group' });
         
-        // Wait for Leave Group dialog to appear
-        const dialog = this.page.getByRole('dialog');
-        await expect(dialog).toBeVisible();
-        await expect(dialog.getByRole('heading', { name: /leave group/i })).toBeVisible();
+        // Wait for Leave Group confirmation UI to appear
+        const leaveGroupHeading = this.page.getByRole('heading', { name: /leave group/i });
+        await expect(leaveGroupHeading).toBeVisible();
         
         // Click confirm button with data-testid
-        const confirmButton = dialog.getByTestId('confirm-button');
+        const confirmButton = this.page.getByTestId('confirm-button');
         await expect(confirmButton).toBeEnabled();
         await confirmButton.click();
         
-        // Wait for dialog to close and navigation to occur
-        await expect(dialog).not.toBeVisible({ timeout: 5000 });
+        // Wait for confirmation UI to close and navigation to occur
+        await expect(leaveGroupHeading).not.toBeVisible({ timeout: 5000 });
     }
 }
 

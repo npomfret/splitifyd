@@ -156,7 +156,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     async fillAmount(amount: string): Promise<void> {
-        await this.fillPreactInput(this.getAmountInput(), amount);
+        await this.fillNumberInput(this.getAmountInput(), amount);
     }
 
     async selectAllParticipants(): Promise<void> {
@@ -596,6 +596,6 @@ export class ExpenseFormPage extends BasePage {
     async fillSplitAmount(index: number, amount: string): Promise<void> {
         const splitInputs = this.getSplitAmountInputs();
         const targetInput = splitInputs.nth(index);
-        await targetInput.fill(amount);
+        await this.fillNumberInput(targetInput, amount);
     }
 }

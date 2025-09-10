@@ -196,7 +196,7 @@ export class SettlementFormPage extends BasePage {
         await payeeSelect.selectOption(payeeValue);
 
         // Fill amount and note
-        await this.fillPreactInput(amountInput, settlement.amount);
+        await this.fillNumberInput(amountInput, settlement.amount);
         await this.fillPreactInput(noteInput, settlement.note);
 
         // Defensive check: verify the values persisted (catches real-time update bug)
@@ -245,7 +245,7 @@ export class SettlementFormPage extends BasePage {
      */
     async fillAndSubmitSettlement(amount: string, payeeName: string): Promise<void> {
         const amountInput = this.getAmountInput();
-        await this.fillPreactInput(amountInput, amount);
+        await this.fillNumberInput(amountInput, amount);
 
         const payeeSelect = this.getPayeeSelect();
         await payeeSelect.selectOption({ label: payeeName });
@@ -291,7 +291,7 @@ export class SettlementFormPage extends BasePage {
         const noteInput = this.getNoteInput();
 
         // Update amount
-        await this.fillPreactInput(amountInput, data.amount);
+        await this.fillNumberInput(amountInput, data.amount);
 
         // Update note
         await this.fillPreactInput(noteInput, data.note);
@@ -316,7 +316,7 @@ export class SettlementFormPage extends BasePage {
     async clearAndFillAmount(amount: string): Promise<void> {
         const amountInput = this.getAmountInput();
         await amountInput.clear();
-        await this.fillPreactInput(amountInput, amount);
+        await this.fillNumberInput(amountInput, amount);
     }
 
     /**

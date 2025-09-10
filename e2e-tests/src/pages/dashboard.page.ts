@@ -120,7 +120,8 @@ export class DashboardPage extends BasePage {
         const timeout = options.timeout || 5000; // Default 5 seconds - allow time for real-time updates
         
         await expect(async () => {
-            const groupCard = this.page.getByText(groupName);
+            // Use exact match to avoid partial matches with updated group names
+            const groupCard = this.page.getByText(groupName, { exact: true });
             const isVisible = await groupCard.isVisible();
             if (isVisible) {
                 throw new Error(`Group "${groupName}" is still visible on dashboard`);

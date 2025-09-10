@@ -101,6 +101,12 @@ export abstract class BasePage {
             if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
                 return; // Values are numerically equal
             }
+            
+            // Handle special case: when clearing a number input, it may default to "0"
+            // Accept "0" as equivalent to empty string for number inputs
+            if (expectedValue === '' && actualValue === '0') {
+                return; // Clearing to "0" is acceptable for number inputs
+            }
         }
 
         // For non-number inputs or if number comparison failed, do string comparison
@@ -138,16 +144,8 @@ export abstract class BasePage {
                 await this.waitForFocus(input);
                 await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
 
-                // Check if this is a number input or has decimal inputMode
-                const inputType = await input.getAttribute('type');
-                const inputMode = await input.getAttribute('inputMode');
-
-                // Use fill() for number inputs or decimal inputs to handle decimals correctly
-                if (inputType === 'number' || inputMode === 'decimal') {
-                    await input.fill(value);
-                } else {
-                    await input.pressSequentially(value);
-                }
+                // Use pressSequentially for text inputs to ensure proper Preact signal updates
+                await input.pressSequentially(value);
 
                 // Manually trigger input event to ensure Preact onChange handlers are called
                 // This is crucial for Preact components that rely on onChange events to update their state
@@ -156,34 +154,17 @@ export abstract class BasePage {
                 // Blur to trigger Preact validation
                 await input.blur();
 
-                // Check if input was successful
+                // Check if input was successful (text inputs only)
                 const actualValue = await input.inputValue();
-                if (actualValue === value) {
+                if (actualValue === value || actualValue === value.trim()) {
                     await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                     return; // Success!
-                }
-
-                // For number/decimal inputs, check if values are numerically equal (handles decimal normalization)
-                // This is kept for backward compatibility with any remaining number inputs
-                if (inputType === 'number' || inputMode === 'decimal') {
-                    const expectedNum = parseFloat(value);
-                    const actualNum = parseFloat(actualValue);
-                    if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
-                        // Values are numerically equal (e.g., "45.50" and "45.5")
-                        // With text inputs, this should no longer happen, but keep for safety
-                        await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                        return; // Success - number normalization is expected!
-                    }
                 }
 
                 // Log and retry if not final attempt
                 if (attempt < maxRetries) {
                     const fieldId = await this.getFieldIdentifier(input);
-                    // Only warn if it's not expected number normalization
-                    if (inputType !== 'number' || parseFloat(value) !== parseFloat(actualValue)) {
-                        console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
-                    }
-                    // Use DOM state waiting instead of arbitrary timeout
+                    console.warn(`Input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
                     await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                 }
             } catch (error) {
@@ -199,6 +180,65 @@ export abstract class BasePage {
         // Final validation after all retries (throws error if still incorrect)
         await this.validateInputValue(input, value);
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+    }
+
+    /**
+     * Fill a number input field using fill() method with numeric validation.
+     * Handles the "0" default value issue for number inputs.
+     */
+    async fillNumberInput(selector: string | Locator, value: string, maxRetries = 3) {
+        const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
+        
+        await expect(input).toBeVisible();
+        await expect(input).toBeEnabled();
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                await input.click();
+                await this.waitForFocus(input);
+                await input.fill('');
+                
+                // For number inputs, clearing may result in "0" instead of "", which is acceptable
+                const clearedValue = await input.inputValue();
+                if (clearedValue !== '' && clearedValue !== '0') {
+                    const fieldId = await this.getFieldIdentifier(input);
+                    throw new Error(`Failed to clear number input "${fieldId}": expected "" or "0" but got "${clearedValue}"`);
+                }
+                
+                await this.waitForFocus(input);
+                await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+                
+                await input.fill(value);
+                await input.dispatchEvent('input');
+                await input.blur();
+
+                const actualValue = await input.inputValue();
+                const expectedNum = parseFloat(value);
+                const actualNum = parseFloat(actualValue);
+                
+                // For number inputs, compare numerically to handle normalization (e.g., "45.50" -> "45.5")
+                if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
+                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+                    return;
+                }
+
+                if (attempt < maxRetries) {
+                    const fieldId = await this.getFieldIdentifier(input);
+                    console.warn(`Number input retry ${attempt}: expected "${value}", got "${actualValue}" for ${fieldId}`);
+                    await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
+                }
+            } catch (error) {
+                if (attempt === maxRetries) {
+                    throw error;
+                }
+                console.warn(`Attempt ${attempt} threw error, retrying:`, error instanceof Error ? error.message : String(error));
+                await this._page.waitForTimeout(500);
+            }
+        }
+
+        const fieldId = await this.getFieldIdentifier(input);
+        const actualValue = await input.inputValue();
+        throw new Error(`Failed to fill number input field "${fieldId}" after ${maxRetries} attempts. Expected: "${value}", Got: "${actualValue}"`);
     }
 
     async waitForDomContentLoaded(timeout = 5000) {
