@@ -1741,4 +1741,240 @@ export class FirestoreWriter implements IFirestoreWriter {
                 }
             });
     }
+
+    // ========================================================================
+    // Transaction Helper Methods (Phase 1 - Transaction Foundation)
+    // ========================================================================
+
+    /**
+     * Delete multiple documents within a transaction atomically
+     * @param transaction - The transaction context
+     * @param documentPaths - Array of document paths to delete
+     * @throws Error if any deletion fails (transaction will be aborted)
+     */
+    bulkDeleteInTransaction(
+        transaction: Transaction,
+        documentPaths: string[]
+    ): void {
+        if (!Array.isArray(documentPaths)) {
+            throw new Error('documentPaths must be an array');
+        }
+
+        if (documentPaths.length === 0) {
+            logger.warn('bulkDeleteInTransaction called with empty paths array');
+            return;
+        }
+
+        logger.info('Bulk delete in transaction initiated', {
+            operation: 'bulkDeleteInTransaction',
+            documentCount: documentPaths.length
+        });
+
+        for (const path of documentPaths) {
+            if (!path || typeof path !== 'string') {
+                throw new Error(`Invalid document path: ${path}`);
+            }
+
+            try {
+                const docRef = this.db.doc(path);
+                transaction.delete(docRef);
+            } catch (error) {
+                logger.error('Failed to delete document in transaction', error, { 
+                    path,
+                    operation: 'bulkDeleteInTransaction'
+                });
+                throw new Error(`Failed to delete document at path: ${path}`);
+            }
+        }
+
+        logger.info('Bulk delete in transaction completed', {
+            operation: 'bulkDeleteInTransaction',
+            documentCount: documentPaths.length
+        });
+    }
+
+    /**
+     * Get multiple documents within a transaction by paths
+     * @param transaction - The transaction context
+     * @param documentPaths - Array of document paths to fetch
+     * @returns Promise<Array<DocumentSnapshot | null>> Array of document snapshots (null for non-existent docs)
+     */
+    async getMultipleByPathsInTransaction(
+        transaction: Transaction,
+        documentPaths: string[]
+    ): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>> {
+        if (!Array.isArray(documentPaths)) {
+            throw new Error('documentPaths must be an array');
+        }
+
+        if (documentPaths.length === 0) {
+            return [];
+        }
+
+        logger.info('Getting multiple documents in transaction', {
+            operation: 'getMultipleByPathsInTransaction',
+            documentCount: documentPaths.length
+        });
+
+        const results: Array<FirebaseFirestore.DocumentSnapshot | null> = [];
+
+        for (const path of documentPaths) {
+            if (!path || typeof path !== 'string') {
+                throw new Error(`Invalid document path: ${path}`);
+            }
+
+            try {
+                const docRef = this.db.doc(path);
+                const doc = await transaction.get(docRef);
+                results.push(doc.exists ? doc : null);
+            } catch (error) {
+                logger.error('Failed to get document in transaction', error, { 
+                    path,
+                    operation: 'getMultipleByPathsInTransaction'
+                });
+                throw new Error(`Failed to get document at path: ${path}`);
+            }
+        }
+
+        return results;
+    }
+
+    /**
+     * Create multiple documents within a transaction atomically
+     * @param transaction - The transaction context
+     * @param creates - Array of documents to create
+     * @returns Array of document references created
+     */
+    batchCreateInTransaction(
+        transaction: Transaction,
+        creates: Array<{
+            collection: string;
+            id?: string;
+            data: any;
+        }>
+    ): DocumentReference[] {
+        if (!Array.isArray(creates)) {
+            throw new Error('creates must be an array');
+        }
+
+        if (creates.length === 0) {
+            logger.warn('batchCreateInTransaction called with empty creates array');
+            return [];
+        }
+
+        logger.info('Batch create in transaction initiated', {
+            operation: 'batchCreateInTransaction',
+            documentCount: creates.length
+        });
+
+        const docRefs: DocumentReference[] = [];
+
+        for (const create of creates) {
+            if (!create.collection || typeof create.collection !== 'string') {
+                throw new Error(`Invalid collection name: ${create.collection}`);
+            }
+
+            if (!create.data || typeof create.data !== 'object') {
+                throw new Error('Document data must be an object');
+            }
+
+            try {
+                const docRef = create.id 
+                    ? this.db.collection(create.collection).doc(create.id)
+                    : this.db.collection(create.collection).doc();
+                
+                transaction.create(docRef, create.data);
+                docRefs.push(docRef);
+            } catch (error) {
+                logger.error('Failed to create document in transaction', error, { 
+                    create,
+                    operation: 'batchCreateInTransaction'
+                });
+                throw new Error(`Failed to create document in collection: ${create.collection}`);
+            }
+        }
+
+        logger.info('Batch create in transaction completed', {
+            operation: 'batchCreateInTransaction',
+            documentCount: docRefs.length
+        });
+
+        return docRefs;
+    }
+
+    /**
+     * Query and update multiple documents within a transaction
+     * @param transaction - The transaction context  
+     * @param collectionPath - Collection to query
+     * @param queryConstraints - Query constraints (where clauses)
+     * @param updates - Updates to apply to all matched documents
+     * @returns Promise<number> Number of documents updated
+     */
+    async queryAndUpdateInTransaction(
+        transaction: Transaction,
+        collectionPath: string,
+        queryConstraints: Array<{field: string, op: FirebaseFirestore.WhereFilterOp, value: any}>,
+        updates: Record<string, any>
+    ): Promise<number> {
+        if (!collectionPath || typeof collectionPath !== 'string') {
+            throw new Error('collectionPath must be a non-empty string');
+        }
+
+        if (!Array.isArray(queryConstraints)) {
+            throw new Error('queryConstraints must be an array');
+        }
+
+        if (!updates || typeof updates !== 'object') {
+            throw new Error('updates must be an object');
+        }
+
+        logger.info('Query and update in transaction initiated', {
+            operation: 'queryAndUpdateInTransaction',
+            collection: collectionPath,
+            constraintCount: queryConstraints.length
+        });
+
+        try {
+            // Start with the collection reference
+            let query: FirebaseFirestore.Query = this.db.collection(collectionPath);
+
+            // Apply all query constraints
+            for (const constraint of queryConstraints) {
+                if (!constraint.field || typeof constraint.field !== 'string') {
+                    throw new Error(`Invalid field name: ${constraint.field}`);
+                }
+                query = query.where(constraint.field, constraint.op, constraint.value);
+            }
+
+            // Execute query within the transaction (reads must come before writes)
+            const querySnapshot = await transaction.get(query);
+
+            logger.info('Query executed in transaction', {
+                operation: 'queryAndUpdateInTransaction',
+                documentsFound: querySnapshot.size,
+                collection: collectionPath
+            });
+
+            // Update all matching documents
+            querySnapshot.docs.forEach(doc => {
+                transaction.update(doc.ref, updates);
+            });
+
+            const updatedCount = querySnapshot.size;
+
+            logger.info('Query and update in transaction completed', {
+                operation: 'queryAndUpdateInTransaction',
+                documentsUpdated: updatedCount,
+                collection: collectionPath
+            });
+
+            return updatedCount;
+        } catch (error) {
+            logger.error('Failed to query and update in transaction', error, {
+                collection: collectionPath,
+                operation: 'queryAndUpdateInTransaction'
+            });
+            throw new Error(`Failed to query and update documents in collection: ${collectionPath}`);
+        }
+    }
 }

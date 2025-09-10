@@ -468,4 +468,60 @@ export interface IFirestoreWriter {
      */
     updateTestUserStatus(email: string, status: string): Promise<WriteResult>;
 
+    // ========================================================================
+    // Transaction Helper Methods (Phase 1 - Transaction Foundation)  
+    // ========================================================================
+
+    /**
+     * Delete multiple documents within a transaction atomically
+     * @param transaction - The transaction context
+     * @param documentPaths - Array of document paths to delete
+     * @throws Error if any deletion fails (transaction will be aborted)
+     */
+    bulkDeleteInTransaction(
+        transaction: Transaction,
+        documentPaths: string[]
+    ): void;
+
+    /**
+     * Query and update multiple documents within a transaction
+     * @param transaction - The transaction context  
+     * @param collectionPath - Collection to query
+     * @param queryConstraints - Query constraints (where clauses)
+     * @param updates - Updates to apply to all matched documents
+     * @returns Promise<number> Number of documents updated
+     */
+    queryAndUpdateInTransaction(
+        transaction: Transaction,
+        collectionPath: string,
+        queryConstraints: Array<{field: string, op: FirebaseFirestore.WhereFilterOp, value: any}>,
+        updates: Record<string, any>
+    ): Promise<number>;
+
+    /**
+     * Create multiple documents within a transaction
+     * @param transaction - The transaction context
+     * @param creates - Array of documents to create
+     * @returns Array of document references created
+     */
+    batchCreateInTransaction(
+        transaction: Transaction,
+        creates: Array<{
+            collection: string;
+            id?: string;
+            data: any;
+        }>
+    ): DocumentReference[];
+
+    /**
+     * Get multiple documents within a transaction by paths
+     * @param transaction - The transaction context
+     * @param documentPaths - Array of document paths to fetch
+     * @returns Promise<Array<DocumentSnapshot | null>> Array of document snapshots (null for non-existent docs)
+     */
+    getMultipleByPathsInTransaction(
+        transaction: Transaction,
+        documentPaths: string[]
+    ): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>>;
+
 }

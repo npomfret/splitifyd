@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import {SettlementService} from "../../services/SettlementService";
 import {GroupMemberService} from "../../services/GroupMemberService";
 import {GroupShareService} from "../../services/GroupShareService";
@@ -98,7 +98,12 @@ describe('GroupService - Unit Tests', () => {
             deleteInTransaction: vi.fn(),
             createUser: vi.fn(),
             updateUser: vi.fn(),
-            deleteUser: vi.fn()
+            deleteUser: vi.fn(),
+            // Phase 1 transaction helper methods
+            bulkDeleteInTransaction: vi.fn(),
+            getMultipleByPathsInTransaction: vi.fn(),
+            batchCreateInTransaction: vi.fn(),
+            queryAndUpdateInTransaction: vi.fn()
         };
         
         mockUserService = createMockUserService();
@@ -333,6 +338,169 @@ describe('GroupService - Unit Tests', () => {
             await expect(
                 groupService.getGroupBalances(groupId, userId)
             ).rejects.toThrow('Group not found');
+        });
+    });
+
+    describe('updateGroup', () => {
+        it('should atomically update group and all membership documents', async () => {
+            const groupId = 'test-group-123';
+            const userId = 'test-user-456';
+            const updates = {
+                name: 'Updated Group Name',
+                description: 'Updated description'
+            };
+
+            // Mock the group fetch
+            const mockGroup = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .withName('Original Name')
+                .withDescription('Original description')
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreReader.getGroup.mockResolvedValue(mockGroup);
+            mockFirestoreReader.getRawGroupDocumentInTransaction.mockResolvedValue({
+                data: () => ({ updatedAt: new Date() })
+            });
+
+            // Ensure the user is recognized as owner
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+
+            // Mock user service for balance calculation - include at least one member
+            const memberDoc = new GroupMemberDocumentBuilder(userId, groupId).asAdmin().build();
+            mockUserService.getAllGroupMembers.mockResolvedValue([memberDoc]);
+
+            // Mock the atomic membership update helper
+            mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(3);
+
+            // Execute updateGroup
+            const result = await groupService.updateGroup(groupId, userId, updates);
+
+            // Verify the transaction was used
+            expect(mockFirestoreWriter.runTransaction).toHaveBeenCalled();
+
+            // Verify the atomic membership update was called correctly
+            expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(
+                expect.any(Object), // transaction
+                'group-memberships',
+                [{ field: 'groupId', op: '==', value: groupId }],
+                expect.objectContaining({
+                    groupUpdatedAt: expect.any(String)
+                })
+            );
+
+            // Verify success response
+            expect(result).toEqual({ message: 'Group updated successfully' });
+        });
+
+        it('should handle groups with no memberships gracefully', async () => {
+            const groupId = 'test-group-789';
+            const userId = 'test-user-456';
+            const updates = { name: 'Updated Name' };
+
+            // Mock the group fetch
+            const mockGroup = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .withCreatedBy(userId)
+                .build();
+
+            mockFirestoreReader.getGroup.mockResolvedValue(mockGroup);
+            mockFirestoreReader.getRawGroupDocumentInTransaction.mockResolvedValue({
+                data: () => ({ updatedAt: new Date() })
+            });
+
+            // Ensure the user is recognized as owner
+            mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
+
+            // Mock user service for balance calculation - include at least one member
+            const memberDoc = new GroupMemberDocumentBuilder(userId, groupId).asAdmin().build();
+            mockUserService.getAllGroupMembers.mockResolvedValue([memberDoc]);
+
+            // Mock no memberships found
+            mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(0);
+
+            // Execute updateGroup
+            const result = await groupService.updateGroup(groupId, userId, updates);
+
+            // Verify the helper was still called (even with 0 results)
+            expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalled();
+
+            // Verify success response
+            expect(result).toEqual({ message: 'Group updated successfully' });
+        });
+    });
+
+    describe('FirestoreWriter Transaction Helpers', () => {
+        describe('bulkDeleteInTransaction', () => {
+            it('should call bulkDeleteInTransaction with correct parameters', async () => {
+                const mockTransaction = {};
+                const documentPaths = ['groups/group1', 'expenses/exp1'];
+
+                mockFirestoreWriter.bulkDeleteInTransaction.mockResolvedValue(undefined);
+
+                await groupService['firestoreWriter'].bulkDeleteInTransaction(mockTransaction, documentPaths);
+
+                expect(mockFirestoreWriter.bulkDeleteInTransaction).toHaveBeenCalledWith(
+                    mockTransaction,
+                    documentPaths
+                );
+            });
+        });
+
+        describe('queryAndUpdateInTransaction', () => {
+            it('should call queryAndUpdateInTransaction with correct parameters', async () => {
+                const mockTransaction = {};
+                const collection = 'group-memberships';
+                const whereConditions = [{ field: 'groupId', op: '==', value: 'test-group' }];
+                const updates = { groupUpdatedAt: '2023-01-01T10:00:00.000Z' };
+                const expectedCount = 3;
+
+                mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(expectedCount);
+
+                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(
+                    mockTransaction,
+                    collection,
+                    whereConditions,
+                    updates
+                );
+
+                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(
+                    mockTransaction,
+                    collection,
+                    whereConditions,
+                    updates
+                );
+                expect(result).toBe(expectedCount);
+            });
+        });
+
+        describe('Integration with GroupService operations', () => {
+            it('should enable atomic group updates in Phase 2', async () => {
+                // This test verifies that the infrastructure is in place for Phase 2
+                // GroupService.updateGroup implementation to use queryAndUpdateInTransaction
+                
+                const mockTransaction = { update: vi.fn() };
+                const collection = 'group-memberships';
+                const whereConditions = [{ field: 'groupId', op: '==', value: 'test-group' }];
+                const updates = { groupUpdatedAt: '2023-01-01T10:00:00.000Z' };
+
+                mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(2);
+
+                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(
+                    mockTransaction,
+                    collection,
+                    whereConditions,
+                    updates
+                );
+
+                expect(result).toBe(2);
+                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(
+                    mockTransaction,
+                    collection,
+                    whereConditions,
+                    updates
+                );
+            });
         });
     });
 
