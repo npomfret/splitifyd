@@ -1,10 +1,3 @@
-/**
- * Scheduled Metrics Logger
- * 
- * Periodically logs aggregated performance metrics and clears old data.
- * Runs every 30 minutes to prevent memory accumulation.
- */
-
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { logger } from '../logger';
 import { metrics, Metric } from '../monitoring/lightweight-metrics';
@@ -21,7 +14,6 @@ export const logMetrics = onSchedule(
         try {
             const snapshot = metrics.getSnapshot();
             
-            // Calculate aggregates
             const report = {
                 timestamp: new Date().toISOString(),
                 samplingRate: 0.05,
@@ -31,28 +23,20 @@ export const logMetrics = onSchedule(
                 memoryStats: metrics.getStats()
             };
             
-            // Log the performance report
-            logger.info('📊 Performance Metrics Report', report);
+            logger.info('metrics-report', report);
             
-            // Clear metrics older than 1 hour to prevent memory growth
             const oneHourAgo = Date.now() - 3600000;
             metrics.clearOlderThan(oneHourAgo);
             
             const statsAfterCleanup = metrics.getStats();
-            logger.info('🧹 Metrics cleanup completed', {
-                metricsRemaining: statsAfterCleanup.totalMetrics,
-                breakdown: statsAfterCleanup
-            });
+            logger.info('metrics-cleanup', {remaining: statsAfterCleanup.totalMetrics});
             
         } catch (error) {
-            logger.error('Failed to log metrics report', error);
+            logger.error('metrics-report-failed', error);
         }
     }
 );
 
-/**
- * Calculate simple statistics for a set of metrics
- */
 function calculateStats(metricsArray: Metric[]): any {
     if (!metricsArray.length) {
         return {
@@ -69,7 +53,6 @@ function calculateStats(metricsArray: Metric[]): any {
     const durations = metricsArray.map(m => m.duration).sort((a, b) => a - b);
     const successCount = metricsArray.filter(m => m.success).length;
 
-    // Group by operation for breakdown
     const operationGroups = new Map<string, Metric[]>();
     for (const metric of metricsArray) {
         const existing = operationGroups.get(metric.operation) || [];
