@@ -3,7 +3,6 @@ import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { IFirestoreReader } from './firestore/IFirestoreReader';
 import { IFirestoreWriter } from './firestore/IFirestoreWriter';

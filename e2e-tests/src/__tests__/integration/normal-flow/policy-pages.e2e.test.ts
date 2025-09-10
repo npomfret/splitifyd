@@ -1,5 +1,5 @@
 import { pageTest } from '../../../fixtures';
-import { setupMCPDebugOnFailure, waitForApp } from '../../../helpers';
+import { waitForApp } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
 pageTest.describe('Policy Pages E2E', () => {

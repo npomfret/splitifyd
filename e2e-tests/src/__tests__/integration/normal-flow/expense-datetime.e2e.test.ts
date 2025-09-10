@@ -1,5 +1,4 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 

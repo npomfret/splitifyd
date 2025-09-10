@@ -4,7 +4,7 @@ import type { IFirestoreReader } from '../../../services/firestore/IFirestoreRea
 import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
-import type { PolicyDocument, PolicyVersion } from '@splitifyd/shared';
+import type { PolicyDocument } from '@splitifyd/shared';
 
 // Mock the logger to prevent console output during tests
 vi.mock('../../../logger', () => ({

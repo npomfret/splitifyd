@@ -1,5 +1,3 @@
-import { CommentTargetType } from '@splitifyd/shared';
-
 /**
  * Strategy interface for handling comment operations on different target types
  * 

@@ -1,5 +1,5 @@
 import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
-import { setupMCPDebugOnFailure, EMULATOR_URL } from '../../../helpers';
+import { EMULATOR_URL } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
 test.describe('Comprehensive Navigation E2E', () => {

@@ -1,5 +1,4 @@
 import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
-import {setupMCPDebugOnFailure} from '../../../helpers';
 import {GroupWorkflow} from '../../../workflows';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';

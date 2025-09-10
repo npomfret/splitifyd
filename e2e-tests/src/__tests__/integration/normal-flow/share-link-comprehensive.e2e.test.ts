@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { multiUserTest } from '../../../fixtures';
 import { singleMixedAuthTest } from '../../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';

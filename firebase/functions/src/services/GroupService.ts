@@ -9,7 +9,6 @@ import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
 import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp, assertTimestampAndConvert} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
-import {getUpdatedAtTimestamp} from '../utils/optimistic-locking';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';

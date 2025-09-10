@@ -4,7 +4,7 @@ import {ApiError} from '../utils/errors';
 import {logger, LoggerContext} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
-import {createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {measureDb} from '../monitoring/measure';
 import {ShareLinkDataSchema} from '../schemas/sharelink';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, type MockedFunction } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 // Mock firebase-admin/firestore at module level - must be done before any imports that use it
 vi.mock('firebase-admin/firestore', () => {
@@ -38,7 +38,7 @@ import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import { FirestoreGroupBuilder, FirestoreExpenseBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
+import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
 import {SettlementService} from "../../services/SettlementService";
 import {GroupMemberService} from "../../services/GroupMemberService";
 import {GroupShareService} from "../../services/GroupShareService";

@@ -4,7 +4,6 @@ import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
 import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
 import { getFirestore } from '../../../firebase';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 
 describe('PolicyService - Integration Tests', () => {

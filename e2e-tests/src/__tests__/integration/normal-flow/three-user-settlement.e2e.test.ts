@@ -1,5 +1,4 @@
 import { expect, threeUserTest as test } from '../../../fixtures/three-user-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import {DashboardPage, JoinGroupPage} from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';

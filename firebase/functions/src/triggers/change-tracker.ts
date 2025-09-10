@@ -6,8 +6,6 @@ import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { measureTrigger } from '../monitoring/measure';
 import {getFirestore} from "../firebase";
-import {IFirestoreReader} from "../services/firestore";
-import { NotificationService } from "../services/notification-service";
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 /**

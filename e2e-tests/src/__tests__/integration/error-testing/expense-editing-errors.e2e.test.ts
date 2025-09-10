@@ -1,5 +1,4 @@
 import { authenticatedPageTest as test } from '../../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';

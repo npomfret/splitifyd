@@ -1,5 +1,4 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 import { RegisterPage } from '../../../pages';

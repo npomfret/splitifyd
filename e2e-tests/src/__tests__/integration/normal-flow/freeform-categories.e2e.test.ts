@@ -1,5 +1,5 @@
 import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
-import { GroupWorkflow, setupMCPDebugOnFailure } from '../../../helpers';
+import { GroupWorkflow } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';

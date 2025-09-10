@@ -44,7 +44,7 @@ import type {
     SettlementDocument
 } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
+import type { ShareLink } from '@splitifyd/shared';
 import type { UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
 
 export interface WriteResult {

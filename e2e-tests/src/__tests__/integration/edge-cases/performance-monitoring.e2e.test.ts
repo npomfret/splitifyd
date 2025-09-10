@@ -1,5 +1,5 @@
 import { pageTest, expect } from '../../../fixtures';
-import { waitForApp, setupMCPDebugOnFailure } from '../../../helpers';
+import { waitForApp } from '../../../helpers';
 import { TIMEOUTS } from '../../../config/timeouts';
 import { RegisterPage } from '../../../pages';
 

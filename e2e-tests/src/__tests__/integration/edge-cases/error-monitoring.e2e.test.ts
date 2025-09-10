@@ -1,5 +1,5 @@
 import { pageTest, expect } from '../../../fixtures';
-import { waitForApp, setupMCPDebugOnFailure } from '../../../helpers';
+import { waitForApp } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
 pageTest.describe('Error Monitoring E2E', () => {

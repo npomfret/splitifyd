@@ -1,15 +1,14 @@
-import {DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
+import {DocumentSnapshot} from 'firebase-admin/firestore';
 import {z} from 'zod';
 import {getAuth} from '../firebase';
 import {ApiError} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp, timestampToISO, assertTimestampAndConvert} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, assertTimestampAndConvert} from '../utils/dateHelpers';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
-import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
+import {Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
-import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import {GroupMemberService} from "./GroupMemberService";

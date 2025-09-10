@@ -1,6 +1,5 @@
 import { expect, multiUserTest } from '../../../fixtures';
 import { expect as expectThree, threeUserTest } from '../../../fixtures/three-user-test';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers';
 import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../../pages';

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, safeParseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
-import { getUpdatedAtTimestamp, updateWithTimestamp } from '../utils/optimistic-locking';
+import { getUpdatedAtTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import {

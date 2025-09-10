@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
-import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
+import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';

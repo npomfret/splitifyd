@@ -1,5 +1,4 @@
 import { authenticatedPageTest } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable debugging helpers
 

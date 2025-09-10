@@ -1,5 +1,4 @@
 import { pageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
 // NOTE: ARIA labels testing moved to unit tests for better performance

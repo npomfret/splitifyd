@@ -1,5 +1,4 @@
 import { authenticatedPageTest, expect, pageTest } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 

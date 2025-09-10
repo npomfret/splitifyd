@@ -26,7 +26,6 @@ import {
     GroupDocumentSchema,
     ExpenseDocumentSchema,
     SettlementDocumentSchema,
-    GroupMemberDocumentSchema,
     CommentDataSchema
 } from '../../schemas';
 import {
@@ -46,7 +45,7 @@ import type {
     CreateUserNotificationDocument
 } from '../../schemas/user-notifications';
 import type { ParsedComment as CommentDocument } from '../../schemas';
-import type { GroupMemberDocument, ShareLink } from '@splitifyd/shared';
+import type { ShareLink } from '@splitifyd/shared';
 import type { 
     IFirestoreWriter, 
     WriteResult, 

@@ -1,5 +1,4 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { SettingsPage } from '../../../pages';
 
 

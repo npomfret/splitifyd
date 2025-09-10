@@ -1,6 +1,5 @@
 import { pageTest, expect } from '../../../fixtures';
 import { RegisterPage } from '../../../pages';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
 
 pageTest.describe('Terms Acceptance Error Testing', () => {

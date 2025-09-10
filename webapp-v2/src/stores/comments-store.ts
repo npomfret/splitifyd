@@ -7,7 +7,6 @@ import {
     limit,
     startAfter,
     getDocs,
-    Timestamp,
     QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import type { CommentApiResponse, CommentTargetType } from '@splitifyd/shared';

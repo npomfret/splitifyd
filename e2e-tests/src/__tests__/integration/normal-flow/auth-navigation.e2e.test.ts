@@ -1,5 +1,4 @@
 import { pageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 
 // Enable MCP debugging for failed tests

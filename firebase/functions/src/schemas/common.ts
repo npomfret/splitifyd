@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Timestamp } from 'firebase-admin/firestore';
 
 /**
  * Common schema fragments for consistent validation patterns across all schemas

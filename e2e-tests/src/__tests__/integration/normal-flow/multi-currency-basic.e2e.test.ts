@@ -1,5 +1,5 @@
 import {authenticatedPageTest, expect} from '../../../fixtures';
-import {setupMCPDebugOnFailure, TestGroupWorkflow} from '../../../helpers';
+import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {DashboardPage} from '../../../pages/dashboard.page';
 import {ExpenseBuilder} from '@splitifyd/test-support';

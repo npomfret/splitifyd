@@ -1,5 +1,4 @@
 import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
 
 test.describe('Registration Loading State', () => {

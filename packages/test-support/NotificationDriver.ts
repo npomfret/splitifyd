@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 import { pollUntil, Matcher, PollOptions } from './Polling';
 
 /**

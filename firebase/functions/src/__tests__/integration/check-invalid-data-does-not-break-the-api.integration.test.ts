@@ -8,7 +8,7 @@
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, test, expect, beforeAll, beforeEach } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { 
     ApiDriver, 

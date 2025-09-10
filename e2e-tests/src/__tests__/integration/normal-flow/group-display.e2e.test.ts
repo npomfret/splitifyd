@@ -1,5 +1,5 @@
 import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
-import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
+import { TestGroupWorkflow } from '../../../helpers';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Group Details E2E', () => {

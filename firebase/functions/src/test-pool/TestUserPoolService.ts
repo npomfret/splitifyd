@@ -1,5 +1,4 @@
 import {getAuth} from '../firebase';
-import {Timestamp} from "firebase-admin/firestore";
 import type {IFirestoreReader, IFirestoreWriter} from '../services/firestore';
 import {UserService} from "../services/UserService2";
 

@@ -1,5 +1,4 @@
 import { pageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 
 pageTest.describe('Resource Monitoring', () => {
     pageTest('should load all resources successfully across main pages', async ({ page, homepagePage, loginPage, registerPage, pricingPage }) => {

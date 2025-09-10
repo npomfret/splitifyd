@@ -1,5 +1,4 @@
 import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
-import {setupMCPDebugOnFailure} from '../../../helpers';
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {GroupWorkflow} from '../../../workflows';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';

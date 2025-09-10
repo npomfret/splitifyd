@@ -1,6 +1,5 @@
 import { test } from '@playwright/test';
 import { pageTest, expect } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
 pageTest.describe('Network Resilience E2E', () => {

@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { multiUserTest } from '../../../fixtures';
-import { setupMCPDebugOnFailure } from '../../../helpers';
 import { MultiUserWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 
