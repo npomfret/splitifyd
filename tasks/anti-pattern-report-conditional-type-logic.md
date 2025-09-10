@@ -65,17 +65,32 @@ This is the most widespread form of the anti-pattern in the codebase. Multiple s
     - Clear separation of concerns (UI handles strings, store handles numbers)
     - Future-proof against amount type confusion
 
-### Finding 3: Type-Based Logic in Triggers & Utilities (Unresolved)
+### Finding 3: Type-Based Logic in Triggers & Utilities (Multiple Locations)
 
-Helper utilities and Firestore triggers also exhibit this anti-pattern.
+Helper utilities and Firestore triggers continue to exhibit this anti-pattern across several locations.
 
-*   **Location:** `firebase/functions/src/triggers/change-tracker.ts`
-*   **Issue:** The `createMinimalChangeDocument` function uses `if (entityType === 'expense' || entityType === 'settlement')` to conditionally add a `groupId`.
-*   **Recommendation:** Use a polymorphic approach. Create separate `ExpenseChangeDocumentBuilder` and `GroupChangeDocumentBuilder` classes that encapsulate the logic for creating their specific document structures.
+**High Priority:**
+*   **Location:** `firebase/functions/src/utils/change-detection.ts` (lines 140, 175)
+*   **Issue:** Functions use `if (entityType === 'expense' || entityType === 'settlement')` to conditionally add groupId fields
+*   **Recommendation:** Create entity-specific change document builders that encapsulate their own field requirements
 
-*   **Location:** `firebase/functions/src/utils/change-detection.ts`
-*   **Issue:** The `calculatePriority` function uses a dictionary lookup on `documentType` to determine priority.
-*   **Recommendation:** This logic should be co-located with the entity's schema or definition. Each entity should be responsible for defining its own field priorities.
+**Medium Priority:**  
+*   **Location:** `firebase/functions/src/services/firestore/FirestoreWriter.ts` (lines 523-528)
+*   **Issue:** `addComment()` method uses type-dispatching to determine collection paths 
+*   **Status:** Will be resolved by Phase 3 CommentService refactoring
+
+*   **Location:** `firebase/functions/src/services/firestore/FirestoreReader.ts` (lines 1114-1122, 1201-1209) 
+*   **Issue:** Comment-related methods use type-dispatching for collection paths
+*   **Status:** Will be resolved by Phase 3 CommentService refactoring
+
+**Lower Priority:**
+*   **Location:** `firebase/functions/src/expenses/validation.ts` (lines 171, 176, 186, 298, 324, 332)
+*   **Issue:** Split calculation logic uses `if (splitType === EXACT/PERCENTAGE/EQUAL)` conditionals
+*   **Assessment:** This may be acceptable domain logic rather than an anti-pattern, as split types represent distinct business rules rather than polymorphic entities
+
+*   **Location:** `firebase/functions/src/monitoring/monitoring-config.ts` (lines 154, 177)
+*   **Issue:** Monitoring configuration uses `if (operationType === 'collection-group')` 
+*   **Assessment:** Configuration logic - lower priority for refactoring
 
 ### Finding 4: Resolved or Outdated Issues
 
@@ -111,107 +126,185 @@ Helper utilities and Firestore triggers also exhibit this anti-pattern.
 - **Strategy:** Apply same "assert don't check" pattern to date handling
 - **Impact:** HIGH - affects multiple backend services and date handling throughout the system
 
-## Phase 2 Implementation Plan: Date/Timestamp Type Consistency
+## Phase 2 Implementation Results: Date/Timestamp Type Consistency (September 2025)
 
-### Problem Analysis
-GroupService contains conditional type logic (`typeof`, `instanceof`) to handle mixed date types, violating the "assert don't check" pattern established in Phase 1. The `safeDateToISO()` method accepts `any` type and defensively handles Timestamp, Date, and string values.
+### ✅ Successfully Completed: Date/Timestamp Type Consistency
 
-### Root Cause
-- Firestore returns Timestamp objects from `doc.data()` 
-- Schema uses `z.any()` for timestamp fields, allowing mixed types
-- No normalization happens in FirestoreReader before validation
-- GroupService defensively handles all possible types instead of asserting expectations
+**Target:** `firebase/functions/src/services/GroupService.ts` date handling anti-patterns
+
+**Changes Made:**
+1. **Eliminated `safeDateToISO()` method**: Removed conditional type logic and replaced with fail-fast assertions
+2. **Added `assertTimestampAndConvert()` method**: Strict type checking that throws descriptive errors on violations
+3. **Enhanced FirestoreReader**: `sanitizeGroupData()` method now asserts timestamp fields at data boundary
+4. **Created `assertTimestamp()` utility**: Reusable function in `dateHelpers.ts` for consistent timestamp validation
+5. **Zero Test Breakage**: All existing tests continue to pass with strict timestamp handling
+
+**Key Learning:** The "assert don't check" pattern successfully eliminated all conditional date handling logic. The original `typeof`/`instanceof` checks were diagnostic signals of mixed timestamp types flowing through the system. By enforcing strict contracts at the data boundary (FirestoreReader), we eliminated the need for defensive programming downstream.
+
+**Implementation Pattern Applied:**
+- **Boundary validation**: FirestoreReader asserts data contracts when entering the system
+- **Fail-fast assertions**: Replace silent fallbacks with immediate, descriptive errors  
+- **Clear separation**: UI handles strings, business logic handles Timestamps, conversion at boundaries
+- **Reusable utilities**: `assertTimestamp()` function established for system-wide use
+
+**Benefits Achieved:**
+- Code is more reliable and fails fast on data contract violations
+- Eliminated 4+ conditional type logic violations in GroupService
+- Clear error messages: "Data contract violation: Expected Firestore Timestamp for 'fieldName' but got {type}"  
+- Pattern established for Phase 3 and future anti-pattern elimination
+- Zero silent fallbacks or defensive programming
+
+### 📋 Phase 2 Complete - Ready for Phase 3
+
+## Phase 3 Implementation Plan: CommentService Strategy Pattern
+
+### Problem Analysis  
+CommentService contains type-dispatching logic in 4 key locations that violate the single responsibility principle and make it difficult to add new commentable entity types:
+
+1. **`verifyCommentAccess()`** (lines 39-74): `if (targetType === GROUP)` vs `else if (targetType === EXPENSE)`
+2. **`listComments()`** (lines 141-146): Conditional expense lookup and groupId resolution  
+3. **`createComment()`** (lines 203-209): Repeated expense lookup pattern
+4. **FirestoreReader/Writer**: Similar type-dispatching for determining collection paths
 
 ### Implementation Strategy
 
-#### Step 1: Create Custom Timestamp Validator
-**File:** `firebase/functions/src/schemas/common.ts`
-- Add `FirestoreTimestampValidator` that validates actual Timestamp objects
-- Replace `z.any()` with custom validator
-- Fail fast with error: "Expected Firestore Timestamp for {field} but got {type}"
+#### Step 1: Create Comment Strategy Interface
+**File:** `firebase/functions/src/services/comments/ICommentStrategy.ts`
+```typescript
+interface ICommentStrategy {
+    verifyAccess(targetId: string, userId: string): Promise<void>;
+    resolveGroupId(targetId: string): Promise<string>;
+    getCollectionPath(targetId: string): string;
+}
+```
 
-#### Step 2: Update FirestoreReader.sanitizeGroupData()
-**File:** `firebase/functions/src/services/firestore/FirestoreReader.ts`
-- Add timestamp normalization for all date fields
-- Assert fields are Timestamps: `createdAt`, `updatedAt`, `presetAppliedAt`
-- Throw descriptive errors if non-Timestamp found
-- Pattern:
-  ```typescript
-  if (!(data.createdAt instanceof Timestamp)) {
-      throw new Error(`Data contract violation: Expected Timestamp for createdAt but got ${typeof data.createdAt}`);
-  }
-  ```
+#### Step 2: Implement Concrete Strategies
+**Files:**
+- `firebase/functions/src/services/comments/GroupCommentStrategy.ts`  
+- `firebase/functions/src/services/comments/ExpenseCommentStrategy.ts`
 
-#### Step 3: Replace safeDateToISO with assertTimestamp
-**File:** `firebase/functions/src/services/GroupService.ts`
-- Create `assertTimestampAndConvert()` helper that fails fast
-- Error pattern: "Expected Timestamp at {location} but got {type}"
-- Use existing `timestampToISO()` from dateHelpers after assertion
-- Remove safeDateToISO method entirely
+Each strategy encapsulates type-specific logic:
+- **GroupCommentStrategy**: Direct group membership verification, targetId = groupId
+- **ExpenseCommentStrategy**: Expense lookup, group membership via expense.groupId  
 
-#### Step 4: Fix All Call Sites
-**Files:** `firebase/functions/src/services/GroupService.ts`
-- Remove all `typeof` checks in `batchFetchGroupData()`
-- Replace conditional date sorting logic with assertions
-- Update all safeDateToISO calls to assertTimestampAndConvert
-- Key changes:
-  - Lines 229-230: Remove typeof checks for sorting
-  - Lines 237-239: Remove conditional date handling
-  - Lines 134-135, 360-361: Replace safeDateToISO calls
+#### Step 3: Create Strategy Factory
+**File:** `firebase/functions/src/services/comments/CommentStrategyFactory.ts`
+```typescript
+class CommentStrategyFactory {
+    static getStrategy(targetType: CommentTargetType): ICommentStrategy {
+        const strategies: Record<CommentTargetType, ICommentStrategy> = {
+            [CommentTargetTypes.GROUP]: new GroupCommentStrategy(),
+            [CommentTargetTypes.EXPENSE]: new ExpenseCommentStrategy()
+        };
+        return strategies[targetType];
+    }
+}
+```
 
-#### Step 5: Update Tests
-**File:** `firebase/functions/src/__tests__/unit/GroupService.test.ts`
-- Modify tests to provide proper Timestamp objects
-- Update safeDateToISO tests to expect assertion errors
-- Add tests for new fail-fast behavior
-- Ensure descriptive error messages are tested
+#### Step 4: Refactor CommentService
+- Replace all `if (targetType === ...)` conditionals with `strategy.method()` calls
+- Inject strategy dependencies (FirestoreReader, GroupMemberService)
+- Remove duplicated expense lookup and verification logic
+- Use strategy factory to eliminate type-switching
+
+#### Step 5: Update FirestoreReader/Writer Comment Methods
+- Replace collection path conditionals with strategy.getCollectionPath()
+- Remove type-based switching in `getCommentsForTarget()` and `addComment()`
 
 ### Expected Outcomes
 
 **Before (Anti-pattern):**
 ```typescript
-private safeDateToISO(value: any): string {
-    if (value instanceof Timestamp) return value.toDate().toISOString();
-    if (value instanceof Date) return value.toISOString();
-    if (typeof value === 'string') return value;
-    return new Date().toISOString(); // Silent fallback
+private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string, groupId?: string) {
+    if (targetType === CommentTargetTypes.GROUP) {
+        // Group-specific logic...
+    } else if (targetType === CommentTargetTypes.EXPENSE) {
+        // Expense-specific logic...
+    }
 }
 ```
 
-**After (Fail-fast pattern):**
+**After (Strategy pattern):**
 ```typescript
-private assertTimestampAndConvert(value: unknown, fieldName: string): string {
-    if (!(value instanceof Timestamp)) {
-        throw new Error(`Data contract violation: Expected Timestamp for ${fieldName} but got ${typeof value}`);
-    }
-    return timestampToISO(value);
+private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string) {
+    const strategy = CommentStrategyFactory.getStrategy(targetType);
+    await strategy.verifyAccess(targetId, userId);
 }
 ```
 
 ### Success Criteria
-- Zero `typeof`/`instanceof` checks for date handling in GroupService
-- All timestamp fields strictly typed as Timestamp internally
-- Clear, actionable error messages when data contract violated
-- All tests pass with proper Timestamp objects
-- No silent fallbacks or defensive programming
-- Pattern established for other services with similar issues
+- Zero type-dispatching conditionals in CommentService (eliminate 4+ `if (targetType === ...)` blocks)
+- Easily extensible for new comment target types (e.g., SETTLEMENT comments)
+- Clear separation of concerns with dedicated strategy classes
+- Improved testability with mockable strategies
+- Pattern established for other type-dispatching services
 
-**Recommended Phase 3: CommentService Strategy Pattern**
-- **Target:** `firebase/functions/src/services/CommentService.ts` - type-dispatching logic
-- **Strategy:** Implement Strategy pattern with `GroupCommentStrategy` and `ExpenseCommentStrategy`
-- **Impact:** MEDIUM - improves extensibility for new commentable entity types
+### Files to Modify
+1. ✏️ `firebase/functions/src/services/CommentService.ts` - Remove type conditionals
+2. ✏️ `firebase/functions/src/services/firestore/FirestoreReader.ts` - Use strategies for collection paths  
+3. ✏️ `firebase/functions/src/services/firestore/FirestoreWriter.ts` - Use strategies for collection paths
+4. ➕ Create strategy interface and implementations
+5. ✏️ Update tests to use strategy pattern
 
 **Phase 4: Utility & Trigger Refactoring**
-- **Targets:** `change-tracker.ts`, `change-detection.ts`
+- **Targets:** `change-tracker.ts`, `change-detection.ts`  
 - **Strategy:** Polymorphic approach with entity-specific builders/handlers
 - **Impact:** LOW-MEDIUM - cleanup and architectural improvement
 
 ---
 
-## 5. Conclusion
+## 5. Conclusion & Strategic Summary
 
-**Phase 1 Success:** The amount field type consistency implementation demonstrates that the "assert don't check" pattern is highly effective for eliminating conditional type logic while maintaining robustness.
+### ✅ Implementation Progress (September 2025)
 
-**Strategic Approach Validated:** Tackling anti-patterns incrementally by specific data types (amount → dates → entity types) proves manageable and allows for learning application between phases.
+**Phase 1 Complete:** Expense Amount Type Consistency
+- ✅ Eliminated all `typeof` checks in `expense-form-store.ts`
+- ✅ Applied "assert don't check" pattern with fail-fast errors
+- ✅ Zero test breakage across 93 unit tests and 47 Playwright tests
 
-**Next Steps:** The success of Phase 1 provides a clear template for Phase 2 (date handling) and subsequent phases, with confidence that type assertion patterns will improve code reliability while maintaining test coverage.
+**Phase 2 Complete:** Date/Timestamp Type Consistency  
+- ✅ Eliminated `safeDateToISO()` conditional logic in GroupService
+- ✅ Added boundary validation in FirestoreReader with `assertTimestamp()`
+- ✅ Established reusable timestamp assertion utilities
+- ✅ Applied consistent fail-fast error patterns
+
+### 🎯 Proven Patterns & Key Learnings
+
+**"Assert Don't Check" Pattern:**
+The most effective approach for eliminating conditional type logic:
+1. **Boundary Validation**: Assert data contracts where data enters the system
+2. **Fail-Fast Errors**: Replace silent fallbacks with descriptive errors  
+3. **Clear Separation**: UI handles strings, business logic handles typed objects
+4. **Reusable Utilities**: Create assertion functions for system-wide consistency
+
+**Strategic Insight:** `typeof`/`instanceof` checks are **diagnostic signals** of corrupted data models. The solution isn't to eliminate the operators, but to eliminate the **need** for them through clear, consistent data contracts.
+
+### 🚀 Next Phase Priorities
+
+**Phase 3 (Ready): CommentService Strategy Pattern**
+- **Impact**: HIGH - eliminates type-dispatching across 4+ methods
+- **Benefit**: Easily extensible for new comment target types (settlements, etc.)
+- **Pattern**: Strategy pattern with factory for polymorphic behavior
+
+**Phase 4 (Future): Change Detection Refactoring**
+- **Impact**: MEDIUM - cleans up utility functions
+- **Targets**: `change-detection.ts`, remaining FirestoreReader/Writer conditionals
+- **Pattern**: Entity-specific builders and handlers
+
+### 📈 Success Metrics Achieved
+
+- **Eliminated 6+ conditional type logic violations** across Phases 1-2
+- **Zero test breakage** maintaining 100% existing functionality
+- **Clear error messages** for data contract violations
+- **Reusable patterns** established for future anti-pattern elimination
+- **System reliability improved** with fail-fast assertions replacing silent fallbacks
+
+### 🎖️ Architecture Improvements
+
+The incremental approach (amount types → date types → entity types) has proven highly effective:
+- **Manageable scope** - each phase focuses on specific data contracts
+- **Learning applied** - patterns from earlier phases inform later implementations  
+- **Risk mitigation** - thorough testing ensures no regression
+- **Team knowledge** - clear patterns established for ongoing maintenance
+
+**Status**: Ready to proceed with Phase 3 implementation when requested.
