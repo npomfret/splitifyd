@@ -66,6 +66,193 @@ This moves the responsibility of ensuring atomicity from the caller to the servi
 3.  **Handle Complex Deletes:** For `deleteGroup`, the work must be broken down into smaller, idempotent transactional steps. The top-level `deleteGroup` service method will be responsible for orchestrating these steps and ensuring the entire process eventually completes, even if it requires multiple retries.
 4.  **Enhance the `IFirestoreWriter`:** Add new methods to the writer interface that are specifically designed for these common, complex, transactional patterns (e.g., `deleteGroupRecursively(groupId)`, `updateGroupAndMembers(...)`). This abstracts the complexity away from the primary service logic.
 
-## 4. Conclusion
+## 4. Phased Implementation Plan: Breaking Down Complex Fixes
 
-The foundation for reliable transactions is in place, but it is not being applied to the most critical and complex business operations. This leaves the application vulnerable to data corruption. By adopting the **"Service Method as a Transaction"** principle and refactoring the key services identified in this audit, we can close these gaps and ensure the integrity and reliability of the application's data.
+**Problem:** Previous attempts to fix these transaction issues failed because they tried to do too much at once. The following phased approach breaks the work into smaller, achievable parts.
+
+### Phase 1: Foundation - Transaction Helper Methods 🏗️
+
+**Goal:** Add reusable helper methods to IFirestoreWriter to simplify complex transactions.
+
+**New Methods to Add:**
+```typescript
+// IFirestoreWriter extensions
+bulkDeleteInTransaction(transaction: Transaction, documentPaths: string[]): void;
+queryAndUpdateInTransaction<T>(
+    transaction: Transaction, 
+    query: Query, 
+    updates: Partial<T>
+): void;
+batchCreateInTransaction(
+    transaction: Transaction,
+    creates: Array<{collection: string, id: string, data: any}>
+): DocumentReference[];
+```
+
+**Why Start Here:**
+- Small, focused changes
+- Creates building blocks for harder problems
+- Can be tested independently
+- No risk to existing functionality
+
+**Effort:** 1-2 days
+**Risk:** Low
+
+---
+
+### Phase 2: Fix GroupService.updateGroup (Easiest Critical Fix) ⚡
+
+**Current Issue:** Group update + membership propagation happens in separate operations.
+
+**Current Flow:**
+```typescript
+await this.firestoreWriter.runTransaction(async (transaction) => {
+    // Update group document ✅ (in transaction)
+});
+// Query and update memberships ❌ (separate operation)
+```
+
+**Fixed Flow:**
+```typescript
+await this.firestoreWriter.runTransaction(async (transaction) => {
+    // Update group document ✅
+    // Query memberships ✅ (using Phase 1 helper)
+    // Update memberships ✅ (all in same transaction)
+});
+```
+
+**Implementation Steps:**
+1. Move membership query inside the transaction
+2. Use `transaction.update()` for membership documents
+3. Test with small groups first (< 10 members)
+4. Gradually test with larger groups
+
+**Effort:** 1 day
+**Risk:** Low
+**Files:** `GroupService.ts:700-753`
+
+---
+
+### Phase 3: Fix GroupService.deleteGroup (Most Complex) 🎯
+
+**Current Issue:** Uses non-transactional `bulkDelete` for potentially hundreds of documents.
+
+**Strategy:** Multi-step approach with safe failure points.
+
+#### Step 3A: Add Deletion State Management
+```typescript
+// Add to Group interface
+deletionStatus?: 'deleting' | 'failed';
+deletionStartedAt?: string;
+```
+
+**Implementation:**
+1. Mark group as "deleting" in transaction
+2. Prevent new operations on deleting groups
+3. Add cleanup job for failed deletions
+
+#### Step 3B: Implement Batched Transactional Deletion
+```typescript
+async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
+    // Phase 1: Mark as deleting
+    await this.markGroupForDeletion(groupId);
+    
+    // Phase 2: Delete in small batches (transactional)
+    await this.deleteBatch('expenses', groupId, 20);
+    await this.deleteBatch('settlements', groupId, 20);
+    await this.deleteBatch('members', groupId, 50);
+    
+    // Phase 3: Delete group (final transaction)
+    await this.deleteGroupDocument(groupId);
+}
+```
+
+#### Step 3C: Add Retry & Recovery Logic
+- Retry failed batches up to 3 times
+- Background job to clean up orphaned "deleting" groups
+- Detailed logging for debugging
+
+**Effort:** 3-4 days
+**Risk:** Medium
+**Files:** `GroupService.ts:760-892`
+
+---
+
+### Phase 4: Fix GroupService.createGroup (Minor Issue) 📝
+
+**Current Issue:** Notification tracking happens outside main transaction.
+
+**Simple Solution:**
+```typescript
+await this.firestoreWriter.runTransaction(async (transaction) => {
+    // Create group ✅
+    // Create membership ✅
+    // Create notification tracking document ✅ (moved inside)
+});
+```
+
+**Effort:** 2 hours
+**Risk:** Very Low
+**Files:** `GroupService.ts:584-647`
+
+---
+
+### Phase 5: Fix Trigger Atomicity 🔔
+
+**Current Issue:** `change-tracker.ts` makes two separate notification calls.
+
+**Solution Options:**
+1. **Option A (Simple):** Combine into single batch write
+2. **Option B (Better):** Redesign notification documents to support multiple change types
+
+**Recommended:** Start with Option A, migrate to Option B later.
+
+**Effort:** 1 day
+**Risk:** Low
+**Files:** `change-tracker.ts`, `NotificationService.ts`
+
+---
+
+## 5. Implementation Strategy
+
+### Development Approach
+1. **Start Small:** Begin with Phase 1 (helpers) and Phase 2 (updateGroup)
+2. **Test Incrementally:** Add unit tests for each helper method
+3. **Deploy Gradually:** Each phase gets its own deployment
+4. **Monitor Closely:** Add detailed logging for each phase
+
+### Risk Mitigation
+- **Feature Flags:** Keep old methods available during transition
+- **Rollback Plan:** Each phase can be reverted independently  
+- **Canary Testing:** Test with small groups before large ones
+- **Database Backups:** Ensure fresh backups before each phase
+
+### Success Criteria
+- **Phase 1:** All helper methods have 100% test coverage
+- **Phase 2:** updateGroup works atomically for groups with 100+ members
+- **Phase 3:** deleteGroup handles 500+ document deletions reliably
+- **Phase 4:** createGroup notifications never get orphaned
+- **Phase 5:** Triggers never create partial notification states
+
+### Timeline
+- **Phase 1:** Week 1
+- **Phase 2:** Week 2  
+- **Phase 3:** Week 3-4
+- **Phase 4:** Week 4 (parallel with Phase 3)
+- **Phase 5:** Week 5
+
+**Total Effort:** 4-5 weeks of focused work, with each phase deliverable independently.
+
+---
+
+## 6. Conclusion
+
+The foundation for reliable transactions is in place, but it is not being applied to the most critical and complex business operations. By breaking the work into these achievable phases, we can systematically close the transactional gaps without the risk of large, complex changes that have failed in previous attempts.
+
+The phased approach ensures each step is:
+- **Testable:** Small enough to validate thoroughly
+- **Revertible:** Can be rolled back without affecting other phases  
+- **Valuable:** Each phase provides immediate benefits
+- **Building:** Later phases leverage earlier work
+
+This strategy transforms what was previously an overwhelming task into a series of manageable, low-risk improvements that collectively solve the core atomicity issues.
