@@ -1270,6 +1270,35 @@ export class FirestoreWriter implements IFirestoreWriter {
             });
     }
 
+    setUserNotificationGroupInTransaction(transaction: Transaction, userId: string, groupId: string, groupData: UserNotificationGroup): void {
+        try {
+            // Validate group data before writing
+            const validatedGroupData = UserNotificationGroupSchema.parse(groupData);
+
+            // Use dot notation to properly set nested group data with set() and merge: true
+            // This ensures the document exists and all fields are properly set
+            const updates: Record<string, any> = {
+                [`groups.${groupId}`]: {
+                    lastTransactionChange: validatedGroupData.lastTransactionChange,
+                    lastBalanceChange: validatedGroupData.lastBalanceChange,
+                    lastGroupDetailsChange: validatedGroupData.lastGroupDetailsChange,
+                    transactionChangeCount: validatedGroupData.transactionChangeCount,
+                    balanceChangeCount: validatedGroupData.balanceChangeCount,
+                    groupDetailsChangeCount: validatedGroupData.groupDetailsChangeCount
+                },
+                lastModified: FieldValue.serverTimestamp()
+            };
+
+            const docRef = this.db.doc(`user-notifications/${userId}`);
+            transaction.set(docRef, updates, { merge: true });
+
+            logger.info('User notification group updated in transaction', { userId, groupId });
+        } catch (error) {
+            logger.error('Failed to update user notification group in transaction', error, { userId, groupId });
+            throw error;
+        }
+    }
+
     async removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult> {
         return measureDb('FirestoreWriter.removeUserNotificationGroup',
             async () => {

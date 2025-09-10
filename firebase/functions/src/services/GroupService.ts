@@ -25,6 +25,7 @@ import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
 import {GroupShareService} from "./GroupShareService";
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import type { UserNotificationGroup } from '../schemas/user-notifications';
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -640,7 +641,17 @@ export class GroupService {
             updatedAt: memberServerTimestamp,
         };
 
-        // Atomic transaction: create both group and member documents
+        // Pre-calculate notification group data outside transaction for speed
+        const notificationGroupData: UserNotificationGroup = {
+            lastTransactionChange: null,
+            lastBalanceChange: null,
+            lastGroupDetailsChange: null,
+            transactionChangeCount: 0,
+            balanceChangeCount: 0,
+            groupDetailsChangeCount: 0
+        };
+
+        // Atomic transaction: create group, member, and notification documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(
                 transaction,
@@ -663,10 +674,14 @@ export class GroupService {
                     updatedAt: memberServerTimestamp,
                 }
             );
+            // Initialize group notifications for creator atomically
+            this.firestoreWriter.setUserNotificationGroupInTransaction(
+                transaction,
+                userId,
+                groupId,
+                notificationGroupData
+            );
         });
-
-        // Initialize group notifications for creator
-        await this.notificationService.addUserToGroupNotificationTracking(userId, groupId);
 
         // Add group context to logger
         LoggerContext.setBusinessContext({ groupId: groupId });

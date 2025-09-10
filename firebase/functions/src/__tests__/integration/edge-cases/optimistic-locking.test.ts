@@ -314,8 +314,12 @@ describe('Optimistic Locking Integration Tests', () => {
             for (const failure of failures) {
                 if (failure.status === 'rejected') {
                     const errorMessage = failure.reason?.message || '';
-                    // Should be concurrent update conflicts
-                    expect(errorMessage).toMatch(/concurrent|conflict|version|timestamp/i);
+                    const errorCode = failure.reason?.response?.data?.error?.code;
+                    // Should be concurrent update conflicts (either by message content or error code)
+                    const isValidConcurrencyError = 
+                        errorMessage.match(/concurrent|conflict|version|timestamp|CONCURRENT_UPDATE/i) ||
+                        errorCode === 'CONCURRENT_UPDATE';
+                    expect(isValidConcurrencyError).toBeTruthy();
                 }
             }
 

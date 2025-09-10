@@ -432,6 +432,15 @@ export interface IFirestoreWriter {
      */
     removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult>;
 
+    /**
+     * Set user notification group data within a transaction
+     * @param transaction - The Firestore transaction
+     * @param userId - The user ID
+     * @param groupId - The group ID
+     * @param groupData - The group notification data
+     */
+    setUserNotificationGroupInTransaction(transaction: Transaction, userId: string, groupId: string, groupData: UserNotificationGroup): void;
+
     // ========================================================================
     // System Operations
     // ========================================================================

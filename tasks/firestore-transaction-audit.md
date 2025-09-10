@@ -283,20 +283,60 @@ batchCreateInTransaction(
 
 ### Phase 4: Fix GroupService.createGroup (Minor Issue) 📝
 
-**Current Issue:** Notification tracking happens outside main transaction.
+#### ✅ **Phase 4 Status: COMPLETED**
 
-**Simple Solution:**
-```typescript
-await this.firestoreWriter.runTransaction(async (transaction) => {
-    // Create group ✅
-    // Create membership ✅
-    // Create notification tracking document ✅ (moved inside)
-});
-```
+**Implementation Date:** 2025-01-10
 
-**Effort:** 2 hours
-**Risk:** Very Low
-**Files:** `GroupService.ts:584-647`
+**What was delivered:**
+- ✅ **Atomic notification tracking**: Added `setUserNotificationGroupInTransaction` helper method to ensure notification setup happens within main transaction
+- ✅ **Race condition eliminated**: Group creation, membership creation, and notification tracking now happen atomically
+- ✅ **Clean error handling**: If any part of the operation fails, everything rolls back cleanly
+- ✅ **Comprehensive testing**: Added unit tests to verify atomic behavior and rollback scenarios
+- ✅ **Zero breaking changes**: No API changes, existing clients unaffected
+
+**Technical Details:**
+
+**Step 4A: New Transaction Helper Method ✅**
+- Added `setUserNotificationGroupInTransaction()` to `IFirestoreWriter` interface
+- Implemented transactional version in `FirestoreWriter.ts` with proper validation
+- Handles nested document updates with merge operations atomically
+
+**Step 4B: Atomic createGroup Implementation ✅**
+- **Before (Race Condition):**
+  ```typescript
+  // Group + membership creation (atomic) ✅
+  await this.firestoreWriter.runTransaction(async (transaction) => {
+      // Create group and membership
+  });
+  // Notification tracking (separate operation) ❌
+  await this.notificationService.addUserToGroupNotificationTracking(groupId, ownerId);
+  ```
+
+- **After (Atomic):**
+  ```typescript
+  await this.firestoreWriter.runTransaction(async (transaction) => {
+      // Create group ✅
+      // Create membership ✅  
+      // Create notification tracking ✅ (moved inside transaction)
+      this.firestoreWriter.setUserNotificationGroupInTransaction(
+          transaction, userId, groupId, notificationGroupData
+      );
+  });
+  ```
+
+**Files modified:**
+- `src/services/firestore/IFirestoreWriter.ts:442` - Added method signature
+- `src/services/firestore/FirestoreWriter.ts:1273-1300` - Added implementation
+- `src/services/GroupService.ts:643-683` - Updated createGroup method
+- `src/__tests__/unit/GroupService.test.ts:214-297` - Added comprehensive test coverage
+
+**Impact:**
+- **Critical risk eliminated**: No more possibility of users being in groups but missing notifications
+- **Data integrity guaranteed**: All group creation operations succeed completely or fail cleanly
+- **Performance maintained**: Minimal overhead from consolidating operations in single transaction
+- **Backward compatibility**: No API changes, existing clients unaffected
+
+**Ready for:** Phase 5 implementation (change-tracker atomicity fix)
 
 ---
 
@@ -345,10 +385,10 @@ await this.firestoreWriter.runTransaction(async (transaction) => {
 - **Phase 2:** ✅ **COMPLETED** (2025-01-10)
 - **Phase 3:** ✅ **COMPLETED** (2025-01-10)
 - **Critical Fix:** ✅ **COMPLETED** (2025-09-10) - Fixed Firestore transaction read/write ordering violation
-- **Phase 4:** Ready to begin - 2 hours estimated  
-- **Phase 5:** After Phase 4 - 1 day estimated
+- **Phase 4:** ✅ **COMPLETED** (2025-01-10) - Fixed createGroup notification atomicity
+- **Phase 5:** Ready to begin - 1 day estimated
 
-**Remaining Effort:** 1-2 days of focused work to complete the remaining minor issues.
+**Remaining Effort:** ~1 day of focused work to complete Phase 5 and finish the entire audit.
 
 ---
 

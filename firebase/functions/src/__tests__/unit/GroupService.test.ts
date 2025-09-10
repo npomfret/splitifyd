@@ -86,7 +86,8 @@ const createMockNotificationService = () => ({
     initializeUserNotifications: vi.fn(),
     updateUserNotification: vi.fn(),
     getUserNotifications: vi.fn(),
-    removeUserFromGroup: vi.fn()
+    removeUserFromGroup: vi.fn(),
+    addUserToGroupNotificationTracking: vi.fn()
 });
 
 const createMockExpenseMetadataService = () => ({
@@ -99,7 +100,8 @@ const createMockExpenseMetadataService = () => ({
 const createMockGroupShareService = () => ({
     generateShareableLink: vi.fn(),
     previewGroupByLink: vi.fn(),
-    joinGroupByLink: vi.fn()
+    joinGroupByLink: vi.fn(),
+    getThemeColorForMember: vi.fn()
 });
 
 // Mock Firebase dependencies
@@ -119,8 +121,12 @@ vi.mock('../../firebase', () => ({
 // Mock date helper functions
 vi.mock('../../utils/dateHelpers', () => ({
     createOptimisticTimestamp: () => ({
+        seconds: 1672570200,
+        nanoseconds: 0,
         toDate: () => new Date('2023-01-01T10:30:00.000Z'),
-        toISOString: () => '2023-01-01T10:30:00.000Z'
+        toMillis: () => 1672570200000,
+        isEqual: () => true,
+        valueOf: () => 1672570200000
     }),
     createTrueServerTimestamp: () => ({}),
     getRelativeTime: vi.fn((timestamp: any) => {
@@ -135,7 +141,7 @@ vi.mock('../../utils/dateHelpers', () => ({
         }
         return null;
     }),
-    timestampToISO: vi.fn()
+    timestampToISO: vi.fn(() => '2023-01-01T10:30:00.000Z')
 }));
 
 describe('GroupService - Unit Tests', () => {
@@ -165,7 +171,10 @@ describe('GroupService - Unit Tests', () => {
             bulkDeleteInTransaction: vi.fn(),
             getMultipleByPathsInTransaction: vi.fn(),
             batchCreateInTransaction: vi.fn(),
-            queryAndUpdateInTransaction: vi.fn()
+            queryAndUpdateInTransaction: vi.fn(),
+            // Phase 4 transaction helper method
+            setUserNotificationGroupInTransaction: vi.fn(),
+            generateDocumentId: vi.fn()
         };
         
         mockUserService = createMockUserService();
@@ -206,6 +215,91 @@ describe('GroupService - Unit Tests', () => {
         
         // Mock expense metadata service
         mockExpenseMetadataService.calculateExpenseMetadata.mockResolvedValue({});
+        
+        // Mock group share service
+        mockGroupShareService.getThemeColorForMember.mockReturnValue('#4f46e5');
+    });
+
+    describe('createGroup', () => {
+        it('should create group, membership, and notifications atomically in a single transaction', async () => {
+            const userId = 'test-user-123';
+            const groupId = 'test-group-456';
+            const createGroupRequest = {
+                name: 'Test Group',
+                description: 'Test Description'
+            };
+
+            // Mock generateDocumentId to return a predictable ID
+            mockFirestoreWriter.generateDocumentId.mockReturnValue(groupId);
+            
+            // Mock successful transaction execution
+            mockFirestoreWriter.runTransaction.mockImplementation(async (callback: any) => {
+                const mockTransaction = {};
+                await callback(mockTransaction);
+            });
+
+            // Mock reader to return the created group
+            const expectedGroup = new FirestoreGroupBuilder()
+                .withId(groupId)
+                .withName(createGroupRequest.name)
+                .withDescription(createGroupRequest.description)
+                .withCreatedBy(userId)
+                .build();
+            mockFirestoreReader.getGroup.mockResolvedValue(expectedGroup);
+
+            // Mock members for balance calculation
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
+                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
+            ]);
+
+            // Call the method under test
+            const result = await groupService.createGroup(userId, createGroupRequest);
+
+            // Verify the result
+            expect(result).toBeDefined();
+            expect(result.id).toBe(groupId);
+            expect(result.name).toBe(createGroupRequest.name);
+
+            // Verify transaction was called exactly once
+            expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledTimes(1);
+
+            // Check that all three atomic operations were called
+            expect(mockFirestoreWriter.createInTransaction).toHaveBeenCalledTimes(2); // Group + membership
+            expect(mockFirestoreWriter.setUserNotificationGroupInTransaction).toHaveBeenCalledTimes(1);
+            
+            // Verify notification data structure
+            const notificationCall = mockFirestoreWriter.setUserNotificationGroupInTransaction.mock.calls[0];
+            expect(notificationCall[0]).toBeDefined();
+            expect(notificationCall[1]).toBe(userId);
+            expect(notificationCall[2]).toBe(groupId);
+            expect(notificationCall[3]).toEqual({
+                lastTransactionChange: null,
+                lastBalanceChange: null,
+                lastGroupDetailsChange: null,
+                transactionChangeCount: 0,
+                balanceChangeCount: 0,
+                groupDetailsChangeCount: 0
+            });
+        });
+
+        it('should rollback everything if transaction fails', async () => {
+            const userId = 'test-user-123';
+            const createGroupRequest = {
+                name: 'Test Group',
+                description: 'Test Description'
+            };
+
+            // Mock transaction to fail
+            const transactionError = new Error('Transaction failed');
+            mockFirestoreWriter.runTransaction.mockRejectedValue(transactionError);
+
+            // Call should throw the transaction error
+            await expect(groupService.createGroup(userId, createGroupRequest))
+                .rejects.toThrow();
+
+            // Verify no separate notification call was made (it should be rolled back with the transaction)
+            expect(mockNotificationService.addUserToGroupNotificationTracking).not.toHaveBeenCalled();
+        });
     });
 
     describe('fetchGroupWithAccess', () => {
@@ -578,7 +672,13 @@ describe('GroupService - Unit Tests', () => {
                     }
                     return 'unknown';
                 }),
-                createOptimisticTimestamp: vi.fn(),
+                createOptimisticTimestamp: vi.fn(() => ({
+                    seconds: 1672570200,
+                    nanoseconds: 0,
+                    toDate: () => new Date('2023-01-01T10:30:00.000Z'),
+                    toMillis: () => 1672570200000,
+                    isEqual: () => true,
+                })),
                 createTrueServerTimestamp: vi.fn(),
                 timestampToISO: vi.fn((value: any) => {
                     if (value && typeof value.toDate === 'function') {
