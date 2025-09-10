@@ -32,24 +32,23 @@ This report details the current status of each previously identified issue and p
     *   `L270: const topLevelRef = getFirestore().collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);`
 *   **Recommendation:** Replace all direct write/update/delete operations with their `IFirestoreWriter` equivalents (e.g., `firestoreWriter.updateGroup`, `firestoreWriter.createGroupMember`, `firestoreWriter.deleteGroupMember`).
 
-#### `firebase/functions/src/services/GroupService.ts` - ✅ COMPLETED
-*   **Status:** Fully Resolved
+#### `firebase/functions/src/services/GroupService.ts` - ❌ INCOMPLETE
+*   **Status:** Partially Resolved - REQUIRES COMPLETION
 *   **Changes Made:**
-    *   Removed `private groupsCollection` property (L35)
-    *   Removed direct `getFirestore()` import
-    *   Updated `fetchGroupWithAccess` method to remove DocumentReference dependency:
-        *   Removed `docRef` from return type - now returns `{ group: Group }`
-        *   Updated all callers to destructure `{ group }` instead of `{ docRef, group }`
-    *   Updated `_createGroup` method:
-        *   `this.groupsCollection.doc()` → `this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS)`
-        *   Used generated `groupId` throughout the method instead of `docRef.id`
-    *   Updated `updateGroup` method:
-        *   `getRawDocumentInTransactionWithRef(transaction, docRef)` → `getRawGroupDocumentInTransaction(transaction, groupId)`
-        *   Replaced `updateWithTimestamp()` with `this.firestoreWriter.updateInTransaction()`
-    *   Updated `deleteGroup` method:
-        *   `docRef.path` → `${FirestoreCollections.GROUPS}/${groupId}`
-    *   Removed unused imports: `DocumentReference`, `updateWithTimestamp`
-*   **Result:** Zero direct Firestore access, full encapsulation achieved
+    *   ✅ Removed `private groupsCollection` property 
+    *   ✅ Updated basic CRUD operations to use `IFirestoreWriter`
+    *   ✅ Updated `fetchGroupWithAccess`, `_createGroup`, and `updateGroup` methods
+    *   ✅ Removed direct imports in most areas
+*   **REMAINING ISSUES:**
+    *   **7 direct `getFirestore()` calls still exist** (Lines: 716, 771, 897, 928, 1106, 1143, 1241)
+    *   Group deletion functionality not fully encapsulated:
+        *   `markGroupForDeletion()` method uses direct Firestore transactions
+        *   `markGroupDeletionFailed()` method uses direct Firestore access  
+        *   `finalizeGroupDeletion()` method uses direct Firestore access
+        *   Recovery methods (`findStuckDeletions`, `recoverFailedDeletion`, `getDeletionStatus`) use direct Firestore calls
+    *   Transaction membership queries in `updateGroup` use direct `getFirestore().collection().where()`
+*   **Priority:** HIGH - Core service functionality not fully encapsulated
+*   **Impact:** Group deletion and recovery operations bypass encapsulation layer
 
 #### `firebase/functions/src/services/GroupShareService.ts` - ✅ COMPLETED
 *   **Status:** Fully Resolved
@@ -113,12 +112,11 @@ This report details the current status of each previously identified issue and p
 
 ### 2.3. Utility Functions Bypassing Encapsulation
 
-#### `firebase/functions/src/utils/firestore-helpers.ts`
-*   **Status:** Unresolved
-*   **Issue:** The deprecated `runTransactionWithRetry` function still exists and calls `getFirestore()` directly.
-*   **Location:**
-    *   `L67: const result = await getFirestore().runTransaction(transactionFn);`
-*   **Recommendation:** Aggressively deprecate and remove this function. All usages should be replaced with `firestoreWriter.runTransaction`, which has this retry logic built-in.
+#### `firebase/functions/src/utils/firestore-helpers.ts` - ✅ COMPLETED
+*   **Status:** Fully Resolved
+*   **Issue:** Previously contained deprecated `runTransactionWithRetry` function with direct Firestore calls.
+*   **Resolution:** File cleaned up, deprecated functions removed or refactored.
+*   **Result:** Zero direct Firestore access violations found.
 
 #### `firebase/functions/src/utils/optimistic-locking.ts`
 *   **Status:** Partially Resolved
@@ -138,31 +136,27 @@ This report details the current status of each previously identified issue and p
 
 ### 2.5. Test Infrastructure Bypassing Encapsulation
 
-#### `firebase/functions/src/test-pool/TestUserPoolService.ts`
-*   **Status:** Unresolved
-*   **Issue:** Contains multiple direct `getFirestore()` calls for creating users and resetting the pool.
-*   **Location:**
-    *   `L81: await getFirestore().collection(POOL_COLLECTION).doc(newUser.email).set({...});`
-    *   `L157: const batch = getFirestore().batch();`
-*   **Recommendation:** Encapsulate these operations within `IFirestoreWriter` methods (e.g., `createTestUser`, `resetTestUserPool`).
+#### `firebase/functions/src/test-pool/TestUserPoolService.ts` - ✅ COMPLETED
+*   **Status:** Fully Resolved
+*   **Issue:** Previously contained direct `getFirestore()` calls for test user management.
+*   **Resolution:** Now uses `firestoreWriter.createTestUser()` and other encapsulated methods.
+*   **Result:** Zero direct Firestore access - proper encapsulation achieved.
 
 ### 2.6. Main Entry Point Direct Access
 
-#### `firebase/functions/src/index.ts`
-*   **Status:** Unresolved
-*   **Issue:** The `/health` check endpoint still accesses Firestore directly to perform a test read/write.
-*   **Location:**
-    *   `L100: const testRef = firestoreDb.collection('_health_check').doc('test');`
-*   **Recommendation:** Encapsulate this logic into `firestoreReader.getHealthCheckDocument` and `firestoreWriter.setHealthCheckDocument`.
+#### `firebase/functions/src/index.ts` - ✅ COMPLETED
+*   **Status:** Fully Resolved
+*   **Issue:** The `/health` check endpoint previously accessed Firestore directly.
+*   **Resolution:** Health check now uses `firestoreWriter.performHealthCheck()` method for proper encapsulation.
+*   **Result:** Zero direct Firestore access in health check endpoint.
 
 ### 2.7. Other Direct Access
 
-#### `firebase/functions/src/user-management/assign-theme-color.ts`
-*   **Status:** Unresolved
-*   **Issue:** Directly uses `getFirestore()` and calls the deprecated `runTransactionWithRetry` helper.
-*   **Location:**
-    *   `L6: const firestore = getFirestore();`
-*   **Recommendation:** Refactor to use `firestoreWriter.runTransaction` and receive dependencies via injection.
+#### `firebase/functions/src/user-management/assign-theme-color.ts` - ✅ COMPLETED
+*   **Status:** Fully Resolved  
+*   **Issue:** Previously used direct `getFirestore()` calls and deprecated helpers.
+*   **Resolution:** File refactored to pure utility function with no Firestore dependencies.
+*   **Result:** Zero direct Firestore access - now a clean utility function.
 
 ## 3. Remediation Plan (Updated)
 
@@ -185,6 +179,8 @@ The primary goal is now to enforce the use of `IFirestoreWriter` for all write o
 Since the original audit, significant progress has been made implementing Phase 2 of the Firestore encapsulation effort:
 
 ### 4.1. Completed Refactoring
+
+**AUDIT STATUS UPDATE - January 2025:** Conducted comprehensive codebase scan to verify current encapsulation status. Several discrepancies found between reported status and actual implementation.
 
 #### `firebase/functions/src/services/PolicyService.ts` - ✅ COMPLETED
 *   **Status:** Fully Resolved
@@ -260,18 +256,16 @@ Since the original audit, significant progress has been made implementing Phase 
 
 ### 4.3. Additional Recent Completions (January 2025)
 
-*   **`GroupService.ts` - ✅ COMPLETED**
-    *   **Status:** Fully Resolved
-    *   **Changes Made:**
-        *   Fixed remaining DataFetcher references after BalanceCalculationService migration
-        *   Removed DataFetcher import and updated constructor to pass firestoreReader and userService directly 
-        *   Fixed last remaining getFirestore() call in updateGroup transaction
-        *   Added getGroupMembershipsInTransaction method to IFirestoreReader interface
-        *   Implemented transaction-aware membership query in FirestoreReader
-        *   Replaced `getFirestore().collection().where().get()` with `this.firestoreReader.getGroupMembershipsInTransaction()`
-        *   Removed getFirestore import completely
-        *   Updated MockFirestoreReader with missing method for test compilation
-    *   **Result:** Zero direct Firestore access, full encapsulation achieved
+*   **`GroupService.ts` - ❌ INCOMPLETE - CRITICAL UPDATE**
+    *   **Status:** Partially Resolved - INCORRECTLY MARKED AS COMPLETED
+    *   **ACTUAL CURRENT STATE (January 2025):**
+        *   ✅ Basic CRUD operations properly encapsulated
+        *   ✅ DataFetcher migration completed
+        *   ❌ **7 remaining `getFirestore()` calls** in deletion and recovery methods
+        *   ❌ Group deletion functionality completely bypasses encapsulation
+        *   ❌ Transaction membership queries still use direct Firestore access
+    *   **CRITICAL FINDING:** This service was prematurely marked as completed
+    *   **Priority:** IMMEDIATE - This is a core service with significant encapsulation violations
 
 *   **DataFetcher to BalanceCalculationService Migration - ✅ COMPLETED**
     *   **Status:** Consolidated and cleaned up
@@ -327,29 +321,52 @@ Since the original audit, significant progress has been made implementing Phase 
     *   Fixed collection name mismatch in GroupShareService ('share-links' vs 'shareLinks')
     *   Fixed ShareLink timestamp format issue (prevented FirestoreWriter from overriding string timestamps with server timestamps)
 
-## 5. Conclusion (Updated)
+## 5. Conclusion (Updated - January 2025)
 
-Phase 3 implementation has made **exceptional progress** with **7 out of 7 high-priority core services** now fully refactored and tested. This represents **100% completion** of the critical service encapsulation effort including the recent completion of CommentService, GroupMemberService, and GroupService.
+**CRITICAL STATUS UPDATE:** Following comprehensive codebase scan, the encapsulation status requires correction.
+
+Phase 3 implementation has made **substantial progress** with **6 out of 7 high-priority core services** fully refactored and tested. This represents **85.7% completion** of the critical service encapsulation effort. **GroupService requires immediate completion** due to remaining encapsulation violations in deletion functionality.
 
 ### 5.1. Achieved Benefits
 
-The completed services already demonstrate the full benefits of proper encapsulation:
+The 6 completed services already demonstrate substantial benefits of proper encapsulation:
 
-*   **✅ Improved Testability**: Services can be comprehensively unit tested with mocked dependencies (337 passing tests)
+*   **✅ Improved Testability**: Services can be comprehensively unit tested with mocked dependencies  
 *   **✅ Consistent Error Handling**: All write operations go through unified validation and error handling pipelines
-*   **✅ Better Maintainability**: Zero scattered direct Firestore calls - all operations centralized through typed interfaces
+*   **✅ Better Maintainability**: Significant reduction in scattered direct Firestore calls
 *   **✅ Enhanced Type Safety**: All operations properly typed through `IFirestoreWriter` interface
 *   **✅ Production Stability**: Integration tests prove no regressions in core business functionality
 
-### 5.2. Next Phase Strategy
+### 5.2. Current Status Summary
 
-With all 5 high-priority core services now completed, the remaining work focuses on lower-priority infrastructure components:
+**✅ Fully Encapsulated (6/7 services):**
+- PolicyService.ts
+- SettlementService.ts  
+- UserPolicyService.ts
+- GroupShareService.ts
+- CommentService.ts
+- GroupMemberService.ts
 
-**Remaining Work (Lower Priority):**
-1. CommentService.ts - Replace direct collection reference for creating comments
-2. GroupMemberService.ts - Replace remaining direct updates/deletes  
-3. Triggers and scheduled jobs - Implement proper dependency injection
-4. Various utility functions and test infrastructure
+**❌ Requires Completion (1/7 services):**
+- **GroupService.ts** - 7 `getFirestore()` calls in deletion/recovery methods
+
+**Infrastructure Improvements:**
+- Health check endpoint: ✅ Fixed
+- Test user pool: ✅ Fixed  
+- User management utilities: ✅ Fixed
+- Firestore helpers: ✅ Fixed
+- Triggers: Minimal violations (dependency injection only)
+
+### 5.3. Next Phase Strategy
+
+**Remaining Work by Priority:**
+
+**IMMEDIATE PRIORITY:**
+1. **GroupService.ts** - Complete encapsulation of group deletion and recovery methods (7 remaining `getFirestore()` calls)
+
+**Lower Priority Infrastructure:**
+1. Triggers dependency injection - `change-tracker.ts`, `notification-triggers.ts` (service instantiation only)
+2. Various integration tests and scripts (non-production code)
 
 The proven refactoring methodology can be systematically applied to complete the remaining work:
 1. Remove private collection properties and direct `getFirestore()` calls
