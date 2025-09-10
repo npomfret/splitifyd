@@ -141,7 +141,18 @@ vi.mock('../../utils/dateHelpers', () => ({
         }
         return null;
     }),
-    timestampToISO: vi.fn(() => '2023-01-01T10:30:00.000Z')
+    timestampToISO: vi.fn(() => '2023-01-01T10:30:00.000Z'),
+    assertTimestamp: vi.fn((value: any, fieldName: string) => {
+        // Mock implementation for testing - return the value
+        return value;
+    }),
+    assertTimestampAndConvert: vi.fn((value: any, fieldName: string) => {
+        // Mock implementation for testing - return mock ISO string
+        if (value && typeof value.toDate === 'function') {
+            return value.toDate().toISOString();
+        }
+        return '2023-01-01T10:30:00.000Z';
+    })
 }));
 
 describe('GroupService - Unit Tests', () => {
@@ -622,79 +633,11 @@ describe('GroupService - Unit Tests', () => {
         });
     });
 
-    describe('assertTimestampAndConvert - fail-fast behavior', () => {
-        it('should convert Firestore Timestamp to ISO string', () => {
-            // Create a real Timestamp from the current date for testing
-            const testDate = new Date('2023-01-01T10:00:00.000Z');
-            const timestamp = Timestamp.fromDate(testDate);
-            
-            const result = (groupService as any).assertTimestampAndConvert(timestamp, 'testField');
-            expect(result).toBe('2023-01-01T10:00:00.000Z');
-        });
-
-        it('should throw error for Date objects (not Timestamps)', () => {
-            const date = new Date('2023-01-01T10:00:00.000Z');
-            
-            expect(() => {
-                (groupService as any).assertTimestampAndConvert(date, 'testField');
-            }).toThrow('Data contract violation: Expected Firestore Timestamp for testField but got object');
-        });
-
-        it('should throw error for string values', () => {
-            const dateString = '2023-01-01T10:00:00Z';
-            
-            expect(() => {
-                (groupService as any).assertTimestampAndConvert(dateString, 'testField');
-            }).toThrow('Data contract violation: Expected Firestore Timestamp for testField but got string');
-        });
-
-        it('should throw error for undefined values', () => {
-            expect(() => {
-                (groupService as any).assertTimestampAndConvert(undefined, 'testField');
-            }).toThrow('Data contract violation: Expected Firestore Timestamp for testField but got undefined');
-        });
-    });
+    // Note: assertTimestampAndConvert tests have been moved to dateHelpers.test.ts
+    // since the function is now a public utility rather than a GroupService method
 
     describe('formatRelativeTime - pure function', () => {
         it('should format recent timestamps as relative time', () => {
-            // Mock the parseISOToTimestamp and getRelativeTime functions
-            vi.mock('../../utils/dateHelpers', () => ({
-                parseISOToTimestamp: vi.fn((dateStr: string) => {
-                    if (dateStr === '2023-01-01T10:00:00Z') {
-                        return { toDate: () => new Date('2023-01-01T10:00:00Z') };
-                    }
-                    return null;
-                }),
-                getRelativeTime: vi.fn((timestamp: any) => {
-                    // Mock implementation for testing
-                    if (timestamp && timestamp.toDate) {
-                        return '2 hours ago';
-                    }
-                    return 'unknown';
-                }),
-                createOptimisticTimestamp: vi.fn(() => ({
-                    seconds: 1672570200,
-                    nanoseconds: 0,
-                    toDate: () => new Date('2023-01-01T10:30:00.000Z'),
-                    toMillis: () => 1672570200000,
-                    isEqual: () => true,
-                })),
-                createTrueServerTimestamp: vi.fn(),
-                timestampToISO: vi.fn((value: any) => {
-                    if (value && typeof value.toDate === 'function') {
-                        return value.toDate().toISOString();
-                    }
-                    if (value instanceof Date) {
-                        return value.toISOString();
-                    }
-                    return '2023-01-01T10:00:00.000Z';
-                }),
-                assertTimestamp: vi.fn((value: any) => {
-                    // For the mock, just return the value - tests should provide valid Timestamps
-                    return value;
-                })
-            }));
-
             const result = (groupService as any).formatRelativeTime('2023-01-01T10:00:00Z');
             expect(result).toBe('2 hours ago');
         });

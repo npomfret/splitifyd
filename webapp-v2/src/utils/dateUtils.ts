@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export const formatLocalDateTime = (utcString: string): string => {
     const date = new Date(utcString);
     return date.toLocaleString();
@@ -113,4 +115,23 @@ export const getLastNight = (): Date => {
     date.setDate(date.getDate() - 1);
     date.setHours(20, 0, 0, 0);
     return date;
+};
+
+/**
+ * Asserts that a value is a Firestore Timestamp and converts to ISO string
+ * Follows the "assert don't check" pattern - fails fast with clear errors
+ * 
+ * @param value - Value to check and convert
+ * @param fieldName - Name of the field for error message
+ * @returns ISO 8601 string
+ * @throws Error if value is not a Timestamp
+ */
+export const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
+    if (!(value instanceof Timestamp)) {
+        throw new Error(
+            `Data contract violation: Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}. ` +
+            `This indicates corrupted data or inconsistent timestamp handling.`
+        );
+    }
+    return value.toDate().toISOString();
 };

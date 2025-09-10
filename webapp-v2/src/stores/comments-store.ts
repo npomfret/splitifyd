@@ -14,6 +14,7 @@ import type { CommentApiResponse, CommentTargetType } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { getDb } from '../app/firebase';
 import { logError, logInfo } from '../utils/browser-logger';
+import { assertTimestampAndConvert } from '../utils/dateUtils';
 
 type SubscriptionState = 'idle' | 'subscribing' | 'subscribed' | 'disposed';
 
@@ -177,8 +178,8 @@ class CommentsStoreImpl implements CommentsStore {
                             authorName: data.authorName,
                             authorAvatar: data.authorAvatar || undefined,
                             text: data.text,
-                            createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
-                            updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+                            createdAt: assertTimestampAndConvert(data.createdAt, 'createdAt'),
+                            updatedAt: assertTimestampAndConvert(data.updatedAt, 'updatedAt'),
                         });
                     });
 
@@ -269,8 +270,8 @@ class CommentsStoreImpl implements CommentsStore {
                     authorName: data.authorName,
                     authorAvatar: data.authorAvatar || undefined,
                     text: data.text,
-                    createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate().toISOString() : data.createdAt,
-                    updatedAt: data.updatedAt instanceof Timestamp ? data.updatedAt.toDate().toISOString() : data.updatedAt,
+                    createdAt: assertTimestampAndConvert(data.createdAt, 'createdAt'),
+                    updatedAt: assertTimestampAndConvert(data.updatedAt, 'updatedAt'),
                 });
             });
 

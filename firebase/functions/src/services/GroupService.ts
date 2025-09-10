@@ -7,7 +7,7 @@ import {GroupDataSchema, GroupDocument} from '../schemas';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
 import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
 import {logger, LoggerContext} from '../logger';
-import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp, assertTimestampAndConvert} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
 import {getUpdatedAtTimestamp} from '../utils/optimistic-locking';
 import { measureDb } from '../monitoring/measure';
@@ -52,21 +52,6 @@ export class GroupService {
     ) {
         this.balanceService = new BalanceCalculationService(firestoreReader, userService);
     }
-    
-    /**
-     * Asserts that value is a Firestore Timestamp and converts to ISO string
-     * This enforces our data contract and fails fast with descriptive errors
-     */
-    private assertTimestampAndConvert(value: unknown, fieldName: string): string {
-        if (!(value instanceof Timestamp)) {
-            throw new Error(
-                `Data contract violation: Expected Firestore Timestamp for ${fieldName} but got ${typeof value}. ` +
-                `This indicates corrupted data or inconsistent timestamp handling.`
-            );
-        }
-        return timestampToISO(value);
-    }
-    
 
     /**
      * Add computed fields to Group (balance, last activity)
@@ -136,10 +121,10 @@ export class GroupService {
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
-            createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-            updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
+            createdAt: assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+            updatedAt: assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
             securityPreset: groupData.securityPreset!,
-            presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
+            presetAppliedAt: groupData.presetAppliedAt ? assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
             permissions: groupData.permissions as any,
         };
 
@@ -358,10 +343,10 @@ export class GroupService {
                 name: groupData.name,
                 description: groupData.description,
                 createdBy: groupData.createdBy,
-                createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-                updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
+                createdAt: assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+                updatedAt: assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
                 securityPreset: groupData.securityPreset!,
-                presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
+                presetAppliedAt: groupData.presetAppliedAt ? assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
                 permissions: groupData.permissions as any,
             }));
             const groupIds = groups.map((group) => group.id);
@@ -698,10 +683,10 @@ export class GroupService {
             name: groupData.name,
             description: groupData.description,
             createdBy: groupData.createdBy,
-            createdAt: this.assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
-            updatedAt: this.assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
+            createdAt: assertTimestampAndConvert(groupData.createdAt, 'createdAt'),
+            updatedAt: assertTimestampAndConvert(groupData.updatedAt, 'updatedAt'),
             securityPreset: groupData.securityPreset!,
-            presetAppliedAt: groupData.presetAppliedAt ? this.assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
+            presetAppliedAt: groupData.presetAppliedAt ? assertTimestampAndConvert(groupData.presetAppliedAt, 'presetAppliedAt') : undefined,
             permissions: groupData.permissions as any,
         };
 

@@ -52,12 +52,32 @@ export const parseISOToTimestamp = (isoString: string): Timestamp | null => {
 
 /**
  * Converts Firestore Timestamp or Date to ISO string
+ * @deprecated Use assertTimestampAndConvert or assertDateAndConvert for clear data contracts
  * @param value - Firestore Timestamp or Date
  * @returns ISO 8601 string
  */
 export const timestampToISO = (value: Timestamp | Date): string => {
     if (value instanceof Timestamp) {
         return value.toDate().toISOString();
+    }
+    return value.toISOString();
+};
+
+/**
+ * Asserts that a value is a Date and converts to ISO string
+ * Follows the "assert don't check" pattern - fails fast with clear errors
+ * 
+ * @param value - Value to check and convert
+ * @param fieldName - Name of the field for error message
+ * @returns ISO 8601 string
+ * @throws Error if value is not a Date
+ */
+export const assertDateAndConvert = (value: unknown, fieldName: string): string => {
+    if (!(value instanceof Date)) {
+        throw new Error(
+            `Data contract violation: Expected Date for '${fieldName}' but got ${typeof value}. ` +
+            `This indicates corrupted data or inconsistent date handling.`
+        );
     }
     return value.toISOString();
 };
@@ -209,12 +229,23 @@ export const parseUTCOnly = (isoString: string): Timestamp | null => {
  */
 export const assertTimestamp = (value: unknown, fieldName: string): Timestamp => {
     if (!(value instanceof Timestamp)) {
-        throw new Error(
-            `Data contract violation: Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}. ` +
-            `This indicates corrupted data or inconsistent timestamp handling.`
-        );
+        throw new Error(`Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}`);
     }
-    return value;
+    return value as Timestamp;
+};
+
+/**
+ * Asserts that a value is a Firestore Timestamp and converts to ISO string
+ * Follows the "assert don't check" pattern - fails fast with clear errors
+ * 
+ * @param value - Value to check and convert
+ * @param fieldName - Name of the field for error message
+ * @returns ISO 8601 string
+ * @throws Error if value is not a Timestamp
+ */
+export const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
+    const ts = assertTimestamp(value, fieldName);
+    return ts.toDate().toISOString();
 };
 
 /**

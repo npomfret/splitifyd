@@ -3,7 +3,7 @@ import {z} from 'zod';
 import {getAuth} from '../firebase';
 import {ApiError} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, timestampToISO, assertTimestampAndConvert} from '../utils/dateHelpers';
 import {logger} from '../logger';
 import {LoggerContext} from '../utils/logger-context';
 import {Comment, CommentApiResponse, CommentTargetType, CommentTargetTypes, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
@@ -124,8 +124,8 @@ export class CommentService {
             authorName: comment.authorName,
             authorAvatar: comment.authorAvatar || undefined,
             text: comment.text,
-            createdAt: timestampToISO(comment.createdAt as Timestamp),
-            updatedAt: timestampToISO(comment.updatedAt as Timestamp),
+            createdAt: assertTimestampAndConvert(comment.createdAt, 'createdAt'),
+            updatedAt: assertTimestampAndConvert(comment.updatedAt, 'updatedAt'),
         }));
 
         return {
@@ -195,8 +195,8 @@ export class CommentService {
             authorName: createdComment.authorName,
             authorAvatar: createdComment.authorAvatar || undefined,
             text: createdComment.text,
-            createdAt: timestampToISO(createdComment.createdAt as Timestamp),
-            updatedAt: timestampToISO(createdComment.updatedAt as Timestamp),
+            createdAt: assertTimestampAndConvert(createdComment.createdAt, 'createdAt'),
+            updatedAt: assertTimestampAndConvert(createdComment.updatedAt, 'updatedAt'),
         };
     }
 }
