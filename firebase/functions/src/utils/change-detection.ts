@@ -1,4 +1,7 @@
 import {DocumentData, DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
+import { ChangeDocumentBuilderFactory } from './change-builders';
+
+const builderFactory = new ChangeDocumentBuilderFactory();
 
 /**
  * Recursively removes undefined values from an object before saving to Firestore.
@@ -153,24 +156,8 @@ export function createChangeDocument(
     metadata: ChangeMetadata,
     additionalData: Record<string, any> = {},
 ): Record<string, any> {
-    const baseDoc = {
-        [`${entityType}Id`]: entityId,
-        changeType,
-        timestamp: Timestamp.now(),
-        metadata,
-        ...additionalData,
-    };
-
-    // Add entity-specific fields
-    if (entityType === 'expense' || entityType === 'settlement') {
-        // These types should include groupId
-        if (!additionalData.groupId) {
-            throw new Error(`${entityType} change document must include groupId`);
-        }
-    }
-
-    // Remove all undefined fields recursively to prevent Firestore errors
-    return removeUndefinedFields(baseDoc);
+    const builder = builderFactory.getBuilder(entityType);
+    return builder.createChangeDocument(entityId, changeType, metadata, additionalData);
 }
 
 /**
@@ -188,23 +175,9 @@ export function createChangeDocument(
  * }
  */
 export function createMinimalChangeDocument(entityId: string, entityType: 'group' | 'expense' | 'settlement', changeType: ChangeType, affectedUsers: string[], groupId?: string): Record<string, any> {
-    const baseDoc: Record<string, any> = {
-        id: entityId,
-        type: entityType,
-        action: changeType,
-        timestamp: Timestamp.now(),
-        users: affectedUsers,
-    };
-
-    // Add groupId for expense and settlement changes
-    if (entityType === 'expense' || entityType === 'settlement') {
-        if (!groupId) {
-            throw new Error(`${entityType} change document must include groupId`);
-        }
-        baseDoc.groupId = groupId;
-    }
-
-    return removeUndefinedFields(baseDoc);
+    const builder = builderFactory.getBuilder(entityType);
+    const additionalData = groupId ? { groupId } : {};
+    return builder.createMinimalChangeDocument(entityId, changeType, affectedUsers, additionalData);
 }
 
 /**
