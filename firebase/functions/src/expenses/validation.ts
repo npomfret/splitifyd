@@ -6,6 +6,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { sanitizeString } from '../utils/security';
 import { isUTCFormat, validateUTCDate } from '../utils/dateHelpers';
 import { ExpenseSplit, CreateExpenseRequest, UpdateExpenseRequest, SplitTypes } from '@splitifyd/shared';
+import { SplitStrategyFactory } from '../services/splits/SplitStrategyFactory';
 
 export interface Expense {
     id: string;
@@ -168,46 +169,10 @@ export const validateCreateExpense = (body: any): CreateExpenseRequest => {
         throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'PAYER_NOT_PARTICIPANT', 'Payer must be a participant');
     }
 
-    if (value.splitType === SplitTypes.EXACT || value.splitType === SplitTypes.PERCENTAGE) {
-        if (!Array.isArray(value.splits) || value.splits.length !== value.participants.length) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
-        }
-
-        if (value.splitType === SplitTypes.EXACT) {
-            const totalSplit = value.splits.reduce((sum: number, split: ExpenseSplit) => {
-                if (split.amount === undefined || split.amount === null) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_AMOUNT', 'Split amount is required for exact splits');
-                }
-                return sum + split.amount;
-            }, 0);
-            if (Math.abs(totalSplit - value.amount) > 0.01) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount');
-            }
-        } else if (value.splitType === SplitTypes.PERCENTAGE) {
-            const totalPercentage = value.splits.reduce((sum: number, split: ExpenseSplit) => {
-                if (split.percentage === undefined || split.percentage === null) {
-                    throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_PERCENTAGE', 'Split percentage is required for percentage splits');
-                }
-                return sum + split.percentage;
-            }, 0);
-            if (Math.abs(totalPercentage - 100) > 0.01) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100');
-            }
-        }
-
-        const splitUserIds = value.splits.map((s: ExpenseSplit) => s.userId);
-        const uniqueSplitUserIds = new Set(splitUserIds);
-        if (splitUserIds.length !== uniqueSplitUserIds.size) {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
-        }
-
-        const participantSet = new Set(value.participants);
-        for (const userId of splitUserIds) {
-            if (!participantSet.has(userId)) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
-            }
-        }
-    }
+    // Use strategy pattern to validate splits based on split type
+    const splitStrategyFactory = SplitStrategyFactory.getInstance();
+    const splitStrategy = splitStrategyFactory.getStrategy(value.splitType);
+    splitStrategy.validateSplits(value.amount, value.participants, value.splits);
 
     const expenseData = {
         groupId: value.groupId.trim(),
@@ -295,10 +260,12 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         const participants = value.participants;
         const splits = value.splits;
 
-        if (splitType === SplitTypes.EXACT || splitType === SplitTypes.PERCENTAGE) {
-            if (!Array.isArray(splits) || splits.length !== participants.length) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
-            }
+        // Use strategy pattern to validate splits for updates
+        const splitStrategyFactory = SplitStrategyFactory.getInstance();
+        const splitStrategy = splitStrategyFactory.getStrategy(splitType);
+        
+        if (splitStrategy.requiresSplitsData() && (!Array.isArray(splits) || splits.length !== participants.length)) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }
 
         update.splitType = splitType;
@@ -321,24 +288,8 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
 };
 
 export const calculateSplits = (amount: number, splitType: string, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] => {
-    if (splitType === SplitTypes.EQUAL) {
-        const splitAmount = amount / participants.length;
-        return participants.map((userId) => ({
-            userId,
-            amount: Math.round(splitAmount * 100) / 100,
-        }));
-    }
-
-    if (splitType === SplitTypes.PERCENTAGE && splits) {
-        return splits.map((split) => ({
-            userId: split.userId,
-            amount: Math.round(((amount * (split.percentage ?? 0)) / 100) * 100) / 100,
-            percentage: split.percentage,
-        }));
-    }
-
-    if (!splits) {
-        throw new Error('Splits are required for non-equal split types');
-    }
-    return splits;
+    // Use strategy pattern to calculate splits
+    const splitStrategyFactory = SplitStrategyFactory.getInstance();
+    const splitStrategy = splitStrategyFactory.getStrategy(splitType);
+    return splitStrategy.calculateSplits(amount, participants, splits);
 };

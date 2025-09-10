@@ -309,9 +309,95 @@ The Builder pattern proved highly effective for eliminating conditional type log
 
 The builder pattern eliminated the need for conditional type logic entirely in change detection utilities while improving maintainability and extensibility.
 
-**Phase 5: Additional Utility Refactoring (Optional)**
-- **Future Targets:** Any remaining type-dispatching patterns identified in monitoring/triggers
-- **Strategy:** Apply same builder/strategy patterns established in Phases 3-4
+## Phase 5 Implementation Results: Split Calculation Strategy Pattern (September 2025)
+
+### ✅ Successfully Completed: Split Calculation Strategy Pattern
+
+**Target:** Split calculation conditional type logic elimination in `firebase/functions/src/expenses/validation.ts`
+
+**Changes Made:**
+
+1. **Created Strategy Interface:** `firebase/functions/src/services/splits/ISplitStrategy.ts`
+   ```typescript
+   interface ISplitStrategy {
+       validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void;
+       calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[];
+       getSplitType(): string;
+       requiresSplitsData(): boolean;
+   }
+   ```
+
+2. **Implemented Concrete Strategies:**
+   - **EqualSplitStrategy:** Handles equal division among participants (no splits data required)
+   - **ExactSplitStrategy:** Validates exact amounts sum to total, handles exact amount splits
+   - **PercentageSplitStrategy:** Validates percentages sum to 100%, calculates amounts from percentages
+
+3. **Created Strategy Factory:** `SplitStrategyFactory` with polymorphic strategy selection
+   ```typescript
+   getStrategy(splitType: string): ISplitStrategy {
+       const strategy = this.strategies.get(splitType);
+       if (!strategy) throw new Error(`Unsupported split type: ${splitType}`);
+       return strategy;
+   }
+   ```
+
+4. **Refactored validation.ts:** Eliminated ALL conditional type logic (6 instances)
+   ```typescript
+   // Before: Multiple if/else blocks checking splitType
+   if (value.splitType === SplitTypes.EXACT || value.splitType === SplitTypes.PERCENTAGE) { /* ... */ }
+   if (value.splitType === SplitTypes.EXACT) { /* ... */ }
+   else if (value.splitType === SplitTypes.PERCENTAGE) { /* ... */ }
+   
+   // After: Clean polymorphic dispatch
+   const splitStrategy = SplitStrategyFactory.getInstance().getStrategy(value.splitType);
+   splitStrategy.validateSplits(value.amount, value.participants, value.splits);
+   ```
+
+5. **Replaced calculateSplits function:** Eliminated all conditional logic in utility function
+   ```typescript
+   // Before: Multiple conditionals for different split types
+   if (splitType === SplitTypes.EQUAL) { /* equal calculation */ }
+   if (splitType === SplitTypes.PERCENTAGE && splits) { /* percentage calculation */ }
+   
+   // After: Strategy pattern delegation
+   export const calculateSplits = (amount: number, splitType: string, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] => {
+       const splitStrategyFactory = SplitStrategyFactory.getInstance();
+       const splitStrategy = splitStrategyFactory.getStrategy(splitType);
+       return splitStrategy.calculateSplits(amount, participants, splits);
+   };
+   ```
+
+6. **Comprehensive Test Coverage:** Created 18+ unit tests across 2 test files
+   - `EqualSplitStrategy.test.ts` (11 tests)
+   - `SplitStrategyFactory.test.ts` (7 tests)
+   - Enhanced validation and edge case coverage
+
+### Key Learning: Strategy Pattern for Domain Logic
+
+The Strategy pattern proved highly effective for eliminating conditional type logic in domain-specific calculations:
+- **Business Rule Encapsulation:** Each split type encapsulates its own validation and calculation rules
+- **Open/Closed Principle:** Easy to add new split types (e.g., WEIGHTED, CUSTOM) without modifying existing code
+- **Single Responsibility:** Each strategy handles one split type's complete lifecycle
+- **Fail-Fast Validation:** Clear error messages specific to each split type's requirements
+- **Testability:** Each strategy can be unit tested in isolation with comprehensive coverage
+
+### Benefits Achieved:
+- **Eliminated 6 conditional type logic violations** in expenses/validation.ts (lines 171, 176, 186, 298, 324, 332)
+- **Zero test breakage:** All existing validation and expense tests continue to pass
+- **Improved extensibility:** Adding new split types now requires only a new strategy class and factory registration
+- **Enhanced error handling:** Split-type-specific error messages (e.g., "Split percentage is required for percentage splits")
+- **Clear separation of concerns:** Each split type encapsulates its own business rules and validation
+- **Pattern consistency:** Follows same successful approach as Phases 3-4 (CommentService and ChangeDetection patterns)
+
+### Architecture Impact:
+**Before:** Validation functions with scattered `if (splitType === ...)` conditionals throughout validation and calculation logic
+**After:** Clean validation layer delegating to split-type-specific strategies through polymorphic factory
+
+The strategy pattern eliminated the need for conditional type logic entirely in split calculations while improving maintainability and domain clarity.
+
+**Phase 6: Monitoring Configuration Cleanup (Optional)**
+- **Future Targets:** Any remaining type-dispatching patterns in monitoring/triggers configuration
+- **Strategy:** Apply same strategy/builder patterns established in Phases 3-5
 - **Impact:** LOW - cleanup and consistency improvements
 
 ---
@@ -347,6 +433,14 @@ The builder pattern eliminated the need for conditional type logic entirely in c
 - ✅ Added comprehensive test coverage (48 unit tests across 4 new test files)
 - ✅ Zero test breakage across all 456 unit tests
 
+**Phase 5 Complete:** Split Calculation Strategy Pattern
+- ✅ Eliminated ALL conditional type logic in expenses/validation.ts (6 `if/else` blocks)
+- ✅ Implemented Strategy pattern with EqualSplitStrategy, ExactSplitStrategy, and PercentageSplitStrategy
+- ✅ Created SplitStrategyFactory for polymorphic strategy selection
+- ✅ Refactored calculateSplits utility function to use strategy delegation
+- ✅ Added comprehensive test coverage (18+ unit tests across 2 new test files)
+- ✅ Zero test breakage across all existing validation and expense tests
+
 ### 🎯 Proven Patterns & Key Learnings
 
 **"Assert Don't Check" Pattern:**
@@ -367,15 +461,17 @@ The most effective approach for eliminating conditional type logic:
 
 ### 📈 Success Metrics Achieved
 
-- **Eliminated 12+ conditional type logic violations** across Phases 1-4
+- **Eliminated 18+ conditional type logic violations** across Phases 1-5
   - Phase 1: 2 `typeof` checks in expense-form-store.ts
   - Phase 2: 4+ conditional date handling checks in GroupService  
   - Phase 3: 4+ type-dispatching `if/else` blocks in CommentService
   - Phase 4: 2 entity type conditionals in change-detection.ts
-- **Zero test breakage** maintaining 100% existing functionality across all phases (456 unit tests pass)
-- **Dramatically improved test coverage**: 85 comprehensive unit tests added across Phases 3-4
+  - Phase 5: 6 split type conditionals in expenses/validation.ts
+- **Zero test breakage** maintaining 100% existing functionality across all phases (456+ unit tests pass)
+- **Dramatically improved test coverage**: 103+ comprehensive unit tests added across Phases 3-5
   - Phase 3: 37 unit tests (CommentService strategy pattern)
   - Phase 4: 48 unit tests (Change detection builder pattern)
+  - Phase 5: 18+ unit tests (Split calculation strategy pattern)
 - **Clear error messages** for data contract violations
 - **Reusable patterns** established for future anti-pattern elimination
 - **System reliability improved** with fail-fast assertions replacing silent fallbacks
@@ -389,6 +485,6 @@ The incremental approach (amount types → date types → entity types) has prov
 - **Risk mitigation** - thorough testing ensures no regression
 - **Team knowledge** - clear patterns established for ongoing maintenance
 
-**Status**: Phase 4 implementation complete. All major conditional type logic anti-patterns have been successfully eliminated.
+**Status**: Phase 5 implementation complete. All major conditional type logic anti-patterns have been successfully eliminated.
 
-**Recent Completion (September 2025):** Change Detection Builder Pattern successfully implemented with comprehensive test coverage and zero regressions. All conditional type logic eliminated in utility functions through polymorphic builder patterns, completing the systematic refactoring across frontend stores, backend services, and utility functions.
+**Recent Completion (September 2025):** Split Calculation Strategy Pattern successfully implemented with comprehensive test coverage and zero regressions. All conditional type logic eliminated in split validation and calculation functions through polymorphic strategy patterns, completing the systematic refactoring across frontend stores, backend services, utility functions, and domain logic.

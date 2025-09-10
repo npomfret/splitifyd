@@ -1,0 +1,63 @@
+import { ExpenseSplit, SplitTypes } from '@splitifyd/shared';
+import { ApiError } from '../../utils/errors';
+import { HTTP_STATUS } from '../../constants';
+import { ISplitStrategy } from './ISplitStrategy';
+
+export class PercentageSplitStrategy implements ISplitStrategy {
+    getSplitType(): string {
+        return SplitTypes.PERCENTAGE;
+    }
+
+    requiresSplitsData(): boolean {
+        return true;
+    }
+
+    validateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): void {
+        if (!Array.isArray(splits) || splits.length !== participants.length) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
+        }
+
+        // Validate that all splits have percentages
+        for (const split of splits) {
+            if (split.percentage === undefined || split.percentage === null) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_SPLIT_PERCENTAGE', 'Split percentage is required for percentage splits');
+            }
+        }
+
+        // Validate that percentages sum to 100%
+        const totalPercentage = splits.reduce((sum: number, split: ExpenseSplit) => {
+            return sum + split.percentage!;
+        }, 0);
+
+        if (Math.abs(totalPercentage - 100) > 0.01) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100');
+        }
+
+        // Validate no duplicate users
+        const splitUserIds = splits.map((s: ExpenseSplit) => s.userId);
+        const uniqueSplitUserIds = new Set(splitUserIds);
+        if (splitUserIds.length !== uniqueSplitUserIds.size) {
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'DUPLICATE_SPLIT_USERS', 'Each participant can only appear once in splits');
+        }
+
+        // Validate all split users are participants
+        const participantSet = new Set(participants);
+        for (const userId of splitUserIds) {
+            if (!participantSet.has(userId)) {
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLIT_USER', 'Split user must be a participant');
+            }
+        }
+    }
+
+    calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] {
+        if (!splits) {
+            throw new Error('Splits are required for percentage split type');
+        }
+
+        return splits.map((split) => ({
+            userId: split.userId,
+            amount: Math.round(((totalAmount * (split.percentage ?? 0)) / 100) * 100) / 100,
+            percentage: split.percentage,
+        }));
+    }
+}
