@@ -36,9 +36,14 @@ The backend services continue to use `if/else` blocks to change behavior based o
 This is the most widespread form of the anti-pattern in the codebase. Multiple services and stores handle data that can be one of several types (e.g., `Date` or `string`, `object` or `string`), forcing runtime `typeof` checks to handle the data correctly. This indicates an ambiguous data contract and leads to fragile code.
 
 *   **Location:** `firebase/functions/src/services/GroupService.ts`
-*   **Issue:** The `safeDateToISO` and `batchFetchGroupData` methods contain multiple `typeof value === 'string'` checks on date fields. This confirms that services are receiving date/timestamp information in an inconsistent format.
-*   **Status:** ❌ **UNRESOLVED** - Requires Phase 2 implementation
-*   **Recommendation:** Enforce a strict data contract for all date/timestamp fields. Data should be stored as Firestore `Timestamp` objects and only converted to ISO strings at the API boundary. This eliminates the need for runtime type checking.
+*   **Issue:** ~~The `safeDateToISO` and `batchFetchGroupData` methods contain multiple `typeof value === 'string'` checks on date fields. This confirms that services are receiving date/timestamp information in an inconsistent format.~~
+*   **Status:** ✅ **RESOLVED** - Phase 2 Implementation Complete (September 2025)
+*   **Solution Implemented:**
+    - **Eliminated `safeDateToISO()` method**: Replaced with `assertTimestampAndConvert()` that fails fast
+    - **Added FirestoreReader timestamp assertions**: `sanitizeGroupData()` method asserts all timestamp fields
+    - **Strict type contracts**: No more conditional type logic - data contract violations throw immediately
+    - **Clear error messages**: "Data contract violation: Expected Firestore Timestamp for {field} but got {type}"
+    - **Pattern established**: `assertTimestamp()` function in dateHelpers for reuse across services
 
 *   **Location:** `webapp-v2/src/app/stores/expense-form-store.ts`
 *   **Issue:** ~~This frontend store is a major offender. It is filled with `typeof this.#amountSignal.value === 'string'` checks. The `amount` signal, which represents a monetary value, is clearly being treated as both a `string` and a `number` throughout the store, requiring constant runtime parsing and checking.~~
