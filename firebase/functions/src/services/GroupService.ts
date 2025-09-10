@@ -578,6 +578,20 @@ export class GroupService {
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
 
+        // Create the document to write with server timestamps (for Firestore)
+        const documentToWrite = {
+            id: groupId,
+            name: createGroupRequest.name,
+            description: createGroupRequest.description ?? '',
+            createdBy: userId,
+            createdAt: serverTimestamp,
+            updatedAt: serverTimestamp,
+            securityPreset: SecurityPresets.OPEN,
+            presetAppliedAt: serverTimestamp,
+            permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
+        };
+
+        // Create the response object with ISO strings (for API responses)
         const newGroup: Group = {
             id: groupId,
             name: createGroupRequest.name,
@@ -588,14 +602,6 @@ export class GroupService {
             securityPreset: SecurityPresets.OPEN,
             presetAppliedAt: timestampToISO(now),
             permissions: PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN),
-        };
-
-        // Add server timestamps to the flat document structure
-        const documentToWrite = {
-            ...newGroup,
-            createdAt: serverTimestamp,
-            updatedAt: serverTimestamp,
-            presetAppliedAt: serverTimestamp,
         };
 
         try {

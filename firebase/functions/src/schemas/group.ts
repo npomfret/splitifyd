@@ -95,7 +95,7 @@ const UserThemeColorSchema = z.object({
     dark: z.string(),
     name: z.string(),
     pattern: z.enum(COLOR_PATTERNS),
-    assignedAt: z.string(), // ISO timestamp
+    assignedAt: z.string(),
     colorIndex: z.number(),
 });
 

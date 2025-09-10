@@ -24,6 +24,7 @@ export class GroupShareService {
         const base64url = bytes.toString('base64url');
         return base64url.substring(0, 16);
     }
+
     getThemeColorForMember(memberIndex: number): UserThemeColor {
         const colorIndex = memberIndex % USER_COLORS.length;
         const patternIndex = Math.floor(memberIndex / USER_COLORS.length) % COLOR_PATTERNS.length;

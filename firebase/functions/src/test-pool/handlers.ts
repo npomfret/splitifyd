@@ -8,9 +8,10 @@ import {ApplicationBuilder} from "../services/ApplicationBuilder";
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
 const firestoreReader = applicationBuilder.buildFirestoreReader();
+const firestoreWriter = applicationBuilder.buildFirestoreWriter();
 const userService = applicationBuilder.buildUserService();
 
-const pool = TestUserPoolService.getInstance(firestoreReader, userService);
+const pool = TestUserPoolService.getInstance(firestoreReader, firestoreWriter, userService);
 
 export async function borrowTestUser(req: Request, res: Response): Promise<void> {
     // Only allow in test environment

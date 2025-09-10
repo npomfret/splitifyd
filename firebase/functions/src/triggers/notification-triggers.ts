@@ -15,13 +15,7 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { logger } from '../logger';
 import { measureTrigger } from '../monitoring/measure';
 import {getFirestore} from "../firebase";
-import { IFirestoreWriter } from "../services/firestore/IFirestoreWriter";
-import { FirestoreWriter } from "../services/firestore";
 import {ApplicationBuilder} from "../services/ApplicationBuilder";
-
-const firestore = getFirestore();
-const applicationBuilder = new ApplicationBuilder(firestore);
-const notificationService = applicationBuilder.buildNotificationService();
 
 /**
  * Create notification triggers
@@ -38,7 +32,12 @@ export function createNotificationTriggers() {
                 const userId = event.params.userId;
                 
                 return measureTrigger('initializeUserNotifications', async () => {
-                        await notificationService.initializeUserNotifications(userId);
+                    // Create services with dependency injection
+                    const firestore = getFirestore();
+                    const applicationBuilder = new ApplicationBuilder(firestore);
+                    const notificationService = applicationBuilder.buildNotificationService();
+                    
+                    await notificationService.initializeUserNotifications(userId);
                         
                         logger.info('User notification document initialized', { 
                             userId,
@@ -66,6 +65,11 @@ export function createNotificationTriggers() {
                 
                 return measureTrigger('addUserToGroupNotifications',
                     async () => {
+                        // Create services with dependency injection
+                        const firestore = getFirestore();
+                        const applicationBuilder = new ApplicationBuilder(firestore);
+                        const notificationService = applicationBuilder.buildNotificationService();
+                        
                         // First ensure user has notification document
                         await notificationService.initializeUserNotifications(userId);
                         
@@ -102,6 +106,11 @@ export function createNotificationTriggers() {
                 
                 return measureTrigger('removeUserFromGroupNotifications',
                     async () => {
+                        // Create services with dependency injection
+                        const firestore = getFirestore();
+                        const applicationBuilder = new ApplicationBuilder(firestore);
+                        const notificationService = applicationBuilder.buildNotificationService();
+                        
                         // CRITICAL: Notify the user about the group change BEFORE removing them
                         // This ensures they receive real-time updates about group deletion/removal
                         await notificationService.updateUserNotification(userId, groupId, 'group');
@@ -127,12 +136,13 @@ export function createNotificationTriggers() {
                 const userId = event.params.userId;
                 
                 return measureTrigger('cleanupUserNotifications', async () => {
-                        // Delete the user's notification document
-                        // Using FirestoreWriter's bulkDelete method
-                        const { FirestoreWriter } = await import('../services/firestore/FirestoreWriter');
-                        const writer: IFirestoreWriter = new FirestoreWriter(firestore);
+                        // Create services with dependency injection
+                        const firestore = getFirestore();
+                        const applicationBuilder = new ApplicationBuilder(firestore);
+                        const firestoreWriter = applicationBuilder.buildFirestoreWriter();
                         
-                        const result = await writer.bulkDelete([`user-notifications/${userId}`]);
+                        // Delete the user's notification document
+                        const result = await firestoreWriter.bulkDelete([`user-notifications/${userId}`]);
                         
                         if (result.successCount > 0) {
                             logger.info('User notification document cleaned up', { 

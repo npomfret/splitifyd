@@ -1,7 +1,6 @@
-import {getAuth, getFirestore} from '../firebase';
-import {runTransactionWithRetry} from '../utils/firestore-helpers';
+import {getAuth} from '../firebase';
 import {Timestamp} from "firebase-admin/firestore";
-import type {IFirestoreReader} from '../services/firestore/IFirestoreReader';
+import type {IFirestoreReader, IFirestoreWriter} from '../services/firestore';
 import {UserService} from "../services/UserService2";
 
 export interface PoolUser {
@@ -23,19 +22,23 @@ const POOL_COLLECTION = 'test-user-pool';
 export class TestUserPoolService {
     private static instance: TestUserPoolService;
 
-    private constructor(private readonly firestoreReader: IFirestoreReader, private readonly userService: UserService) {
+    private constructor(
+        private readonly firestoreReader: IFirestoreReader, 
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly userService: UserService
+    ) {
     }
 
-    static getInstance(firestoreReader: IFirestoreReader, userService: UserService): TestUserPoolService {
+    static getInstance(firestoreReader: IFirestoreReader, firestoreWriter: IFirestoreWriter, userService: UserService): TestUserPoolService {
         if (!TestUserPoolService.instance) {
-            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, userService);
+            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, firestoreWriter, userService);
         }
         return TestUserPoolService.instance;
     }
 
     async borrowUser(): Promise<PoolUser> {
         // Use transaction to atomically claim an available user
-        const result = await runTransactionWithRetry(
+        const result = await this.firestoreWriter.runTransaction(
             async (transaction) => {
                 // Query for available users using FirestoreReader
                 const availableUsers = await this.firestoreReader.getTestUsersByStatus('available', 1);
@@ -46,7 +49,7 @@ export class TestUserPoolService {
                     const data = doc.data() as FirestorePoolUser;
                     
                     // Update status to borrowed within transaction
-                    transaction.update(doc.ref, { status: 'borrowed' });
+                    this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, { status: 'borrowed' });
                     
                     return {
                         email: data.email,
@@ -78,51 +81,24 @@ export class TestUserPoolService {
         // No available users found - create a new one
         // This is done outside transaction since createUser() involves Auth API calls
         const newUser = await this.createUser();
-        await getFirestore().collection(POOL_COLLECTION).doc(newUser.email).set({
+        await this.firestoreWriter.createTestUser(newUser.email, {
             email: newUser.email,
             token: newUser.token,
             password: newUser.password,
             status: 'borrowed' as const,
-            createdAt: Timestamp.now()
         });
         return newUser;
     }
 
     async returnUser(email: string): Promise<void> {
-        const poolRef = getFirestore().collection(POOL_COLLECTION);
-        
-        // Use transaction to atomically return user
-        await runTransactionWithRetry(
-            async (transaction) => {
-                const doc = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, poolRef.doc(email));
-                
-                if (!doc) {
-                    throw Error(`User ${email} not found in pool`);
-                }
-                
-                const data = doc.data() as FirestorePoolUser;
-                if (data.status !== 'borrowed') {
-                    // This could be a duplicate return attempt - make it idempotent
-                    if (data.status === 'available') {
-                        // User is already available - this is fine, just log it
-                        console.log(`⚠️ User ${email} was already returned to pool`);
-                        return;
-                    }
-                    throw Error(`User ${email} is not borrowed (status: ${data.status})`);
-                }
-                
-                // Update status to available within transaction
-                transaction.update(doc.ref, { status: 'available' });
-            },
-            {
-                maxAttempts: 3,
-                context: {
-                    operation: 'returnTestUser',
-                    email,
-                    poolCollection: POOL_COLLECTION
-                }
-            }
-        );
+        // Update user status directly using the encapsulated method
+        // This is simpler and doesn't require transaction complexity for a status update
+        try {
+            await this.firestoreWriter.updateTestUserStatus(email, 'available');
+        } catch (error) {
+            // If user doesn't exist or update fails, wrap with more context
+            throw new Error(`Failed to return user ${email} to pool: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
     private async createUser(): Promise<PoolUser> {
@@ -152,13 +128,14 @@ export class TestUserPoolService {
     async resetPool(): Promise<void> {
         const borrowedDocs = await this.firestoreReader.getBorrowedTestUsers();
         
-        const batch = getFirestore().batch();
-        borrowedDocs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
-            batch.update(doc.ref, { status: 'available' });
-        });
-        
+        // Use bulk update for resetting all borrowed users to available
         if (borrowedDocs.length > 0) {
-            await batch.commit();
+            const updateMap = new Map<string, any>();
+            borrowedDocs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+                updateMap.set(doc.ref.path, { status: 'available' });
+            });
+            
+            await this.firestoreWriter.bulkUpdate(updateMap);
         }
     }
 }

@@ -1,27 +1,31 @@
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import {getFirestore} from '../firebase';
-import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { FirestoreReader } from '../services/firestore/FirestoreReader';
-import { IFirestoreReader } from "../services/firestore";
+import { IFirestoreReader, IFirestoreWriter } from "../services/firestore";
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 /**
  * Core cleanup logic that can be called by both scheduled function and tests
+ * @param firestoreReader - Firestore reader for querying documents
+ * @param firestoreWriter - Firestore writer for delete operations and metrics
  * @param deleteAll - If true, delete all documents. If false, only delete documents older than specified minutes
  * @param logMetrics - Whether to log cleanup metrics (default: true)
  * @param minutesToKeep - How many minutes of documents to keep (default: 5, set to 0 for tests)
  * @returns Promise<number> - Total number of documents deleted
  */
-export async function performCleanup(deleteAll = false, logMetrics = true, minutesToKeep = 5): Promise<number> {
+export async function performCleanup(
+    firestoreReader: IFirestoreReader,
+    firestoreWriter: IFirestoreWriter,
+    deleteAll = false, 
+    logMetrics = true, 
+    minutesToKeep = 5
+): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setMinutes(cutoffDate.getMinutes() - minutesToKeep);
 
     const collections = [FirestoreCollections.TRANSACTION_CHANGES, FirestoreCollections.BALANCE_CHANGES];
     let totalDeleted = 0;
-
-    const firestore = getFirestore();
-    const firestoreReader: IFirestoreReader = new FirestoreReader(firestore);
 
     // Process all collections in parallel
     const cleanupPromises = collections.map(async (collectionName) => {
@@ -45,21 +49,16 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
                     continue;
                 }
 
-                // Delete in batches
-                const batch = firestore.batch();
-                let batchDeleteCount = 0;
+                // Prepare document paths for bulk delete
+                const documentPaths = docs.map(doc => doc.ref.path);
 
-                docs.forEach((doc) => {
-                    batch.delete(doc.ref);
-                    batchDeleteCount++;
-                });
-
-                if (batchDeleteCount > 0) {
-                    await batch.commit();
-                    collectionDeleteCount += batchDeleteCount;
+                if (documentPaths.length > 0) {
+                    // Use IFirestoreWriter for bulk delete
+                    const deleteResult = await firestoreWriter.bulkDelete(documentPaths);
+                    collectionDeleteCount += deleteResult.successCount;
 
                     // If we got fewer than 500 documents, we're done
-                    if (batchDeleteCount < 500) {
+                    if (documentPaths.length < 500) {
                         hasMore = false;
                     }
                 } else {
@@ -70,8 +69,8 @@ export async function performCleanup(deleteAll = false, logMetrics = true, minut
             if (logMetrics && collectionDeleteCount > 0) {
                 logger.info('cleanup-completed', { collection: collectionName, count: collectionDeleteCount, deleteAll });
 
-                // Log metrics for monitoring
-                await logCleanupMetrics({
+                // Log metrics for monitoring using IFirestoreWriter
+                await logCleanupMetrics(firestoreWriter, {
                     collection: collectionName,
                     deletedCount: collectionDeleteCount,
                     timestamp: new Date().toISOString(),
@@ -109,20 +108,28 @@ export const cleanupChanges = onSchedule(
         maxInstances: 1,
     },
     async () => {
-        await performCleanup(false, true, 5); // Delete only old documents, with metrics logging
+        // Create services with dependency injection
+        const firestore = getFirestore();
+        const applicationBuilder = new ApplicationBuilder(firestore);
+        const firestoreReader = applicationBuilder.buildFirestoreReader();
+        const firestoreWriter = applicationBuilder.buildFirestoreWriter();
+        
+        await performCleanup(firestoreReader, firestoreWriter, false, true, 5);
     },
 );
 
 /**
  * Log cleanup metrics for monitoring and analysis
  */
-async function logCleanupMetrics(metrics: { collection: string; deletedCount: number; timestamp: string; deleteAll?: boolean }): Promise<void> {
+async function logCleanupMetrics(
+    firestoreWriter: IFirestoreWriter,
+    metrics: { collection: string; deletedCount: number; timestamp: string; deleteAll?: boolean }
+): Promise<void> {
     try {
-        // Store metrics for monitoring (could be sent to external service)  
-        await getFirestore().collection('system-metrics').add({
+        // Store metrics for monitoring using IFirestoreWriter
+        await firestoreWriter.addSystemMetrics({
             type: 'cleanup',
             ...metrics,
-            createdAt: FieldValue.serverTimestamp(),
         });
     } catch (error) {
         // Don't fail cleanup if metrics logging fails - silently ignore

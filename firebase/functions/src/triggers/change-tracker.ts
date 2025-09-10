@@ -5,16 +5,10 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { ParamsOf } from 'firebase-functions';
 import { measureTrigger } from '../monitoring/measure';
-import { FirestoreReader } from '../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../services/firestore/FirestoreWriter';
 import {getFirestore} from "../firebase";
 import {IFirestoreReader} from "../services/firestore";
 import { NotificationService } from "../services/notification-service";
-
-const firestore = getFirestore();
-const firestoreReader = new FirestoreReader(firestore);
-const firestoreWriter = new FirestoreWriter(firestore);
-const notificationService = new NotificationService(firestoreReader, firestoreWriter);
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -40,6 +34,11 @@ export const trackGroupChanges = onDocumentWritten(
         }
 
         return measureTrigger('trackGroupChanges', async () => {
+            // Create services with dependency injection for each trigger execution
+            const firestore = getFirestore();
+            const applicationBuilder = new ApplicationBuilder(firestore);
+            const firestoreReader = applicationBuilder.buildFirestoreReader();
+            const notificationService = applicationBuilder.buildNotificationService();
                 // Get changed fields (groups use flat structure)
                 const changedFields = getGroupChangedFields(before, after);
 
@@ -50,9 +49,8 @@ export const trackGroupChanges = onDocumentWritten(
                 const affectedUsers = await (async (): Promise<string[]> => {
                     const users: string[] = [];
                     
-                    // For CREATE/UPDATE events, query the current group members using FirestoreReader
+                    // For CREATE/UPDATE events, query the current group members
                     try {
-                        const firestoreReader: IFirestoreReader = new FirestoreReader(getFirestore());
                         const members = await firestoreReader.getAllGroupMembers(groupId);
                         
                         members.forEach(member => {
@@ -92,6 +90,11 @@ export const trackExpenseChanges = onDocumentWritten(
     async (event) => {
         const expenseId = event.params.expenseId;
         const { before, after, changeType } = extractDataChange(event);
+
+        // Create services with dependency injection
+        const firestore = getFirestore();
+        const applicationBuilder = new ApplicationBuilder(firestore);
+        const notificationService = applicationBuilder.buildNotificationService();
 
         // Process expense changes immediately
         try {
@@ -145,7 +148,11 @@ export const trackSettlementChanges = onDocumentWritten(
         const settlementId = event.params.settlementId;
         const { before, after, changeType } = extractDataChange(event);
 
-        return measureTrigger('trackGroupChanges', async () => {
+        return measureTrigger('trackSettlementChanges', async () => {
+            // Create services with dependency injection
+            const firestore = getFirestore();
+            const applicationBuilder = new ApplicationBuilder(firestore);
+            const notificationService = applicationBuilder.buildNotificationService();
                 const beforeData = before?.data();
                 const afterData = after?.data();
 

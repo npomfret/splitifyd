@@ -432,7 +432,40 @@ export interface IFirestoreWriter {
     removeUserNotificationGroup(userId: string, groupId: string): Promise<WriteResult>;
 
     // ========================================================================
-    // Performance Metrics Operations
+    // System Operations
     // ========================================================================
+
+    /**
+     * Add system metrics document for monitoring
+     * @param metricsData - The metrics data to store
+     * @returns Write result with document ID
+     */
+    addSystemMetrics(metricsData: any): Promise<WriteResult>;
+
+    /**
+     * Perform health check operations (test read/write)
+     * @returns Health check result with timing information
+     */
+    performHealthCheck(): Promise<{ success: boolean; responseTime: number }>;
+
+    // ========================================================================
+    // Test User Pool Operations (Test Environment Only)
+    // ========================================================================
+
+    /**
+     * Create a test user in the user pool
+     * @param email - Test user email
+     * @param userData - Test user data including token and password
+     * @returns Write result
+     */
+    createTestUser(email: string, userData: any): Promise<WriteResult>;
+
+    /**
+     * Update test user status in the pool
+     * @param email - Test user email
+     * @param status - New status ('available' or 'borrowed')
+     * @returns Write result
+     */
+    updateTestUserStatus(email: string, status: string): Promise<WriteResult>;
 
 }

@@ -55,7 +55,6 @@ describe('Security Preset Validation - Integration Test', () => {
                         dark: '#FF6B6B',
                         name: 'red',
                         pattern: 'solid',
-                        assignedAt: new Date().toISOString(),
                         colorIndex: 0,
                     }
                 }
@@ -163,7 +162,6 @@ describe('Security Preset Validation - Integration Test', () => {
                             dark: '#FF6B6B',
                             name: 'red',
                             pattern: 'solid',
-                            assignedAt: new Date().toISOString(),
                             colorIndex: 0,
                         }
                     }

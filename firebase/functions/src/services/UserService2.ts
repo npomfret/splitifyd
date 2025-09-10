@@ -475,7 +475,9 @@ export class UserService {
             const currentPolicyVersions = await getCurrentPolicyVersions(this.firestoreReader);
 
             // Assign theme color for new user
-            const themeColor = await assignThemeColor(userRecord.uid);
+            const themeColor = await assignThemeColor();
+
+            // todo: acceptedPolicies should come from the ui
 
             // Create user document in Firestore
             const userDoc: FirestoreUserDocument = {

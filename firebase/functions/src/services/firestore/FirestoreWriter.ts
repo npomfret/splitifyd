@@ -1574,4 +1574,171 @@ export class FirestoreWriter implements IFirestoreWriter {
                 return 'Review error details and consider alternative approach';
         }
     }
+
+    // ========================================================================
+    // System Operations Implementation
+    // ========================================================================
+
+    /**
+     * Add system metrics document for monitoring
+     * @param metricsData - The metrics data to store
+     * @returns Write result with document ID
+     */
+    async addSystemMetrics(metricsData: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.addSystemMetrics',
+            async () => {
+                try {
+                    const finalData = {
+                        ...metricsData,
+                        createdAt: FieldValue.serverTimestamp()
+                    };
+
+                    const docRef = await this.db.collection('system-metrics').add(finalData);
+
+                    logger.info('System metrics added', { 
+                        docId: docRef.id, 
+                        type: metricsData.type,
+                        fields: Object.keys(metricsData) 
+                    });
+
+                    return {
+                        id: docRef.id,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to add system metrics', error, { metricsData });
+                    return {
+                        id: '',
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    /**
+     * Perform health check operations (test read/write)
+     * @returns Health check result with timing information
+     */
+    async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
+        return measureDb('FirestoreWriter.performHealthCheck',
+            async () => {
+                const startTime = Date.now();
+                
+                try {
+                    const testRef = this.db.collection('_health_check').doc('test');
+                    
+                    // Test write
+                    await testRef.set({
+                        timestamp: FieldValue.serverTimestamp(),
+                        test: 'health-check'
+                    });
+
+                    // Test read to verify write succeeded
+                    const testDoc = await testRef.get();
+                    if (!testDoc.exists) {
+                        throw new Error('Health check document not found after write');
+                    }
+
+                    // Clean up test document
+                    await testRef.delete();
+
+                    const responseTime = Date.now() - startTime;
+
+                    logger.info('Health check completed successfully', { responseTime });
+
+                    return {
+                        success: true,
+                        responseTime
+                    };
+                } catch (error) {
+                    const responseTime = Date.now() - startTime;
+                    logger.error('Health check failed', error, { responseTime });
+                    
+                    return {
+                        success: false,
+                        responseTime
+                    };
+                }
+            });
+    }
+
+    // ========================================================================
+    // Test User Pool Operations Implementation
+    // ========================================================================
+
+    /**
+     * Create a test user in the user pool
+     * @param email - Test user email
+     * @param userData - Test user data including token and password
+     * @returns Write result
+     */
+    async createTestUser(email: string, userData: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createTestUser',
+            async () => {
+                try {
+                    const finalData = {
+                        ...userData,
+                        createdAt: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.collection('test-user-pool').doc(email).set(finalData);
+
+                    logger.info('Test user created in pool', { 
+                        email, 
+                        status: userData.status,
+                        fields: Object.keys(userData) 
+                    });
+
+                    return {
+                        id: email,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to create test user', error, { email });
+                    return {
+                        id: email,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    /**
+     * Update test user status in the pool
+     * @param email - Test user email
+     * @param status - New status ('available' or 'borrowed')
+     * @returns Write result
+     */
+    async updateTestUserStatus(email: string, status: string): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.updateTestUserStatus',
+            async () => {
+                try {
+                    const updates = {
+                        status,
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.collection('test-user-pool').doc(email).update(updates);
+
+                    logger.info('Test user status updated', { email, status });
+
+                    return {
+                        id: email,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to update test user status', error, { email, status });
+                    return {
+                        id: email,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
 }

@@ -59,7 +59,6 @@ const UserThemeColorSchema = z.object({
     dark: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Must be a valid hex color'),
     name: z.string().min(1).max(50),
     pattern: z.enum(['solid', 'dots', 'stripes', 'diagonal']),
-    assignedAt: z.string().datetime(),
     colorIndex: z.number().int().min(0),
 });
 

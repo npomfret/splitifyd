@@ -44,8 +44,7 @@ export function getAppBuilder(): ApplicationBuilder {
     return appBuilder;
 }
 
-// Get Firebase instances normally
-const firestoreDb = getFirestore();
+// Firebase instances are now accessed through ApplicationBuilder for better encapsulation
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
@@ -88,13 +87,14 @@ function setupRoutes(app: express.Application): void {
     app.get('/health', async (req: express.Request, res: express.Response) => {
         const checks: Record<string, { status: 'healthy' | 'unhealthy'; responseTime?: number; error?: string }> = {};
 
-        const firestoreStart = Date.now();
-        const testRef = firestoreDb.collection('_health_check').doc('test');
-        await testRef.set({ timestamp: createOptimisticTimestamp() }, { merge: true });
-        await testRef.get();
+        // Use encapsulated health check operation
+        const appBuilder = getAppBuilder();
+        const firestoreWriter = appBuilder.buildFirestoreWriter();
+        
+        const firestoreHealthCheck = await firestoreWriter.performHealthCheck();
         checks.firestore = {
-            status: 'healthy',
-            responseTime: Date.now() - firestoreStart,
+            status: firestoreHealthCheck.success ? 'healthy' : 'unhealthy',
+            responseTime: firestoreHealthCheck.responseTime,
         };
 
         const authStart = Date.now();

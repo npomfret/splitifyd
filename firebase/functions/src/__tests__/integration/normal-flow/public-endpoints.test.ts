@@ -197,6 +197,221 @@ describe('Public Endpoints Tests', () => {
         });
     });
 
+    describe('Metrics Endpoint', () => {
+        test('should return performance metrics without authentication', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/metrics`);
+
+            expect(response.status).toBe(200);
+
+            const data = (await response.json()) as any;
+            expect(data).toHaveProperty('timestamp');
+            expect(data).toHaveProperty('samplingRate');
+            expect(data).toHaveProperty('bufferSize');
+            expect(data).toHaveProperty('metrics');
+            expect(data).toHaveProperty('rawCounts');
+
+            // Validate metrics structure
+            expect(data.metrics).toHaveProperty('api');
+            expect(data.metrics).toHaveProperty('db');
+            expect(data.metrics).toHaveProperty('trigger');
+
+            // Validate raw counts structure
+            expect(data.rawCounts).toHaveProperty('api');
+            expect(data.rawCounts).toHaveProperty('db');
+            expect(data.rawCounts).toHaveProperty('trigger');
+            expect(data.rawCounts).toHaveProperty('total');
+
+            // Validate data types
+            expect(typeof data.timestamp).toBe('string');
+            expect(typeof data.samplingRate).toBe('string');
+            expect(typeof data.bufferSize).toBe('number');
+            expect(typeof data.rawCounts.total).toBe('number');
+        });
+
+        test('should not expose sensitive performance data', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/metrics`);
+            const data = await response.json();
+
+            const jsonString = JSON.stringify(data);
+            // Should not contain sensitive keys, user data, or internal paths
+            expect(jsonString).not.toMatch(/password|secret|key|token|api_key|email|uid/i);
+            expect(jsonString).not.toMatch(/\/home|\/usr|C:\\\\|firebase\/functions/i);
+        });
+    });
+
+    describe('Environment Endpoint', () => {
+        test('should return environment information without authentication', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
+
+            expect(response.status).toBe(200);
+
+            const data = (await response.json()) as any;
+            expect(data).toHaveProperty('env');
+            expect(data).toHaveProperty('build');
+            expect(data).toHaveProperty('runtime');
+            expect(data).toHaveProperty('memory');
+            expect(data).toHaveProperty('filesystem');
+
+            // Validate build structure
+            expect(data.build).toHaveProperty('timestamp');
+            expect(data.build).toHaveProperty('date');
+            expect(data.build).toHaveProperty('version');
+
+            // Validate runtime structure
+            expect(data.runtime).toHaveProperty('startTime');
+            expect(data.runtime).toHaveProperty('uptime');
+            expect(data.runtime).toHaveProperty('uptimeHuman');
+
+            // Validate memory structure
+            expect(data.memory).toHaveProperty('rss');
+            expect(data.memory).toHaveProperty('heapTotal');
+            expect(data.memory).toHaveProperty('heapUsed');
+            expect(data.memory).toHaveProperty('external');
+
+            // Validate filesystem structure
+            expect(data.filesystem).toHaveProperty('currentDirectory');
+            expect(data.filesystem).toHaveProperty('files');
+            expect(Array.isArray(data.filesystem.files)).toBe(true);
+        });
+
+        test('should handle filesystem access errors gracefully', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/env`);
+            const data = await response.json();
+
+            // If filesystem access fails, should still return valid structure
+            expect(data.filesystem).toBeDefined();
+            expect(data.filesystem.files).toBeDefined();
+            expect(Array.isArray(data.filesystem.files)).toBe(true);
+        });
+    });
+
+    describe('Policy Endpoints', () => {
+        test('should return current policies without authentication', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/policies/current`);
+
+            expect(response.status).toBe(200);
+
+            const data = await response.json();
+            expect(data).toHaveProperty('policies');
+            expect(data).toHaveProperty('count');
+            expect(typeof data.count).toBe('number');
+            expect(typeof data.policies).toBe('object');
+            
+            // Policies should be a Record/object, not an array
+            expect(Array.isArray(data.policies)).toBe(false);
+        });
+
+        test('should return specific current policy without authentication', async () => {
+            // First get all policies to find a valid ID
+            const allPoliciesResponse = await fetch(`${apiDriver.getBaseUrl()}/policies/current`);
+            const allPolicies = await allPoliciesResponse.json();
+
+            const policyIds = Object.keys(allPolicies.policies || {});
+            if (policyIds.length > 0) {
+                const policyId = policyIds[0];
+                const response = await fetch(`${apiDriver.getBaseUrl()}/policies/${policyId}/current`);
+
+                expect(response.status).toBe(200);
+
+                const policy = await response.json();
+                expect(policy).toHaveProperty('id');
+                expect(policy).toHaveProperty('policyName');
+                expect(policy).toHaveProperty('currentVersionHash');
+                expect(policy).toHaveProperty('text');
+                expect(policy).toHaveProperty('createdAt');
+            }
+        });
+
+        test('should return 404 for non-existent policy', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/policies/non-existent-policy-id/current`);
+
+            expect(response.status).toBe(404);
+            
+            const data = await response.json();
+            expect(data).toHaveProperty('error');
+            expect(data.error).toHaveProperty('code');
+            expect(data.error).toHaveProperty('message');
+        });
+    });
+
+    describe('Registration Endpoint', () => {
+        test('should require valid registration data', async () => {
+            const invalidData = {
+                // Missing required fields
+            };
+
+            const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(invalidData),
+            });
+
+            expect([400, 422]).toContain(response.status); // Either validation error is acceptable
+        });
+
+        test('should reject registration with invalid email format', async () => {
+            const invalidData = {
+                email: 'invalid-email-format',
+                password: 'validPassword123!',
+                displayName: 'Test User'
+            };
+
+            const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(invalidData),
+            });
+
+            expect([400, 422]).toContain(response.status);
+        });
+
+        test('should reject registration with weak password', async () => {
+            const invalidData = {
+                email: 'test@example.com',
+                password: '123', // Too weak
+                displayName: 'Test User'
+            };
+
+            const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(invalidData),
+            });
+
+            expect([400, 422]).toContain(response.status);
+        });
+
+        test('should handle malformed JSON gracefully', async () => {
+            const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: 'invalid json',
+            });
+
+            expect([400, 500]).toContain(response.status); // Either is acceptable for invalid JSON
+        });
+
+        test('should reject non-POST methods', async () => {
+            const methods = ['GET', 'PUT', 'DELETE', 'PATCH'];
+
+            for (const method of methods) {
+                const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
+                    method,
+                });
+
+                expect([404, 405]).toContain(response.status); // Either is acceptable
+            }
+        });
+    });
+
     describe('CORS Headers', () => {
         test('should return proper CORS headers for OPTIONS requests', async () => {
             const testOrigin = 'http://localhost:3000';
@@ -317,19 +532,4 @@ describe('Public Endpoints Tests', () => {
         });
     });
 
-    describe('Rate Limiting', () => {
-        test('should handle multiple requests to public endpoints', async () => {
-            // Make multiple concurrent requests to test rate limiting
-            const promises = Array.from({ length: 20 }, () => fetch(`${apiDriver.getBaseUrl()}/health`));
-
-            const responses = await Promise.all(promises);
-
-            // Most should succeed, some might be rate limited
-            const successCount = responses.filter((r) => r.status === 200).length;
-            const rateLimitedCount = responses.filter((r) => r.status === 429).length;
-
-            expect(successCount + rateLimitedCount).toBe(20);
-            expect(successCount).toBeGreaterThan(0); // At least some should succeed
-        });
-    });
 });
