@@ -5,8 +5,8 @@ import { ApiError, Errors } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import {getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import { getFirestore } from "../firebase";
+import { ApplicationBuilder } from "../services/ApplicationBuilder";
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);

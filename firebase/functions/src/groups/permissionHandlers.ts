@@ -2,8 +2,8 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../auth/middleware';
 import { validateUserAuth } from '../auth/utils';
 import { logger } from '../logger';
-import {getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import { getFirestore } from "../firebase";
+import { ApplicationBuilder } from "../services/ApplicationBuilder";
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);

@@ -1,12 +1,15 @@
-import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { logger } from '../logger';
-import { getChangedFields, getGroupChangedFields, calculatePriority, ChangeType } from '../utils/change-detection';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { ParamsOf } from 'firebase-functions';
-import { measureTrigger } from '../monitoring/measure';
-import {getFirestore} from "../firebase";
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
+import {logger} from '../logger';
+import {getChangedFields, getGroupChangedFields, calculatePriority, ChangeType} from '../utils/change-detection';
+import {FirestoreCollections} from '@splitifyd/shared';
+import {DocumentSnapshot} from 'firebase-admin/firestore';
+import {ParamsOf} from 'firebase-functions';
+import {measureTrigger} from '../monitoring/measure';
+import {getAppBuilder} from '../index';
+
+const appBuilder = getAppBuilder();
+const firestoreReader = appBuilder.buildFirestoreReader();
+const notificationService = appBuilder.buildNotificationService();
 
 /**
  * Track changes to groups and create change documents for realtime updates
@@ -18,61 +21,56 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const { before, after, changeType } = extractDataChange(event);
-        const documentPath = `groups/${groupId}`;
+        const {before, after, changeType} = extractDataChange(event);
 
         // For DELETE events, notification-triggers handle member removal automatically
         // when member documents are deleted, so no additional work needed here
         if (changeType === 'deleted') {
-            logger.info('Group deletion detected - notifications handled by member deletion triggers', { 
-                groupId, 
-                changeType 
+            logger.info('Group deletion detected - notifications handled by member deletion triggers', {
+                groupId,
+                changeType
             });
             return;
         }
 
         return measureTrigger('trackGroupChanges', async () => {
-            // Create services with dependency injection for each trigger execution
-            const firestore = getFirestore();
-            const applicationBuilder = new ApplicationBuilder(firestore);
-            const firestoreReader = applicationBuilder.buildFirestoreReader();
-            const notificationService = applicationBuilder.buildNotificationService();
-                // Get changed fields (groups use flat structure)
-                const changedFields = getGroupChangedFields(before, after);
+            // Use singleton ApplicationBuilder
+            // Get changed fields (groups use flat structure)
+            const changedFields = getGroupChangedFields(before, after);
 
-                // Calculate priority (not currently used)
-                calculatePriority(changeType, changedFields, 'group');
+            // Calculate priority (not currently used)
+            calculatePriority(changeType, changedFields, 'group');
 
-                // Get affected users from the group
-                const affectedUsers = await (async (): Promise<string[]> => {
-                    const users: string[] = [];
-                    
-                    // For CREATE/UPDATE events, query the current group members
-                    try {
-                        const members = await firestoreReader.getAllGroupMembers(groupId);
-                        
-                        members.forEach(member => {
-                            users.push(member.userId);
-                        });
-                        
-                        logger.info('Fetched group members for change tracking', { 
-                            groupId, 
-                            changeType,
-                            memberCount: users.length,
-                            members: users 
-                        });
-                    } catch (error) {
-                        logger.warn('Could not fetch group members for change tracking', { groupId, changeType, error });
-                        // If we can't get members, we still create the change document but with empty users array
-                        // This ensures change detection still works at the group level
-                    }
-                    
-                    return users;
-                })();
+            // Get affected users from the group
+            const affectedUsers = await (async (): Promise<string[]> => {
+                const users: string[] = [];
 
-                // Update user notifications for CREATE/UPDATE events
-                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
-                logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+                // For CREATE/UPDATE events, query the current group members
+                try {
+                    const members = await firestoreReader.getAllGroupMembers(groupId);
+
+                    members.forEach(member => {
+                        users.push(member.userId);
+                    });
+
+                    logger.info('Fetched group members for change tracking', {
+                        groupId,
+                        changeType,
+                        memberCount: users.length,
+                        members: users
+                    });
+                } catch (error) {
+                    logger.warn('Could not fetch group members for change tracking', {groupId, changeType, error});
+                    // If we can't get members, we still create the change document but with empty users array
+                    // This ensures change detection still works at the group level
+                }
+
+                return users;
+            })();
+
+            // Update user notifications for CREATE/UPDATE events
+            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
+            logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
         });
     },
 );
@@ -87,12 +85,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const { before, after, changeType } = extractDataChange(event);
-
-        // Create services with dependency injection
-        const firestore = getFirestore();
-        const applicationBuilder = new ApplicationBuilder(firestore);
-        const notificationService = applicationBuilder.buildNotificationService();
+        const {before, after, changeType} = extractDataChange(event);
 
         // Process expense changes immediately
         try {
@@ -127,9 +120,9 @@ export const trackExpenseChanges = onDocumentWritten(
             await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'transaction');
             await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'balance');
 
-            logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.size });
+            logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.size});
         } catch (error) {
-            logger.error('Failed to track expense change', error as Error, { expenseId });
+            logger.error('Failed to track expense change', error as Error, {expenseId});
         }
     },
 );
@@ -144,45 +137,43 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const { before, after, changeType } = extractDataChange(event);
+        const {before, after, changeType} = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
-            // Create services with dependency injection
-            const firestore = getFirestore();
-            const applicationBuilder = new ApplicationBuilder(firestore);
-            const notificationService = applicationBuilder.buildNotificationService();
-                const beforeData = before?.data();
-                const afterData = after?.data();
+            // Use singleton ApplicationBuilder
+            const notificationService = getAppBuilder().buildNotificationService();
+            const beforeData = before?.data();
+            const afterData = after?.data();
 
-                // Get groupId from settlement data
-                const groupId = afterData?.groupId;
-                if (!groupId) {
-                    return;
+            // Get groupId from settlement data
+            const groupId = afterData?.groupId;
+            if (!groupId) {
+                return;
+            }
+
+            // Get affected users (payerId and payeeId)
+            const affectedUsers = await (async (): Promise<string[]> => {
+                const users = new Set<string>();
+
+                if (afterData) {
+                    users.add(afterData.payerId);
+                    users.add(afterData.payeeId);
+                }
+                if (beforeData) {
+                    users.add(beforeData.payerId);
+                    users.add(beforeData.payeeId);
                 }
 
-                // Get affected users (payerId and payeeId)
-                const affectedUsers = await (async (): Promise<string[]> => {
-                    const users = new Set<string>();
+                return Array.from(users);
+            })();
 
-                    if (afterData) {
-                        users.add(afterData.payerId);
-                        users.add(afterData.payeeId);
-                    }
-                    if (beforeData) {
-                        users.add(beforeData.payerId);
-                        users.add(beforeData.payeeId);
-                    }
+            // Update user notifications for transaction and balance changes
+            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
+            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
 
-                    return Array.from(users);
-                })();
+            logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
 
-                // Update user notifications for transaction and balance changes
-                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
-                await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
-                
-                logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
-
-                return { groupId, affectedUserCount: affectedUsers.length };
+            return {groupId, affectedUserCount: affectedUsers.length};
         });
     },
 );
@@ -203,5 +194,5 @@ function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | unde
         changeType = 'updated';
     }
 
-    return { before, after, changeType };
+    return {before, after, changeType};
 }

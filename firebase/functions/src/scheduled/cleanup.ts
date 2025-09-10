@@ -1,9 +1,13 @@
-import { onSchedule } from 'firebase-functions/v2/scheduler';
-import {getFirestore} from '../firebase';
-import { logger } from '../logger';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { IFirestoreReader, IFirestoreWriter } from "../services/firestore";
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import {onSchedule} from 'firebase-functions/v2/scheduler';
+import {logger} from '../logger';
+import {FirestoreCollections} from '@splitifyd/shared';
+import {IFirestoreReader, IFirestoreWriter} from "../services/firestore";
+import {getAppBuilder} from "../index";
+
+// Use singleton ApplicationBuilder
+const appBuilder = getAppBuilder();
+const firestoreReader = appBuilder.buildFirestoreReader();
+const firestoreWriter = appBuilder.buildFirestoreWriter();
 
 /**
  * Core cleanup logic that can be called by both scheduled function and tests
@@ -17,8 +21,8 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 export async function performCleanup(
     firestoreReader: IFirestoreReader,
     firestoreWriter: IFirestoreWriter,
-    deleteAll = false, 
-    logMetrics = true, 
+    deleteAll = false,
+    logMetrics = true,
     minutesToKeep = 5
 ): Promise<number> {
     const cutoffDate = new Date();
@@ -31,7 +35,7 @@ export async function performCleanup(
     const cleanupPromises = collections.map(async (collectionName) => {
         try {
             if (logMetrics) {
-                logger.info('cleanup-started', { collection: collectionName, deleteAll });
+                logger.info('cleanup-started', {collection: collectionName, deleteAll});
             }
 
             let collectionDeleteCount = 0;
@@ -67,7 +71,7 @@ export async function performCleanup(
             }
 
             if (logMetrics && collectionDeleteCount > 0) {
-                logger.info('cleanup-completed', { collection: collectionName, count: collectionDeleteCount, deleteAll });
+                logger.info('cleanup-completed', {collection: collectionName, count: collectionDeleteCount, deleteAll});
 
                 // Log metrics for monitoring using IFirestoreWriter
                 await logCleanupMetrics(firestoreWriter, {
@@ -81,7 +85,7 @@ export async function performCleanup(
             return collectionDeleteCount;
         } catch (error) {
             if (logMetrics) {
-                logger.error(`Failed to cleanup ${collectionName}`, error as Error, { collection: collectionName, deleteAll });
+                logger.error(`Failed to cleanup ${collectionName}`, error as Error, {collection: collectionName, deleteAll});
             }
             return 0;
         }
@@ -108,12 +112,6 @@ export const cleanupChanges = onSchedule(
         maxInstances: 1,
     },
     async () => {
-        // Create services with dependency injection
-        const firestore = getFirestore();
-        const applicationBuilder = new ApplicationBuilder(firestore);
-        const firestoreReader = applicationBuilder.buildFirestoreReader();
-        const firestoreWriter = applicationBuilder.buildFirestoreWriter();
-        
         await performCleanup(firestoreReader, firestoreWriter, false, true, 5);
     },
 );

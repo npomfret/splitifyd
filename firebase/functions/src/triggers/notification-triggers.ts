@@ -1,21 +1,23 @@
 /**
  * Notification Triggers for User Lifecycle Events
- * 
+ *
  * These triggers manage the lifecycle of user notification documents:
  * - Initialize notification documents when users are created
  * - Add users to group notifications when they join groups
  * - Remove users from group notifications when they leave groups
  * - Clean up notification documents when users are deleted
- * 
+ *
  * These triggers only run when the new notification system is enabled.
  */
 
-import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { logger } from '../logger';
-import { measureTrigger } from '../monitoring/measure';
-import {getFirestore} from "../firebase";
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import {onDocumentCreated, onDocumentDeleted} from 'firebase-functions/v2/firestore';
+import {FirestoreCollections} from '@splitifyd/shared';
+import {logger} from '../logger';
+import {measureTrigger} from '../monitoring/measure';
+import {getAppBuilder} from '../index';
+
+// Use singleton ApplicationBuilder
+const notificationService = getAppBuilder().buildNotificationService();
 
 /**
  * Create notification triggers
@@ -30,19 +32,15 @@ export function createNotificationTriggers() {
             },
             async (event) => {
                 const userId = event.params.userId;
-                
+
                 return measureTrigger('initializeUserNotifications', async () => {
-                    // Create services with dependency injection
-                    const firestore = getFirestore();
-                    const applicationBuilder = new ApplicationBuilder(firestore);
-                    const notificationService = applicationBuilder.buildNotificationService();
-                    
+
                     await notificationService.initializeUserNotifications(userId);
-                        
-                        logger.info('User notification document initialized', { 
-                            userId,
-                            trigger: 'user-created'
-                        });
+
+                    logger.info('User notification document initialized', {
+                        userId,
+                        trigger: 'user-created'
+                    });
                 });
             }
         ),
@@ -56,35 +54,31 @@ export function createNotificationTriggers() {
                 // Extract userId and groupId from the membership document data
                 const membershipData = event.data?.data();
                 if (!membershipData) {
-                    logger.warn('No membership data found in trigger event', { membershipId: event.params.membershipId });
+                    logger.warn('No membership data found in trigger event', {membershipId: event.params.membershipId});
                     return;
                 }
-                
+
                 const groupId = membershipData.groupId;
                 const userId = membershipData.userId;
-                
+
                 return measureTrigger('addUserToGroupNotifications',
                     async () => {
-                        // Create services with dependency injection
-                        const firestore = getFirestore();
-                        const applicationBuilder = new ApplicationBuilder(firestore);
-                        const notificationService = applicationBuilder.buildNotificationService();
-                        
+
                         // First ensure user has notification document
                         await notificationService.initializeUserNotifications(userId);
-                        
+
                         // Then add them to the group
                         await notificationService.addUserToGroupNotificationTracking(userId, groupId);
-                        
+
                         // Send group change notification to the new user
                         await notificationService.updateUserNotification(userId, groupId, 'group');
-                        
-                        logger.info('User added to group notifications', { 
+
+                        logger.info('User added to group notifications', {
                             userId,
                             groupId,
                             trigger: 'member-added'
                         });
-                });
+                    });
             }
         ),
 
@@ -97,33 +91,29 @@ export function createNotificationTriggers() {
                 // Extract userId and groupId from the deleted membership document data
                 const membershipData = event.data?.data();
                 if (!membershipData) {
-                    logger.warn('No membership data found in deleted document trigger event', { membershipId: event.params.membershipId });
+                    logger.warn('No membership data found in deleted document trigger event', {membershipId: event.params.membershipId});
                     return;
                 }
-                
+
                 const groupId = membershipData.groupId;
                 const userId = membershipData.userId;
-                
+
                 return measureTrigger('removeUserFromGroupNotifications',
                     async () => {
-                        // Create services with dependency injection
-                        const firestore = getFirestore();
-                        const applicationBuilder = new ApplicationBuilder(firestore);
-                        const notificationService = applicationBuilder.buildNotificationService();
-                        
+
                         // CRITICAL: Notify the user about the group change BEFORE removing them
                         // This ensures they receive real-time updates about group deletion/removal
                         await notificationService.updateUserNotification(userId, groupId, 'group');
-                        
+
                         // Then remove user from group notifications
                         await notificationService.removeUserFromGroup(userId, groupId);
-                        
-                        logger.info('User removed from group notifications', { 
+
+                        logger.info('User removed from group notifications', {
                             userId,
                             groupId,
                             trigger: 'member-removed'
                         });
-                });
+                    });
             }
         ),
 
@@ -134,27 +124,25 @@ export function createNotificationTriggers() {
             },
             async (event) => {
                 const userId = event.params.userId;
-                
+
                 return measureTrigger('cleanupUserNotifications', async () => {
-                        // Create services with dependency injection
-                        const firestore = getFirestore();
-                        const applicationBuilder = new ApplicationBuilder(firestore);
-                        const firestoreWriter = applicationBuilder.buildFirestoreWriter();
-                        
-                        // Delete the user's notification document
-                        const result = await firestoreWriter.bulkDelete([`user-notifications/${userId}`]);
-                        
-                        if (result.successCount > 0) {
-                            logger.info('User notification document cleaned up', { 
-                                userId,
-                                trigger: 'user-deleted'
-                            });
-                        } else {
-                            logger.warn('User notification document cleanup failed or not found', { 
-                                userId,
-                                failureCount: result.failureCount
-                            });
-                        }
+                    // Use singleton ApplicationBuilder
+                    const firestoreWriter = getAppBuilder().buildFirestoreWriter();
+
+                    // Delete the user's notification document
+                    const result = await firestoreWriter.bulkDelete([`user-notifications/${userId}`]);
+
+                    if (result.successCount > 0) {
+                        logger.info('User notification document cleaned up', {
+                            userId,
+                            trigger: 'user-deleted'
+                        });
+                    } else {
+                        logger.warn('User notification document cleanup failed or not found', {
+                            userId,
+                            failureCount: result.failureCount
+                        });
+                    }
                 });
             }
         )
