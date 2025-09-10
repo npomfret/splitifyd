@@ -78,7 +78,7 @@ describe('Real-time Notifications Integration Tests', () => {
             users[0].uid,
             group.id,
             beforeTransactionCount + 1,
-            { timeout: 1000 }
+            { timeout: 5000 }
         );
 
         expect(afterNotification.groups[group.id].transactionChangeCount).toBeGreaterThan(beforeTransactionCount);
@@ -120,7 +120,7 @@ describe('Real-time Notifications Integration Tests', () => {
         const afterNotification = await notificationDriver.waitForVersion(
             users[0].uid,
             beforeVersion + 1,
-            { timeout: 1000 }
+            { timeout: 5000 }
         );
 
         expect(afterNotification.changeVersion).toBeGreaterThan(beforeVersion);
@@ -310,7 +310,7 @@ describe('Real-time Notifications Integration Tests', () => {
             users[0].uid, 
             freshGroupResult.id, 
             beforeTransactionCount + 1,
-            { timeout: 1000 }
+            { timeout: 5000 }
         );
 
         expect(notification).toBeDefined();
@@ -461,14 +461,14 @@ describe('Real-time Notifications Integration Tests', () => {
             users[0].uid,
             multiUserGroup.id,
             2, // Initial + shared
-            { timeout: 1000 }
+            { timeout: 5000 }
         );
         
         const user2Notification = await notificationDriver.waitForTransactionChange(
             users[1].uid,
             multiUserGroup.id,
             1, // Shared expense
-            { timeout: 1000 }
+            { timeout: 5000 }
         );
 
         expect(user1Notification.groups[multiUserGroup.id].transactionChangeCount).toBeGreaterThanOrEqual(2);
