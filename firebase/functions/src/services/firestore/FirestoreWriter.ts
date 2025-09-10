@@ -515,13 +515,18 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Comment Write Operations
     // ========================================================================
 
-    async addComment(targetType: 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
+    async addComment(targetType: 'group' | 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.addComment',
             async () => {
                 try {
-                    const collection = targetType === 'expense' 
-                        ? FirestoreCollections.EXPENSES 
-                        : FirestoreCollections.SETTLEMENTS;
+                    let collection: string;
+                    if (targetType === 'group') {
+                        collection = FirestoreCollections.GROUPS;
+                    } else if (targetType === 'expense') {
+                        collection = FirestoreCollections.EXPENSES;
+                    } else {
+                        collection = FirestoreCollections.SETTLEMENTS;
+                    }
 
                     // Create comment reference
                     const commentRef = this.db
@@ -536,10 +541,11 @@ export class FirestoreWriter implements IFirestoreWriter {
                     // Use validated data directly
                     const dataToWrite = validatedData;
 
-                    // Add timestamp
+                    // Add timestamps
                     const finalData = {
                         ...dataToWrite,
-                        timestamp: FieldValue.serverTimestamp()
+                        createdAt: FieldValue.serverTimestamp(),
+                        updatedAt: FieldValue.serverTimestamp()
                     };
 
                     await commentRef.set(finalData);
@@ -986,6 +992,37 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Generic Document Operations
     // ========================================================================
 
+    async createDocument(documentPath: string, data: any): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.createDocument',
+            async () => {
+                try {
+                    // Add timestamps
+                    const finalData = {
+                        ...data,
+                        createdAt: FieldValue.serverTimestamp(),
+                        updatedAt: FieldValue.serverTimestamp()
+                    };
+
+                    await this.db.doc(documentPath).set(finalData);
+
+                    logger.info('Document created', { documentPath });
+
+                    return {
+                        id: documentPath,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to create document', error, { documentPath });
+                    return {
+                        id: documentPath,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
     async updateDocument(documentPath: string, updates: any): Promise<WriteResult> {
         return measureDb('FirestoreWriter.updateDocument',
             async () => {
@@ -1007,6 +1044,30 @@ export class FirestoreWriter implements IFirestoreWriter {
                     };
                 } catch (error) {
                     logger.error('Failed to update document', error, { documentPath });
+                    return {
+                        id: documentPath,
+                        success: false,
+                        error: error instanceof Error ? error.message : 'Unknown error'
+                    };
+                }
+            });
+    }
+
+    async deleteDocument(documentPath: string): Promise<WriteResult> {
+        return measureDb('FirestoreWriter.deleteDocument',
+            async () => {
+                try {
+                    await this.db.doc(documentPath).delete();
+
+                    logger.info('Document deleted', { documentPath });
+
+                    return {
+                        id: documentPath,
+                        success: true,
+                        timestamp: new Date() as any
+                    };
+                } catch (error) {
+                    logger.error('Failed to delete document', error, { documentPath });
                     return {
                         id: documentPath,
                         success: false,

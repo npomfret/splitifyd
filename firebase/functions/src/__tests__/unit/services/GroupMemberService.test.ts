@@ -41,6 +41,7 @@ describe('GroupMemberService', () => {
         mockGroupMemberServiceRef = createMockGroupMemberService();
         groupMemberService = new GroupMemberService(
             mockFirestoreReader,
+            {} as any, // mockFirestoreWriter
             mockUserService as any,
             mockNotificationService as any
         );

@@ -170,13 +170,13 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
-     * Add a comment to an expense or settlement
-     * @param targetType - 'expense' or 'settlement'
-     * @param targetId - The expense or settlement ID
+     * Add a comment to a group, expense or settlement
+     * @param targetType - 'group', 'expense' or 'settlement'
+     * @param targetId - The group, expense or settlement ID
      * @param commentData - The comment data
      * @returns Write result with generated comment ID
      */
-    addComment(targetType: 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
+    addComment(targetType: 'group' | 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
 
     /**
      * Update a comment
@@ -361,12 +361,27 @@ export interface IFirestoreWriter {
     // ========================================================================
 
     /**
+     * Create a single document by path
+     * @param documentPath - The full document path (e.g., 'group-memberships/userId_groupId')
+     * @param data - The document data
+     * @returns Write result
+     */
+    createDocument(documentPath: string, data: any): Promise<WriteResult>;
+
+    /**
      * Update a single document by path
      * @param documentPath - The full document path (e.g., 'user-notifications/userId')
      * @param updates - The update data
      * @returns Write result
      */
     updateDocument(documentPath: string, updates: any): Promise<WriteResult>;
+
+    /**
+     * Delete a single document by path
+     * @param documentPath - The full document path (e.g., 'group-memberships/userId_groupId')
+     * @returns Write result
+     */
+    deleteDocument(documentPath: string): Promise<WriteResult>;
 
     // ========================================================================
     // Utility Operations

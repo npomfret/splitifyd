@@ -1,6 +1,6 @@
 import {DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
 import {z} from 'zod';
-import {getAuth, getFirestore} from '../firebase';
+import {getAuth} from '../firebase';
 import {ApiError} from '../utils/errors';
 import {HTTP_STATUS} from '../constants';
 import {createOptimisticTimestamp, timestampToISO} from '../utils/dateHelpers';
@@ -11,6 +11,7 @@ import { measureDb } from '../monitoring/measure';
 import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
 import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import {GroupMemberService} from "./GroupMemberService";
 
 /**
@@ -24,7 +25,11 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
-    constructor(private readonly firestoreReader: IFirestoreReader, private groupMemberService: GroupMemberService) {
+    constructor(
+        private readonly firestoreReader: IFirestoreReader, 
+        private readonly firestoreWriter: IFirestoreWriter,
+        private readonly groupMemberService: GroupMemberService
+    ) {
     }
 
     /**
@@ -170,22 +175,6 @@ export class CommentService {
         };
     }
 
-    /**
-     * Get Firestore collection reference for comments on a target
-     */
-    private getCommentsCollection(targetType: CommentTargetType, targetId: string) {
-        if (targetType === CommentTargetTypes.GROUP) {
-            return getFirestore().collection(FirestoreCollections.GROUPS)
-                .doc(targetId)
-                .collection(FirestoreCollections.COMMENTS);
-        } else if (targetType === CommentTargetTypes.EXPENSE) {
-            return getFirestore().collection(FirestoreCollections.EXPENSES)
-                .doc(targetId)
-                .collection(FirestoreCollections.COMMENTS);
-        } else {
-            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_TARGET_TYPE', `Unsupported comment target type: ${targetType}`);
-        }
-    }
 
     /**
      * Create a new comment
@@ -240,12 +229,11 @@ export class CommentService {
         // Validate comment data structure before writing to Firestore
         const validatedComment = CommentDataSchema.parse(commentCreateData);
 
-        // Create the comment document
-        const commentsCollection = this.getCommentsCollection(targetType, targetId);
-        const commentDocRef = await commentsCollection.add(validatedComment);
+        // Create the comment document using FirestoreWriter
+        const writeResult = await this.firestoreWriter.addComment(targetType, targetId, validatedComment);
 
         // Fetch the created comment to return it using FirestoreReader
-        const createdComment = await this.firestoreReader.getCommentByReference(commentDocRef);
+        const createdComment = await this.firestoreReader.getComment(targetType, targetId, writeResult.id);
         if (!createdComment) {
             throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_CREATION_FAILED', 'Failed to retrieve created comment');
         }

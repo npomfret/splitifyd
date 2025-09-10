@@ -1,5 +1,4 @@
 import { FieldValue } from 'firebase-admin/firestore';
-import {getFirestore} from '../firebase';
 import { Errors, ApiError } from '../utils/errors';
 import { UserService } from './UserService2';
 import { NotificationService } from './notification-service';
@@ -8,8 +7,8 @@ import { FirestoreCollections } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { measureDb } from '../monitoring/measure';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import {MemberRoles} from "@splitifyd/shared";
 import {DataFetcher} from "./balance/DataFetcher";
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
@@ -19,21 +18,12 @@ export class GroupMemberService {
     
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly userService: UserService,
+        private readonly firestoreWriter: IFirestoreWriter,
+        userService: UserService,
         private readonly notificationService: NotificationService,
     ) {
         const dataFetcher = new DataFetcher(firestoreReader, userService);
         this.balanceService = new BalanceCalculationService(dataFetcher);
-    }
-
-    private getInitials(nameOrEmail: string): string {
-        const name = nameOrEmail || '';
-        const parts = name.split(/[\s@]+/).filter(Boolean);
-
-        if (parts.length === 0) return '?';
-        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-
-        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
@@ -100,10 +90,7 @@ export class GroupMemberService {
         }
 
         // Update group timestamp
-        const docRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
-        await docRef.update({
-            updatedAt: FieldValue.serverTimestamp(),
-        });
+        await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUPS}/${groupId}`, {});
 
         await this.deleteMember(groupId, userId);
 
@@ -183,11 +170,8 @@ export class GroupMemberService {
             throw Errors.INTERNAL_ERROR();
         }
 
-        // Update group timestamp
-        const docRef2 = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
-        await docRef2.update({
-            updatedAt: FieldValue.serverTimestamp(),
-        });
+        // Update group timestamp  
+        await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUPS}/${groupId}`, {});
 
         // Also remove from subcollection
         await this.deleteMember(groupId, memberId);
@@ -214,20 +198,15 @@ export class GroupMemberService {
             'CREATE_MEMBER',
             async () => {
                 const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
-                const topLevelRef = getFirestore()
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .doc(topLevelDocId);
-
                 const topLevelMemberDoc = createTopLevelMembershipDocument(
                     memberDoc,
                     new Date().toISOString()
                 );
 
-                await topLevelRef.set({
-                    ...topLevelMemberDoc,
-                    createdAt: createOptimisticTimestamp(),
-                    updatedAt: createOptimisticTimestamp(),
-                });
+                await this.firestoreWriter.createDocument(
+                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`,
+                    topLevelMemberDoc
+                );
 
                 logger.info('Member added to top-level collection', { 
                     groupId, 
@@ -262,14 +241,11 @@ export class GroupMemberService {
             'UPDATE_MEMBER',
             async () => {
                 const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-                const topLevelRef = getFirestore()
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .doc(topLevelDocId);
-
-                await topLevelRef.update({
-                    ...updates,
-                    updatedAt: createOptimisticTimestamp(),
-                });
+                
+                await this.firestoreWriter.updateDocument(
+                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`,
+                    updates
+                );
 
                 logger.info('Member updated in top-level collection', { 
                     groupId, 
@@ -287,11 +263,11 @@ export class GroupMemberService {
         return measureDb(
             'DELETE_MEMBER',
             async () => {
-                const topLevelRef = getFirestore()
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .doc(getTopLevelMembershipDocId(userId, groupId));
+                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
                 
-                await topLevelRef.delete();
+                await this.firestoreWriter.deleteDocument(
+                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`
+                );
 
                 // Remove notification tracking for departed member
                 await this.notificationService.removeUserFromGroup(userId, groupId);

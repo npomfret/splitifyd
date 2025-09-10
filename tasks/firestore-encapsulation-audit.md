@@ -226,9 +226,37 @@ Since the original audit, significant progress has been made implementing Phase 
 *   **Result:** Zero direct Firestore access, full encapsulation achieved
 *   **Integration Testing:** All 14 policy validation tests pass, confirming UserPolicyService functionality
 
-### 4.2. In Progress
+### 4.2. Phase 3 Implementation Status: ACTIVE
 
-*   None - Moving to remaining high-priority services
+#### Recently Completed (January 2025)
+
+*   **`CommentService.ts` - ✅ COMPLETED**
+    *   **Status:** Fully Resolved
+    *   **Changes Made:**
+        *   Added IFirestoreWriter injection to constructor alongside existing IFirestoreReader  
+        *   Extended `addComment` method in IFirestoreWriter interface to support 'group' target type
+        *   Updated FirestoreWriter implementation to handle 'group' comments in addition to 'expense' and 'settlement'
+        *   Removed `getCommentsCollection` method and direct `getFirestore()` calls
+        *   Replaced direct collection operations with `this.firestoreWriter.addComment(targetType, targetId, validatedComment)`
+        *   Updated ApplicationBuilder to inject both dependencies
+        *   Fixed unit tests to include MockFirestoreWriter
+    *   **Result:** Zero direct Firestore access, full encapsulation achieved
+
+*   **`GroupMemberService.ts` - ✅ COMPLETED**
+    *   **Status:** Fully Resolved  
+    *   **Changes Made:**
+        *   Added IFirestoreWriter injection to constructor alongside existing IFirestoreReader
+        *   Added generic document operations to IFirestoreWriter interface: `createDocument`, `updateDocument`, `deleteDocument`
+        *   Implemented generic document operations in FirestoreWriter with proper error handling and logging
+        *   Replaced all direct Firestore calls:
+            *   Group timestamp updates: `getFirestore().collection().doc().update()` → `this.firestoreWriter.updateDocument()`
+            *   Member creation: `getFirestore().collection().doc().set()` → `this.firestoreWriter.createDocument()`
+            *   Member updates: `getFirestore().collection().doc().update()` → `this.firestoreWriter.updateDocument()`
+            *   Member deletion: `getFirestore().collection().doc().delete()` → `this.firestoreWriter.deleteDocument()`
+        *   Removed direct `getFirestore` import and cleaned up unused imports
+        *   Updated ApplicationBuilder to inject both dependencies
+        *   Fixed unit tests to include mock FirestoreWriter
+    *   **Result:** Zero direct Firestore access, full encapsulation achieved
 
 ### 4.3. Remaining Work
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CommentService } from '../../../services/CommentService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
+import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
@@ -16,13 +17,17 @@ const createMockGroupMemberService = () => ({
 describe('CommentService', () => {
     let commentService: CommentService;
     let mockFirestoreReader: MockFirestoreReader;
+    let mockFirestoreWriter: IFirestoreWriter;
     let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
 
     beforeEach(() => {
         vi.clearAllMocks();
         mockFirestoreReader = new MockFirestoreReader();
+        mockFirestoreWriter = {
+            addComment: vi.fn(),
+        } as unknown as IFirestoreWriter;
         mockGroupMemberService = createMockGroupMemberService();
-        commentService = new CommentService(mockFirestoreReader, mockGroupMemberService as any);
+        commentService = new CommentService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
     });
 
     describe('verifyCommentAccess for GROUP comments', () => {

@@ -106,7 +106,11 @@ export class ApplicationBuilder {
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildGroupMemberService());
+            this.commentService = new CommentService(
+                this.buildFirestoreReader(), 
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService()
+            );
         }
         return this.commentService;
     }
@@ -135,6 +139,7 @@ export class ApplicationBuilder {
         if (!this.groupMemberService) {
             this.groupMemberService = new GroupMemberService(
                 this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
                 this.buildUserService(),
                 this.buildNotificationService()
             );
