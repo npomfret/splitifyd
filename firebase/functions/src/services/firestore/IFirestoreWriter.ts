@@ -15,6 +15,7 @@
  */
 
 import type { Transaction, WriteBatch, DocumentReference, Timestamp } from 'firebase-admin/firestore';
+import type { CommentTargetType } from '@splitifyd/shared';
 
 /**
  * Options for configuring transaction behavior including retry logic
@@ -176,7 +177,7 @@ export interface IFirestoreWriter {
      * @param commentData - The comment data
      * @returns Write result with generated comment ID
      */
-    addComment(targetType: 'group' | 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
+    addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult>;
 
     /**
      * Update a comment

@@ -13,6 +13,8 @@ import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
+import { CommentStrategyFactory } from '../comments/CommentStrategyFactory';
+import { GroupMemberService } from '../GroupMemberService';
 
 // Import all schemas for validation
 import {
@@ -62,6 +64,21 @@ export class FirestoreReader implements IFirestoreReader {
     constructor(
         private readonly db: Firestore
     ) {}
+
+    /**
+     * Get the Firestore collection path for comments on a target entity
+     * This eliminates type-dispatching conditionals in comment methods
+     */
+    private getCommentCollectionPath(targetType: CommentTargetType, targetId: string): string {
+        switch (targetType) {
+            case CommentTargetTypes.GROUP:
+                return `${FirestoreCollections.GROUPS}/${targetId}/${FirestoreCollections.COMMENTS}`;
+            case CommentTargetTypes.EXPENSE:
+                return `${FirestoreCollections.EXPENSES}/${targetId}/${FirestoreCollections.COMMENTS}`;
+            default:
+                throw new Error(`Unsupported comment target type: ${targetType}`);
+        }
+    }
 
     // ========================================================================
     // Document Read Operations
@@ -1109,21 +1126,9 @@ export class FirestoreReader implements IFirestoreReader {
         try {
             const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
             
-            // Get the appropriate subcollection reference
-            let commentsCollection: FirebaseFirestore.CollectionReference;
-            if (targetType === CommentTargetTypes.GROUP) {
-                commentsCollection = this.db
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(targetId)
-                    .collection(FirestoreCollections.COMMENTS);
-            } else if (targetType === CommentTargetTypes.EXPENSE) {
-                commentsCollection = this.db
-                    .collection(FirestoreCollections.EXPENSES)
-                    .doc(targetId)
-                    .collection(FirestoreCollections.COMMENTS);
-            } else {
-                throw new Error(`Invalid target type: ${targetType}`);
-            }
+            // Get the appropriate subcollection reference using collection path helper
+            const collectionPath = this.getCommentCollectionPath(targetType, targetId);
+            const commentsCollection = this.db.collection(collectionPath);
 
             // Build the query
             let query = commentsCollection
@@ -1196,21 +1201,9 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
         try {
-            // Get the appropriate subcollection reference
-            let commentsCollection: FirebaseFirestore.CollectionReference;
-            if (targetType === CommentTargetTypes.GROUP) {
-                commentsCollection = this.db
-                    .collection(FirestoreCollections.GROUPS)
-                    .doc(targetId)
-                    .collection(FirestoreCollections.COMMENTS);
-            } else if (targetType === CommentTargetTypes.EXPENSE) {
-                commentsCollection = this.db
-                    .collection(FirestoreCollections.EXPENSES)
-                    .doc(targetId)
-                    .collection(FirestoreCollections.COMMENTS);
-            } else {
-                throw new Error(`Invalid target type: ${targetType}`);
-            }
+            // Get the appropriate subcollection reference using collection path helper
+            const collectionPath = this.getCommentCollectionPath(targetType, targetId);
+            const commentsCollection = this.db.collection(collectionPath);
 
             const doc = await commentsCollection.doc(commentId).get();
 

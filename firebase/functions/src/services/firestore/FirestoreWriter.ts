@@ -17,7 +17,7 @@ import type {
 } from 'firebase-admin/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
-import { FirestoreCollections } from '@splitifyd/shared';
+import { FirestoreCollections, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
@@ -72,6 +72,21 @@ interface TransactionRetryMetric {
 
 export class FirestoreWriter implements IFirestoreWriter {
     constructor(private readonly db: Firestore) {}
+
+    /**
+     * Get the Firestore collection path for comments on a target entity
+     * This eliminates type-dispatching conditionals in comment methods
+     */
+    private getCommentCollectionPath(targetType: CommentTargetType, targetId: string): string {
+        switch (targetType) {
+            case CommentTargetTypes.GROUP:
+                return `${FirestoreCollections.GROUPS}/${targetId}/${FirestoreCollections.COMMENTS}`;
+            case CommentTargetTypes.EXPENSE:
+                return `${FirestoreCollections.EXPENSES}/${targetId}/${FirestoreCollections.COMMENTS}`;
+            default:
+                throw new Error(`Unsupported comment target type: ${targetType}`);
+        }
+    }
 
     // ========================================================================
     // User Write Operations
@@ -515,24 +530,16 @@ export class FirestoreWriter implements IFirestoreWriter {
     // Comment Write Operations
     // ========================================================================
 
-    async addComment(targetType: 'group' | 'expense' | 'settlement', targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
+    async addComment(targetType: CommentTargetType, targetId: string, commentData: Omit<CommentDocument, 'id'>): Promise<WriteResult> {
         return measureDb('FirestoreWriter.addComment',
             async () => {
                 try {
-                    let collection: string;
-                    if (targetType === 'group') {
-                        collection = FirestoreCollections.GROUPS;
-                    } else if (targetType === 'expense') {
-                        collection = FirestoreCollections.EXPENSES;
-                    } else {
-                        collection = FirestoreCollections.SETTLEMENTS;
-                    }
-
+                    // Get collection path using helper method to eliminate type-dispatching
+                    const collectionPath = this.getCommentCollectionPath(targetType, targetId);
+                    
                     // Create comment reference
                     const commentRef = this.db
-                        .collection(collection)
-                        .doc(targetId)
-                        .collection('comments')
+                        .collection(collectionPath)
                         .doc();
 
                     // Validate comment data

@@ -13,6 +13,7 @@ import {FirestoreCollections} from '@splitifyd/shared';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
 import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
 import {GroupMemberService} from "./GroupMemberService";
+import {CommentStrategyFactory} from './comments/CommentStrategyFactory';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -25,53 +26,22 @@ type CommentCreateData = Omit<Comment, 'id' | 'authorAvatar'> & {
  * Service for managing comment operations
  */
 export class CommentService {
+    private readonly strategyFactory: CommentStrategyFactory;
+
     constructor(
         private readonly firestoreReader: IFirestoreReader, 
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService
     ) {
+        this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);
     }
 
     /**
      * Verify user has access to comment on the target entity
      */
-    private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string, groupId?: string): Promise<void> {
-        if (targetType === CommentTargetTypes.GROUP) {
-            // For group comments, verify user is a group member
-            const group = await this.firestoreReader.getGroup(targetId);
-            if (!group) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-            }
-
-            if (!(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
-                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
-            }
-        } else if (targetType === CommentTargetTypes.EXPENSE) {
-            // For expense comments, verify expense exists and user is in the group
-            if (!groupId) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required for expense comments');
-            }
-
-            const expense = await this.firestoreReader.getExpense(targetId);
-            if (!expense || expense.deletedAt) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-
-            // Verify user is a member of the group that the expense belongs to
-            const group = await this.firestoreReader.getGroup(groupId);
-            if (!group) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
-            }
-
-            if (!(await this.groupMemberService.isGroupMemberAsync(group.id, userId))) {
-                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'ACCESS_DENIED', 'User is not a member of this group');
-            }
-
-            // Verify the expense actually belongs to this group
-            if (expense.groupId !== groupId) {
-                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'EXPENSE_GROUP_MISMATCH', 'Expense does not belong to the specified group');
-            }
-        }
+    private async verifyCommentAccess(targetType: CommentTargetType, targetId: string, userId: string): Promise<void> {
+        const strategy = this.strategyFactory.getStrategy(targetType);
+        await strategy.verifyAccess(targetId, userId);
     }
 
     /**
@@ -136,18 +106,8 @@ export class CommentService {
         const limit = options.limit || 50;
         const { cursor, groupId } = options;
 
-        // For expense comments, verify we have the groupId and the expense exists
-        let resolvedGroupId = groupId;
-        if (targetType === CommentTargetTypes.EXPENSE) {
-            const expense = await this.firestoreReader.getExpense(targetId);
-            if (!expense || expense.deletedAt) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-            resolvedGroupId = expense.groupId;
-        }
-
         // Verify user has access to view comments on this target
-        await this.verifyCommentAccess(targetType, targetId, userId, resolvedGroupId);
+        await this.verifyCommentAccess(targetType, targetId, userId);
 
         // Use FirestoreReader to get comments with pagination
         const result = await this.firestoreReader.getCommentsForTarget(targetType, targetId, {
@@ -198,18 +158,8 @@ export class CommentService {
     ): Promise<CommentApiResponse> {
         LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
         
-        // For expense comments, resolve the groupId from the expense
-        let resolvedGroupId = groupId;
-        if (targetType === CommentTargetTypes.EXPENSE) {
-            const expense = await this.firestoreReader.getExpense(targetId);
-            if (!expense || expense.deletedAt) {
-                throw new ApiError(HTTP_STATUS.NOT_FOUND, 'EXPENSE_NOT_FOUND', 'Expense not found');
-            }
-            resolvedGroupId = expense.groupId;
-        }
-
         // Verify user has access to comment on this target
-        await this.verifyCommentAccess(targetType, targetId, userId, resolvedGroupId);
+        await this.verifyCommentAccess(targetType, targetId, userId);
 
         // Get user display name for the comment
         const userRecord = await getAuth().getUser(userId);
