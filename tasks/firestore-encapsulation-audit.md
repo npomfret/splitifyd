@@ -32,23 +32,27 @@ This report details the current status of each previously identified issue and p
     *   `L270: const topLevelRef = getFirestore().collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);`
 *   **Recommendation:** Replace all direct write/update/delete operations with their `IFirestoreWriter` equivalents (e.g., `firestoreWriter.updateGroup`, `firestoreWriter.createGroupMember`, `firestoreWriter.deleteGroupMember`).
 
-#### `firebase/functions/src/services/GroupService.ts` - ❌ INCOMPLETE
-*   **Status:** Partially Resolved - REQUIRES COMPLETION
+#### `firebase/functions/src/services/GroupService.ts` - ✅ COMPLETED
+*   **Status:** Fully Resolved - PHASE 4 COMPLETION
 *   **Changes Made:**
     *   ✅ Removed `private groupsCollection` property 
     *   ✅ Updated basic CRUD operations to use `IFirestoreWriter`
     *   ✅ Updated `fetchGroupWithAccess`, `_createGroup`, and `updateGroup` methods
-    *   ✅ Removed direct imports in most areas
-*   **REMAINING ISSUES:**
-    *   **7 direct `getFirestore()` calls still exist** (Lines: 716, 771, 897, 928, 1106, 1143, 1241)
-    *   Group deletion functionality not fully encapsulated:
-        *   `markGroupForDeletion()` method uses direct Firestore transactions
-        *   `markGroupDeletionFailed()` method uses direct Firestore access  
-        *   `finalizeGroupDeletion()` method uses direct Firestore access
-        *   Recovery methods (`findStuckDeletions`, `recoverFailedDeletion`, `getDeletionStatus`) use direct Firestore calls
-    *   Transaction membership queries in `updateGroup` use direct `getFirestore().collection().where()`
-*   **Priority:** HIGH - Core service functionality not fully encapsulated
-*   **Impact:** Group deletion and recovery operations bypass encapsulation layer
+    *   ✅ Completed group deletion functionality encapsulation:
+        *   `markGroupForDeletion()` → uses `firestoreWriter.getDocumentReferenceInTransaction()`
+        *   `markGroupDeletionFailed()` → uses `firestoreWriter.getDocumentReferenceInTransaction()`  
+        *   `finalizeGroupDeletion()` → uses `firestoreWriter.getDocumentReferenceInTransaction()`
+        *   `findStuckDeletions()` → uses `firestoreWriter.queryGroupsByDeletionStatus()`
+        *   `recoverFailedDeletion()` → uses `firestoreWriter.getSingleDocument()` and `getDocumentReferenceInTransaction()`
+        *   `getDeletionStatus()` → uses `firestoreWriter.getSingleDocument()`
+    *   ✅ Fixed transaction membership query in `updateGroup` → uses `firestoreReader.getGroupMembershipsInTransaction()`
+    *   ✅ Removed `getFirestore` import completely
+    *   ✅ Extended IFirestoreWriter interface with new methods:
+        *   `getDocumentReferenceInTransaction()` for transaction document references
+        *   `queryGroupsByDeletionStatus()` for deletion queries with timestamp filtering  
+        *   `getSingleDocument()` for non-transaction reads
+*   **Result:** Zero direct Firestore access, full encapsulation achieved
+*   **Testing:** All GroupService unit tests pass, functionality verified
 
 #### `firebase/functions/src/services/GroupShareService.ts` - ✅ COMPLETED
 *   **Status:** Fully Resolved
@@ -256,16 +260,17 @@ Since the original audit, significant progress has been made implementing Phase 
 
 ### 4.3. Additional Recent Completions (January 2025)
 
-*   **`GroupService.ts` - ❌ INCOMPLETE - CRITICAL UPDATE**
-    *   **Status:** Partially Resolved - INCORRECTLY MARKED AS COMPLETED
-    *   **ACTUAL CURRENT STATE (January 2025):**
+*   **`GroupService.ts` - ✅ COMPLETED - PHASE 4 COMPLETION**
+    *   **Status:** Fully Resolved - ALL ENCAPSULATION VIOLATIONS FIXED
+    *   **FINAL STATE (January 2025):**
         *   ✅ Basic CRUD operations properly encapsulated
         *   ✅ DataFetcher migration completed
-        *   ❌ **7 remaining `getFirestore()` calls** in deletion and recovery methods
-        *   ❌ Group deletion functionality completely bypasses encapsulation
-        *   ❌ Transaction membership queries still use direct Firestore access
-    *   **CRITICAL FINDING:** This service was prematurely marked as completed
-    *   **Priority:** IMMEDIATE - This is a core service with significant encapsulation violations
+        *   ✅ **All 7 `getFirestore()` calls eliminated** - Zero remaining direct calls
+        *   ✅ Group deletion functionality fully encapsulated with new interface methods
+        *   ✅ Transaction membership queries use `firestoreReader.getGroupMembershipsInTransaction()`
+        *   ✅ Extended IFirestoreWriter with specialized deletion/recovery methods
+        *   ✅ All unit tests updated and passing
+    *   **ACHIEVEMENT:** Complete encapsulation success - This core service now fully complies with architecture
 
 *   **DataFetcher to BalanceCalculationService Migration - ✅ COMPLETED**
     *   **Status:** Consolidated and cleaned up

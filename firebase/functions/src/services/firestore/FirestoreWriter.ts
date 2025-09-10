@@ -2011,4 +2011,108 @@ export class FirestoreWriter implements IFirestoreWriter {
             throw new Error(`Failed to query and update documents in collection: ${collectionPath}`);
         }
     }
+
+    // ========================================================================
+    // Group Deletion and Recovery Operations
+    // ========================================================================
+
+    /**
+     * Get a document reference within a transaction for complex operations
+     */
+    getDocumentReferenceInTransaction(
+        transaction: Transaction,
+        collection: string,
+        documentId: string
+    ): FirebaseFirestore.DocumentReference {
+        return this.db.collection(collection).doc(documentId);
+    }
+
+    /**
+     * Query groups by deletion status with timestamp filters
+     */
+    async queryGroupsByDeletionStatus(
+        deletionStatus: string,
+        cutoffTimestamp?: FirebaseFirestore.Timestamp,
+        operator: FirebaseFirestore.WhereFilterOp = '<='
+    ): Promise<string[]> {
+        try {
+            logger.info('Querying groups by deletion status', {
+                deletionStatus,
+                cutoffTimestamp: cutoffTimestamp?.toDate(),
+                operator,
+                operation: 'queryGroupsByDeletionStatus'
+            });
+
+            let query = this.db
+                .collection(FirestoreCollections.GROUPS)
+                .where('deletionStatus', '==', deletionStatus);
+
+            if (cutoffTimestamp) {
+                query = query.where('deletionStartedAt', operator, cutoffTimestamp);
+            }
+
+            const querySnapshot = await query.get();
+            const groupIds = querySnapshot.docs.map((doc: any) => doc.id);
+
+            logger.info('Groups deletion status query completed', {
+                deletionStatus,
+                foundCount: groupIds.length,
+                groupIds,
+                operation: 'queryGroupsByDeletionStatus'
+            });
+
+            return groupIds;
+        } catch (error) {
+            logger.error('Failed to query groups by deletion status', error, {
+                deletionStatus,
+                cutoffTimestamp: cutoffTimestamp?.toDate(),
+                operator,
+                operation: 'queryGroupsByDeletionStatus'
+            });
+            throw new Error(`Failed to query groups by deletion status: ${deletionStatus}`);
+        }
+    }
+
+    /**
+     * Get a single document by path (for non-transaction operations)
+     */
+    async getSingleDocument(
+        collection: string,
+        documentId: string
+    ): Promise<FirebaseFirestore.DocumentSnapshot | null> {
+        try {
+            logger.info('Getting single document', {
+                collection,
+                documentId,
+                operation: 'getSingleDocument'
+            });
+
+            const docRef = this.db.collection(collection).doc(documentId);
+            const docSnapshot = await docRef.get();
+
+            if (!docSnapshot.exists) {
+                logger.info('Document not found', {
+                    collection,
+                    documentId,
+                    operation: 'getSingleDocument'
+                });
+                return null;
+            }
+
+            logger.info('Single document retrieved successfully', {
+                collection,
+                documentId,
+                operation: 'getSingleDocument'
+            });
+
+            return docSnapshot;
+        } catch (error) {
+            logger.error('Failed to get single document', error, {
+                collection,
+                documentId,
+                operation: 'getSingleDocument'
+            });
+            throw new Error(`Failed to get document: ${collection}/${documentId}`);
+        }
+    }
 }

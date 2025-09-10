@@ -1,4 +1,4 @@
-import {Timestamp, getFirestore} from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
@@ -713,10 +713,7 @@ export class GroupService {
             }
 
             // Read membership documents that need updating
-            const membershipQuery = getFirestore()
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
-            const membershipSnapshot = await transaction.get(membershipQuery);
+            const membershipSnapshot = await this.firestoreReader.getGroupMembershipsInTransaction(transaction, groupId);
 
             // Optimistic locking validation could use originalUpdatedAt if needed
             // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
@@ -768,7 +765,11 @@ export class GroupService {
      */
     private async markGroupForDeletion(groupId: string): Promise<void> {
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+            const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
+                transaction, 
+                FirestoreCollections.GROUPS, 
+                groupId
+            );
             const groupSnap = await transaction.get(groupRef);
             
             if (!groupSnap.exists) {
@@ -894,7 +895,11 @@ export class GroupService {
     private async markGroupDeletionFailed(groupId: string, errorMessage: string): Promise<void> {
         try {
             await this.firestoreWriter.runTransaction(async (transaction) => {
-                const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+                const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
+                    transaction, 
+                    FirestoreCollections.GROUPS, 
+                    groupId
+                );
                 const groupSnap = await transaction.get(groupRef);
                 
                 if (groupSnap.exists) {
@@ -925,7 +930,11 @@ export class GroupService {
      */
     private async finalizeGroupDeletion(groupId: string): Promise<void> {
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+            const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
+                transaction, 
+                FirestoreCollections.GROUPS, 
+                groupId
+            );
             const groupSnap = await transaction.get(groupRef);
             
             if (!groupSnap.exists) {
@@ -1103,13 +1112,11 @@ export class GroupService {
         const cutoffTimestamp = Timestamp.fromDate(cutoffTime);
         
         try {
-            const stuckGroups = await getFirestore()
-                .collection(FirestoreCollections.GROUPS)
-                .where('deletionStatus', '==', 'deleting')
-                .where('deletionStartedAt', '<=', cutoffTimestamp)
-                .get();
-
-            const stuckGroupIds = stuckGroups.docs.map(doc => doc.id);
+            const stuckGroupIds = await this.firestoreWriter.queryGroupsByDeletionStatus(
+                'deleting',
+                cutoffTimestamp,
+                '<='
+            );
             
             logger.warn('Found groups stuck in deleting status', {
                 count: stuckGroupIds.length,
@@ -1140,12 +1147,12 @@ export class GroupService {
         message: string;
     }> {
         try {
-            const groupDoc = await getFirestore()
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .get();
+            const groupDoc = await this.firestoreWriter.getSingleDocument(
+                FirestoreCollections.GROUPS,
+                groupId
+            );
 
-            if (!groupDoc.exists) {
+            if (!groupDoc || !groupDoc.exists) {
                 return {
                     success: true,
                     action: 'completed',
@@ -1184,7 +1191,12 @@ export class GroupService {
             } else {
                 // Reset deletion status to allow retry
                 await this.firestoreWriter.runTransaction(async (transaction) => {
-                    const freshDoc = await transaction.get(groupDoc.ref);
+                    const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
+                        transaction, 
+                        FirestoreCollections.GROUPS, 
+                        groupId
+                    );
+                    const freshDoc = await transaction.get(groupRef);
                     if (freshDoc.exists) {
                         transaction.update(freshDoc.ref, {
                             deletionStatus: undefined,
@@ -1238,12 +1250,12 @@ export class GroupService {
         message: string;
     }> {
         try {
-            const groupDoc = await getFirestore()
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .get();
+            const groupDoc = await this.firestoreWriter.getSingleDocument(
+                FirestoreCollections.GROUPS,
+                groupId
+            );
 
-            if (!groupDoc.exists) {
+            if (!groupDoc || !groupDoc.exists) {
                 return {
                     exists: false,
                     status: 'none',

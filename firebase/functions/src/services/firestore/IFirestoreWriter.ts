@@ -534,4 +534,45 @@ export interface IFirestoreWriter {
         documentPaths: string[]
     ): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>>;
 
+    // ========================================================================
+    // Group Deletion and Recovery Operations
+    // ========================================================================
+
+    /**
+     * Get a document reference within a transaction for complex operations
+     * @param transaction - The transaction context
+     * @param collection - The collection name
+     * @param documentId - The document ID
+     * @returns Document reference for transaction operations
+     */
+    getDocumentReferenceInTransaction(
+        transaction: Transaction,
+        collection: string,
+        documentId: string
+    ): FirebaseFirestore.DocumentReference;
+
+    /**
+     * Query groups by deletion status with timestamp filters
+     * @param deletionStatus - The deletion status to filter by ('deleting', 'failed', etc.)
+     * @param cutoffTimestamp - Optional timestamp filter for deletionStartedAt
+     * @param operator - Comparison operator for timestamp ('<=', '>=', etc.)
+     * @returns Promise<Array<string>> Array of group IDs matching the criteria
+     */
+    queryGroupsByDeletionStatus(
+        deletionStatus: string,
+        cutoffTimestamp?: FirebaseFirestore.Timestamp,
+        operator?: FirebaseFirestore.WhereFilterOp
+    ): Promise<string[]>;
+
+    /**
+     * Get a single document by path (for non-transaction operations)
+     * @param collection - The collection name
+     * @param documentId - The document ID
+     * @returns Promise<DocumentSnapshot | null> Document snapshot or null if not found
+     */
+    getSingleDocument(
+        collection: string,
+        documentId: string
+    ): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+
 }

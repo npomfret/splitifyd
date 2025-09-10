@@ -185,7 +185,11 @@ describe('GroupService - Unit Tests', () => {
             queryAndUpdateInTransaction: vi.fn(),
             // Phase 4 transaction helper method
             setUserNotificationGroupInTransaction: vi.fn(),
-            generateDocumentId: vi.fn()
+            generateDocumentId: vi.fn(),
+            // Group deletion and recovery operations
+            getDocumentReferenceInTransaction: vi.fn(),
+            queryGroupsByDeletionStatus: vi.fn(),
+            getSingleDocument: vi.fn()
         };
         
         mockUserService = createMockUserService();
@@ -920,6 +924,10 @@ describe('GroupService - Unit Tests', () => {
                 const mockCollection = vi.fn().mockReturnValue({ doc: mockDoc });
                 mockGetFirestore.mockReturnValue({ collection: mockCollection } as any);
 
+                // Mock the encapsulated getDocumentReferenceInTransaction method
+                const mockGroupRef = { path: `groups/${groupId}`, id: groupId };
+                mockFirestoreWriter.getDocumentReferenceInTransaction.mockReturnValue(mockGroupRef);
+
                 // Mock the transaction execution
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({
@@ -944,8 +952,13 @@ describe('GroupService - Unit Tests', () => {
                     }
                 );
                 
+                expect(mockFirestoreWriter.getDocumentReferenceInTransaction).toHaveBeenCalledWith(
+                    mockTransaction,
+                    'groups',
+                    groupId
+                );
                 expect(mockTransaction.update).toHaveBeenCalledWith(
-                    expect.any(Object),
+                    mockGroupRef,
                     expect.objectContaining({
                         deletionStatus: 'deleting',
                         deletionAttempts: 1
@@ -1194,24 +1207,17 @@ describe('GroupService - Unit Tests', () => {
                 it('should find groups stuck in deleting status', async () => {
                     const stuckGroupIds = ['group1', 'group2'];
                     
-                    // Mock the query chain
-                    const mockGet = vi.fn().mockResolvedValue({
-                        docs: stuckGroupIds.map(id => ({ id }))
-                    });
-                    const mockWhere2 = vi.fn().mockReturnValue({ get: mockGet });
-                    const mockWhere1 = vi.fn().mockReturnValue({ where: mockWhere2 });
-                    const mockCollection = vi.fn().mockReturnValue({ where: mockWhere1 });
-
-                    // Mock getFirestore using module-level mock
-                    mockGetFirestore.mockReturnValue({
-                        collection: mockCollection
-                    } as any);
+                    // Mock the encapsulated queryGroupsByDeletionStatus method
+                    mockFirestoreWriter.queryGroupsByDeletionStatus.mockResolvedValue(stuckGroupIds);
 
                     const result = await groupService.findStuckDeletions(30);
 
                     expect(result).toEqual(stuckGroupIds);
-                    expect(mockCollection).toHaveBeenCalledWith('groups');
-                    expect(mockWhere1).toHaveBeenCalledWith('deletionStatus', '==', 'deleting');
+                    expect(mockFirestoreWriter.queryGroupsByDeletionStatus).toHaveBeenCalledWith(
+                        'deleting',
+                        expect.any(Object), // Timestamp
+                        '<='
+                    );
                 });
             });
 
@@ -1219,21 +1225,16 @@ describe('GroupService - Unit Tests', () => {
                 it('should return deletion status for existing group', async () => {
                     const groupId = 'test-group-123';
                     
-                    const mockGet = vi.fn().mockResolvedValue({
+                    // Mock the encapsulated getSingleDocument method
+                    const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
                             deletionAttempts: 2,
                             deletionStartedAt: Timestamp.fromDate(new Date())
                         })
-                    });
-                    const mockDoc = vi.fn().mockReturnValue({ get: mockGet });
-                    const mockCollection = vi.fn().mockReturnValue({ doc: mockDoc });
-
-                    // Mock getFirestore using module-level mock
-                    mockGetFirestore.mockReturnValue({
-                        collection: mockCollection
-                    } as any);
+                    };
+                    mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
                     const result = await groupService.getDeletionStatus(groupId);
 
@@ -1241,25 +1242,21 @@ describe('GroupService - Unit Tests', () => {
                     expect(result.status).toBe('deleting');
                     expect(result.attempts).toBe(2);
                     expect(result.canRetry).toBe(true);
+                    expect(mockFirestoreWriter.getSingleDocument).toHaveBeenCalledWith('groups', groupId);
                 });
 
                 it('should return not exists for non-existent group', async () => {
                     const groupId = 'nonexistent-group';
                     
-                    const mockGet = vi.fn().mockResolvedValue({ exists: false });
-                    const mockDoc = vi.fn().mockReturnValue({ get: mockGet });
-                    const mockCollection = vi.fn().mockReturnValue({ doc: mockDoc });
-
-                    // Mock getFirestore using module-level mock
-                    mockGetFirestore.mockReturnValue({
-                        collection: mockCollection
-                    } as any);
+                    // Mock the encapsulated getSingleDocument method to return null
+                    mockFirestoreWriter.getSingleDocument.mockResolvedValue(null);
 
                     const result = await groupService.getDeletionStatus(groupId);
 
                     expect(result.exists).toBe(false);
                     expect(result.status).toBe('none');
                     expect(result.canRetry).toBe(false);
+                    expect(mockFirestoreWriter.getSingleDocument).toHaveBeenCalledWith('groups', groupId);
                 });
             });
 
@@ -1267,20 +1264,15 @@ describe('GroupService - Unit Tests', () => {
                 it('should mark group as failed when at max attempts', async () => {
                     const groupId = 'test-group-123';
                     
-                    const mockGet = vi.fn().mockResolvedValue({
+                    // Mock the encapsulated getSingleDocument method
+                    const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
                             deletionAttempts: 3
                         })
-                    });
-                    const mockDoc = vi.fn().mockReturnValue({ get: mockGet });
-                    const mockCollection = vi.fn().mockReturnValue({ doc: mockDoc });
-
-                    // Mock getFirestore using module-level mock
-                    mockGetFirestore.mockReturnValue({
-                        collection: mockCollection
-                    } as any);
+                    };
+                    mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
                     const markFailedSpy = vi.spyOn(groupService as any, 'markGroupDeletionFailed')
                         .mockResolvedValue(undefined);
@@ -1290,33 +1282,29 @@ describe('GroupService - Unit Tests', () => {
                     expect(result.success).toBe(true);
                     expect(result.action).toBe('marked_failed');
                     expect(markFailedSpy).toHaveBeenCalledWith(groupId, 'Recovery: Maximum attempts exceeded or forced cleanup');
+                    expect(mockFirestoreWriter.getSingleDocument).toHaveBeenCalledWith('groups', groupId);
                 });
 
                 it('should reset deletion status for retry', async () => {
                     const groupId = 'test-group-123';
                     
-                    const mockGet = vi.fn().mockResolvedValue({
+                    // Mock the encapsulated getSingleDocument method
+                    const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
                             deletionAttempts: 1
                         })
-                    });
-                    const mockDoc = vi.fn().mockReturnValue({ 
-                        get: mockGet,
-                        ref: 'mock-ref'
-                    });
-                    const mockCollection = vi.fn().mockReturnValue({ doc: mockDoc });
+                    };
+                    mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
-                    // Mock getFirestore using the module-level mock
-                    mockGetFirestore.mockReturnValue({
-                        collection: mockCollection
-                    } as any);
+                    const mockDocRef = { ref: 'mock-ref' };
+                    mockFirestoreWriter.getDocumentReferenceInTransaction.mockReturnValue(mockDocRef);
 
                     const mockTransaction = {
                         get: vi.fn().mockResolvedValue({
                             exists: true,
-                            ref: 'mock-ref'
+                            ref: mockDocRef
                         }),
                         update: vi.fn()
                     };
@@ -1329,8 +1317,10 @@ describe('GroupService - Unit Tests', () => {
 
                     expect(result.success).toBe(true);
                     expect(result.action).toBe('retried');
+                    expect(mockFirestoreWriter.getSingleDocument).toHaveBeenCalledWith('groups', groupId);
+                    expect(mockFirestoreWriter.getDocumentReferenceInTransaction).toHaveBeenCalledWith(mockTransaction, 'groups', groupId);
                     expect(mockTransaction.update).toHaveBeenCalledWith(
-                        'mock-ref',
+                        mockDocRef,
                         expect.objectContaining({
                             deletionStatus: undefined,
                             deletionStartedAt: undefined
