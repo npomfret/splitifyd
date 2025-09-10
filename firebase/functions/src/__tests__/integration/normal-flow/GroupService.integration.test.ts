@@ -1,10 +1,11 @@
 import {beforeEach, describe, expect, test} from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder, generateShortId} from '@splitifyd/test-support';
 import {GroupService} from '../../../services/GroupService';
 import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
 import {ApiError} from '../../../utils/errors';
 import {getFirestore} from '../../../firebase';
 import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
+import {Group} from "@splitifyd/shared/src";
 
 // NOTE: GroupService returns the raw Group interface which uses group.members object format
 // This is different from the API endpoints which return GroupMemberWithProfile[] arrays
@@ -71,7 +72,7 @@ describe('GroupService - Integration Tests', () => {
     });
 
     describe('getGroupFullDetails', () => {
-        let testGroupId: string;
+        let testGroup: Group;
         let creator: PooledTestUser;
         let member: PooledTestUser;
         let nonMember: PooledTestUser;
@@ -81,42 +82,33 @@ describe('GroupService - Integration Tests', () => {
 
             // Create a test group
             const group = await apiDriver.createGroupWithMembers(
-                'Test Group for Getting',
+                `Test Group ${generateShortId()}`,
                 [creator, member],
                 creator.token
             );
-            testGroupId = group.id;
-        });
-
-        afterEach(async () => {
-            // Cleanup
-            try {
-                await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
-            } catch (error) {
-                // Group might already be deleted
-            }
+            testGroup = group;
         });
 
         test('should return group with balance information for owner', async () => {
-            const result = await groupService.getGroupFullDetails(testGroupId, creator.uid);
+            const result = await groupService.getGroupFullDetails(testGroup.id, creator.uid);
 
-            expect(result.group.id).toBe(testGroupId);
-            expect(result.group.name).toBe('Test Group for Getting');
+            expect(result.group.id).toBe(testGroup.id);
+            expect(result.group.name).toBe(testGroup.name);
             expect(result.group.createdBy).toBe(creator.uid);
             expect(result.balances).toBeDefined();
             expect(result.balances.balancesByCurrency).toBeDefined();
         });
 
         test('should return group with balance information for member', async () => {
-            const result = await groupService.getGroupFullDetails(testGroupId, member.uid);
+            const result = await groupService.getGroupFullDetails(testGroup.id, member.uid);
 
-            expect(result.group.id).toBe(testGroupId);
+            expect(result.group.id).toBe(testGroup.id);
             expect(result.balances).toBeDefined();
             expect(result.balances.balancesByCurrency).toBeDefined();
         });
 
         test('should throw NOT_FOUND for non-member', async () => {
-            await expect(groupService.getGroupFullDetails(testGroupId, nonMember.uid))
+            await expect(groupService.getGroupFullDetails(testGroup.id, nonMember.uid))
                 .rejects.toThrow(ApiError);
         });
 
@@ -129,18 +121,17 @@ describe('GroupService - Integration Tests', () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
                 new ExpenseBuilder()
-                    .withGroupId(testGroupId)
+                    .withGroupId(testGroup.id)
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(100)
-                    .withDescription('Test expense for balance')
                     .withSplitType('equal')
                     .build(),
                 creator.token
             );
 
             // Get group with updated balance
-            const result = await groupService.getGroupFullDetails(testGroupId, creator.uid);
+            const result = await groupService.getGroupFullDetails(testGroup.id, creator.uid);
 
             // Check that balance data is present (specific balance calculations tested elsewhere)
             expect(result.balances).toBeDefined();
@@ -161,19 +152,11 @@ describe('GroupService - Integration Tests', () => {
             [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
-                'Test Group for Updates',
+                `Test Group ${generateShortId()}`,
                 [creator, member],
                 creator.token
             );
             testGroupId = group.id;
-        });
-
-        afterEach(async () => {
-            try {
-                await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
-            } catch (error) {
-                // Group might already be deleted
-            }
         });
 
         test('should allow owner to update group name and description', async () => {
@@ -226,7 +209,7 @@ describe('GroupService - Integration Tests', () => {
             [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
-                'Test Group for Deletion',
+                `Test Group ${generateShortId()}`,
                 [creator, member],
                 creator.token
             );
@@ -256,7 +239,6 @@ describe('GroupService - Integration Tests', () => {
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(50)
-                    .withDescription('Active expense')
                     .withSplitType('equal')
                     .build(),
                 creator.token
@@ -290,19 +272,11 @@ describe('GroupService - Integration Tests', () => {
             [creator, member] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
-                'Test Group for Balances',
+                `Test Group ${generateShortId()}`,
                 [creator, member],
                 creator.token
             );
             testGroupId = group.id;
-        });
-
-        afterEach(async () => {
-            try {
-                await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
-            } catch (error) {
-                // Group might already be deleted
-            }
         });
 
         test('should return balance information for group member', async () => {
@@ -323,7 +297,6 @@ describe('GroupService - Integration Tests', () => {
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(100)
-                    .withDescription('First expense')
                     .withSplitType('equal')
                     .build(),
                 creator.token
@@ -335,7 +308,6 @@ describe('GroupService - Integration Tests', () => {
                     .withPaidBy(member.uid)
                     .withParticipants([creator.uid, member.uid])
                     .withAmount(60)
-                    .withDescription('Second expense')
                     .withSplitType('equal')
                     .build(),
                 member.token
@@ -375,35 +347,14 @@ describe('GroupService - Integration Tests', () => {
     describe('listGroups', () => {
         let creator: PooledTestUser;
         let member: PooledTestUser;
-        let testGroupIds: string[] = [];
 
         beforeEach(async () => {
             [creator, member] = testUsers;
 
             // Create multiple test groups
-            const group1 = await apiDriver.createGroupWithMembers('List Test Group 1', [creator], creator.token);
-            const group2 = await apiDriver.createGroupWithMembers('List Test Group 2', [creator, member], creator.token);
-            const group3 = await apiDriver.createGroupWithMembers('List Test Group 3', [creator], creator.token);
-
-            testGroupIds = [group1.id, group2.id, group3.id];
-        });
-
-        afterEach(async () => {
-            // Cleanup all test groups using proper deletion service
-            for (const groupId of testGroupIds) {
-                try {
-                    await groupService.deleteGroup(groupId, creator.uid);
-                } catch (error) {
-                    // Group might already be deleted or permission denied
-                    try {
-                        // Fallback to direct deletion if service fails
-                        await firestore.collection(FirestoreCollections.GROUPS).doc(groupId).delete();
-                    } catch (cleanupError) {
-                        // Ignore cleanup errors
-                    }
-                }
-            }
-            testGroupIds = [];
+            await apiDriver.createGroupWithMembers(`List Test Group ${generateShortId()}`, [creator], creator.token);
+            await apiDriver.createGroupWithMembers(`List Test Group ${generateShortId()}`, [creator, member], creator.token);
+            await apiDriver.createGroupWithMembers(`List Test Group ${generateShortId()}`, [creator], creator.token);
         });
 
         test('should list all groups for a user', async () => {
@@ -435,51 +386,39 @@ describe('GroupService - Integration Tests', () => {
             const testGroups = [];
             for (let i = 0; i < 3; i++) {
                 const group = await apiDriver.createGroupWithMembers(
-                    `Pagination Test ${i} ${Date.now()}`, 
+                    `Pagination Test ${i} ${generateShortId()}`,
                     [creator], 
                     creator.token
                 );
                 testGroups.push(group);
             }
             
-            try {
-                // Test limit=1
-                const response = await groupService.listGroups(creator.uid, {
-                    limit: 1,
-                });
-    
-                // Should get exactly 1 group (since we definitely have groups now)
-                expect(response.groups.length).toBe(1);
-                
-                // Basic response structure validation
-                expect(response).toHaveProperty('groups');
-                expect(response).toHaveProperty('count');
-                expect(response).toHaveProperty('hasMore');
-                expect(Array.isArray(response.groups)).toBe(true);
-                
-                // Should have proper group structure
-                const group = response.groups[0];
-                expect(group).toHaveProperty('id');
-                expect(group).toHaveProperty('name');
-                expect(group).toHaveProperty('createdBy');
-                
-            } finally {
-                // Cleanup
-                for (const group of testGroups) {
-                    try {
-                        await groupService.deleteGroup(group.id, creator.uid);
-                    } catch (error) {
-                        // Ignore cleanup errors
-                    }
-                }
-            }
+            // Test limit=1
+            const response = await groupService.listGroups(creator.uid, {
+                limit: 1,
+            });
+
+            // Should get exactly 1 group (since we definitely have groups now)
+            expect(response.groups.length).toBe(1);
+
+            // Basic response structure validation
+            expect(response).toHaveProperty('groups');
+            expect(response).toHaveProperty('count');
+            expect(response).toHaveProperty('hasMore');
+            expect(Array.isArray(response.groups)).toBe(true);
+
+            // Should have proper group structure
+            const group = response.groups[0];
+            expect(group).toHaveProperty('id');
+            expect(group).toHaveProperty('name');
+            expect(group).toHaveProperty('createdBy');
         });
 
         test('should handle pagination with cursor', async () => {
             // Create test groups to ensure we have enough data for pagination
             for (let i = 0; i < 5; i++) {
                 await apiDriver.createGroupWithMembers(
-                    `Pagination Test Group ${i} ${Date.now()}`, 
+                    `Pagination Test Group ${i} ${generateShortId()}`,
                     [creator], 
                     creator.token
                 );
@@ -507,46 +446,40 @@ describe('GroupService - Integration Tests', () => {
         test('should include balance information for each group', async () => {
             // Create a fresh group for this test
             const testGroup = await apiDriver.createGroupWithMembers(
-                `Balance Test Group ${Date.now()}`, 
+                `Balance Test Group ${generateShortId()}`,
                 [creator, member], 
                 creator.token
             );
             
-            try {
-                // Add an expense to test balance calculation
-                const expense = await apiDriver.createExpense(
-                    new ExpenseBuilder()
-                        .withGroupId(testGroup.id)
-                        .withPaidBy(creator.uid)
-                        .withParticipants([creator.uid, member.uid])
-                        .withAmount(100)
-                        .withDescription('Balance test expense')
-                        .withSplitType('equal')
-                        .build(),
-                    creator.token
-                );
-    
-                // Get group details to verify balance calculation works
-                const groupDetails = await groupService.getGroupFullDetails(testGroup.id, creator.uid);
-                expect(groupDetails.group.balance).toBeDefined();
-                
-                // Test that listGroups includes balance information
-                const response = await groupService.listGroups(creator.uid, {
-                    limit: 100, // High limit to ensure we find our group
-                });
-    
-                // Basic response validation
-                expect(response).toHaveProperty('groups');
-                expect(Array.isArray(response.groups)).toBe(true);
-                
-                // Each group should have balance property (can be null or object)
-                for (const group of response.groups) {
-                    expect(group).toHaveProperty('balance');
-                }
-                
-            } finally {
-                // Cleanup
-                await groupService.deleteGroup(testGroup.id, creator.uid);
+            // Add an expense to test balance calculation
+            const expense = await apiDriver.createExpense(
+                new ExpenseBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(creator.uid)
+                    .withParticipants([creator.uid, member.uid])
+                    .withAmount(100)
+                    .withDescription('Balance test expense')
+                    .withSplitType('equal')
+                    .build(),
+                creator.token
+            );
+
+            // Get group details to verify balance calculation works
+            const groupDetails = await groupService.getGroupFullDetails(testGroup.id, creator.uid);
+            expect(groupDetails.group.balance).toBeDefined();
+
+            // Test that listGroups includes balance information
+            const response = await groupService.listGroups(creator.uid, {
+                limit: 100, // High limit to ensure we find our group
+            });
+
+            // Basic response validation
+            expect(response).toHaveProperty('groups');
+            expect(Array.isArray(response.groups)).toBe(true);
+
+            // Each group should have balance property (can be null or object)
+            for (const group of response.groups) {
+                expect(group).toHaveProperty('balance');
             }
         });
     });
@@ -561,19 +494,11 @@ describe('GroupService - Integration Tests', () => {
             [creator, member, nonMember] = testUsers;
 
             const group = await apiDriver.createGroupWithMembers(
-                'Security Test Group',
+                `Security Test Group ${generateShortId()}`,
                 [creator, member],
                 creator.token
             );
             testGroupId = group.id;
-        });
-
-        afterEach(async () => {
-            try {
-                await firestore.collection(FirestoreCollections.GROUPS).doc(testGroupId).delete();
-            } catch (error) {
-                // Group might already be deleted
-            }
         });
 
         test('should return NOT_FOUND instead of FORBIDDEN for security', async () => {
@@ -609,7 +534,6 @@ describe('GroupService - Integration Tests', () => {
 
             // Valid group creation should work
             const groupData = new CreateGroupRequestBuilder()
-                .withName('Valid Group')
                 .build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
@@ -623,15 +547,14 @@ describe('GroupService - Integration Tests', () => {
             const creator = testUsers[0];
 
             const groupData = new CreateGroupRequestBuilder()
-                .withName('Concurrent Test Group')
                 .build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 
             // Multiple concurrent updates should handle optimistic locking
             const updates = [
-                { name: 'Update 1' },
-                { name: 'Update 2' },
+                { name: `Update ${generateShortId()}` },
+                { name: `Update ${generateShortId()}` },
             ];
 
             const updatePromises = updates.map(update =>
@@ -658,8 +581,7 @@ describe('GroupService - Integration Tests', () => {
 
             try {
                 const group = await groupService.createGroup(creator.uid, groupData);
-                // If it succeeds, cleanup
-                await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
+                throw Error(`should not get here - invalid group ${group.id} was created!!`);
             } catch (error) {
                 // Expected - validation should catch this
                 expect(error).toBeInstanceOf(Error);

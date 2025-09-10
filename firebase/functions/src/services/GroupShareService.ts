@@ -1,12 +1,10 @@
 import {randomBytes} from 'crypto';
 import {z} from 'zod';
-import {getFirestore} from '../firebase';
 import {ApiError} from '../utils/errors';
 import {logger, LoggerContext} from '../logger';
 import {HTTP_STATUS} from '../constants';
 import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
-import {checkAndUpdateWithTimestamp, getUpdatedAtTimestamp} from '../utils/optimistic-locking';
-import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {createOptimisticTimestamp, createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {measureDb} from '../monitoring/measure';
 import {ShareLinkDataSchema} from '../schemas/sharelink';
 import type {IFirestoreReader} from './firestore/IFirestoreReader';
@@ -89,15 +87,11 @@ export class GroupShareService {
 
         const shareToken = this.generateShareToken();
 
-        await getFirestore().runTransaction(async (transaction) => {
-            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+        await this.firestoreWriter.runTransaction(async (transaction) => {
             const freshGroupDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshGroupDoc) {
                 throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
             }
-
-            const shareLinksRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks');
-            const shareLinkDoc = shareLinksRef.doc();
 
             const shareLinkData: Omit<ShareLink, 'id'> = {
                 token: shareToken,
@@ -109,7 +103,7 @@ export class GroupShareService {
             // Validate share link data before writing to Firestore
             try {
                 const validatedShareLinkData = ShareLinkDataSchema.parse(shareLinkData);
-                transaction.set(shareLinkDoc, validatedShareLinkData);
+                this.firestoreWriter.createShareLinkInTransaction(transaction, groupId, validatedShareLinkData);
             } catch (error) {
                 logger.error('ShareLink data validation failed before write', error as Error, {
                     groupId,
@@ -226,7 +220,6 @@ export class GroupShareService {
         // Atomic transaction: check group exists and create member subcollection
         const result = await this.firestoreWriter.runTransaction(
             async (transaction) => {
-                const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
                 const groupSnapshot = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
 
                 if (!groupSnapshot) {
@@ -234,13 +227,10 @@ export class GroupShareService {
                 }
 
                 // Update group timestamp to reflect membership change
-                await checkAndUpdateWithTimestamp(
-                    transaction,
-                    groupRef,
-                    {},
-                    getUpdatedAtTimestamp(groupSnapshot.data()),
-                    this.firestoreReader
-                );
+                const groupDocumentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+                this.firestoreWriter.updateInTransaction(transaction, groupDocumentPath, {
+                    updatedAt: createTrueServerTimestamp()
+                });
 
                 // Write to top-level collection for improved querying
                 const now = new Date();
@@ -248,15 +238,17 @@ export class GroupShareService {
                     memberDoc,
                     timestampToISO(now) // Use current timestamp since group was just updated
                 );
-                const topLevelRef = getFirestore()
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .doc(getTopLevelMembershipDocId(userId, groupId));
-                    
-                transaction.set(topLevelRef, {
-                    ...topLevelMemberDoc,
-                    createdAt: serverTimestamp,
-                    updatedAt: serverTimestamp,
-                });
+                
+                this.firestoreWriter.createInTransaction(
+                    transaction,
+                    FirestoreCollections.GROUP_MEMBERSHIPS,
+                    getTopLevelMembershipDocId(userId, groupId),
+                    {
+                        ...topLevelMemberDoc,
+                        createdAt: serverTimestamp,
+                        updatedAt: serverTimestamp,
+                    }
+                );
 
                 return {
                     groupName: preCheckGroup.name,

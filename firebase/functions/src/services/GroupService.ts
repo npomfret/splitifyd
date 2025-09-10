@@ -1,4 +1,4 @@
-import {DocumentReference, Timestamp} from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 import {getFirestore} from '../firebase';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
@@ -10,7 +10,7 @@ import {DOCUMENT_CONFIG} from '../constants';
 import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
-import {getUpdatedAtTimestamp, updateWithTimestamp} from '../utils/optimistic-locking';
+import {getUpdatedAtTimestamp} from '../utils/optimistic-locking';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
@@ -31,8 +31,6 @@ import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '..
  */
 export class GroupService {
     private balanceService: BalanceCalculationService;
-    // Keep collection reference for write operations (until we have IFirestoreWriter)
-    private groupsCollection = getFirestore().collection(FirestoreCollections.GROUPS);
     
     constructor(
         private readonly firestoreReader: IFirestoreReader,
@@ -123,8 +121,7 @@ export class GroupService {
     /**
      * Fetch a group and verify user access
      */
-    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ docRef: DocumentReference; group: Group }> {
-        const docRef = this.groupsCollection.doc(groupId);
+    private async fetchGroupWithAccess(groupId: string, userId: string, requireWriteAccess: boolean = false): Promise<{ group: Group }> {
         const groupData = await this.firestoreReader.getGroup(groupId);
 
         if (!groupData) {
@@ -147,7 +144,7 @@ export class GroupService {
         // Check if user is the owner
         if (await this.groupMemberService.isGroupOwnerAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
-            return { docRef, group: groupWithComputed };
+            return { group: groupWithComputed };
         }
 
         // For write operations, only the owner is allowed
@@ -158,7 +155,7 @@ export class GroupService {
         // For read operations, check if user is a member
         if (await this.groupMemberService.isGroupMemberAsync(group.id, userId)) {
             const groupWithComputed = await this.addComputedFields(group, userId);
-            return { docRef, group: groupWithComputed };
+            return { group: groupWithComputed };
         }
 
         // User doesn't have access to this group
@@ -591,12 +588,12 @@ export class GroupService {
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<Group> {
         // Initialize group structure with server timestamps
-        const docRef = this.groupsCollection.doc();
+        const groupId = this.firestoreWriter.generateDocumentId(FirestoreCollections.GROUPS);
         const serverTimestamp = createTrueServerTimestamp();
         const now = createOptimisticTimestamp();
 
         const newGroup: Group = {
-            id: docRef.id,
+            id: groupId,
             name: createGroupRequest.name,
             description: createGroupRequest.description ?? '',
             createdBy: userId,
@@ -618,7 +615,7 @@ export class GroupService {
             GroupDataSchema.parse(newGroup);
         } catch (error) {
             logger.error('Invalid group document to write', error as Error, {
-                groupId: docRef.id,
+                groupId: groupId,
                 userId,
             });
             throw Errors.INVALID_INPUT();
@@ -628,7 +625,7 @@ export class GroupService {
             
         const memberDoc: GroupMemberDocument = {
             userId: userId,
-            groupId: docRef.id,
+            groupId: groupId,
             memberRole: MemberRoles.ADMIN,
             theme: this.groupShareService.getThemeColorForMember(0),
             joinedAt: now.toDate().toISOString(),
@@ -647,7 +644,7 @@ export class GroupService {
             this.firestoreWriter.createInTransaction(
                 transaction,
                 FirestoreCollections.GROUPS,
-                docRef.id,
+                groupId,
                 documentToWrite
             );
             // Write to top-level collection for improved querying
@@ -658,7 +655,7 @@ export class GroupService {
             this.firestoreWriter.createInTransaction(
                 transaction,
                 FirestoreCollections.GROUP_MEMBERSHIPS,
-                getTopLevelMembershipDocId(userId, docRef.id),
+                getTopLevelMembershipDocId(userId, groupId),
                 {
                     ...topLevelMemberDoc,
                     createdAt: memberServerTimestamp,
@@ -668,13 +665,13 @@ export class GroupService {
         });
 
         // Initialize group notifications for creator
-        await this.notificationService.addUserToGroupNotificationTracking(userId, docRef.id);
+        await this.notificationService.addUserToGroupNotificationTracking(userId, groupId);
 
         // Add group context to logger
-        LoggerContext.setBusinessContext({ groupId: docRef.id });
+        LoggerContext.setBusinessContext({ groupId: groupId });
 
         // Fetch the created document to get server-side timestamps
-        const groupData = await this.firestoreReader.getGroup(docRef.id);
+        const groupData = await this.firestoreReader.getGroup(groupId);
         if (!groupData) {
             throw new Error('Failed to fetch created group');
         }
@@ -702,16 +699,16 @@ export class GroupService {
      */
     async updateGroup(groupId: string, userId: string, updates: UpdateGroupRequest): Promise<MessageResponse> {
         // Fetch group with write access check
-        const { docRef, group } = await this.fetchGroupWithAccess(groupId, userId, true);
+        const { group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            const freshDoc = await this.firestoreReader.getRawDocumentInTransactionWithRef(transaction, docRef);
+            const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshDoc) {
                 throw Errors.NOT_FOUND('Group');
             }
 
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data(), docRef.id);
+            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
             // Create updated data with current timestamp (will be converted to ISO in the data field)
             const now = createOptimisticTimestamp();
@@ -721,17 +718,13 @@ export class GroupService {
                 updatedAt: now.toDate(),
             };
 
-            // Use existing pattern since we already have the fresh document from transaction read
-            await updateWithTimestamp(
-                transaction,
-                docRef,
-                {
-                    name: updatedData.name,
-                    description: updatedData.description,
-                    updatedAt: updatedData.updatedAt.toISOString(),
-                },
-                originalUpdatedAt,
-            );
+            // Update group document using FirestoreWriter
+            const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
+            this.firestoreWriter.updateInTransaction(transaction, documentPath, {
+                name: updatedData.name,
+                description: updatedData.description,
+                updatedAt: updatedData.updatedAt,
+            });
             
             // NEW: Update denormalized groupUpdatedAt in all membership documents
             const memberships = await getFirestore()
@@ -766,7 +759,7 @@ export class GroupService {
      */
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
         // Fetch group with write access check
-        const { docRef } = await this.fetchGroupWithAccess(groupId, userId, true);
+        const { group } = await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Get member list BEFORE deletion for change tracking
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
@@ -848,7 +841,7 @@ export class GroupService {
         }
 
         // Delete main group document last
-        documentPaths.push(docRef.path);
+        documentPaths.push(`${FirestoreCollections.GROUPS}/${groupId}`);
 
         // PHASE 4: Clean up notifications for all members before deletion
         logger.info('Cleaning up notifications for all group members', { groupId, memberCount: memberIds.length });

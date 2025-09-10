@@ -1259,15 +1259,14 @@ export class FirestoreWriter implements IFirestoreWriter {
     ): DocumentReference {
         const shareLinksCollection = this.db.collection(FirestoreCollections.GROUPS)
             .doc(groupId)
-            .collection('share-links');
+            .collection('shareLinks');
         
         const shareLinkRef = shareLinksCollection.doc();
         
+        // ShareLink data already validated - don't override timestamps
         const finalData = {
             ...shareLinkData,
-            id: shareLinkRef.id,
-            createdAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp()
+            id: shareLinkRef.id
         };
         
         transaction.create(shareLinkRef, finalData);
