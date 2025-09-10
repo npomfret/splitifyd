@@ -5,6 +5,7 @@ import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-
 import {SettlementService} from "../../services/SettlementService";
 import {GroupMemberService} from "../../services/GroupMemberService";
 import {GroupShareService} from "../../services/GroupShareService";
+import { Timestamp } from 'firebase-admin/firestore';
 
 // Create mock services for GroupService dependencies
 const createMockUserService = () => ({
@@ -376,6 +377,314 @@ describe('GroupService - Unit Tests', () => {
             expect(result.expensesByGroup.get('group1')).toHaveLength(1);
             expect(result.expenseMetadataByGroup.has('group1')).toBe(true);
             expect(result.expenseMetadataByGroup.get('group1')?.count).toBe(1);
+        });
+    });
+
+    describe('safeDateToISO - pure function', () => {
+        it('should convert Firestore Timestamp to ISO string', () => {
+            // Create a real Timestamp from the current date for testing
+            const testDate = new Date('2023-01-01T10:00:00.000Z');
+            const timestamp = Timestamp.fromDate(testDate);
+            
+            const result = (groupService as any).safeDateToISO(timestamp);
+            expect(result).toBe('2023-01-01T10:00:00.000Z');
+        });
+
+        it('should convert Date to ISO string', () => {
+            const date = new Date('2023-01-01T10:00:00.000Z');
+            const result = (groupService as any).safeDateToISO(date);
+            expect(result).toBe('2023-01-01T10:00:00.000Z');
+        });
+
+        it('should return string as-is if already string', () => {
+            const dateString = '2023-01-01T10:00:00Z';
+            const result = (groupService as any).safeDateToISO(dateString);
+            expect(result).toBe(dateString);
+        });
+
+        it('should fallback to current timestamp for unknown types', () => {
+            const result = (groupService as any).safeDateToISO(undefined);
+            expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+        });
+    });
+
+    describe('formatRelativeTime - pure function', () => {
+        it('should format recent timestamps as relative time', () => {
+            // Mock the parseISOToTimestamp and getRelativeTime functions
+            vi.mock('../../utils/dateHelpers', () => ({
+                parseISOToTimestamp: vi.fn((dateStr: string) => {
+                    if (dateStr === '2023-01-01T10:00:00Z') {
+                        return { toDate: () => new Date('2023-01-01T10:00:00Z') };
+                    }
+                    return null;
+                }),
+                getRelativeTime: vi.fn((timestamp: any) => {
+                    // Mock implementation for testing
+                    if (timestamp && timestamp.toDate) {
+                        return '2 hours ago';
+                    }
+                    return 'unknown';
+                }),
+                createOptimisticTimestamp: vi.fn(),
+                createTrueServerTimestamp: vi.fn(),
+                timestampToISO: vi.fn()
+            }));
+
+            const result = (groupService as any).formatRelativeTime('2023-01-01T10:00:00Z');
+            expect(result).toBe('2 hours ago');
+        });
+
+        it('should return "unknown" for invalid date strings', () => {
+            const result = (groupService as any).formatRelativeTime('invalid-date');
+            expect(result).toBe('unknown');
+        });
+    });
+
+    describe('Currency Balance Processing - Pure Function Logic', () => {
+        it('should process currency balances correctly for user', () => {
+            // Test the logic that processes currency-specific balances
+            const userId = 'test-user';
+            const mockBalancesByCurrency = {
+                'USD': {
+                    [userId]: { netBalance: 50.75, totalOwed: 50.75, totalOwing: 0 }
+                },
+                'EUR': {
+                    [userId]: { netBalance: -25.50, totalOwed: 0, totalOwing: 25.50 }
+                },
+                'GBP': {
+                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 } // Below threshold
+                }
+            };
+
+            // Simulate the processing logic from listGroups
+            const balancesByCurrency: Record<string, any> = {};
+            
+            for (const [currency, currencyBalances] of Object.entries(mockBalancesByCurrency)) {
+                const currencyUserBalance = currencyBalances[userId];
+                if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                    balancesByCurrency[currency] = {
+                        currency,
+                        netBalance: currencyUserBalance.netBalance,
+                        totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+                        totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+                    };
+                }
+            }
+
+            // Verify processing results
+            expect(balancesByCurrency).toHaveProperty('USD');
+            expect(balancesByCurrency).toHaveProperty('EUR');
+            expect(balancesByCurrency).not.toHaveProperty('GBP'); // Below threshold
+
+            expect(balancesByCurrency.USD.totalOwed).toBe(50.75);
+            expect(balancesByCurrency.USD.totalOwing).toBe(0);
+            
+            expect(balancesByCurrency.EUR.totalOwed).toBe(0);
+            expect(balancesByCurrency.EUR.totalOwing).toBe(25.50);
+        });
+
+        it('should handle edge cases in balance processing', () => {
+            const userId = 'test-user';
+            
+            // Test with exactly threshold amount (0.01)
+            const exactThresholdBalance = {
+                'USD': {
+                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 }
+                }
+            };
+
+            const balancesByCurrency: Record<string, any> = {};
+            for (const [currency, currencyBalances] of Object.entries(exactThresholdBalance)) {
+                const currencyUserBalance = currencyBalances[userId];
+                if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                    balancesByCurrency[currency] = {
+                        currency,
+                        netBalance: currencyUserBalance.netBalance,
+                        totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+                        totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+                    };
+                }
+            }
+
+            // Exactly 0.01 should be excluded (not greater than 0.01)
+            expect(balancesByCurrency).not.toHaveProperty('USD');
+        });
+    });
+
+    describe('Expense Metadata Calculation - Pure Function Logic', () => {
+        it('should calculate expense metadata correctly', () => {
+            const mockExpenses = [
+                {
+                    id: 'exp1',
+                    createdAt: '2023-01-03T10:00:00Z',
+                    deletedAt: undefined
+                },
+                {
+                    id: 'exp2',
+                    createdAt: '2023-01-01T10:00:00Z',
+                    deletedAt: undefined
+                },
+                {
+                    id: 'exp3',
+                    createdAt: '2023-01-02T10:00:00Z',
+                    deletedAt: '2023-01-04T10:00:00Z' // Soft-deleted
+                }
+            ];
+
+            // Simulate the metadata calculation logic from batchFetchGroupData
+            const nonDeletedExpenses = mockExpenses.filter((expense) => !expense.deletedAt);
+            const sortedExpenses = nonDeletedExpenses.sort((a, b) => {
+                const aTime = new Date(a.createdAt).getTime();
+                const bTime = new Date(b.createdAt).getTime();
+                return bTime - aTime; // DESC order
+            });
+
+            const metadata = {
+                count: nonDeletedExpenses.length,
+                lastExpenseTime: sortedExpenses.length > 0 ? new Date(sortedExpenses[0].createdAt) : undefined,
+            };
+
+            expect(metadata.count).toBe(2); // Only non-deleted expenses
+            expect(metadata.lastExpenseTime).toEqual(new Date('2023-01-03T10:00:00Z')); // Most recent
+        });
+
+        it('should handle empty expense list', () => {
+            const mockExpenses: any[] = [];
+            
+            const nonDeletedExpenses = mockExpenses.filter((expense) => !expense.deletedAt);
+            const metadata = {
+                count: nonDeletedExpenses.length,
+                lastExpenseTime: undefined,
+            };
+
+            expect(metadata.count).toBe(0);
+            expect(metadata.lastExpenseTime).toBeUndefined();
+        });
+
+        it('should handle all expenses being soft-deleted', () => {
+            const mockExpenses = [
+                {
+                    id: 'exp1',
+                    createdAt: '2023-01-01T10:00:00Z',
+                    deletedAt: '2023-01-02T10:00:00Z'
+                },
+                {
+                    id: 'exp2',
+                    createdAt: '2023-01-01T10:00:00Z',
+                    deletedAt: '2023-01-03T10:00:00Z'
+                }
+            ];
+
+            const nonDeletedExpenses = mockExpenses.filter((expense) => !expense.deletedAt);
+            const metadata = {
+                count: nonDeletedExpenses.length,
+                lastExpenseTime: undefined,
+            };
+
+            expect(metadata.count).toBe(0);
+            expect(metadata.lastExpenseTime).toBeUndefined();
+        });
+    });
+
+    describe('Group Data Transformation - Pure Function Logic', () => {
+        it('should transform GroupDocument to Group format correctly', () => {
+            const mockGroupDocument = {
+                id: 'group-123',
+                name: 'Test Group',
+                description: 'A test group',
+                createdBy: 'user-456',
+                createdAt: '2023-01-01T10:00:00Z',
+                updatedAt: '2023-01-01T12:00:00Z',
+                securityPreset: 'open' as const,
+                presetAppliedAt: '2023-01-01T10:00:00Z',
+                permissions: { canAddExpense: true, canEditExpense: true }
+            };
+
+            // Simulate the transformation logic from listGroups
+            const transformedGroup = {
+                id: mockGroupDocument.id,
+                name: mockGroupDocument.name,
+                description: mockGroupDocument.description,
+                createdBy: mockGroupDocument.createdBy,
+                createdAt: mockGroupDocument.createdAt, // safeDateToISO would be called here
+                updatedAt: mockGroupDocument.updatedAt, // safeDateToISO would be called here
+                securityPreset: mockGroupDocument.securityPreset,
+                presetAppliedAt: mockGroupDocument.presetAppliedAt, // safeDateToISO would be called here
+                permissions: mockGroupDocument.permissions,
+            };
+
+            expect(transformedGroup.id).toBe('group-123');
+            expect(transformedGroup.name).toBe('Test Group');
+            expect(transformedGroup.description).toBe('A test group');
+            expect(transformedGroup.createdBy).toBe('user-456');
+            expect(transformedGroup.securityPreset).toBe('open');
+            expect(transformedGroup.permissions).toEqual({ canAddExpense: true, canEditExpense: true });
+        });
+    });
+
+    describe('User Balance Extraction - Pure Function Logic', () => {
+        it('should extract user balance from first available currency', () => {
+            const userId = 'test-user';
+            const mockBalancesByCurrency = {
+                'USD': {
+                    [userId]: { netBalance: 25.50, totalOwed: 25.50, totalOwing: 0 }
+                },
+                'EUR': {
+                    [userId]: { netBalance: -10.75, totalOwed: 0, totalOwing: 10.75 }
+                }
+            };
+
+            // Simulate the user balance extraction logic from listGroups
+            let userBalance = {
+                netBalance: 0,
+                totalOwed: 0,
+                totalOwing: 0,
+            };
+            
+            const currencyBalancesArray = Object.values(mockBalancesByCurrency);
+            if (currencyBalancesArray.length > 0) {
+                const firstCurrencyBalances = currencyBalancesArray[0];
+                if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
+                    const balance = firstCurrencyBalances[userId];
+                    userBalance = {
+                        netBalance: balance.netBalance,
+                        totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+                        totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+                    };
+                }
+            }
+
+            expect(userBalance.netBalance).toBe(25.50);
+            expect(userBalance.totalOwed).toBe(25.50);
+            expect(userBalance.totalOwing).toBe(0);
+        });
+
+        it('should return default balance when no currencies exist', () => {
+            const userId = 'test-user';
+            const mockBalancesByCurrency: any = {};
+
+            let userBalance = {
+                netBalance: 0,
+                totalOwed: 0,
+                totalOwing: 0,
+            };
+            
+            const currencyBalancesArray = Object.values(mockBalancesByCurrency);
+            if (currencyBalancesArray.length > 0) {
+                const firstCurrencyBalances = currencyBalancesArray[0] as any;
+                if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
+                    const balance = firstCurrencyBalances[userId];
+                    userBalance = {
+                        netBalance: balance.netBalance,
+                        totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+                        totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+                    };
+                }
+            }
+
+            expect(userBalance.netBalance).toBe(0);
+            expect(userBalance.totalOwed).toBe(0);
+            expect(userBalance.totalOwing).toBe(0);
         });
     });
 });

@@ -6,7 +6,11 @@
 
 import { describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import { getFirestore } from '../../../firebase';
+import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
+import { FirestoreCollections } from '@splitifyd/shared';
+import { getTopLevelMembershipDocId } from '../../../utils/groupMembershipHelpers';
 
 describe('Group Deletion with Soft-Deleted Expenses', () => {
     const apiDriver = new ApiDriver();
@@ -194,5 +198,134 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         // Verify the expense is also deleted (hard delete removes everything)
         await expect(apiDriver.getExpense(createdExpense.id, user1.token))
             .rejects.toThrow(/404|not found/i);
+    });
+
+    test('should completely delete group with ALL subcollections and related data', async () => {
+        const users = await borrowTestUsers(4);
+        const [owner, member1, member2, member3] = users;
+
+        // Create a comprehensive group with ALL possible related data
+        const groupData = new CreateGroupRequestBuilder()
+            .withName(`Comprehensive Deletion Test ${uuidv4()}`)
+            .withDescription('Testing complete deletion of all subcollections')
+            .build();
+
+        const testGroup = await apiDriver.createGroup(groupData, owner.token);
+        const groupId = testGroup.id;
+
+        // Add multiple members to create member documents
+        const shareResponse = await apiDriver.generateShareLink(groupId, owner.token);
+        await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member1.token);
+        await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member2.token);
+        await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member3.token);
+
+        // Create multiple expenses (both active and soft-deleted) to populate various collections
+        const expenses = [];
+        for (let i = 1; i <= 4; i++) {
+            const expenseData = new ExpenseBuilder()
+                .withGroupId(groupId)
+                .withAmount(25 * i)
+                .withPaidBy(users[i - 1].uid)
+                .withParticipants([owner.uid, member1.uid, member2.uid, member3.uid])
+                .withSplitType('equal')
+                .build();
+
+            const expense = await apiDriver.createExpense(expenseData, owner.token);
+            expenses.push(expense);
+        }
+
+        // Soft-delete some expenses (creates deletedAt field but keeps documents)
+        await apiDriver.deleteExpense(expenses[0].id, owner.token);
+        await apiDriver.deleteExpense(expenses[1].id, owner.token);
+
+        // Create settlements to populate settlements collection
+        const settlementData = new SettlementBuilder()
+            .withGroupId(groupId)
+            .withPayer(member1.uid)
+            .withPayee(owner.uid)
+            .withAmount(50.00)
+            .build();
+        await apiDriver.createSettlement(settlementData, member1.token);
+
+        // Create multiple share links to populate shareLinks subcollection
+        await apiDriver.generateShareLink(groupId, owner.token);
+        await apiDriver.generateShareLink(groupId, owner.token);
+
+        // Add comments on group to populate group comments subcollection
+        await apiDriver.createGroupComment(groupId, 'Group comment 1', owner.token);
+        await apiDriver.createGroupComment(groupId, 'Group comment 2', member1.token);
+
+        // Add comments on expenses to populate expense comments subcollections
+        await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 1', owner.token);
+        await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', member1.token);
+        await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', member2.token);
+
+        // Wait to ensure all data has been created and change documents generated
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Use FirestoreReader for proper verification
+        const firestore = getFirestore();
+        const firestoreReader = new FirestoreReader(firestore);
+
+        // VERIFICATION BEFORE DELETION: Use the group deletion data method that mirrors the actual deletion logic
+        const groupDeletionData = await firestoreReader.getGroupDeletionData(groupId);
+        
+        expect(groupDeletionData.expenses.size).toBeGreaterThanOrEqual(4); // All 4 expenses
+        expect(groupDeletionData.settlements.size).toBeGreaterThanOrEqual(1); // At least our settlement
+        expect(groupDeletionData.shareLinks.size).toBeGreaterThanOrEqual(2); // 2 share links created
+        expect(groupDeletionData.groupComments.size).toBeGreaterThanOrEqual(2); // 2 group comments
+        
+        // Count expense comments across all expenses
+        const totalExpenseComments = groupDeletionData.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
+        expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
+        
+        console.log(`Before deletion - Expenses: ${groupDeletionData.expenses.size}, Settlements: ${groupDeletionData.settlements.size}, Share links: ${groupDeletionData.shareLinks.size}, Group comments: ${groupDeletionData.groupComments.size}, Expense comments: ${totalExpenseComments}, Transaction changes: ${groupDeletionData.transactionChanges.size}, Balance changes: ${groupDeletionData.balanceChanges.size}`);
+
+        // PERFORM HARD DELETE
+        const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
+        
+        expect(deleteResponse).toHaveProperty('message');
+        expect(deleteResponse.message).toContain('deleted permanently');
+
+        // COMPREHENSIVE VERIFICATION: ALL subcollections should be completely deleted
+        
+        // 1. Main group document should be deleted - use FirestoreReader method
+        const groupExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUPS, groupId);
+        expect(groupExists).toBe(false);
+
+        // 2. Use group deletion data method to verify all subcollections are empty
+        const groupDeletionDataAfter = await firestoreReader.getGroupDeletionData(groupId);
+        
+        expect(groupDeletionDataAfter.expenses.size).toBe(0);
+        expect(groupDeletionDataAfter.settlements.size).toBe(0);
+        expect(groupDeletionDataAfter.transactionChanges.size).toBe(0);
+        expect(groupDeletionDataAfter.balanceChanges.size).toBe(0);
+        expect(groupDeletionDataAfter.shareLinks.size).toBe(0);
+        expect(groupDeletionDataAfter.groupComments.size).toBe(0);
+        
+        // Verify all expense comment subcollections are empty
+        const totalExpenseCommentsAfter = groupDeletionDataAfter.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
+        expect(totalExpenseCommentsAfter).toBe(0);
+
+        // 5. All top-level GROUP_MEMBERSHIPS documents should be deleted - use FirestoreReader
+        for (const user of users) {
+            const topLevelDocId = getTopLevelMembershipDocId(user.uid, groupId);
+            const membershipExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId);
+            expect(membershipExists).toBe(false);
+        }
+
+        // 10. API calls should return 404 for all users
+        for (const user of users) {
+            await expect(apiDriver.getGroupFullDetails(groupId, user.token))
+                .rejects.toThrow(/404|not found/i);
+        }
+
+        // 11. Individual expenses should return 404
+        for (const expense of expenses) {
+            await expect(apiDriver.getExpense(expense.id, owner.token))
+                .rejects.toThrow(/404|not found/i);
+        }
+
+        console.log('✅ Comprehensive group deletion test passed - all subcollections verified as deleted');
     });
 });

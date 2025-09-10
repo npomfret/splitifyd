@@ -53,10 +53,10 @@ export class GroupService {
      */
     private safeDateToISO(value: any): string {
         if (value instanceof Timestamp) {
-            return timestampToISO(value);
+            return value.toDate().toISOString();
         }
         if (value instanceof Date) {
-            return timestampToISO(value);
+            return value.toISOString();
         }
         if (typeof value === 'string') {
             return value;
