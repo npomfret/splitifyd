@@ -20,7 +20,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
     const apiDriver = new ApiDriver();
     let testUser: any;
     let validGroupId: string;
-    const createdGroupIds: string[] = []; // Track all created groups for cleanup
 
     beforeAll(async () => {
         // Create a test user for API calls
@@ -39,32 +38,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
         const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
         validGroupId = createResponse.id;
-        createdGroupIds.push(validGroupId); // Track for cleanup
-    });
-
-    afterAll(async () => {
-        // Cleanup: Remove all test groups created during this test suite
-        try {
-            // Delete all tracked groups
-            const deletePromises = createdGroupIds.map(groupId => 
-                firestore.collection(FirestoreCollections.GROUPS).doc(groupId).delete()
-            );
-            
-            // Also clean up any groups created directly in tests that might not be tracked
-            const testGroupsSnapshot = await firestore
-                .collection(FirestoreCollections.GROUPS)
-                .where('createdBy', '==', testUser.uid)
-                .get();
-                
-            testGroupsSnapshot.docs.forEach(doc => {
-                deletePromises.push(doc.ref.delete());
-            });
-            
-            await Promise.all(deletePromises);
-            console.log(`Cleaned up ${deletePromises.length} test groups`);
-        } catch (error) {
-            console.warn('Cleanup of test data failed:', error);
-        }
     });
 
     describe('Invalid securityPreset values', () => {
@@ -131,15 +104,6 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         });
         
         afterEach(async () => {
-            // Clean up groups created in this test
-            try {
-                const deletePromises = testGroupIds.map(groupId =>
-                    firestore.collection(FirestoreCollections.GROUPS).doc(groupId).delete()
-                );
-                await Promise.all(deletePromises);
-            } catch (error) {
-                console.warn('Failed to clean up test groups:', error);
-            }
         });
 
         test('GET /groups should return successfully despite invalid securityPreset values', async () => {
@@ -245,20 +209,4 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         });
     });
 
-    // Space for future invalid data scenarios
-    describe.todo('Invalid date formats', () => {
-        // Add tests for malformed timestamps, invalid date strings, etc.
-    });
-
-    describe.todo('Invalid user references', () => {
-        // Add tests for expenses/settlements with non-existent user IDs
-    });
-
-    describe.todo('Invalid numeric values', () => {
-        // Add tests for negative amounts, NaN, Infinity, etc.
-    });
-
-    describe.todo('Missing required fields', () => {
-        // Add tests for documents missing required fields
-    });
 });

@@ -1,11 +1,11 @@
-import {Timestamp} from 'firebase-admin/firestore';
+import {Timestamp, getFirestore} from 'firebase-admin/firestore';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
 import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
-import {GroupDataSchema} from '../schemas';
+import {GroupDataSchema, GroupDocument} from '../schemas';
 import {BalanceCalculationService} from './balance/BalanceCalculationService';
-import {DOCUMENT_CONFIG} from '../constants';
+import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
 import {logger, LoggerContext} from '../logger';
 import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp} from '../utils/dateHelpers';
 import {PermissionEngine} from '../permissions';
@@ -15,6 +15,8 @@ import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { BalanceCalculationResult } from './balance';
 import type { UserProfile } from '../services/UserService2';
+import type { ExpenseDocument } from '../schemas/expense';
+import type { SettlementDocument } from '../schemas/settlement';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { UserService } from './UserService2';
 import { ExpenseService } from './ExpenseService';
@@ -23,6 +25,12 @@ import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
 import {GroupShareService} from "./GroupShareService";
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+
+/**
+ * Enhanced types for group data fetching with groupId
+ */
+type ExpenseWithGroupId = ExpenseDocument & { groupId: string };
+type SettlementWithGroupId = SettlementDocument & { groupId: string };
 
 /**
  * Service for managing group operations
@@ -162,8 +170,8 @@ export class GroupService {
      * PERFORMANCE OPTIMIZED: Reduces N database queries to just 2-3
      */
     private async batchFetchGroupData(groupIds: string[]): Promise<{
-        expensesByGroup: Map<string, any[]>;
-        settlementsByGroup: Map<string, any[]>;
+        expensesByGroup: Map<string, ExpenseWithGroupId[]>;
+        settlementsByGroup: Map<string, SettlementWithGroupId[]>;
         expenseMetadataByGroup: Map<string, { count: number; lastExpenseTime?: Date }>;
     }> {
         if (groupIds.length === 0) {
@@ -203,7 +211,7 @@ export class GroupService {
         const [expenseResults, settlementResults] = await Promise.all([Promise.all(expenseQueries), Promise.all(settlementQueries)]);
 
         // Organize expenses by group ID
-        const expensesByGroup = new Map<string, any[]>();
+        const expensesByGroup = new Map<string, ExpenseWithGroupId[]>();
         const expenseMetadataByGroup = new Map<string, { count: number; lastExpenseTime?: Date }>();
 
         for (const expenseArray of expenseResults) {
@@ -241,7 +249,7 @@ export class GroupService {
         }
 
         // Organize settlements by group ID
-        const settlementsByGroup = new Map<string, any[]>();
+        const settlementsByGroup = new Map<string, SettlementWithGroupId[]>();
         for (const settlementArray of settlementResults) {
             for (const settlement of settlementArray) {
                 const groupId = settlement.groupId;
@@ -697,13 +705,21 @@ export class GroupService {
         // Update with optimistic locking (timestamp is handled by optimistic locking system)
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
+            
+            // PHASE 1: ALL READS FIRST
             const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshDoc) {
                 throw Errors.NOT_FOUND('Group');
             }
 
+            // Read membership documents that need updating
+            const membershipQuery = getFirestore()
+                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId);
+            const membershipSnapshot = await transaction.get(membershipQuery);
 
-            const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
+            // Optimistic locking validation could use originalUpdatedAt if needed
+            // const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
 
             // Create updated data with current timestamp (will be converted to ISO in the data field)
             const now = createOptimisticTimestamp();
@@ -713,7 +729,7 @@ export class GroupService {
                 updatedAt: now.toDate(),
             };
 
-            // Now perform all writes after all reads are complete
+            // PHASE 2: ALL WRITES AFTER ALL READS
             // Update group document using FirestoreWriter
             const documentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
             this.firestoreWriter.updateInTransaction(transaction, documentPath, {
@@ -722,16 +738,13 @@ export class GroupService {
                 updatedAt: updatedData.updatedAt,
             });
             
-            // PHASE 2: Atomically update denormalized groupUpdatedAt in all membership documents
-            const membershipUpdateCount = await this.firestoreWriter.queryAndUpdateInTransaction(
-                transaction,
-                FirestoreCollections.GROUP_MEMBERSHIPS,
-                [{ field: 'groupId', op: '==', value: groupId }],
-                {
+            // Update denormalized groupUpdatedAt in all membership documents
+            membershipSnapshot.docs.forEach(doc => {
+                transaction.update(doc.ref, {
                     groupUpdatedAt: updatedData.updatedAt.toISOString(),
-                    // updatedAt will be added automatically by the helper
-                }
-            );
+                    updatedAt: createTrueServerTimestamp(),
+                });
+            });
         });
 
         // Set group context
@@ -748,6 +761,195 @@ export class GroupService {
      * Only the owner can delete a group
      * This is a destructive operation that cannot be undone
      */
+    /**
+     * Mark a group as "deleting" to prevent concurrent operations
+     * @param groupId - The ID of the group to mark for deletion
+     * @returns Promise<void>
+     */
+    private async markGroupForDeletion(groupId: string): Promise<void> {
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+            const groupSnap = await transaction.get(groupRef);
+            
+            if (!groupSnap.exists) {
+                throw new Error(`Group ${groupId} not found`);
+            }
+            
+            const groupData = groupSnap.data();
+            
+            // Check if already deleting
+            if (groupData?.deletionStatus === 'deleting') {
+                logger.warn('Group is already marked for deletion', { groupId });
+                throw new Error('Group deletion is already in progress');
+            }
+            
+            // Check if deletion failed and we've exceeded max attempts
+            if (groupData?.deletionStatus === 'failed' && 
+                (groupData?.deletionAttempts || 0) >= FIRESTORE.MAX_DELETION_ATTEMPTS) {
+                throw new Error(`Group deletion has failed ${FIRESTORE.MAX_DELETION_ATTEMPTS} times. Manual intervention required.`);
+            }
+            
+            // Mark for deletion
+            const updatedData: Partial<GroupDocument> = {
+                deletionStatus: 'deleting' as const,
+                deletionStartedAt: Timestamp.now(),
+                deletionAttempts: (groupData?.deletionAttempts || 0) + 1,
+                updatedAt: Timestamp.now()
+            };
+            
+            transaction.update(groupRef, updatedData);
+            
+            logger.info('Group marked for deletion', { 
+                groupId, 
+                attempt: updatedData.deletionAttempts
+            });
+        }, {
+            maxAttempts: 3,
+            context: { operation: 'markGroupForDeletion', groupId }
+        });
+    }
+
+    /**
+     * Delete a batch of documents atomically
+     * @param collectionType - Type of collection being deleted (for logging)
+     * @param groupId - The group ID for logging context
+     * @param documentPaths - Array of document paths to delete
+     * @returns Promise<void>
+     */
+    private async deleteBatch(collectionType: string, groupId: string, documentPaths: string[]): Promise<void> {
+        if (documentPaths.length === 0) {
+            logger.info('No documents to delete for collection type', { collectionType, groupId });
+            return;
+        }
+
+        // Split into chunks respecting Firestore transaction limits
+        const chunks = [];
+        for (let i = 0; i < documentPaths.length; i += FIRESTORE.DELETION_BATCH_SIZE) {
+            chunks.push(documentPaths.slice(i, i + FIRESTORE.DELETION_BATCH_SIZE));
+        }
+
+        logger.info('Deleting documents in batches', { 
+            collectionType, 
+            groupId, 
+            totalDocuments: documentPaths.length,
+            batchCount: chunks.length,
+            batchSize: FIRESTORE.DELETION_BATCH_SIZE
+        });
+
+        // Process each chunk in its own transaction
+        for (let i = 0; i < chunks.length; i++) {
+            const chunk = chunks[i];
+            const batchNumber = i + 1;
+            
+            try {
+                await this.firestoreWriter.runTransaction(async (transaction) => {
+                    logger.info('Processing deletion batch', { 
+                        collectionType, 
+                        groupId, 
+                        batchNumber, 
+                        batchSize: chunk.length,
+                        totalBatches: chunks.length 
+                    });
+                    
+                    this.firestoreWriter.bulkDeleteInTransaction(transaction, chunk);
+                }, {
+                    maxAttempts: 3,
+                    context: { 
+                        operation: 'deleteBatch', 
+                        groupId, 
+                        collectionType, 
+                        batchNumber,
+                        batchSize: chunk.length
+                    }
+                });
+
+                logger.info('Deletion batch completed successfully', { 
+                    collectionType, 
+                    groupId, 
+                    batchNumber,
+                    batchSize: chunk.length
+                });
+
+            } catch (error) {
+                logger.error('Deletion batch failed', { 
+                    collectionType, 
+                    groupId, 
+                    batchNumber,
+                    batchSize: chunk.length,
+                    error: error instanceof Error ? error.message : String(error)
+                });
+                
+                // Mark group as failed and rethrow
+                await this.markGroupDeletionFailed(groupId, error instanceof Error ? error.message : String(error));
+                throw error;
+            }
+        }
+    }
+
+    /**
+     * Mark a group deletion as failed
+     * @param groupId - The group ID
+     * @param errorMessage - The error that caused the failure
+     */
+    private async markGroupDeletionFailed(groupId: string, errorMessage: string): Promise<void> {
+        try {
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+                const groupSnap = await transaction.get(groupRef);
+                
+                if (groupSnap.exists) {
+                    transaction.update(groupRef, {
+                        deletionStatus: 'failed' as const,
+                        updatedAt: Timestamp.now()
+                    });
+                }
+            }, {
+                maxAttempts: 3,
+                context: { operation: 'markGroupDeletionFailed', groupId }
+            });
+            
+            logger.error('Group deletion marked as failed', { groupId, errorMessage });
+        } catch (markError) {
+            logger.error('Failed to mark group deletion as failed', { 
+                groupId, 
+                originalError: errorMessage,
+                markError: markError instanceof Error ? markError.message : String(markError)
+            });
+        }
+    }
+
+    /**
+     * Finalize group deletion by removing the main group document
+     * @param groupId - The group ID to finalize deletion for
+     * @returns Promise<void>
+     */
+    private async finalizeGroupDeletion(groupId: string): Promise<void> {
+        await this.firestoreWriter.runTransaction(async (transaction) => {
+            const groupRef = getFirestore().collection(FirestoreCollections.GROUPS).doc(groupId);
+            const groupSnap = await transaction.get(groupRef);
+            
+            if (!groupSnap.exists) {
+                logger.warn('Group document not found during finalization', { groupId });
+                return;
+            }
+            
+            const groupData = groupSnap.data();
+            
+            // Verify group is marked for deletion
+            if (groupData?.deletionStatus !== 'deleting') {
+                throw new Error(`Group ${groupId} is not marked for deletion. Current status: ${groupData?.deletionStatus || 'none'}`);
+            }
+            
+            // Delete the main group document
+            transaction.delete(groupRef);
+            
+            logger.info('Group document deleted successfully', { groupId });
+        }, {
+            maxAttempts: 3,
+            context: { operation: 'finalizeGroupDeletion', groupId }
+        });
+    }
+
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
         // Fetch group with write access check
         const { group } = await this.fetchGroupWithAccess(groupId, userId, true);
@@ -756,130 +958,340 @@ export class GroupService {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
         
-        logger.info('Initiating hard delete for group', { 
+        logger.info('Initiating atomic group deletion', { 
             groupId, 
             memberCount: memberIds.length,
             members: memberIds,
-            operation: 'HARD_DELETE'
+            operation: 'ATOMIC_DELETE'
         });
 
-        // PHASE 1: Discover all related data
-        logger.info('Discovering all related data for comprehensive deletion', { groupId });
+        try {
+            // PHASE 1: Mark group for deletion (atomic)
+            logger.info('Step 1: Marking group for deletion', { groupId });
+            await this.markGroupForDeletion(groupId);
 
-        // Get all related data using centralized FirestoreReader
-        const {
-            expenses,
-            settlements,
-            transactionChanges,
-            balanceChanges,
-            shareLinks,
-            groupComments,
-            expenseComments: expenseCommentSnapshots
-        } = await this.firestoreReader.getGroupDeletionData(groupId);
+            // PHASE 2: Discover all related data
+            logger.info('Step 2: Discovering all related data', { groupId });
+            const {
+                expenses,
+                settlements,
+                transactionChanges,
+                balanceChanges,
+                shareLinks,
+                groupComments,
+                expenseComments: expenseCommentSnapshots
+            } = await this.firestoreReader.getGroupDeletionData(groupId);
 
-        // Calculate total documents to delete for logging
-        const totalDocuments = expenses.size + settlements.size + 
-                             transactionChanges.size + balanceChanges.size + shareLinks.size + 
-                             groupComments.size + (memberDocs?.length || 0) + 1 + // +1 for main group doc
-                             expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
+            // Calculate total documents for logging
+            const totalDocuments = expenses.size + settlements.size + 
+                                 transactionChanges.size + balanceChanges.size + shareLinks.size + 
+                                 groupComments.size + (memberDocs?.length || 0) + 
+                                 expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
-        logger.info('Data discovery complete, creating change document before deletion', {
-            groupId,
-            totalDocuments,
-            breakdown: {
-                expenses: expenses.size,
-                settlements: settlements.size,
-                transactionChanges: transactionChanges.size,
-                balanceChanges: balanceChanges.size,
-                shareLinks: shareLinks.size,
-                groupComments: groupComments.size,
-                members: memberDocs?.length || 0,
-                expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0)
-            }
-        });
-
-        // PHASE 2: Notifications will be handled by triggers after deletion
-        // This ensures a single source of truth for notification management
-        logger.info('Group deletion notifications will be handled by triggers', {
-            groupId,
-            memberCount: memberIds.length,
-            members: memberIds
-        });
-
-        // PHASE 3: Execute bulk deletion using IFirestoreWriter
-        const documentPaths: string[] = [];
-        
-        // Collect all document paths for bulk deletion
-        expenses.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        settlements.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        transactionChanges.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        balanceChanges.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        shareLinks.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        groupComments.docs.forEach(doc => documentPaths.push(doc.ref.path));
-
-        // Delete expense comments
-        expenseCommentSnapshots.forEach(snapshot => {
-            snapshot.docs.forEach(doc => documentPaths.push(doc.ref.path));
-        });
-
-        // Delete members from top-level collection
-        if (memberDocs) {
-            memberDocs.forEach(memberDoc => {
-                const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
-                const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
-                documentPaths.push(topLevelPath);
+            logger.info('Data discovery complete', {
+                groupId,
+                totalDocuments,
+                breakdown: {
+                    expenses: expenses.size,
+                    settlements: settlements.size,
+                    transactionChanges: transactionChanges.size,
+                    balanceChanges: balanceChanges.size,
+                    shareLinks: shareLinks.size,
+                    groupComments: groupComments.size,
+                    members: memberDocs?.length || 0,
+                    expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0)
+                }
             });
-        }
 
-        // Delete main group document last
-        documentPaths.push(`${FirestoreCollections.GROUPS}/${groupId}`);
-
-        // PHASE 4: Clean up notifications for all members before deletion
-        logger.info('Cleaning up notifications for all group members', { groupId, memberCount: memberIds.length });
-        if (memberDocs && memberDocs.length > 0) {
-            for (const memberDoc of memberDocs) {
-                try {
-                    await this.notificationService.removeUserFromGroup(memberDoc.userId, groupId);
-                } catch (error) {
-                    logger.warn('Failed to remove user from group notifications during group deletion', {
-                        groupId,
-                        userId: memberDoc.userId,
-                        error: error instanceof Error ? error.message : String(error)
-                    });
-                    // Continue with other members - don't fail the entire deletion
+            // PHASE 3: Clean up notifications for all members
+            logger.info('Step 3: Cleaning up notifications', { groupId, memberCount: memberIds.length });
+            if (memberDocs && memberDocs.length > 0) {
+                for (const memberDoc of memberDocs) {
+                    try {
+                        await this.notificationService.removeUserFromGroup(memberDoc.userId, groupId);
+                    } catch (error) {
+                        logger.warn('Failed to remove user from group notifications during group deletion', {
+                            groupId,
+                            userId: memberDoc.userId,
+                            error: error instanceof Error ? error.message : String(error)
+                        });
+                        // Continue with other members - don't fail the entire deletion
+                    }
                 }
             }
-        }
 
-        // PHASE 5: Execute bulk deletion
-        logger.info('Executing bulk deletion operations', { groupId, totalDocuments });
-        const bulkDeleteResult = await this.firestoreWriter.bulkDelete(documentPaths);
-        
-        if (bulkDeleteResult.failureCount > 0) {
-            logger.error('Some deletions failed during group hard delete', {
-                groupId,
-                successCount: bulkDeleteResult.successCount,
-                failureCount: bulkDeleteResult.failureCount
+            // PHASE 4: Delete collections in atomic batches
+            logger.info('Step 4: Deleting collections atomically', { groupId });
+
+            // Delete expenses
+            const expensePaths = expenses.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('expenses', groupId, expensePaths);
+
+            // Delete settlements  
+            const settlementPaths = settlements.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('settlements', groupId, settlementPaths);
+
+            // Delete transaction changes
+            const transactionPaths = transactionChanges.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('transaction-changes', groupId, transactionPaths);
+
+            // Delete balance changes
+            const balancePaths = balanceChanges.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('balance-changes', groupId, balancePaths);
+
+            // Delete share links
+            const shareLinkPaths = shareLinks.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('share-links', groupId, shareLinkPaths);
+
+            // Delete group comments
+            const groupCommentPaths = groupComments.docs.map(doc => doc.ref.path);
+            await this.deleteBatch('group-comments', groupId, groupCommentPaths);
+
+            // Delete expense comments
+            const expenseCommentPaths: string[] = [];
+            expenseCommentSnapshots.forEach(snapshot => {
+                snapshot.docs.forEach(doc => expenseCommentPaths.push(doc.ref.path));
             });
+            await this.deleteBatch('expense-comments', groupId, expenseCommentPaths);
+
+            // Delete memberships from top-level collection
+            const membershipPaths: string[] = [];
+            if (memberDocs) {
+                memberDocs.forEach(memberDoc => {
+                    const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+                    const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
+                    membershipPaths.push(topLevelPath);
+                });
+            }
+            await this.deleteBatch('memberships', groupId, membershipPaths);
+
+            // PHASE 5: Finalize by deleting main group document (atomic)
+            logger.info('Step 5: Finalizing group deletion', { groupId });
+            await this.finalizeGroupDeletion(groupId);
+
+            // Set group context
+            LoggerContext.setBusinessContext({ groupId });
+
+            logger.info('Atomic group deletion completed successfully', { 
+                groupId, 
+                totalDocuments,
+                operation: 'ATOMIC_DELETE_SUCCESS'
+            });
+
+            return { message: 'Group and all associated data deleted permanently' };
+
+        } catch (error) {
+            logger.error('Atomic group deletion failed', {
+                groupId,
+                error: error instanceof Error ? error.message : String(error),
+                operation: 'ATOMIC_DELETE_FAILED'
+            });
+            
+            // The markGroupDeletionFailed method is called within deleteBatch if needed
+            // Group will remain marked as 'failed' for manual intervention
+            throw error;
         }
+    }
 
-        logger.info('Bulk deletion completed successfully', { 
-            groupId, 
-            totalDocuments,
-            operation: 'HARD_DELETE_COMPLETE'
-        });
+    /**
+     * Find groups that are stuck in 'deleting' status for recovery
+     * @param olderThanMinutes - Find groups that have been deleting for longer than this many minutes
+     * @returns Array of group IDs that may need recovery
+     */
+    async findStuckDeletions(olderThanMinutes: number = 30): Promise<string[]> {
+        const cutoffTime = new Date(Date.now() - (olderThanMinutes * 60 * 1000));
+        const cutoffTimestamp = Timestamp.fromDate(cutoffTime);
+        
+        try {
+            const stuckGroups = await getFirestore()
+                .collection(FirestoreCollections.GROUPS)
+                .where('deletionStatus', '==', 'deleting')
+                .where('deletionStartedAt', '<=', cutoffTimestamp)
+                .get();
 
-        // Set group context
-        LoggerContext.setBusinessContext({ groupId });
+            const stuckGroupIds = stuckGroups.docs.map(doc => doc.id);
+            
+            logger.warn('Found groups stuck in deleting status', {
+                count: stuckGroupIds.length,
+                groupIds: stuckGroupIds,
+                olderThanMinutes,
+                operation: 'findStuckDeletions'
+            });
 
-        // Final success log
-        logger.info('group-hard-deleted', { 
-            id: groupId,
-            totalDocuments,
-            operation: 'HARD_DELETE_SUCCESS'
-        });
+            return stuckGroupIds;
+        } catch (error) {
+            logger.error('Failed to find stuck deletions', {
+                error: error instanceof Error ? error.message : String(error),
+                olderThanMinutes
+            });
+            return [];
+        }
+    }
 
-        return { message: 'Group and all associated data deleted permanently' };
+    /**
+     * Recovery method to retry or clean up failed group deletions
+     * @param groupId - The group ID to recover
+     * @param forceCleanup - If true, marks as failed instead of retrying
+     * @returns Recovery result
+     */
+    async recoverFailedDeletion(groupId: string, forceCleanup: boolean = false): Promise<{
+        success: boolean;
+        action: 'retried' | 'marked_failed' | 'not_found' | 'completed';
+        message: string;
+    }> {
+        try {
+            const groupDoc = await getFirestore()
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .get();
+
+            if (!groupDoc.exists) {
+                return {
+                    success: true,
+                    action: 'completed',
+                    message: 'Group no longer exists - deletion completed'
+                };
+            }
+
+            const groupData = groupDoc.data();
+            
+            if (groupData?.deletionStatus !== 'deleting') {
+                return {
+                    success: false,
+                    action: 'not_found',
+                    message: `Group is not in deleting status. Current status: ${groupData?.deletionStatus || 'none'}`
+                };
+            }
+
+            const attempts = groupData?.deletionAttempts || 0;
+            
+            if (forceCleanup || attempts >= FIRESTORE.MAX_DELETION_ATTEMPTS) {
+                // Mark as failed for manual intervention
+                await this.markGroupDeletionFailed(groupId, 'Recovery: Maximum attempts exceeded or forced cleanup');
+                
+                logger.warn('Group deletion marked as failed during recovery', {
+                    groupId,
+                    attempts,
+                    forceCleanup,
+                    operation: 'recoverFailedDeletion'
+                });
+
+                return {
+                    success: true,
+                    action: 'marked_failed',
+                    message: `Group marked as failed after ${attempts} attempts`
+                };
+            } else {
+                // Reset deletion status to allow retry
+                await this.firestoreWriter.runTransaction(async (transaction) => {
+                    const freshDoc = await transaction.get(groupDoc.ref);
+                    if (freshDoc.exists) {
+                        transaction.update(freshDoc.ref, {
+                            deletionStatus: undefined,
+                            deletionStartedAt: undefined,
+                            updatedAt: Timestamp.now()
+                        });
+                    }
+                }, {
+                    maxAttempts: 3,
+                    context: { operation: 'recoverFailedDeletion', groupId }
+                });
+
+                logger.info('Group deletion status reset for retry', {
+                    groupId,
+                    previousAttempts: attempts,
+                    operation: 'recoverFailedDeletion'
+                });
+
+                return {
+                    success: true,
+                    action: 'retried',
+                    message: `Group deletion reset for retry (was attempt ${attempts})`
+                };
+            }
+        } catch (error) {
+            logger.error('Failed to recover group deletion', {
+                groupId,
+                error: error instanceof Error ? error.message : String(error),
+                operation: 'recoverFailedDeletion'
+            });
+
+            return {
+                success: false,
+                action: 'not_found',
+                message: `Recovery failed: ${error instanceof Error ? error.message : String(error)}`
+            };
+        }
+    }
+
+    /**
+     * Get detailed status of group deletion process
+     * @param groupId - The group ID to check
+     * @returns Deletion status information
+     */
+    async getDeletionStatus(groupId: string): Promise<{
+        exists: boolean;
+        status: 'none' | 'deleting' | 'failed';
+        startedAt?: string;
+        attempts?: number;
+        canRetry: boolean;
+        message: string;
+    }> {
+        try {
+            const groupDoc = await getFirestore()
+                .collection(FirestoreCollections.GROUPS)
+                .doc(groupId)
+                .get();
+
+            if (!groupDoc.exists) {
+                return {
+                    exists: false,
+                    status: 'none',
+                    canRetry: false,
+                    message: 'Group does not exist - may have been successfully deleted'
+                };
+            }
+
+            const groupData = groupDoc.data();
+            const deletionStatus = groupData?.deletionStatus;
+            const startedAt = groupData?.deletionStartedAt;
+            const attempts = groupData?.deletionAttempts || 0;
+
+            if (!deletionStatus) {
+                return {
+                    exists: true,
+                    status: 'none',
+                    canRetry: true,
+                    message: 'Group is not being deleted'
+                };
+            }
+
+            const canRetry = deletionStatus === 'failed' || attempts < FIRESTORE.MAX_DELETION_ATTEMPTS;
+            const statusMessage = deletionStatus === 'deleting' 
+                ? `Deletion in progress (attempt ${attempts})`
+                : `Deletion failed after ${attempts} attempts`;
+
+            return {
+                exists: true,
+                status: deletionStatus,
+                startedAt: startedAt?.toDate().toISOString(),
+                attempts,
+                canRetry,
+                message: statusMessage
+            };
+        } catch (error) {
+            logger.error('Failed to get deletion status', {
+                groupId,
+                error: error instanceof Error ? error.message : String(error)
+            });
+
+            return {
+                exists: false,
+                status: 'none',
+                canRetry: false,
+                message: `Failed to check status: ${error instanceof Error ? error.message : String(error)}`
+            };
+        }
     }
 
     /**

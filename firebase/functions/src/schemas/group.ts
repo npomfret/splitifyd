@@ -55,6 +55,10 @@ const BaseGroupSchema = z
             .passthrough() // Allow extra fields like settlementCreation, memberManagement, groupManagement
             .optional(),
         presetAppliedAt: FirestoreTimestampSchema.optional(),
+        // Phase 3: Deletion state management fields
+        deletionStatus: z.enum(['deleting', 'failed']).optional(),
+        deletionStartedAt: FirestoreTimestampSchema.optional(),
+        deletionAttempts: z.number().optional(),
     })
     .merge(AuditFieldsSchema)
     .passthrough();
