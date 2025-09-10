@@ -2,8 +2,6 @@ import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
 
-setupMCPDebugOnFailure();
-
 test.describe('Registration Loading State', () => {
     test('should show loading spinner during registration', async ({ page, registerPage }) => {
         const email = generateTestEmail('loading-test');

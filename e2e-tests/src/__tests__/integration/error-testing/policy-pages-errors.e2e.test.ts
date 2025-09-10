@@ -2,8 +2,6 @@ import { pageTest } from '../../../fixtures';
 import { setupMCPDebugOnFailure, waitForApp } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Policy Pages Error Testing', () => {
     pageTest(
         'should navigate between policy pages without errors',

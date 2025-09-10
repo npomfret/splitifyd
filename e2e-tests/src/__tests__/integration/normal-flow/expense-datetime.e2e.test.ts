@@ -3,8 +3,6 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 authenticatedPageTest.describe('Expense Date and Time Selection', () => {
     authenticatedPageTest('should handle all date convenience buttons and time input scenarios', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;

@@ -1,10 +1,10 @@
-import { test as base, Page, BrowserContext } from '@playwright/test';
+import { Page, BrowserContext } from '@playwright/test';
+import { test as base } from './base-test';
 import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, RegisterPage, HomepagePage, PricingPage, DashboardPage, GroupDetailPage, ExpenseDetailPage, CreateGroupModalPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
-import * as fs from 'fs';
-import * as path from 'path';
+import { attachConsoleHandler } from '../helpers/unified-console-handler';
 
 export interface PageObjects {
     login: LoginPage;
@@ -52,24 +52,15 @@ async function createUserFixture(browser: any, userIndex: number = 0, existingPa
     const userPool = getUserPool();
     const user = await userPool.claimUser(browser); // Pass browser instead of page
 
-    // Set up console log capture for this user - use test info to create unique directory
-    const testDir = testInfo ? testInfo.outputDir : path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
-    const logFile = path.join(testDir, `user-${userIndex}-${user.email.replace(/\s+/g, '-')}-console.log`);
-    
-    // Ensure directory exists
-    if (!fs.existsSync(testDir)) {
-        fs.mkdirSync(testDir, { recursive: true });
+    // For additional users (not the primary user which gets console handling from base-test),
+    // set up console handling for multi-user scenarios
+    if (userIndex > 0 && !existingPage) {
+        attachConsoleHandler(page, {
+            userIndex,
+            userEmail: user.email,
+            testInfo
+        });
     }
-
-    // Clear existing log file
-    fs.writeFileSync(logFile, `Console logs for User ${userIndex}: ${user.email}\n`, 'utf8');
-
-    // Set up console message listener
-    page.on('console', (msg: any) => {
-        const timestamp = new Date().toISOString();
-        const logEntry = `[${timestamp}] ${msg.type().toUpperCase()}: ${msg.text()}\n`;
-        fs.appendFileSync(logFile, logEntry, 'utf8');
-    });
 
     const authWorkflow = new AuthenticationWorkflow(page);
     await authWorkflow.loginExistingUser(user);

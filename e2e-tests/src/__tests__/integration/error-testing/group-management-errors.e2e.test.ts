@@ -1,9 +1,7 @@
 import { authenticatedPageTest } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable debugging helpers
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('Group Management Error Testing', () => {
     // Deletion tests moved to group-deletion-multi-user.e2e.test.ts for better coverage

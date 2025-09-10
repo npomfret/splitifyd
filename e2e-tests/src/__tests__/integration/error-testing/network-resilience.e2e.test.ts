@@ -3,8 +3,6 @@ import { pageTest, expect } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Network Resilience E2E', () => {
     pageTest('should handle network errors gracefully', async ({ page, context, loginPage }) => {
         test.info().annotations.push({ type: 'skip-error-checking' });

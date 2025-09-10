@@ -2,8 +2,6 @@ import { pageTest } from '../../../fixtures';
 import { setupMCPDebugOnFailure, waitForApp } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Policy Pages E2E', () => {
     pageTest('should load terms of service page without JavaScript errors', async ({ page, homepagePage }) => {
         await homepagePage.navigateToStaticPath('/terms');

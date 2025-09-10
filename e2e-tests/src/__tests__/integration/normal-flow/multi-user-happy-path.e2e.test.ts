@@ -6,8 +6,6 @@ import {generateTestGroupName} from '../../../../../packages/test-support/test-h
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-setupMCPDebugOnFailure();
-
 test.describe('Multi-User Collaboration E2E', () => {
     test('should handle group sharing via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user } = authenticatedPage;

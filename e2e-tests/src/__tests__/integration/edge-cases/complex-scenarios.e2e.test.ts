@@ -6,8 +6,6 @@ import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
 // Enable console error reporting and MCP debugging
-setupMCPDebugOnFailure();
-
 test.describe('Complex Unsettled Group Scenario', () => {
     test('create group with multiple people and expenses that is NOT settled', async ({ authenticatedPage, secondUser, dashboardPage }) => {
         // Use fixture-provided users instead of creating new ones

@@ -4,8 +4,6 @@ import { generateTestGroupName } from '../../../../../packages/test-support/test
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Expense Editing Error Testing', () => {
     test('should edit expense amount (increase)', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
         // Skip error checking for edit operations

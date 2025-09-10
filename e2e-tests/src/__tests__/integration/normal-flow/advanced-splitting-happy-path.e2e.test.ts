@@ -4,8 +4,6 @@ import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable console error reporting and MCP debugging
-setupMCPDebugOnFailure();
-
 test.describe('Advanced Splitting Options', () => {
     // Consolidated user journey test - creates group once and tests all split types in sequence
 

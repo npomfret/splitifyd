@@ -4,8 +4,6 @@ import {generateTestGroupName} from '../../../../../packages/test-support/test-h
 import {GroupWorkflow} from '../../../workflows';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 authenticatedPageTest.describe('Dashboard User Journey', () => {
     authenticatedPageTest('should handle complete dashboard workflow with authentication persistence', async ({ authenticatedPage, dashboardPage }) => {
         const { page, user } = authenticatedPage;

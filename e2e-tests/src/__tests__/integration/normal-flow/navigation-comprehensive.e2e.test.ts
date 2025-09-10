@@ -2,8 +2,6 @@ import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
 import { setupMCPDebugOnFailure, EMULATOR_URL } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 test.describe('Comprehensive Navigation E2E', () => {
     test('should navigate between all main pages', async ({ page, homepagePage, loginPage, registerPage, pricingPage }) => {
         // Start from homepage

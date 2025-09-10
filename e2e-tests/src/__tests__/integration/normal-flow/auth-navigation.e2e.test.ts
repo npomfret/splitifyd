@@ -3,8 +3,6 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Auth Navigation E2E', () => {
     pageTest('should navigate between login and register pages', async ({ loginPage, registerPage }) => {
         // Go to login page

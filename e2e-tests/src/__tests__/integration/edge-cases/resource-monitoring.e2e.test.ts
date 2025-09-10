@@ -1,8 +1,6 @@
 import { pageTest, expect } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 
-setupMCPDebugOnFailure();
-
 pageTest.describe('Resource Monitoring', () => {
     pageTest('should load all resources successfully across main pages', async ({ page, homepagePage, loginPage, registerPage, pricingPage }) => {
         const failedRequests: string[] = [];

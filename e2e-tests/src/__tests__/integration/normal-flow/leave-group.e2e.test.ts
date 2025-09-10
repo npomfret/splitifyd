@@ -1,5 +1,5 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
@@ -7,8 +7,6 @@ import { ExpenseBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable error reporting and debugging
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 // Increase timeout for multi-user operations
 test.setTimeout(30000);

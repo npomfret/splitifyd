@@ -2,8 +2,6 @@ import { pageTest, expect } from '../../../fixtures';
 import { waitForApp, setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Form Behavior Edge Cases', () => {
     pageTest('should persist form values on page refresh', async ({ loginPageNavigated }) => {
         const { page, loginPage } = loginPageNavigated;

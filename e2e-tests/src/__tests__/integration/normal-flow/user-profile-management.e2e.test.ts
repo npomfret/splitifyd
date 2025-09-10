@@ -1,11 +1,9 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
 import { test as baseTest } from '../../../fixtures/base-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { SettingsPage, RegisterPage, DashboardPage } from '../../../pages';
 import { generateNewUserDetails } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('User Profile Management', () => {
     authenticatedPageTest('should allow user to view their profile information', async ({ authenticatedPage }) => {

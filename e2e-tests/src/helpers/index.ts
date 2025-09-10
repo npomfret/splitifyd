@@ -1,5 +1,4 @@
 export * from './emulator-utils';
-export * from './mcp-integration';
-export * from './console-error-reporter';
+export * from './unified-console-handler';
 export * from './TestGroupWorkflow';
 export * from '../workflows/index';

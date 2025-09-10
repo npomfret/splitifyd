@@ -1,9 +1,7 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { SettingsPage } from '../../../pages';
 
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('User Profile Error Handling', () => {
     authenticatedPageTest('should validate display name requirements', async ({ authenticatedPage }) => {

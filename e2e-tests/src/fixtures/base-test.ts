@@ -1,12 +1,9 @@
 import { test as base } from '@playwright/test';
-import { setupConsoleErrorReporting } from '../helpers';
+import { attachConsoleHandler } from '../helpers/unified-console-handler';
 
-// Set up console error reporting for all tests
-setupConsoleErrorReporting();
-
-// Extend base test to inject Playwright flag and i18n language setting
+// Extend base test to inject Playwright flag, i18n language setting, and unified console handling
 export const test = base.extend({
-    page: async ({ page }, use) => {
+    page: async ({ page }, use, testInfo) => {
         // Inject __PLAYWRIGHT__ flag and i18n language setting before any page script executes.
         await page.addInitScript(() => {
             // This flag is used to disable heavy animations (like the Three.js globe)
@@ -19,7 +16,16 @@ export const test = base.extend({
             localStorage.setItem('i18nextLng', 'en');
         });
 
-        await use(page);
+        // Attach unified console handler for automatic error detection and logging
+        const consoleHandler = attachConsoleHandler(page, { testInfo });
+
+        try {
+            await use(page);
+        } finally {
+            // Process any errors that occurred during the test
+            await consoleHandler.processErrors(testInfo);
+            consoleHandler.dispose();
+        }
     },
 });
 

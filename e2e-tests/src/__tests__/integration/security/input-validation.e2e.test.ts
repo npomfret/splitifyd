@@ -2,8 +2,6 @@ import { expect } from '@playwright/test';
 import { authenticatedPageTest } from '../../../fixtures/authenticated-page-test';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 
-setupMCPDebugOnFailure();
-
 authenticatedPageTest.describe('Input Validation Security', () => {
     authenticatedPageTest('should validate group name inputs', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
         const { page } = authenticatedPage;

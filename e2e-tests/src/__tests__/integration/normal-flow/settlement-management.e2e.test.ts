@@ -3,8 +3,6 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Settlement Management', () => {
     // Note: Basic settlement creation and balance update tests have been removed
     // as they are better covered by the comprehensive three-user-settlement test

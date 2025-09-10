@@ -3,8 +3,6 @@ import { authenticatedPageTest } from '../../../fixtures/authenticated-page-test
 import { multiUserTest } from '../../../fixtures/multi-user-test';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 
-setupMCPDebugOnFailure();
-
 authenticatedPageTest.describe('Authentication Security', () => {
     authenticatedPageTest('should redirect unauthenticated users to login', async ({ page }) => {
         // Clear authentication by going to login and not logging in

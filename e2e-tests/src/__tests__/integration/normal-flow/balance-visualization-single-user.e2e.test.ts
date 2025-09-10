@@ -3,8 +3,6 @@ import {setupMCPDebugOnFailure, TestGroupWorkflow} from '../../../helpers';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-setupMCPDebugOnFailure();
-
 test.describe('Single User Balance Visualization', () => {
     test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
         const { page, user, } = authenticatedPage;

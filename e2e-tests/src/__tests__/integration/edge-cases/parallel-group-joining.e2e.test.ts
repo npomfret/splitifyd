@@ -4,8 +4,6 @@ import { JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Parallel Group Joining Edge Cases', () => {
     test('should handle multiple users joining group in parallel', async ({ authenticatedPage, groupDetailPage, secondUser, thirdUser }) => {
         const { page, user: user1 } = authenticatedPage;

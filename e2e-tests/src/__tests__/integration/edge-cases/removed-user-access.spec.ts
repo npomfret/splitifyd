@@ -1,13 +1,11 @@
 import {expect, multiUserTest} from '../../../fixtures';
-import {setupConsoleErrorReporting, setupMCPDebugOnFailure} from '../../../helpers';
+import {setupMCPDebugOnFailure} from '../../../helpers';
 import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
 import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {DashboardPage, JoinGroupPage} from '../../../pages';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 multiUserTest.describe('Multi-User Group Access', () => {
     multiUserTest('multiple users can collaborate in shared group', async ({ authenticatedPage, dashboardPage, groupDetailPage, secondUser }) => {

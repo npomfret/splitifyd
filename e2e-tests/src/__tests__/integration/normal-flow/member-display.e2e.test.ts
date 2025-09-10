@@ -6,8 +6,6 @@ import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 
 // Enable console error reporting and MCP debugging
-setupMCPDebugOnFailure();
-
 test.describe('Member Management E2E', () => {
     test('should display current group members', async ({ authenticatedPage, dashboardPage }) => {
         const { page, user } = authenticatedPage;

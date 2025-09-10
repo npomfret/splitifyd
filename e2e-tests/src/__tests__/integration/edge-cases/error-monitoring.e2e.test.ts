@@ -2,8 +2,6 @@ import { pageTest, expect } from '../../../fixtures';
 import { waitForApp, setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 pageTest.describe('Error Monitoring E2E', () => {
     pageTest('should load homepage without JavaScript errors', async ({ homepageNavigated }) => {
         const { page } = homepageNavigated;

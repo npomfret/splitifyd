@@ -4,8 +4,6 @@ import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
 import { DashboardPage } from '../../../pages';
 
-setupMCPDebugOnFailure();
-
 test.describe('Duplicate User Registration E2E', () => {
     test('should prevent duplicate email registration and show error', async ({ page, registerPage }) => {
         // This test expects a 409 error when trying to register duplicate email

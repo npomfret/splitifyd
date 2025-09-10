@@ -1,5 +1,5 @@
 import { authenticatedPageTest, expect } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 import { RegisterPage } from '../../../pages';
@@ -7,8 +7,6 @@ import { DashboardPage } from '../../../pages';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable debugging helpers
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('Group Management', () => {
     authenticatedPageTest('should allow group owner to edit group name', async ({ authenticatedPage, groupDetailPage }) => {

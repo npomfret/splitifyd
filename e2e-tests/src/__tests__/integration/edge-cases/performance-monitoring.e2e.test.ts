@@ -4,8 +4,6 @@ import { TIMEOUTS } from '../../../config/timeouts';
 import { RegisterPage } from '../../../pages';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 // NOTE: Simple load time testing moved to CI performance budgets
 pageTest.describe('Performance Monitoring E2E', () => {
     pageTest('should handle login and registration form interactions correctly on slow network', async ({ page, context, loginPage }) => {

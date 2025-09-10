@@ -3,8 +3,6 @@ import { GroupWorkflow, setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Freeform Categories Error Testing', () => {
     test('should handle category with special characters and emojis', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
         // @skip-error-checking - May have API validation issues with special characters

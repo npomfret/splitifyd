@@ -4,8 +4,6 @@ import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Freeform Categories E2E', () => {
     test('should allow user to select predefined category from suggestions', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
         const { page } = authenticatedPage;

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { multiUserTest } from '../../../fixtures';
 import { singleMixedAuthTest } from '../../../fixtures/mixed-auth-test';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
@@ -8,8 +8,6 @@ import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../..
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
 
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 test.describe('Comprehensive Share Link Testing', () => {
     test.describe('Share Link - Already Logged In User', () => {

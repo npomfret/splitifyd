@@ -4,8 +4,6 @@ import { GroupWorkflow } from '../../../workflows';
 import {DashboardPage, JoinGroupPage} from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupMCPDebugOnFailure();
-
 // Increase timeout for this complex multi-user test
 test.setTimeout(30000);
 

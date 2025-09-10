@@ -1,14 +1,12 @@
 import { expect, multiUserTest } from '../../../fixtures/multi-user-test';
 import { authenticatedPageTest } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable debugging helpers
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
     authenticatedPageTest('group owner should not see leave button and should see settings', async ({ authenticatedPage, groupDetailPage }) => {

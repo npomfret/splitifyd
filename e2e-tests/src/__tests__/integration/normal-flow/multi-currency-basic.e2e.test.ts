@@ -6,8 +6,6 @@ import {ExpenseBuilder} from '@splitifyd/test-support';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 
 // Enable debugging helpers
-setupMCPDebugOnFailure();
-
 authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     authenticatedPageTest('should handle multi-currency expenses separately', async ({ authenticatedPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;

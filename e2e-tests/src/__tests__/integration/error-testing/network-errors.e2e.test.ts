@@ -6,8 +6,6 @@ import { generateTestGroupName } from '../../../../../packages/test-support/test
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 // Enable console error reporting and MCP debugging
-setupMCPDebugOnFailure();
-
 test.describe('Error Handling', () => {
     test('displays error message when network fails during group creation', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {
         const { page } = authenticatedPage;

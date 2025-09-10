@@ -3,8 +3,6 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Settlements - Complete Functionality', () => {
     test.describe('Settlement Creation and History', () => {
         test('should create settlement and display in history with proper formatting', async ({ authenticatedPage, groupDetailPage, secondUser }) => {

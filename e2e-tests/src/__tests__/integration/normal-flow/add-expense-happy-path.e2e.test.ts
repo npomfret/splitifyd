@@ -4,8 +4,6 @@ import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 import {v4 as uuidv4} from 'uuid';
 
-setupMCPDebugOnFailure();
-
 test.describe('Add Expense E2E', () => {
     test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;

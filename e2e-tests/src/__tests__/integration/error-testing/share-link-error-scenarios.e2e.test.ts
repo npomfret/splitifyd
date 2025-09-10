@@ -4,8 +4,6 @@ import { setupMCPDebugOnFailure } from '../../../helpers';
 import { MultiUserWorkflow } from '../../../workflows';
 import { JoinGroupPage } from '../../../pages';
 
-setupMCPDebugOnFailure();
-
 test.describe('Share Link - Error Scenarios', () => {
     multiUserTest('should handle invalid share links gracefully', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage }) => {
         const { page } = authenticatedPage;

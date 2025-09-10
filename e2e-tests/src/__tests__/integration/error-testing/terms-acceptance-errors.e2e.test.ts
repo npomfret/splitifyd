@@ -3,8 +3,6 @@ import { RegisterPage } from '../../../pages';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
 
-setupMCPDebugOnFailure();
-
 pageTest.describe('Terms Acceptance Error Testing', () => {
     pageTest('should allow form submission when both policies accepted', async ({ page }, testInfo) => {
         // @skip-error-checking - This test may have expected registration errors

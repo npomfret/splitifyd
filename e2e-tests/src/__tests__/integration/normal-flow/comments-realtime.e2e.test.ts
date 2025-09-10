@@ -1,5 +1,5 @@
 import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import {JoinGroupPage, ExpenseDetailPage} from '../../../pages';
 import {generateTestGroupName, randomString} from '../../../../../packages/test-support/test-helpers.ts';
@@ -7,8 +7,6 @@ import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 // Enable error reporting and debugging
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 test.describe('Real-time Comments E2E', () => {
     test('should support real-time group comments across multiple users', async ({ authenticatedPage, groupDetailPage, secondUser }) => {

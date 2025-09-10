@@ -1,12 +1,9 @@
 import { authenticatedPageTest, expect, pageTest } from '../../../fixtures';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
+import { setupMCPDebugOnFailure } from '../../../helpers';
 import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-setupConsoleErrorReporting();
-
 /**
  * Comprehensive Form Validation Test Suite
  * Consolidates validation testing from:

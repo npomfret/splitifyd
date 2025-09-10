@@ -4,8 +4,6 @@ import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../../config/timeouts';
 import { SELECTORS } from '../../../constants/selectors';
 
 // Enable console error reporting and MCP debugging
-setupMCPDebugOnFailure();
-
 test.describe('Timeout Error Handling', () => {
     test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, createGroupModalPage, context }) => {
         const { page } = authenticatedPage;

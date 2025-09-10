@@ -2,8 +2,6 @@ import { pageTest, expect } from '../../../fixtures';
 import { setupMCPDebugOnFailure } from '../../../helpers';
 
 // Enable MCP debugging for failed tests
-setupMCPDebugOnFailure();
-
 // NOTE: ARIA labels testing moved to unit tests for better performance
 pageTest.describe('Form Accessibility', () => {
     pageTest('should navigate login form with keyboard', async ({ loginPageNavigated, loginPage }) => {

@@ -2,8 +2,6 @@ import { authenticatedPageTest as test, expect } from '../../../fixtures/authent
 import { setupMCPDebugOnFailure, TestGroupWorkflow } from '../../../helpers';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-setupMCPDebugOnFailure();
-
 test.describe('Group Details E2E', () => {
     test('should display correct initial state for a new group', async ({ authenticatedPage, groupDetailPage }) => {
         const { page, user } = authenticatedPage;

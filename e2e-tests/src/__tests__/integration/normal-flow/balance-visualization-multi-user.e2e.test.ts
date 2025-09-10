@@ -6,8 +6,6 @@ import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-setupMCPDebugOnFailure();
-
 test.describe('Multi-User Balance Visualization - Deterministic States', () => {
     test('should show settled up when both users pay equal amounts', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
         const { page, user: user1, dashboardPage: user1DashboardPage } = authenticatedPage;

@@ -1,14 +1,9 @@
 import { expect, fourUserTest } from '../../../fixtures/four-user-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
-
-// Enable error reporting and debugging
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
 
 fourUserTest.describe('Group Real-Time Updates E2E', () => {
     fourUserTest('should handle real-time group updates across 4 users without page refresh', async ({
