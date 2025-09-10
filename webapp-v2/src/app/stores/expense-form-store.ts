@@ -10,7 +10,7 @@ import type { UserScopedStorage } from '@/utils/userScopedStorage.ts';
 export interface ExpenseFormStore {
     // Form fields
     description: string;
-    amount: string | number; // Allow string to preserve user input like "50.00"
+    amount: number;
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
@@ -28,7 +28,7 @@ export interface ExpenseFormStore {
 
     // Readonly signal accessors for reactive components
     readonly descriptionSignal: ReadonlySignal<string>;
-    readonly amountSignal: ReadonlySignal<string | number>;
+    readonly amountSignal: ReadonlySignal<number>;
     readonly currencySignal: ReadonlySignal<string>;
     readonly dateSignal: ReadonlySignal<string>;
     readonly timeSignal: ReadonlySignal<string>;
@@ -67,7 +67,7 @@ export interface ExpenseFormStore {
 // Type for form data fields
 interface ExpenseFormData {
     description: string;
-    amount: string | number; // Allow string to preserve user input
+    amount: number;
     currency: string;
     date: string;
     time: string; // Time in HH:mm format (24-hour)
@@ -199,7 +199,7 @@ export function getRecentAmounts(): number[] {
 class ExpenseFormStoreImpl implements ExpenseFormStore {
     // Private signals - encapsulated within the class
     readonly #descriptionSignal = signal<string>('');
-    readonly #amountSignal = signal<string | number>(''); // Store as string to preserve user input
+    readonly #amountSignal = signal<number>(0);
     readonly #currencySignal = signal<string>('USD'); // Default to USD since UI doesn't expose currency selection yet
     readonly #dateSignal = signal<string>(getTodayDate());
     readonly #timeSignal = signal<string>('12:00'); // Default to noon (12:00 PM)
@@ -263,7 +263,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
     get descriptionSignal(): ReadonlySignal<string> {
         return this.#descriptionSignal;
     }
-    get amountSignal(): ReadonlySignal<string | number> {
+    get amountSignal(): ReadonlySignal<number> {
         return this.#amountSignal;
     }
     get currencySignal(): ReadonlySignal<string> {
@@ -327,7 +327,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         if (!this.hasRequiredFields) return false;
 
         // Then check if values are valid
-        if (parseFloat(this.#amountSignal.value.toString()) <= 0) return false;
+        if (this.#amountSignal.value <= 0) return false;
 
         // Validate each field
         const descError = this.validateField('description');
@@ -361,18 +361,22 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 this.#descriptionSignal.value = value as string;
                 break;
             case 'amount':
-                this.#amountSignal.value = value as string | number;
-                // Convert to number for calculations
-                const numericAmount = typeof value === 'string' ? parseFloat(value) || 0 : (value as number);
+                // Assert amount is always a number - blow up if it isn't
+                if (typeof value !== 'number') {
+                    throw new Error(`Amount must be a number, got ${typeof value}: ${value}`);
+                }
+                this.#amountSignal.value = value;
+                
                 // Recalculate splits based on current type
                 if (this.#splitTypeSignal.value === SplitTypes.EQUAL) {
                     this.calculateEqualSplits();
                 } else if (this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
                     // Recalculate amounts for percentage splits
                     const currentSplits = [...this.#splitsSignal.value];
+                    const amount = this.#amountSignal.value;
                     currentSplits.forEach((split) => {
                         if (split.percentage !== undefined) {
-                            split.amount = (numericAmount * split.percentage) / 100;
+                            split.amount = (amount * split.percentage) / 100;
                         }
                     });
                     this.#splitsSignal.value = currentSplits;
@@ -466,7 +470,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     calculateEqualSplits(): void {
         const participants = this.#participantsSignal.value;
-        const amount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+        const amount = this.#amountSignal.value;
 
         if (participants.length === 0 || amount <= 0) {
             this.#splitsSignal.value = [];
@@ -514,18 +518,18 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
         const splitIndex = currentSplits.findIndex((s) => s.userId === userId);
 
         if (splitIndex >= 0) {
-            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+            const amount = this.#amountSignal.value;
             currentSplits[splitIndex] = {
                 ...currentSplits[splitIndex],
                 percentage,
-                amount: (numericAmount * percentage) / 100,
+                amount: (amount * percentage) / 100,
             };
         } else {
-            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+            const amount = this.#amountSignal.value;
             currentSplits.push({
                 userId,
                 percentage,
-                amount: (numericAmount * percentage) / 100,
+                amount: (amount * percentage) / 100,
             });
         }
 
@@ -544,7 +548,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     private handleSplitTypeChange(newType: typeof SplitTypes.EQUAL | typeof SplitTypes.EXACT | typeof SplitTypes.PERCENTAGE): void {
         const participants = this.#participantsSignal.value;
-        const amount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+        const amount = this.#amountSignal.value;
 
         if (participants.length === 0 || amount <= 0) {
             this.#splitsSignal.value = [];
@@ -590,10 +594,13 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             case 'amount':
                 const amt = value ?? this.#amountSignal.value;
-                const numericAmt = typeof amt === 'string' ? parseFloat(amt) || 0 : amt;
-                if (numericAmt <= 0) {
+                // Assert amount is always a number - blow up if it isn't
+                if (typeof amt !== 'number') {
+                    throw new Error(`Amount must be a number, got ${typeof amt}: ${amt}`);
+                }
+                if (amt <= 0) {
                     return 'Amount must be greater than 0';
-                } else if (numericAmt > 1000000) {
+                } else if (amt > 1000000) {
                     return 'Amount seems too large';
                 }
                 break;
@@ -637,8 +644,8 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                 // Validate splits based on split type
                 if (this.#splitTypeSignal.value === SplitTypes.EXACT) {
                     const totalSplit = this.#splitsSignal.value.reduce((sum, split) => sum + split.amount, 0);
-                    const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
-                    if (Math.abs(totalSplit - numericAmount) > 0.01) {
+                    const amount = this.#amountSignal.value;
+                    if (Math.abs(totalSplit - amount) > 0.01) {
                         return `Split amounts must equal the total expense amount`;
                     }
                 } else if (this.#splitTypeSignal.value === SplitTypes.PERCENTAGE) {
@@ -702,11 +709,11 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
             // Convert date and time to UTC timestamp
             const utcDateTime = getUTCDateTime(this.#dateSignal.value, this.#timeSignal.value);
 
-            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+            const amount = this.#amountSignal.value;
             const request: CreateExpenseRequest = {
                 groupId,
                 description: this.#descriptionSignal.value.trim(),
-                amount: numericAmount,
+                amount: amount,
                 currency: this.#currencySignal.value,
                 paidBy: this.#paidBySignal.value,
                 category: this.#categorySignal.value,
@@ -720,7 +727,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Track recent category and amount
             storageManager.addRecentCategory(this.#categorySignal.value);
-            storageManager.addRecentAmount(numericAmount);
+            storageManager.addRecentAmount(amount);
 
             // Clear draft and reset form immediately after successful creation
             this.clearDraft(groupId);
@@ -757,10 +764,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // For updates, only include fields that can be changed
             // Backend doesn't allow changing: groupId, paidBy
-            const numericAmount = typeof this.#amountSignal.value === 'string' ? parseFloat(this.#amountSignal.value) || 0 : this.#amountSignal.value;
+            const amount = this.#amountSignal.value;
             const updateRequest = {
                 description: this.#descriptionSignal.value.trim(),
-                amount: numericAmount,
+                amount: amount,
                 currency: this.#currencySignal.value,
                 category: this.#categorySignal.value,
                 date: utcDateTime,
@@ -773,7 +780,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Track recent category and amount
             storageManager.addRecentCategory(this.#categorySignal.value);
-            storageManager.addRecentAmount(numericAmount);
+            storageManager.addRecentAmount(amount);
 
             // Clear draft immediately after successful update
             this.clearDraft(groupId);
@@ -801,7 +808,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     reset(): void {
         this.#descriptionSignal.value = '';
-        this.#amountSignal.value = ''; // Reset to empty string
+        this.#amountSignal.value = 0;
         this.#currencySignal.value = 'USD'; // Default to USD
         this.#dateSignal.value = getTodayDate();
         this.#timeSignal.value = '12:00'; // Default to noon
@@ -816,7 +823,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
     hasUnsavedChanges(): boolean {
         // Check if any field has been modified from initial state
-        const hasAmount = typeof this.#amountSignal.value === 'string' ? this.#amountSignal.value.trim() !== '' : this.#amountSignal.value > 0;
+        const hasAmount = this.#amountSignal.value > 0;
         return (
             this.#descriptionSignal.value.trim() !== '' ||
             hasAmount ||

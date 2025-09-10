@@ -3,7 +3,7 @@ import { CurrencyService, type Currency } from '@/app/services/currencyService';
 import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 
 interface CurrencyAmountInputProps {
-    amount: number | string;
+    amount: number;
     currency: string;
     onAmountChange: (amount: string) => void;
     onCurrencyChange: (currency: string) => void;

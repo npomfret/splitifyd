@@ -32,9 +32,10 @@ export function useFormState() {
 
     const handleAmountChange = (e: Event) => {
         const input = e.target as HTMLInputElement;
-        // Keep the raw string value to preserve user input (e.g., "50.00")
-        // The store will handle conversion to number when needed
-        expenseFormStore.updateField('amount', input.value);
+        // Parse string input to number at the UI boundary
+        // Convert empty string to 0, preserve user decimals during typing
+        const numericValue = input.value.trim() === '' ? 0 : parseFloat(input.value) || 0;
+        expenseFormStore.updateField('amount', numericValue);
     };
 
     const handleParticipantToggle = (memberId: string) => {

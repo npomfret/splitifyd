@@ -13,7 +13,7 @@ interface Split {
 
 interface SplitAmountInputsProps {
     splitType: string;
-    amount: string | number;
+    amount: number;
     participants: string[];
     splits: Split[];
     members: Member[];
@@ -30,9 +30,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
         {} as Record<string, Member>,
     );
 
-    const amountValue = typeof amount === 'string' ? parseFloat(amount) || 0 : amount;
-
-    if (amountValue <= 0) {
+    if (amount <= 0) {
         return null;
     }
 
@@ -71,11 +69,11 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                         <span className="font-medium text-gray-700 dark:text-gray-300">Total:</span>
                         <span
                             className={`font-medium ${
-                                Math.abs(splits.reduce((sum, s) => sum + s.amount, 0) - amountValue) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                                Math.abs(splits.reduce((sum, s) => sum + s.amount, 0) - amount) < 0.01 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                             }`}
                             data-financial-amount="split-total"
                         >
-                            ${splits.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amountValue.toFixed(2)}
+                            ${splits.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amount.toFixed(2)}
                         </span>
                     </div>
                 </div>

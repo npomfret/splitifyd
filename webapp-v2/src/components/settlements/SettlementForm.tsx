@@ -270,7 +270,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Amount with integrated Currency selector */}
                         <div>
                             <CurrencyAmountInput
-                                amount={amount}
+                                amount={parseFloat(amount) || 0}
                                 currency={currency}
                                 onAmountChange={(value) => {
                                     setAmount(value);

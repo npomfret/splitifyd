@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 
 interface ExpenseBasicFieldsProps {
     description: string;
-    amount: string | number;
+    amount: number;
     currency: string;
     date: string;
     time: string;
@@ -58,7 +58,7 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     {/* Combined Amount and Currency */}
                     <div>
                         <CurrencyAmountInput
-                            amount={amount || ''}
+                            amount={amount || 0}
                             currency={currency}
                             onAmountChange={(value) => {
                                 const numValue = parseFloat(value) || 0;
