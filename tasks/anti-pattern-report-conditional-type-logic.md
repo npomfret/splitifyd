@@ -106,6 +106,91 @@ Helper utilities and Firestore triggers also exhibit this anti-pattern.
 - **Strategy:** Apply same "assert don't check" pattern to date handling
 - **Impact:** HIGH - affects multiple backend services and date handling throughout the system
 
+## Phase 2 Implementation Plan: Date/Timestamp Type Consistency
+
+### Problem Analysis
+GroupService contains conditional type logic (`typeof`, `instanceof`) to handle mixed date types, violating the "assert don't check" pattern established in Phase 1. The `safeDateToISO()` method accepts `any` type and defensively handles Timestamp, Date, and string values.
+
+### Root Cause
+- Firestore returns Timestamp objects from `doc.data()` 
+- Schema uses `z.any()` for timestamp fields, allowing mixed types
+- No normalization happens in FirestoreReader before validation
+- GroupService defensively handles all possible types instead of asserting expectations
+
+### Implementation Strategy
+
+#### Step 1: Create Custom Timestamp Validator
+**File:** `firebase/functions/src/schemas/common.ts`
+- Add `FirestoreTimestampValidator` that validates actual Timestamp objects
+- Replace `z.any()` with custom validator
+- Fail fast with error: "Expected Firestore Timestamp for {field} but got {type}"
+
+#### Step 2: Update FirestoreReader.sanitizeGroupData()
+**File:** `firebase/functions/src/services/firestore/FirestoreReader.ts`
+- Add timestamp normalization for all date fields
+- Assert fields are Timestamps: `createdAt`, `updatedAt`, `presetAppliedAt`
+- Throw descriptive errors if non-Timestamp found
+- Pattern:
+  ```typescript
+  if (!(data.createdAt instanceof Timestamp)) {
+      throw new Error(`Data contract violation: Expected Timestamp for createdAt but got ${typeof data.createdAt}`);
+  }
+  ```
+
+#### Step 3: Replace safeDateToISO with assertTimestamp
+**File:** `firebase/functions/src/services/GroupService.ts`
+- Create `assertTimestampAndConvert()` helper that fails fast
+- Error pattern: "Expected Timestamp at {location} but got {type}"
+- Use existing `timestampToISO()` from dateHelpers after assertion
+- Remove safeDateToISO method entirely
+
+#### Step 4: Fix All Call Sites
+**Files:** `firebase/functions/src/services/GroupService.ts`
+- Remove all `typeof` checks in `batchFetchGroupData()`
+- Replace conditional date sorting logic with assertions
+- Update all safeDateToISO calls to assertTimestampAndConvert
+- Key changes:
+  - Lines 229-230: Remove typeof checks for sorting
+  - Lines 237-239: Remove conditional date handling
+  - Lines 134-135, 360-361: Replace safeDateToISO calls
+
+#### Step 5: Update Tests
+**File:** `firebase/functions/src/__tests__/unit/GroupService.test.ts`
+- Modify tests to provide proper Timestamp objects
+- Update safeDateToISO tests to expect assertion errors
+- Add tests for new fail-fast behavior
+- Ensure descriptive error messages are tested
+
+### Expected Outcomes
+
+**Before (Anti-pattern):**
+```typescript
+private safeDateToISO(value: any): string {
+    if (value instanceof Timestamp) return value.toDate().toISOString();
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value === 'string') return value;
+    return new Date().toISOString(); // Silent fallback
+}
+```
+
+**After (Fail-fast pattern):**
+```typescript
+private assertTimestampAndConvert(value: unknown, fieldName: string): string {
+    if (!(value instanceof Timestamp)) {
+        throw new Error(`Data contract violation: Expected Timestamp for ${fieldName} but got ${typeof value}`);
+    }
+    return timestampToISO(value);
+}
+```
+
+### Success Criteria
+- Zero `typeof`/`instanceof` checks for date handling in GroupService
+- All timestamp fields strictly typed as Timestamp internally
+- Clear, actionable error messages when data contract violated
+- All tests pass with proper Timestamp objects
+- No silent fallbacks or defensive programming
+- Pattern established for other services with similar issues
+
 **Recommended Phase 3: CommentService Strategy Pattern**
 - **Target:** `firebase/functions/src/services/CommentService.ts` - type-dispatching logic
 - **Strategy:** Implement Strategy pattern with `GroupCommentStrategy` and `ExpenseCommentStrategy`
