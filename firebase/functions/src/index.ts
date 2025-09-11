@@ -48,7 +48,6 @@ export function getAppBuilder(): ApplicationBuilder {
 
 // Import triggers and scheduled functions
 import { trackGroupChanges, trackExpenseChanges, trackSettlementChanges } from './triggers/change-tracker';
-import { cleanupChanges } from './scheduled/cleanup';
 import { logMetrics } from './scheduled/metrics-logger';
 
 // Removed emulator connection test at module level to prevent connection creation
@@ -454,9 +453,6 @@ export const {
 
 // Export scheduled functions
 export { 
-    cleanupChanges,
     logMetrics
 };
 
-// Export test endpoints (only work in non-production)
-export { testCleanup } from './endpoints/test-cleanup';

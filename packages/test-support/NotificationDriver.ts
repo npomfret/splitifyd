@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import { pollUntil, Matcher, PollOptions } from './Polling';
 
 /**
  * User notification document structure (matches webapp's UserNotificationDetector)
@@ -48,46 +47,11 @@ export class NotificationDriver {
     private firestore: any;
     private activeListeners = new Map<string, NotificationListener>();
 
-    static readonly matchers = {
-        hasGroupNotifications: (groupId: string): Matcher<UserNotificationDocument | null> => 
-            (doc) => !!doc && !!doc.groups && !!doc.groups[groupId],
-            
-        hasTransactionChange: (groupId: string, minCount: number = 1): Matcher<UserNotificationDocument | null> => 
-            (doc) => !!doc && !!doc.groups[groupId] && doc.groups[groupId].transactionChangeCount >= minCount,
-            
-        hasBalanceChange: (groupId: string, minCount: number = 1): Matcher<UserNotificationDocument | null> => 
-            (doc) => !!doc && !!doc.groups[groupId] && doc.groups[groupId].balanceChangeCount >= minCount,
-            
-        hasGroupChange: (groupId: string, minCount: number = 1): Matcher<UserNotificationDocument | null> => 
-            (doc) => !!doc && !!doc.groups[groupId] && doc.groups[groupId].groupDetailsChangeCount >= minCount,
-            
-        hasVersion: (minVersion: number): Matcher<UserNotificationDocument | null> =>
-            (doc) => !!doc && doc.changeVersion >= minVersion,
-            
-        groupRemoved: (groupId: string): Matcher<UserNotificationDocument | null> =>
-            (doc) => !doc || !doc.groups || !doc.groups[groupId]
-    };
-
     constructor(firestore?: admin.firestore.Firestore) {
         // Use provided firestore instance or default admin instance
         this.firestore = firestore || admin.firestore();
     }
 
-    /**
-     * Start listening to user notifications
-     * Returns a NotificationListener that can be used to wait for events
-     */
-    async startListening(userId: string): Promise<NotificationListener> {
-        if (this.activeListeners.has(userId)) {
-            throw new Error(`Already listening to notifications for user: ${userId}`);
-        }
-
-        const listener = new NotificationListener(this.firestore, userId);
-        await listener.start();
-        
-        this.activeListeners.set(userId, listener);
-        return listener;
-    }
 
     /**
      * Stop listening for a specific user
@@ -111,159 +75,56 @@ export class NotificationDriver {
     }
 
     /**
-     * Get current notification document for a user
+     * Set up listeners for multiple users BEFORE any test actions
+     * This captures ALL events from the beginning
      */
-    async getCurrentNotifications(userId: string): Promise<UserNotificationDocument | null> {
-        const docRef = this.firestore.collection('user-notifications').doc(userId);
-        const snapshot = await docRef.get();
+    async setupListenersFirst(userIds: string[]): Promise<NotificationListener[]> {
+        console.log('🎧 Setting up listeners FIRST for all users...');
+        const listeners = [];
         
-        if (!snapshot.exists) {
-            return null;
+        for (const userId of userIds) {
+            if (this.activeListeners.has(userId)) {
+                throw new Error(`Already listening to notifications for user: ${userId}`);
+            }
+
+            const listener = new NotificationListener(this.firestore, userId);
+            await listener.start();
+            
+            this.activeListeners.set(userId, listener);
+            listeners.push(listener);
         }
         
-        return snapshot.data() as UserNotificationDocument;
+        console.log('✅ All listeners started and ready to capture events');
+        return listeners;
     }
 
     /**
-     * Poll for notification changes using the same pattern as ApiDriver
+     * Clear all events from multiple listeners (useful after setup)
      */
-    async pollForNotificationChange<T>(
-        userId: string,
-        matcher: Matcher<UserNotificationDocument | null>,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument | null> {
-        return pollUntil(
-            () => this.getCurrentNotifications(userId),
-            matcher,
-            {
-                timeout: 10000,
-                interval: 500,
-                errorMsg: `Notification change not detected for user ${userId}`,
-                ...options
-            }
-        );
+    clearAllListenerEvents(listeners: NotificationListener[]): void {
+        console.log('🧹 Clearing all listener events...');
+        listeners.forEach(listener => listener.clearEvents());
     }
 
     /**
-     * Wait for transaction change in a specific group
+     * Wait for all listeners to receive a specific event type for a group after a timestamp
      */
-    async waitForTransactionChange(
-        userId: string, 
-        groupId: string, 
-        minCount: number = 1,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument> {
-        const result = await this.pollForNotificationChange(
-            userId,
-            NotificationDriver.matchers.hasTransactionChange(groupId, minCount),
-            {
-                errorMsg: `Transaction change not detected for group ${groupId}`,
-                ...options
-            }
-        );
-        
-        if (!result) {
-            throw new Error(`No notification document found for user ${userId}`);
-        }
-        
-        return result;
-    }
-
-    /**
-     * Wait for balance change in a specific group
-     */
-    async waitForBalanceChange(
-        userId: string, 
-        groupId: string, 
-        minCount: number = 1,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument> {
-        const result = await this.pollForNotificationChange(
-            userId,
-            NotificationDriver.matchers.hasBalanceChange(groupId, minCount),
-            {
-                errorMsg: `Balance change not detected for group ${groupId}`,
-                ...options
-            }
-        );
-        
-        if (!result) {
-            throw new Error(`No notification document found for user ${userId}`);
-        }
-        
-        return result;
-    }
-
-    /**
-     * Wait for group details change
-     */
-    async waitForGroupChange(
-        userId: string, 
-        groupId: string, 
-        minCount: number = 1,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument> {
-        const result = await this.pollForNotificationChange(
-            userId,
-            NotificationDriver.matchers.hasGroupChange(groupId, minCount),
-            {
-                errorMsg: `Group change not detected for group ${groupId}`,
-                ...options
-            }
-        );
-        
-        if (!result) {
-            throw new Error(`No notification document found for user ${userId}`);
-        }
-        
-        return result;
-    }
-
-    /**
-     * Wait for group to be removed from user notifications
-     */
-    async waitForGroupRemoval(
-        userId: string, 
+    async waitForAllListenersToReceiveEvent(
+        listeners: NotificationListener[],
         groupId: string,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument | null> {
-        return this.pollForNotificationChange(
-            userId,
-            NotificationDriver.matchers.groupRemoved(groupId),
-            {
-                errorMsg: `Group ${groupId} was not removed from user notifications`,
-                ...options
-            }
+        eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
+        afterTimestamp: number,
+        timeoutMs: number = 2000
+    ): Promise<void> {
+        console.log(`⏳ Waiting for all listeners to receive ${eventType} event for group ${groupId.slice(-8)}...`);
+        await Promise.all(
+            listeners.map(listener => 
+                listener.waitForNewEvent(groupId, eventType, afterTimestamp, timeoutMs)
+            )
         );
+        console.log(`✅ All listeners received ${eventType} event for group ${groupId.slice(-8)}`);
     }
 
-    /**
-     * Wait for notification version to reach a minimum value
-     */
-    async waitForVersion(
-        userId: string, 
-        minVersion: number,
-        options: PollOptions = {}
-    ): Promise<UserNotificationDocument> {
-        const result = await this.pollForNotificationChange(
-            userId,
-            NotificationDriver.matchers.hasVersion(minVersion),
-            {
-                errorMsg: `Notification version ${minVersion} not reached`,
-                ...options
-            }
-        );
-        
-        if (!result) {
-            throw new Error(`No notification document found for user ${userId}`);
-        }
-        
-        return result;
-    }
-
-    /**
-     * Get debug information about active listeners
-     */
     getDebugInfo(): any {
         return {
             activeListeners: Array.from(this.activeListeners.keys()),
@@ -483,7 +344,7 @@ export class NotificationListener {
     /**
      * Wait for a specific number of events
      */
-    async waitForEvents(minCount: number, timeoutMs: number = 10000): Promise<NotificationEvent[]> {
+    async waitForEvents(minCount: number, timeoutMs: number = 2000): Promise<NotificationEvent[]> {
         const startTime = Date.now();
         
         while (this.receivedEvents.length < minCount) {
@@ -497,31 +358,107 @@ export class NotificationListener {
     }
 
     /**
-     * Wait for specific event type for a group
+     * Clear all received events (useful for isolating test actions)
      */
-    async waitForGroupEvent(
+    clearEvents(): void {
+        this.receivedEvents = [];
+        console.log(`🗑️ Cleared all events for user [${this.userId.slice(-8)}]`);
+    }
+
+    /**
+     * Get events received after a specific timestamp
+     */
+    getEventsSince(timestamp: number): NotificationEvent[] {
+        return this.receivedEvents.filter(event => event.timestamp.getTime() >= timestamp);
+    }
+
+    /**
+     * Get events for a specific group after a timestamp
+     */
+    getGroupEventsSince(groupId: string, timestamp: number): NotificationEvent[] {
+        return this.receivedEvents.filter(event => 
+            event.groupId === groupId && event.timestamp.getTime() >= timestamp
+        );
+    }
+
+    /**
+     * Get the latest event of a specific type for a group
+     */
+    getLatestEvent(
         groupId: string, 
+        eventType: 'transaction' | 'balance' | 'group' | 'group_removed'
+    ): NotificationEvent | undefined {
+        const events = this.receivedEvents
+            .filter(e => e.groupId === groupId && e.type === eventType)
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+        return events[0];
+    }
+
+    /**
+     * Wait for a new event of a specific type after a given timestamp
+     */
+    async waitForNewEvent(
+        groupId: string,
         eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
-        timeoutMs: number = 10000
+        afterTimestamp: number,
+        timeoutMs: number = 2000
     ): Promise<NotificationEvent> {
         const startTime = Date.now();
         
         while (true) {
             const event = this.receivedEvents.find(e => 
-                e.groupId === groupId && e.type === eventType
+                e.groupId === groupId && 
+                e.type === eventType && 
+                e.timestamp.getTime() >= afterTimestamp
             );
             
             if (event) {
+                console.log(`✅ Found new ${eventType} event for group ${groupId.slice(-8)} after timestamp`);
                 return event;
             }
             
             if (Date.now() - startTime > timeoutMs) {
-                throw new Error(`Timeout waiting for ${eventType} event for group ${groupId}`);
+                const existingEvents = this.receivedEvents.filter(e => e.groupId === groupId);
+                throw new Error(
+                    `Timeout waiting for new ${eventType} event for group ${groupId} after timestamp ${new Date(afterTimestamp).toISOString()}. ` +
+                    `Found ${existingEvents.length} existing events: ${existingEvents.map(e => `${e.type}@${e.timestamp.toISOString()}`).join(', ')}`
+                );
             }
             
             await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
+
+    /**
+     * Wait for a specific number of events of a given type for a group
+     */
+    async waitForEventCount(
+        groupId: string,
+        eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
+        minCount: number,
+        timeoutMs: number = 2000
+    ): Promise<NotificationEvent[]> {
+        const startTime = Date.now();
+        
+        while (true) {
+            const events = this.receivedEvents.filter(e => 
+                e.groupId === groupId && e.type === eventType
+            );
+            
+            if (events.length >= minCount) {
+                return events.slice(0, minCount);
+            }
+            
+            if (Date.now() - startTime > timeoutMs) {
+                throw new Error(
+                    `Timeout waiting for ${minCount} ${eventType} events for group ${groupId}. Got ${events.length}`
+                );
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+
 
     getDebugInfo(): any {
         return {

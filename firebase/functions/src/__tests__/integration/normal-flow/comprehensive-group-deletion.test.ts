@@ -279,7 +279,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         const totalExpenseComments = groupDeletionData.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
         expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
         
-        console.log(`Before deletion - Expenses: ${groupDeletionData.expenses.size}, Settlements: ${groupDeletionData.settlements.size}, Share links: ${groupDeletionData.shareLinks.size}, Group comments: ${groupDeletionData.groupComments.size}, Expense comments: ${totalExpenseComments}, Transaction changes: ${groupDeletionData.transactionChanges.size}, Balance changes: ${groupDeletionData.balanceChanges.size}`);
+        console.log(`Before deletion - Expenses: ${groupDeletionData.expenses.size}, Settlements: ${groupDeletionData.settlements.size}, Share links: ${groupDeletionData.shareLinks.size}, Group comments: ${groupDeletionData.groupComments.size}, Expense comments: ${totalExpenseComments},`);
 
         // PERFORM HARD DELETE
         const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
@@ -298,8 +298,6 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         
         expect(groupDeletionDataAfter.expenses.size).toBe(0);
         expect(groupDeletionDataAfter.settlements.size).toBe(0);
-        expect(groupDeletionDataAfter.transactionChanges.size).toBe(0);
-        expect(groupDeletionDataAfter.balanceChanges.size).toBe(0);
         expect(groupDeletionDataAfter.shareLinks.size).toBe(0);
         expect(groupDeletionDataAfter.groupComments.size).toBe(0);
         

@@ -23,15 +23,11 @@ export const FirestoreCollections = {
     POLICIES: 'policies',
     COMMENTS: 'comments',
 
-    // Change tracking collections
-    // Note: GROUP_CHANGES removed as it was unused
-    TRANSACTION_CHANGES: 'transaction-changes',
     BALANCE_CHANGES: 'balance-changes',
 } as const;
 
 // Type-safe collection names
 export type FirestoreCollectionName = (typeof FirestoreCollections)[keyof typeof FirestoreCollections];
-export type ChangeCollectionName = typeof FirestoreCollections.TRANSACTION_CHANGES | typeof FirestoreCollections.BALANCE_CHANGES;
 
 export const SplitTypes = {
     EQUAL: 'equal',

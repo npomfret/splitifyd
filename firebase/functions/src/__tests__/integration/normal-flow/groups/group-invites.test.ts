@@ -106,28 +106,32 @@ describe('Invite Tracking', () => {
     });
 
     test('should initialize notification document when user joins group via share link', async () => {
-        // User 0 creates a share link
+        // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
+        const listeners = await notificationDriver.setupListenersFirst([users[1].uid]);
+        const listener = listeners[0];
+
+        // 2. User 0 creates a share link
         const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
         
-        // User 1 joins using the share link
+        // 3. User 1 joins using the share link (listener captures this)
         const joinResponse = await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
         expect(joinResponse.success).toBe(true);
 
-        // Wait a moment for background processing
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // 4. Wait for group notification event (proves document was created)
+        await listener.waitForEventCount(testGroup.id, 'group', 1);
+        const groupEvent = listener.getLatestEvent(testGroup.id, 'group');
 
-        // Check that user 1 now has a notification document with this group
-        const user1Notifications = await notificationDriver.getCurrentNotifications(users[1].uid);
-        expect(user1Notifications).toBeTruthy();
-        expect(user1Notifications!.groups).toBeTruthy();
-        expect(Object.keys(user1Notifications!.groups)).toContain(testGroup.id);
+        // 5. Verify the group event has expected structure
+        expect(groupEvent).toBeDefined();
+        expect(groupEvent!.groupId).toBe(testGroup.id);
+        expect(groupEvent!.type).toBe('group');
 
         // Verify the group-specific notification data is properly initialized
-        const groupNotificationData = user1Notifications!.groups[testGroup.id];
-        expect(groupNotificationData).toBeTruthy();
-        expect(groupNotificationData.groupDetailsChangeCount).toBeGreaterThanOrEqual(1);
-        expect(groupNotificationData.transactionChangeCount).toBe(0);
-        expect(groupNotificationData.balanceChangeCount).toBe(0);
+        const groupState = groupEvent!.groupState!;
+        expect(groupState).toBeTruthy();
+        expect(groupState.groupDetailsChangeCount).toBeGreaterThanOrEqual(1);
+        expect(groupState.transactionChangeCount).toBe(0);
+        expect(groupState.balanceChangeCount).toBe(0);
         
         console.log('✅ User notification document properly initialized when joining group');
     });

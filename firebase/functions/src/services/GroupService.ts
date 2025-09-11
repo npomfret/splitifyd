@@ -985,8 +985,6 @@ export class GroupService {
             const {
                 expenses,
                 settlements,
-                transactionChanges,
-                balanceChanges,
                 shareLinks,
                 groupComments,
                 expenseComments: expenseCommentSnapshots
@@ -994,7 +992,7 @@ export class GroupService {
 
             // Calculate total documents for logging
             const totalDocuments = expenses.size + settlements.size + 
-                                 transactionChanges.size + balanceChanges.size + shareLinks.size + 
+                                 shareLinks.size +
                                  groupComments.size + (memberDocs?.length || 0) + 
                                  expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
@@ -1004,8 +1002,6 @@ export class GroupService {
                 breakdown: {
                     expenses: expenses.size,
                     settlements: settlements.size,
-                    transactionChanges: transactionChanges.size,
-                    balanceChanges: balanceChanges.size,
                     shareLinks: shareLinks.size,
                     groupComments: groupComments.size,
                     members: memberDocs?.length || 0,
@@ -1040,14 +1036,6 @@ export class GroupService {
             // Delete settlements  
             const settlementPaths = settlements.docs.map(doc => doc.ref.path);
             await this.deleteBatch('settlements', groupId, settlementPaths);
-
-            // Delete transaction changes
-            const transactionPaths = transactionChanges.docs.map(doc => doc.ref.path);
-            await this.deleteBatch('transaction-changes', groupId, transactionPaths);
-
-            // Delete balance changes
-            const balancePaths = balanceChanges.docs.map(doc => doc.ref.path);
-            await this.deleteBatch('balance-changes', groupId, balancePaths);
 
             // Delete share links
             const shareLinkPaths = shareLinks.docs.map(doc => doc.ref.path);

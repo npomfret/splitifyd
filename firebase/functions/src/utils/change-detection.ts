@@ -52,7 +52,8 @@ export function getChangedFields(before: DocumentSnapshot | undefined, after: Do
 }
 
 /**
- * Calculate priority based on changed fields and change type
+ * todo: delete this
+ * @deprecated
  */
 export function calculatePriority(changeType: ChangeType, changedFields: string[], documentType: 'group' | 'expense' | 'settlement'): ChangePriority {
     // Deletions and creations are always high priority

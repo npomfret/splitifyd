@@ -1580,8 +1580,6 @@ export class FirestoreReader implements IFirestoreReader {
     async getGroupDeletionData(groupId: string): Promise<{
         expenses: FirebaseFirestore.QuerySnapshot;
         settlements: FirebaseFirestore.QuerySnapshot;
-        transactionChanges: FirebaseFirestore.QuerySnapshot;
-        balanceChanges: FirebaseFirestore.QuerySnapshot;
         shareLinks: FirebaseFirestore.QuerySnapshot;
         groupComments: FirebaseFirestore.QuerySnapshot;
         expenseComments: FirebaseFirestore.QuerySnapshot[];
@@ -1591,15 +1589,11 @@ export class FirestoreReader implements IFirestoreReader {
                     const [
                         expensesSnapshot,
                         settlementsSnapshot,
-                        transactionChangesSnapshot,
-                        balanceChangesSnapshot,
                         shareLinksSnapshot,
                         groupCommentsSnapshot,
                     ] = await Promise.all([
                         this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
                         this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-                        this.db.collection(FirestoreCollections.TRANSACTION_CHANGES).where('groupId', '==', groupId).get(),
-                        this.db.collection(FirestoreCollections.BALANCE_CHANGES).where('groupId', '==', groupId).get(),
                         this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
                         this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
                     ]);
@@ -1614,8 +1608,6 @@ export class FirestoreReader implements IFirestoreReader {
                     return {
                         expenses: expensesSnapshot,
                         settlements: settlementsSnapshot,
-                        transactionChanges: transactionChangesSnapshot,
-                        balanceChanges: balanceChangesSnapshot,
                         shareLinks: shareLinksSnapshot,
                         groupComments: groupCommentsSnapshot,
                         expenseComments,

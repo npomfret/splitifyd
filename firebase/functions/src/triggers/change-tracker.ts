@@ -21,7 +21,7 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const {before, after, changeType} = extractDataChange(event);
+        const {changeType} = extractDataChange(event);
 
         if (changeType === 'deleted') {
             logger.info('group-deleted', {groupId});
@@ -29,41 +29,13 @@ export const trackGroupChanges = onDocumentWritten(
         }
 
         return measureTrigger('trackGroupChanges', async () => {
-            const changedFields = getGroupChangedFields(before, after);
-
-            calculatePriority(changeType, changedFields, 'group');
-
-            const affectedUsers = await (async (): Promise<string[]> => {
-                const users: string[] = [];
-
-                try {
-                    const members = await firestoreReader.getAllGroupMembers(groupId);
-
-                    members.forEach(member => {
-                        users.push(member.userId);
-                    });
-
-                } catch (error) {
-                    logger.error('group-members-fetch-failed', {groupId, error});
-                }
-
-                return users;
-            })();
-
+            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
+
             logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
         });
     },
 );
-
-async function userIdsForGroup(groupId: string) {
-    const affectedUsers: string[] = [];
-    const members = await firestoreReader.getAllGroupMembers(groupId);
-    members.forEach(member => {
-        affectedUsers.push(member.userId);
-    });
-    return affectedUsers;
-}
 
 export const trackExpenseChanges = onDocumentWritten(
     {
@@ -72,7 +44,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const {before, after, changeType} = extractDataChange(event);
+        const {after} = extractDataChange(event);
 
         const afterData = after?.data();
 
@@ -81,11 +53,7 @@ export const trackExpenseChanges = onDocumentWritten(
             throw Error(`groupId missing from ${JSON.stringify(event)}`)
         }
 
-
-        const changedFields = getChangedFields(before, after);
-
-        calculatePriority(changeType, changedFields, 'expense');
-        const affectedUsers = await userIdsForGroup(groupId);
+        const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
         await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'transaction');
         await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'balance');
 
@@ -107,10 +75,10 @@ export const trackSettlementChanges = onDocumentWritten(
 
             const groupId = afterData?.groupId;
             if (!groupId) {
-                return;
+                throw Error(`groupId missing from ${JSON.stringify(event)}`)
             }
 
-            const affectedUsers = await userIdsForGroup(groupId);
+            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
 

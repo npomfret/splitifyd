@@ -44,6 +44,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getGroupMembers = vi.fn();
     public getGroupMember = vi.fn();
     public getAllGroupMembers = vi.fn();
+    public getAllGroupMemberIds = vi.fn();
     public getExpensesForGroup = vi.fn();
     public getSettlementsForGroup = vi.fn();
     // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
@@ -516,6 +517,10 @@ export class MockFirestoreReader implements IFirestoreReader {
     public mockGroupMembersSubcollection(groupId: string, members: GroupMemberDocument[]): void {
         this.getAllGroupMembers.mockImplementation(async (id) => {
             return id === groupId ? members : [];
+        });
+
+        this.getAllGroupMemberIds.mockImplementation(async (id) => {
+            return id === groupId ? members.map(m => m.userId) : [];
         });
 
         this.getGroupMember.mockImplementation(async (id, userId) => {

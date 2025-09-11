@@ -483,8 +483,6 @@ export interface IFirestoreReader {
     getGroupDeletionData(groupId: string): Promise<{
         expenses: FirebaseFirestore.QuerySnapshot;
         settlements: FirebaseFirestore.QuerySnapshot;
-        transactionChanges: FirebaseFirestore.QuerySnapshot;
-        balanceChanges: FirebaseFirestore.QuerySnapshot;
         shareLinks: FirebaseFirestore.QuerySnapshot;
         groupComments: FirebaseFirestore.QuerySnapshot;
         expenseComments: FirebaseFirestore.QuerySnapshot[];
