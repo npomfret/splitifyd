@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { ApiDriver, ExpenseBuilder } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import type { Group } from '@splitifyd/shared';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { UserRegistration } from '@splitifyd/shared';
@@ -432,7 +432,7 @@ async function createTestExpenseTemplate(groupId: string, expense: TestExpenseTe
     // Randomly choose between GBP and EUR
     const currency = Math.random() < 0.5 ? 'GBP' : 'EUR';
 
-    const expenseData = new ExpenseBuilder()
+    const expenseData = new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
         .withAmount(expense.amount)
         .withCurrency(currency)
@@ -556,7 +556,7 @@ async function createBalancedExpensesForSettledGroup(groups: GroupWithInvite[], 
 
         const participantIds = participants.map((p) => p.uid);
 
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(settledGroup.id)
             .withAmount(scenario.amount)
             .withCurrency(scenario.currency)
