@@ -66,7 +66,7 @@ export function useFormState() {
         updateField,
         handleAmountChange,
         handleParticipantToggle,
-        updateSplitAmount: expenseFormStore.updateSplitAmount,
-        updateSplitPercentage: expenseFormStore.updateSplitPercentage,
+        updateSplitAmount: (userId: string, amount: number) => expenseFormStore.updateSplitAmount(userId, amount),
+        updateSplitPercentage: (userId: string, percentage: number) => expenseFormStore.updateSplitPercentage(userId, percentage),
     };
 }

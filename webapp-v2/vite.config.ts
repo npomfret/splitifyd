@@ -25,6 +25,7 @@ export default defineConfig(() => ({
         open: false,
     },
     build: {
+        target: 'es2022',
         outDir: 'dist',
         emptyOutDir: true,
         sourcemap: true,

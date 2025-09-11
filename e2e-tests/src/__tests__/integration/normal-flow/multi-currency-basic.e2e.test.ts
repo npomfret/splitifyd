@@ -1,14 +1,14 @@
-import {authenticatedPageTest, expect} from '../../../fixtures';
+import {simpleTest, expect} from '../../../fixtures/simple-test.fixture';
+import {GroupDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {DashboardPage} from '../../../pages/dashboard.page';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 
-// Enable debugging helpers
-authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
-    authenticatedPageTest('should handle multi-currency expenses separately', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+simpleTest.describe('Multi-Currency Basic Functionality', () => {
+    simpleTest('should handle multi-currency expenses separately', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting state
@@ -57,8 +57,9 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page.getByText(`Dinner ${uniqueId}`)).toBeVisible();
     });
 
-    authenticatedPageTest('should remember currency selection per group', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    simpleTest('should remember currency selection per group', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting state
@@ -99,8 +100,9 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page.getByText('€3.25').first()).toBeVisible();
     });
 
-    authenticatedPageTest('should handle settlement in specific currency', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    simpleTest('should handle settlement in specific currency', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting state
@@ -152,8 +154,9 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
     // The implementation correctly handles multi-currency balances as verified by the unit tests
     // and the dashboard display structure supports multiple currency badges
 
-    authenticatedPageTest('should verify dashboard supports multi-currency display', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    simpleTest('should verify dashboard supports multi-currency display', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting on dashboard
@@ -197,7 +200,6 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
             .build());
 
         // STEP 1: Navigate back to dashboard and FIRST verify the group appears
-        const dashboardPage = new DashboardPage(page, user);
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
 
@@ -221,8 +223,9 @@ authenticatedPageTest.describe('Multi-Currency Basic Functionality', () => {
         // containing expenses in different currencies without errors
     });
 
-    authenticatedPageTest('should display currency symbols correctly throughout UI', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    simpleTest('should display currency symbols correctly throughout UI', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting state

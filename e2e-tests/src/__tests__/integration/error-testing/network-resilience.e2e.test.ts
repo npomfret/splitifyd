@@ -1,9 +1,11 @@
 import { test } from '@playwright/test';
-import { pageTest, expect } from '../../../fixtures';
-
-// Enable MCP debugging for failed tests
-pageTest.describe('Network Resilience E2E', () => {
-    pageTest('should handle network errors gracefully', async ({ page, context, loginPage }) => {
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { LoginPage } from '../../../pages';
+simpleTest.describe('Network Resilience E2E', () => {
+    simpleTest('should handle network errors gracefully', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const context = page.context();
+        const loginPage = new LoginPage(page);
         test.info().annotations.push({ type: 'skip-error-checking' });
         // Block API calls to simulate network failure
         await context.route('**/api/**', (route) => route.abort());

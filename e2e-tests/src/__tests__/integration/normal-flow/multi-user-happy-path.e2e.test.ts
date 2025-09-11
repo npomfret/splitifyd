@@ -1,31 +1,37 @@
-import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
+import {expect, simpleTest as test} from '../../../fixtures/simple-test.fixture';
 import {TestGroupWorkflow} from '../../../helpers';
 import {GroupWorkflow} from '../../../workflows';
-import {JoinGroupPage} from '../../../pages';
+import {JoinGroupPage, GroupDetailPage} from '../../../pages';
 import {generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
 test.describe('Multi-User Collaboration E2E', () => {
-    test('should handle group sharing via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user } = authenticatedPage;
+    test('should handle group sharing via share link', async ({ newLoggedInBrowser }) => {
+        // Create first user and group
+        const { page, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupId = await TestGroupWorkflow.getOrCreateGroup(page, user.email, { fresh: true });
 
         const shareLink = await groupDetailPage.getShareLink();
         expect(shareLink).toMatch(/\/join(\?|\/)/); // Verify format
 
-        const page2 = secondUser.page;
-        const groupDetailPage2 = secondUser.groupDetailPage;
-        const user2 = secondUser.user;
+        // Create second user
+        const { page: page2, user: user2 } = await newLoggedInBrowser();
+        const groupDetailPage2 = new GroupDetailPage(page2, user2);
 
         // Use robust JoinGroupPage for reliable share link joining
         const joinGroupPage = new JoinGroupPage(page2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
     });
 
-    test('should allow multiple users to add expenses to same group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { dashboardPage: user2DashboardPage } = secondUser;
+    test('should allow multiple users to add expenses to same group', async ({ newLoggedInBrowser }) => {
+        // Create first user
+        const { page, dashboardPage: user1DashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
+        
+        // Create second user 
+        const { page: page2, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -39,11 +45,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
-
-        // Second user joins
-        const page2 = secondUser.page;
-        const groupDetailPage2 = secondUser.groupDetailPage;
-        const user2 = secondUser.user;
+        const groupDetailPage2 = new GroupDetailPage(page2, user2);
         const joinGroupPage2 = new JoinGroupPage(page2);
 
         await page2.goto(shareLink);
@@ -108,17 +110,19 @@ test.describe('Multi-User Collaboration E2E', () => {
         await expect(groupDetailPage2.getExpenseByDescription('User 2 Dinner')).toBeVisible();
     });
 
-    test('should show group creator as admin', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should show group creator as admin', async ({ newLoggedInBrowser }) => {
+        const { page, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
         await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Admin'), 'Testing admin badge');
 
         await expect(groupDetailPage.getAdminBadge()).toBeVisible();
     });
 
-    test('single user can create group and add multiple expenses', async ({ authenticatedPage, groupDetailPage }) => {
+    test('single user can create group and add multiple expenses', async ({ newLoggedInBrowser }) => {
         const memberCount = 1;
-        const { page, user } = authenticatedPage;
+        const { page, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Solo'), 'Testing multiple expenses');
 
@@ -149,9 +153,14 @@ test.describe('Multi-User Collaboration E2E', () => {
         }
     });
 
-    test('balances update correctly with multiple users and expenses', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { dashboardPage: user2DashboardPage } = secondUser;
+    test('balances update correctly with multiple users and expenses', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - User 1 and User 2
+        const { page, user, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(page, user);
+        const groupDetailPage2 = new GroupDetailPage(page2, user2);
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -159,8 +168,7 @@ test.describe('Multi-User Collaboration E2E', () => {
         const memberCount = 2;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
-        const groupInfo = { user };
-        const user1 = groupInfo.user;
+        const user1 = user;
 
         // Get share link - verify page state first with detailed error messages
         try {
@@ -171,11 +179,6 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
-
-        // Second user joins
-        const page2 = secondUser.page;
-        const groupDetailPage2 = secondUser.groupDetailPage;
-        const user2 = secondUser.user;
         const joinGroupPage2 = new JoinGroupPage(page2);
         await page2.goto(shareLink);
         try {

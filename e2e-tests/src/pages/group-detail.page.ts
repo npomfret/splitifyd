@@ -11,7 +11,7 @@ interface ExpenseData {
     description: string;
     amount: number;
     currency: string; // Required: must be explicitly provided
-    paidBy: string;
+    paidByDisplayName: string;
     splitType: 'equal' | 'exact' | 'percentage';
     participants?: string[]; // Optional: if not provided, selects all members
 }
@@ -309,7 +309,7 @@ export class GroupDetailPage extends BasePage {
                     browserContext: {
                         user: browserUser,
                         userId: browserUserId,
-                        displayName: this.getCurrentUserDisplayName(),
+                        displayName: await this.getCurrentUserDisplayName(),
                         pageUrl,
                         viewingAs: `Browser of: ${browserUser} (${browserUserId})`,
                     },
@@ -422,13 +422,13 @@ export class GroupDetailPage extends BasePage {
 
             // Check if we got redirected to 404
             if (currentUrl.includes('/404')) {
-                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
                 throw new Error(`${currentUserDisplayName} was redirected to 404 page. Group access denied or group doesn't exist.`);
             }
 
             // If not on 404, check if we're on the dashboard (another redirect case)
             if (currentUrl.includes('/dashboard')) {
-                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
                 throw new Error(`${currentUserDisplayName} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
             }
 
@@ -444,7 +444,7 @@ export class GroupDetailPage extends BasePage {
             try {
                 await groupDetailPage.waitForMemberCount(expectedMemberCount);
             } catch (error) {
-                const currentUserDisplayName = new DashboardPage(page).getCurrentUserDisplayName();
+                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
                 throw new Error(`${currentUserDisplayName} failed waiting for member count: ${error}`);
             }
 
@@ -1241,12 +1241,19 @@ export class GroupDetailPage extends BasePage {
 
         // Get actual content for better error reporting
         const actualContent = await balancesSection.textContent().catch(() => 'Unable to get content');
-        const expectedText = `${debtorName} → ${creditorName}`;
 
         // Get current page URL and user identifier from the page object
         const currentUrl = this.page.url();
 
-        await expect(balancesSection.getByText(expectedText)).toBeVisible({ timeout: 2000 });
+        // Look for debt relationship span that contains both user names
+        // This handles the case where text is split across multiple text nodes
+        const debtSpan = balancesSection.locator('span').filter({
+            hasText: debtorName
+        }).filter({
+            hasText: creditorName
+        });
+        await expect(debtSpan).toBeVisible({ timeout: 2000 });
+
         await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible({ timeout: 2000 });
     }
 

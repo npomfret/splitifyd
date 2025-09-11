@@ -1,8 +1,8 @@
-import { authenticatedPageTest, expect, pageTest } from '../../../fixtures';
+import { expect, simpleTest } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, CreateGroupModalPage } from '../../../pages';
+import { LoginPage, RegisterPage } from '../../../pages';
 import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
-
-// Enable MCP debugging for failed tests
 /**
  * Comprehensive Form Validation Test Suite
  * Consolidates validation testing from:
@@ -10,10 +10,12 @@ import { GroupWorkflow } from '../../../workflows';
  * - auth-validation.e2e.test.ts
  * - negative-value-validation.e2e.test.ts (partial)
  */
-pageTest.describe('Comprehensive Form Validation E2E', () => {
-    pageTest.describe('Authentication Forms', () => {
-        pageTest('Login form validation', async ({ loginPageNavigated }) => {
-            const { page, loginPage } = loginPageNavigated;
+simpleTest.describe('Comprehensive Form Validation E2E', () => {
+    simpleTest.describe('Authentication Forms', () => {
+        simpleTest('Login form validation', async ({ newEmptyBrowser }) => {
+            const { page } = await newEmptyBrowser();
+            const loginPage = new LoginPage(page);
+            await loginPage.navigate();
 
             // Wait for form to be ready
             await loginPage.waitForFormReady();
@@ -48,8 +50,10 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             await loginPage.verifyFormSubmissionState(true);
         });
 
-        pageTest('Register form validation', async ({ registerPageNavigated }) => {
-            const { page, registerPage } = registerPageNavigated;
+        simpleTest('Register form validation', async ({ newEmptyBrowser }) => {
+            const { page } = await newEmptyBrowser();
+            const registerPage = new RegisterPage(page);
+            await registerPage.navigate();
 
             // Wait for form to be ready
             await registerPage.waitForFormReady();
@@ -86,9 +90,10 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
         });
     });
 
-    authenticatedPageTest.describe('Expense Form Validation', () => {
-        authenticatedPageTest('Expense form required fields and negative values', async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
+    simpleTest.describe('Expense Form Validation', () => {
+        simpleTest('Expense form required fields and negative values', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const groupDetailPage = new GroupDetailPage(page, user);
 
             // Use helper method to create group and prepare for expenses
             const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('Validation'), 'Testing form validation');
@@ -133,8 +138,9 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             await expect(submitButton).toBeEnabled();
         });
 
-        authenticatedPageTest('Exact split validation', async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
+        simpleTest('Exact split validation', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const groupDetailPage = new GroupDetailPage(page, user);
 
             // Use helper method to create group and prepare for expenses
             const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('ExactSplit'), 'Testing exact split validation');
@@ -157,8 +163,9 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
             await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
         });
 
-        authenticatedPageTest('Percentage split validation', async ({ authenticatedPage, groupDetailPage }) => {
-            const { page } = authenticatedPage;
+        simpleTest('Percentage split validation', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const groupDetailPage = new GroupDetailPage(page, user);
 
             // Use helper method to create group and prepare for expenses
             const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
@@ -180,9 +187,10 @@ pageTest.describe('Comprehensive Form Validation E2E', () => {
         });
     });
 
-    authenticatedPageTest.describe('Group Creation Validation', () => {
-        authenticatedPageTest('Create group form validation', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-            const { page } = authenticatedPage;
+    simpleTest.describe('Group Creation Validation', () => {
+        simpleTest('Create group form validation', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const createGroupModalPage = new CreateGroupModalPage(page, user);
 
             await dashboardPage.openCreateGroupModal();
             await expect(createGroupModalPage.isOpen()).resolves.toBe(true);

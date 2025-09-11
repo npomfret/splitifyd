@@ -1,13 +1,15 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, ExpenseDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../helpers';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Freeform Categories Error Testing', () => {
-    test('should handle category with special characters and emojis', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should handle category with special characters and emojis', async ({ newLoggedInBrowser }, testInfo) => {
         // @skip-error-checking - May have API validation issues with special characters
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues with special characters' });
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Use helper method to create group and prepare for expenses
         const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('SpecialCat'), 'Testing special characters');
@@ -38,10 +40,11 @@ test.describe('Freeform Categories Error Testing', () => {
         await expect(groupDetailPage.getExpenseAmount('$33.33')).toBeVisible();
     });
 
-    test('should edit expense and change category from predefined to custom', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should edit expense and change category from predefined to custom', async ({ newLoggedInBrowser }, testInfo) => {
         // @skip-error-checking - May have API validation issues during editing
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Use helper method to create group and prepare for expenses
         const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditCat'), 'Testing category editing');
@@ -61,7 +64,8 @@ test.describe('Freeform Categories Error Testing', () => {
         await expect(groupDetailPage.getExpenseByDescription('Business lunch')).toBeVisible();
 
         // Click on the expense to view details using page object method
-        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Business lunch');
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        await groupDetailPage.clickExpenseToView('Business lunch');
 
         // Click edit button and get the expense form page for editing using page object method
         const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
@@ -85,10 +89,11 @@ test.describe('Freeform Categories Error Testing', () => {
         await expect(expenseDetailPage.page.getByText(customCategory)).toBeVisible();
     });
 
-    test('should prevent submission with empty category', async ({ authenticatedPage, dashboardPage, groupDetailPage }, testInfo) => {
+    test('should prevent submission with empty category', async ({ newLoggedInBrowser }, testInfo) => {
         // @skip-error-checking - This test expects validation errors
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test expects validation errors' });
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Use helper method to create group and prepare for expenses
         const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EmptyCat'), 'Testing empty category validation');

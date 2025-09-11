@@ -1,14 +1,12 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { RegisterPage } from '../../../pages';
 import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
 
-pageTest.describe('Terms and Cookie Policy Acceptance', () => {
-    pageTest.beforeEach(async ({ page }) => {
+simpleTest.describe('Terms and Cookie Policy Acceptance', () => {
+    simpleTest('should display both terms and cookie policy checkboxes', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
         await page.goto('/register');
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-    });
-
-    pageTest('should display both terms and cookie policy checkboxes', async ({ page }) => {
         const registerPage = new RegisterPage(page);
 
         // Check that both checkboxes are present using page object methods
@@ -24,7 +22,10 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         await expect(registerPage.getCookiesLink()).toBeVisible();
     });
 
-    pageTest('should disable submit button when terms not accepted', async ({ page }) => {
+    simpleTest('should disable submit button when terms not accepted', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        await page.goto('/register');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         // Fill form but leave terms unchecked
         const registerPage = new RegisterPage(page);
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
@@ -39,7 +40,10 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         await expect(registerPage.getCreateAccountButton()).toBeDisabled();
     });
 
-    pageTest('should disable submit button when cookie policy not accepted', async ({ page }) => {
+    simpleTest('should disable submit button when cookie policy not accepted', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        await page.goto('/register');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         const registerPage = new RegisterPage(page);
         // Fill form but leave cookie policy unchecked
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
@@ -54,7 +58,10 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         await expect(registerPage.getCreateAccountButton()).toBeDisabled();
     });
 
-    pageTest('should enable submit button when both policies accepted', async ({ page }) => {
+    simpleTest('should enable submit button when both policies accepted', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        await page.goto('/register');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         const registerPage = new RegisterPage(page);
         // Fill form completely
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
@@ -70,7 +77,10 @@ pageTest.describe('Terms and Cookie Policy Acceptance', () => {
         await expect(registerPage.getCreateAccountButton()).toBeEnabled();
     });
 
-    pageTest('should show appropriate error messages for unchecked boxes', async ({ page }) => {
+    simpleTest('should show appropriate error messages for unchecked boxes', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        await page.goto('/register');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         const registerPage = new RegisterPage(page);
         // Fill form but don't check any boxes
         await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');

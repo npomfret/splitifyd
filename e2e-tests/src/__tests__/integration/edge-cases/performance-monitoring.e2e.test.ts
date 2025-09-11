@@ -1,12 +1,14 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { waitForApp } from '../../../helpers';
 import { TIMEOUTS } from '../../../config/timeouts';
-import { RegisterPage } from '../../../pages';
+import { RegisterPage, LoginPage } from '../../../pages';
 
-// Enable MCP debugging for failed tests
 // NOTE: Simple load time testing moved to CI performance budgets
-pageTest.describe('Performance Monitoring E2E', () => {
-    pageTest('should handle login and registration form interactions correctly on slow network', async ({ page, context, loginPage }) => {
+simpleTest.describe('Performance Monitoring E2E', () => {
+    simpleTest('should handle login and registration form interactions correctly on slow network', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const context = page.context();
+        const loginPage = new LoginPage(page);
         // Simulate slow 3G network conditions
         await context.route('**/*', (route) => {
             setTimeout(() => route.continue(), TIMEOUTS.QUICK / 5);

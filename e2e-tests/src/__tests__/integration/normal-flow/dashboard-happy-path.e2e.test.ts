@@ -1,12 +1,13 @@
-import {authenticatedPageTest, expect} from '../../../fixtures';
+import {simpleTest, expect} from '../../../fixtures/simple-test.fixture';
 import {TestGroupWorkflow} from '../../../helpers';
 import {generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {GroupWorkflow} from '../../../workflows';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {GroupDetailPage, CreateGroupModalPage} from '../../../pages';
 
-authenticatedPageTest.describe('Dashboard User Journey', () => {
-    authenticatedPageTest('should handle complete dashboard workflow with authentication persistence', async ({ authenticatedPage, dashboardPage }) => {
-        const { page, user } = authenticatedPage;
+simpleTest.describe('Dashboard User Journey', () => {
+    simpleTest('should handle complete dashboard workflow with authentication persistence', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
 
         // Phase 1: Dashboard display and authentication verification
         await expect(page).toHaveURL(/\/dashboard/);
@@ -29,8 +30,10 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
         await dashboardPage.waitForUserMenu();
     });
 
-    authenticatedPageTest('should handle complete group creation and navigation workflow', async ({ authenticatedPage, dashboardPage, groupDetailPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should handle complete group creation and navigation workflow', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Phase 1: Modal interaction - open, verify, cancel
@@ -46,7 +49,6 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
 
         // Phase 2: Successful group creation and navigation
         // Use TestGroupWorkflow for better performance
-        const { user } = authenticatedPage;
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -59,8 +61,9 @@ authenticatedPageTest.describe('Dashboard User Journey', () => {
         await expect(page).toHaveURL(/\/dashboard/);
     });
 
-    authenticatedPageTest('should properly clear all state and prevent unauthorized access after logout', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page, user } = authenticatedPage;
+    simpleTest('should properly clear all state and prevent unauthorized access after logout', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Phase 1: Create some user data before logout to verify it gets cleared

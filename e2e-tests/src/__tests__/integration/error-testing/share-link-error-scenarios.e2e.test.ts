@@ -1,11 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { multiUserTest } from '../../../fixtures';
+import {expect, simpleTest as test} from '../../../fixtures/simple-test.fixture';
+
 import { MultiUserWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
+import { JoinGroupPage, GroupDetailPage } from '../../../pages';
 
 test.describe('Share Link - Error Scenarios', () => {
-    multiUserTest('should handle invalid share links gracefully', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should handle invalid share links gracefully', { annotation: { type: 'skip-error-checking' } }, async ({ newLoggedInBrowser }) => {
+        const { page } = await newLoggedInBrowser();
 
         // Get the base URL from the current page
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -16,8 +16,8 @@ test.describe('Share Link - Error Scenarios', () => {
         await multiUserWorkflow.testInvalidShareLink(page, invalidShareLink);
     });
 
-    multiUserTest('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
+    test('should handle malformed share links', { annotation: { type: 'skip-error-checking' } }, async ({ newLoggedInBrowser }) => {
+        const { page } = await newLoggedInBrowser();
 
         // Get the base URL from the current page using page object
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -49,9 +49,10 @@ test.describe('Share Link - Error Scenarios', () => {
         await multiUserWorkflow.testInvalidShareLink(page, invalidLink);
     });
 
-    multiUserTest('should display error messages with back navigation option', { annotation: { type: 'skip-error-checking' } }, async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should display error messages with back navigation option', { annotation: { type: 'skip-error-checking' } }, async ({ newLoggedInBrowser }) => {
+        const { page } = await newLoggedInBrowser();
         const joinGroupPage = new JoinGroupPage(page);
+        const groupDetailPage = new GroupDetailPage(page);
 
         const invalidShareLink = `${page.url().split('/dashboard')[0]}/join?linkId=invalid-specific-test`;
 

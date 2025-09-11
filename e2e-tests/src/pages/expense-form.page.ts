@@ -9,7 +9,7 @@ interface ExpenseData {
     description: string;
     amount: number;
     currency: string; // Required: must be explicitly provided
-    paidBy: string;
+    paidByDisplayName: string;// the display name
     splitType: 'equal' | 'exact' | 'percentage';
     participants?: string[]; // Optional: if not provided, selects all members
 }
@@ -299,7 +299,7 @@ export class ExpenseFormPage extends BasePage {
         }
 
         // Select who paid - handle both UID and display name
-        await this.selectPayer(expense.paidBy);
+        await this.selectPayer(expense.paidByDisplayName);
 
         // Handle split type
         if (expense.splitType === 'equal') {

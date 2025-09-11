@@ -1,19 +1,17 @@
-import { authenticatedPageTest, expect } from '../../../fixtures';
-import { test as baseTest } from '../../../fixtures/base-test';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { SettingsPage, RegisterPage, DashboardPage } from '../../../pages';
 import { generateNewUserDetails } from '../../../../../packages/test-support/test-helpers.ts';
 
-
-authenticatedPageTest.describe('User Profile Management', () => {
-    authenticatedPageTest('should allow user to view their profile information', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+simpleTest.describe('User Profile Management', () => {
+    simpleTest('should allow user to view their profile information', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page
         await settingsPage.navigate();
 
         // Verify profile information is displayed
-        const expectedDisplayName = await authenticatedPage.dashboardPage.getCurrentUserDisplayName();
+        const expectedDisplayName = await dashboardPage.getCurrentUserDisplayName();
         await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
 
         // Verify profile form elements are present
@@ -21,9 +19,9 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await expect(settingsPage.getSaveChangesButton()).toBeVisible();
     });
 
-    authenticatedPageTest('should allow user to update their display name', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should allow user to update their display name', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         const newDisplayName = `Updated Name ${Date.now()}`;
 
@@ -41,11 +39,12 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await expect(settingsPage.getUserMenuButton()).toContainText(newDisplayName);
     });
 
-    baseTest('should allow user to change their password', async ({ page }) => {
+    simpleTest('should allow user to change their password', async ({ newEmptyBrowser }) => {
         // Create a fresh user specifically for password testing to avoid affecting other tests
         const { displayName, email, password } = generateNewUserDetails();
 
         // Register the fresh user
+        const { page } = await newEmptyBrowser();
         const registerPage = new RegisterPage(page);
         await registerPage.navigate();
         await registerPage.register(displayName, email, password);
@@ -68,9 +67,9 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await settingsPage.verifyPasswordFormVisible(false);
     });
 
-    authenticatedPageTest('should preserve other profile information when updating display name', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should preserve other profile information when updating display name', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         const newDisplayName = `Test Name ${Date.now()}`;
 
@@ -89,9 +88,9 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await expect(settingsPage.getProfileDisplayName()).toContainText(newDisplayName);
     });
 
-    authenticatedPageTest('should show loading states during profile updates', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should show loading states during profile updates', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         const testDisplayName = `Loading Test ${Date.now()}`;
 
@@ -114,9 +113,9 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await expect(settingsPage.getProfileDisplayName()).toContainText(testDisplayName);
     });
 
-    authenticatedPageTest('should allow canceling password change', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should allow canceling password change', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page
         await settingsPage.navigate();
@@ -134,9 +133,9 @@ authenticatedPageTest.describe('User Profile Management', () => {
         await expect(settingsPage.getChangePasswordButton()).toBeVisible();
     });
 
-    authenticatedPageTest('should update display name in real-time across all UI components without page reload', async ({ authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should update display name in real-time across all UI components without page reload', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page
         await settingsPage.navigate();

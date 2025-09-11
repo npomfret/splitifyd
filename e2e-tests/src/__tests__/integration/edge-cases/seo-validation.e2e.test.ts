@@ -1,7 +1,10 @@
-import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage, PricingPage } from '../../../pages';
 
 test.describe('SEO Validation', () => {
-    test('should have proper SEO elements on homepage', async ({ page, homepagePage }) => {
+    test('should have proper SEO elements on homepage', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigate();
         
         // Title validation
@@ -33,7 +36,9 @@ test.describe('SEO Validation', () => {
         expect(htmlLang).toBe('en');
     });
 
-    test('should have proper SEO elements on pricing page', async ({ page, pricingPage }) => {
+    test('should have proper SEO elements on pricing page', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const pricingPage = new PricingPage(page);
         await pricingPage.navigate();
         
         // Title validation

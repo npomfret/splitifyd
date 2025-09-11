@@ -167,4 +167,76 @@ export class DashboardPage extends BasePage {
         // Wait for navigation to complete
         await this.waitForDomContentLoaded();
     }
+
+    /**
+     * Clean up all existing groups for this user to ensure clean test state
+     * This prevents cross-test contamination in pooled user scenarios
+     */
+    async cleanupUserGroups() {
+        await this.navigate();
+        await this.waitForDashboard();
+
+        // Get all group buttons on the dashboard
+        const groupButtons = this.page.getByRole('button').filter({ hasText: /^(?!.*Create.*Group).*/ });
+        const groupCount = await groupButtons.count();
+        
+        console.log(`🧹 Cleaning up ${groupCount} existing groups for user`);
+        
+        // Delete all groups one by one
+        for (let i = 0; i < groupCount; i++) {
+            // Get fresh reference to first group (since DOM changes after each deletion)
+            const remainingGroups = this.page.getByRole('button').filter({ hasText: /^(?!.*Create.*Group).*/ });
+            const firstGroup = remainingGroups.first();
+            
+            // Check if any groups remain
+            const remainingCount = await remainingGroups.count();
+            if (remainingCount === 0) break;
+            
+            // Get group name for logging
+            const groupName = await firstGroup.textContent();
+            console.log(`🗑️ Deleting group: ${groupName}`);
+            
+            // Click the group to navigate to it
+            await this.clickButton(firstGroup, { buttonName: `Group: ${groupName}` });
+            await this.waitForDomContentLoaded();
+            
+            // Delete the group (assuming there's a delete option in group settings)
+            try {
+                // Look for group settings or delete button
+                const settingsButton = this.page.getByRole('button', { name: /settings|delete|remove/i }).first();
+                if (await settingsButton.isVisible({ timeout: 1000 })) {
+                    await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
+                    
+                    // Look for delete confirmation
+                    const deleteButton = this.page.getByRole('button', { name: /delete|remove.*group/i });
+                    if (await deleteButton.isVisible({ timeout: 1000 })) {
+                        await this.clickButton(deleteButton, { buttonName: 'Delete Group' });
+                        
+                        // Confirm deletion if needed
+                        const confirmButton = this.page.getByRole('button', { name: /confirm|yes|delete/i });
+                        if (await confirmButton.isVisible({ timeout: 1000 })) {
+                            await this.clickButton(confirmButton, { buttonName: 'Confirm Delete' });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn(`⚠️ Could not delete group ${groupName}: ${error}`);
+            }
+            
+            // Navigate back to dashboard
+            await this.navigate();
+            await this.waitForDashboard();
+            
+            // Wait for group to disappear
+            if (groupName) {
+                try {
+                    await this.waitForGroupToNotBePresent(groupName, { timeout: 3000 });
+                } catch (error) {
+                    console.warn(`⚠️ Group ${groupName} still visible after deletion attempt`);
+                }
+            }
+        }
+        
+        console.log(`✅ User cleanup complete`);
+    }
 }

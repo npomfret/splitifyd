@@ -1,10 +1,12 @@
-import { authenticatedPageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-authenticatedPageTest.describe('Expense Date and Time Selection', () => {
-    authenticatedPageTest('should handle all date convenience buttons and time input scenarios', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+simpleTest.describe('Expense Date and Time Selection', () => {
+    simpleTest('should handle all date convenience buttons and time input scenarios', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Verify starting state

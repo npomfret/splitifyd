@@ -1,12 +1,14 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Freeform Categories E2E', () => {
-    test('should allow user to select predefined category from suggestions', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should allow user to select predefined category from suggestions', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -44,8 +46,9 @@ test.describe('Freeform Categories E2E', () => {
         await expect(groupDetailPage.getExpenseAmount('$45.99')).toBeVisible();
     });
 
-    test('should allow user to enter custom category text', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should allow user to enter custom category text', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -76,8 +79,9 @@ test.describe('Freeform Categories E2E', () => {
         await expect(groupDetailPage.getExpenseAmount('$120.00')).toBeVisible();
     });
 
-    test('should filter suggestions as user types', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should filter suggestions as user types', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -114,8 +118,9 @@ test.describe('Freeform Categories E2E', () => {
         expect(categoryValue).toBe('transport');
     });
 
-    test('should support keyboard navigation in suggestions', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should support keyboard navigation in suggestions', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses

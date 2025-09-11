@@ -205,7 +205,10 @@ export class SettlementFormPage extends BasePage {
             // Re-check form values to ensure they haven't been reset by real-time updates
             const checkAmount = await amountInput.inputValue();
             const checkNote = await noteInput.inputValue();
-            if (checkAmount !== settlement.amount || checkNote !== settlement.note) {
+            // For amount, compare numeric values to handle trailing zeros (100.50 vs 100.5)
+            const expectedAmount = parseFloat(settlement.amount).toString();
+            const actualAmount = parseFloat(checkAmount || '0').toString();
+            if (actualAmount !== expectedAmount || checkNote !== settlement.note) {
                 throw new Error('Form values still changing');
             }
         }).toPass({ timeout: 500, intervals: [50, 100] });
@@ -214,7 +217,10 @@ export class SettlementFormPage extends BasePage {
         const currentPayer = await payerSelect.inputValue();
         const currentPayee = await payeeSelect.inputValue();
 
-        if (currentAmount !== settlement.amount) {
+        // For amount validation, compare numeric values to handle trailing zeros
+        const expectedAmountNum = parseFloat(settlement.amount).toString();
+        const actualAmountNum = parseFloat(currentAmount || '0').toString();
+        if (actualAmountNum !== expectedAmountNum) {
             throw new Error(`Form field was reset! Expected amount "${settlement.amount}" but got "${currentAmount}". This indicates a real-time update bug where the modal resets user input.`);
         }
         if (currentNote !== settlement.note) {
@@ -274,7 +280,9 @@ export class SettlementFormPage extends BasePage {
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
 
-        await expect(amountInput).toHaveValue(expected.amount);
+        // For amount, compare numeric values to handle trailing zeros (100.50 vs 100.5)
+        const expectedAmount = parseFloat(expected.amount).toString();
+        await expect(amountInput).toHaveValue(expectedAmount);
         await expect(noteInput).toHaveValue(expected.note);
     }
 

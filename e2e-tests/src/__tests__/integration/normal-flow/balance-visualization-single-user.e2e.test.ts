@@ -1,11 +1,13 @@
-import {authenticatedPageTest as test, expect} from '../../../fixtures/authenticated-page-test';
+import {simpleTest as test, expect} from '../../../fixtures/simple-test.fixture';
+import {GroupDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
 test.describe('Single User Balance Visualization', () => {
-    test('should display settled state for empty group', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user, } = authenticatedPage;
+    test('should display settled state for empty group', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Use cached group for better performance
         await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -38,8 +40,9 @@ test.describe('Single User Balance Visualization', () => {
         }
     });
 
-    test('should show settled up state for single-user groups', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should show settled up state for single-user groups', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use cached group for better performance
@@ -86,8 +89,9 @@ test.describe('Single User Balance Visualization', () => {
         await expect(groupDetailPage.getCurrencyAmount('80.00').first()).toBeVisible();
     });
 
-    test('should handle zero balance state correctly', async ({ dashboardPage, groupDetailPage, authenticatedPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should handle zero balance state correctly', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -108,8 +112,9 @@ test.describe('Single User Balance Visualization', () => {
         }
     });
 
-    test('should display currency correctly in single user context', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should display currency correctly in single user context', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use cached group for better performance  

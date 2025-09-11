@@ -1,15 +1,12 @@
-import { authenticatedPageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, JoinGroupPage, RegisterPage, DashboardPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
-import { RegisterPage } from '../../../pages';
-import { DashboardPage } from '../../../pages';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-// Enable debugging helpers
-
-authenticatedPageTest.describe('Group Management', () => {
-    authenticatedPageTest('should allow group owner to edit group name', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+simpleTest.describe('Group Management', () => {
+    simpleTest('should allow group owner to edit group name', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Verify starting state
@@ -44,8 +41,9 @@ authenticatedPageTest.describe('Group Management', () => {
         await groupDetailPage.waitForGroupDescription('Updated description text');
     });
 
-    authenticatedPageTest('should validate group name when editing', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should validate group name when editing', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group
@@ -83,8 +81,9 @@ authenticatedPageTest.describe('Group Management', () => {
         await expect(editModal.modal).not.toBeVisible();
     });
 
-    authenticatedPageTest('should disable save button when no changes made', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should disable save button when no changes made', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group
@@ -115,8 +114,9 @@ authenticatedPageTest.describe('Group Management', () => {
         await editModal.cancel();
     });
 
-    authenticatedPageTest('should not show settings button for non-owner', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group with the first user as owner

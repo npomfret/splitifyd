@@ -1,10 +1,12 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
 import { TestGroupWorkflow } from '../../../helpers';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Group Details E2E', () => {
-    test('should display correct initial state for a new group', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should display correct initial state for a new group', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);

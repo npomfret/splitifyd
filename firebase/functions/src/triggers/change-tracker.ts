@@ -5,7 +5,6 @@ import {FirestoreCollections} from '@splitifyd/shared';
 import {DocumentSnapshot} from 'firebase-admin/firestore';
 import {ParamsOf} from 'firebase-functions';
 import {measureTrigger} from '../monitoring/measure';
-import {getAppBuilder} from '../index';
 import {getFirestore} from "../firebase";
 import {ApplicationBuilder} from "../services/ApplicationBuilder";
 
@@ -68,7 +67,7 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const {before, after, changeType} = extractDataChange(event);
+        const {before, after} = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
             const afterData = after?.data();

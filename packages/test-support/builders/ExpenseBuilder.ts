@@ -15,7 +15,7 @@ export interface TestExpense {
     description: string;
     amount: number;
     currency: string;
-    paidBy: string;
+    paidByDisplayName: string;
     splitType: 'equal' | 'exact' | 'percentage';
     participants: string[];
     splits?: Array<{
@@ -37,7 +37,7 @@ export class ExpenseBuilder {
             description: `${randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${randomString(4)}`,
             amount: randomDecimal(5, 500),
             currency: randomCurrency(),
-            paidBy: userId,
+            paidByDisplayName: userId,
             splitType: randomChoice(['equal', 'exact', 'percentage']),
             participants: [userId],
             date: randomDate(),
@@ -61,7 +61,7 @@ export class ExpenseBuilder {
     }
 
     withPaidBy(userId: string): this {
-        this.expense.paidBy = userId;
+        this.expense.paidByDisplayName = userId;
         return this;
     }
 
@@ -134,7 +134,7 @@ export class ExpenseBuilder {
             description: this.expense.description,
             amount: this.expense.amount,
             currency: this.expense.currency,
-            paidBy: this.expense.paidBy,
+            paidByDisplayName: this.expense.paidByDisplayName,
             splitType: this.expense.splitType,
             participants: [...this.expense.participants],
             splits: splits ? [...splits] : undefined,

@@ -1,11 +1,14 @@
 import AxeBuilder from '@axe-core/playwright';
 import { waitForApp } from '../../../helpers';
-import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage } from '../../../pages';
 
 // Simplified accessibility test - just basic axe scan
 test.describe('Accessibility Tests', () => {
-    test('should not have critical accessibility issues', async ({ homepageNavigated }) => {
-        const { page } = homepageNavigated;
+    test('should not have critical accessibility issues', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
+        await homepagePage.navigate();
         await waitForApp(page);
 
         // Run basic accessibility scan

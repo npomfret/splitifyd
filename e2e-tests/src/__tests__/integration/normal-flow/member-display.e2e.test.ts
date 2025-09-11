@@ -1,13 +1,12 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { PLACEHOLDERS } from '../../../constants/selectors';
-import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 
-// Enable console error reporting and MCP debugging
 test.describe('Member Management E2E', () => {
-    test('should display current group members', async ({ authenticatedPage, dashboardPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should display current group members', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
@@ -20,16 +19,16 @@ test.describe('Member Management E2E', () => {
 
         // Should show the current user as a member in the main content area
         // Use the groupDetailPage page object model instead of direct selectors
-        const groupDetailPage = new GroupDetailPage(page);
+        const groupDetailPage = new GroupDetailPage(page, user);
         await expect(groupDetailPage.getUserName(await dashboardPage.getCurrentUserDisplayName())).toBeVisible();
 
         // Look for members section showing 1 member
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     });
 
-    test('should show member in expense split options', async ({ authenticatedPage, dashboardPage }) => {
-        const { page, user } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
+    test('should show member in expense split options', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
@@ -60,9 +59,9 @@ test.describe('Member Management E2E', () => {
         expect(isUserInSplit).toBe(true);
     });
 
-    test('should show creator as admin', async ({ authenticatedPage, dashboardPage }) => {
-        const { page } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
+    test('should show creator as admin', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
@@ -78,9 +77,9 @@ test.describe('Member Management E2E', () => {
         await expect(groupDetailPage.getAdminBadge()).toBeVisible();
     });
 
-    test('should show share functionality', async ({ authenticatedPage, dashboardPage }) => {
-        const { page } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
+    test('should show share functionality', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
@@ -102,9 +101,9 @@ test.describe('Member Management E2E', () => {
         expect(linkValue).toMatch(/\/join\?linkId=/);
     });
 
-    test('should handle member count display', async ({ authenticatedPage, dashboardPage }) => {
-        const { page } = authenticatedPage;
-        const groupDetailPage = new GroupDetailPage(page);
+    test('should handle member count display', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard

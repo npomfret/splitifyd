@@ -38,7 +38,7 @@ export class FirestoreExpenseBuilder extends ExpenseBuilder {
             ...this.firestoreFields,
             ...baseExpense,
             // Ensure splits exists for validation
-            splits: baseExpense.splits || [{ userId: baseExpense.paidBy, amount: baseExpense.amount }],
+            splits: baseExpense.splits || [{ userId: baseExpense.paidByDisplayName, amount: baseExpense.amount }],
             // Convert date string to Firestore Timestamp
             date: Timestamp.fromDate(new Date(baseExpense.date)),
         };

@@ -1,11 +1,13 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage } from '../../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../../config/timeouts';
 import { SELECTORS } from '../../../constants/selectors';
 
-// Enable console error reporting and MCP debugging
 test.describe('Timeout Error Handling', () => {
-    test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, createGroupModalPage, context }) => {
-        const { page } = authenticatedPage;
+    test('handles API timeouts appropriately', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const context = page.context();
         // NOTE: This test simulates timeout scenarios
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -15,7 +17,7 @@ test.describe('Timeout Error Handling', () => {
         // Already authenticated via fixture
 
         // Intercept API calls to simulate timeout
-        await context.route('**/api/groups', async (route) => {
+        await context.route('**/groups', async (route) => {
             // Wait for configured timeout delay then respond with timeout
             await new Promise((resolve) => setTimeout(resolve, TIMEOUT_CONTEXTS.SIMULATED_TIMEOUT_DELAY));
             await route.fulfill({ status: 408, body: 'Request Timeout' });

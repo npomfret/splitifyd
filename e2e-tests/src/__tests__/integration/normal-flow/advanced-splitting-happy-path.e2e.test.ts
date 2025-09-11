@@ -1,13 +1,14 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-// Enable console error reporting and MCP debugging
 test.describe('Advanced Splitting Options', () => {
     // Consolidated user journey test - creates group once and tests all split types in sequence
 
-    test('should create expenses with all split types in comprehensive user journey', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+    test('should create expenses with all split types in comprehensive user journey', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Create a single group for the entire user journey using helper method
         const groupId = await GroupWorkflow.createGroup(page, 'Advanced Splitting Test Group', undefined);

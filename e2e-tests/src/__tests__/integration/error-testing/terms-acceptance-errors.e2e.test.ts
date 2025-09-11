@@ -1,9 +1,10 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { RegisterPage } from '../../../pages';
 import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
 
-pageTest.describe('Terms Acceptance Error Testing', () => {
-    pageTest('should allow form submission when both policies accepted', async ({ page }, testInfo) => {
+simpleTest.describe('Terms Acceptance Error Testing', () => {
+    simpleTest('should allow form submission when both policies accepted', async ({ newEmptyBrowser }, testInfo) => {
+        const { page } = await newEmptyBrowser();
         // @skip-error-checking - This test may have expected registration errors
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'This test may have expected registration errors' });
 
@@ -11,11 +12,11 @@ pageTest.describe('Terms Acceptance Error Testing', () => {
         // Navigate to the register page first
         await registerPage.navigate();
 
-        // Fill form completely
-        await registerPage.fillPreactInput('input[placeholder="Enter your full name"]', 'Test User');
-        await registerPage.fillPreactInput('input[placeholder="Enter your email"]', generateTestEmail());
-        await registerPage.fillPreactInput('input[placeholder="Create a strong password"]', DEFAULT_PASSWORD);
-        await registerPage.fillPreactInput('input[placeholder="Confirm your password"]', DEFAULT_PASSWORD);
+        // Fill form completely using proper Page Object Model methods
+        await registerPage.fillPreactInput(registerPage.getFullNameInput(), 'Test User');
+        await registerPage.fillPreactInput(registerPage.getEmailInput(), generateTestEmail());
+        await registerPage.fillPreactInput(registerPage.getPasswordInput(), DEFAULT_PASSWORD);
+        await registerPage.fillPreactInput(registerPage.getConfirmPasswordInput(), DEFAULT_PASSWORD);
 
         // Check both checkboxes using page object methods
         await registerPage.checkTermsCheckbox();

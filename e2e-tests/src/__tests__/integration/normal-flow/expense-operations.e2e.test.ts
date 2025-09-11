@@ -1,12 +1,14 @@
-import {authenticatedPageTest as test, expect} from '../../../fixtures/authenticated-page-test';
+import {simpleTest as test, expect} from '../../../fixtures/simple-test.fixture';
+import {GroupDetailPage, ExpenseDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 import {v4 as uuidv4} from 'uuid';
 
 test.describe('Basic Expense Operations E2E', () => {
-    test('should create, view, and delete an expense', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should create, view, and delete an expense', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
         const groupInfo = { user };
@@ -43,8 +45,9 @@ test.describe('Basic Expense Operations E2E', () => {
         await expect(groupDetailPage.getExpenseByDescription(`Test Expense Lifecycle ${uniqueId}`)).not.toBeVisible();
     });
 
-    test('should edit expense and change split type from equal to exact', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should edit expense and change split type from equal to exact', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
         
@@ -67,7 +70,8 @@ test.describe('Basic Expense Operations E2E', () => {
         await expect(groupDetailPage.getExpenseByDescription(`Edit Split Test ${uniqueId}`)).toBeVisible();
         
         // Navigate to expense detail page
-        const expenseDetailPage = await groupDetailPage.clickExpenseToView(`Edit Split Test ${uniqueId}`);
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        await groupDetailPage.clickExpenseToView(`Edit Split Test ${uniqueId}`);
         
         // Verify we're on expense detail page
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);

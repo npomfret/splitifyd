@@ -1,23 +1,19 @@
-import { expect, test } from '@playwright/test';
-import { multiUserTest } from '../../../fixtures';
-import { singleMixedAuthTest } from '../../../fixtures/mixed-auth-test';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
 
-
-test.describe('Comprehensive Share Link Testing', () => {
-    test.describe('Share Link - Already Logged In User', () => {
-        multiUserTest('should allow logged-in user to join group via share link', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-            const { page: page1, dashboardPage: user1DashboardPage } = authenticatedPage;
-            const { page: page2, dashboardPage: user2DashboardPage } = secondUser;
+simpleTest.describe('Comprehensive Share Link Testing', () => {
+    simpleTest.describe('Share Link - Already Logged In User', () => {
+        simpleTest('should allow logged-in user to join group via share link', async ({ newLoggedInBrowser }) => {
+            // Create two browser instances - User 1 and User 2
+            const { page: page1, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+            const { page: page2, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
             const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
             const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-
-            const groupDetailPage2 = new GroupDetailPage(page2);
 
             // Create group with user1
             const uniqueId = generateShortId();
@@ -35,6 +31,7 @@ test.describe('Comprehensive Share Link Testing', () => {
 
             // Verify user2 is now in the group
             await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+            const groupDetailPage2 = new GroupDetailPage(page2, user2);
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible
@@ -42,9 +39,13 @@ test.describe('Comprehensive Share Link Testing', () => {
             await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
         });
 
-        multiUserTest('should show appropriate message when logged-in user is already a member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-            const { page: page1, user: user1 } = authenticatedPage;
-            const { page: page2, user: user2 } = secondUser;
+        simpleTest('should show appropriate message when logged-in user is already a member', async ({ newLoggedInBrowser }) => {
+            // Create two browser instances - User 1 and User 2
+            const { page: page1, user: user1 } = await newLoggedInBrowser();
+            const { page: page2, user: user2 } = await newLoggedInBrowser();
+
+            // Create page objects
+            const groupDetailPage = new GroupDetailPage(page1, user1);
 
             // Create group and add user2
             const uniqueId = generateShortId();
@@ -63,10 +64,17 @@ test.describe('Comprehensive Share Link Testing', () => {
         });
     });
 
-    test.describe('Share Link - Not Logged In User', () => {
-        singleMixedAuthTest('should redirect non-logged-in user to login then to group after login', async ({ authenticatedUsers, unauthenticatedUsers }) => {
-            const { page: page1, user: user1 } = authenticatedUsers[0];
-            const { page: page2, joinGroupPage } = unauthenticatedUsers[0];
+    simpleTest.describe('Share Link - Not Logged In User', () => {
+        simpleTest('should redirect non-logged-in user to login then to group after login', async ({ newLoggedInBrowser }) => {
+            // Create authenticated user and manually create unauthenticated browser
+            const { page: page1, user: user1 } = await newLoggedInBrowser();
+            
+            // Create a second browser context without authentication
+            const browser = page1.context().browser();
+            if (!browser) throw new Error('Browser not found');
+            const context2 = await browser.newContext();
+            const page2 = await context2.newPage();
+            const joinGroupPage = new JoinGroupPage(page2);
 
             // Verify starting authentication states
             await expect(page1).toHaveURL(/\/dashboard/); // Authenticated user on dashboard
@@ -93,9 +101,20 @@ test.describe('Comprehensive Share Link Testing', () => {
             expect(page2.url()).toContain('/login');
         });
 
-        singleMixedAuthTest('should allow unregistered user to register and join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
-            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = authenticatedUsers[0];
-            const { page: page2, registerPage, loginPage } = unauthenticatedUsers[0];
+        simpleTest('should allow unregistered user to register and join group via share link', async ({ newLoggedInBrowser }) => {
+            // Create authenticated user and manually create unauthenticated browser
+            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            
+            // Create a second browser context without authentication
+            const browser = page1.context().browser();
+            if (!browser) throw new Error('Browser not found');
+            const context2 = await browser.newContext();
+            const page2 = await context2.newPage();
+            
+            // Import page objects for unauthenticated flows
+            const { RegisterPage, LoginPage } = await import('../../../pages');
+            const registerPage = new RegisterPage(page2);
+            const loginPage = new LoginPage(page2);
 
             // Create group with authenticated user
             const uniqueId = generateShortId();
@@ -149,9 +168,19 @@ test.describe('Comprehensive Share Link Testing', () => {
             await expect(groupDetailPage2.getTextElement(newUserName).first()).toBeVisible();
         });
 
-        singleMixedAuthTest('should allow user to login and then join group via share link', async ({ authenticatedUsers, unauthenticatedUsers }) => {
-            const { page: page1, user: user1, dashboardPage } = authenticatedUsers[0];
-            const { page: page2, loginPage } = unauthenticatedUsers[0];
+        simpleTest('should allow user to login and then join group via share link', async ({ newLoggedInBrowser }) => {
+            // Create authenticated user and manually create unauthenticated browser
+            const { page: page1, user: user1, dashboardPage } = await newLoggedInBrowser();
+            
+            // Create a second browser context without authentication
+            const browser = page1.context().browser();
+            if (!browser) throw new Error('Browser not found');
+            const context2 = await browser.newContext();
+            const page2 = await context2.newPage();
+            
+            // Import page objects for unauthenticated flows
+            const { LoginPage } = await import('../../../pages');
+            const loginPage = new LoginPage(page2);
 
             // Create group with authenticated user
             const uniqueId = generateShortId();

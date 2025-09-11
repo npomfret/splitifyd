@@ -1,11 +1,10 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { RegisterPage } from '../../../pages';
 import { generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
 
-// Enable MCP debugging for failed tests
-pageTest.describe('Auth Navigation E2E', () => {
-    pageTest('should navigate between login and register pages', async ({ loginPage, registerPage }) => {
-        // Go to login page
-        await loginPage.navigate();
+simpleTest.describe('Auth Navigation E2E', () => {
+    simpleTest('should navigate between login and register pages', async ({ newEmptyBrowser }) => {
+        const { page, loginPage } = await newEmptyBrowser();
 
         // Verify login page loaded
         await expect(loginPage.getSignInHeading()).toBeVisible();
@@ -14,6 +13,9 @@ pageTest.describe('Auth Navigation E2E', () => {
         // Click "Sign up" link
         await loginPage.clickSignUp();
 
+        // Create register page object
+        const registerPage = new RegisterPage(page);
+        
         // Verify register page loaded
         await expect(registerPage.getCreateAccountHeading()).toBeVisible();
         await expect(registerPage.getSubmitButton()).toBeVisible();
@@ -25,8 +27,8 @@ pageTest.describe('Auth Navigation E2E', () => {
         await expect(loginPage.getSignInHeading()).toBeVisible();
     });
 
-    pageTest('should show form fields on login page', async ({ loginPageNavigated }) => {
-        const { loginPage } = loginPageNavigated;
+    simpleTest('should show form fields on login page', async ({ newEmptyBrowser }) => {
+        const { loginPage } = await newEmptyBrowser();
 
         // Verify form fields are present
         await expect(loginPage.getEmailLabel()).toBeVisible();
@@ -34,8 +36,10 @@ pageTest.describe('Auth Navigation E2E', () => {
         await expect(loginPage.getSubmitButton()).toBeVisible();
     });
 
-    pageTest('should show form fields on register page', async ({ registerPageNavigated }) => {
-        const { registerPage } = registerPageNavigated;
+    simpleTest('should show form fields on register page', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
 
         // Verify form fields are present
         await expect(registerPage.getFullNameLabel()).toBeVisible();
@@ -45,8 +49,8 @@ pageTest.describe('Auth Navigation E2E', () => {
         await expect(registerPage.getSubmitButton()).toBeVisible();
     });
 
-    pageTest('should allow typing in login form fields', async ({ loginPageNavigated }) => {
-        const { loginPage } = loginPageNavigated;
+    simpleTest('should allow typing in login form fields', async ({ newEmptyBrowser }) => {
+        const { loginPage } = await newEmptyBrowser();
 
         // Find and fill email input using page object methods
         const emailInput = loginPage.getEmailInput();
@@ -60,8 +64,10 @@ pageTest.describe('Auth Navigation E2E', () => {
         await expect(passwordInput).toHaveValue('TestPassword123');
     });
 
-    pageTest('should allow typing in register form fields', async ({ registerPageNavigated }) => {
-        const { registerPage } = registerPageNavigated;
+    simpleTest('should allow typing in register form fields', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
 
         // Find and fill name input using page object methods
         const nameInput = registerPage.getFullNameInput();
@@ -85,8 +91,8 @@ pageTest.describe('Auth Navigation E2E', () => {
         await expect(confirmPasswordInput).toHaveValue('TestPassword123');
     });
 
-    pageTest('should show forgot password link on login page', async ({ loginPageNavigated }) => {
-        const { page, loginPage } = loginPageNavigated;
+    simpleTest('should show forgot password link on login page', async ({ newEmptyBrowser }) => {
+        const { page, loginPage } = await newEmptyBrowser();
 
         // Check for forgot password link
         await expect(loginPage.getForgotPasswordLink()).toBeVisible();

@@ -1,16 +1,19 @@
-import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow } from '../../../workflows';
-import {JoinGroupPage, ExpenseDetailPage} from '../../../pages';
-import {generateTestGroupName, randomString} from '../../../../../packages/test-support/test-helpers.ts';
+import { JoinGroupPage, ExpenseDetailPage, GroupDetailPage } from '../../../pages';
+import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { v4 as uuidv4 } from 'uuid';
 
-// Enable error reporting and debugging
-
 test.describe('Real-time Comments E2E', () => {
-    test('should support real-time group comments across multiple users', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: alicePage, user: alice } = authenticatedPage;
-        const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
+    test('should support real-time group comments across multiple users', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Alice and Bob
+        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: bobPage, user: bob } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(alicePage, alice);
+        const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Alice creates a group
         const groupWorkflow = new GroupWorkflow(alicePage);
@@ -94,9 +97,17 @@ test.describe('Real-time Comments E2E', () => {
         }
     });
 
-    test('should support real-time expense comments across multiple users', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: alicePage, user: alice } = authenticatedPage;
-        const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
+    test('should support real-time expense comments across multiple users', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Alice and Bob
+        const { page: alicePage, user: alice, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: bobPage, user: bob, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(alicePage, alice);
+        const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Alice creates a group and adds an expense
         const groupWorkflow = new GroupWorkflow(alicePage);
@@ -120,7 +131,7 @@ test.describe('Real-time Comments E2E', () => {
             description: 'Test Expense for Comments',
             amount: 50.0,
             currency: 'USD',
-            paidBy: alice.uid,
+            paidByDisplayName: user1DisplayName,
             splitType: 'equal',
         });
 
@@ -184,9 +195,14 @@ test.describe('Real-time Comments E2E', () => {
         await expect(bobExpenseDetailPage.getCommentByText(bobExpenseComment)).toBeVisible();
     });
 
-    test('should handle comment errors gracefully without breaking real-time updates', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: alicePage, user: alice } = authenticatedPage;
-        const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
+    test('should handle comment errors gracefully without breaking real-time updates', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Alice and Bob
+        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: bobPage, user: bob } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(alicePage, alice);
+        const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Setup group with both users
         const groupWorkflow = new GroupWorkflow(alicePage);
@@ -238,9 +254,14 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
     });
 
-    test('should maintain comment order and author information in real-time', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: alicePage, user: alice } = authenticatedPage;
-        const { page: bobPage, groupDetailPage: bobGroupDetailPage, user: bob } = secondUser;
+    test('should maintain comment order and author information in real-time', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Alice and Bob
+        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: bobPage, user: bob } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(alicePage, alice);
+        const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Setup group
         const groupWorkflow = new GroupWorkflow(alicePage);

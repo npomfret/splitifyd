@@ -1,14 +1,16 @@
-import { authenticatedPageTest as test } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Expense Editing Error Testing', () => {
-    test('should edit expense amount (increase)', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
+    test('should edit expense amount (increase)', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -31,7 +33,8 @@ test.describe('Expense Editing Error Testing', () => {
         await groupDetailPage.verifyExpenseInList('Amount Edit Test', '$50.00');
 
         // Click on expense to view details
-        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Amount Edit Test');
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        await groupDetailPage.clickExpenseToView('Amount Edit Test');
 
         // Click edit button and get the expense form page for editing
         const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
@@ -53,11 +56,12 @@ test.describe('Expense Editing Error Testing', () => {
         await expenseDetailPage.verifyExpenseHeading(/Amount Edit Test.*\$75\.50/);
     });
 
-    test('should edit expense amount (decrease)', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
+    test('should edit expense amount (decrease)', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -76,7 +80,8 @@ test.describe('Expense Editing Error Testing', () => {
 
         // Edit to decrease amount
         await groupDetailPage.verifyExpenseVisible('High Amount Expense');
-        const expenseDetailPage = await groupDetailPage.clickExpenseToView('High Amount Expense');
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        await groupDetailPage.clickExpenseToView('High Amount Expense');
 
         // Click edit button and get the expense form page for editing
         const editFormPage = await expenseDetailPage.clickEditExpenseButton(expectedMemberCount);
@@ -96,11 +101,12 @@ test.describe('Expense Editing Error Testing', () => {
         await expenseDetailPage.verifyExpenseHeading(/High Amount Expense.*\$25\.75/);
     });
 
-    test('should edit expense description successfully', async ({ authenticatedPage, groupDetailPage }, testInfo) => {
+    test('should edit expense description successfully', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking for edit operations
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
-        const { page } = authenticatedPage;
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const expectedMemberCount = 1;
 
         // Use helper method to create group and prepare for expenses
@@ -121,7 +127,8 @@ test.describe('Expense Editing Error Testing', () => {
         await groupDetailPage.verifyExpenseVisible('Original Description');
 
         // Edit the description
-        const expenseDetailPage = await groupDetailPage.clickExpenseToView('Original Description');
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        await groupDetailPage.clickExpenseToView('Original Description');
 
         // Click edit button and get the expense form page for editing
         const editFormPage = await expenseDetailPage.clickEditExpenseButton(expectedMemberCount);

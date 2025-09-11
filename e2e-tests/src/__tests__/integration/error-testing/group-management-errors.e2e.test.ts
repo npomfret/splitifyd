@@ -1,8 +1,6 @@
-import { authenticatedPageTest } from '../../../fixtures';
+import { simpleTest as test } from '../../../fixtures/simple-test.fixture';
 
-// Enable debugging helpers
-
-authenticatedPageTest.describe('Group Management Error Testing', () => {
+test.describe('Group Management Error Testing', () => {
     // Deletion tests moved to group-deletion-multi-user.e2e.test.ts for better coverage
     // This file now focuses on actual error scenarios
     

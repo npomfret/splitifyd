@@ -1,11 +1,10 @@
-import { authenticatedPageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { SettingsPage } from '../../../pages';
 
-
-authenticatedPageTest.describe('User Profile Error Handling', () => {
-    authenticatedPageTest('should validate display name requirements', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+simpleTest.describe('User Profile Error Handling', () => {
+    simpleTest('should validate display name requirements', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page using POM
         await settingsPage.navigate();
@@ -33,9 +32,9 @@ authenticatedPageTest.describe('User Profile Error Handling', () => {
         await expect(settingsPage.getSaveChangesButton()).toBeEnabled();
     });
 
-    authenticatedPageTest('should validate password change requirements', async ({ authenticatedPage }) => {
-        const { page } = authenticatedPage;
-        const settingsPage = new SettingsPage(page);
+    simpleTest('should validate password change requirements', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page using POM
         await settingsPage.navigate();

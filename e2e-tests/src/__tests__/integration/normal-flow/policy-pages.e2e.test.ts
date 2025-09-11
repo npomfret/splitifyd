@@ -1,9 +1,11 @@
-import { pageTest } from '../../../fixtures';
+import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage } from '../../../pages';
 import { waitForApp } from '../../../helpers';
 
-// Enable MCP debugging for failed tests
-pageTest.describe('Policy Pages E2E', () => {
-    pageTest('should load terms of service page without JavaScript errors', async ({ page, homepagePage }) => {
+simpleTest.describe('Policy Pages E2E', () => {
+    simpleTest('should load terms of service page without JavaScript errors', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigateToStaticPath('/terms');
         await waitForApp(page);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -16,7 +18,9 @@ pageTest.describe('Policy Pages E2E', () => {
             .waitFor();
     });
 
-    pageTest('should load privacy policy page without JavaScript errors', async ({ page, homepagePage }) => {
+    simpleTest('should load privacy policy page without JavaScript errors', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigateToStaticPath('/privacy');
         await waitForApp(page);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -29,7 +33,9 @@ pageTest.describe('Policy Pages E2E', () => {
             .waitFor();
     });
 
-    pageTest('should load cookie policy page without JavaScript errors', async ({ page, homepagePage }) => {
+    simpleTest('should load cookie policy page without JavaScript errors', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigateToStaticPath('/cookies');
         await waitForApp(page);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -42,7 +48,9 @@ pageTest.describe('Policy Pages E2E', () => {
             .waitFor();
     });
 
-    pageTest('should display policy content and not show loading states indefinitely', async ({ page, homepagePage }) => {
+    simpleTest('should display policy content and not show loading states indefinitely', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigateToStaticPath('/terms');
         await waitForApp(page);
 

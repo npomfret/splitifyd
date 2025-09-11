@@ -1,10 +1,11 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { LoginPage, RegisterPage } from '../../../pages';
 import { waitForApp } from '../../../helpers';
-
-// Enable MCP debugging for failed tests
-pageTest.describe('Form Behavior Edge Cases', () => {
-    pageTest('should persist form values on page refresh', async ({ loginPageNavigated }) => {
-        const { page, loginPage } = loginPageNavigated;
+simpleTest.describe('Form Behavior Edge Cases', () => {
+    simpleTest('should persist form values on page refresh', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
         // Wait for any pre-filled data to load
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -44,8 +45,10 @@ pageTest.describe('Form Behavior Edge Cases', () => {
         // Console errors are automatically captured by
     });
 
-    pageTest('should trim whitespace from inputs', async ({ registerPageNavigated }) => {
-        const { registerPage } = registerPageNavigated;
+    simpleTest('should trim whitespace from inputs', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
+        await registerPage.navigate();
 
         // Fill form with extra spaces
         const nameInput = registerPage.getNameInputByType();

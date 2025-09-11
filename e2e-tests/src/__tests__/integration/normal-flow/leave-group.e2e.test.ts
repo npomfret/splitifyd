@@ -1,23 +1,19 @@
-import { expect, multiUserTest as test } from '../../../fixtures/multi-user-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
+import { JoinGroupPage, GroupDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-// Enable error reporting and debugging
-
-// Increase timeout for multi-user operations
-test.setTimeout(30000);
-
 test.describe('Leave Group E2E', () => {
-    test('user should be able to leave group and no longer access it', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
-    }) => {
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = authenticatedPage;
-        const { page: memberPage, groupDetailPage: memberGroupDetailPage, dashboardPage: memberDashboardPage, user: member } = secondUser;
+    test('user should be able to leave group and no longer access it', async ({newLoggedInBrowser}) => {
+        // Create two browser instances - owner and member
+        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         // Verify users are distinct
         expect(owner.email).not.toBe(member.email);
@@ -112,12 +108,15 @@ test.describe('Leave Group E2E', () => {
     });
     
     test('user with outstanding balance cannot leave group until settled', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser 
+        newLoggedInBrowser 
     }) => {
-        const { page: ownerPage, user: owner } = authenticatedPage;
-        const { page: memberPage, groupDetailPage: memberGroupDetailPage, user: member } = secondUser;
+        // Create two browser instances - owner and member
+        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         // Create group and add member
         const groupName = generateTestGroupName('BalanceLeaveTest');

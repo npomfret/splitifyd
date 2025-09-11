@@ -1,8 +1,11 @@
-import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage } from '../../../pages';
 import { waitForApp } from '../../../helpers';
 
 test.describe('Performance Benchmarks', () => {
-    test('should meet Web Core Vitals metrics', async ({ page, homepagePage }) => {
+    test('should meet Web Core Vitals metrics', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigate();
         await waitForApp(page);
 
@@ -38,7 +41,9 @@ test.describe('Performance Benchmarks', () => {
         expect(performanceMetrics.connectionTime).toBeLessThan(100); // Connection fast locally
     });
 
-    test('should have acceptable bundle size impact', async ({ page, homepagePage }) => {
+    test('should have acceptable bundle size impact', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigate();
         await waitForApp(page);
 
@@ -66,7 +71,9 @@ test.describe('Performance Benchmarks', () => {
         expect(resourceMetrics.scriptSize).toBeLessThan(512 * 1024); // JS under 512KB
     });
 
-    test('should render without layout shifts', async ({ page, homepagePage }) => {
+    test('should render without layout shifts', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         await homepagePage.navigate();
         
         // Monitor for layout shifts during initial load

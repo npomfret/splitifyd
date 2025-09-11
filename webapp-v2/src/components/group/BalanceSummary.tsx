@@ -77,7 +77,10 @@ export function BalanceSummary({ variant = 'default' }: BalanceSummaryProps) {
                                 }
                             >
                                 <div className={variant === 'sidebar' ? 'flex flex-col gap-1' : 'flex justify-between items-center w-full'}>
-                                    <span className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}>
+                                    <span 
+                                        className={variant === 'sidebar' ? 'text-xs text-gray-600' : 'font-medium text-gray-700'}
+                                        data-testid={`debt-relationship-${debt.from.userId}-${debt.to.userId}`}
+                                    >
                                         {getUserName(debt.from.userId)}
                                         {t('balanceSummary.debtArrow')}
                                         {getUserName(debt.to.userId)}

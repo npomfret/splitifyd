@@ -1,22 +1,23 @@
-import { expect, fourUserTest } from '../../../fixtures/four-user-test';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 
-fourUserTest.describe('Group Real-Time Updates E2E', () => {
-    fourUserTest('should handle real-time group updates across 4 users without page refresh', async ({
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser, 
-        thirdUser,
-        fourthUser
-    }) => {
-        const { page: user1Page, user: user1 } = authenticatedPage;
-        const { page: user2Page, groupDetailPage: user2GroupDetailPage, dashboardPage: user2DashboardPage, user: user2 } = secondUser;
-        const { page: user3Page, groupDetailPage: user3GroupDetailPage, user: user3 } = thirdUser;
-        const { page: user4Page, groupDetailPage: user4GroupDetailPage, user: user4 } = fourthUser;
+simpleTest.describe('Group Real-Time Updates E2E', () => {
+    simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }) => {
+        // Create four browser instances - User 1, User 2, User 3, and User 4
+        const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+        const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
+        const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(user1Page, user1);
+        const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
+        const user3GroupDetailPage = new GroupDetailPage(user3Page, user3);
+        const user4GroupDetailPage = new GroupDetailPage(user4Page, user4);
 
         // Verify all 4 users are distinct
         expect(user1.email).not.toBe(user2.email);
@@ -27,10 +28,10 @@ fourUserTest.describe('Group Real-Time Updates E2E', () => {
         expect(user3.email).not.toBe(user4.email);
 
         // Get display names for verification
-        const user1DisplayName = await authenticatedPage.dashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        const user3DisplayName = await thirdUser.dashboardPage.getCurrentUserDisplayName();
-        const user4DisplayName = await fourthUser.dashboardPage.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
+        const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
 
         // Assert all users have different display names
         expect(user1DisplayName).not.toBe(user2DisplayName);

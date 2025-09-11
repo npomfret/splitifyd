@@ -1,17 +1,24 @@
-import { expect, threeUserTest as test } from '../../../fixtures/three-user-test';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import {DashboardPage, JoinGroupPage} from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 
 // Increase timeout for this complex multi-user test
-test.setTimeout(30000);
+simpleTest.setTimeout(30000);
 
-test.describe('Three User Settlement Management', () => {
-    test('should handle partial settlement with 3 users correctly', async ({ authenticatedPage, groupDetailPage, secondUser, thirdUser }) => {
-        const { page, user: user1 } = authenticatedPage;
-        const { page: page2, user: user2 } = secondUser;
-        const { page: page3, user: user3 } = thirdUser;
-        const groupWorkflow = new GroupWorkflow(page);
+simpleTest.describe('Three User Settlement Management', () => {
+    simpleTest('should handle partial settlement with 3 users correctly', async ({ newLoggedInBrowser }) => {
+        // Create three browser instances - User 1, User 2, and User 3
+        const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+        const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(user1Page, user1);
+        const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
+        const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
+        
+        const groupWorkflow = new GroupWorkflow(user1Page);
 
         // Verify all 3 users are distinct to prevent flaky test failures
 
@@ -20,9 +27,9 @@ test.describe('Three User Settlement Management', () => {
         expect(user1.email).not.toBe(user3.email);
         expect(user2.email).not.toBe(user3.email);
 
-        const user1DisplayName = await new DashboardPage(page).getCurrentUserDisplayName(); 
-        const user2DisplayName = await new DashboardPage(page2).getCurrentUserDisplayName(); 
-        const user3DisplayName = await new DashboardPage(page3).getCurrentUserDisplayName(); 
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName(); 
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName(); 
+        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName(); 
         // Assert all users have different display names
         expect(user1DisplayName).not.toBe(user2DisplayName);
         expect(user1DisplayName).not.toBe(user3DisplayName);
@@ -32,8 +39,8 @@ test.describe('Three User Settlement Management', () => {
         // The new UI shows display names in the user button but not as the accessible name
         // Use .first() to avoid strict mode violations when display name appears multiple times
         await expect(groupDetailPage.getTextElement(user1DisplayName).first()).toBeVisible();
-        await expect(secondUser.groupDetailPage.getTextElement(user2DisplayName).first()).toBeVisible();
-        await expect(thirdUser.groupDetailPage.getTextElement(user3DisplayName).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
+        await expect(groupDetailPage3.getTextElement(user3DisplayName).first()).toBeVisible();
 
         // 1. Create a group with 3 users
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
@@ -42,12 +49,11 @@ test.describe('Three User Settlement Management', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // SEQUENTIAL JOIN 1: Second user joins first
-        const groupDetailPage2 = secondUser.groupDetailPage;
-        const joinGroupPage2 = new JoinGroupPage(page2);
+        const joinGroupPage2 = new JoinGroupPage(user2Page);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Verify second user can actually access the group page
-        const page2Url = page2.url();
+        const page2Url = user2Page.url();
         if (!page2Url.includes(`/groups/${groupId}`)) {
             throw new Error(`Second user join verification failed. Expected to be on /groups/${groupId}, but on: ${page2Url}`);
         }
@@ -55,20 +61,19 @@ test.describe('Three User Settlement Management', () => {
         // WAIT for second user to be fully synchronized before third user joins
         await groupDetailPage.synchronizeMultiUserState(
             [
-                { page, groupDetailPage },
-                { page: page2, groupDetailPage: groupDetailPage2 },
+                { page: user1Page, groupDetailPage },
+                { page: user2Page, groupDetailPage: groupDetailPage2 },
             ],
             2,
             groupId,
         );
 
         // SEQUENTIAL JOIN 2: Third user joins ONLY AFTER second user is fully synchronized
-        const groupDetailPage3 = thirdUser.groupDetailPage;
-        const joinGroupPage3 = new JoinGroupPage(page3);
+        const joinGroupPage3 = new JoinGroupPage(user3Page);
         await joinGroupPage3.joinGroupUsingShareLink(shareLink);
 
         // Verify third user can actually access the group page
-        const page3Url = page3.url();
+        const page3Url = user3Page.url();
         if (!page3Url.includes(`/groups/${groupId}`)) {
             throw new Error(`Third user join verification failed. Expected to be on /groups/${groupId}, but on: ${page3Url}`);
         }
@@ -76,9 +81,9 @@ test.describe('Three User Settlement Management', () => {
         // Synchronize all pages to see all 3 members
         await groupDetailPage.synchronizeMultiUserState(
             [
-                { page, groupDetailPage },
-                { page: page2, groupDetailPage: groupDetailPage2 },
-                { page: page3, groupDetailPage: groupDetailPage3 },
+                { page: user1Page, groupDetailPage },
+                { page: user2Page, groupDetailPage: groupDetailPage2 },
+                { page: user3Page, groupDetailPage: groupDetailPage3 },
             ],
             3,
             groupId,
@@ -93,16 +98,16 @@ test.describe('Three User Settlement Management', () => {
         // - User2 owes: $40 to User1
         // - User3 owes: $40 to User1
         const allPages = [
-            { page, groupDetailPage },
-            { page: page2, groupDetailPage: groupDetailPage2 },
-            { page: page3, groupDetailPage: groupDetailPage3 },
+            { page: user1Page, groupDetailPage },
+            { page: user2Page, groupDetailPage: groupDetailPage2 },
+            { page: user3Page, groupDetailPage: groupDetailPage3 },
         ];
 
         await groupDetailPage.addExpenseAndSync(
             {
                 description: 'Group dinner expense',
                 amount: 120,
-                paidBy: user1.uid,
+                paidByDisplayName: user1.uid,
                 currency: 'USD',
                 splitType: 'equal',
             },

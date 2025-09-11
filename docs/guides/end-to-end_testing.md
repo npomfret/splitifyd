@@ -662,11 +662,7 @@ The proxy ensures that when tests fail, you have all the information needed to d
 
 ```typescript
 import { authenticatedPageTest, expect } from '../../fixtures/authenticated-page-test';
-import { setupConsoleErrorReporting, setupMCPDebugOnFailure } from '../../helpers';
-
-// Enable debugging helpers
-setupConsoleErrorReporting();
-setupMCPDebugOnFailure();
+import { setupConsoleErrorReporting } from '../../helpers';
 
 authenticatedPageTest.describe('Feature Name', () => {
     authenticatedPageTest(

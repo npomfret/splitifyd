@@ -1,15 +1,17 @@
-import {expect, multiUserTest as test} from '../../../fixtures/multi-user-test';
+import {expect, simpleTest as test} from '../../../fixtures/simple-test.fixture';
+
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {GroupWorkflow} from '../../../workflows';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-// Enable console error reporting and MCP debugging
 test.describe('Complex Unsettled Group Scenario', () => {
-    test('create group with multiple people and expenses that is NOT settled', async ({ authenticatedPage, secondUser, dashboardPage }) => {
-        // Use fixture-provided users instead of creating new ones
-        const { page: alicePage, user: alice } = authenticatedPage;
-        const { page: bobPage, user: bob } = secondUser;
+    test('create group with multiple people and expenses that is NOT settled', async ({ newLoggedInBrowser }) => {
+        // Create first user
+        const { page: alicePage, dashboardPage, user: alice } = await newLoggedInBrowser();
+        
+        // Create second user
+        const { page: bobPage, user: bob } = await newLoggedInBrowser();
         const groupWorkflow = new GroupWorkflow(alicePage);
 
         // Navigate Alice to dashboard and create group

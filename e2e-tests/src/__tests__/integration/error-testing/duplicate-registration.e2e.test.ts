@@ -1,10 +1,12 @@
-import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
-import { DashboardPage } from '../../../pages';
+import { DashboardPage, RegisterPage } from '../../../pages';
 
 test.describe('Duplicate User Registration E2E', () => {
-    test('should prevent duplicate email registration and show error', async ({ page, registerPage }) => {
+    test('should prevent duplicate email registration and show error', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         // This test expects a 409 error when trying to register duplicate email
         test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
         const email = generateTestEmail('duplicate');
@@ -69,7 +71,9 @@ test.describe('Duplicate User Registration E2E', () => {
         expect(errorInConsole).toBe(true);
     });
 
-    test('should show error immediately without clearing form', async ({ page, registerPage }) => {
+    test('should show error immediately without clearing form', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
 
         const email = generateTestEmail('persist');
@@ -128,7 +132,9 @@ test.describe('Duplicate User Registration E2E', () => {
         await expect(errorElement).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ERROR_DISPLAY });
     });
 
-    test('should allow registration with different email after duplicate attempt', async ({ page, registerPage }) => {
+    test('should allow registration with different email after duplicate attempt', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         test.info().annotations.push({ type: 'skip-error-checking', description: '409 Conflict error is expected' });
 
         const email1 = generateTestEmail('first');

@@ -1,7 +1,13 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage, LoginPage, RegisterPage, PricingPage } from '../../../pages';
 
-pageTest.describe('Resource Monitoring', () => {
-    pageTest('should load all resources successfully across main pages', async ({ page, homepagePage, loginPage, registerPage, pricingPage }) => {
+simpleTest.describe('Resource Monitoring', () => {
+    simpleTest('should load all resources successfully across main pages', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
+        const loginPage = new LoginPage(page);
+        const registerPage = new RegisterPage(page);
+        const pricingPage = new PricingPage(page);
         const failedRequests: string[] = [];
         const resourceTypes: Map<string, number> = new Map();
 
@@ -49,7 +55,9 @@ pageTest.describe('Resource Monitoring', () => {
         expect(totalResources).toBeLessThan(100); // Reasonable total resource count
     });
 
-    pageTest('should have acceptable response times', async ({ page, homepagePage }) => {
+    simpleTest('should have acceptable response times', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         const responseStartTimes = new Map<string, number>();
         const slowRequests: string[] = [];
         
@@ -77,7 +85,9 @@ pageTest.describe('Resource Monitoring', () => {
         expect(slowRequests).toHaveLength(0);
     });
 
-    pageTest('should not have memory leaks in resource loading', async ({ page, homepagePage }) => {
+    simpleTest('should not have memory leaks in resource loading', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
         // Navigate and reload to check for resource cleanup
         await homepagePage.navigate();
         await page.waitForLoadState('networkidle');

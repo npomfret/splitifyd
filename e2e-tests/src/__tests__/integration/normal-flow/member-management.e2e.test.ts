@@ -1,15 +1,13 @@
-import { expect, multiUserTest } from '../../../fixtures/multi-user-test';
-import { authenticatedPageTest } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { JoinGroupPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-// Enable debugging helpers
-
-authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
-    authenticatedPageTest('group owner should not see leave button and should see settings', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page } = authenticatedPage;
+simpleTest.describe('Member Management - Owner Restrictions', () => {
+    simpleTest('group owner should not see leave button and should see settings', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group as owner
@@ -28,11 +26,15 @@ authenticatedPageTest.describe('Member Management - Owner Restrictions', () => {
     });
 });
 
-multiUserTest.describe('Member Management - Multi-User Operations', () => {
-    multiUserTest('non-owner member should be able to leave group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
-        const memberGroupDetailPage = secondUser.groupDetailPage;
+simpleTest.describe('Member Management - Multi-User Operations', () => {
+    simpleTest('non-owner member should be able to leave group', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Owner and Member
+        const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -76,14 +78,17 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
-    multiUserTest('group owner should be able to remove a member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+    simpleTest('group owner should be able to remove a member', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Owner and Member
+        const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-
-        const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
@@ -142,14 +147,17 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
-    multiUserTest('should prevent leaving group with outstanding balance', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+    simpleTest('should prevent leaving group with outstanding balance', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Owner and Member
+        const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-
-        const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
@@ -174,7 +182,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             description: 'Test expense for balance',
             amount: 100,
             currency: 'USD',
-            paidBy: ownerDisplayName,
+            paidByDisplayName: ownerDisplayName,
             splitType: 'equal',
         });
 
@@ -210,14 +218,17 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(/\/dashboard/);
     });
 
-    multiUserTest('should prevent owner from removing member with outstanding balance', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+    simpleTest('should prevent owner from removing member with outstanding balance', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Owner and Member
+        const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-
-        const memberGroupDetailPage = secondUser.groupDetailPage;
 
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
@@ -241,7 +252,7 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
             description: 'Member expense',
             amount: 60,
             currency: 'USD',
-            paidBy: memberDisplayName,
+            paidByDisplayName: memberDisplayName,
             splitType: 'equal',
         });
 
@@ -254,9 +265,13 @@ multiUserTest.describe('Member Management - Multi-User Operations', () => {
         await expect(removeButton).toBeDisabled({ timeout: 5000 });
     });
 
-    multiUserTest('should handle edge case of removing last non-owner member', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = authenticatedPage;
-        const { page: memberPage, dashboardPage: user2DashboardPage } = secondUser;
+    simpleTest('should handle edge case of removing last non-owner member', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Owner and Member
+        const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();

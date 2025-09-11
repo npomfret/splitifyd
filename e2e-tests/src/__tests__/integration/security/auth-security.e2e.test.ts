@@ -1,9 +1,10 @@
 import { expect } from '@playwright/test';
-import { authenticatedPageTest } from '../../../fixtures/authenticated-page-test';
-import { multiUserTest } from '../../../fixtures/multi-user-test';
+import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage } from '../../../pages';
 
-authenticatedPageTest.describe('Authentication Security', () => {
-    authenticatedPageTest('should redirect unauthenticated users to login', async ({ page }) => {
+simpleTest.describe('Authentication Security', () => {
+    simpleTest('should redirect unauthenticated users to login', async ({ newEmptyBrowser }) => {
+        const { page, loginPage } = await newEmptyBrowser();
         // Clear authentication by going to login and not logging in
         await page.goto('/login');
 
@@ -14,8 +15,9 @@ authenticatedPageTest.describe('Authentication Security', () => {
         await expect(page).toHaveURL(/\/login/);
     });
 
-    authenticatedPageTest('should protect group pages from unauthorized access', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should protect group pages from unauthorized access', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         // Create a group while authenticated
         await dashboardPage.navigate();
@@ -42,10 +44,14 @@ authenticatedPageTest.describe('Authentication Security', () => {
     });
 });
 
-multiUserTest.describe('Multi-User Security', () => {
-    multiUserTest('should prevent users from accessing other users groups', async ({ authenticatedPage, secondUser, dashboardPage, createGroupModalPage }) => {
-        const { page: page1 } = authenticatedPage;
-        const { page: page2 } = secondUser;
+simpleTest.describe('Multi-User Security', () => {
+    simpleTest('should prevent users from accessing other users groups', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - User 1 and User 2
+        const { page: page1, dashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: page2, user: user2 } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const createGroupModalPage = new CreateGroupModalPage(page1, user1);
 
         // User 1 creates a private group using POMs
         await dashboardPage.navigate();

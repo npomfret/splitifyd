@@ -1,12 +1,14 @@
-import {authenticatedPageTest as test, expect} from '../../../fixtures/authenticated-page-test';
+import {simpleTest as test, expect} from '../../../fixtures/simple-test.fixture';
+import {GroupDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 import {v4 as uuidv4} from 'uuid';
 
 test.describe('Add Expense E2E', () => {
-    test('should add new expense with equal split', async ({ authenticatedPage, dashboardPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should add new expense with equal split', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
         const uniqueId = uuidv4().slice(0, 8);
 
@@ -33,8 +35,9 @@ test.describe('Add Expense E2E', () => {
 
     // Form validation tests moved to form-validation.e2e.test.ts
 
-    test('should allow selecting expense category', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should allow selecting expense category', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -60,8 +63,9 @@ test.describe('Add Expense E2E', () => {
         await expect(groupDetailPage.getExpenseByDescription(`Dinner with category ${uniqueId}`)).toBeVisible();
     });
 
-    test('should show expense in group after creation', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should show expense in group after creation', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -94,8 +98,9 @@ test.describe('Add Expense E2E', () => {
         await expect(amountText).toBeVisible();
     });
 
-    test('should allow custom category input', async ({ authenticatedPage, groupDetailPage }) => {
-        const { page, user } = authenticatedPage;
+    test('should allow custom category input', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 

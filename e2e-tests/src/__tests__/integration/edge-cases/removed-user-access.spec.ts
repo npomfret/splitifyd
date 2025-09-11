@@ -1,4 +1,5 @@
-import {expect, multiUserTest} from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+
 import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
 import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
@@ -6,11 +7,15 @@ import {DashboardPage, JoinGroupPage} from '../../../pages';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
 
-multiUserTest.describe('Multi-User Group Access', () => {
-    multiUserTest('multiple users can collaborate in shared group', async ({ authenticatedPage, dashboardPage, groupDetailPage, secondUser }) => {
-        const { page: user1Page, user: user1 } = authenticatedPage;
-        const { page: user2Page, user: user2 } = secondUser;
-        const { groupDetailPage: groupDetailPage2 } = secondUser;
+simpleTest.describe('Multi-User Group Access', () => {
+    simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - User 1 and User 2
+        const { page: user1Page, dashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: user2Page, user: user2 } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new (await import('../../../pages')).GroupDetailPage(user1Page, user1);
+        const groupDetailPage2 = new (await import('../../../pages')).GroupDetailPage(user2Page, user2);
 
         // Verify both users start on dashboard
         await expect(user1Page).toHaveURL(/\/dashboard/);
@@ -63,10 +68,14 @@ multiUserTest.describe('Multi-User Group Access', () => {
         await expect(groupDetailPage.getTextElement(`Shared Expense ${uniqueId}`).first()).toBeVisible();
     });
 
-    multiUserTest('should handle user access correctly after group member removal', async ({ authenticatedPage, dashboardPage, groupDetailPage, secondUser }) => {
-        const { page: adminPage, user: adminUser } = authenticatedPage;
-        const { page: memberPage, user: memberUser } = secondUser;
-        const { groupDetailPage: memberGroupDetailPage } = secondUser;
+    simpleTest('should handle user access correctly after group member removal', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Admin and Member
+        const { page: adminPage, dashboardPage, user: adminUser } = await newLoggedInBrowser();
+        const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new (await import('../../../pages')).GroupDetailPage(adminPage, adminUser);
+        const memberGroupDetailPage = new (await import('../../../pages')).GroupDetailPage(memberPage, memberUser);
 
         // Create group and add second user (similar setup)
         const uniqueId = generateShortId();

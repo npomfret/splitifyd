@@ -1,14 +1,15 @@
-import { pageTest } from '../../../fixtures';
+import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { HomepagePage } from '../../../pages';
 import { waitForApp } from '../../../helpers';
-
-// Enable MCP debugging for failed tests
-pageTest.describe('Policy Pages Error Testing', () => {
-    pageTest(
+simpleTest.describe('Policy Pages Error Testing', () => {
+    simpleTest(
         'should navigate between policy pages without errors',
         {
             annotation: { type: 'skip-error-checking', description: 'Policy fetch errors expected in test environment' },
         },
-        async ({ page, homepagePage }) => {
+        async ({ newEmptyBrowser }) => {
+            const { page } = await newEmptyBrowser();
+            const homepagePage = new HomepagePage(page);
             // Start with terms page
             await homepagePage.navigateToStaticPath('/terms');
             await waitForApp(page);

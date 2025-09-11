@@ -1,8 +1,11 @@
-import { pageTest as test, expect } from '../../../fixtures/page-fixtures';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { RegisterPage } from '../../../pages';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/test-helpers';
 
 test.describe('Registration Loading State', () => {
-    test('should show loading spinner during registration', async ({ page, registerPage }) => {
+    test('should show loading spinner during registration', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         const email = generateTestEmail('loading-test');
         const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('LoadingTest');
@@ -31,7 +34,9 @@ test.describe('Registration Loading State', () => {
         });
     });
 
-    test('should handle both instant and delayed registration', async ({ page, registerPage }) => {
+    test('should handle both instant and delayed registration', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         const email = generateTestEmail('instant-test');
         const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('InstantTest');
@@ -50,7 +55,9 @@ test.describe('Registration Loading State', () => {
         await expect(page.getByRole('heading', { name: /welcome|your groups/i }).first()).toBeVisible({ timeout: 5000 });
     });
 
-    test('should disable submit button while processing', async ({ page, registerPage }) => {
+    test('should disable submit button while processing', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const registerPage = new RegisterPage(page);
         const email = generateTestEmail('disabled-test');
         const password = DEFAULT_PASSWORD;
         const displayName = generateTestUserName('DisabledTest');

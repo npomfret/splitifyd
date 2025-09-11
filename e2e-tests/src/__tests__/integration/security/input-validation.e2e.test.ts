@@ -1,9 +1,11 @@
 import { expect } from '@playwright/test';
-import { authenticatedPageTest } from '../../../fixtures/authenticated-page-test';
+import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage } from '../../../pages';
 
-authenticatedPageTest.describe('Input Validation Security', () => {
-    authenticatedPageTest('should validate group name inputs', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
+simpleTest.describe('Input Validation Security', () => {
+    simpleTest('should validate group name inputs', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
@@ -31,8 +33,9 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         expect(errorMessages).toBeGreaterThan(0);
     });
 
-    authenticatedPageTest('should handle special characters in group names safely', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should handle special characters in group names safely', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
@@ -64,8 +67,9 @@ authenticatedPageTest.describe('Input Validation Security', () => {
         expect(pageContent).not.toContain('alert("xss")'); // Script shouldn't be executable
     });
 
-    authenticatedPageTest('should prevent malicious input in group descriptions', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        const { page } = authenticatedPage;
+    simpleTest('should prevent malicious input in group descriptions', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();

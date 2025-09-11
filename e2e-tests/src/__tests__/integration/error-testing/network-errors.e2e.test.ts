@@ -1,14 +1,15 @@
-import { authenticatedPageTest as test, expect } from '../../../fixtures/authenticated-page-test';
+import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
+import { CreateGroupModalPage } from '../../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../../config/timeouts';
 import { SELECTORS } from '../../../constants/selectors';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
-// Enable console error reporting and MCP debugging
 test.describe('Error Handling', () => {
-    test('displays error message when network fails during group creation', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {
-        const { page } = authenticatedPage;
-        const { context } = primaryUser;
+    test('displays error message when network fails during group creation', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const context = page.context();
         // NOTE: This test intentionally triggers network errors
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -63,8 +64,9 @@ test.describe('Error Handling', () => {
         }
     });
 
-    test('prevents form submission with invalid data', async ({ authenticatedPage, dashboardPage, createGroupModalPage }) => {
-        // Already authenticated via fixture
+    test('prevents form submission with invalid data', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         await dashboardPage.openCreateGroupModal();
         await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
@@ -87,9 +89,10 @@ test.describe('Error Handling', () => {
         await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern());
     });
 
-    test('handles server errors gracefully', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {
-        const { page } = authenticatedPage;
-        const { context } = primaryUser;
+    test('handles server errors gracefully', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const context = page.context();
         // NOTE: This test intentionally triggers server errors
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -138,9 +141,9 @@ test.describe('Error Handling', () => {
         }
     });
 
-    test('handles malformed API responses', async ({ authenticatedPage, dashboardPage, primaryUser }) => {
-        const { page } = authenticatedPage;
-        const { context } = primaryUser;
+    test('handles malformed API responses', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const context = page.context();
         // NOTE: This test intentionally triggers JSON parse errors
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -178,9 +181,10 @@ test.describe('Error Handling', () => {
     // NOTE: The 'verifies group access control behavior' test has been removed as it's a duplicate
     // of the test in security-errors.e2e.test.ts which now properly uses multiUserTest fixture
 
-    test('handles API timeouts appropriately', async ({ authenticatedPage, dashboardPage, createGroupModalPage, primaryUser }) => {
-        const { page } = authenticatedPage;
-        const { context } = primaryUser;
+    test('handles API timeouts appropriately', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const createGroupModalPage = new CreateGroupModalPage(page, user);
+        const context = page.context();
         // NOTE: This test simulates timeout scenarios
         test.info().annotations.push({
             type: 'skip-error-checking',

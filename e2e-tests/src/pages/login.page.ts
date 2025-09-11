@@ -26,6 +26,10 @@ export class LoginPage extends BasePage {
         }
     }
 
+    async navigateToHomepage() {
+        await super.navigateToHomepage();
+    }
+
     async fillLoginForm(email: string, password: string, rememberMe = false) {
         await this.fillPreactInput(SELECTORS.EMAIL_INPUT, email);
         await this.fillPreactInput(SELECTORS.PASSWORD_INPUT, password);

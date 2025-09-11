@@ -1,10 +1,12 @@
-import { pageTest, expect } from '../../../fixtures';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { LoginPage } from '../../../pages';
 
-// Enable MCP debugging for failed tests
 // NOTE: ARIA labels testing moved to unit tests for better performance
-pageTest.describe('Form Accessibility', () => {
-    pageTest('should navigate login form with keyboard', async ({ loginPageNavigated, loginPage }) => {
-        const { page } = loginPageNavigated;
+simpleTest.describe('Form Accessibility', () => {
+    simpleTest('should navigate login form with keyboard', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const loginPage = new LoginPage(page);
+        await loginPage.navigate();
 
         // Clear any pre-filled login data to get consistent focus behavior
         await loginPage.clearStorage();

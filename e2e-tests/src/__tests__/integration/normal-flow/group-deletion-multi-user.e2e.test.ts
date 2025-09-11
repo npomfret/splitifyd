@@ -1,17 +1,18 @@
-import { expect, multiUserTest } from '../../../fixtures';
-import { expect as expectThree, threeUserTest } from '../../../fixtures/three-user-test';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+
 import { GroupWorkflow } from '../../../workflows';
 import { generateShortId } from '../../../../../packages/test-support/test-helpers';
-import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 
-multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
-    multiUserTest('should update both dashboards when owner deletes group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user: user1 } = authenticatedPage;
-        const { page: page2, user: user2 } = secondUser;
+simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
+    simpleTest('should update both dashboards when owner deletes group', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - owner (user1) and member (user2)
+        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
+        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
 
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const dashboardPage1 = new DashboardPage(page, user1);
-        const dashboardPage2 = new DashboardPage(page2, user2);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group with unique ID
@@ -81,12 +82,14 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         expect(criticalErrors).toHaveLength(0);
     });
 
-    multiUserTest('should update dashboard when member leaves group', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user: user1 } = authenticatedPage;
-        const { page: page2, user: user2 } = secondUser;
+    simpleTest('should update dashboard when member leaves group', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - owner (user1) and member (user2)
+        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
+        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const dashboardPage1 = new DashboardPage(page, user1);
-        const dashboardPage2 = new DashboardPage(page2, user2);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group
@@ -135,12 +138,17 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await dashboardPage1.waitForGroupToAppear(groupName);
     });
 
-    multiUserTest('should handle concurrent dashboard viewing during hard deletion', async ({ authenticatedPage, groupDetailPage, secondUser }) => {
-        const { page, user: user1 } = authenticatedPage;
-        const { page: page2, user: user2 } = secondUser;
+    simpleTest('should handle concurrent dashboard viewing during hard deletion', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - owner (user1) and member (user2)
+        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
+        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
+
+        const user1DisplayName = await dashboardPage1.getCurrentUserDisplayName();
+        const user2DisplayName = await dashboardPage2.getCurrentUserDisplayName();
+
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const dashboardPage1 = new DashboardPage(page, user1);
-        const dashboardPage2 = new DashboardPage(page2, user2);
         const groupWorkflow = new GroupWorkflow(page);
 
         // Setup group with expenses (testing hard delete with data)
@@ -163,7 +171,7 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await expenseFormPage1.submitExpense({
             description: 'Pre-deletion Expense 1',
             amount: 50,
-            paidBy: user1.uid, // Use userId for server validation
+            paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
         });
@@ -177,7 +185,7 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await expenseFormPage2.submitExpense({
             description: 'Pre-deletion Expense 2',
             amount: 75,
-            paidBy: user2.uid, // Use userId for server validation
+            paidByDisplayName: user2DisplayName,
             currency: 'USD',
             splitType: 'equal',
         });
@@ -230,25 +238,21 @@ multiUserTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
     });
 });
 
-threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
-    threeUserTest('should update all dashboards in real-time when owner deletes group', async ({ 
-        authenticatedPage, 
-        groupDetailPage, 
-        secondUser, 
-        thirdUser 
-    }, testInfo) => {
+simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
+    simpleTest('should update all dashboards in real-time when owner deletes group', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking for this test - 404 errors are expected when group detail 
         // stores try to refresh data for a deleted group
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors from group detail store refreshes after deletion' });
-        const { page: page1, user: user1 } = authenticatedPage;
-        const { page: page2, user: user2 } = secondUser;
-        const { page: page3, user: user3 } = thirdUser;
         
+        // Create three browser instances - User 1, User 2, and User 3
+        const { page: page1, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
+        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
+        const { page: page3, dashboardPage: dashboardPage3, user: user3 } = await newLoggedInBrowser();
+        
+        // Create page objects
+        const groupDetailPage = new GroupDetailPage(page1, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
         const groupDetailPage3 = new GroupDetailPage(page3, user3);
-        const dashboardPage1 = new DashboardPage(page1, user1);
-        const dashboardPage2 = new DashboardPage(page2, user2);
-        const dashboardPage3 = new DashboardPage(page3, user3);
         const groupWorkflow = new GroupWorkflow(page1);
 
         // Create group with User 1 as owner
@@ -261,12 +265,12 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         const shareLink = await groupDetailPage.getShareLink();
         
         // User 2 joins
-        await expectThree(page2).toHaveURL(/\/dashboard/);
+        await expect(page2).toHaveURL(/\/dashboard/);
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
         
         // User 3 joins  
-        await expectThree(page3).toHaveURL(/\/dashboard/);
+        await expect(page3).toHaveURL(/\/dashboard/);
         const joinGroupPage3 = new JoinGroupPage(page3, user3);
         await joinGroupPage3.joinGroupUsingShareLink(shareLink);
 
@@ -312,7 +316,7 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         await groupDetailPage.handleDeleteConfirmDialog(true, groupName);
 
         // User 1 should be redirected to dashboard
-        await expectThree(page1).toHaveURL(/\/dashboard/);
+        await expect(page1).toHaveURL(/\/dashboard/);
         await dashboardPage1.waitForDashboard();
 
         // CRITICAL TEST: All dashboards should update in real-time
@@ -347,7 +351,7 @@ threeUserTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         
         // Users 2 and 3 should have no group-related errors
         // (they should handle the group deletion gracefully via subscription)
-        expectThree(criticalErrors2).toHaveLength(0);
-        expectThree(criticalErrors3).toHaveLength(0);
+        expect(criticalErrors2).toHaveLength(0);
+        expect(criticalErrors3).toHaveLength(0);
     });
 });
