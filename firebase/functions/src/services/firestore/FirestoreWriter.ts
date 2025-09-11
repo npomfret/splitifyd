@@ -2050,6 +2050,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 // Update group timestamp (triggers group change notifications for remaining members)
                 const groupRef = this.db.doc(`${FirestoreCollections.GROUPS}/${groupId}`);
                 batch.update(groupRef, {
+                    updatedAt: FieldValue.serverTimestamp(),
                     lastModified: FieldValue.serverTimestamp(),
                 });
 
