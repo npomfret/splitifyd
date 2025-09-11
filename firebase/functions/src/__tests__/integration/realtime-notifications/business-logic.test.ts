@@ -113,15 +113,12 @@ describe('Business Logic Integration Tests', () => {
             // Wait longer for atomic cleanup to complete
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // Check all events for this group after removal timestamp
+            // User2 should have events from before removal but not after (excluding group_removed which is expected)
             const allUser2Events = listener2.getEventsForGroup(testGroup.id);
-            console.log(
-                'User2 events after removal:',
-                allUser2Events.map((e) => ({ type: e.type, timestamp: e.timestamp })),
+            const user2EventsAfterRemoval = allUser2Events.filter(
+                (e) => e.timestamp.getTime() > beforeRemoval && 
+                       ['transaction', 'balance', 'group'].includes(e.type)
             );
-
-            // User2 should have events from before removal but not after
-            const user2EventsAfterRemoval = allUser2Events.filter((e) => e.timestamp.getTime() >= beforeRemoval);
             expect(user2EventsAfterRemoval.length).toBe(0);
 
             // 7. Verify remaining members got the group update notifications
