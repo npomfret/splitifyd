@@ -625,6 +625,15 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
+    async getAllGroupMemberIds(groupId: string) {
+        const affectedUsers: string[] = [];
+        const members = await this.getAllGroupMembers(groupId);
+        members.forEach(member => {
+            affectedUsers.push(member.userId);
+        });
+        return affectedUsers;
+    }
+
     async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
         return measureDb('GET_MEMBERS',
             async () => {
