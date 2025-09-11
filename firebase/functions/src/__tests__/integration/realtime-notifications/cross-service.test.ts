@@ -2,7 +2,7 @@
 // Tests notification system integration with other services and features
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense, createMultiUserExpense } from './shared-setup';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Cross-Service Integration Tests', () => {
@@ -95,8 +95,7 @@ describe('Cross-Service Integration Tests', () => {
 
             // Create expense after any potential profile changes
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 25.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.0);
 
             // 4. Verify notifications still work normally
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -158,8 +157,7 @@ describe('Cross-Service Integration Tests', () => {
 
             // 3. Test that notifications work with default settings
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 30.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
 
             // 4. Verify both users receive notifications with default settings
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);

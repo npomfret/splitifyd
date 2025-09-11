@@ -2,7 +2,7 @@
 // Tests notification system integration with business logic and permissions
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense } from './shared-setup';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { CreateGroupRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Business Logic Integration Tests', () => {
@@ -19,13 +19,11 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create expense in main group - only user[0] should be notified
             const beforeExpense1 = Date.now();
-            const expense1 = createBasicExpense(testGroup.id, 25.0, 0);
-            await apiDriver.createExpense(expense1, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.0);
 
             // 4. Create expense in separate group - only user[1] should be notified
             const beforeExpense2 = Date.now();
-            const expense2 = createBasicExpense(separateGroup.id, 30.0, 1);
-            await apiDriver.createExpense(expense2, users[1].token);
+            await apiDriver.createBasicExpense(separateGroup.id, users[1].uid, users[1].token, 30.0);
 
             // 5. Wait for notifications
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense1);
@@ -54,8 +52,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create an expense - both user1 and user2 should get notifications
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 40.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 40.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -65,8 +62,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 5. Create another expense - only user1 should get notifications now
             const beforeExpense2 = Date.now();
-            const expense2 = createBasicExpense(testGroup.id, 50.0, 0);
-            await apiDriver.createExpense(expense2, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 50.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense2);
 
@@ -100,8 +96,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create some activity to establish all users are in the group
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 30.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener3.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -153,8 +148,7 @@ describe('Business Logic Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // 3. Create an expense first
-            const expense = createBasicExpense(testGroup.id, 35.0, 0);
-            const createdExpense = await apiDriver.createExpense(expense, users[0].token);
+            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 35.0);
 
             // 4. Add comment to the expense
             await apiDriver.createExpenseComment(createdExpense.id, 'This is a test comment', users[1].token);
@@ -184,8 +178,7 @@ describe('Business Logic Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create an expense
-            const expense = createBasicExpense(testGroup.id, 45.0, 0);
-            const createdExpense = await apiDriver.createExpense(expense, users[0].token);
+            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 45.0);
 
             // 3. Edit the expense metadata
             const beforeEdit = Date.now();
@@ -215,8 +208,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create expense in EUR group
             const beforeExpense = Date.now();
-            const eurExpense = createBasicExpense(currencyGroup.id, 25.5, 0);
-            await apiDriver.createExpense(eurExpense, users[0].token);
+            await apiDriver.createBasicExpense(currencyGroup.id, users[0].uid, users[0].token, 25.5);
 
             // 4. Wait for notifications
             await listener.waitForNewEvent(currencyGroup.id, 'transaction', beforeExpense);

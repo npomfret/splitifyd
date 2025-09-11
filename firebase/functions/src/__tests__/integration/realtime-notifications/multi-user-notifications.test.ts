@@ -2,7 +2,7 @@
 // Tests notification behavior across multiple users and group membership scenarios
 
 import { describe, expect, test } from 'vitest';
-import { users, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense, createMultiMemberGroup } from './shared-setup';
+import { users, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 describe('Multi-User Notifications Integration Tests', () => {
@@ -44,7 +44,7 @@ describe('Multi-User Notifications Integration Tests', () => {
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners will capture this)
-            const multiUserGroup = await createMultiMemberGroup([0, 1, 2]);
+            const multiUserGroup = await apiDriver.createGroupWithMembers('Multi-User Test Group', [users[0], users[1], users[2]], users[0].token);
 
             // 3. Perform the action being tested
             console.log('🔄 Updating group name and description...');
@@ -148,7 +148,7 @@ describe('Multi-User Notifications Integration Tests', () => {
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners capture this)
-            const leaveTestGroup = await createMultiMemberGroup([0, 1, 2]);
+            const leaveTestGroup = await apiDriver.createGroupWithMembers('Leave Test Group', [users[0], users[1], users[2]], users[0].token);
 
             // 3. Wait for all users to receive group events (ensuring they're all members)
             await Promise.all([
@@ -183,7 +183,7 @@ describe('Multi-User Notifications Integration Tests', () => {
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create group and perform setup (listeners capture everything)
-            const multiUserGroup = await createMultiMemberGroup([0, 1, 2]);
+            const multiUserGroup = await apiDriver.createGroupWithMembers('Expense Test Group', [users[0], users[1], users[2]], users[0].token);
 
             // Wait for all users to receive group events (when they joined the group)
             await Promise.all([

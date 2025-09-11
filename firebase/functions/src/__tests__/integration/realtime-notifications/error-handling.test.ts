@@ -2,7 +2,7 @@
 // Tests notification system behavior under error conditions and recovery scenarios
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense } from './shared-setup';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Error Handling & Recovery Integration Tests', () => {
     setupNotificationTest;
@@ -14,9 +14,8 @@ describe('Error Handling & Recovery Integration Tests', () => {
             let [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // Create first expense
-            const expense1 = createBasicExpense(testGroup.id, 20.0);
             const beforeExpense1Timestamp = Date.now();
-            await apiDriver.createExpense(expense1, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 20.0);
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense1Timestamp);
 
             // Simulate disconnect by stopping listener
@@ -24,8 +23,7 @@ describe('Error Handling & Recovery Integration Tests', () => {
             notificationDriver.stopListening(users[0].uid);
 
             // Create expense while "disconnected"
-            const expense2 = createBasicExpense(testGroup.id, 30.0);
-            await apiDriver.createExpense(expense2, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
 
             // 2. Reconnect with new listener (captures all state changes)
             console.log('Simulating reconnection...');
@@ -35,9 +33,9 @@ describe('Error Handling & Recovery Integration Tests', () => {
             await listener.waitForEventCount(testGroup.id, 'transaction', 1);
 
             // 3. Verify we can still receive new notifications
-            const expense3 = createBasicExpense(testGroup.id, 40.0);
             const beforeExpense3Timestamp = Date.now();
-            await apiDriver.createExpense(expense3, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 40.0);
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense3Timestamp);
 
             console.log('Successfully handled disconnect/reconnect scenario');
@@ -53,17 +51,17 @@ describe('Error Handling & Recovery Integration Tests', () => {
             //    (We can't easily mock Firebase failures in integration tests,
             //     but we can test system resilience)
 
-            const expense = createBasicExpense(testGroup.id, 33.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 33.0);
 
             // 3. Verify notification delivery works under normal conditions
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             // 4. Create multiple rapid requests to stress the system
             for (let i = 0; i < 3; i++) {
-                const rapidExpense = createBasicExpense(testGroup.id, 10 + i, 0);
-                await apiDriver.createExpense(rapidExpense, users[0].token);
+                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 10 + i);
                 await new Promise((resolve) => setTimeout(resolve, 200));
             }
 
@@ -89,8 +87,7 @@ describe('Error Handling & Recovery Integration Tests', () => {
             const beforeConcurrent = Date.now();
             const concurrentPromises = [];
             for (let i = 0; i < 3; i++) {
-                const expense = createBasicExpense(testGroup.id, 20 + i, 0);
-                concurrentPromises.push(apiDriver.createExpense(expense, users[0].token));
+                concurrentPromises.push(apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 20 + i));
             }
 
             await Promise.all(concurrentPromises);
@@ -119,9 +116,10 @@ describe('Error Handling & Recovery Integration Tests', () => {
             //    (In integration tests, we can't easily corrupt documents,
             //     but we can test that the system initializes properly)
 
-            const expense = createBasicExpense(testGroup.id, 29.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 29.0);
 
             // 3. Verify the notification system initializes and works correctly
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -131,9 +129,9 @@ describe('Error Handling & Recovery Integration Tests', () => {
             const [newListener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 5. Verify system continues to work after restart
-            const expense2 = createBasicExpense(testGroup.id, 31.0, 0);
             const beforeSecondExpense = Date.now();
-            await apiDriver.createExpense(expense2, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 31.0);
 
             await newListener.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 
@@ -148,9 +146,9 @@ describe('Error Handling & Recovery Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Test normal operation first
-            const expense = createBasicExpense(testGroup.id, 27.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 27.0);
 
             // 3. Verify notifications work with proper permissions
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -164,9 +162,9 @@ describe('Error Handling & Recovery Integration Tests', () => {
             expect(events.length).toBeGreaterThanOrEqual(1);
 
             // 5. Test that the system continues to work correctly
-            const expense2 = createBasicExpense(testGroup.id, 38.0, 0);
             const beforeSecondExpense = Date.now();
-            await apiDriver.createExpense(expense2, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 38.0);
 
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 

@@ -2,7 +2,7 @@
 // Tests notification system data consistency and edge case handling
 
 import { describe, expect, test } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense, createMultiUserExpense } from './shared-setup';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Data Consistency & Edge Cases Integration Tests', () => {
@@ -16,8 +16,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
 
             // Create an expense to ensure group exists in notifications
             const beforeExpenseTimestamp = Date.now();
-            const expense = createBasicExpense(testGroup.id, 15.0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 15.0);
 
             // Wait for initial transaction notification to establish baseline
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
@@ -48,8 +47,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
-            const expense = createMultiUserExpense(testGroup.id, 80.0, [0, 1]);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createMultiUserExpense(testGroup.id, users[0].uid, users[0].token, [users[0].uid, users[1].uid], 80.0);
 
             // 3. Create a settlement
             const beforeSettlement = Date.now();
@@ -83,8 +81,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // 3. Create some activity to ensure user2 has notification data
-            const expense = createBasicExpense(testGroup.id, 35.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 35.0);
 
             // 4. Remove user2 from group
             const beforeRemoval = Date.now();
@@ -100,8 +97,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
 
             // 6. Now create expense - User2 should not receive notifications
             const beforePostRemovalExpense = Date.now();
-            const postRemovalExpense = createBasicExpense(testGroup.id, 45.0, 0);
-            await apiDriver.createExpense(postRemovalExpense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 45.0);
 
             // 7. User1 should get the notification, user2 should not
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforePostRemovalExpense);
@@ -132,8 +128,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create activity in original group
-            const expense1 = createBasicExpense(testGroup.id, 25.0, 0);
-            await apiDriver.createExpense(expense1, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.0);
 
             // 3. Track original group state
             const originalEvents = listener.getEvents().filter((e: any) => e.groupId === testGroup.id);
@@ -141,8 +136,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             // 4. If we could recreate a group with same ID, notifications should be isolated
             // For now, test that the notification system handles the existing group properly
             const beforeSecondExpense = Date.now();
-            const expense2 = createBasicExpense(testGroup.id, 35.0, 0);
-            await apiDriver.createExpense(expense2, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 35.0);
 
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 
@@ -161,8 +155,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             const numberOfExpenses = 5;
 
             for (let i = 0; i < numberOfExpenses; i++) {
-                const expense = createBasicExpense(testGroup.id, 10 + i, 0);
-                await apiDriver.createExpense(expense, users[0].token);
+                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 10 + i);
                 // Small delay to avoid overwhelming the system
                 await new Promise((resolve) => setTimeout(resolve, 100));
             }
@@ -189,8 +182,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create an expense
-            const expense = createBasicExpense(testGroup.id, 50.0, 0);
-            const createdExpense = await apiDriver.createExpense(expense, users[0].token);
+            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 50.0);
 
             // 3. Edit the expense
             const beforeEdit = Date.now();
@@ -223,8 +215,7 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
             // 2. Test that current notification system works as expected
             //    This establishes a baseline for future migration scenarios
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 42.0, 0);
-            await apiDriver.createExpense(expense, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 42.0);
 
             // 3. Wait for notifications
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);

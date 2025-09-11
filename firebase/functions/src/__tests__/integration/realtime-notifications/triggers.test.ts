@@ -2,7 +2,7 @@
 // Tests Firebase triggers that manage notification lifecycle
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense } from './shared-setup';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Trigger Integration Tests', () => {
     setupNotificationTest;
@@ -17,9 +17,9 @@ describe('Trigger Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Verify that the user can receive notifications (indicating initialization worked)
-            const expense = createBasicExpense(testGroup.id, 22.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 22.0);
 
             // 3. If initialization trigger worked, this should succeed
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -42,9 +42,9 @@ describe('Trigger Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // 3. Create activity to ensure both users have notification data
-            const expense = createBasicExpense(testGroup.id, 28.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 28.0);
 
             // 4. Verify both users receive notifications
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -54,9 +54,9 @@ describe('Trigger Integration Tests', () => {
             await apiDriver.removeGroupMember(testGroup.id, users[1].uid, users[0].token);
 
             // 6. Verify user1 still works after user2 removal
-            const expense2 = createBasicExpense(testGroup.id, 32.0, 0);
             const beforeSecondExpense = Date.now();
-            await apiDriver.createExpense(expense2, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 32.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 
@@ -78,9 +78,9 @@ describe('Trigger Integration Tests', () => {
             await listener1.waitForNewEvent(testGroup.id, 'group', beforeAddMember);
 
             // 4. Create activity while both users are in group
-            const expense = createBasicExpense(testGroup.id, 26.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 26.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -93,9 +93,9 @@ describe('Trigger Integration Tests', () => {
             await listener1.waitForNewEvent(testGroup.id, 'group', beforeRemoval);
 
             // 7. Verify user2 stops receiving notifications after removal
-            const postRemovalExpense = createBasicExpense(testGroup.id, 35.0, 0);
             const beforePostRemovalExpense = Date.now();
-            await apiDriver.createExpense(postRemovalExpense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 35.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforePostRemovalExpense);
 
@@ -117,17 +117,16 @@ describe('Trigger Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Perform operations that should trigger notifications
-            const expense = createBasicExpense(testGroup.id, 24.0, 0);
             const beforeExpense = Date.now();
-            await apiDriver.createExpense(expense, users[0].token);
+
+            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 24.0);
 
             // 3. Verify triggers executed successfully
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             // 4. Test multiple consecutive operations (stress test triggers)
             for (let i = 0; i < 3; i++) {
-                const consecutiveExpense = createBasicExpense(testGroup.id, 15 + i, 0);
-                await apiDriver.createExpense(consecutiveExpense, users[0].token);
+                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 15 + i);
                 await new Promise((resolve) => setTimeout(resolve, 500));
             }
 
