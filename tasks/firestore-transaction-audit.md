@@ -386,9 +386,40 @@ batchCreateInTransaction(
 - **Phase 3:** ✅ **COMPLETED** (2025-01-10)
 - **Critical Fix:** ✅ **COMPLETED** (2025-09-10) - Fixed Firestore transaction read/write ordering violation
 - **Phase 4:** ✅ **COMPLETED** (2025-01-10) - Fixed createGroup notification atomicity
-- **Phase 5:** Ready to begin - 1 day estimated
+- **Phase 5:** ❌ **NOT STARTED** - 1 day estimated (Confirmed: Issue still exists)
 
 **Remaining Effort:** ~1 day of focused work to complete Phase 5 and finish the entire audit.
+
+### Phase 5 Status Update (January 2025):
+
+**✅ Issue Confirmed Still Active:** After comprehensive code review, Phase 5 atomicity issues remain unresolved:
+
+**Current Non-Atomic Pattern in `change-tracker.ts`:**
+```typescript
+// Lines 57-58 in trackExpenseChanges - TWO SEPARATE OPERATIONS ❌
+await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'transaction');
+await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'balance');
+
+// Lines 82-83 in trackSettlementChanges - TWO SEPARATE OPERATIONS ❌ 
+await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
+await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
+```
+
+**Risk Assessment:**
+- If first call succeeds but second fails → Users get incomplete notification states
+- Race conditions possible between the two separate write operations  
+- Performance impact: Double the required Firestore operations
+
+**Implementation Plan:**
+1. **Add `updateUserNotificationMultipleTypes()`** - Single atomic update for multiple change types
+2. **Add `batchUpdateNotificationsMultipleTypes()`** - Batch version for multiple users/types
+3. **Refactor triggers** - Replace two calls with single atomic call: `batchUpdateNotificationsMultipleTypes(['transaction', 'balance'])`
+4. **Comprehensive testing** - Verify atomic behavior and failure scenarios
+
+**Files Requiring Updates:**
+- `firebase/functions/src/services/notification-service.ts` 
+- `firebase/functions/src/triggers/change-tracker.ts`
+- Test files for new atomic methods
 
 ---
 
