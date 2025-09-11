@@ -1988,6 +1988,12 @@ export class FirestoreWriter implements IFirestoreWriter {
             try {
                 const batch = this.db.batch();
 
+                // Update group timestamp to trigger group change notifications for remaining members
+                const groupRef = this.db.doc(`${FirestoreCollections.GROUPS}/${groupId}`);
+                batch.update(groupRef, {
+                    updatedAt: FieldValue.serverTimestamp(),
+                });
+
                 // Delete membership document
                 const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
                 batch.delete(membershipRef);
@@ -2003,26 +2009,32 @@ export class FirestoreWriter implements IFirestoreWriter {
 
                 await batch.commit();
 
-                logger.info('Member and notification tracking deleted atomically', {
+                logger.info('Group, member, and notification updated atomically', {
                     userId,
                     groupId,
                     membershipDocId,
                 });
 
                 return {
-                    successCount: 2, // membership deletion + notification removal
+                    successCount: 3, // group update + membership deletion + notification removal
                     failureCount: 0,
                     results: [
+                        { id: `group-${groupId}`, success: true, timestamp: new Date() as any },
                         { id: membershipDocId, success: true, timestamp: new Date() as any },
                         { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() as any },
                     ],
                 };
             } catch (error) {
-                logger.error('Atomic member and notification deletion failed', error);
+                logger.error('Atomic group, member, and notification update failed', error);
                 return {
                     successCount: 0,
-                    failureCount: 2,
+                    failureCount: 3,
                     results: [
+                        {
+                            id: `group-${groupId}`,
+                            success: false,
+                            error: error instanceof Error ? error.message : 'Unknown error',
+                        },
                         {
                             id: membershipDocId,
                             success: false,

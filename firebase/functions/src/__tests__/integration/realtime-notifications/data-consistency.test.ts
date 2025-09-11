@@ -26,15 +26,15 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
 
             // 3. Delete the group
             console.log('Deleting group...');
+            const beforeDeletion = Date.now();
             await apiDriver.deleteGroup(testGroup.id, users[0].token);
 
-            // 4. Group deletion should clean up the notification document
-            // Give time for deletion processing to complete
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // 4. Wait for group_removed event (the correct event type for group deletion)
+            // Group deletion triggers user notification cleanup which generates group_removed events
+            await listener.waitForNewEvent(testGroup.id, 'group_removed', beforeDeletion, 3000);
 
-            // 5. Verify deletion completed successfully (this is more of a smoke test)
-            // Since group deletion cleans up notifications, the user should have no groups
-            console.log('✅ Group deletion completed successfully');
+            // 5. Verify deletion completed successfully
+            console.log('✅ Group deletion detected in notifications via group_removed event');
         });
     }); // End Group Lifecycle Edge Cases
 
