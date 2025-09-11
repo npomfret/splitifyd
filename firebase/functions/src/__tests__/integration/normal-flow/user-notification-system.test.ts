@@ -1,7 +1,7 @@
-import {beforeEach, describe, expect, it} from 'vitest';
-import {CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, AppDriver, ApiDriver, borrowTestUsers, generateShortId} from '@splitifyd/test-support';
-import {getFirestore} from "../../../firebase";
-import {UserToken} from "@splitifyd/shared";
+import { beforeEach, describe, expect, it } from 'vitest';
+import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, AppDriver, ApiDriver, borrowTestUsers, generateShortId } from '@splitifyd/test-support';
+import { getFirestore } from '../../../firebase';
+import { UserToken } from '@splitifyd/shared';
 
 describe('User Notification System Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -33,24 +33,20 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
             // Get initial change count using polling to ensure document is fully updated
-            const initialDoc = await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
-                group.id,
-                (doc) => doc.groups[group.id]?.groupDetailsChangeCount > 0,
-                { timeout: 3000, errorMsg: 'Failed to get initial group change count' }
-            );
+            const initialDoc = await appDriver.waitForNotificationWithMatcher(users[0].uid, group.id, (doc) => doc.groups[group.id]?.groupDetailsChangeCount > 0, {
+                timeout: 3000,
+                errorMsg: 'Failed to get initial group change count',
+            });
             const initialCount = initialDoc.groups[group.id].groupDetailsChangeCount;
 
             // Update the group (only send name, avoid currency field that's not allowed)
             await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, users[0].token);
 
             // Wait for the count to increment using polling
-            const finalDoc = await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
-                group.id,
-                (doc) => doc.groups[group.id]?.groupDetailsChangeCount >= initialCount + 1,
-                { timeout: 5000, errorMsg: 'Failed to detect group update notification' }
-            );
+            const finalDoc = await appDriver.waitForNotificationWithMatcher(users[0].uid, group.id, (doc) => doc.groups[group.id]?.groupDetailsChangeCount >= initialCount + 1, {
+                timeout: 5000,
+                errorMsg: 'Failed to detect group update notification',
+            });
 
             // Verify count incremented
             expect(finalDoc.groups[group.id].groupDetailsChangeCount).toBe(initialCount + 1);
@@ -101,14 +97,7 @@ describe('User Notification System Integration Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
-            const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .build(),
-                users[0].token
-            );
+            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(), users[0].token);
 
             // Wait for both transaction and balance notifications
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction');
@@ -127,14 +116,7 @@ describe('User Notification System Integration Tests', () => {
             const group = await apiDriver.createGroupWithMembers(`Multi-user Expense Group ${generateShortId()}`, [users[0], users[1]], users[0].token);
 
             // Create expense with multiple participants
-            await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .build(),
-                users[0].token
-            );
+            await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build(), users[0].token);
 
             // Wait for both users to receive transaction and balance notifications
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction');
@@ -157,14 +139,7 @@ describe('User Notification System Integration Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
-            const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .build(),
-                users[0].token
-            );
+            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(), users[0].token);
 
             // Wait for initial notifications and get counts
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction');
@@ -188,14 +163,7 @@ describe('User Notification System Integration Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
-            const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .build(),
-                users[0].token
-            );
+            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(), users[0].token);
 
             // Wait for initial notifications and get counts
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction');
@@ -221,14 +189,7 @@ describe('User Notification System Integration Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
-            const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .build(),
-                users[0].token
-            );
+            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(group.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(), users[0].token);
 
             // Wait for creation notifications and get counts
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction');
@@ -258,14 +219,7 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[1].uid, group.id, 'group');
 
             // Create settlement
-            await apiDriver.createSettlement(
-                new SettlementBuilder()
-                    .withGroupId(group.id)
-                    .withPayer(users[0].uid)
-                    .withPayee(users[1].uid)
-                    .build(),
-                users[0].token
-            );
+            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(group.id).withPayer(users[0].uid).withPayee(users[1].uid).build(), users[0].token);
 
             // Wait for settlement and balance notifications for both users
             await appDriver.waitForMultiUserTransactionAndBalanceNotifications(group.id, [users[0].uid, users[1].uid]);
@@ -300,21 +254,14 @@ describe('User Notification System Integration Tests', () => {
                     .withAmount(100)
                     .withSplits([
                         { userId: users[0].uid, amount: 50 },
-                        { userId: users[1].uid, amount: 50 }
+                        { userId: users[1].uid, amount: 50 },
                     ])
                     .build(),
-                users[0].token
+                users[0].token,
             );
 
             // Create settlement
-            await apiDriver.createSettlement(
-                new SettlementBuilder()
-                    .withGroupId(group.id)
-                    .withPayer(users[1].uid)
-                    .withPayee(users[0].uid)
-                    .build(),
-                users[1].token
-            );
+            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(group.id).withPayer(users[1].uid).withPayee(users[0].uid).build(), users[1].token);
 
             // Wait for all notifications to be processed in parallel across all users and change types
             await appDriver.waitForMultiUserAllNotifications(group.id, [users[0].uid, users[1].uid]);

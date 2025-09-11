@@ -88,7 +88,7 @@ describe('SettlementChangeDocumentBuilder', () => {
             const additionalData = {
                 groupId: 'group456',
                 changeUserId: 'user789',
-                previousAmount: 50.00,
+                previousAmount: 50.0,
                 paymentMethod: 'bank_transfer',
             };
 
@@ -104,7 +104,7 @@ describe('SettlementChangeDocumentBuilder', () => {
                 },
                 groupId: 'group456',
                 changeUserId: 'user789',
-                previousAmount: 50.00,
+                previousAmount: 50.0,
                 paymentMethod: 'bank_transfer',
             });
         });

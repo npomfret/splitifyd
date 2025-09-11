@@ -54,4 +54,3 @@ export const createComment = async (req: AuthenticatedRequest, res: Response): P
         throw error;
     }
 };
-

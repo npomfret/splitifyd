@@ -15,12 +15,8 @@ export function LoginPage() {
     const authStore = useAuthRequired();
 
     // Component state with sessionStorage persistence
-    const [email, setEmail] = useState(() => 
-        sessionStorage.getItem('login-email') || ''
-    );
-    const [password, setPassword] = useState(() => 
-        sessionStorage.getItem('login-password') || ''
-    );
+    const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
+    const [password, setPassword] = useState(() => sessionStorage.getItem('login-password') || '');
 
     // Persist to sessionStorage on changes
     useEffect(() => {
@@ -85,11 +81,7 @@ export function LoginPage() {
                         <span class="ml-2 block text-sm text-gray-700">{t('loginPage.rememberMe')}</span>
                     </label>
 
-                    <button
-                        type="button"
-                        onClick={() => navigationService.goToResetPassword()}
-                        class="text-sm text-blue-600 hover:text-blue-500 transition-colors"
-                    >
+                    <button type="button" onClick={() => navigationService.goToResetPassword()} class="text-sm text-blue-600 hover:text-blue-500 transition-colors">
                         {t('loginPage.forgotPassword')}
                     </button>
                 </div>
@@ -98,20 +90,12 @@ export function LoginPage() {
                     {t('loginPage.submitButton')}
                 </SubmitButton>
 
-                <DefaultLoginButton
-                    onFillForm={handleFillForm}
-                    onSubmit={() => handleSubmit(new Event('submit'))}
-                    disabled={isSubmitting}
-                />
+                <DefaultLoginButton onFillForm={handleFillForm} onSubmit={() => handleSubmit(new Event('submit'))} disabled={isSubmitting} />
 
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
                         {t('loginPage.noAccount')}{' '}
-                        <button
-                            type="button"
-                            onClick={() => navigationService.goToRegister()}
-                            class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
-                        >
+                        <button type="button" onClick={() => navigationService.goToRegister()} class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
                             {t('loginPage.signUp')}
                         </button>
                     </p>

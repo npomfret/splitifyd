@@ -88,7 +88,7 @@ describe('ExpenseChangeDocumentBuilder', () => {
             const additionalData = {
                 groupId: 'group456',
                 changeUserId: 'user789',
-                previousAmount: 25.50,
+                previousAmount: 25.5,
                 customField: 'customValue',
             };
 
@@ -104,7 +104,7 @@ describe('ExpenseChangeDocumentBuilder', () => {
                 },
                 groupId: 'group456',
                 changeUserId: 'user789',
-                previousAmount: 25.50,
+                previousAmount: 25.5,
                 customField: 'customValue',
             });
         });

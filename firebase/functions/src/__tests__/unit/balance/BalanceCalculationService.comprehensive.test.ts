@@ -4,11 +4,11 @@ import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import type { BalanceCalculationInput } from '../../../services/balance/types';
 import { Timestamp } from 'firebase-admin/firestore';
 
-// Mock service registration  
+// Mock service registration
 const mockGetUsers = vi.fn();
 
 const createMockUserService = () => ({
-    getUsers: mockGetUsers
+    getUsers: mockGetUsers,
 });
 
 describe('BalanceCalculationService', () => {
@@ -32,8 +32,8 @@ describe('BalanceCalculationService', () => {
 
             // Mock complete expense data
             const mockExpenses = [
-                { 
-                    id: 'expense-1', 
+                {
+                    id: 'expense-1',
                     groupId,
                     description: 'Dinner',
                     amount: 100,
@@ -43,27 +43,27 @@ describe('BalanceCalculationService', () => {
                     participants: [userId1, userId2],
                     splits: [
                         { userId: userId1, amount: 50 },
-                        { userId: userId2, amount: 50 }
+                        { userId: userId2, amount: 50 },
                     ],
                     date: Timestamp.now(),
                     category: 'Food',
                     createdAt: Timestamp.now(),
-                    deletedAt: null 
-                }
+                    deletedAt: null,
+                },
             ];
 
             const mockSettlements: any[] = [];
-            const mockGroup = { 
-                id: groupId, 
-                name: 'Test Group'
+            const mockGroup = {
+                id: groupId,
+                name: 'Test Group',
             };
             const mockMemberDocs = [
                 { userId: userId1, memberRole: 'admin', memberStatus: 'active', joinedAt: new Date().toISOString() },
-                { userId: userId2, memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() }
+                { userId: userId2, memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() },
             ];
             const mockUserProfiles = [
                 { uid: userId1, displayName: 'User 1' },
-                { uid: userId2, displayName: 'User 2' }
+                { uid: userId2, displayName: 'User 2' },
             ];
 
             // Setup mocks
@@ -94,20 +94,42 @@ describe('BalanceCalculationService', () => {
             const userId2 = 'user-2';
 
             const mockExpenses = [
-                { 
-                    id: 'expense-1', 
-                    groupId, description: 'USD Expense', amount: 100, currency: 'USD',
-                    paidBy: userId1, splitType: 'equal', participants: [userId1, userId2],
-                    splits: [{ userId: userId1, amount: 50 }, { userId: userId2, amount: 50 }],
-                    date: Timestamp.now(), category: 'Food', createdAt: Timestamp.now(), deletedAt: null 
+                {
+                    id: 'expense-1',
+                    groupId,
+                    description: 'USD Expense',
+                    amount: 100,
+                    currency: 'USD',
+                    paidBy: userId1,
+                    splitType: 'equal',
+                    participants: [userId1, userId2],
+                    splits: [
+                        { userId: userId1, amount: 50 },
+                        { userId: userId2, amount: 50 },
+                    ],
+                    date: Timestamp.now(),
+                    category: 'Food',
+                    createdAt: Timestamp.now(),
+                    deletedAt: null,
                 },
-                { 
-                    id: 'expense-2', 
-                    groupId, description: 'EUR Expense', amount: 80, currency: 'EUR',
-                    paidBy: userId2, splitType: 'equal', participants: [userId1, userId2],
-                    splits: [{ userId: userId1, amount: 40 }, { userId: userId2, amount: 40 }],
-                    date: Timestamp.now(), category: 'Food', createdAt: Timestamp.now(), deletedAt: null 
-                }
+                {
+                    id: 'expense-2',
+                    groupId,
+                    description: 'EUR Expense',
+                    amount: 80,
+                    currency: 'EUR',
+                    paidBy: userId2,
+                    splitType: 'equal',
+                    participants: [userId1, userId2],
+                    splits: [
+                        { userId: userId1, amount: 40 },
+                        { userId: userId2, amount: 40 },
+                    ],
+                    date: Timestamp.now(),
+                    category: 'Food',
+                    createdAt: Timestamp.now(),
+                    deletedAt: null,
+                },
             ];
 
             setupMocksForCalculation(groupId, mockExpenses, [], [userId1, userId2]);
@@ -127,12 +149,24 @@ describe('BalanceCalculationService', () => {
             const userId2 = 'user-2';
 
             const mockExpenses = [
-                { 
-                    id: 'expense-1', groupId, description: 'Test', amount: 100, currency: 'USD',
-                    paidBy: userId1, splitType: 'equal', participants: [userId1, userId2],
-                    splits: [{ userId: userId1, amount: 50 }, { userId: userId2, amount: 50 }],
-                    date: Timestamp.now(), category: 'Food', createdAt: Timestamp.now(), deletedAt: null 
-                }
+                {
+                    id: 'expense-1',
+                    groupId,
+                    description: 'Test',
+                    amount: 100,
+                    currency: 'USD',
+                    paidBy: userId1,
+                    splitType: 'equal',
+                    participants: [userId1, userId2],
+                    splits: [
+                        { userId: userId1, amount: 50 },
+                        { userId: userId2, amount: 50 },
+                    ],
+                    date: Timestamp.now(),
+                    category: 'Food',
+                    createdAt: Timestamp.now(),
+                    deletedAt: null,
+                },
             ];
 
             const mockSettlements = [
@@ -145,8 +179,8 @@ describe('BalanceCalculationService', () => {
                     currency: 'USD',
                     date: Timestamp.now(),
                     note: 'Partial payment',
-                    createdAt: Timestamp.now()
-                }
+                    createdAt: Timestamp.now(),
+                },
             ];
 
             setupMocksForCalculation(groupId, mockExpenses, mockSettlements, [userId1, userId2]);
@@ -163,8 +197,7 @@ describe('BalanceCalculationService', () => {
         it('should validate input data with Zod schema', () => {
             const invalidInput = {} as any;
 
-            expect(() => balanceCalculationService.calculateGroupBalancesWithData(invalidInput))
-                .toThrow();
+            expect(() => balanceCalculationService.calculateGroupBalancesWithData(invalidInput)).toThrow();
         });
 
         it('should handle empty data gracefully', () => {
@@ -175,9 +208,9 @@ describe('BalanceCalculationService', () => {
                 groupData: {
                     id: 'test-group',
                     name: 'Test Group',
-                    members: {}
+                    members: {},
                 },
-                memberProfiles: new Map()
+                memberProfiles: new Map(),
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(emptyInput);
@@ -189,7 +222,7 @@ describe('BalanceCalculationService', () => {
         it('should log performance metrics for slow operations', () => {
             // Mock a slow calculation scenario
             const loggerSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-            
+
             // Create input that will trigger performance logging
             const input: BalanceCalculationInput = {
                 groupId: 'test-group',
@@ -202,10 +235,13 @@ describe('BalanceCalculationService', () => {
                     paidBy: 'user-1',
                     splitType: 'equal' as const,
                     participants: ['user-1', 'user-2'],
-                    splits: [{ userId: 'user-1', amount: 50 }, { userId: 'user-2', amount: 50 }],
+                    splits: [
+                        { userId: 'user-1', amount: 50 },
+                        { userId: 'user-2', amount: 50 },
+                    ],
                     date: new Date().toISOString(),
                     category: 'Food',
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
                 })),
                 settlements: [],
                 groupData: {
@@ -213,14 +249,14 @@ describe('BalanceCalculationService', () => {
                     name: 'Test Group',
                     members: {
                         'user-1': { memberRole: 'admin', memberStatus: 'active', joinedAt: new Date().toISOString() },
-                        'user-2': { memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() }
-                    }
+                        'user-2': { memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() },
+                    },
                 },
-                memberProfiles: new Map()
+                memberProfiles: new Map(),
             };
 
             balanceCalculationService.calculateGroupBalancesWithData(input);
-            
+
             loggerSpy.mockRestore();
         });
     });
@@ -236,7 +272,7 @@ describe('BalanceCalculationService', () => {
             const mockGroup = { id: groupId, name: 'Test Group' };
             const mockMemberDocs = [
                 { userId: userId1, memberRole: 'admin', memberStatus: 'active', joinedAt: new Date().toISOString() },
-                { userId: userId2, memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() }
+                { userId: userId2, memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() },
             ];
             const mockUserProfiles = [{ uid: userId1 }, { uid: userId2 }];
 
@@ -258,8 +294,7 @@ describe('BalanceCalculationService', () => {
             mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
-                .rejects.toThrow('Group not found');
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId)).rejects.toThrow('Group not found');
         });
 
         it('should throw error when group has no members', async () => {
@@ -271,8 +306,7 @@ describe('BalanceCalculationService', () => {
             mockFirestoreReader.getAllGroupMembers.mockResolvedValue([]);
             mockGetUsers.mockResolvedValue([]);
 
-            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
-                .rejects.toThrow(`Group ${groupId} has no members for balance calculation`);
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId)).rejects.toThrow(`Group ${groupId} has no members for balance calculation`);
         });
 
         it('should properly filter soft-deleted expenses', async () => {
@@ -281,12 +315,17 @@ describe('BalanceCalculationService', () => {
 
             const mockExpenses = [
                 createMockExpense(userId1, groupId, { deletedAt: null }),
-                createMockExpense(userId1, groupId, { deletedAt: new Date() }) // Should be filtered
+                createMockExpense(userId1, groupId, { deletedAt: new Date() }), // Should be filtered
             ];
 
-            setupMocksForDataFetching(groupId, mockExpenses, [], { id: groupId, name: 'Test' }, 
-                [{ userId: userId1, memberRole: 'admin', memberStatus: 'active', joinedAt: new Date().toISOString() }], 
-                [{ uid: userId1 }]);
+            setupMocksForDataFetching(
+                groupId,
+                mockExpenses,
+                [],
+                { id: groupId, name: 'Test' },
+                [{ userId: userId1, memberRole: 'admin', memberStatus: 'active', joinedAt: new Date().toISOString() }],
+                [{ uid: userId1 }],
+            );
 
             const result = await balanceCalculationService.fetchBalanceCalculationData(groupId);
 
@@ -298,16 +337,18 @@ describe('BalanceCalculationService', () => {
     // Helper functions
     function setupMocksForCalculation(groupId: string, expenses: any[], settlements: any[], userIds: string[]) {
         const mockGroup = { id: groupId, name: 'Test Group' };
-        const mockMemberDocs = userIds.map(id => ({ 
-            userId: id, memberRole: 'member', memberStatus: 'active', joinedAt: new Date().toISOString() 
+        const mockMemberDocs = userIds.map((id) => ({
+            userId: id,
+            memberRole: 'member',
+            memberStatus: 'active',
+            joinedAt: new Date().toISOString(),
         }));
-        const mockUserProfiles = userIds.map(id => ({ uid: id }));
+        const mockUserProfiles = userIds.map((id) => ({ uid: id }));
 
         setupMocksForDataFetching(groupId, expenses, settlements, mockGroup, mockMemberDocs, mockUserProfiles);
     }
 
-    function setupMocksForDataFetching(groupId: string, expenses: any[], settlements: any[], 
-                                     group: any, memberDocs: any[], userProfiles: any[]) {
+    function setupMocksForDataFetching(groupId: string, expenses: any[], settlements: any[], group: any, memberDocs: any[], userProfiles: any[]) {
         mockFirestoreReader.getExpensesForGroup.mockResolvedValue(expenses);
         mockFirestoreReader.getSettlementsForGroup.mockResolvedValue(settlements);
         mockFirestoreReader.getGroup.mockResolvedValue(group);
@@ -330,7 +371,7 @@ describe('BalanceCalculationService', () => {
             category: 'Food',
             createdAt: Timestamp.now(),
             deletedAt: null,
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -344,7 +385,7 @@ describe('BalanceCalculationService', () => {
             currency: 'USD',
             date: Timestamp.now(),
             note: 'Test settlement',
-            createdAt: Timestamp.now()
+            createdAt: Timestamp.now(),
         };
     }
 });

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateExpenseRequestBuilder, TestGroupManager} from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateExpenseRequestBuilder, TestGroupManager } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Custom Categories Feature Tests', () => {
     const apiDriver = new ApiDriver();
@@ -22,7 +22,14 @@ describe('Custom Categories Feature Tests', () => {
             const customCategories = ['Books & Magazines', 'Home Improvement', 'Pet Care', 'Gym Membership', 'Professional Development'];
 
             for (const category of customCategories) {
-                const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withCategory(category).withDescription(`${category} expense ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withCategory(category)
+                    .withDescription(`${category} expense ${uniqueId}`)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .withSplitType('equal')
+                    .build();
 
                 const response = await apiDriver.createExpense(expenseData, users[0].token);
                 expect(response.id).toBeDefined();
@@ -41,7 +48,14 @@ describe('Custom Categories Feature Tests', () => {
             ];
 
             for (const category of previouslyInvalidCategories) {
-                const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withCategory(category).withDescription(`${category} expense ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build();
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withCategory(category)
+                    .withDescription(`${category} expense ${uniqueId}`)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .withSplitType('equal')
+                    .build();
 
                 const response = await apiDriver.createExpense(expenseData, users[0].token);
                 expect(response.id).toBeDefined();
@@ -55,7 +69,14 @@ describe('Custom Categories Feature Tests', () => {
             const uniqueId = uuidv4().slice(0, 8);
             const tooLongCategory = 'A'.repeat(51); // 51 characters
 
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withCategory(tooLongCategory).withDescription(`Long category test ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withCategory(tooLongCategory)
+                .withDescription(`Long category test ${uniqueId}`)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
+                .build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow(/category.*50.*characters|INVALID_CATEGORY/i);
         });
@@ -64,7 +85,14 @@ describe('Custom Categories Feature Tests', () => {
             const uniqueId = uuidv4().slice(0, 8);
             const maxLengthCategory = 'A'.repeat(50); // 50 characters
 
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withCategory(maxLengthCategory).withDescription(`Max length category test ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withCategory(maxLengthCategory)
+                .withDescription(`Max length category test ${uniqueId}`)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
+                .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -76,7 +104,14 @@ describe('Custom Categories Feature Tests', () => {
         test('should allow updating to custom categories', async () => {
             const uniqueId = uuidv4().slice(0, 8);
             // Create expense with predefined category
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withCategory('food').withDescription(`Update category test ${uniqueId}`).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withCategory('food')
+                .withDescription(`Update category test ${uniqueId}`)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
+                .build();
 
             const createResponse = await apiDriver.createExpense(expenseData, users[0].token);
 
@@ -88,5 +123,4 @@ describe('Custom Categories Feature Tests', () => {
             expect(updatedExpense.category).toBe(customCategory);
         });
     });
-
 });

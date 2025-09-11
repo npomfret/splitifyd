@@ -6,11 +6,11 @@ import { z } from 'zod';
 
 /**
  * Standard Firestore Timestamp schema
- * 
+ *
  * Note: This uses z.any() for compatibility during the transition to eliminate
  * conditional type logic. The actual validation happens in sanitizeGroupData()
  * which asserts that fields are Timestamps before allowing them through.
- * 
+ *
  * Data contract: Firestore documents return Timestamp objects from doc.data(),
  * FirestoreReader asserts this and converts to ISO strings at the boundary.
  */
@@ -50,7 +50,10 @@ export const DocumentIdSchema = z.object({
 /**
  * Currency code validation (ISO 4217)
  */
-export const CurrencyCodeSchema = z.string().length(3).regex(/^[A-Z]{3}$/, 'Must be a valid 3-letter currency code');
+export const CurrencyCodeSchema = z
+    .string()
+    .length(3)
+    .regex(/^[A-Z]{3}$/, 'Must be a valid 3-letter currency code');
 
 /**
  * User ID validation
@@ -58,20 +61,20 @@ export const CurrencyCodeSchema = z.string().length(3).regex(/^[A-Z]{3}$/, 'Must
 export const UserIdSchema = z.string().min(1).describe('Firebase Auth UID');
 
 /**
- * Group ID validation  
+ * Group ID validation
  */
 export const GroupIdSchema = z.string().min(1).describe('Firestore Group document ID');
 
 /**
  * Helper to create Document + Data schema pairs consistently
- * 
+ *
  * @param baseSchema - The base schema without the id field
  * @returns Object with DocumentSchema (includes id) and DataSchema (excludes id)
  */
 export function createDocumentSchemas<T extends z.ZodRawShape>(baseSchema: z.ZodObject<T>) {
     const DocumentSchema = baseSchema.merge(DocumentIdSchema).passthrough();
     const DataSchema = baseSchema.passthrough();
-    
+
     return {
         DocumentSchema,
         DataSchema,
@@ -84,7 +87,7 @@ export function createDocumentSchemas<T extends z.ZodRawShape>(baseSchema: z.Zod
 export const SCHEMA_CONFIG = {
     // Use passthrough() for forward compatibility unless strict validation is required
     defaultMode: 'passthrough' as const,
-    
+
     // Standard validation modes
     strict: () => ({ strict: true as const }),
     passthrough: () => ({ passthrough: true as const }),

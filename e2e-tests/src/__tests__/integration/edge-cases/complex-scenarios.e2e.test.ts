@@ -1,18 +1,18 @@
-import {expect, simpleTest as test} from '../../../fixtures/simple-test.fixture';
+import { expect, simpleTest as test } from '../../../fixtures/simple-test.fixture';
 
-import {GroupDetailPage, JoinGroupPage} from '../../../pages';
-import {GroupWorkflow} from '../../../workflows';
-import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
+import { GroupWorkflow } from '../../../workflows';
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
 test.describe('Complex Unsettled Group Scenario', () => {
     test('create group with multiple people and expenses that is NOT settled', async ({ newLoggedInBrowser }) => {
         // Create first user
         const { page: alicePage, dashboardPage, user: alice } = await newLoggedInBrowser();
-        
+
         // Create second user
         const { page: bobPage, dashboardPage: bobDashboardPage, user: bob } = await newLoggedInBrowser();
-        
+
         // Get display names
         const aliceDisplayName = await dashboardPage.getCurrentUserDisplayName();
         const bobDisplayName = await bobDashboardPage.getCurrentUserDisplayName();
@@ -42,13 +42,9 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Alice adds beach house expense ($800)
         const memberCount = 2; // Alice and Bob
         const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
-        await aliceExpenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Beach House Rental')
-            .withAmount(800.0)
-            .withPaidByDisplayName(aliceDisplayName)
-            .withCurrency('USD')
-            .withSplitType('equal')
-            .build());
+        await aliceExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Beach House Rental').withAmount(800.0).withPaidByDisplayName(aliceDisplayName).withCurrency('USD').withSplitType('equal').build(),
+        );
 
         // Wait for Alice's expense to be fully processed and synced
         await aliceGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -56,13 +52,9 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Bob adds restaurant expense ($120)
         const bobGroupDetailPage = new GroupDetailPage(bobPage);
         const bobExpenseFormPage = await bobGroupDetailPage.clickAddExpenseButton(memberCount);
-        await bobExpenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Restaurant Dinner')
-            .withAmount(120.0)
-            .withPaidByDisplayName(bobDisplayName)
-            .withCurrency('USD')
-            .withSplitType('equal')
-            .build());
+        await bobExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Restaurant Dinner').withAmount(120.0).withPaidByDisplayName(bobDisplayName).withCurrency('USD').withSplitType('equal').build(),
+        );
 
         // Wait for Bob's expense to be fully processed and synced
         await aliceGroupDetailPage.waitForBalancesToLoad(groupId);

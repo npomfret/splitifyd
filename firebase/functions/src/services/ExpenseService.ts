@@ -1,21 +1,21 @@
-import {DocumentReference} from 'firebase-admin/firestore';
-import {z} from 'zod';
-import {ApiError, Errors} from '../utils/errors';
-import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
-import {logger, LoggerContext} from '../logger';
-import type {Group, GroupPermissions} from '@splitifyd/shared';
-import {CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest} from '@splitifyd/shared';
-import {calculateSplits, Expense} from '../expenses/validation';
-import {getMemberDocFromArray} from '../utils/memberHelpers';
-import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {ExpenseDocumentSchema, ExpenseSplitSchema} from '../schemas/expense';
+import { DocumentReference } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { ApiError, Errors } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { createOptimisticTimestamp, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { logger, LoggerContext } from '../logger';
+import type { Group, GroupPermissions } from '@splitifyd/shared';
+import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitTypes, UpdateExpenseRequest } from '@splitifyd/shared';
+import { calculateSplits, Expense } from '../expenses/validation';
+import { getMemberDocFromArray } from '../utils/memberHelpers';
+import { PermissionEngineAsync } from '../permissions/permission-engine-async';
+import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas/expense';
 import { measureDb } from '../monitoring/measure';
-import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
-import type {GroupDocument} from '../schemas';
-import {GroupMemberService} from "./GroupMemberService";
-import {UserService} from "./UserService2";
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { GroupDocument } from '../schemas';
+import { GroupMemberService } from './GroupMemberService';
+import { UserService } from './UserService2';
 
 export { ExpenseDocumentSchema, ExpenseSplitSchema };
 
@@ -26,11 +26,10 @@ export { ExpenseDocumentSchema, ExpenseSplitSchema };
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
 function toGroup(groupDoc: GroupDocument): Group {
-
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,
-        permissions: groupDoc.permissions as GroupPermissions
+        permissions: groupDoc.permissions as GroupPermissions,
     };
 }
 
@@ -48,7 +47,7 @@ export class ExpenseService {
     private async fetchExpense(expenseId: string): Promise<Expense> {
         // Use FirestoreReader for read operation
         const expenseData = await this.firestoreReader.getExpense(expenseId);
-        
+
         if (!expenseData) {
             throw Errors.NOT_FOUND('Expense');
         }
@@ -133,7 +132,6 @@ export class ExpenseService {
 
         return this.transformExpenseToResponse(expense);
     }
-
 
     /**
      * Create a new expense
@@ -222,12 +220,12 @@ export class ExpenseService {
             expenseId: expenseId.slice(-8),
             groupId: expenseData.groupId.slice(-8),
             paidBy: expenseData.paidBy.slice(-8),
-            participants: expenseData.participants.map(p => p.slice(-8)),
+            participants: expenseData.participants.map((p) => p.slice(-8)),
             participantCount: expenseData.participants.length,
-            description: expenseData.description
+            description: expenseData.description,
         });
 
-        // Use transaction to create expense atomically  
+        // Use transaction to create expense atomically
         let createdExpenseRef: DocumentReference | undefined;
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // Re-verify group exists within transaction
@@ -247,7 +245,7 @@ export class ExpenseService {
                 transaction,
                 FirestoreCollections.EXPENSES,
                 expenseId, // Use the specific ID we generated
-                expense
+                expense,
             );
         });
 
@@ -366,9 +364,7 @@ export class ExpenseService {
 
                 // Create history entry
                 // Filter out undefined values for Firestore compatibility
-                const cleanExpenseData = Object.fromEntries(
-                    Object.entries(expense).filter(([, value]) => value !== undefined)
-                );
+                const cleanExpenseData = Object.fromEntries(Object.entries(expense).filter(([, value]) => value !== undefined));
 
                 const historyEntry = {
                     ...cleanExpenseData,
@@ -380,17 +376,8 @@ export class ExpenseService {
 
                 // Save history and update expense
                 const historyRef = expenseDocInTx.ref.collection('history').doc();
-                this.firestoreWriter.createInTransaction(
-                    transaction,
-                    `${FirestoreCollections.EXPENSES}/${expenseId}/history`,
-                    historyRef.id,
-                    historyEntry
-                );
-                this.firestoreWriter.updateInTransaction(
-                    transaction,
-                    expenseDocInTx.ref.path,
-                    updates
-                );
+                this.firestoreWriter.createInTransaction(transaction, `${FirestoreCollections.EXPENSES}/${expenseId}/history`, historyRef.id, historyEntry);
+                this.firestoreWriter.updateInTransaction(transaction, expenseDocInTx.ref.path, updates);
             },
             {
                 maxAttempts: 3,
@@ -398,9 +385,9 @@ export class ExpenseService {
                     operation: 'updateExpense',
                     userId,
                     groupId: expense.groupId,
-                    expenseId: expenseId
-                }
-            }
+                    expenseId: expenseId,
+                },
+            },
         );
 
         // Set business context for logging
@@ -459,9 +446,9 @@ export class ExpenseService {
 
         // Use the centralized FirestoreReader method
         const result = await this.firestoreReader.getExpensesForGroupPaginated(groupId, options);
-        
+
         // Transform the validated expense documents to response format
-        const expenses = result.expenses.map(validatedExpense => ({
+        const expenses = result.expenses.map((validatedExpense) => ({
             id: validatedExpense.id,
             ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
         }));
@@ -532,15 +519,11 @@ export class ExpenseService {
                     }
 
                     // Step 3: Now do ALL writes - soft delete the expense
-                    this.firestoreWriter.updateInTransaction(
-                        transaction,
-                        expenseDoc.ref.path,
-                        {
-                            [DELETED_AT_FIELD]: createOptimisticTimestamp(),
-                            deletedBy: userId,
-                            updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
-                        }
-                    );
+                    this.firestoreWriter.updateInTransaction(transaction, expenseDoc.ref.path, {
+                        [DELETED_AT_FIELD]: createOptimisticTimestamp(),
+                        deletedBy: userId,
+                        updatedAt: createOptimisticTimestamp(), // Update the timestamp for optimistic locking
+                    });
 
                     // Note: Group metadata/balance updates will be handled by the balance aggregation trigger
                 },
@@ -550,9 +533,9 @@ export class ExpenseService {
                         operation: 'deleteExpense',
                         userId,
                         groupId: expense.groupId,
-                        expenseId
-                    }
-                }
+                        expenseId,
+                    },
+                },
             );
 
             LoggerContext.setBusinessContext({ expenseId });
@@ -584,9 +567,9 @@ export class ExpenseService {
     }> {
         // Use the centralized FirestoreReader method
         const result = await this.firestoreReader.getUserExpenses(userId, options);
-        
+
         // Transform the validated expense documents to response format
-        const expenses = result.expenses.map(validatedExpense => ({
+        const expenses = result.expenses.map((validatedExpense) => ({
             id: validatedExpense.id,
             ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
         }));
@@ -614,7 +597,10 @@ export class ExpenseService {
      * Get consolidated expense details (expense + group + members)
      * Eliminates race conditions by providing all needed data in one request
      */
-    async getExpenseFullDetails(expenseId: string, userId: string): Promise<{
+    async getExpenseFullDetails(
+        expenseId: string,
+        userId: string,
+    ): Promise<{
         expense: any;
         group: any;
         members: any;

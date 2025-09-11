@@ -1,26 +1,26 @@
-import {randomBytes} from 'crypto';
-import {z} from 'zod';
-import {FieldValue} from 'firebase-admin/firestore';
-import {ApiError} from '../utils/errors';
-import {logger, LoggerContext} from '../logger';
-import {HTTP_STATUS} from '../constants';
-import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
-import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
-import {measureDb} from '../monitoring/measure';
-import {ShareLinkDataSchema} from '../schemas/sharelink';
-import type {UserNotificationGroup} from '../schemas/user-notifications';
-import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
-import type {GroupMemberService} from './GroupMemberService';
+import { randomBytes } from 'crypto';
+import { z } from 'zod';
+import { FieldValue } from 'firebase-admin/firestore';
+import { ApiError } from '../utils/errors';
+import { logger, LoggerContext } from '../logger';
+import { HTTP_STATUS } from '../constants';
+import { COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { measureDb } from '../monitoring/measure';
+import { ShareLinkDataSchema } from '../schemas/sharelink';
+import type { UserNotificationGroup } from '../schemas/user-notifications';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { GroupMemberService } from './GroupMemberService';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 export class GroupShareService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly groupMemberService: GroupMemberService
+        private readonly groupMemberService: GroupMemberService,
     ) {}
-    
+
     private generateShareToken(): string {
         const bytes = randomBytes(12);
         const base64url = bytes.toString('base64url');
@@ -45,7 +45,7 @@ export class GroupShareService {
 
     private async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ShareLink }> {
         const result = await this.firestoreReader.findShareLinkByToken(token);
-        
+
         if (!result) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'INVALID_LINK', 'Invalid or expired share link');
         }
@@ -63,15 +63,20 @@ export class GroupShareService {
         return { groupId: result.groupId, shareLink };
     }
 
-
-    async generateShareableLink(userId: string, groupId: string): Promise<{
+    async generateShareableLink(
+        userId: string,
+        groupId: string,
+    ): Promise<{
         shareablePath: string;
         linkId: string;
     }> {
         return measureDb('GroupShareService.generateShareableLink', async () => this._generateShareableLink(userId, groupId));
     }
 
-    private async _generateShareableLink(userId: string, groupId: string): Promise<{
+    private async _generateShareableLink(
+        userId: string,
+        groupId: string,
+    ): Promise<{
         shareablePath: string;
         linkId: string;
     }> {
@@ -128,7 +133,10 @@ export class GroupShareService {
         };
     }
 
-    async previewGroupByLink(userId: string, linkId: string): Promise<{
+    async previewGroupByLink(
+        userId: string,
+        linkId: string,
+    ): Promise<{
         groupId: string;
         groupName: string;
         groupDescription: string;
@@ -146,7 +154,7 @@ export class GroupShareService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
         const isAlreadyMember = await this.groupMemberService.isGroupMemberAsync(group.id, userId);
-        
+
         // Get member count from subcollection
         const memberDocs = await this.groupMemberService.getAllGroupMembers(group.id);
 
@@ -159,7 +167,11 @@ export class GroupShareService {
         };
     }
 
-    async joinGroupByLink(userId: string, userEmail: string, linkId: string): Promise<{
+    async joinGroupByLink(
+        userId: string,
+        userEmail: string,
+        linkId: string,
+    ): Promise<{
         groupId: string;
         groupName: string;
         message: string;
@@ -168,7 +180,11 @@ export class GroupShareService {
         return measureDb('GroupShareService.joinGroupByLink', async () => this._joinGroupByLink(userId, userEmail, linkId));
     }
 
-    private async _joinGroupByLink(userId: string, userEmail: string, linkId: string): Promise<{
+    private async _joinGroupByLink(
+        userId: string,
+        userEmail: string,
+        linkId: string,
+    ): Promise<{
         groupId: string;
         groupName: string;
         message: string;
@@ -179,10 +195,10 @@ export class GroupShareService {
         }
 
         const userName = userEmail.split('@')[0];
-        
+
         // Performance optimization: Find shareLink outside transaction
         const { groupId, shareLink } = await this.findShareLinkByToken(linkId);
-        
+
         // Pre-validate group exists outside transaction to fail fast
         const preCheckGroup = await this.firestoreReader.getGroup(groupId);
         if (!preCheckGroup) {
@@ -202,7 +218,7 @@ export class GroupShareService {
         const joinedAt = new Date().toISOString();
         const existingMembers = await this.groupMemberService.getAllGroupMembers(groupId);
         const memberIndex = existingMembers.length;
-        
+
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: groupId,
@@ -212,7 +228,7 @@ export class GroupShareService {
             memberStatus: MemberStatuses.ACTIVE,
             invitedBy: shareLink.createdBy,
         };
-        
+
         const serverTimestamp = createTrueServerTimestamp();
         const memberDocWithTimestamps = {
             ...memberDoc,
@@ -232,26 +248,21 @@ export class GroupShareService {
                 // Update group timestamp to reflect membership change
                 const groupDocumentPath = `${FirestoreCollections.GROUPS}/${groupId}`;
                 this.firestoreWriter.updateInTransaction(transaction, groupDocumentPath, {
-                    updatedAt: createTrueServerTimestamp()
+                    updatedAt: createTrueServerTimestamp(),
                 });
 
                 // Write to top-level collection for improved querying
                 const now = new Date();
                 const topLevelMemberDoc = createTopLevelMembershipDocument(
                     memberDoc,
-                    timestampToISO(now) // Use current timestamp since group was just updated
+                    timestampToISO(now), // Use current timestamp since group was just updated
                 );
-                
-                this.firestoreWriter.createInTransaction(
-                    transaction,
-                    FirestoreCollections.GROUP_MEMBERSHIPS,
-                    getTopLevelMembershipDocId(userId, groupId),
-                    {
-                        ...topLevelMemberDoc,
-                        createdAt: serverTimestamp,
-                        updatedAt: serverTimestamp,
-                    }
-                );
+
+                this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
+                    ...topLevelMemberDoc,
+                    createdAt: serverTimestamp,
+                    updatedAt: serverTimestamp,
+                });
 
                 const groupNotificationData: UserNotificationGroup = {
                     lastTransactionChange: null,
@@ -259,15 +270,10 @@ export class GroupShareService {
                     lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is joining the group
                     transactionChangeCount: 0,
                     balanceChangeCount: 0,
-                    groupDetailsChangeCount: 1 // Set to 1 because the user is joining the group
+                    groupDetailsChangeCount: 1, // Set to 1 because the user is joining the group
                 };
 
-                this.firestoreWriter.setUserNotificationGroupInTransaction(
-                    transaction,
-                    userId,
-                    groupId,
-                    groupNotificationData
-                );
+                this.firestoreWriter.setUserNotificationGroupInTransaction(transaction, userId, groupId, groupNotificationData);
 
                 return {
                     groupName: preCheckGroup.name,
@@ -282,8 +288,8 @@ export class GroupShareService {
                     userId,
                     groupId,
                     linkId: linkId.substring(0, 4) + '...',
-                }
-            }
+                },
+            },
         );
 
         logger.info('User joined group via share link', {

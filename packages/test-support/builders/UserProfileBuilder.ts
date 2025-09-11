@@ -1,11 +1,4 @@
-import { 
-    randomString, 
-    randomBoolean, 
-    randomChoice, 
-    randomEmail, 
-    randomUrl, 
-    generateShortId 
-} from '../test-helpers';
+import { randomString, randomBoolean, randomChoice, randomEmail, randomUrl, generateShortId } from '../test-helpers';
 
 // Import UserProfile from the functions package - this is the source of truth
 type UserProfile = {

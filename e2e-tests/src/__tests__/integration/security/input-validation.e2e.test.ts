@@ -52,7 +52,7 @@ simpleTest.describe('Input Validation Security', () => {
             const isModalOpen = await createGroupModalPage.isOpen();
             const isDashboardUrl = page.url().includes('/dashboard');
             const isGroupUrl = page.url().includes('/groups/');
-            
+
             // Either modal should close OR we should navigate to a group page
             if (isModalOpen && !isDashboardUrl && !isGroupUrl) {
                 throw new Error('Group creation not yet completed');
@@ -92,7 +92,7 @@ simpleTest.describe('Input Validation Security', () => {
             if (currentUrl.includes('evil.com') || currentUrl.includes('javascript:')) {
                 throw new Error('Malicious redirect detected - XSS vulnerability!');
             }
-            
+
             // Check that we're in a legitimate state (either still on dashboard or on a group page)
             const isLegitimate = currentUrl.includes('/dashboard') || currentUrl.includes('/groups/');
             if (!isLegitimate) {

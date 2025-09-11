@@ -24,12 +24,12 @@ export class ExpenseMetadataService {
             throw new Error('Group ID is required');
         }
 
-        // Get all expenses for the group, sorted by creation date descending  
+        // Get all expenses for the group, sorted by creation date descending
         const expenses = await this.firestoreReader.getExpensesForGroup(groupId, {
             orderBy: {
                 field: 'createdAt',
-                direction: 'desc'
-            }
+                direction: 'desc',
+            },
         });
 
         const expenseCount = expenses.length;
@@ -56,4 +56,3 @@ export class ExpenseMetadataService {
         };
     }
 }
-

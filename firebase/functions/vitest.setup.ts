@@ -23,8 +23,7 @@ const testUserRegistry = new Map<string, TestUserEntry>();
 };
 
 // Run cleanup before each test (only for integration tests)
-beforeEach(async (context) => {
-});
+beforeEach(async (context) => {});
 
 // Automatically clean up all borrowed test users after each test
 afterEach(async () => {

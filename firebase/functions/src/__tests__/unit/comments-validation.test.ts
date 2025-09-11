@@ -3,8 +3,6 @@ import { ApiError } from '../../utils/errors';
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { CommentRequestBuilder, CommentQueryBuilder } from '@splitifyd/test-support';
 
-
-
 describe('Comments Validation', () => {
     describe('validateCreateComment', () => {
         it('should validate valid group comment request', () => {

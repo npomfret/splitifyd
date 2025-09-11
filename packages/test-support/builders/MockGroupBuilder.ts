@@ -1,10 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { PermissionLevels } from '@splitifyd/shared';
-import { 
-    randomString, 
-    randomChoice, 
-    generateShortId 
-} from '../test-helpers';
+import { randomString, randomChoice, generateShortId } from '../test-helpers';
 
 /**
  * Builder for creating mock group objects for testing
@@ -17,7 +13,7 @@ export class MockGroupBuilder {
         const groupId = `group-${generateShortId()}`;
         const userId1 = `user1-${generateShortId()}`;
         const userId2 = `user2-${generateShortId()}`;
-        
+
         this.group = {
             id: groupId,
             data: {
@@ -25,13 +21,13 @@ export class MockGroupBuilder {
                 createdBy: userId1,
                 description: `${randomChoice(['Fun', 'Cool', 'Awesome', 'Great', 'Nice'])} group for ${randomString(8)}`,
                 members: {
-                    [userId1]: { 
+                    [userId1]: {
                         role: randomChoice(['admin', 'member']),
-                        status: randomChoice(['active', 'pending'])
+                        status: randomChoice(['active', 'pending']),
                     },
-                    [userId2]: { 
+                    [userId2]: {
                         role: randomChoice(['admin', 'member']),
-                        status: randomChoice(['active', 'pending'])
+                        status: randomChoice(['active', 'pending']),
                     },
                 },
                 permissions: {

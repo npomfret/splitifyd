@@ -133,7 +133,12 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
         <div className={`relative ${className}`} ref={containerRef}>
             {label && (
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    {label} {required && <span className="text-red-500" data-testid="required-indicator">*</span>}
+                    {label}{' '}
+                    {required && (
+                        <span className="text-red-500" data-testid="required-indicator">
+                            *
+                        </span>
+                    )}
                 </label>
             )}
 

@@ -20,6 +20,7 @@ We will implement a **Branded Types** pattern. This creates distinct, nominal ty
 
 1.  **Define Branded Types (`packages/shared/src/branded-types.ts`):**
     A new file will be created in the shared package to define the generic `Brand` type and all specific ID types.
+
     ```typescript
     export type Brand<K, T> = K & { __brand: T };
 
@@ -31,8 +32,8 @@ We will implement a **Branded Types** pattern. This creates distinct, nominal ty
 
 2.  **Update Codebase:**
     Gradually refactor function signatures, interfaces, and type definitions throughout the entire codebase to use these new, specific types instead of generic `string`s.
-    *   **Before:** `function getGroup(groupId: string) { ... }`
-    *   **After:** `function getGroup(groupId: GroupId) { ... }`
+    - **Before:** `function getGroup(groupId: string) { ... }`
+    - **After:** `function getGroup(groupId: GroupId) { ... }`
 
 3.  **Handle Type Casting:**
     At the boundaries of the system where raw strings are received (e.g., from API request parameters), explicitly cast the string to the appropriate branded type. This signals a deliberate type assertion.
@@ -63,27 +64,30 @@ We will create a `Money` class to encapsulate all logic and data related to mone
 
     ```typescript
     class Money {
-      private constructor(public readonly amountInCents: number, public readonly currency: string) {}
+        private constructor(
+            public readonly amountInCents: number,
+            public readonly currency: string,
+        ) {}
 
-      static fromDecimal(amount: number, currency: string): Money {
-        const decimalDigits = getCurrencyDecimalDigits(currency); // Fetches from currencies.json
-        const amountInCents = Math.round(amount * (10 ** decimalDigits));
-        return new Money(amountInCents, currency);
-      }
-
-      public toDecimal(): number {
-        const decimalDigits = getCurrencyDecimalDigits(this.currency);
-        return this.amountInCents / (10 ** decimalDigits);
-      }
-
-      public add(other: Money): Money {
-        if (this.currency !== other.currency) {
-          throw new Error('Cannot add money of different currencies.');
+        static fromDecimal(amount: number, currency: string): Money {
+            const decimalDigits = getCurrencyDecimalDigits(currency); // Fetches from currencies.json
+            const amountInCents = Math.round(amount * 10 ** decimalDigits);
+            return new Money(amountInCents, currency);
         }
-        return new Money(this.amountInCents + other.amountInCents, this.currency);
-      }
 
-      // ... methods for safe subtraction, multiplication, and formatting.
+        public toDecimal(): number {
+            const decimalDigits = getCurrencyDecimalDigits(this.currency);
+            return this.amountInCents / 10 ** decimalDigits;
+        }
+
+        public add(other: Money): Money {
+            if (this.currency !== other.currency) {
+                throw new Error('Cannot add money of different currencies.');
+            }
+            return new Money(this.amountInCents + other.amountInCents, this.currency);
+        }
+
+        // ... methods for safe subtraction, multiplication, and formatting.
     }
     ```
 

@@ -12,12 +12,12 @@ simpleTest.describe('Three User Settlement Management', () => {
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
         const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
-        
+
         const groupWorkflow = new GroupWorkflow(user1Page);
 
         // Verify all 3 users are distinct to prevent flaky test failures
@@ -27,9 +27,9 @@ simpleTest.describe('Three User Settlement Management', () => {
         expect(user1.email).not.toBe(user3.email);
         expect(user2.email).not.toBe(user3.email);
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName(); 
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName(); 
-        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName(); 
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
         // Assert all users have different display names
         expect(user1DisplayName).not.toBe(user2DisplayName);
         expect(user1DisplayName).not.toBe(user3DisplayName);

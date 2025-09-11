@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateExpenseRequestBuilder, TestGroupManager} from '@splitifyd/test-support';
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateExpenseRequestBuilder, TestGroupManager } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 describe('Error Handling and Recovery Testing', () => {
     const apiDriver = new ApiDriver();
@@ -62,7 +62,7 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(retrievedExpense.id).toBe(validExpense.id);
 
                 // Test that group data is still accessible
-                const {group: groupData} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const { group: groupData } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 expect(groupData).toHaveProperty('id');
                 expect(groupData.id).toBe(testGroup.id);
             });
@@ -112,7 +112,14 @@ describe('Error Handling and Recovery Testing', () => {
 
                 await expect(
                     apiDriver.createExpense(
-                        new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(oversizedDescription).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
+                        new CreateExpenseRequestBuilder()
+                            .withGroupId(testGroup.id)
+                            .withDescription(oversizedDescription)
+                            .withAmount(100)
+                            .withPaidBy(users[0].uid)
+                            .withParticipants([users[0].uid])
+                            .withSplitType('equal')
+                            .build(),
                         users[0].token,
                     ),
                 ).rejects.toThrow(/400|payload.*large|request.*size|validation|description.*long/i);
@@ -123,7 +130,8 @@ describe('Error Handling and Recovery Testing', () => {
                 const rapidRequests = Array(20)
                     .fill(null)
                     .map((_, index) =>
-                        apiDriver.getGroupFullDetails(testGroup.id, users[0].token)
+                        apiDriver
+                            .getGroupFullDetails(testGroup.id, users[0].token)
                             .then((result) => ({ success: true, index, result }))
                             .catch((error) => ({ success: false, index, error: error.message })),
                     );
@@ -147,12 +155,20 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create an expense
                 const uniqueId = uuidv4().slice(0, 8);
                 const baseExpense = await apiDriver.createExpense(
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Conflict test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription(`Conflict test expense ${uniqueId}`)
+                        .withAmount(100)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid])
+                        .withSplitType('equal')
+                        .build(),
                     users[0].token,
                 );
 
                 // Try to update and delete the same expense simultaneously
-                const updatePromise = apiDriver.updateExpense(
+                const updatePromise = apiDriver
+                    .updateExpense(
                         baseExpense.id,
                         {
                             description: 'Updated by update operation',
@@ -163,7 +179,8 @@ describe('Error Handling and Recovery Testing', () => {
                     .then(() => ({ operation: 'update', success: true }))
                     .catch((error) => ({ operation: 'update', success: false, error: error.message }));
 
-                const deletePromise = apiDriver.deleteExpense(baseExpense.id, users[0].token)
+                const deletePromise = apiDriver
+                    .deleteExpense(baseExpense.id, users[0].token)
                     .then(() => ({ operation: 'delete', success: true }))
                     .catch((error) => ({ operation: 'delete', success: false, error: error.message }));
 
@@ -194,7 +211,7 @@ describe('Error Handling and Recovery Testing', () => {
                 const operations = [
                     await apiDriver.getGroupFullDetails(testGroup.id, users[0].token),
                     await apiDriver.getGroupExpenses(testGroup.id, users[0].token),
-                    await apiDriver.listGroups(users[0].token)
+                    await apiDriver.listGroups(users[0].token),
                 ];
 
                 const results = await Promise.allSettled(operations);
@@ -224,12 +241,19 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create some test data first
                 const uniqueId = uuidv4().slice(0, 8);
                 const exportTestExpense = await apiDriver.createExpense(
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Export test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription(`Export test expense ${uniqueId}`)
+                        .withAmount(100)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid])
+                        .withSplitType('equal')
+                        .build(),
                     users[0].token,
                 );
 
                 // Test getting all user's data (simulate export)
-                const {group: groupData} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const { group: groupData } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 const expenseData = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
                 const groupsList = await apiDriver.listGroups(users[0].token);
 
@@ -264,7 +288,14 @@ describe('Error Handling and Recovery Testing', () => {
                 // Create expense, then simulate orphaned state by checking references
                 const uniqueId = uuidv4().slice(0, 8);
                 const cleanupTestExpense = await apiDriver.createExpense(
-                    new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Cleanup test expense ${uniqueId}`).withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription(`Cleanup test expense ${uniqueId}`)
+                        .withAmount(100)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid])
+                        .withSplitType('equal')
+                        .build(),
                     users[0].token,
                 );
 
@@ -294,7 +325,7 @@ describe('Error Handling and Recovery Testing', () => {
             it('should handle data consistency after failed operations', async () => {
                 // Get initial state
                 const initialExpenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-                const {group: initialGroupData, members: initialMembers} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const { group: initialGroupData, members: initialMembers } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
                 const initialExpenseCount = initialExpenses.expenses.length;
 
                 // Attempt invalid operation that should fail
@@ -316,7 +347,7 @@ describe('Error Handling and Recovery Testing', () => {
 
                 // Verify state is unchanged after failed operation
                 const finalExpenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-                const {group: finalGroupData, members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const { group: finalGroupData, members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
                 expect(finalExpenses.expenses.length).toBe(initialExpenseCount);
 
@@ -355,8 +386,8 @@ describe('Error Handling and Recovery Testing', () => {
                 expect(mainUserView.participants).toEqual(user2View.participants);
 
                 // Verify group state is consistent for both users
-                const {group: mainUserGroupView, members: mainMembers} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
-                const {group: user2GroupView, members: members2} = await apiDriver.getGroupFullDetails(testGroup.id, user2.token);
+                const { group: mainUserGroupView, members: mainMembers } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+                const { group: user2GroupView, members: members2 } = await apiDriver.getGroupFullDetails(testGroup.id, user2.token);
 
                 // Both should see the same group state
                 expect(mainUserGroupView.id).toBe(user2GroupView.id);

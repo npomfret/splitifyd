@@ -1,7 +1,7 @@
 import { logger } from '../logger';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
-import { IFirestoreReader } from "../services/firestore";
+import { IFirestoreReader } from '../services/firestore';
 
 /**
  * todo: move this to teh PolicyService

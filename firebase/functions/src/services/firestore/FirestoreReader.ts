@@ -1,6 +1,6 @@
 /**
  * FirestoreReader Implementation - Simplified Version
- * 
+ *
  * Centralized service for all Firestore read operations with:
  * - Zod schema validation for type safety
  * - Consistent error handling and logging
@@ -26,44 +26,19 @@ import {
     GroupMemberDocumentSchema,
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
-import { 
-    UserNotificationDocumentSchema,
-    type UserNotificationDocument 
-} from '../../schemas/user-notifications';
-import { 
-    ShareLinkDocumentSchema,
-    type ParsedShareLink 
-} from '../../schemas/sharelink';
-import { 
-    CommentDocumentSchema,
-    type ParsedComment 
-} from '../../schemas/comment';
+import { UserNotificationDocumentSchema, type UserNotificationDocument } from '../../schemas/user-notifications';
+import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas/sharelink';
+import { CommentDocumentSchema, type ParsedComment } from '../../schemas/comment';
 
 // Import types
-import type {
-    UserDocument,
-    GroupDocument,  
-    ExpenseDocument,
-    SettlementDocument,
-    PolicyDocument
-} from '../../schemas';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
 import type { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/shared';
 import type { ParsedGroupMemberDocument } from '../../schemas';
 import type { IFirestoreReader } from './IFirestoreReader';
-import type {
-    QueryOptions,
-    GroupMemberQueryOptions,
-    PaginatedResult,
-    GroupsPaginationCursor,
-    OrderBy,
-    BatchGroupFetchOptions
-} from '../../types/firestore-reader-types';
-
+import type { QueryOptions, GroupMemberQueryOptions, PaginatedResult, GroupsPaginationCursor, OrderBy, BatchGroupFetchOptions } from '../../types/firestore-reader-types';
 
 export class FirestoreReader implements IFirestoreReader {
-    constructor(
-        private readonly db: Firestore
-    ) {}
+    constructor(private readonly db: Firestore) {}
 
     /**
      * Get the Firestore collection path for comments on a target entity
@@ -86,18 +61,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getUser(userId: string): Promise<UserDocument | null> {
         try {
-            const userDoc = await this.db
-                .collection(FirestoreCollections.USERS)
-                .doc(userId)
-                .get();
+            const userDoc = await this.db.collection(FirestoreCollections.USERS).doc(userId).get();
 
             if (!userDoc.exists) {
                 return null;
             }
 
-            const userData = UserDocumentSchema.parse({ 
-                id: userDoc.id, 
-                ...userDoc.data() 
+            const userData = UserDocumentSchema.parse({
+                id: userDoc.id,
+                ...userDoc.data(),
             });
 
             return userData;
@@ -109,10 +81,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroup(groupId: string): Promise<GroupDocument | null> {
         try {
-            const groupDoc = await this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .get();
+            const groupDoc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).get();
 
             if (!groupDoc.exists) {
                 return null;
@@ -120,11 +89,11 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Sanitize the data before validation
             const rawData = {
-                id: groupDoc.id, 
-                ...groupDoc.data() 
+                id: groupDoc.id,
+                ...groupDoc.data(),
             };
             const sanitizedData = this.sanitizeGroupData(rawData);
-            
+
             // Now validate with the sanitized data
             const groupData = GroupDocumentSchema.parse(sanitizedData);
 
@@ -137,18 +106,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getExpense(expenseId: string): Promise<ExpenseDocument | null> {
         try {
-            const expenseDoc = await this.db
-                .collection(FirestoreCollections.EXPENSES)
-                .doc(expenseId)
-                .get();
+            const expenseDoc = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).get();
 
             if (!expenseDoc.exists) {
                 return null;
             }
 
             const expenseData = ExpenseDocumentSchema.parse({
-                id: expenseDoc.id, 
-                ...expenseDoc.data() 
+                id: expenseDoc.id,
+                ...expenseDoc.data(),
             });
 
             return expenseData;
@@ -160,18 +126,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getSettlement(settlementId: string): Promise<SettlementDocument | null> {
         try {
-            const settlementDoc = await this.db
-                .collection(FirestoreCollections.SETTLEMENTS)
-                .doc(settlementId)
-                .get();
+            const settlementDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(settlementId).get();
 
             if (!settlementDoc.exists) {
                 return null;
             }
 
             const settlementData = SettlementDocumentSchema.parse({
-                id: settlementDoc.id, 
-                ...settlementDoc.data() 
+                id: settlementDoc.id,
+                ...settlementDoc.data(),
             });
 
             return settlementData;
@@ -183,18 +146,15 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getPolicy(policyId: string): Promise<PolicyDocument | null> {
         try {
-            const policyDoc = await this.db
-                .collection(FirestoreCollections.POLICIES)
-                .doc(policyId)
-                .get();
+            const policyDoc = await this.db.collection(FirestoreCollections.POLICIES).doc(policyId).get();
 
             if (!policyDoc.exists) {
                 return null;
             }
 
             const policyData = PolicyDocumentSchema.parse({
-                id: policyDoc.id, 
-                ...policyDoc.data() 
+                id: policyDoc.id,
+                ...policyDoc.data(),
             });
 
             return policyData;
@@ -206,9 +166,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getAllPolicies(): Promise<PolicyDocument[]> {
         try {
-            const snapshot = await this.db
-                .collection(FirestoreCollections.POLICIES)
-                .get();
+            const snapshot = await this.db.collection(FirestoreCollections.POLICIES).get();
 
             const policies: PolicyDocument[] = [];
 
@@ -216,7 +174,7 @@ export class FirestoreReader implements IFirestoreReader {
                 try {
                     const policyData = PolicyDocumentSchema.parse({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     });
                     policies.push(policyData);
                 } catch (validationError) {
@@ -241,7 +199,7 @@ export class FirestoreReader implements IFirestoreReader {
      */
     private sanitizeGroupData(data: any): any {
         const sanitized = { ...data };
-        
+
         // Sanitize securityPreset field
         if (sanitized.securityPreset !== undefined) {
             const validPresets = Object.values(SecurityPresets);
@@ -251,20 +209,19 @@ export class FirestoreReader implements IFirestoreReader {
                 sanitized.securityPreset = SecurityPresets.OPEN;
             }
         }
-        
+
         // Assert timestamp fields are proper Timestamp objects
         // This enforces our data contract and prevents mixed-type date handling
         sanitized.createdAt = assertTimestamp(sanitized.createdAt, 'createdAt');
         sanitized.updatedAt = assertTimestamp(sanitized.updatedAt, 'updatedAt');
-        
+
         // Optional timestamp fields
         if (sanitized.presetAppliedAt !== undefined && sanitized.presetAppliedAt !== null) {
             sanitized.presetAppliedAt = assertTimestamp(sanitized.presetAppliedAt, 'presetAppliedAt');
         }
-        
+
         return sanitized;
     }
-
 
     // ========================================================================
     // Pagination Utility Methods
@@ -295,14 +252,11 @@ export class FirestoreReader implements IFirestoreReader {
      * @param options - Options for ordering and limiting results
      * @returns Array of group documents, limited and ordered as specified
      */
-    private async getGroupsByIds(
-        groupIds: string[], 
-        options: BatchGroupFetchOptions
-    ): Promise<GroupDocument[]> {
+    private async getGroupsByIds(groupIds: string[], options: BatchGroupFetchOptions): Promise<GroupDocument[]> {
         if (groupIds.length === 0) return [];
-        
+
         const allGroups: GroupDocument[] = [];
-        
+
         // Process in chunks of 10 (Firestore 'in' query limit)
         // BUT apply limit across ALL chunks to avoid fetching unnecessary data
         for (let i = 0; i < groupIds.length; i += 10) {
@@ -310,30 +264,31 @@ export class FirestoreReader implements IFirestoreReader {
             if (allGroups.length >= options.limit) {
                 break;
             }
-            
+
             const chunk = groupIds.slice(i, i + 10);
             const remainingLimit = options.limit - allGroups.length;
-            
-            let query = this.db.collection(FirestoreCollections.GROUPS)
+
+            let query = this.db
+                .collection(FirestoreCollections.GROUPS)
                 .where(FieldPath.documentId(), 'in', chunk)
                 .orderBy(options.orderBy.field, options.orderBy.direction)
                 .limit(Math.min(remainingLimit, chunk.length)); // Apply limit per chunk
-                
+
             const snapshot = await query.get();
-            
+
             for (const doc of snapshot.docs) {
                 try {
                     // Sanitize the data before validation
                     const rawData = {
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     };
                     const sanitizedData = this.sanitizeGroupData(rawData);
-                    
+
                     // Now validate with the sanitized data
                     const groupData = GroupDocumentSchema.parse(sanitizedData);
                     allGroups.push(groupData);
-                    
+
                     // Hard stop if we reach the limit
                     if (allGroups.length >= options.limit) break;
                 } catch (error) {
@@ -342,7 +297,7 @@ export class FirestoreReader implements IFirestoreReader {
                 }
             }
         }
-        
+
         // Final sort since we might have fetched from multiple queries
         // This is much more efficient than sorting ALL groups like the old implementation
         return allGroups.sort((a: GroupDocument, b: GroupDocument) => {
@@ -350,12 +305,10 @@ export class FirestoreReader implements IFirestoreReader {
             const direction = options.orderBy.direction;
             const aValue = a[field];
             const bValue = b[field];
-            
+
             if (aValue === undefined || aValue === null || bValue === undefined || bValue === null) return 0;
-            
-            return direction === 'asc' 
-                ? (aValue > bValue ? 1 : -1)
-                : (aValue < bValue ? 1 : -1);
+
+            return direction === 'asc' ? (aValue > bValue ? 1 : -1) : aValue < bValue ? 1 : -1;
         });
     }
 
@@ -375,10 +328,9 @@ export class FirestoreReader implements IFirestoreReader {
         return users;
     }
 
-
     /**
      * ✅ FIXED: Efficient paginated group retrieval with hybrid strategy
-     * 
+     *
      * This method implements the performance fix from the critical pagination report:
      * - Uses query-level pagination instead of fetch-all-then-paginate
      * - Applies limits at the database query level, not in memory
@@ -387,101 +339,95 @@ export class FirestoreReader implements IFirestoreReader {
      */
     async getGroupsForUser(userId: string, options?: QueryOptions): Promise<PaginatedResult<GroupDocument[]>> {
         return measureDb('USER_GROUPS', async () => {
-                const limit = options?.limit || 10;
-                const effectiveLimit = limit + 1; // +1 to detect "hasMore"
-                
-                // PHASE 1: Get paginated group memberships (NOT all memberships!)
-                let membershipQuery = this.db.collectionGroup('members')
-                    .where('userId', '==', userId)
-                    .orderBy('groupId') // Consistent ordering for cursor reliability
-                    .limit(effectiveLimit * 2); // Buffer for potential deduplication
-                    
-                if (options?.cursor) {
-                    try {
-                        const cursorData = this.decodeCursor(options.cursor);
-                        membershipQuery = membershipQuery.startAfter(cursorData.lastGroupId);
-                    } catch (error) {
-                        logger.warn('Invalid cursor provided, ignoring');
-                    }
+            const limit = options?.limit || 10;
+            const effectiveLimit = limit + 1; // +1 to detect "hasMore"
+
+            // PHASE 1: Get paginated group memberships (NOT all memberships!)
+            let membershipQuery = this.db
+                .collectionGroup('members')
+                .where('userId', '==', userId)
+                .orderBy('groupId') // Consistent ordering for cursor reliability
+                .limit(effectiveLimit * 2); // Buffer for potential deduplication
+
+            if (options?.cursor) {
+                try {
+                    const cursorData = this.decodeCursor(options.cursor);
+                    membershipQuery = membershipQuery.startAfter(cursorData.lastGroupId);
+                } catch (error) {
+                    logger.warn('Invalid cursor provided, ignoring');
                 }
-                
-                const membershipSnapshot = await membershipQuery.get();
-                
-                if (membershipSnapshot.empty) {
-                    return {
-                        data: [],
-                        hasMore: false
-                    };
-                }
-                
-                // Extract group IDs from the paginated membership documents
-                const groupIds = membershipSnapshot.docs
-                    .map(doc => doc.data().groupId)
-                    .filter(Boolean);
-                
-                if (groupIds.length === 0) {
-                    return {
-                        data: [],
-                        hasMore: false
-                    };
-                }
-                
-                // PHASE 2: Get group documents with proper ordering and limits
-                const orderBy: OrderBy = options?.orderBy || { field: 'updatedAt', direction: 'desc' };
-                const groups = await this.getGroupsByIds(groupIds, { limit: limit + 1, orderBy });
-                // Detect if more results exist
-                const hasMore = groups.length > limit;
-                const returnedGroups = hasMore ? groups.slice(0, limit) : groups;
-                
-                // Generate next cursor if there are more results
-                let nextCursor: string | undefined;
-                if (hasMore && membershipSnapshot.docs.length > 0) {
-                    // Use the last membership document's groupId for cursor continuation
-                    // This ensures consistency with the membership query ordering
-                    const lastMembershipDoc = membershipSnapshot.docs[membershipSnapshot.docs.length - 1];
-                    const lastProcessedGroupId = lastMembershipDoc.data().groupId;
-                    
-                    nextCursor = this.encodeCursor({
-                        lastGroupId: lastProcessedGroupId,
-                        lastUpdatedAt: '', // Not used for membership cursor
-                        membershipCursor: lastProcessedGroupId
-                    });
-                }
-                
+            }
+
+            const membershipSnapshot = await membershipQuery.get();
+
+            if (membershipSnapshot.empty) {
                 return {
-                    data: returnedGroups,
-                    hasMore,
-                    nextCursor,
-                    totalEstimate: hasMore ? groupIds.length + 10 : groupIds.length // Rough estimate
+                    data: [],
+                    hasMore: false,
                 };
+            }
+
+            // Extract group IDs from the paginated membership documents
+            const groupIds = membershipSnapshot.docs.map((doc) => doc.data().groupId).filter(Boolean);
+
+            if (groupIds.length === 0) {
+                return {
+                    data: [],
+                    hasMore: false,
+                };
+            }
+
+            // PHASE 2: Get group documents with proper ordering and limits
+            const orderBy: OrderBy = options?.orderBy || { field: 'updatedAt', direction: 'desc' };
+            const groups = await this.getGroupsByIds(groupIds, { limit: limit + 1, orderBy });
+            // Detect if more results exist
+            const hasMore = groups.length > limit;
+            const returnedGroups = hasMore ? groups.slice(0, limit) : groups;
+
+            // Generate next cursor if there are more results
+            let nextCursor: string | undefined;
+            if (hasMore && membershipSnapshot.docs.length > 0) {
+                // Use the last membership document's groupId for cursor continuation
+                // This ensures consistency with the membership query ordering
+                const lastMembershipDoc = membershipSnapshot.docs[membershipSnapshot.docs.length - 1];
+                const lastProcessedGroupId = lastMembershipDoc.data().groupId;
+
+                nextCursor = this.encodeCursor({
+                    lastGroupId: lastProcessedGroupId,
+                    lastUpdatedAt: '', // Not used for membership cursor
+                    membershipCursor: lastProcessedGroupId,
+                });
+            }
+
+            return {
+                data: returnedGroups,
+                hasMore,
+                nextCursor,
+                totalEstimate: hasMore ? groupIds.length + 10 : groupIds.length, // Rough estimate
+            };
         });
     }
 
     /**
      * ✅ NEW: Enhanced group retrieval using top-level group-memberships collection
-     * 
+     *
      * This method fixes the pagination issues by:
      * 1. Querying the top-level group-memberships collection with database-level ordering
      * 2. Using groupUpdatedAt field for proper activity-based sorting
      * 3. Supporting efficient cursor-based pagination
-     * 
+     *
      * @param userId - User ID to fetch groups for
      * @param options - Query options including limit, cursor, and orderBy
      * @returns Paginated result with groups ordered by most recent activity
      */
-    async getGroupsForUserV2(
-        userId: string,
-        options?: { limit?: number; cursor?: string; orderBy?: OrderBy }
-    ): Promise<PaginatedResult<GroupDocument[]>> {
+    async getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: OrderBy }): Promise<PaginatedResult<GroupDocument[]>> {
         return measureDb('USER_GROUPS_V2', async () => {
             const limit = options?.limit || 10;
-            
+
             // Build query with database-level ordering by groupUpdatedAt
             const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('userId', '==', userId)
-                .orderBy('groupUpdatedAt', orderDirection);
-            
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('userId', '==', userId).orderBy('groupUpdatedAt', orderDirection);
+
             // Apply cursor pagination
             if (options?.cursor) {
                 try {
@@ -492,36 +438,33 @@ export class FirestoreReader implements IFirestoreReader {
                     logger.warn('Invalid cursor provided for V2 method, ignoring');
                 }
             }
-            
+
             query = query.limit(limit + 1); // +1 to detect hasMore
-            
+
             const snapshot = await query.get();
             const hasMore = snapshot.docs.length > limit;
-            const memberships = (hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs)
-                .map(doc => doc.data() as TopLevelGroupMemberDocument);
-            
+            const memberships = (hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs).map((doc) => doc.data() as TopLevelGroupMemberDocument);
+
             if (memberships.length === 0) {
-                return { 
-                    data: [] as GroupDocument[], 
-                    hasMore: false 
+                return {
+                    data: [] as GroupDocument[],
+                    hasMore: false,
                 };
             }
-            
+
             // Get group documents and preserve the membership query order
-            const groupIds = memberships.map(m => m.groupId);
-            
+            const groupIds = memberships.map((m) => m.groupId);
+
             // Fetch groups without additional sorting since we want membership order
-            const fetchedGroups = await this.getGroupsByIds(groupIds, { 
+            const fetchedGroups = await this.getGroupsByIds(groupIds, {
                 limit: groupIds.length, // Get all groups since they're already limited
-                orderBy: { field: 'updatedAt', direction: 'desc' }
+                orderBy: { field: 'updatedAt', direction: 'desc' },
             });
-            
+
             // Preserve the order from the membership query by sorting fetchedGroups by groupIds order
-            const groupsMap = new Map(fetchedGroups.map(group => [group.id, group]));
-            const groups = groupIds
-                .map(id => groupsMap.get(id))
-                .filter((group): group is GroupDocument => group !== undefined);
-            
+            const groupsMap = new Map(fetchedGroups.map((group) => [group.id, group]));
+            const groups = groupIds.map((id) => groupsMap.get(id)).filter((group): group is GroupDocument => group !== undefined);
+
             // Generate next cursor if there are more results
             let nextCursor: string | undefined;
             if (hasMore) {
@@ -529,15 +472,15 @@ export class FirestoreReader implements IFirestoreReader {
                 nextCursor = this.encodeCursor({
                     lastGroupId: lastMembership.groupId,
                     lastUpdatedAt: lastMembership.groupUpdatedAt, // Use groupUpdatedAt for V2
-                    membershipCursor: lastMembership.groupId
+                    membershipCursor: lastMembership.groupId,
                 });
             }
-            
+
             return {
                 data: groups,
                 hasMore,
                 nextCursor,
-                totalEstimate: hasMore ? groups.length + 10 : groups.length
+                totalEstimate: hasMore ? groups.length + 10 : groups.length,
             };
         });
     }
@@ -545,9 +488,7 @@ export class FirestoreReader implements IFirestoreReader {
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
         try {
             // Use top-level collection instead of subcollection
-            let query = this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
 
             // Apply filters if specified
             if (options?.includeInactive === false) {
@@ -576,7 +517,7 @@ export class FirestoreReader implements IFirestoreReader {
                         invitedBy: topLevelData.invitedBy,
                         lastPermissionChange: topLevelData.lastPermissionChange,
                         createdAt: topLevelData.createdAt,
-                        updatedAt: topLevelData.updatedAt
+                        updatedAt: topLevelData.updatedAt,
                     });
                     parsedMembers.push(memberData);
                 } catch (error) {
@@ -593,93 +534,85 @@ export class FirestoreReader implements IFirestoreReader {
     }
 
     async getGroupMember(groupId: string, userId: string): Promise<GroupMemberDocument | null> {
-        return measureDb('GET_MEMBER',
-            async () => {
-                // Use top-level collection instead of subcollection
-                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-                const memberRef = this.db
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .doc(topLevelDocId);
+        return measureDb('GET_MEMBER', async () => {
+            // Use top-level collection instead of subcollection
+            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
+            const memberRef = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
 
-                const memberDoc = await memberRef.get();
-                if (!memberDoc.exists) {
-                    return null;
-                }
+            const memberDoc = await memberRef.get();
+            if (!memberDoc.exists) {
+                return null;
+            }
 
-                const topLevelData = memberDoc.data() as TopLevelGroupMemberDocument;
-                // Convert top-level document back to GroupMemberDocument format
-                const parsedMember = GroupMemberDocumentSchema.parse({
-                    id: topLevelData.userId, // Use userId as the document ID
-                    userId: topLevelData.userId,
-                    groupId: topLevelData.groupId,
-                    memberRole: topLevelData.memberRole,
-                    memberStatus: topLevelData.memberStatus,
-                    joinedAt: topLevelData.joinedAt,
-                    theme: topLevelData.theme,
-                    invitedBy: topLevelData.invitedBy,
-                    lastPermissionChange: topLevelData.lastPermissionChange,
-                    createdAt: topLevelData.createdAt,
-                    updatedAt: topLevelData.updatedAt
-                });
-                return parsedMember;
+            const topLevelData = memberDoc.data() as TopLevelGroupMemberDocument;
+            // Convert top-level document back to GroupMemberDocument format
+            const parsedMember = GroupMemberDocumentSchema.parse({
+                id: topLevelData.userId, // Use userId as the document ID
+                userId: topLevelData.userId,
+                groupId: topLevelData.groupId,
+                memberRole: topLevelData.memberRole,
+                memberStatus: topLevelData.memberStatus,
+                joinedAt: topLevelData.joinedAt,
+                theme: topLevelData.theme,
+                invitedBy: topLevelData.invitedBy,
+                lastPermissionChange: topLevelData.lastPermissionChange,
+                createdAt: topLevelData.createdAt,
+                updatedAt: topLevelData.updatedAt,
+            });
+            return parsedMember;
         });
     }
 
     async getAllGroupMemberIds(groupId: string) {
         const affectedUsers: string[] = [];
         const members = await this.getAllGroupMembers(groupId);
-        members.forEach(member => {
+        members.forEach((member) => {
             affectedUsers.push(member.userId);
         });
         return affectedUsers;
     }
 
     async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
-        return measureDb('GET_MEMBERS',
-            async () => {
-                // Use top-level collection instead of subcollection
-                const membersQuery = this.db
-                    .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                    .where('groupId', '==', groupId);
+        return measureDb('GET_MEMBERS', async () => {
+            // Use top-level collection instead of subcollection
+            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
 
-                const snapshot = await membersQuery.get();
-                const parsedMembers: ParsedGroupMemberDocument[] = [];
+            const snapshot = await membersQuery.get();
+            const parsedMembers: ParsedGroupMemberDocument[] = [];
 
-                for (const doc of snapshot.docs) {
-                    try {
-                        const topLevelData = doc.data() as TopLevelGroupMemberDocument;
-                        // Convert top-level document back to GroupMemberDocument format
-                        const memberData = GroupMemberDocumentSchema.parse({
-                            id: topLevelData.userId, // Use userId as the document ID
-                            userId: topLevelData.userId,
-                            groupId: topLevelData.groupId,
-                            memberRole: topLevelData.memberRole,
-                            memberStatus: topLevelData.memberStatus,
-                            joinedAt: topLevelData.joinedAt,
-                            theme: topLevelData.theme,
-                            invitedBy: topLevelData.invitedBy,
-                            lastPermissionChange: topLevelData.lastPermissionChange,
-                            createdAt: topLevelData.createdAt,
-                            updatedAt: topLevelData.updatedAt
-                        });
-                        parsedMembers.push(memberData);
-                    } catch (error) {
-                        logger.error('Invalid group member document in getAllGroupMembers', error);
-                        // Skip invalid documents rather than failing the entire query
-                    }
+            for (const doc of snapshot.docs) {
+                try {
+                    const topLevelData = doc.data() as TopLevelGroupMemberDocument;
+                    // Convert top-level document back to GroupMemberDocument format
+                    const memberData = GroupMemberDocumentSchema.parse({
+                        id: topLevelData.userId, // Use userId as the document ID
+                        userId: topLevelData.userId,
+                        groupId: topLevelData.groupId,
+                        memberRole: topLevelData.memberRole,
+                        memberStatus: topLevelData.memberStatus,
+                        joinedAt: topLevelData.joinedAt,
+                        theme: topLevelData.theme,
+                        invitedBy: topLevelData.invitedBy,
+                        lastPermissionChange: topLevelData.lastPermissionChange,
+                        createdAt: topLevelData.createdAt,
+                        updatedAt: topLevelData.updatedAt,
+                    });
+                    parsedMembers.push(memberData);
+                } catch (error) {
+                    logger.error('Invalid group member document in getAllGroupMembers', error);
+                    // Skip invalid documents rather than failing the entire query
                 }
+            }
 
-                return parsedMembers;
+            return parsedMembers;
         });
     }
 
     async getExpensesForGroup(groupId: string, options?: QueryOptions): Promise<ExpenseDocument[]> {
         try {
-            let query = this.db.collection(FirestoreCollections.EXPENSES)
-                .where('groupId', '==', groupId)
-                .where('deletedAt', '==', null);
+            let query = this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).where('deletedAt', '==', null);
 
-            // Apply ordering  
+            // Apply ordering
             if (options?.orderBy) {
                 query = query.orderBy(options.orderBy.field, options.orderBy.direction);
             } else {
@@ -708,7 +641,7 @@ export class FirestoreReader implements IFirestoreReader {
                 try {
                     const expenseData = ExpenseDocumentSchema.parse({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     });
                     expenses.push(expenseData);
                 } catch (error) {
@@ -724,14 +657,12 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-
     // todo: this should be paginated
     async getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]> {
         try {
-            let query = this.db.collection(FirestoreCollections.SETTLEMENTS)
-                .where('groupId', '==', groupId);
+            let query = this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId);
 
-            // Apply ordering  
+            // Apply ordering
             if (options?.orderBy) {
                 query = query.orderBy(options.orderBy.field, options.orderBy.direction);
             } else {
@@ -760,7 +691,7 @@ export class FirestoreReader implements IFirestoreReader {
                 try {
                     const settlementData = SettlementDocumentSchema.parse({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     });
                     settlements.push(settlementData);
                 } catch (error) {
@@ -776,11 +707,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-
-
     // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
-
-
 
     // ========================================================================
     // Transaction-aware Read Operations
@@ -797,7 +724,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             const groupData = GroupDocumentSchema.parse({
                 id: groupDoc.id,
-                ...groupDoc.data()
+                ...groupDoc.data(),
             });
 
             return groupData;
@@ -818,7 +745,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             const userData = UserDocumentSchema.parse({
                 id: userDoc.id,
-                ...userDoc.data()
+                ...userDoc.data(),
             });
 
             return userData;
@@ -828,14 +755,9 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getMultipleInTransaction<T>(
-        transaction: Transaction,
-        refs: DocumentReference[]
-    ): Promise<T[]> {
+    async getMultipleInTransaction<T>(transaction: Transaction, refs: DocumentReference[]): Promise<T[]> {
         try {
-            const docs = await Promise.all(
-                refs.map(ref => transaction.get(ref))
-            );
+            const docs = await Promise.all(refs.map((ref) => transaction.get(ref)));
 
             const results: T[] = [];
             for (const doc of docs) {
@@ -855,13 +777,9 @@ export class FirestoreReader implements IFirestoreReader {
     // Real-time Subscription Operations - Minimal Implementation
     // ========================================================================
 
-
-
-
     // ========================================================================
     // Batch Operations
     // ========================================================================
-
 
     // ========================================================================
     // Performance Metrics Operations
@@ -874,79 +792,62 @@ export class FirestoreReader implements IFirestoreReader {
             operationType?: string;
             operationName?: string;
             success?: boolean;
-        }
+        },
     ): Promise<any[]> {
         return measureDb('FirestoreReader.queryPerformanceMetrics', async () => {
-                try {
-                    const cutoff = new Date();
-                    cutoff.setMinutes(cutoff.getMinutes() - minutes);
+            try {
+                const cutoff = new Date();
+                cutoff.setMinutes(cutoff.getMinutes() - minutes);
 
-                    let query = this.db
-                        .collection(collectionName)
-                        .where('timestamp', '>=', Timestamp.fromDate(cutoff))
-                        .orderBy('timestamp', 'desc')
-                        .limit(1000);
+                let query = this.db.collection(collectionName).where('timestamp', '>=', Timestamp.fromDate(cutoff)).orderBy('timestamp', 'desc').limit(1000);
 
-                    if (filters?.operationType) {
-                        query = query.where('operationType', '==', filters.operationType);
-                    }
-
-                    if (filters?.operationName) {
-                        query = query.where('operationName', '==', filters.operationName);
-                    }
-
-                    if (filters?.success !== undefined) {
-                        query = query.where('success', '==', filters.success);
-                    }
-
-                    const snapshot = await query.get();
-
-                    return snapshot.docs.map(doc => {
-                        const data = doc.data();
-                        return {
-                            ...data,
-                            timestamp: data.timestamp.toDate(),
-                            context: typeof data.context === 'string' 
-                                ? JSON.parse(data.context) 
-                                : data.context
-                        };
-                    });
-                } catch (error) {
-                    logger.error('Failed to query performance metrics', error);
-                    return [];
+                if (filters?.operationType) {
+                    query = query.where('operationType', '==', filters.operationType);
                 }
+
+                if (filters?.operationName) {
+                    query = query.where('operationName', '==', filters.operationName);
+                }
+
+                if (filters?.success !== undefined) {
+                    query = query.where('success', '==', filters.success);
+                }
+
+                const snapshot = await query.get();
+
+                return snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        ...data,
+                        timestamp: data.timestamp.toDate(),
+                        context: typeof data.context === 'string' ? JSON.parse(data.context) : data.context,
+                    };
+                });
+            } catch (error) {
+                logger.error('Failed to query performance metrics', error);
+                return [];
             }
-        );
+        });
     }
 
-    async queryAggregatedStats(
-        collectionName: string,
-        period: 'hour' | 'day' | 'week',
-        lookbackCount: number = 24
-    ): Promise<any[]> {
+    async queryAggregatedStats(collectionName: string, period: 'hour' | 'day' | 'week', lookbackCount: number = 24): Promise<any[]> {
         return measureDb('FirestoreReader.queryAggregatedStats', async () => {
-                try {
-                    const snapshot = await this.db
-                        .collection(collectionName)
-                        .where('period', '==', period)
-                        .orderBy('periodStart', 'desc')
-                        .limit(lookbackCount)
-                        .get();
+            try {
+                const snapshot = await this.db.collection(collectionName).where('period', '==', period).orderBy('periodStart', 'desc').limit(lookbackCount).get();
 
-                    return snapshot.docs.map(doc => {
-                        const data = doc.data();
-                        return {
-                            ...data,
-                            periodStart: data.periodStart.toDate(),
-                            periodEnd: data.periodEnd.toDate()
-                        };
-                    });
-                } catch (error) {
-                    logger.error('Failed to query aggregated stats', error);
-                    return [];
-                }
+                return snapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return {
+                        ...data,
+                        periodStart: data.periodStart.toDate(),
+                        periodEnd: data.periodEnd.toDate(),
+                    };
+                });
+            } catch (error) {
+                logger.error('Failed to query aggregated stats', error);
+                return [];
             }
-        );
+        });
     }
 
     // ========================================================================
@@ -969,10 +870,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getUserNotification(userId: string): Promise<UserNotificationDocument | null> {
         try {
-            const notificationDoc = await this.db
-                .collection('user-notifications')
-                .doc(userId)
-                .get();
+            const notificationDoc = await this.db.collection('user-notifications').doc(userId).get();
 
             if (!notificationDoc.exists) {
                 return null;
@@ -994,7 +892,7 @@ export class FirestoreReader implements IFirestoreReader {
                         lastGroupDetailsChange: group.lastGroupDetailsChange || null,
                         transactionChangeCount: group.transactionChangeCount ?? 0,
                         balanceChangeCount: group.balanceChangeCount ?? 0,
-                        groupDetailsChangeCount: group.groupDetailsChangeCount ?? 0
+                        groupDetailsChangeCount: group.groupDetailsChangeCount ?? 0,
                     };
                 }
             }
@@ -1004,7 +902,7 @@ export class FirestoreReader implements IFirestoreReader {
                 groups: {},
                 recentChanges: [],
                 changeVersion: 0,
-                ...processedData
+                ...processedData,
             };
 
             const notificationData = UserNotificationDocumentSchema.parse(completeData);
@@ -1031,12 +929,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async findShareLinkByToken(token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
         try {
-            const snapshot = await this.db
-                .collectionGroup('shareLinks')
-                .where('token', '==', token)
-                .where('isActive', '==', true)
-                .limit(1)
-                .get();
+            const snapshot = await this.db.collectionGroup('shareLinks').where('token', '==', token).where('isActive', '==', true).limit(1).get();
 
             if (snapshot.empty) {
                 return null;
@@ -1044,7 +937,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             const shareLinkDoc = snapshot.docs[0];
             const groupId = shareLinkDoc.ref.parent.parent!.id;
-            
+
             const rawData = shareLinkDoc.data();
             if (!rawData) {
                 throw new Error('Share link document data is null');
@@ -1062,16 +955,10 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getShareLinksForGroup(groupId: string): Promise<ParsedShareLink[]> {
         try {
-            const snapshot = await this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('shareLinks')
-                .where('isActive', '==', true)
-                .orderBy('createdAt', 'desc')
-                .get();
+            const snapshot = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').where('isActive', '==', true).orderBy('createdAt', 'desc').get();
 
             const shareLinks: ParsedShareLink[] = [];
-            
+
             for (const doc of snapshot.docs) {
                 try {
                     const rawData = doc.data();
@@ -1093,12 +980,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getShareLink(groupId: string, shareLinkId: string): Promise<ParsedShareLink | null> {
         try {
-            const doc = await this.db
-                .collection(FirestoreCollections.GROUPS)
-                .doc(groupId)
-                .collection('shareLinks')
-                .doc(shareLinkId)
-                .get();
+            const doc = await this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').doc(shareLinkId).get();
 
             if (!doc.exists) {
                 return null;
@@ -1130,19 +1012,17 @@ export class FirestoreReader implements IFirestoreReader {
             cursor?: string;
             orderBy?: 'createdAt' | 'updatedAt';
             direction?: 'asc' | 'desc';
-        } = {}
+        } = {},
     ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }> {
         try {
             const { limit = 50, cursor, orderBy = 'createdAt', direction = 'desc' } = options;
-            
+
             // Get the appropriate subcollection reference using collection path helper
             const collectionPath = this.getCommentCollectionPath(targetType, targetId);
             const commentsCollection = this.db.collection(collectionPath);
 
             // Build the query
-            let query = commentsCollection
-                .orderBy(orderBy, direction)
-                .limit(limit + 1); // +1 to check if there are more
+            let query = commentsCollection.orderBy(orderBy, direction).limit(limit + 1); // +1 to check if there are more
 
             // Apply cursor-based pagination if provided
             if (cursor) {
@@ -1176,9 +1056,7 @@ export class FirestoreReader implements IFirestoreReader {
             return {
                 comments,
                 hasMore,
-                nextCursor: hasMore && commentsToReturn.length > 0 
-                    ? commentsToReturn[commentsToReturn.length - 1].id 
-                    : undefined,
+                nextCursor: hasMore && commentsToReturn.length > 0 ? commentsToReturn[commentsToReturn.length - 1].id : undefined,
             };
         } catch (error) {
             logger.error('Failed to get comments for target', error);
@@ -1188,24 +1066,24 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getCommentByReference(commentDocRef: FirebaseFirestore.DocumentReference): Promise<ParsedComment | null> {
         return measureDb('FirestoreReader.getCommentByReference', async () => {
-                try {
-                    const doc = await commentDocRef.get();
-                    if (!doc.exists) {
-                        return null;
-                    }
-
-                    const rawData = doc.data();
-                    if (!rawData) {
-                        return null;
-                    }
-
-                    const dataWithId = { ...rawData, id: doc.id };
-                    return CommentDocumentSchema.parse(dataWithId);
-                } catch (error) {
-                    logger.error('Failed to get comment by reference', error);
-                    throw error;
+            try {
+                const doc = await commentDocRef.get();
+                if (!doc.exists) {
+                    return null;
                 }
-            });
+
+                const rawData = doc.data();
+                if (!rawData) {
+                    return null;
+                }
+
+                const dataWithId = { ...rawData, id: doc.id };
+                return CommentDocumentSchema.parse(dataWithId);
+            } catch (error) {
+                logger.error('Failed to get comment by reference', error);
+                throw error;
+            }
+        });
     }
 
     async getComment(targetType: CommentTargetType, targetId: string, commentId: string): Promise<ParsedComment | null> {
@@ -1240,11 +1118,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getAvailableTestUser(): Promise<any | null> {
         try {
-            const snapshot = await this.db
-                .collection('test-user-pool')
-                .where('status', '==', 'available')
-                .limit(1)
-                .get();
+            const snapshot = await this.db.collection('test-user-pool').where('status', '==', 'available').limit(1).get();
 
             if (snapshot.empty) {
                 return null;
@@ -1253,7 +1127,7 @@ export class FirestoreReader implements IFirestoreReader {
             const doc = snapshot.docs[0];
             return {
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
             };
         } catch (error) {
             logger.error('Failed to get available test user', error);
@@ -1263,10 +1137,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getTestUser(email: string): Promise<any | null> {
         try {
-            const doc = await this.db
-                .collection('test-user-pool')
-                .doc(email)
-                .get();
+            const doc = await this.db.collection('test-user-pool').doc(email).get();
 
             if (!doc.exists) {
                 return null;
@@ -1274,7 +1145,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             return {
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
             };
         } catch (error) {
             logger.error('Failed to get test user', error);
@@ -1284,57 +1155,50 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getTestUserPoolStatus(): Promise<{ available: number; borrowed: number; total: number }> {
         return measureDb('FirestoreReader.getTestUserPoolStatus', async () => {
-                try {
-                    const [availableSnapshot, borrowedSnapshot] = await Promise.all([
-                        this.db.collection('test-user-pool').where('status', '==', 'available').get(),
-                        this.db.collection('test-user-pool').where('status', '==', 'borrowed').get()
-                    ]);
-                    
-                    return {
-                        available: availableSnapshot.size,
-                        borrowed: borrowedSnapshot.size,
-                        total: availableSnapshot.size + borrowedSnapshot.size,
-                    };
-                } catch (error) {
-                    logger.error('Failed to get test user pool status', error);
-                    throw error;
-                }
-            });
+            try {
+                const [availableSnapshot, borrowedSnapshot] = await Promise.all([
+                    this.db.collection('test-user-pool').where('status', '==', 'available').get(),
+                    this.db.collection('test-user-pool').where('status', '==', 'borrowed').get(),
+                ]);
+
+                return {
+                    available: availableSnapshot.size,
+                    borrowed: borrowedSnapshot.size,
+                    total: availableSnapshot.size + borrowedSnapshot.size,
+                };
+            } catch (error) {
+                logger.error('Failed to get test user pool status', error);
+                throw error;
+            }
+        });
     }
 
     async getBorrowedTestUsers(): Promise<FirebaseFirestore.QueryDocumentSnapshot[]> {
         return measureDb('FirestoreReader.getBorrowedTestUsers', async () => {
-                try {
-                    const snapshot = await this.db
-                        .collection('test-user-pool')
-                        .where('status', '==', 'borrowed')
-                        .get();
-                    
-                    return snapshot.docs;
-                } catch (error) {
-                    logger.error('Failed to get borrowed test users', error);
-                    throw error;
-                }
-            });
+            try {
+                const snapshot = await this.db.collection('test-user-pool').where('status', '==', 'borrowed').get();
+
+                return snapshot.docs;
+            } catch (error) {
+                logger.error('Failed to get borrowed test users', error);
+                throw error;
+            }
+        });
     }
 
     // ========================================================================
     // System Metrics Operations
     // ========================================================================
 
-    async getOldDocuments(
-        collection: string,
-        cutoffDate: Date,
-        limit: number = 500
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+    async getOldDocuments(collection: string, cutoffDate: Date, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         try {
             let query: FirebaseFirestore.Query = this.db.collection(collection);
-            
+
             // If collection supports timestamp-based queries, use cutoff date
             if (collection !== 'system-metrics') {
                 query = query.where('timestamp', '<', cutoffDate);
             }
-            
+
             query = query.limit(limit);
 
             const snapshot = await query.get();
@@ -1345,59 +1209,35 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getOldDocumentsByField(
-        collection: string,
-        timestampField: string,
-        cutoffDate: Date,
-        limit: number = 500
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+    async getOldDocumentsByField(collection: string, timestampField: string, cutoffDate: Date, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         return measureDb('FirestoreReader.getOldDocumentsByField', async () => {
-                try {
-                    const snapshot = await this.db
-                        .collection(collection)
-                        .where(timestampField, '<', cutoffDate)
-                        .limit(limit)
-                        .get();
+            try {
+                const snapshot = await this.db.collection(collection).where(timestampField, '<', cutoffDate).limit(limit).get();
 
-                    return snapshot.docs;
-                } catch (error) {
-                    logger.error('Failed to get old documents by field', error);
-                    throw error;
-                }
-            });
+                return snapshot.docs;
+            } catch (error) {
+                logger.error('Failed to get old documents by field', error);
+                throw error;
+            }
+        });
     }
 
-    async getDocumentsBatch(
-        collection: string,
-        limit: number = 500
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+    async getDocumentsBatch(collection: string, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         return measureDb('FirestoreReader.getDocumentsBatch', async () => {
-                try {
-                    const snapshot = await this.db
-                        .collection(collection)
-                        .limit(limit)
-                        .get();
+            try {
+                const snapshot = await this.db.collection(collection).limit(limit).get();
 
-                    return snapshot.docs;
-                } catch (error) {
-                    logger.error('Failed to get documents batch', error);
-                    throw error;
-                }
-            });
+                return snapshot.docs;
+            } catch (error) {
+                logger.error('Failed to get documents batch', error);
+                throw error;
+            }
+        });
     }
 
-    async getMetricsDocuments(
-        collection: string,
-        timestampField: string,
-        cutoffTimestamp: any,
-        limit: number = 500
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
+    async getMetricsDocuments(collection: string, timestampField: string, cutoffTimestamp: any, limit: number = 500): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         try {
-            const snapshot = await this.db
-                .collection(collection)
-                .where(timestampField, '<', cutoffTimestamp)
-                .limit(limit)
-                .get();
+            const snapshot = await this.db.collection(collection).where(timestampField, '<', cutoffTimestamp).limit(limit).get();
 
             return snapshot.docs;
         } catch (error) {
@@ -1408,10 +1248,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getCollectionSize(collection: string): Promise<number> {
         try {
-            const snapshot = await this.db
-                .collection(collection)
-                .count()
-                .get();
+            const snapshot = await this.db.collection(collection).count().get();
 
             return snapshot.data().count;
         } catch (error) {
@@ -1424,157 +1261,152 @@ export class FirestoreReader implements IFirestoreReader {
     // New Methods for Centralizing Firestore Access
     // ========================================================================
 
-    async getUserExpenses(userId: string, options?: {
-        limit?: number;
-        cursor?: string;
-        includeDeleted?: boolean;
-    }): Promise<{
+    async getUserExpenses(
+        userId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        },
+    ): Promise<{
         expenses: ExpenseDocument[];
         hasMore: boolean;
         nextCursor?: string;
     }> {
         return measureDb('FirestoreReader.getUserExpenses', async () => {
-                try {
-                    const limit = Math.min(options?.limit || 50, 100);
-                    const cursor = options?.cursor;
-                    const includeDeleted = options?.includeDeleted || false;
+            try {
+                const limit = Math.min(options?.limit || 50, 100);
+                const cursor = options?.cursor;
+                const includeDeleted = options?.includeDeleted || false;
 
-                    let query = this.db.collection(FirestoreCollections.EXPENSES)
-                        .where('participants', 'array-contains', userId)
-                        .select(
-                            'groupId',
-                            'createdBy',
-                            'paidBy',
-                            'amount',
-                            'currency',
-                            'description',
-                            'category',
-                            'date',
-                            'splitType',
-                            'participants',
-                            'splits',
-                            'receiptUrl',
-                            'createdAt',
-                            'updatedAt',
-                            'deletedAt',
-                            'deletedBy',
-                        )
-                        .orderBy('date', 'desc')
-                        .orderBy('createdAt', 'desc')
-                        .limit(limit + 1);
+                let query = this.db
+                    .collection(FirestoreCollections.EXPENSES)
+                    .where('participants', 'array-contains', userId)
+                    .select(
+                        'groupId',
+                        'createdBy',
+                        'paidBy',
+                        'amount',
+                        'currency',
+                        'description',
+                        'category',
+                        'date',
+                        'splitType',
+                        'participants',
+                        'splits',
+                        'receiptUrl',
+                        'createdAt',
+                        'updatedAt',
+                        'deletedAt',
+                        'deletedBy',
+                    )
+                    .orderBy('date', 'desc')
+                    .orderBy('createdAt', 'desc')
+                    .limit(limit + 1);
 
-                    // Filter out deleted expenses by default
-                    if (!includeDeleted) {
-                        query = query.where('deletedAt', '==', null);
-                    }
-
-                    if (cursor) {
-                        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-                        const cursorData = JSON.parse(decodedCursor);
-                        if (cursorData.date && cursorData.createdAt) {
-                            query = query.startAfter(
-                                Timestamp.fromDate(new Date(cursorData.date)),
-                                Timestamp.fromDate(new Date(cursorData.createdAt))
-                            );
-                        }
-                    }
-
-                    const snapshot = await query.get();
-                    const hasMore = snapshot.docs.length > limit;
-                    const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
-
-                    const expenses = docs.map(doc => 
-                        ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() })
-                    );
-
-                    let nextCursor: string | undefined;
-                    if (hasMore && docs.length > 0) {
-                        const lastDoc = docs[docs.length - 1];
-                        const lastData = lastDoc.data();
-                        const cursorData = {
-                            date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
-                            createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt
-                        };
-                        nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                    }
-
-                    return {
-                        expenses,
-                        hasMore,
-                        nextCursor
-                    };
-                } catch (error) {
-                    logger.error('Failed to get user expenses', error);
-                    throw error;
+                // Filter out deleted expenses by default
+                if (!includeDeleted) {
+                    query = query.where('deletedAt', '==', null);
                 }
-            });
+
+                if (cursor) {
+                    const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+                    const cursorData = JSON.parse(decodedCursor);
+                    if (cursorData.date && cursorData.createdAt) {
+                        query = query.startAfter(Timestamp.fromDate(new Date(cursorData.date)), Timestamp.fromDate(new Date(cursorData.createdAt)));
+                    }
+                }
+
+                const snapshot = await query.get();
+                const hasMore = snapshot.docs.length > limit;
+                const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
+
+                const expenses = docs.map((doc) => ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() }));
+
+                let nextCursor: string | undefined;
+                if (hasMore && docs.length > 0) {
+                    const lastDoc = docs[docs.length - 1];
+                    const lastData = lastDoc.data();
+                    const cursorData = {
+                        date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
+                        createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt,
+                    };
+                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+                }
+
+                return {
+                    expenses,
+                    hasMore,
+                    nextCursor,
+                };
+            } catch (error) {
+                logger.error('Failed to get user expenses', error);
+                throw error;
+            }
+        });
     }
 
-    async getExpenseHistory(expenseId: string, limit: number = 20): Promise<{
+    async getExpenseHistory(
+        expenseId: string,
+        limit: number = 20,
+    ): Promise<{
         history: any[];
         count: number;
     }> {
         return measureDb('FirestoreReader.getExpenseHistory', async () => {
-                try {
-                    const historySnapshot = await this.db
-                        .collection(FirestoreCollections.EXPENSES)
-                        .doc(expenseId)
-                        .collection('history')
-                        .orderBy('modifiedAt', 'desc')
-                        .limit(limit)
-                        .get();
+            try {
+                const historySnapshot = await this.db.collection(FirestoreCollections.EXPENSES).doc(expenseId).collection('history').orderBy('modifiedAt', 'desc').limit(limit).get();
 
-                    const history = historySnapshot.docs.map((doc) => {
-                        const data = doc.data();
-                        return {
-                            id: doc.id,
-                            modifiedAt: data.modifiedAt?.toDate?.()?.toISOString() || data.modifiedAt,
-                            modifiedBy: data.modifiedBy,
-                            changeType: data.changeType,
-                            changes: data.changes,
-                            previousAmount: data.amount,
-                            previousDescription: data.description,
-                            previousCategory: data.category,
-                            previousDate: data.date?.toDate?.()?.toISOString() || data.date,
-                            previousSplits: data.splits,
-                        };
-                    });
-
+                const history = historySnapshot.docs.map((doc) => {
+                    const data = doc.data();
                     return {
-                        history,
-                        count: history.length,
+                        id: doc.id,
+                        modifiedAt: data.modifiedAt?.toDate?.()?.toISOString() || data.modifiedAt,
+                        modifiedBy: data.modifiedBy,
+                        changeType: data.changeType,
+                        changes: data.changes,
+                        previousAmount: data.amount,
+                        previousDescription: data.description,
+                        previousCategory: data.category,
+                        previousDate: data.date?.toDate?.()?.toISOString() || data.date,
+                        previousSplits: data.splits,
                     };
-                } catch (error) {
-                    logger.error('Failed to get expense history', error);
-                    throw error;
-                }
-            });
+                });
+
+                return {
+                    history,
+                    count: history.length,
+                };
+            } catch (error) {
+                logger.error('Failed to get expense history', error);
+                throw error;
+            }
+        });
     }
 
     async getSystemDocument(docPath: string): Promise<any | null> {
         return measureDb('FirestoreReader.getSystemDocument', async () => {
-                try {
-                    const doc = await this.db.doc(docPath).get();
-                    return doc.exists ? doc.data() : null;
-                } catch (error) {
-                    logger.error('Failed to get system document', error);
-                    throw error;
-                }
-            });
+            try {
+                const doc = await this.db.doc(docPath).get();
+                return doc.exists ? doc.data() : null;
+            } catch (error) {
+                logger.error('Failed to get system document', error);
+                throw error;
+            }
+        });
     }
 
     async getHealthCheckDocument(): Promise<any | null> {
         return measureDb('FirestoreReader.getHealthCheckDocument', async () => {
-                try {
-                    const testRef = this.db.collection('_health_check').doc('test');
-                    await testRef.get();
-                    return { status: 'ok', timestamp: new Date().toISOString() };
-                } catch (error) {
-                    logger.error('Failed to perform health check', error);
-                    throw error;
-                }
+            try {
+                const testRef = this.db.collection('_health_check').doc('test');
+                await testRef.get();
+                return { status: 'ok', timestamp: new Date().toISOString() };
+            } catch (error) {
+                logger.error('Failed to perform health check', error);
+                throw error;
             }
-        );
+        });
     }
 
     async getGroupDeletionData(groupId: string): Promise<{
@@ -1585,38 +1417,31 @@ export class FirestoreReader implements IFirestoreReader {
         expenseComments: FirebaseFirestore.QuerySnapshot[];
     }> {
         return measureDb('FirestoreReader.getGroupDeletionData', async () => {
-                try {
-                    const [
-                        expensesSnapshot,
-                        settlementsSnapshot,
-                        shareLinksSnapshot,
-                        groupCommentsSnapshot,
-                    ] = await Promise.all([
-                        this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
-                        this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
-                        this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
-                        this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
-                    ]);
+            try {
+                const [expensesSnapshot, settlementsSnapshot, shareLinksSnapshot, groupCommentsSnapshot] = await Promise.all([
+                    this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId).get(),
+                    this.db.collection(FirestoreCollections.SETTLEMENTS).where('groupId', '==', groupId).get(),
+                    this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection('shareLinks').get(),
+                    this.db.collection(FirestoreCollections.GROUPS).doc(groupId).collection(FirestoreCollections.COMMENTS).get(),
+                ]);
 
-                    // Get comment subcollections for each expense
-                    const expenseComments = await Promise.all(
-                        expensesSnapshot.docs.map(expense =>
-                            this.db.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()
-                        )
-                    );
+                // Get comment subcollections for each expense
+                const expenseComments = await Promise.all(
+                    expensesSnapshot.docs.map((expense) => this.db.collection(FirestoreCollections.EXPENSES).doc(expense.id).collection(FirestoreCollections.COMMENTS).get()),
+                );
 
-                    return {
-                        expenses: expensesSnapshot,
-                        settlements: settlementsSnapshot,
-                        shareLinks: shareLinksSnapshot,
-                        groupComments: groupCommentsSnapshot,
-                        expenseComments,
-                    };
-                } catch (error) {
-                    logger.error('Failed to get group deletion data', error);
-                    throw error;
-                }
-            });
+                return {
+                    expenses: expensesSnapshot,
+                    settlements: settlementsSnapshot,
+                    shareLinks: shareLinksSnapshot,
+                    groupComments: groupCommentsSnapshot,
+                    expenseComments,
+                };
+            } catch (error) {
+                logger.error('Failed to get group deletion data', error);
+                throw error;
+            }
+        });
     }
 
     async getDocumentForTesting(collection: string, docId: string): Promise<any | null> {
@@ -1639,92 +1464,89 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getExpensesForGroupPaginated(groupId: string, options?: {
-        limit?: number;
-        cursor?: string;
-        includeDeleted?: boolean;
-    }): Promise<{
+    async getExpensesForGroupPaginated(
+        groupId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        },
+    ): Promise<{
         expenses: ExpenseDocument[];
         hasMore: boolean;
         nextCursor?: string;
     }> {
         return measureDb('FirestoreReader.getExpensesForGroupPaginated', async () => {
-                try {
-                    const limit = Math.min(options?.limit || 20, 100);
-                    const cursor = options?.cursor;
-                    const includeDeleted = options?.includeDeleted || false;
+            try {
+                const limit = Math.min(options?.limit || 20, 100);
+                const cursor = options?.cursor;
+                const includeDeleted = options?.includeDeleted || false;
 
-                    let query = this.db.collection(FirestoreCollections.EXPENSES)
-                        .where('groupId', '==', groupId);
+                let query = this.db.collection(FirestoreCollections.EXPENSES).where('groupId', '==', groupId);
 
-                    // Filter out deleted expenses by default
-                    if (!includeDeleted) {
-                        query = query.where('deletedAt', '==', null);
-                    }
-
-                    query = query
-                        .select(
-                            'groupId',
-                            'createdBy',
-                            'paidBy',
-                            'amount',
-                            'currency',
-                            'description',
-                            'category',
-                            'date',
-                            'splitType',
-                            'participants',
-                            'splits',
-                            'receiptUrl',
-                            'createdAt',
-                            'updatedAt',
-                            'deletedAt',
-                            'deletedBy',
-                        )
-                        .orderBy('date', 'desc')
-                        .orderBy('createdAt', 'desc')
-                        .limit(limit + 1);
-
-                    if (cursor) {
-                        const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
-                        const cursorData = JSON.parse(decodedCursor);
-                        if (cursorData.date && cursorData.createdAt) {
-                            query = query.startAfter(
-                                Timestamp.fromDate(new Date(cursorData.date)),
-                                Timestamp.fromDate(new Date(cursorData.createdAt))
-                            );
-                        }
-                    }
-
-                    const snapshot = await query.get();
-                    const hasMore = snapshot.docs.length > limit;
-                    const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
-
-                    const expenses = docs.map(doc => 
-                        ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() })
-                    );
-
-                    let nextCursor: string | undefined;
-                    if (hasMore && docs.length > 0) {
-                        const lastDoc = docs[docs.length - 1];
-                        const lastData = lastDoc.data();
-                        const cursorData = {
-                            date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
-                            createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt
-                        };
-                        nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
-                    }
-
-                    return {
-                        expenses,
-                        hasMore,
-                        nextCursor
-                    };
-                } catch (error) {
-                    logger.error('Failed to get expenses for group paginated', error);
-                    throw error;
+                // Filter out deleted expenses by default
+                if (!includeDeleted) {
+                    query = query.where('deletedAt', '==', null);
                 }
-            });
+
+                query = query
+                    .select(
+                        'groupId',
+                        'createdBy',
+                        'paidBy',
+                        'amount',
+                        'currency',
+                        'description',
+                        'category',
+                        'date',
+                        'splitType',
+                        'participants',
+                        'splits',
+                        'receiptUrl',
+                        'createdAt',
+                        'updatedAt',
+                        'deletedAt',
+                        'deletedBy',
+                    )
+                    .orderBy('date', 'desc')
+                    .orderBy('createdAt', 'desc')
+                    .limit(limit + 1);
+
+                if (cursor) {
+                    const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');
+                    const cursorData = JSON.parse(decodedCursor);
+                    if (cursorData.date && cursorData.createdAt) {
+                        query = query.startAfter(Timestamp.fromDate(new Date(cursorData.date)), Timestamp.fromDate(new Date(cursorData.createdAt)));
+                    }
+                }
+
+                const snapshot = await query.get();
+                const hasMore = snapshot.docs.length > limit;
+                const docs = hasMore ? snapshot.docs.slice(0, limit) : snapshot.docs;
+
+                const expenses = docs.map((doc) => ExpenseDocumentSchema.parse({ id: doc.id, ...doc.data() }));
+
+                let nextCursor: string | undefined;
+                if (hasMore && docs.length > 0) {
+                    const lastDoc = docs[docs.length - 1];
+                    const lastData = lastDoc.data();
+                    const cursorData = {
+                        date: lastData.date?.toDate?.()?.toISOString() || lastData.date,
+                        createdAt: lastData.createdAt?.toDate?.()?.toISOString() || lastData.createdAt,
+                    };
+                    nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
+                }
+
+                return {
+                    expenses,
+                    hasMore,
+                    nextCursor,
+                };
+            } catch (error) {
+                logger.error('Failed to get expenses for group paginated', error);
+                throw error;
+            }
+        });
     }
 
     // ========================================================================
@@ -1739,74 +1561,64 @@ export class FirestoreReader implements IFirestoreReader {
             filterUserId?: string;
             startDate?: string;
             endDate?: string;
-        }
+        },
     ): Promise<{
         settlements: SettlementDocument[];
         hasMore: boolean;
         nextCursor?: string;
     }> {
         return measureDb('FirestoreReader.getSettlementsForGroupPaginated', async () => {
-                try {
-                    const limit = Math.min(options?.limit || 20, 100);
-                    const { cursor, filterUserId, startDate, endDate } = options || {};
+            try {
+                const limit = Math.min(options?.limit || 20, 100);
+                const { cursor, filterUserId, startDate, endDate } = options || {};
 
-                    let query: FirebaseFirestore.Query = this.db.collection(FirestoreCollections.SETTLEMENTS)
-                        .where('groupId', '==', groupId)
-                        .orderBy('date', 'desc')
-                        .limit(limit + 1); // +1 to check if there are more
+                let query: FirebaseFirestore.Query = this.db
+                    .collection(FirestoreCollections.SETTLEMENTS)
+                    .where('groupId', '==', groupId)
+                    .orderBy('date', 'desc')
+                    .limit(limit + 1); // +1 to check if there are more
 
-                    if (filterUserId) {
-                        query = query.where(
-                            Filter.or(
-                                Filter.where('payerId', '==', filterUserId),
-                                Filter.where('payeeId', '==', filterUserId)
-                            )
-                        );
-                    }
-
-                    if (startDate) {
-                        query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
-                    }
-
-                    if (endDate) {
-                        query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
-                    }
-
-                    if (cursor) {
-                        const cursorDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(cursor).get();
-                        if (cursorDoc.exists) {
-                            query = query.startAfter(cursorDoc);
-                        }
-                    }
-
-                    const snapshot = await query.get();
-                    const settlements = snapshot.docs.map(doc => 
-                        SettlementDocumentSchema.parse({ id: doc.id, ...doc.data() })
-                    );
-
-                    const hasMore = settlements.length > limit;
-                    const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
-                    const nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
-
-                    return {
-                        settlements: settlementsToReturn,
-                        hasMore,
-                        nextCursor
-                    };
-                } catch (error) {
-                    logger.error('Failed to get settlements for group paginated', error);
-                    throw error;
+                if (filterUserId) {
+                    query = query.where(Filter.or(Filter.where('payerId', '==', filterUserId), Filter.where('payeeId', '==', filterUserId)));
                 }
-            });
+
+                if (startDate) {
+                    query = query.where('date', '>=', safeParseISOToTimestamp(startDate));
+                }
+
+                if (endDate) {
+                    query = query.where('date', '<=', safeParseISOToTimestamp(endDate));
+                }
+
+                if (cursor) {
+                    const cursorDoc = await this.db.collection(FirestoreCollections.SETTLEMENTS).doc(cursor).get();
+                    if (cursorDoc.exists) {
+                        query = query.startAfter(cursorDoc);
+                    }
+                }
+
+                const snapshot = await query.get();
+                const settlements = snapshot.docs.map((doc) => SettlementDocumentSchema.parse({ id: doc.id, ...doc.data() }));
+
+                const hasMore = settlements.length > limit;
+                const settlementsToReturn = hasMore ? settlements.slice(0, limit) : settlements;
+                const nextCursor = hasMore && settlementsToReturn.length > 0 ? settlementsToReturn[settlementsToReturn.length - 1].id : undefined;
+
+                return {
+                    settlements: settlementsToReturn,
+                    hasMore,
+                    nextCursor,
+                };
+            } catch (error) {
+                logger.error('Failed to get settlements for group paginated', error);
+                throw error;
+            }
+        });
     }
 
     async getSystemMetrics(metricType: string): Promise<any | null> {
         try {
-            const snapshot = await this.db.collection('system-metrics')
-                .where('type', '==', metricType)
-                .orderBy('timestamp', 'desc')
-                .limit(1)
-                .get();
+            const snapshot = await this.db.collection('system-metrics').where('type', '==', metricType).orderBy('timestamp', 'desc').limit(1).get();
 
             if (snapshot.empty) {
                 return null;
@@ -1834,10 +1646,7 @@ export class FirestoreReader implements IFirestoreReader {
         try {
             // Check if user is a member using top-level collection lookup
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-            const memberDoc = await this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .doc(topLevelDocId)
-                .get();
+            const memberDoc = await this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId).get();
 
             return memberDoc.exists;
         } catch (error) {
@@ -1846,19 +1655,9 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getSubcollectionDocument(
-        parentCollection: string,
-        parentDocId: string,
-        subcollectionName: string,
-        docId: string
-    ): Promise<any | null> {
+    async getSubcollectionDocument(parentCollection: string, parentDocId: string, subcollectionName: string, docId: string): Promise<any | null> {
         try {
-            const doc = await this.db
-                .collection(parentCollection)
-                .doc(parentDocId)
-                .collection(subcollectionName)
-                .doc(docId)
-                .get();
+            const doc = await this.db.collection(parentCollection).doc(parentDocId).collection(subcollectionName).doc(docId).get();
 
             return doc.exists ? { id: doc.id, ...doc.data() } : null;
         } catch (error) {
@@ -1867,13 +1666,9 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-
     async getTestUsersByStatus(status: string, limit: number = 10): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         try {
-            const snapshot = await this.db.collection('test-user-pool')
-                .where('status', '==', status)
-                .limit(limit)
-                .get();
+            const snapshot = await this.db.collection('test-user-pool').where('status', '==', status).limit(limit).get();
 
             return snapshot.docs;
         } catch (error) {
@@ -1882,10 +1677,7 @@ export class FirestoreReader implements IFirestoreReader {
         }
     }
 
-    async getTestUserInTransaction(
-        transaction: FirebaseFirestore.Transaction, 
-        email: string
-    ): Promise<any | null> {
+    async getTestUserInTransaction(transaction: FirebaseFirestore.Transaction, email: string): Promise<any | null> {
         try {
             const docRef = this.db.collection('test-user-pool').doc(email);
             const doc = await transaction.get(docRef);
@@ -1907,7 +1699,7 @@ export class FirestoreReader implements IFirestoreReader {
             orderBy?: { field: string; direction: 'asc' | 'desc' };
             limit?: number;
             startAfter?: FirebaseFirestore.DocumentSnapshot;
-        }
+        },
     ): Promise<FirebaseFirestore.DocumentSnapshot[]> {
         try {
             let query: FirebaseFirestore.Query = this.db.collection(collection);
@@ -1979,36 +1771,36 @@ export class FirestoreReader implements IFirestoreReader {
     async findShareLinkByTokenInTransaction(transaction: FirebaseFirestore.Transaction, token: string): Promise<{ groupId: string; shareLink: ParsedShareLink } | null> {
         try {
             const groupsSnapshot = await this.db.collection(FirestoreCollections.GROUPS).get();
-            
+
             for (const groupDoc of groupsSnapshot.docs) {
                 const shareLinksRef = this.db.collection(FirestoreCollections.GROUPS).doc(groupDoc.id).collection('shareLinks');
                 const shareLinksSnapshot = await shareLinksRef.where('token', '==', token).limit(1).get();
-                
+
                 if (!shareLinksSnapshot.empty) {
                     const shareLinkDoc = shareLinksSnapshot.docs[0];
                     const shareLinkData = shareLinkDoc.data();
-                    
+
                     try {
                         const parsedShareLink = ShareLinkDocumentSchema.parse({
                             ...shareLinkData,
-                            id: shareLinkDoc.id
+                            id: shareLinkDoc.id,
                         });
-                        
+
                         return {
                             groupId: groupDoc.id,
-                            shareLink: parsedShareLink
+                            shareLink: parsedShareLink,
                         };
                     } catch (parseError) {
-                        logger.warn('Invalid share link data found', { 
-                            groupId: groupDoc.id, 
+                        logger.warn('Invalid share link data found', {
+                            groupId: groupDoc.id,
                             shareLinkId: shareLinkDoc.id,
-                            parseError 
+                            parseError,
                         });
                         continue;
                     }
                 }
             }
-            
+
             return null;
         } catch (error) {
             logger.error('Failed to find share link by token in transaction', error, { token });
@@ -2103,14 +1895,11 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
         try {
-            const query = this.db
-                .collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
+            const query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
             return await transaction.get(query);
         } catch (error) {
             logger.error('Failed to get group memberships in transaction', error, { groupId });
             throw error;
         }
     }
-
 }

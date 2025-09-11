@@ -147,7 +147,13 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const membersList = (
         <div className="space-y-3">
             {members.value.map((member) => (
-                <div key={member.uid} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50" data-testid="member-item" data-member-name={member.displayName} data-member-id={member.uid}>
+                <div
+                    key={member.uid}
+                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50"
+                    data-testid="member-item"
+                    data-member-name={member.displayName}
+                    data-member-id={member.uid}
+                >
                     <div className="flex items-center gap-3">
                         <Avatar displayName={member.displayName || 'User'} userId={member.uid} size="sm" />
                         <div className="flex flex-col">

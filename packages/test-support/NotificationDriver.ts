@@ -39,15 +39,14 @@ export interface NotificationEvent {
 
 /**
  * NotificationDriver - Test helper for Firebase real-time notifications
- * 
+ *
  * Provides a clean API for testing the user notification system that
  * the webapp relies on. Follows the same pattern as ApiDriver.
  */
 export class NotificationDriver {
     private activeListeners = new Map<string, NotificationListener>();
 
-    constructor(private firestore: admin.firestore.Firestore) {
-    }
+    constructor(private firestore: admin.firestore.Firestore) {}
 
     /**
      * Stop listening for a specific user
@@ -77,7 +76,7 @@ export class NotificationDriver {
     async setupListenersFirst(userIds: string[]): Promise<NotificationListener[]> {
         console.log('🎧 Setting up listeners FIRST for all users...');
         const listeners = [];
-        
+
         for (const userId of userIds) {
             if (this.activeListeners.has(userId)) {
                 throw new Error(`Already listening to notifications for user: ${userId}`);
@@ -85,11 +84,11 @@ export class NotificationDriver {
 
             const listener = new NotificationListener(this.firestore, userId);
             await listener.start();
-            
+
             this.activeListeners.set(userId, listener);
             listeners.push(listener);
         }
-        
+
         console.log('✅ All listeners started and ready to capture events');
         return listeners;
     }
@@ -99,7 +98,7 @@ export class NotificationDriver {
      */
     clearAllListenerEvents(listeners: NotificationListener[]): void {
         console.log('🧹 Clearing all listener events...');
-        listeners.forEach(listener => listener.clearEvents());
+        listeners.forEach((listener) => listener.clearEvents());
     }
 
     /**
@@ -110,14 +109,10 @@ export class NotificationDriver {
         groupId: string,
         eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
         afterTimestamp: number,
-        timeoutMs: number = 2000
+        timeoutMs: number = 2000,
     ): Promise<void> {
         console.log(`⏳ Waiting for all listeners to receive ${eventType} event for group ${groupId.slice(-8)}...`);
-        await Promise.all(
-            listeners.map(listener => 
-                listener.waitForNewEvent(groupId, eventType, afterTimestamp, timeoutMs)
-            )
-        );
+        await Promise.all(listeners.map((listener) => listener.waitForNewEvent(groupId, eventType, afterTimestamp, timeoutMs)));
         console.log(`✅ All listeners received ${eventType} event for group ${groupId.slice(-8)}`);
     }
 
@@ -125,12 +120,7 @@ export class NotificationDriver {
         return {
             activeListeners: Array.from(this.activeListeners.keys()),
             listenerCount: this.activeListeners.size,
-            listeners: Object.fromEntries(
-                Array.from(this.activeListeners.entries()).map(([userId, listener]) => [
-                    userId, 
-                    listener.getDebugInfo()
-                ])
-            )
+            listeners: Object.fromEntries(Array.from(this.activeListeners.entries()).map(([userId, listener]) => [userId, listener.getDebugInfo()])),
         };
     }
 }
@@ -145,7 +135,10 @@ export class NotificationListener {
     private receivedEvents: NotificationEvent[] = [];
     private isStarted = false;
 
-    constructor(private firestore: admin.firestore.Firestore, private userId: string) {}
+    constructor(
+        private firestore: admin.firestore.Firestore,
+        private userId: string,
+    ) {}
 
     async start(): Promise<void> {
         if (this.isStarted) {
@@ -154,9 +147,9 @@ export class NotificationListener {
 
         return new Promise((resolve, reject) => {
             const docRef = this.firestore.collection('user-notifications').doc(this.userId);
-            
+
             let hasInitialSnapshot = false;
-            
+
             this.listener = docRef.onSnapshot(
                 (snapshot) => {
                     try {
@@ -177,14 +170,14 @@ export class NotificationListener {
                     if (!hasInitialSnapshot) {
                         reject(error);
                     }
-                }
+                },
             );
         });
     }
 
     private handleSnapshot(snapshot: admin.firestore.DocumentSnapshot): void {
         console.log(`🔄 NotificationListener [${this.userId.slice(-8)}] received snapshot, exists: ${snapshot.exists}`);
-        
+
         if (!snapshot.exists) {
             console.log(`📭 No notification document exists for user [${this.userId.slice(-8)}]`);
             return;
@@ -195,16 +188,16 @@ export class NotificationListener {
             version: data.changeVersion,
             lastVersion: this.lastVersion,
             groupCount: Object.keys(data.groups || {}).length,
-            groupIds: Object.keys(data.groups || {}).map(id => id.slice(-8))
+            groupIds: Object.keys(data.groups || {}).map((id) => id.slice(-8)),
         });
-        
+
         // Handle version reset/corruption - reset listener state if document version went backwards
         if (data.changeVersion < this.lastVersion) {
             console.log(`🔧 Document version went backwards (${this.lastVersion} → ${data.changeVersion}), resetting listener state for user [${this.userId.slice(-8)}]`);
             this.lastVersion = data.changeVersion - 1; // Set to one less so this update gets processed
             this.lastGroupStates.clear();
         }
-        
+
         // Skip if no new changes
         if (data.changeVersion <= this.lastVersion) {
             console.log(`⏭️ Skipping - no new changes for user [${this.userId.slice(-8)}]`);
@@ -223,7 +216,7 @@ export class NotificationListener {
 
         for (const [groupId, groupData] of Object.entries(data.groups)) {
             const lastState = this.lastGroupStates.get(groupId);
-            
+
             // Check for different types of changes
             if (this.hasTransactionChanged(groupData, lastState)) {
                 const event = {
@@ -232,16 +225,16 @@ export class NotificationListener {
                     type: 'transaction' as const,
                     version: data.changeVersion,
                     timestamp,
-                    groupState: { ...groupData }
+                    groupState: { ...groupData },
                 };
                 this.receivedEvents.push(event);
                 console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received TRANSACTION event:`, {
                     groupId: groupId.slice(-8),
                     version: data.changeVersion,
-                    transactionCount: groupData.transactionChangeCount
+                    transactionCount: groupData.transactionChangeCount,
                 });
             }
-            
+
             if (this.hasBalanceChanged(groupData, lastState)) {
                 const event = {
                     userId: this.userId,
@@ -249,16 +242,16 @@ export class NotificationListener {
                     type: 'balance' as const,
                     version: data.changeVersion,
                     timestamp,
-                    groupState: { ...groupData }
+                    groupState: { ...groupData },
                 };
                 this.receivedEvents.push(event);
                 console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received BALANCE event:`, {
                     groupId: groupId.slice(-8),
                     version: data.changeVersion,
-                    balanceCount: groupData.balanceChangeCount
+                    balanceCount: groupData.balanceChangeCount,
                 });
             }
-            
+
             if (this.hasGroupDetailsChanged(groupData, lastState)) {
                 const event = {
                     userId: this.userId,
@@ -266,16 +259,16 @@ export class NotificationListener {
                     type: 'group' as const,
                     version: data.changeVersion,
                     timestamp,
-                    groupState: { ...groupData }
+                    groupState: { ...groupData },
                 };
                 this.receivedEvents.push(event);
                 console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received GROUP event:`, {
                     groupId: groupId.slice(-8),
                     version: data.changeVersion,
-                    groupCount: groupData.groupDetailsChangeCount
+                    groupCount: groupData.groupDetailsChangeCount,
                 });
             }
-            
+
             this.lastGroupStates.set(groupId, { ...groupData });
         }
 
@@ -288,12 +281,12 @@ export class NotificationListener {
                     groupId,
                     type: 'group_removed' as const,
                     version: data.changeVersion,
-                    timestamp
+                    timestamp,
                 };
                 this.receivedEvents.push(event);
                 console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received GROUP_REMOVED event:`, {
                     groupId: groupId.slice(-8),
-                    version: data.changeVersion
+                    version: data.changeVersion,
                 });
                 this.lastGroupStates.delete(groupId);
             }
@@ -334,7 +327,7 @@ export class NotificationListener {
      * Get events for a specific group
      */
     getEventsForGroup(groupId: string): NotificationEvent[] {
-        return this.receivedEvents.filter(event => event.groupId === groupId);
+        return this.receivedEvents.filter((event) => event.groupId === groupId);
     }
 
     /**
@@ -342,14 +335,14 @@ export class NotificationListener {
      */
     async waitForEvents(minCount: number, timeoutMs: number = 2000): Promise<NotificationEvent[]> {
         const startTime = Date.now();
-        
+
         while (this.receivedEvents.length < minCount) {
             if (Date.now() - startTime > timeoutMs) {
                 throw new Error(`Timeout waiting for ${minCount} events. Got ${this.receivedEvents.length}`);
             }
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
-        
+
         return [...this.receivedEvents];
     }
 
@@ -365,96 +358,70 @@ export class NotificationListener {
      * Get events received after a specific timestamp
      */
     getEventsSince(timestamp: number): NotificationEvent[] {
-        return this.receivedEvents.filter(event => event.timestamp.getTime() >= timestamp);
+        return this.receivedEvents.filter((event) => event.timestamp.getTime() >= timestamp);
     }
 
     /**
      * Get events for a specific group after a timestamp
      */
     getGroupEventsSince(groupId: string, timestamp: number): NotificationEvent[] {
-        return this.receivedEvents.filter(event => 
-            event.groupId === groupId && event.timestamp.getTime() >= timestamp
-        );
+        return this.receivedEvents.filter((event) => event.groupId === groupId && event.timestamp.getTime() >= timestamp);
     }
 
     /**
      * Get the latest event of a specific type for a group
      */
-    getLatestEvent(
-        groupId: string, 
-        eventType: 'transaction' | 'balance' | 'group' | 'group_removed'
-    ): NotificationEvent | undefined {
-        const events = this.receivedEvents
-            .filter(e => e.groupId === groupId && e.type === eventType)
-            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    getLatestEvent(groupId: string, eventType: 'transaction' | 'balance' | 'group' | 'group_removed'): NotificationEvent | undefined {
+        const events = this.receivedEvents.filter((e) => e.groupId === groupId && e.type === eventType).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
         return events[0];
     }
 
     /**
      * Wait for a new event of a specific type after a given timestamp
      */
-    async waitForNewEvent(
-        groupId: string,
-        eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
-        afterTimestamp: number,
-        timeoutMs: number = 2000
-    ): Promise<NotificationEvent> {
+    async waitForNewEvent(groupId: string, eventType: 'transaction' | 'balance' | 'group' | 'group_removed', afterTimestamp: number, timeoutMs: number = 2000): Promise<NotificationEvent> {
         const startTime = Date.now();
-        
+
         while (true) {
-            const event = this.receivedEvents.find(e => 
-                e.groupId === groupId && 
-                e.type === eventType && 
-                e.timestamp.getTime() >= afterTimestamp
-            );
-            
+            const event = this.receivedEvents.find((e) => e.groupId === groupId && e.type === eventType && e.timestamp.getTime() >= afterTimestamp);
+
             if (event) {
                 console.log(`✅ Found new ${eventType} event for group ${groupId.slice(-8)} after timestamp`);
                 return event;
             }
-            
+
             if (Date.now() - startTime > timeoutMs) {
-                const existingEvents = this.receivedEvents.filter(e => e.groupId === groupId);
+                const existingEvents = this.receivedEvents.filter((e) => e.groupId === groupId);
                 throw new Error(
                     `Timeout waiting for new ${eventType} event for group ${groupId} after timestamp ${new Date(afterTimestamp).toISOString()}. ` +
-                    `Found ${existingEvents.length} existing events: ${existingEvents.map(e => `${e.type}@${e.timestamp.toISOString()}`).join(', ')}`
+                        `Found ${existingEvents.length} existing events: ${existingEvents.map((e) => `${e.type}@${e.timestamp.toISOString()}`).join(', ')}`,
                 );
             }
-            
-            await new Promise(resolve => setTimeout(resolve, 100));
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     }
 
     /**
      * Wait for a specific number of events of a given type for a group
      */
-    async waitForEventCount(
-        groupId: string,
-        eventType: 'transaction' | 'balance' | 'group' | 'group_removed',
-        minCount: number,
-        timeoutMs: number = 2000
-    ): Promise<NotificationEvent[]> {
+    async waitForEventCount(groupId: string, eventType: 'transaction' | 'balance' | 'group' | 'group_removed', minCount: number, timeoutMs: number = 2000): Promise<NotificationEvent[]> {
         const startTime = Date.now();
-        
+
         while (true) {
-            const events = this.receivedEvents.filter(e => 
-                e.groupId === groupId && e.type === eventType
-            );
-            
+            const events = this.receivedEvents.filter((e) => e.groupId === groupId && e.type === eventType);
+
             if (events.length >= minCount) {
                 return events.slice(0, minCount);
             }
-            
+
             if (Date.now() - startTime > timeoutMs) {
-                throw new Error(
-                    `Timeout waiting for ${minCount} ${eventType} events for group ${groupId}. Got ${events.length}`
-                );
+                throw new Error(`Timeout waiting for ${minCount} ${eventType} events for group ${groupId}. Got ${events.length}`);
             }
-            
-            await new Promise(resolve => setTimeout(resolve, 100));
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
         }
     }
-
 
     getDebugInfo(): any {
         return {
@@ -464,12 +431,12 @@ export class NotificationListener {
             lastVersion: this.lastVersion,
             trackedGroups: Array.from(this.lastGroupStates.keys()),
             eventCount: this.receivedEvents.length,
-            recentEvents: this.receivedEvents.slice(-5).map(e => ({
+            recentEvents: this.receivedEvents.slice(-5).map((e) => ({
                 groupId: e.groupId,
                 type: e.type,
                 version: e.version,
-                timestamp: e.timestamp.toISOString()
-            }))
+                timestamp: e.timestamp.toISOString(),
+            })),
         };
     }
 }

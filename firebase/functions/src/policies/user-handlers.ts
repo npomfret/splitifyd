@@ -3,8 +3,8 @@ import { AuthenticatedRequest } from '../auth/middleware';
 import { HTTP_STATUS } from '../constants';
 import { ApiError } from '../utils/errors';
 import { validateAcceptPolicy, validateAcceptMultiplePolicies } from './validation';
-import { getFirestore } from "../firebase";
-import { ApplicationBuilder } from "../services/ApplicationBuilder";
+import { getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);

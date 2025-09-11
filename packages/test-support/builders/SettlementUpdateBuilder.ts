@@ -1,9 +1,4 @@
-import { 
-    randomDecimal, 
-    randomDate, 
-    randomCurrency,
-    generateShortId 
-} from '../test-helpers';
+import { randomDecimal, randomDate, randomCurrency, generateShortId } from '../test-helpers';
 
 export interface SettlementUpdate {
     amount?: number;

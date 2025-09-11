@@ -14,8 +14,8 @@ import {
     GetSettlementResponse,
     ListSettlementsApiResponse,
 } from '@splitifyd/shared';
-import { getFirestore } from "../firebase";
-import { ApplicationBuilder } from "../services/ApplicationBuilder";
+import { getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
@@ -106,7 +106,6 @@ export const getSettlement = async (req: AuthenticatedRequest, res: Response): P
     };
     res.status(HTTP_STATUS.OK).json(response);
 };
-
 
 export const listSettlements = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);

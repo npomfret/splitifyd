@@ -1,9 +1,9 @@
-import {simpleTest, expect} from '../../../fixtures/simple-test.fixture';
-import {GroupDetailPage} from '../../../pages';
-import {TestGroupWorkflow} from '../../../helpers';
-import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { GroupDetailPage } from '../../../pages';
+import { TestGroupWorkflow } from '../../../helpers';
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
-import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
+import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
 
 simpleTest.describe('Multi-Currency Basic Functionality', () => {
     simpleTest('should handle multi-currency expenses separately', async ({ newLoggedInBrowser }) => {
@@ -16,7 +16,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        
+
         // Navigate to the group page (TestGroupWorkflow doesn't auto-navigate)
         await page.goto(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -24,13 +24,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense using page object methods
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Lunch ${uniqueId}`)
-            .withAmount(25.0)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Lunch ${uniqueId}`).withAmount(25.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Verify back on group page with USD expense
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -38,13 +34,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Dinner ${uniqueId}`)
-            .withAmount(30.0)
-            .withCurrency('EUR')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Dinner ${uniqueId}`).withAmount(30.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Verify both expenses with separate currencies
         await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible();
@@ -67,7 +59,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        
+
         // Navigate to the group page (TestGroupWorkflow doesn't auto-navigate)
         await page.goto(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -75,26 +67,24 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create first expense with EUR
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Coffee ${uniqueId}`)
-            .withAmount(5.5)
-            .withCurrency('EUR')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Coffee ${uniqueId}`).withAmount(5.5).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Verify expense was created with EUR
         await expect(page.getByText('€5.50').first()).toBeVisible();
 
         // Create second expense - should default to EUR (remembered from first)
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Snack ${uniqueId}`)
-            .withAmount(3.25)
-            .withCurrency('EUR') // Should be remembered by the system
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription(`Snack ${uniqueId}`)
+                .withAmount(3.25)
+                .withCurrency('EUR') // Should be remembered by the system
+                .withPaidByDisplayName('Test User')
+                .withSplitType('equal')
+                .build(),
+        );
 
         // Verify second expense also used EUR
         await expect(page.getByText('€3.25').first()).toBeVisible();
@@ -110,7 +100,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        
+
         // Navigate to the group page (TestGroupWorkflow doesn't auto-navigate)
         await page.goto(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -118,23 +108,15 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Taxi ${uniqueId}`)
-            .withAmount(20.0)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Taxi ${uniqueId}`).withAmount(20.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Museum ${uniqueId}`)
-            .withAmount(15.0)
-            .withCurrency('EUR')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Museum ${uniqueId}`).withAmount(15.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Verify both expenses were created with proper currency display
         await expect(page.getByText('$20.00').first()).toBeVisible(); // USD expense
@@ -164,60 +146,48 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        
+
         // Navigate to the group page (TestGroupWorkflow doesn't auto-navigate)
         await page.goto(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         const uniqueId = generateShortId();
 
         // Add expenses in different currencies
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`USD Test ${uniqueId}`)
-            .withAmount(50.0)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`USD Test ${uniqueId}`).withAmount(50.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`EUR Test ${uniqueId}`)
-            .withAmount(40.0)
-            .withCurrency('EUR')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`EUR Test ${uniqueId}`).withAmount(40.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage3.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`GBP Test ${uniqueId}`)
-            .withAmount(30.0)
-            .withCurrency('GBP')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage3.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`GBP Test ${uniqueId}`).withAmount(30.0).withCurrency('GBP').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // STEP 1: Navigate back to dashboard and FIRST verify the group appears
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
 
         // Note: Using cached group - verify expenses are visible on dashboard
-        
+
         // STEP 2: Now test multi-currency display support
         // The key test is that the dashboard can display groups containing multi-currency expenses
         // without errors - we don't need to assert specific balance status
-        
+
         // STEP 3: Navigate back to the group using groupDetailPage (more reliable)
         await groupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         // Verify the multi-currency expenses are still accessible
         await expect(page.getByText(`USD Test ${uniqueId}`)).toBeVisible();
         await expect(page.getByText(`EUR Test ${uniqueId}`)).toBeVisible();
         await expect(page.getByText(`GBP Test ${uniqueId}`)).toBeVisible();
-        
+
         // FINAL ASSERTION: Dashboard successfully handles groups with multi-currency expenses
         // This test verifies that the dashboard infrastructure can display groups
         // containing expenses in different currencies without errors
@@ -233,11 +203,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        
+
         // Navigate to the group page (TestGroupWorkflow doesn't auto-navigate)
         await page.goto(`/groups/${groupId}`);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         const uniqueId = generateShortId();
 
         // Test different currency symbols with randomized amounts
@@ -250,13 +220,15 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         for (const { currency, amount, expectedSymbol } of testCases) {
             // Create expense with specific currency
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-            await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-                .withDescription(`Test ${currency} ${uniqueId}`)
-                .withAmount(amount)
-                .withCurrency(currency)
-                .withPaidByDisplayName("Test User")
-                .withSplitType('equal')
-                .build());
+            await expenseFormPage.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(`Test ${currency} ${uniqueId}`)
+                    .withAmount(amount)
+                    .withCurrency(currency)
+                    .withPaidByDisplayName('Test User')
+                    .withSplitType('equal')
+                    .build(),
+            );
 
             // Verify currency symbol appears correctly in expense list
             const expectedDisplay = `${expectedSymbol}${amount.toFixed(2)}`;

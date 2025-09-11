@@ -18,7 +18,10 @@ export function PayerSelector({ members, paidBy, validationErrors, updateField }
         <Card>
             <Stack spacing="md">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Who paid? <span className="text-red-500" data-testid="required-indicator">*</span>
+                    Who paid?{' '}
+                    <span className="text-red-500" data-testid="required-indicator">
+                        *
+                    </span>
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {members.map((member) => (

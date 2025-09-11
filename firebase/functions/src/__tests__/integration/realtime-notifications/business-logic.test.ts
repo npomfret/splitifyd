@@ -1,38 +1,30 @@
 // Business Logic Integration Tests
 // Tests notification system integration with business logic and permissions
 
-import {describe, test, expect} from 'vitest';
-import {
-    users, testGroup, apiDriver, notificationDriver, 
-    setupNotificationTest, cleanupNotificationTest,
-    createBasicExpense
-} from './shared-setup';
-import {CreateGroupRequestBuilder, SettlementBuilder} from '@splitifyd/test-support';
+import { describe, test, expect } from 'vitest';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense } from './shared-setup';
+import { CreateGroupRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Business Logic Integration Tests', () => {
     setupNotificationTest;
     cleanupNotificationTest;
 
     describe('Permission-Based Notifications', () => {
-
         test('should notify users only for groups they have access to', async () => {
             // 1. Create a second group with different members
-            const separateGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Separate Group').build(), 
-                users[1].token
-            );
+            const separateGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Separate Group').build(), users[1].token);
 
             // 2. Set up listeners for multiple users
             const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
 
             // 3. Create expense in main group - only user[0] should be notified
             const beforeExpense1 = Date.now();
-            const expense1 = createBasicExpense(testGroup.id, 25.00, 0);
+            const expense1 = createBasicExpense(testGroup.id, 25.0, 0);
             await apiDriver.createExpense(expense1, users[0].token);
 
             // 4. Create expense in separate group - only user[1] should be notified
             const beforeExpense2 = Date.now();
-            const expense2 = createBasicExpense(separateGroup.id, 30.00, 1);
+            const expense2 = createBasicExpense(separateGroup.id, 30.0, 1);
             await apiDriver.createExpense(expense2, users[1].token);
 
             // 5. Wait for notifications
@@ -62,7 +54,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create an expense - both user1 and user2 should get notifications
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 40.00, 0);
+            const expense = createBasicExpense(testGroup.id, 40.0, 0);
             await apiDriver.createExpense(expense, users[0].token);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -73,21 +65,24 @@ describe('Business Logic Integration Tests', () => {
 
             // 5. Create another expense - only user1 should get notifications now
             const beforeExpense2 = Date.now();
-            const expense2 = createBasicExpense(testGroup.id, 50.00, 0);
+            const expense2 = createBasicExpense(testGroup.id, 50.0, 0);
             await apiDriver.createExpense(expense2, users[0].token);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense2);
 
             // 6. Verify user2 doesn't get notifications after removal
             // Wait longer for atomic cleanup to complete
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
             // Check all events for this group after removal timestamp
             const allUser2Events = listener2.getEventsForGroup(testGroup.id);
-            console.log('User2 events after removal:', allUser2Events.map(e => ({type: e.type, timestamp: e.timestamp})));
-            
+            console.log(
+                'User2 events after removal:',
+                allUser2Events.map((e) => ({ type: e.type, timestamp: e.timestamp })),
+            );
+
             // User2 should have events from before removal but not after
-            const user2EventsAfterRemoval = allUser2Events.filter(e => e.timestamp.getTime() >= beforeExpense2);
+            const user2EventsAfterRemoval = allUser2Events.filter((e) => e.timestamp.getTime() >= beforeExpense2);
             expect(user2EventsAfterRemoval.length).toBe(0);
 
             console.log('✅ Permission changes affect notification delivery correctly');
@@ -105,7 +100,7 @@ describe('Business Logic Integration Tests', () => {
 
             // 3. Create some activity to establish all users are in the group
             const beforeExpense = Date.now();
-            const expense = createBasicExpense(testGroup.id, 30.00, 0);
+            const expense = createBasicExpense(testGroup.id, 30.0, 0);
             await apiDriver.createExpense(expense, users[0].token);
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -121,20 +116,23 @@ describe('Business Logic Integration Tests', () => {
 
             // 6. Verify user2 (removed member) doesn't get any notifications after removal
             // Wait longer for atomic cleanup to complete
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
             // Check all events for this group after removal timestamp
             const allUser2Events = listener2.getEventsForGroup(testGroup.id);
-            console.log('User2 events after removal:', allUser2Events.map(e => ({type: e.type, timestamp: e.timestamp})));
-            
+            console.log(
+                'User2 events after removal:',
+                allUser2Events.map((e) => ({ type: e.type, timestamp: e.timestamp })),
+            );
+
             // User2 should have events from before removal but not after
-            const user2EventsAfterRemoval = allUser2Events.filter(e => e.timestamp.getTime() >= beforeRemoval);
+            const user2EventsAfterRemoval = allUser2Events.filter((e) => e.timestamp.getTime() >= beforeRemoval);
             expect(user2EventsAfterRemoval.length).toBe(0);
 
             // 7. Verify remaining members got the group update notifications
             const user1LatestGroupEvent = listener1.getLatestEvent(testGroup.id, 'group');
             const user3LatestGroupEvent = listener3.getLatestEvent(testGroup.id, 'group');
-            
+
             const user1GroupEvents = user1LatestGroupEvent ? [user1LatestGroupEvent] : [];
             const user3GroupEvents = user3LatestGroupEvent ? [user3LatestGroupEvent] : [];
 
@@ -143,36 +141,37 @@ describe('Business Logic Integration Tests', () => {
 
             console.log('✅ Remaining group members notified when admin removes a user');
         });
-
     }); // End Permission-Based Notifications
 
     describe('Feature-Specific Notifications', () => {
-
         test('should handle comment notifications', async () => {
             // 1. Set up listeners for multiple users
             const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
 
-            // 2. Add user2 to group for comment testing  
+            // 2. Add user2 to group for comment testing
             const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // 3. Create an expense first
-            const expense = createBasicExpense(testGroup.id, 35.00, 0);
+            const expense = createBasicExpense(testGroup.id, 35.0, 0);
             const createdExpense = await apiDriver.createExpense(expense, users[0].token);
 
             // 4. Add comment to the expense
-            await apiDriver.createExpenseComment(createdExpense.id, "This is a test comment", users[1].token);
+            await apiDriver.createExpenseComment(createdExpense.id, 'This is a test comment', users[1].token);
 
             // 5. Wait for any potential comment-related notifications
             // Note: This test may reveal if comment notifications are implemented
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // 6. Check for comment-related events (this will help us understand current behavior)
             const commentEvents = listener1.getEventsForGroup(testGroup.id);
 
             console.log(`Comment events detected: ${commentEvents.length}`);
             if (commentEvents.length > 0) {
-                console.log('Comment event types:', commentEvents.map(e => e.type));
+                console.log(
+                    'Comment event types:',
+                    commentEvents.map((e) => e.type),
+                );
             }
 
             // For now, just verify the test infrastructure works
@@ -185,14 +184,14 @@ describe('Business Logic Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create an expense
-            const expense = createBasicExpense(testGroup.id, 45.00, 0);
+            const expense = createBasicExpense(testGroup.id, 45.0, 0);
             const createdExpense = await apiDriver.createExpense(expense, users[0].token);
 
             // 3. Edit the expense metadata
             const beforeEdit = Date.now();
             const editRequest = {
                 description: 'Updated description',
-                amount: 55.00
+                amount: 55.0,
             };
 
             await apiDriver.updateExpense(createdExpense.id, editRequest, users[0].token);
@@ -201,8 +200,7 @@ describe('Business Logic Integration Tests', () => {
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeEdit);
 
             // 5. Verify we got transaction notification for the edit
-            const editEvents = listener.getEventsForGroup(testGroup.id)
-                .filter(e => e.type === 'transaction');
+            const editEvents = listener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(editEvents.length).toBeGreaterThanOrEqual(1);
             console.log('✅ Expense metadata changes trigger notifications');
@@ -213,17 +211,11 @@ describe('Business Logic Integration Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create a group with specific currency
-            const currencyGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName('Currency Test Group')
-                    .withDescription('EUR currency group')
-                    .build(), 
-                users[0].token
-            );
+            const currencyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Currency Test Group').withDescription('EUR currency group').build(), users[0].token);
 
             // 3. Create expense in EUR group
             const beforeExpense = Date.now();
-            const eurExpense = createBasicExpense(currencyGroup.id, 25.50, 0);
+            const eurExpense = createBasicExpense(currencyGroup.id, 25.5, 0);
             await apiDriver.createExpense(eurExpense, users[0].token);
 
             // 4. Wait for notifications
@@ -232,15 +224,13 @@ describe('Business Logic Integration Tests', () => {
             // 5. Verify transaction and balance events
             const currencyEvents = listener.getEventsForGroup(currencyGroup.id);
 
-            const transactionEvents = currencyEvents.filter(e => e.type === 'transaction');
-            const balanceEvents = currencyEvents.filter(e => e.type === 'balance');
+            const transactionEvents = currencyEvents.filter((e) => e.type === 'transaction');
+            const balanceEvents = currencyEvents.filter((e) => e.type === 'balance');
 
             expect(transactionEvents.length).toBeGreaterThanOrEqual(1);
             expect(balanceEvents.length).toBeGreaterThanOrEqual(1);
 
             console.log('✅ Currency-specific notifications work correctly');
         });
-
     }); // End Feature-Specific Notifications
-
 });

@@ -4,7 +4,6 @@ import { GroupPermissions, SecurityPreset, SecurityPresets, PermissionLevels } f
  * @deprecated Use PermissionEngineAsync instead for scalable subcollection-based permissions
  */
 export class PermissionEngine {
-
     /**
      * Get default permissions for a security preset
      */
@@ -34,5 +33,4 @@ export class PermissionEngine {
                 return this.getDefaultPermissions(SecurityPresets.OPEN);
         }
     }
-
 }

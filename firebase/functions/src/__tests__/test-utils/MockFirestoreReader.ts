@@ -1,9 +1,9 @@
 /**
  * Mock FirestoreReader Implementation for Testing
- * 
+ *
  * Provides a fully-mocked implementation of IFirestoreReader using Vitest mocks.
  * This allows for fast, isolated unit tests without requiring a Firebase emulator.
- * 
+ *
  * Features:
  * - Type-safe mock functions for all interface methods
  * - Helper methods for common test scenarios
@@ -13,17 +13,10 @@
 
 import { vi } from 'vitest';
 import type { IFirestoreReader } from '../../services/firestore/IFirestoreReader';
-import type {
-    PaginatedResult
-} from '../../types/firestore-reader-types';
+import type { PaginatedResult } from '../../types/firestore-reader-types';
 
 // Import types for proper typing
-import type {
-    UserDocument,
-    GroupDocument,
-    ExpenseDocument,
-    SettlementDocument
-} from '../../schemas';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
 import type { PolicyDocument } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
@@ -71,7 +64,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     public getDocumentsBatch = vi.fn();
     public getMetricsDocuments = vi.fn();
     public getCollectionSize = vi.fn();
-    
+
     // New methods added for centralized Firestore access
     public getUserExpenses = vi.fn();
     public getExpenseHistory = vi.fn();
@@ -124,7 +117,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     emailVerified: true,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...userData
+                    ...userData,
                 } as UserDocument;
             }
             return null;
@@ -136,7 +129,7 @@ export class MockFirestoreReader implements IFirestoreReader {
      */
     public mockUsersExist(users: Array<{ id: string; data?: any }>): void {
         this.getUser.mockImplementation(async (id: string) => {
-            const user = users.find(u => u.id === id);
+            const user = users.find((u) => u.id === id);
             if (user) {
                 return {
                     id,
@@ -145,7 +138,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     emailVerified: true,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...user.data
+                    ...user.data,
                 };
             }
             return null;
@@ -162,7 +155,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     emailVerified: true,
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...user.data
+                    ...user.data,
                 }));
         });
     }
@@ -183,7 +176,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     permissions: {},
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...groupData
+                    ...groupData,
                 } as GroupDocument;
             }
             return null;
@@ -198,13 +191,13 @@ export class MockFirestoreReader implements IFirestoreReader {
             data: groups,
             hasMore,
             nextCursor,
-            totalEstimate: groups.length + (hasMore ? 10 : 0)
+            totalEstimate: groups.length + (hasMore ? 10 : 0),
         };
-        
+
         this.getGroupsForUser.mockResolvedValue(paginatedResult);
-        
+
         // Also mock individual group gets
-        groups.forEach(group => {
+        groups.forEach((group) => {
             if (!this.getGroup.getMockImplementation()) {
                 this.mockGroupExists(group.id, group);
             }
@@ -219,13 +212,13 @@ export class MockFirestoreReader implements IFirestoreReader {
             data: groups,
             hasMore,
             nextCursor,
-            totalEstimate: groups.length + (hasMore ? 10 : 0)
+            totalEstimate: groups.length + (hasMore ? 10 : 0),
         };
-        
+
         this.getGroupsForUserV2.mockResolvedValue(paginatedResult);
-        
+
         // Also mock individual group gets
-        groups.forEach(group => {
+        groups.forEach((group) => {
             if (!this.getGroup.getMockImplementation()) {
                 this.mockGroupExists(group.id, group);
             }
@@ -236,24 +229,20 @@ export class MockFirestoreReader implements IFirestoreReader {
      * Mock paginated groups with specific pagination behavior
      * Useful for testing pagination edge cases
      */
-    public mockPaginatedGroups(
-        userId: string, 
-        allGroups: GroupDocument[], 
-        pageSize: number = 10
-    ): void {
+    public mockPaginatedGroups(userId: string, allGroups: GroupDocument[], pageSize: number = 10): void {
         this.getGroupsForUser.mockImplementation(async (uid, options) => {
             if (uid !== userId) {
                 return { data: [], hasMore: false };
             }
-            
+
             const limit = options?.limit || pageSize;
             const cursor = options?.cursor;
-            
+
             let startIndex = 0;
             if (cursor) {
                 try {
                     const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
-                    const cursorIndex = allGroups.findIndex(group => group.id === cursorData.lastGroupId);
+                    const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
                     if (cursorIndex >= 0) {
                         startIndex = cursorIndex + 1;
                     }
@@ -261,26 +250,26 @@ export class MockFirestoreReader implements IFirestoreReader {
                     // Invalid cursor, start from beginning
                 }
             }
-            
+
             const endIndex = startIndex + limit;
             const pageData = allGroups.slice(startIndex, endIndex);
             const hasMore = endIndex < allGroups.length;
-            
+
             let nextCursor: string | undefined;
             if (hasMore && pageData.length > 0) {
                 const lastGroup = pageData[pageData.length - 1];
                 const cursorData = {
                     lastGroupId: lastGroup.id,
-                    lastUpdatedAt: lastGroup.updatedAt
+                    lastUpdatedAt: lastGroup.updatedAt,
                 };
                 nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
             }
-            
+
             return {
                 data: pageData,
                 hasMore,
                 nextCursor,
-                totalEstimate: allGroups.length
+                totalEstimate: allGroups.length,
             };
         });
 
@@ -289,15 +278,15 @@ export class MockFirestoreReader implements IFirestoreReader {
             if (uid !== userId) {
                 return { data: [], hasMore: false };
             }
-            
+
             const limit = options?.limit || pageSize;
             const cursor = options?.cursor;
-            
+
             let startIndex = 0;
             if (cursor) {
                 try {
                     const cursorData = JSON.parse(Buffer.from(cursor, 'base64').toString());
-                    const cursorIndex = allGroups.findIndex(group => group.id === cursorData.lastGroupId);
+                    const cursorIndex = allGroups.findIndex((group) => group.id === cursorData.lastGroupId);
                     if (cursorIndex >= 0) {
                         startIndex = cursorIndex + 1;
                     }
@@ -305,26 +294,26 @@ export class MockFirestoreReader implements IFirestoreReader {
                     // Invalid cursor, start from beginning
                 }
             }
-            
+
             const endIndex = startIndex + limit;
             const pageData = allGroups.slice(startIndex, endIndex);
             const hasMore = endIndex < allGroups.length;
-            
+
             let nextCursor: string | undefined;
             if (hasMore && pageData.length > 0) {
                 const lastGroup = pageData[pageData.length - 1];
                 const cursorData = {
                     lastGroupId: lastGroup.id,
-                    lastUpdatedAt: lastGroup.updatedAt
+                    lastUpdatedAt: lastGroup.updatedAt,
                 };
                 nextCursor = Buffer.from(JSON.stringify(cursorData)).toString('base64');
             }
-            
+
             return {
                 data: pageData,
                 hasMore,
                 nextCursor,
-                totalEstimate: allGroups.length
+                totalEstimate: allGroups.length,
             };
         });
     }
@@ -339,9 +328,9 @@ export class MockFirestoreReader implements IFirestoreReader {
             }
             return [];
         });
-        
+
         // Also mock individual expense gets
-        expenses.forEach(expense => {
+        expenses.forEach((expense) => {
             this.mockExpenseExists(expense.id, expense);
         });
     }
@@ -356,7 +345,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     id: expenseId,
                     groupId: 'test-group',
                     description: 'Test expense',
-                    amount: 10.00,
+                    amount: 10.0,
                     currency: 'USD',
                     paidBy: 'test-user',
                     createdBy: 'test-user',
@@ -364,7 +353,7 @@ export class MockFirestoreReader implements IFirestoreReader {
                     splits: [],
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...expenseData
+                    ...expenseData,
                 } as ExpenseDocument;
             }
             return null;
@@ -394,20 +383,18 @@ export class MockFirestoreReader implements IFirestoreReader {
                     groupId: 'test-group',
                     payer: 'test-payer',
                     payee: 'test-payee',
-                    amount: 25.00,
+                    amount: 25.0,
                     currency: 'USD',
                     settlementDate: new Date(),
                     createdBy: 'test-user',
                     createdAt: new Date(),
                     updatedAt: new Date(),
-                    ...settlementData
+                    ...settlementData,
                 } as SettlementDocument;
             }
             return null;
         });
     }
-
-
 
     /**
      * Mock document existence checks
@@ -417,8 +404,6 @@ export class MockFirestoreReader implements IFirestoreReader {
             return col === collection && id === documentId ? exists : false;
         });
     }
-
-
 
     // ========================================================================
     // Data Builder Helpers
@@ -436,7 +421,7 @@ export class MockFirestoreReader implements IFirestoreReader {
             emailVerified: true,
             createdAt: new Date(),
             updatedAt: new Date(),
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -453,15 +438,15 @@ export class MockFirestoreReader implements IFirestoreReader {
             securityPreset: 'open',
             permissions: {
                 expenseEditing: 'anyone',
-                expenseDeletion: 'anyone', 
+                expenseDeletion: 'anyone',
                 memberInvitation: 'anyone',
                 memberApproval: 'automatic',
-                settingsManagement: 'anyone'
+                settingsManagement: 'anyone',
             },
             createdAt: new Date(),
             updatedAt: new Date(),
             deletedAt: null,
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -473,7 +458,7 @@ export class MockFirestoreReader implements IFirestoreReader {
             id,
             groupId: 'test-group',
             description: 'Test expense',
-            amount: 10.00,
+            amount: 10.0,
             currency: 'USD',
             category: 'general',
             paidBy: 'test-user',
@@ -484,7 +469,7 @@ export class MockFirestoreReader implements IFirestoreReader {
             createdAt: new Date(),
             updatedAt: new Date(),
             deletedAt: null,
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -496,10 +481,10 @@ export class MockFirestoreReader implements IFirestoreReader {
             id,
             groupId: 'test-group',
             payerId: 'test-payer',
-            payeeId: 'test-payee', 
+            payeeId: 'test-payee',
             payer: 'test-payer',
             payee: 'test-payee',
-            amount: 25.00,
+            amount: 25.0,
             currency: 'USD',
             date: new Date(),
             settlementDate: new Date(),
@@ -507,7 +492,7 @@ export class MockFirestoreReader implements IFirestoreReader {
             createdAt: new Date(),
             updatedAt: new Date(),
             deletedAt: null,
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -520,12 +505,12 @@ export class MockFirestoreReader implements IFirestoreReader {
         });
 
         this.getAllGroupMemberIds.mockImplementation(async (id) => {
-            return id === groupId ? members.map(m => m.userId) : [];
+            return id === groupId ? members.map((m) => m.userId) : [];
         });
 
         this.getGroupMember.mockImplementation(async (id, userId) => {
             if (id === groupId) {
-                return members.find(m => m.userId === userId) || null;
+                return members.find((m) => m.userId === userId) || null;
             }
             return null;
         });
@@ -536,7 +521,7 @@ export class MockFirestoreReader implements IFirestoreReader {
      */
     public mockMemberInSubcollection(groupId: string, member: GroupMemberDocument): void {
         this.getGroupMember.mockImplementation(async (id, userId) => {
-            return (id === groupId && userId === member.userId) ? member : null;
+            return id === groupId && userId === member.userId ? member : null;
         });
     }
 
@@ -554,11 +539,11 @@ export class MockFirestoreReader implements IFirestoreReader {
                 name: 'Blue',
                 pattern: 'solid' as any,
                 assignedAt: new Date().toISOString(),
-                colorIndex: 0
+                colorIndex: 0,
             },
             joinedAt: new Date().toISOString(),
             memberStatus: 'active' as any,
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -582,11 +567,11 @@ export class MockFirestoreReader implements IFirestoreReader {
                         'test-hash': {
                             text: 'Test policy content',
                             createdAt: new Date().toISOString(),
-                        }
+                        },
                     },
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
-                    ...policyData
+                    ...policyData,
                 } as PolicyDocument;
             }
             return null;
@@ -619,11 +604,11 @@ export class MockFirestoreReader implements IFirestoreReader {
                 'test-hash': {
                     text: 'Test policy content',
                     createdAt: new Date().toISOString(),
-                }
+                },
             },
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-            ...overrides
+            ...overrides,
         };
     }
 
@@ -634,7 +619,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     getSettlementsForGroupPaginated = vi.fn().mockResolvedValue({
         settlements: [],
         hasMore: false,
-        nextCursor: undefined
+        nextCursor: undefined,
     });
 
     getSystemMetrics = vi.fn().mockResolvedValue(null);
@@ -644,7 +629,6 @@ export class MockFirestoreReader implements IFirestoreReader {
     verifyGroupMembership = vi.fn().mockResolvedValue(true);
 
     getSubcollectionDocument = vi.fn().mockResolvedValue(null);
-
 
     getTestUsersByStatus = vi.fn().mockResolvedValue([]);
 
@@ -664,7 +648,7 @@ export class MockFirestoreReader implements IFirestoreReader {
     getRawGroupDocument = vi.fn().mockResolvedValue(null);
     getRawPolicyDocument = vi.fn().mockResolvedValue(null);
     getRawGroupDocumentInTransaction = vi.fn().mockResolvedValue(null);
-    
+
     // Additional transaction methods for complete migration
     getRawExpenseDocumentInTransaction = vi.fn().mockResolvedValue(null);
     getRawSettlementDocumentInTransaction = vi.fn().mockResolvedValue(null);

@@ -3,13 +3,13 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import {beforeEach, describe, expect, test} from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, Group } from '@splitifyd/shared';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 describe('Permission System Edge Cases', () => {
     const apiDriver = new ApiDriver();
@@ -372,20 +372,20 @@ describe('Permission System Edge Cases', () => {
             // Optimistic locking protects against actual race conditions, but these operations
             // may complete sequentially without conflict in the test environment
             const results = await Promise.allSettled(permissionPromises);
-            
-            const succeeded = results.filter(r => r.status === 'fulfilled').length;
-            const failed = results.filter(r => r.status === 'rejected').length;
-            
+
+            const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+            const failed = results.filter((r) => r.status === 'rejected').length;
+
             // The operations may succeed or one may fail with concurrent update - both are valid outcomes
             // This demonstrates that optimistic locking is working correctly
             expect(succeeded + failed).toBe(2);
-            
+
             // If there was a failure, verify it's a concurrent update error (optimistic locking working)
             if (failed > 0) {
-                const failedResult = results.find(r => r.status === 'rejected') as PromiseRejectedResult;
+                const failedResult = results.find((r) => r.status === 'rejected') as PromiseRejectedResult;
                 expect(failedResult.reason.message).toContain('CONCURRENT_UPDATE');
             }
-            
+
             // Verify at least one change was applied correctly
             const updatedGroup = await apiDriver.getGroup(concurrentGroup.id, users[0].token);
             // At least one operation should have succeeded, so either the permission or role change should be applied

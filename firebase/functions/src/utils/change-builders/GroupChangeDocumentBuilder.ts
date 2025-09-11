@@ -4,7 +4,7 @@ import { ChangeType, ChangeMetadata } from '../change-detection';
 
 /**
  * Builder for group change documents
- * 
+ *
  * Groups are top-level entities that don't require a groupId field since they ARE the group.
  * This builder encapsulates the logic for creating group-specific change documents.
  */
@@ -12,12 +12,7 @@ export class GroupChangeDocumentBuilder implements IChangeDocumentBuilder {
     /**
      * Create a standardized change document for a group
      */
-    createChangeDocument(
-        entityId: string,
-        changeType: ChangeType,
-        metadata: ChangeMetadata,
-        additionalData: Record<string, any> = {}
-    ): Record<string, any> {
+    createChangeDocument(entityId: string, changeType: ChangeType, metadata: ChangeMetadata, additionalData: Record<string, any> = {}): Record<string, any> {
         const baseDoc = {
             groupId: entityId,
             changeType,
@@ -32,12 +27,7 @@ export class GroupChangeDocumentBuilder implements IChangeDocumentBuilder {
     /**
      * Create a minimal change document for a group
      */
-    createMinimalChangeDocument(
-        entityId: string,
-        changeType: ChangeType,
-        affectedUsers: string[],
-        additionalData: Record<string, any> = {}
-    ): Record<string, any> {
+    createMinimalChangeDocument(entityId: string, changeType: ChangeType, affectedUsers: string[], additionalData: Record<string, any> = {}): Record<string, any> {
         const baseDoc: Record<string, any> = {
             id: entityId,
             type: 'group',

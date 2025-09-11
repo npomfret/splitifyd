@@ -1,7 +1,7 @@
 import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
-import {PooledTestUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 
 export abstract class BasePage {
     protected userInfo?: PooledTestUser;
@@ -101,7 +101,7 @@ export abstract class BasePage {
             if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
                 return; // Values are numerically equal
             }
-            
+
             // Handle special case: when clearing a number input, it may default to "0"
             // Accept "0" as equivalent to empty string for number inputs
             if (expectedValue === '' && actualValue === '0') {
@@ -188,7 +188,7 @@ export abstract class BasePage {
      */
     async fillNumberInput(selector: string | Locator, value: string, maxRetries = 3) {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
-        
+
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
 
@@ -197,17 +197,17 @@ export abstract class BasePage {
                 await input.click();
                 await this.waitForFocus(input);
                 await input.fill('');
-                
+
                 // For number inputs, clearing may result in "0" instead of "", which is acceptable
                 const clearedValue = await input.inputValue();
                 if (clearedValue !== '' && clearedValue !== '0') {
                     const fieldId = await this.getFieldIdentifier(input);
                     throw new Error(`Failed to clear number input "${fieldId}": expected "" or "0" but got "${clearedValue}"`);
                 }
-                
+
                 await this.waitForFocus(input);
                 await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                
+
                 await input.fill(value);
                 await input.dispatchEvent('input');
                 await input.blur();
@@ -215,7 +215,7 @@ export abstract class BasePage {
                 const actualValue = await input.inputValue();
                 const expectedNum = parseFloat(value);
                 const actualNum = parseFloat(actualValue);
-                
+
                 // For number inputs, compare numerically to handle normalization (e.g., "45.50" -> "45.5")
                 if (!isNaN(expectedNum) && !isNaN(actualNum) && expectedNum === actualNum) {
                     await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
@@ -267,10 +267,10 @@ export abstract class BasePage {
         await this._page.evaluate(() => {
             // Clear localStorage
             localStorage.clear();
-            // Clear sessionStorage  
+            // Clear sessionStorage
             sessionStorage.clear();
         });
-        
+
         // Clear cookies
         const context = this._page.context();
         await context.clearCookies();
@@ -495,24 +495,24 @@ export abstract class BasePage {
     async logout(): Promise<void> {
         const userMenuButton = this.getUserMenuButton();
         const dropdownMenu = this.getUserDropdownMenu();
-        
+
         // Ensure user menu button is visible and enabled
         await expect(userMenuButton).toBeVisible();
         await expect(userMenuButton).toBeEnabled();
-        
+
         // Click to open dropdown
         await userMenuButton.click();
-        
+
         // Wait for both the dropdown to be visible AND the sign-out button to be present
         await expect(dropdownMenu).toBeVisible();
-        
+
         const signOutButton = dropdownMenu.locator('[data-testid="sign-out-button"]');
         await expect(signOutButton).toBeVisible();
         await expect(signOutButton).toBeEnabled();
-        
+
         // Wait for the element to be stable (no animations/transitions)
         await signOutButton.waitFor({ state: 'attached' });
-        
+
         // Click the sign-out button
         await signOutButton.click();
 
@@ -532,11 +532,11 @@ export abstract class BasePage {
         // The user name is displayed in the menu button with specific classes
         const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
         const textContent = await nameElement.textContent();
-        
+
         if (!textContent) {
             throw new Error('Could not extract user display name from user menu button');
         }
-        
+
         return textContent.trim();
     }
 

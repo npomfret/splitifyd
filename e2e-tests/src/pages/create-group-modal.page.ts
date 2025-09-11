@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES } from '../constants/selectors';
 import { TIMEOUTS } from '../config/timeouts';
-import { PooledTestUser   } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class CreateGroupModalPage extends BasePage {
@@ -67,15 +67,13 @@ export class CreateGroupModalPage extends BasePage {
         // Give a brief moment for either modal closure or validation errors to appear
         await expect(async () => {
             const modalStillOpen = await this.isOpen();
-            const hasValidationErrors = await this.getErrorMessage().count() > 0;
-            
+            const hasValidationErrors = (await this.getErrorMessage().count()) > 0;
+
             // Either modal should close OR validation errors should appear OR operation is still in progress
             if (modalStillOpen && !hasValidationErrors) {
                 // Check if button is in loading state (indicates operation in progress)
-                const isLoading = await submitButton.isDisabled() || 
-                                await submitButton.locator('.animate-spin').count() > 0 ||
-                                await submitButton.getAttribute('aria-busy') === 'true';
-                
+                const isLoading = (await submitButton.isDisabled()) || (await submitButton.locator('.animate-spin').count()) > 0 || (await submitButton.getAttribute('aria-busy')) === 'true';
+
                 if (!isLoading) {
                     throw new Error('No completion indicators detected yet');
                 }
@@ -94,7 +92,7 @@ export class CreateGroupModalPage extends BasePage {
                 throw new Error('Form submission failed - modal still open but no validation errors detected');
             }
         }
-        
+
         // If we reach here, modal closed successfully (form submitted)
     }
 
@@ -102,11 +100,11 @@ export class CreateGroupModalPage extends BasePage {
         // Modal MUST have a cancel/close button - this is basic UX
         // Wait for modal to be fully rendered including buttons
         await this.page.waitForLoadState('domcontentloaded');
-        
+
         // Target Cancel button specifically within the modal dialog context
         const modalDialog = this.page.getByRole('dialog');
         const cancelButton = modalDialog.getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.cancelButton, exact: true });
-        
+
         // Wait for button to be visible before clicking
         await expect(cancelButton).toBeVisible({ timeout: 5000 });
         await this.clickButton(cancelButton, { buttonName: translationEn.createGroupModal.cancelButton });
@@ -136,7 +134,6 @@ export class CreateGroupModalPage extends BasePage {
 
         await this.waitForModalToClose();
     }
-
 
     async waitForModalToClose() {
         // Simply wait for the modal to close - don't worry about intermediate states
@@ -189,13 +186,13 @@ export class CreateGroupModalPage extends BasePage {
     getErrorMessage(pattern?: string | RegExp): Locator {
         // First try the specific testid for create group errors
         const specificError = this.page.locator('[data-testid="create-group-error-message"]');
-        
+
         // Then try generic error selectors
         const genericErrors = this.page.locator('[role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
-        
+
         // Combine both selectors
         const allErrors = this.page.locator('[data-testid="create-group-error-message"], [role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
-        
+
         if (pattern) {
             return allErrors.filter({ hasText: pattern });
         }

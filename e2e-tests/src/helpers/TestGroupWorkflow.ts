@@ -28,13 +28,9 @@ export class TestGroupWorkflow {
     /**
      * Get or create a group for E2E testing, with caching to improve performance
      */
-    public static async getOrCreateGroup(
-        page: Page,
-        userEmail: string,
-        options: GroupOptions = {}
-    ): Promise<string> {
+    public static async getOrCreateGroup(page: Page, userEmail: string, options: GroupOptions = {}): Promise<string> {
         const { fresh = false, description, memberCount = 1 } = options;
-        
+
         if (fresh) {
             return this.createFreshGroup(page, description);
         }
@@ -52,13 +48,9 @@ export class TestGroupWorkflow {
     /**
      * Try to reuse an existing group from the dashboard, or create a new one
      */
-    public static async getOrCreateGroupSmarter(
-        page: Page,
-        userEmail: string,
-        options: GroupOptions = {}
-    ): Promise<string> {
+    public static async getOrCreateGroupSmarter(page: Page, userEmail: string, options: GroupOptions = {}): Promise<string> {
         const { fresh = false, description, memberCount = 1 } = options;
-        
+
         if (fresh) {
             return this.createFreshGroup(page, description);
         }
@@ -80,10 +72,10 @@ export class TestGroupWorkflow {
         }
 
         const groupId = await this.groupCache.get(cacheKey)!;
-        
+
         // Ensure we're actually on the group page
         await this.ensureNavigatedToGroup(page, groupId);
-        
+
         return groupId;
     }
 
@@ -93,7 +85,7 @@ export class TestGroupWorkflow {
     private static async tryToFindExistingGroup(page: Page): Promise<string | null> {
         try {
             const dashboard = new DashboardPage(page);
-            
+
             // Navigate to dashboard if not already there
             const currentUrl = page.url();
             if (!currentUrl.includes('/dashboard')) {
@@ -104,28 +96,28 @@ export class TestGroupWorkflow {
             // Look for any existing group cards
             const groupCards = page.locator('[data-testid="group-card"]');
             const groupCount = await groupCards.count();
-            
+
             if (groupCount > 0) {
                 // Click on the first available group
                 await groupCards.first().click();
-                
+
                 // Wait for navigation to group detail page
                 await page.waitForURL(/\/groups\/[^\/]+/);
-                
+
                 // Extract group ID from URL
                 const url = page.url();
                 const match = url.match(/\/groups\/([^\/]+)/);
                 if (match) {
                     const groupId = match[1];
-                    
+
                     // Verify we're on a valid group page
                     const groupDetailPage = new GroupDetailPage(page);
                     await groupDetailPage.waitForBalancesToLoad(groupId);
-                    
+
                     return groupId;
                 }
             }
-            
+
             return null;
         } catch (error) {
             // If anything goes wrong, fall back to creating a new group
@@ -139,16 +131,16 @@ export class TestGroupWorkflow {
      */
     private static async ensureNavigatedToGroup(page: Page, groupId: string): Promise<void> {
         const currentUrl = page.url();
-        
+
         // If already on the correct group page, nothing to do
         if (currentUrl.includes(`/groups/${groupId}`)) {
             return;
         }
-        
+
         // Navigate to the group page
         await page.goto(`/groups/${groupId}`);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        
+
         // Verify navigation succeeded
         const groupDetailPage = new GroupDetailPage(page);
         await groupDetailPage.waitForBalancesToLoad(groupId);

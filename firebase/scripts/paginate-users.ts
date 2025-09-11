@@ -25,7 +25,6 @@ const { isEmulator, environment } = env;
 console.log(`🎯 Paginating through users in ${environment}`);
 console.log(`📄 Page size: ${pageSize}, Max pages: ${maxPages}`);
 
-
 // We'll get these instances dynamically
 let firestoreDb: Firestore;
 

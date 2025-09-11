@@ -24,14 +24,9 @@ export class TestSettlementManager {
         return `${groupId}:${payerId}:${payeeId}`;
     }
 
-    public static async getOrCreateSettlement(
-        group: Group,
-        payer: AuthenticatedFirebaseUser,
-        payee: AuthenticatedFirebaseUser,
-        options: SettlementOptions = {}
-    ): Promise<any> {
+    public static async getOrCreateSettlement(group: Group, payer: AuthenticatedFirebaseUser, payee: AuthenticatedFirebaseUser, options: SettlementOptions = {}): Promise<any> {
         const { amount = 25.0, note, fresh = false } = options;
-        
+
         if (fresh) {
             return this.createFreshSettlement(group, payer, payee, options);
         }
@@ -46,23 +41,12 @@ export class TestSettlementManager {
         return this.settlementCache.get(cacheKey)!;
     }
 
-    private static async createFreshSettlement(
-        group: Group,
-        payer: AuthenticatedFirebaseUser,
-        payee: AuthenticatedFirebaseUser,
-        options: SettlementOptions = {}
-    ): Promise<any> {
+    private static async createFreshSettlement(group: Group, payer: AuthenticatedFirebaseUser, payee: AuthenticatedFirebaseUser, options: SettlementOptions = {}): Promise<any> {
         const { amount = 25.0, note } = options;
         const uniqueId = generateShortId();
         const settlementNote = note || `Settlement ${uniqueId}`;
 
-        const settlementData = new SettlementBuilder()
-            .withGroupId(group.id)
-            .withPayer(payer.uid)
-            .withPayee(payee.uid)
-            .withAmount(amount)
-            .withNote(settlementNote)
-            .build();
+        const settlementData = new SettlementBuilder().withGroupId(group.id).withPayer(payer.uid).withPayee(payee.uid).withAmount(amount).withNote(settlementNote).build();
 
         return this.apiDriver.createSettlement(settlementData, payer.token);
     }
@@ -70,27 +54,18 @@ export class TestSettlementManager {
     /**
      * Creates multiple settlements between different user pairs
      */
-    public static async createMultipleSettlements(
-        group: Group,
-        users: AuthenticatedFirebaseUser[],
-        count: number = 3
-    ): Promise<any[]> {
+    public static async createMultipleSettlements(group: Group, users: AuthenticatedFirebaseUser[], count: number = 3): Promise<any[]> {
         const settlements = [];
-        
+
         for (let i = 0; i < count && i < users.length - 1; i++) {
-            const settlement = await this.getOrCreateSettlement(
-                group, 
-                users[i], 
-                users[i + 1],
-                {
-                    amount: 10 + (i * 5), // Varying amounts
-                    note: `Multi-settlement ${i + 1}`,
-                    fresh: true // Create fresh settlements for multiple scenarios
-                }
-            );
+            const settlement = await this.getOrCreateSettlement(group, users[i], users[i + 1], {
+                amount: 10 + i * 5, // Varying amounts
+                note: `Multi-settlement ${i + 1}`,
+                fresh: true, // Create fresh settlements for multiple scenarios
+            });
             settlements.push(settlement);
         }
-        
+
         return settlements;
     }
 

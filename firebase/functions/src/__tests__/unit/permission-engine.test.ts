@@ -1,8 +1,7 @@
 import { PermissionEngine } from '../../permissions/permission-engine';
-import {  SecurityPresets, PermissionLevels } from '@splitifyd/shared';
+import { SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 
 describe('PermissionEngine', () => {
-
     describe('getDefaultPermissions', () => {
         it('should return open collaboration permissions', () => {
             const permissions = PermissionEngine.getDefaultPermissions(SecurityPresets.OPEN);

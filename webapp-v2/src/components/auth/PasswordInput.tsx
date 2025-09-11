@@ -100,7 +100,12 @@ export function PasswordInput({
     return (
         <div class="space-y-1">
             <label for={id} class="block text-sm font-medium text-gray-700">
-                {label} {required && <span class="text-red-500" data-testid="required-indicator">*</span>}
+                {label}{' '}
+                {required && (
+                    <span class="text-red-500" data-testid="required-indicator">
+                        *
+                    </span>
+                )}
             </label>
             <div class="relative">
                 <input
@@ -158,7 +163,12 @@ export function PasswordInput({
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-gray-600">Password strength:</span>
-                        <span class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`} data-testid={`password-strength-${strength}`}>{getStrengthText(strength)}</span>
+                        <span
+                            class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}
+                            data-testid={`password-strength-${strength}`}
+                        >
+                            {getStrengthText(strength)}
+                        </span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-2">
                         <div

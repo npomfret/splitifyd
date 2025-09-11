@@ -5,9 +5,9 @@
  * This ensures the server response matches our expected types
  */
 
-import {ApiErrorResponseSchema, responseSchemas} from '../api/apiSchemas';
-import {z} from 'zod';
-import {logApiRequest, logApiResponse, logError, logWarning} from '../utils/browser-logger';
+import { ApiErrorResponseSchema, responseSchemas } from '../api/apiSchemas';
+import { z } from 'zod';
+import { logApiRequest, logApiResponse, logError, logWarning } from '../utils/browser-logger';
 import type {
     AcceptMultiplePoliciesResponse,
     AcceptPolicyRequest,
@@ -721,7 +721,7 @@ export class ApiClient {
                 expenseDeletion: 'owner-and-admin',
                 memberInvitation: 'anyone',
                 memberApproval: 'automatic',
-                settingsManagement: 'admin-only'
+                settingsManagement: 'admin-only',
             },
             balance: {
                 balancesByCurrency: {},
@@ -801,7 +801,6 @@ export class ApiClient {
         });
         return response.data;
     }
-
 }
 
 // Export types for external use

@@ -6,7 +6,7 @@ test.describe('SEO Validation', () => {
         const { page } = await newEmptyBrowser();
         const homepagePage = new HomepagePage(page);
         await homepagePage.navigate();
-        
+
         // Title validation
         const homeTitle = await page.title();
         console.log(`Homepage title: "${homeTitle}" (length: ${homeTitle.length})`);
@@ -40,7 +40,7 @@ test.describe('SEO Validation', () => {
         const { page } = await newEmptyBrowser();
         const pricingPage = new PricingPage(page);
         await pricingPage.navigate();
-        
+
         // Title validation
         const pricingTitle = await page.title();
         console.log(`Pricing page title: "${pricingTitle}" (length: ${pricingTitle.length})`);
@@ -59,7 +59,7 @@ test.describe('SEO Validation', () => {
 
         // Proper heading hierarchy (h2 should not come before h1)
         const firstHeading = page.locator('h1, h2, h3').first();
-        const tagName = await firstHeading.evaluate(el => el.tagName.toLowerCase());
+        const tagName = await firstHeading.evaluate((el) => el.tagName.toLowerCase());
         expect(tagName).toBe('h1');
     });
 });

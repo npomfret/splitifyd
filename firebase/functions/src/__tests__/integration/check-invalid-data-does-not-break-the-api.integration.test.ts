@@ -1,23 +1,18 @@
 /**
  * Invalid Data Resilience Tests
- * 
+ *
  * This test suite verifies that the API continues to function correctly
  * even when invalid data exists in Firestore. It uses builders to create valid
  * data, then corrupts specific fields to test error handling.
- * 
+ *
  * Add new invalid data scenarios here as they're discovered in production.
  */
 
 import { describe, test, expect, beforeAll, beforeEach } from 'vitest';
 import { getFirestore } from '../../firebase';
-import { 
-    ApiDriver, 
-    CreateGroupRequestBuilder,
-    FirestoreGroupBuilder,
-    GroupMemberDocumentBuilder 
-} from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, FirestoreGroupBuilder, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { FirestoreReader } from "../../services/firestore";
+import { FirestoreReader } from '../../services/firestore';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../../utils/groupMembershipHelpers';
 
 describe('Invalid Data Resilience - API should not break with bad data', () => {
@@ -31,10 +26,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
         testUser = await apiDriver.createUser();
 
         // Create a valid group for comparison
-        const groupRequest = new CreateGroupRequestBuilder()
-            .withName('Valid Test Group')
-            .withDescription('A properly created group for testing')
-            .build();
+        const groupRequest = new CreateGroupRequestBuilder().withName('Valid Test Group').withDescription('A properly created group for testing').build();
 
         const createResponse = await apiDriver.createGroup(groupRequest, testUser.token);
         validGroupId = createResponse.id;
@@ -42,53 +34,41 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
     describe('Invalid securityPreset values', () => {
         let testGroupIds: string[] = []; // Track groups created in each test
-        
+
         beforeEach(async () => {
             testGroupIds = [];
-            
+
             // Create groups with invalid securityPreset values using builders
             const invalidSecurityPresets = ['unknown', 123, null];
-            const invalidGroupNames = [
-                'Invalid SecurityPreset Group - Unknown',
-                'Invalid SecurityPreset Group - Numeric', 
-                'Invalid SecurityPreset Group - Null'
-            ];
-            
+            const invalidGroupNames = ['Invalid SecurityPreset Group - Unknown', 'Invalid SecurityPreset Group - Numeric', 'Invalid SecurityPreset Group - Null'];
+
             for (let i = 0; i < invalidSecurityPresets.length; i++) {
                 const groupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
-                
+
                 // Build valid group data, then corrupt the securityPreset field
-                const validGroup = new FirestoreGroupBuilder()
-                    .withName(invalidGroupNames[i])
-                    .withDescription('Group with invalid securityPreset')
-                    .withCreatedBy(testUser.uid)
-                    .build();
-                    
+                const validGroup = new FirestoreGroupBuilder().withName(invalidGroupNames[i]).withDescription('Group with invalid securityPreset').withCreatedBy(testUser.uid).build();
+
                 // Corrupt the securityPreset field
                 const corruptedGroup = {
                     ...validGroup,
                     securityPreset: invalidSecurityPresets[i],
-                    id: groupRef.id
+                    id: groupRef.id,
                 };
-                
+
                 await groupRef.set(corruptedGroup);
                 testGroupIds.push(groupRef.id);
-                
+
                 // Create valid member document for top-level collection
-                const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, groupRef.id)
-                    .asAdmin()
-                    .asActive()
-                    .build();
-                    
+                const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, groupRef.id).asAdmin().asActive().build();
+
                 const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
                 const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, groupRef.id);
                 const topLevelRef = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
                 await topLevelRef.set(topLevelMemberDoc);
             }
         });
-        
-        afterEach(async () => {
-        });
+
+        afterEach(async () => {});
 
         test('GET /groups should return successfully despite invalid securityPreset values', async () => {
             // Call the API endpoint that would normally fail with invalid data
@@ -98,7 +78,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
             expect(response).toBeDefined();
             expect(response.groups).toBeDefined();
             expect(Array.isArray(response.groups)).toBe(true);
-            
+
             // Should include the valid group
             const validGroup = response.groups.find((g: any) => g.id === validGroupId);
             expect(validGroup).toBeDefined();
@@ -111,7 +91,7 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
         test('FirestoreReader.getGroupsForUserV2 should handle invalid securityPreset values', async () => {
             const firestoreReader = new FirestoreReader(getFirestore());
-            
+
             const paginatedResult = await firestoreReader.getGroupsForUserV2(testUser.uid);
 
             expect(paginatedResult).toBeDefined();
@@ -127,29 +107,22 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
         test('GET /groups/:id should handle invalid securityPreset for specific group', async () => {
             const invalidGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
-            
+
             // Build valid group data, then corrupt securityPreset
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Direct Access Invalid Group')
-                .withDescription('Testing direct access to invalid group')
-                .withCreatedBy(testUser.uid)
-                .build();
-                
+            const validGroup = new FirestoreGroupBuilder().withName('Direct Access Invalid Group').withDescription('Testing direct access to invalid group').withCreatedBy(testUser.uid).build();
+
             const corruptedGroup = {
                 ...validGroup,
                 securityPreset: 'totally-invalid-value',
-                id: invalidGroupRef.id
+                id: invalidGroupRef.id,
             };
-            
+
             await invalidGroupRef.set(corruptedGroup);
             testGroupIds.push(invalidGroupRef.id);
 
             // Create valid member document
-            const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, invalidGroupRef.id)
-                .asAdmin()
-                .asActive()
-                .build();
-            
+            const memberDoc = new GroupMemberDocumentBuilder(testUser.uid, invalidGroupRef.id).asAdmin().asActive().build();
+
             const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
             const topLevelDocId = getTopLevelMembershipDocId(testUser.uid, invalidGroupRef.id);
             const topLevelRef = firestore.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId);
@@ -157,65 +130,59 @@ describe('Invalid Data Resilience - API should not break with bad data', () => {
 
             // API should handle the invalid data gracefully
             const response = await apiDriver.getGroup(invalidGroupRef.id, testUser.token);
-            
+
             expect(response).toBeDefined();
             expect(response.id).toBe(invalidGroupRef.id);
-            
+
             // If securityPreset is present in response, it should be valid (defaulted to 'open')
             expect(response.securityPreset).toBe('open');
         });
-        
+
         test('should handle completely malformed group documents', async () => {
             const malformedGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
-            
+
             // Create completely malformed data (missing required fields)
             const malformedGroup = {
                 // Missing name, description, createdBy, etc.
                 randomField: 'random-value',
                 anotherBadField: { nested: { deeply: 'malformed' } },
-                id: malformedGroupRef.id
+                id: malformedGroupRef.id,
             };
-            
+
             await malformedGroupRef.set(malformedGroup);
             testGroupIds.push(malformedGroupRef.id);
 
             // API should handle malformed data gracefully - expect internal error for completely malformed data
-            await expect(apiDriver.getGroup(malformedGroupRef.id, testUser.token))
-                .rejects
-                .toThrow(/INTERNAL_ERROR|Group not found|Permission denied|Invalid data/);
+            await expect(apiDriver.getGroup(malformedGroupRef.id, testUser.token)).rejects.toThrow(/INTERNAL_ERROR|Group not found|Permission denied|Invalid data/);
         });
-        
+
         test('should validate data integrity in FirestoreReader with corrupted documents', async () => {
             const corruptedGroupRef = firestore.collection(FirestoreCollections.GROUPS).doc();
-            
+
             // Build valid group, then corrupt critical fields
-            const validGroup = new FirestoreGroupBuilder()
-                .withName('Corrupted Test Group')
-                .withCreatedBy(testUser.uid)
-                .build();
-                
+            const validGroup = new FirestoreGroupBuilder().withName('Corrupted Test Group').withCreatedBy(testUser.uid).build();
+
             const corruptedGroup = {
                 ...validGroup,
                 createdBy: null, // Corrupt required field
                 members: 'not-an-object', // Wrong type
-                id: corruptedGroupRef.id
+                id: corruptedGroupRef.id,
             };
-            
+
             await corruptedGroupRef.set(corruptedGroup);
             testGroupIds.push(corruptedGroupRef.id);
 
             const firestoreReader = new FirestoreReader(getFirestore());
-            
+
             // Should handle corrupted data without crashing
             const result = await firestoreReader.getGroupsForUserV2(testUser.uid);
-            
+
             expect(result.data).toBeDefined();
             expect(Array.isArray(result.data)).toBe(true);
-            
+
             // Corrupted group should be filtered out or sanitized
             const corruptedGroupInResult = result.data.find((g: any) => g.id === corruptedGroupRef.id);
             expect(corruptedGroupInResult).toBeUndefined();
         });
     });
-
 });

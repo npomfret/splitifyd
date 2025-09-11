@@ -39,7 +39,7 @@ export function CTASection() {
                 </h2>
                 <p class="text-xl text-purple-100 mb-8 max-w-2xl mx-auto">Join thousands who are already making group payments stress-free and transparent. Get started today!</p>
 
-                <button 
+                <button
                     onClick={() => navigation.goToRegister()}
                     class="inline-block bg-white text-purple-600 font-semibold px-8 py-4 rounded-lg hover:bg-gray-100 transition-colors transform hover:scale-105 duration-200"
                 >

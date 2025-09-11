@@ -1,8 +1,8 @@
-import {describe, test, expect, beforeEach} from 'vitest';
-import {ApiDriver, CreateGroupRequestBuilder, borrowTestUsers} from '@splitifyd/test-support';
+import { describe, test, expect, beforeEach } from 'vitest';
+import { ApiDriver, CreateGroupRequestBuilder, borrowTestUsers } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 describe('Complex Unsettled Balance - API Integration Test', () => {
     const apiDriver = new ApiDriver();
@@ -12,7 +12,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
     let user3: UserToken;
 
     beforeEach(async () => {
-        ([user1, user2, user3] = await borrowTestUsers(3));
+        [user1, user2, user3] = await borrowTestUsers(3);
     });
 
     test('should show correct balances when multiple users create expenses with equal split', async () => {
@@ -25,7 +25,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Verify both members are in the group
-        const {members} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        const { members } = await apiDriver.getGroupFullDetails(group.id, user1.token);
         expect(members.members.length).toBe(2);
         const member1 = members.members.find((m) => m.uid === user1.uid);
         const member2 = members.members.find((m) => m.uid === user2.uid);
@@ -85,7 +85,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(balances.userBalances[user2.uid].netBalance).toBe(-34000); // Bob owes $340
 
         // Also check via the group endpoint to see what the frontend receives
-        const {balances: groupBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        const { balances: groupBalances } = await apiDriver.getGroupFullDetails(group.id, user1.token);
 
         // The group balance should show that there are unsettled amounts
         expect(groupBalances).toBeDefined();
@@ -192,7 +192,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(finalBalances.simplifiedDebts).toHaveLength(0);
 
         // This is what the UI uses to show "All settled up!"
-        const {balances: finalGroupBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        const { balances: finalGroupBalances } = await apiDriver.getGroupFullDetails(group.id, user1.token);
         // Check that all users have zero net balance (settled up)
         if (Object.keys(finalGroupBalances.balancesByCurrency).length > 0) {
             const currency = Object.keys(finalGroupBalances.balancesByCurrency)[0];
@@ -316,7 +316,14 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(initialBalances.simplifiedDebts[0].to.userId).toBe(user1.uid);
 
         // Partial settlement 1: Bob pays Alice $40 (40% of debt)
-        const partialSettlement1 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(40).withCurrency('USD').withNote('Partial payment 1 of 3').build();
+        const partialSettlement1 = new SettlementBuilder()
+            .withGroupId(group.id)
+            .withPayer(user2.uid)
+            .withPayee(user1.uid)
+            .withAmount(40)
+            .withCurrency('USD')
+            .withNote('Partial payment 1 of 3')
+            .build();
         await apiDriver.createSettlement(partialSettlement1, user2.token);
 
         // Check remaining debt: should be $60
@@ -327,7 +334,14 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(balancesAfter1.userBalances[user1.uid].netBalance).toBe(60);
 
         // Partial settlement 2: Bob pays Alice $35 (partial)
-        const partialSettlement2 = new SettlementBuilder().withGroupId(group.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(35).withCurrency('USD').withNote('Partial payment 2 of 3').build();
+        const partialSettlement2 = new SettlementBuilder()
+            .withGroupId(group.id)
+            .withPayer(user2.uid)
+            .withPayee(user1.uid)
+            .withAmount(35)
+            .withCurrency('USD')
+            .withNote('Partial payment 2 of 3')
+            .build();
         await apiDriver.createSettlement(partialSettlement2, user2.token);
 
         // Check remaining debt: should be $25
@@ -348,7 +362,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         expect(finalBalances.userBalances[user1.uid].netBalance).toBe(0);
 
         // Group should show "All settled up"
-        const {balances: groupFinalBalances} = await apiDriver.getGroupFullDetails(group.id, user1.token);
+        const { balances: groupFinalBalances } = await apiDriver.getGroupFullDetails(group.id, user1.token);
         // Check that all users have zero net balance (settled up)
         if (Object.keys(groupFinalBalances.balancesByCurrency).length > 0) {
             const currency = Object.keys(groupFinalBalances.balancesByCurrency)[0];

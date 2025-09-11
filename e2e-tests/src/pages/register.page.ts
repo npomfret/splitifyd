@@ -1,7 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
-import {PooledTestUser } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class RegisterPage extends BasePage {

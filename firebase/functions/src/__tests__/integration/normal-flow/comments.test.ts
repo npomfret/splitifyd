@@ -3,12 +3,12 @@
 //
 // Run the emulator with: `firebase emulators:start`
 
-import {beforeEach, describe, expect, test} from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, TestExpenseManager} from '@splitifyd/test-support';
-import {getFirestore} from '../../../firebase';
-import {PooledTestUser} from "@splitifyd/shared";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
+import { getFirestore } from '../../../firebase';
+import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Comments Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -37,7 +37,7 @@ describe('Comments Integration Tests', () => {
             expect(response.data).toBeDefined();
             expect(response.data.id).toBeDefined();
             expect(response.data.authorId).toBe(users[0].uid);
-            expect(response.data.authorName).toBeDefined()
+            expect(response.data.authorName).toBeDefined();
             expect(response.data.text).toBe(commentText);
             expect(response.data.createdAt).toBeDefined();
             expect(response.data.updatedAt).toBeDefined();
@@ -86,26 +86,22 @@ describe('Comments Integration Tests', () => {
             await apiDriver.createGroupComment(testGroup.id, commentText, users[0].token);
 
             // Wait a moment for the data to be written
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Query Firestore directly like the frontend does
-            const snapshot = await firestore
-                .collection(`groups/${testGroup.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .get();
+            const snapshot = await firestore.collection(`groups/${testGroup.id}/comments`).orderBy('createdAt', 'desc').limit(20).get();
 
-            const comments = snapshot.docs.map(doc => ({
+            const comments = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
             })) as any[];
 
             expect(comments.length).toBeGreaterThan(0);
-            
+
             const ourComment = comments.find((c: any) => c.text === commentText);
             expect(ourComment).toBeDefined();
             expect(ourComment!.authorId).toBe(users[0].uid);
-            expect(ourComment!.authorName).toBeDefined()
+            expect(ourComment!.authorName).toBeDefined();
             expect(ourComment!.createdAt).toBeDefined();
         });
 
@@ -113,20 +109,17 @@ describe('Comments Integration Tests', () => {
             await apiDriver.createGroupComment(testGroup.id, 'First comment', users[0].token);
 
             // Small delay to ensure different timestamps
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             await apiDriver.createGroupComment(testGroup.id, 'Second comment', users[1].token);
 
             // Wait a moment for data to be written
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Query Firestore directly
-            const snapshot = await firestore
-                .collection(`groups/${testGroup.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .get();
+            const snapshot = await firestore.collection(`groups/${testGroup.id}/comments`).orderBy('createdAt', 'desc').get();
 
-            const comments = snapshot.docs.map(doc => doc.data());
+            const comments = snapshot.docs.map((doc) => doc.data());
 
             expect(comments.length).toBeGreaterThanOrEqual(2);
 
@@ -155,14 +148,14 @@ describe('Comments Integration Tests', () => {
                 .limit(20)
                 .onSnapshot((snapshot) => {
                     callbackCount++;
-                    receivedComments = snapshot.docs.map(doc => ({
+                    receivedComments = snapshot.docs.map((doc) => ({
                         id: doc.id,
-                        ...doc.data()
+                        ...doc.data(),
                     }));
                 });
 
             // Wait for initial snapshot
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
             const initialCallbackCount = callbackCount;
 
             // Add a comment
@@ -170,7 +163,7 @@ describe('Comments Integration Tests', () => {
             await apiDriver.createGroupComment(testGroup.id, commentText, users[0].token);
 
             // Wait for the update
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise((resolve) => setTimeout(resolve, 200));
 
             // Should have received an update
             expect(callbackCount).toBeGreaterThan(initialCallbackCount);
@@ -190,7 +183,7 @@ describe('Comments Integration Tests', () => {
             expect(response.data).toBeDefined();
             expect(response.data.id).toBeDefined();
             expect(response.data.authorId).toBe(users[0].uid);
-            expect(response.data.authorName).toBeDefined()
+            expect(response.data.authorName).toBeDefined();
             expect(response.data.text).toBe(commentText);
             expect(response.data.createdAt).toBeDefined();
             expect(response.data.updatedAt).toBeDefined();
@@ -226,26 +219,22 @@ describe('Comments Integration Tests', () => {
             await apiDriver.createExpenseComment(testExpense.id, commentText, users[0].token);
 
             // Wait a moment for the data to be written
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
             // Query Firestore directly like the frontend does
-            const snapshot = await firestore
-                .collection(`expenses/${testExpense.id}/comments`)
-                .orderBy('createdAt', 'desc')
-                .limit(20)
-                .get();
+            const snapshot = await firestore.collection(`expenses/${testExpense.id}/comments`).orderBy('createdAt', 'desc').limit(20).get();
 
-            const comments = snapshot.docs.map(doc => ({
+            const comments = snapshot.docs.map((doc) => ({
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
             })) as any[];
 
             expect(comments.length).toBeGreaterThan(0);
-            
+
             const ourComment = comments.find((c: any) => c.text === commentText);
             expect(ourComment).toBeDefined();
             expect(ourComment!.authorId).toBe(users[0].uid);
-            expect(ourComment!.authorName).toBeDefined()
+            expect(ourComment!.authorName).toBeDefined();
         });
     });
 
@@ -261,13 +250,11 @@ describe('Comments Integration Tests', () => {
             expect(user2Comment.data.authorName).toBeDefined();
 
             // Both comments should exist in Firestore
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const snapshot = await firestore
-                .collection(`groups/${testGroup.id}/comments`)
-                .get();
+            const snapshot = await firestore.collection(`groups/${testGroup.id}/comments`).get();
 
-            const comments = snapshot.docs.map(doc => doc.data());
+            const comments = snapshot.docs.map((doc) => doc.data());
             const texts = comments.map((c: any) => c.text);
 
             expect(texts).toContain('User 1 comment');
@@ -287,13 +274,9 @@ describe('Comments Integration Tests', () => {
             expect(() => new Date(response.data.updatedAt)).not.toThrow();
 
             // Also check Firestore document
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise((resolve) => setTimeout(resolve, 100));
 
-            const snapshot = await firestore
-                .collection(`groups/${testGroup.id}/comments`)
-                .where('text', '==', 'Timestamp test')
-                .limit(1)
-                .get();
+            const snapshot = await firestore.collection(`groups/${testGroup.id}/comments`).where('text', '==', 'Timestamp test').limit(1).get();
 
             expect(snapshot.docs.length).toBe(1);
             const doc = snapshot.docs[0];

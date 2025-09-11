@@ -51,12 +51,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     private notificationDetector = new UserNotificationDetector();
     private notificationUnsubscribe: (() => void) | null = null;
-    
+
     // Reference counting for subscription management
     private subscriberCount = 0;
     private subscriberIds = new Set<string>();
     private currentUserId: string | null = null;
-    
+
     // Debouncing for refresh operations
     private refreshDebounceTimer: NodeJS.Timeout | null = null;
     private refreshDebounceDelay = 300; // 300ms debounce
@@ -130,9 +130,9 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
             // Log each group ID for debugging
             logInfo('fetchGroups: Groups received from server', {
-                groupIds: response.groups.map(g => g.id),
+                groupIds: response.groups.map((g) => g.id),
                 groupCount: response.groups.length,
-                groups: response.groups.map(g => ({ id: g.id, name: g.name }))
+                groups: response.groups.map((g) => ({ id: g.id, name: g.name })),
             });
 
             // Always update with server data - removed optimization that could ignore deleted groups
@@ -216,20 +216,20 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             logInfo('refreshGroups: Refresh already pending, skipping duplicate request');
             return;
         }
-        
+
         // Clear any existing debounce timer
         if (this.refreshDebounceTimer) {
             clearTimeout(this.refreshDebounceTimer);
         }
-        
+
         // Return a promise that resolves when the debounced refresh completes
         return new Promise<void>((resolve, reject) => {
             this.refreshDebounceTimer = setTimeout(async () => {
                 this.pendingRefresh = true;
                 this.#isRefreshingSignal.value = true;
-                
+
                 logInfo('refreshGroups: Starting debounced refresh');
-                
+
                 try {
                     await this.fetchGroups();
                     resolve();
@@ -252,20 +252,20 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         // Add to subscriber tracking
         this.subscriberIds.add(componentId);
         this.subscriberCount++;
-        
+
         // If this is the first subscriber or user changed, set up subscription
         if (this.subscriberCount === 1 || this.currentUserId !== userId) {
             this.currentUserId = userId;
             this.setupSubscription(userId);
         }
-        
-        logInfo(`Groups store: Component registered`, { 
-            componentId, 
-            userId, 
-            subscriberCount: this.subscriberCount 
+
+        logInfo(`Groups store: Component registered`, {
+            componentId,
+            userId,
+            subscriberCount: this.subscriberCount,
         });
     }
-    
+
     /**
      * Deregister a component from the groups store
      * Only disposes subscription when last component deregisters
@@ -274,22 +274,22 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         if (!this.subscriberIds.has(componentId)) {
             return;
         }
-        
+
         this.subscriberIds.delete(componentId);
         this.subscriberCount--;
-        
-        logInfo(`Groups store: Component deregistered`, { 
-            componentId, 
-            subscriberCount: this.subscriberCount 
+
+        logInfo(`Groups store: Component deregistered`, {
+            componentId,
+            subscriberCount: this.subscriberCount,
         });
-        
+
         // Only dispose if this was the last subscriber
         if (this.subscriberCount === 0) {
             this.disposeSubscription();
             this.currentUserId = null;
         }
     }
-    
+
     /**
      * Internal method to set up subscription
      */
@@ -304,13 +304,13 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             userId,
             {
                 onGroupChange: (groupId) => {
-                    logInfo('Group change detected, triggering refresh', { 
+                    logInfo('Group change detected, triggering refresh', {
                         userId,
                         groupId,
                         currentGroupCount: this.#groupsSignal.value.length,
-                        timestamp: new Date().toISOString()
+                        timestamp: new Date().toISOString(),
                     });
-                    
+
                     // NO OPTIMISTIC UPDATES - just refresh from server
                     // This ensures the dashboard accurately reflects server state
                     this.refreshGroups()
@@ -318,35 +318,37 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                             logInfo('Groups refresh completed after change detection', {
                                 userId,
                                 groupId,
-                                newGroupCount: this.#groupsSignal.value.length
+                                newGroupCount: this.#groupsSignal.value.length,
                             });
                         })
-                        .catch((error) => logWarning('Failed to refresh groups after change detection', { 
-                            error: error instanceof Error ? error.message : String(error),
-                            userId,
-                            groupId
-                        }));
+                        .catch((error) =>
+                            logWarning('Failed to refresh groups after change detection', {
+                                error: error instanceof Error ? error.message : String(error),
+                                userId,
+                                groupId,
+                            }),
+                        );
                 },
                 onGroupRemoved: (groupId) => {
-                    logInfo('Group removed - removing from list without refresh', { 
+                    logInfo('Group removed - removing from list without refresh', {
                         userId,
                         groupId,
-                        currentGroupCount: this.#groupsSignal.value.length
+                        currentGroupCount: this.#groupsSignal.value.length,
                     });
-                    
+
                     // Remove the group from the list immediately without fetching
                     const currentGroups = this.#groupsSignal.value;
-                    const filteredGroups = currentGroups.filter(group => group.id !== groupId);
-                    
+                    const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
+
                     if (filteredGroups.length !== currentGroups.length) {
                         this.#groupsSignal.value = filteredGroups;
-                        logInfo('Group removed from dashboard', { 
+                        logInfo('Group removed from dashboard', {
                             groupId,
                             oldCount: currentGroups.length,
-                            newCount: filteredGroups.length
+                            newCount: filteredGroups.length,
                         });
                     }
-                }
+                },
             },
             {
                 maxRetries: 3,
@@ -354,20 +356,22 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 onError: (error) => {
                     logWarning('Notification subscription error, notifications may be delayed', {
                         error: error.message,
-                        userId
+                        userId,
                     });
-                }
-            }
+                },
+            },
         );
 
         // Immediately refresh to get current data after setting up subscription
         // This ensures we don't miss any changes that happened before the subscription was active
-        this.refreshGroups().catch((error) => logWarning('Failed to refresh groups after subscription setup', { 
-            error: error instanceof Error ? error.message : String(error),
-            userId 
-        }));
+        this.refreshGroups().catch((error) =>
+            logWarning('Failed to refresh groups after subscription setup', {
+                error: error instanceof Error ? error.message : String(error),
+                userId,
+            }),
+        );
     }
-    
+
     /**
      * Internal method to dispose subscription
      */
@@ -377,7 +381,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.notificationUnsubscribe = null;
         }
     }
-    
+
     /**
      * Legacy API - subscribes without reference counting
      * @deprecated Use registerComponent/deregisterComponent instead
@@ -397,7 +401,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.refreshDebounceTimer = null;
         }
         this.pendingRefresh = false;
-        
+
         batch(() => {
             this.#groupsSignal.value = [];
             this.#loadingSignal.value = false;

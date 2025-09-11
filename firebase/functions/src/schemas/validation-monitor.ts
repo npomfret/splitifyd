@@ -4,8 +4,8 @@ import type { ContextualLogger } from '../utils/contextual-logger';
 
 /**
  * Validation metrics and monitoring utilities
- * 
- * Tracks validation failures, performance metrics, and provides 
+ *
+ * Tracks validation failures, performance metrics, and provides
  * enhanced error reporting for schema validation issues.
  */
 
@@ -50,7 +50,7 @@ class ValidationMetrics {
     recordFailure(schemaName: string): void {
         this.metrics.totalValidations++;
         this.metrics.failedValidations++;
-        
+
         const count = this.metrics.failures.get(schemaName) || 0;
         this.metrics.failures.set(schemaName, count + 1);
     }
@@ -58,11 +58,9 @@ class ValidationMetrics {
     getMetrics() {
         return {
             ...this.metrics,
-            successRate: this.metrics.totalValidations > 0 
-                ? (this.metrics.successfulValidations / this.metrics.totalValidations) * 100 
-                : 0,
+            successRate: this.metrics.totalValidations > 0 ? (this.metrics.successfulValidations / this.metrics.totalValidations) * 100 : 0,
             topFailures: Array.from(this.metrics.failures.entries())
-                .sort(([,a], [,b]) => b - a)
+                .sort(([, a], [, b]) => b - a)
                 .slice(0, 5),
         };
     }
@@ -91,20 +89,21 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
         userId?: string;
         logger?: ContextualLogger;
         additionalContext?: Record<string, any>;
-    }
+    },
 ): z.infer<T> {
     const metrics = ValidationMetrics.getInstance();
     const startTime = Date.now();
 
     try {
         const result = schema.parse(data);
-        
+
         // Record success metrics
         metrics.recordSuccess(context.schemaName);
-        
+
         // Log performance for slow validations
         const duration = Date.now() - startTime;
-        if (duration > 100) { // Log validations taking more than 100ms
+        if (duration > 100) {
+            // Log validations taking more than 100ms
             const logContext = context.logger || logger;
             logContext.warn('Slow validation detected', {
                 schemaName: context.schemaName,
@@ -144,7 +143,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
             // Re-throw with enhanced context
             throw new EnhancedValidationError(validationError, error);
         }
-        
+
         // Re-throw non-Zod errors
         throw error;
     }
@@ -156,7 +155,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
 export class EnhancedValidationError extends Error {
     constructor(
         public readonly validationError: ValidationError,
-        public readonly zodError: z.ZodError
+        public readonly zodError: z.ZodError,
     ) {
         super(`Schema validation failed for ${validationError.schemaName}: ${formatZodError(zodError)}`);
         this.name = 'EnhancedValidationError';
@@ -173,7 +172,7 @@ export class EnhancedValidationError extends Error {
 
         const field = firstError.path.join('.');
         const message = firstError.message;
-        
+
         return field ? `${field}: ${message}` : message;
     }
 
@@ -182,7 +181,7 @@ export class EnhancedValidationError extends Error {
      */
     getFieldErrors(): Record<string, string[]> {
         const fieldErrors: Record<string, string[]> = {};
-        
+
         for (const error of this.zodError.issues) {
             const field = error.path.join('.') || 'root';
             if (!fieldErrors[field]) {
@@ -190,7 +189,7 @@ export class EnhancedValidationError extends Error {
             }
             fieldErrors[field].push(error.message);
         }
-        
+
         return fieldErrors;
     }
 }
@@ -220,7 +219,7 @@ export function validateSafely<T extends z.ZodSchema>(
         documentId?: string;
         collection?: string;
         logger?: ContextualLogger;
-    }
+    },
 ): { success: true; data: z.infer<T> } | { success: false; error: EnhancedValidationError } {
     try {
         const validatedData = validateWithMonitoring(schema, data, context);
@@ -252,7 +251,7 @@ export function resetValidationMetrics() {
  */
 export function startValidationMetricsLogging(intervalMinutes: number = 60) {
     const intervalMs = intervalMinutes * 60 * 1000;
-    
+
     setInterval(() => {
         const metrics = getValidationMetrics();
         if (metrics.totalValidations > 0) {

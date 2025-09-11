@@ -1,15 +1,15 @@
-import {beforeEach, describe, expect, test} from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver} from "@splitifyd/test-support";
-import {UserToken} from "@splitifyd/shared";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Policy Validation Tests', () => {
     const apiDriver = new ApiDriver();
     let user1: UserToken;
- 
+
     beforeEach(async () => {
-        ([user1] = await borrowTestUsers(3));
+        [user1] = await borrowTestUsers(3);
     });
 
     describe('Accept Single Policy Validation', () => {

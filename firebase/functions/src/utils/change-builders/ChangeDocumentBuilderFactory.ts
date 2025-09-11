@@ -5,7 +5,7 @@ import { SettlementChangeDocumentBuilder } from './SettlementChangeDocumentBuild
 
 /**
  * Factory for creating appropriate change document builders
- * 
+ *
  * This factory eliminates the need for conditional type logic by providing
  * a centralized mechanism for selecting the correct builder implementation
  * based on entity type. It follows the same pattern established in Phase 3
@@ -14,7 +14,7 @@ import { SettlementChangeDocumentBuilder } from './SettlementChangeDocumentBuild
 export class ChangeDocumentBuilderFactory {
     /**
      * Get the appropriate change document builder for the specified entity type
-     * 
+     *
      * @param entityType - The type of entity ('group', 'expense', or 'settlement')
      * @returns The appropriate builder instance
      * @throws Error if entity type is not supported

@@ -64,13 +64,12 @@ export class DashboardPage extends BasePage {
     async waitForGroupsLoaded(): Promise<void> {
         try {
             // Wait for either groups to appear or empty state
-            await Promise.race([
-                expect(this.getGroupCard()).toBeVisible({ timeout: 3000 }),
-                expect(this.getEmptyGroupsState()).toBeVisible({ timeout: 3000 })
-            ]);
+            await Promise.race([expect(this.getGroupCard()).toBeVisible({ timeout: 3000 }), expect(this.getEmptyGroupsState()).toBeVisible({ timeout: 3000 })]);
         } catch (error) {
             // If neither appears, just make sure loading is done
-            await expect(this.getLoadingSpinner()).not.toBeVisible({ timeout: 1000 }).catch(() => {});
+            await expect(this.getLoadingSpinner())
+                .not.toBeVisible({ timeout: 1000 })
+                .catch(() => {});
         }
     }
 
@@ -80,9 +79,7 @@ export class DashboardPage extends BasePage {
     }
 
     getGroupNameInput() {
-        return this._page.locator('[data-testid="group-name-input"]').or(
-            this._page.getByLabel(/group.*name/i)
-        );
+        return this._page.locator('[data-testid="group-name-input"]').or(this._page.getByLabel(/group.*name/i));
     }
 
     getModalSubmitButton() {

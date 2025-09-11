@@ -6,8 +6,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, SettlementBuilder, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { ApiDriver, SettlementBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Settlement Management', () => {
     const apiDriver = new ApiDriver();
@@ -187,11 +187,23 @@ describe('Settlement Management', () => {
             const uniqueId = uuidv4().slice(0, 8);
             await Promise.all([
                 apiDriver.createSettlement(
-                    new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[0].uid).withPayee(settlementUsers[1].uid).withAmount(50).withNote(`First settlement ${uniqueId}`).build(),
+                    new SettlementBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPayer(settlementUsers[0].uid)
+                        .withPayee(settlementUsers[1].uid)
+                        .withAmount(50)
+                        .withNote(`First settlement ${uniqueId}`)
+                        .build(),
                     settlementUsers[0].token,
                 ),
                 apiDriver.createSettlement(
-                    new SettlementBuilder().withGroupId(testGroup.id).withPayer(settlementUsers[1].uid).withPayee(settlementUsers[0].uid).withAmount(25).withNote(`Second settlement ${uniqueId}`).build(),
+                    new SettlementBuilder()
+                        .withGroupId(testGroup.id)
+                        .withPayer(settlementUsers[1].uid)
+                        .withPayee(settlementUsers[0].uid)
+                        .withAmount(25)
+                        .withNote(`Second settlement ${uniqueId}`)
+                        .build(),
                     settlementUsers[1].token,
                 ),
             ]);
@@ -200,7 +212,7 @@ describe('Settlement Management', () => {
 
             expect(response.settlements).toBeDefined();
             expect(Array.isArray(response.settlements)).toBe(true);
-            
+
             // Filter to only our settlements from this test
             const ourSettlements = response.settlements.filter((s: any) => s.note?.includes(uniqueId));
             expect(ourSettlements).toHaveLength(2);
@@ -234,7 +246,7 @@ describe('Settlement Management', () => {
                 groupId: testGroup.id,
                 limit: 100, // Get all
             });
-            
+
             const ourSettlements = allSettlements.settlements.filter((s: any) => s.note?.includes(uniqueId));
             expect(ourSettlements).toHaveLength(5); // Verify our 5 settlements were created
 

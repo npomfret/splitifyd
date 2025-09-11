@@ -228,6 +228,4 @@ describe('GroupCard', () => {
 
         expect(screen.getByText('Just created')).toBeInTheDocument();
     });
-
-
 });

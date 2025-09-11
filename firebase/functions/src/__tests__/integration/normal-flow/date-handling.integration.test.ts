@@ -3,7 +3,6 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { parseISOToTimestamp, timestampToISO, createOptimisticTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
 
 describe('Firebase Date Handling Integration Tests', () => {
-
     describe('Date Utility Functions', () => {
         it('should correctly parse ISO strings to Timestamps', () => {
             const isoString = '2024-01-15T10:30:00.000Z';

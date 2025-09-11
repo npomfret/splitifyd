@@ -14,21 +14,21 @@ describe('ChangeDocumentBuilderFactory', () => {
     describe('getBuilder', () => {
         it('should return GroupChangeDocumentBuilder for "group" entity type', () => {
             const builder = factory.getBuilder('group');
-            
+
             expect(builder).toBeInstanceOf(GroupChangeDocumentBuilder);
             expect(builder.getEntityType()).toBe('group');
         });
 
         it('should return ExpenseChangeDocumentBuilder for "expense" entity type', () => {
             const builder = factory.getBuilder('expense');
-            
+
             expect(builder).toBeInstanceOf(ExpenseChangeDocumentBuilder);
             expect(builder.getEntityType()).toBe('expense');
         });
 
         it('should return SettlementChangeDocumentBuilder for "settlement" entity type', () => {
             const builder = factory.getBuilder('settlement');
-            
+
             expect(builder).toBeInstanceOf(SettlementChangeDocumentBuilder);
             expect(builder.getEntityType()).toBe('settlement');
         });
@@ -43,7 +43,7 @@ describe('ChangeDocumentBuilderFactory', () => {
         it('should return new instances each time (not singletons)', () => {
             const builder1 = factory.getBuilder('group');
             const builder2 = factory.getBuilder('group');
-            
+
             expect(builder1).not.toBe(builder2);
             expect(builder1).toBeInstanceOf(GroupChangeDocumentBuilder);
             expect(builder2).toBeInstanceOf(GroupChangeDocumentBuilder);
@@ -51,8 +51,8 @@ describe('ChangeDocumentBuilderFactory', () => {
 
         it('should handle all supported entity types without error', () => {
             const supportedTypes = factory.getSupportedEntityTypes();
-            
-            supportedTypes.forEach(entityType => {
+
+            supportedTypes.forEach((entityType) => {
                 expect(() => {
                     const builder = factory.getBuilder(entityType);
                     expect(builder.getEntityType()).toBe(entityType);
@@ -64,20 +64,20 @@ describe('ChangeDocumentBuilderFactory', () => {
     describe('getSupportedEntityTypes', () => {
         it('should return all supported entity types', () => {
             const supportedTypes = factory.getSupportedEntityTypes();
-            
+
             expect(supportedTypes).toEqual(['group', 'expense', 'settlement']);
         });
 
         it('should return array with correct length', () => {
             const supportedTypes = factory.getSupportedEntityTypes();
-            
+
             expect(supportedTypes).toHaveLength(3);
         });
 
         it('should return immutable array', () => {
             const supportedTypes1 = factory.getSupportedEntityTypes();
             const supportedTypes2 = factory.getSupportedEntityTypes();
-            
+
             expect(supportedTypes1).toEqual(supportedTypes2);
             expect(supportedTypes1).not.toBe(supportedTypes2);
         });
@@ -91,7 +91,7 @@ describe('ChangeDocumentBuilderFactory', () => {
             }).toThrow('Unsupported entity type for change document builder: payment');
 
             expect(() => {
-                // @ts-expect-error - Testing invalid entity type  
+                // @ts-expect-error - Testing invalid entity type
                 factory.getBuilder('user');
             }).toThrow('Unsupported entity type for change document builder: user');
         });

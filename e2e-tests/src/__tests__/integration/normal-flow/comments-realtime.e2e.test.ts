@@ -39,7 +39,7 @@ test.describe('Real-time Comments E2E', () => {
         // Wait for both users to see the updated member count
         const allPages = [
             { page: alicePage, groupDetailPage },
-            { page: bobPage, groupDetailPage: bobGroupDetailPage},
+            { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
 
@@ -68,11 +68,7 @@ test.describe('Real-time Comments E2E', () => {
         await bobGroupDetailPage.waitForCommentCount(2);
 
         // Test 4: Multiple rapid comments to test real-time reliability
-        const rapidComments = [
-            randomString(4),
-            randomString(4),
-            randomString(4)
-        ];
+        const rapidComments = [randomString(4), randomString(4), randomString(4)];
 
         // Alice adds first rapid comment
         await groupDetailPage.addComment(rapidComments[0]);
@@ -213,7 +209,7 @@ test.describe('Real-time Comments E2E', () => {
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         const allPages = [
-            { page: alicePage, groupDetailPage},
+            { page: alicePage, groupDetailPage },
             { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
@@ -272,7 +268,7 @@ test.describe('Real-time Comments E2E', () => {
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
         const allPages = [
-            { page: alicePage, groupDetailPage},
+            { page: alicePage, groupDetailPage },
             { page: bobPage, groupDetailPage: bobGroupDetailPage },
         ];
         await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
@@ -304,10 +300,7 @@ test.describe('Real-time Comments E2E', () => {
 
         // Verify all comments are visible with correct author names
         // Comments should appear in chronological order (newest first in most chat UIs)
-        const authorNames = [
-            await groupDetailPage.getCurrentUserDisplayName(),
-            await bobGroupDetailPage.getCurrentUserDisplayName()
-        ];
+        const authorNames = [await groupDetailPage.getCurrentUserDisplayName(), await bobGroupDetailPage.getCurrentUserDisplayName()];
         const allComments = [comment1, comment2, comment3];
 
         // Check that author names appear for both users

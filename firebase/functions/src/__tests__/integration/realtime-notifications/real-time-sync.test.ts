@@ -1,25 +1,20 @@
 // Real-time Synchronization Tests
 // Tests advanced real-time listener behavior and synchronization edge cases
 
-import {describe, test, expect} from 'vitest';
-import {
-    users, testGroup, apiDriver, notificationDriver, 
-    setupNotificationTest, cleanupNotificationTest,
-    createBasicExpense
-} from './shared-setup';
+import { describe, test, expect } from 'vitest';
+import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest, createBasicExpense } from './shared-setup';
 
 describe('Real-time Synchronization Tests', () => {
     setupNotificationTest;
     cleanupNotificationTest;
 
     describe('Listener Management', () => {
-
         test('should handle listener subscription churn', async () => {
             // 1. Start initial listener
             let [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create initial expense to establish baseline
-            const expense1 = createBasicExpense(testGroup.id, 25.00, 0);
+            const expense1 = createBasicExpense(testGroup.id, 25.0, 0);
             const beforeFirstExpense = Date.now();
             await apiDriver.createExpense(expense1, users[0].token);
 
@@ -51,13 +46,13 @@ describe('Real-time Synchronization Tests', () => {
         test('should handle simultaneous listener connections', async () => {
             // 1. Set up two separate listener setups for same user (simulating multiple devices)
             const [listener1] = await notificationDriver.setupListenersFirst([users[0].uid]);
-            
+
             // Stop first and restart to simulate second device
             notificationDriver.stopListening(users[0].uid);
             const [listener2] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create an expense while second listener is active
-            const expense = createBasicExpense(testGroup.id, 45.00, 0);
+            const expense = createBasicExpense(testGroup.id, 45.0, 0);
             const beforeExpense = Date.now();
             await apiDriver.createExpense(expense, users[0].token);
 
@@ -68,23 +63,20 @@ describe('Real-time Synchronization Tests', () => {
             notificationDriver.stopListening(users[0].uid);
             const [listener3] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
-            const expense2 = createBasicExpense(testGroup.id, 55.00, 0);
+            const expense2 = createBasicExpense(testGroup.id, 55.0, 0);
             const beforeSecondExpense = Date.now();
             await apiDriver.createExpense(expense2, users[0].token);
 
             await listener3.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 
-            const events = listener3.getEventsForGroup(testGroup.id)
-                .filter(e => e.type === 'transaction');
+            const events = listener3.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(events.length).toBeGreaterThanOrEqual(1);
             console.log('✅ Multiple listener connections handle synchronization correctly');
         });
-
     }); // End Listener Management
 
     describe('Document State Synchronization', () => {
-
         test('should handle document version resets correctly', async () => {
             // 1. Set up listener
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
@@ -93,15 +85,14 @@ describe('Real-time Synchronization Tests', () => {
             for (let i = 0; i < 3; i++) {
                 const expense = createBasicExpense(testGroup.id, 20 + i, 0);
                 await apiDriver.createExpense(expense, users[0].token);
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise((resolve) => setTimeout(resolve, 300));
             }
 
             // 3. Wait for all events to be processed
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // 4. Track initial version progression
-            const initialEvents = listener.getEventsForGroup(testGroup.id)
-                .filter(e => e.type === 'transaction');
+            const initialEvents = listener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(initialEvents.length).toBeGreaterThanOrEqual(3);
 
@@ -110,7 +101,7 @@ describe('Real-time Synchronization Tests', () => {
             const [newListener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 6. Verify system continues to work after restart
-            const newExpense = createBasicExpense(testGroup.id, 99.00, 0);
+            const newExpense = createBasicExpense(testGroup.id, 99.0, 0);
             const beforeNewExpense = Date.now();
             await apiDriver.createExpense(newExpense, users[0].token);
 
@@ -124,7 +115,7 @@ describe('Real-time Synchronization Tests', () => {
             const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Create first expense
-            const expense1 = createBasicExpense(testGroup.id, 30.00, 0);
+            const expense1 = createBasicExpense(testGroup.id, 30.0, 0);
             const beforeExpense1 = Date.now();
             await apiDriver.createExpense(expense1, users[0].token);
 
@@ -132,26 +123,25 @@ describe('Real-time Synchronization Tests', () => {
 
             // 3. Stop listener and create expenses while offline
             notificationDriver.stopListening(users[0].uid);
-            
-            const expense2 = createBasicExpense(testGroup.id, 35.00, 0);
-            const expense3 = createBasicExpense(testGroup.id, 40.00, 0);
-            
+
+            const expense2 = createBasicExpense(testGroup.id, 35.0, 0);
+            const expense3 = createBasicExpense(testGroup.id, 40.0, 0);
+
             await apiDriver.createExpense(expense2, users[0].token);
             await apiDriver.createExpense(expense3, users[0].token);
 
             // 4. Restart listener - should sync current state
             const [newListener] = await notificationDriver.setupListenersFirst([users[0].uid]);
-            
+
             // 5. Create new expense to verify listener is working
-            const expense4 = createBasicExpense(testGroup.id, 45.00, 0);
+            const expense4 = createBasicExpense(testGroup.id, 45.0, 0);
             const beforeExpense4 = Date.now();
             await apiDriver.createExpense(expense4, users[0].token);
 
             await newListener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense4);
 
             // 6. Verify listener received the new notification
-            const newEvents = newListener.getEventsForGroup(testGroup.id)
-                .filter(e => e.type === 'transaction');
+            const newEvents = newListener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(newEvents.length).toBeGreaterThanOrEqual(1);
             console.log('✅ Listener restart handles pending notifications correctly');
@@ -173,18 +163,17 @@ describe('Real-time Synchronization Tests', () => {
 
             // 3. Wait for all operations to complete
             await Promise.all(concurrentPromises);
-            
+
             // 4. Wait for all notifications to be processed
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            await new Promise((resolve) => setTimeout(resolve, 3000));
 
             // 5. Verify all notifications were received despite potential locking
-            const concurrentEvents = listener.getEventsForGroup(testGroup.id)
-                .filter(e => e.type === 'transaction');
+            const concurrentEvents = listener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(concurrentEvents.length).toBeGreaterThanOrEqual(5);
 
             // 6. Test that system continues to work after potential document contention
-            const finalExpense = createBasicExpense(testGroup.id, 100.00, 0);
+            const finalExpense = createBasicExpense(testGroup.id, 100.0, 0);
             const beforeFinalExpense = Date.now();
             await apiDriver.createExpense(finalExpense, users[0].token);
 
@@ -192,7 +181,5 @@ describe('Real-time Synchronization Tests', () => {
 
             console.log('✅ System handles document locking scenarios gracefully');
         });
-
     }); // End Document State Synchronization
-
 });

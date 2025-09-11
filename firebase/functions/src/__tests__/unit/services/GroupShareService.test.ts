@@ -15,7 +15,7 @@ const createMockGroupMemberService = () => ({
         { userId: 'user2', role: 'member' },
     ]),
     getGroupMember: vi.fn().mockResolvedValue(null),
-    getGroupMembersResponseFromSubcollection: vi.fn()
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
 vi.mock('../../../firebase', () => ({
@@ -40,7 +40,6 @@ vi.mock('../../../firebase', () => ({
     })),
 }));
 
-
 describe('GroupShareService', () => {
     let groupShareService: GroupShareService;
     let mockFirestoreReader: MockFirestoreReader;
@@ -57,7 +56,7 @@ describe('GroupShareService', () => {
             deleteInTransaction: vi.fn(),
             createUser: vi.fn(),
             updateUser: vi.fn(),
-            deleteUser: vi.fn()
+            deleteUser: vi.fn(),
         } as any;
         mockGroupMemberService = createMockGroupMemberService();
         groupShareService = new GroupShareService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
@@ -65,12 +64,7 @@ describe('GroupShareService', () => {
 
     describe('previewGroupByLink', () => {
         it('should return group preview when link is valid and group exists', async () => {
-            const testGroup = new FirestoreGroupBuilder()
-                .withId('test-group')
-                .withName('Test Group')
-                .withDescription('A test group for sharing')
-                .withCreatedBy('creator-id')
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId('test-group').withName('Test Group').withDescription('A test group for sharing').withCreatedBy('creator-id').build();
 
             // Mock the findShareLinkByToken method
             vi.spyOn(groupShareService as any, 'findShareLinkByToken').mockResolvedValue({
@@ -115,17 +109,13 @@ describe('GroupShareService', () => {
 
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(
-                groupShareService.previewGroupByLink('user-id', 'test-token')
-            ).rejects.toThrow(ApiError);
+            await expect(groupShareService.previewGroupByLink('user-id', 'test-token')).rejects.toThrow(ApiError);
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith('nonexistent-group');
         });
 
         it('should throw BAD_REQUEST when linkId is missing', async () => {
-            await expect(
-                groupShareService.previewGroupByLink('user-id', '')
-            ).rejects.toThrow(ApiError);
+            await expect(groupShareService.previewGroupByLink('user-id', '')).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
@@ -133,7 +123,7 @@ describe('GroupShareService', () => {
             } catch (error) {
                 caughtError = error as ApiError;
             }
-            
+
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.BAD_REQUEST);
             expect(caughtError?.message).toContain('Link ID is required');
@@ -142,10 +132,7 @@ describe('GroupShareService', () => {
 
     describe('generateShareableLink', () => {
         it('should generate shareable link for group owner', async () => {
-            const testGroup = new FirestoreGroupBuilder()
-                .withId('test-group')
-                .withCreatedBy('owner-id')
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId('test-group').withCreatedBy('owner-id').build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
@@ -172,10 +159,7 @@ describe('GroupShareService', () => {
         });
 
         it('should generate shareable link for group member', async () => {
-            const testGroup = new FirestoreGroupBuilder()
-                .withId('test-group')
-                .withCreatedBy('creator-id')
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId('test-group').withCreatedBy('creator-id').build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(false);
@@ -201,18 +185,13 @@ describe('GroupShareService', () => {
         });
 
         it('should throw UNAUTHORIZED for non-members', async () => {
-            const testGroup = new FirestoreGroupBuilder()
-                .withId('test-group')
-                .withCreatedBy('creator-id')
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId('test-group').withCreatedBy('creator-id').build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(false);
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(false);
 
-            await expect(
-                groupShareService.generateShareableLink('unauthorized-user', 'test-group')
-            ).rejects.toThrow(ApiError);
+            await expect(groupShareService.generateShareableLink('unauthorized-user', 'test-group')).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
@@ -220,7 +199,7 @@ describe('GroupShareService', () => {
             } catch (error) {
                 caughtError = error as ApiError;
             }
-            
+
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.FORBIDDEN);
             expect(caughtError?.message).toContain('Only group members can generate share links');
@@ -229,9 +208,7 @@ describe('GroupShareService', () => {
         it('should throw NOT_FOUND when group does not exist', async () => {
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(
-                groupShareService.generateShareableLink('user-id', 'nonexistent-group')
-            ).rejects.toThrow(ApiError);
+            await expect(groupShareService.generateShareableLink('user-id', 'nonexistent-group')).rejects.toThrow(ApiError);
 
             let caughtError: ApiError | undefined;
             try {
@@ -239,7 +216,7 @@ describe('GroupShareService', () => {
             } catch (error) {
                 caughtError = error as ApiError;
             }
-            
+
             expect(caughtError).toBeInstanceOf(ApiError);
             expect(caughtError?.statusCode).toBe(HTTP_STATUS.NOT_FOUND);
             expect(caughtError?.message).toContain('Group not found');
@@ -248,10 +225,7 @@ describe('GroupShareService', () => {
 
     describe('dependency injection', () => {
         it('should use injected FirestoreReader for group reads', async () => {
-            const testGroup = new FirestoreGroupBuilder()
-                .withId('test-group')
-                .withCreatedBy('creator-id')
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId('test-group').withCreatedBy('creator-id').build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(testGroup);
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);

@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers } from '@splitifyd/test-support';
 import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
-import {beforeEach} from "vitest";
-import {PooledTestUser, UserToken} from "@splitifyd/shared";
+import { beforeEach } from 'vitest';
+import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Group Members Integration Tests', () => {
     const apiDriver = new ApiDriver();
@@ -128,12 +128,12 @@ describe('Group Members Integration Tests', () => {
             const memberToLeave = users[1];
 
             // Get group info before leaving
-            const {group: groupBefore} = await apiDriver.getGroupFullDetails(groupId, users[0].token);
+            const { group: groupBefore } = await apiDriver.getGroupFullDetails(groupId, users[0].token);
 
             await apiDriver.leaveGroup(groupId, memberToLeave.token);
 
             // Verify timestamps were updated by checking group info
-            const {group: groupAfter} = await apiDriver.getGroupFullDetails(groupId, users[0].token);
+            const { group: groupAfter } = await apiDriver.getGroupFullDetails(groupId, users[0].token);
             expect(new Date(groupAfter.updatedAt).getTime()).toBeGreaterThan(new Date(groupBefore.updatedAt).getTime());
         });
     });

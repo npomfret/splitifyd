@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as admin from 'firebase-admin';
 
 export function isProduction() {
-    return process.env.NODE_ENV === "production";
+    return process.env.NODE_ENV === 'production';
 }
 
 export function isEmulator() {
@@ -17,17 +17,17 @@ export interface ScriptEnvironment {
 
 export function parseEnvironment(args: string[]): ScriptEnvironment {
     const targetEnvironment = args[0];
-    
+
     // Always require explicit argument since scripts are called from command line
     if (!targetEnvironment || !['emulator', 'production'].includes(targetEnvironment)) {
         console.error('❌ Usage: script.ts <emulator|production>');
         process.exit(1);
     }
-    
+
     const isEmulator = targetEnvironment === 'emulator';
     return {
         isEmulator,
-        environment: isEmulator ? 'EMULATOR' : 'PRODUCTION'
+        environment: isEmulator ? 'EMULATOR' : 'PRODUCTION',
     };
 }
 
@@ -36,7 +36,7 @@ export function getEnvironmentForModule(): ScriptEnvironment {
     const isEmulatorEnv = !isProduction();
     return {
         isEmulator: isEmulatorEnv,
-        environment: isEmulatorEnv ? 'EMULATOR' : 'PRODUCTION'
+        environment: isEmulatorEnv ? 'EMULATOR' : 'PRODUCTION',
     };
 }
 
@@ -52,7 +52,7 @@ export function getEnvironment(args?: string[]): ScriptEnvironment {
 
 export function initializeFirebase(env: ScriptEnvironment): void {
     console.log(`🎯 Initializing Firebase for ${env.environment}`);
-    
+
     if (!env.isEmulator && require.main === module) {
         console.log('   Using Production Firebase');
 

@@ -1,5 +1,5 @@
-import {signal} from '@preact/signals';
-import {logError, logInfo, logWarning} from './browser-logger';
+import { signal } from '@preact/signals';
+import { logError, logInfo, logWarning } from './browser-logger';
 
 // Health check configuration
 const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds

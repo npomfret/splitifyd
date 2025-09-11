@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, TestGroupManager, CreateExpenseRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
-import {PooledTestUser} from "@splitifyd/shared";
+import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Input Validation', () => {
     const apiDriver = new ApiDriver();
@@ -427,13 +427,7 @@ describe('Input Validation', () => {
 
         test('should reject negative amounts when updating settlement', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const settlementData = new SettlementBuilder()
-                .withGroupId(testGroup.id)
-                .withPayer(users[0].uid)
-                .withPayee(users[1].uid)
-                .withAmount(100)
-                .withNote(`Valid settlement ${uniqueId}`)
-                .build();
+            const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100).withNote(`Valid settlement ${uniqueId}`).build();
 
             const settlement = await apiDriver.createSettlement(settlementData, users[0].token);
 
@@ -471,7 +465,13 @@ describe('Input Validation', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDate(futureDate.toISOString())
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -481,7 +481,14 @@ describe('Input Validation', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription(`Valid date test ${uniqueId}`)
+                .withDate(validDate.toISOString())
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -491,7 +498,14 @@ describe('Input Validation', () => {
     describe('Category Validation', () => {
         test('should accept valid category', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription(`Valid category test ${uniqueId}`)
+                .withCategory('food')
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ApiDriver, borrowTestUsers, TestGroupManager} from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 describe('Additional Monetary Edge Cases', () => {
     const apiDriver = new ApiDriver();

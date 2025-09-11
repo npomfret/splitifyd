@@ -4,7 +4,7 @@ import { logUserAction } from '@/utils/browser-logger';
 
 /**
  * Centralized navigation service for consistent routing throughout the application.
- * 
+ *
  * Key principles:
  * - Use programmatic navigation (route()) for all internal links
  * - Provide type-safe navigation methods
@@ -17,7 +17,7 @@ class NavigationService {
     constructor() {
         // Initialize current path tracking
         this.currentPath = window.location.pathname;
-        
+
         // Set up event-based navigation tracking (replaces polling)
         this.setupNavigationTracking();
     }
@@ -27,7 +27,7 @@ class NavigationService {
      */
     navigateTo(path: string, options: { replace?: boolean; queryParams?: Record<string, string> } = {}): void {
         const { replace = false, queryParams } = options;
-        
+
         // Build full URL with query parameters
         let fullPath = path;
         if (queryParams && Object.keys(queryParams).length > 0) {
@@ -39,7 +39,7 @@ class NavigationService {
         this.logNavigation('Programmatic Navigation', {
             from: window.location.pathname,
             to: fullPath,
-            method: replace ? 'replace' : 'push'
+            method: replace ? 'replace' : 'push',
         });
 
         // Perform navigation
@@ -167,7 +167,7 @@ class NavigationService {
         this.logNavigation('Browser Back', {
             from: window.location.pathname,
             to: 'previous',
-            method: 'back'
+            method: 'back',
         });
         window.history.back();
     }
@@ -178,8 +178,8 @@ class NavigationService {
     goForward(): void {
         this.logNavigation('Browser Forward', {
             from: window.location.pathname,
-            to: 'next', 
-            method: 'forward'
+            to: 'next',
+            method: 'forward',
         });
         window.history.forward();
     }
@@ -243,7 +243,7 @@ class NavigationService {
                 from: this.currentPath,
                 to: newPath,
                 method,
-                type: 'spa-navigation'
+                type: 'spa-navigation',
             });
             this.currentPath = newPath;
         }
@@ -256,7 +256,7 @@ class NavigationService {
         logUserAction(action, {
             ...details,
             timestamp: new Date().toISOString(),
-            userAgent: navigator.userAgent.substring(0, 100) // Truncated for privacy
+            userAgent: navigator.userAgent.substring(0, 100), // Truncated for privacy
         });
     }
 }

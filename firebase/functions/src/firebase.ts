@@ -1,25 +1,25 @@
 import * as admin from 'firebase-admin';
-import assert from "node:assert";
-import {readFileSync} from 'node:fs';
-import {join} from 'node:path';
+import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export function isEmulator() {
-    return process.env.NODE_ENV === "development" && process.env.FUNCTIONS_EMULATOR === "true";
+    return process.env.NODE_ENV === 'development' && process.env.FUNCTIONS_EMULATOR === 'true';
 }
 
 export function isProduction() {
-    return process.env.NODE_ENV === "production";
+    return process.env.NODE_ENV === 'production';
 }
 
 export function isTest() {
-    return process.env.NODE_ENV !== "production" && process.env.FUNCTIONS_EMULATOR !== "true";
+    return process.env.NODE_ENV !== 'production' && process.env.FUNCTIONS_EMULATOR !== 'true';
 }
 
 if (!process.env.GCLOUD_PROJECT) {
-    if(isTest()) {
-        throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!")
+    if (isTest()) {
+        throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment - and make sure you are running from the correct directory!');
     } else {
-        throw Error("env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere")
+        throw Error('env.GCLOUD_PROJECT should be set in vitest.config.ts in any test environment, or by firebase elsewhere');
     }
 }
 
@@ -40,9 +40,9 @@ function getApp(): admin.app.App {
         } catch (error) {
             // No app exists, create a new one
             app = admin.initializeApp({
-                projectId: process.env.GCLOUD_PROJECT!
+                projectId: process.env.GCLOUD_PROJECT!,
             });
-            
+
             // Configure emulator settings if needed
             if (!isProduction()) {
                 configureEmulatorSettings(app);
@@ -67,21 +67,21 @@ function configureEmulatorSettings(appInstance: admin.app.App): void {
         const firebaseConfig = JSON.parse(firebaseJsonContent);
 
         // Configure Firestore emulator
-        assert(firebaseConfig.emulators?.firestore?.port, "firestore port must be defined in firebase.json emulators configuration");
+        assert(firebaseConfig.emulators?.firestore?.port, 'firestore port must be defined in firebase.json emulators configuration');
         const firestorePort = firebaseConfig.emulators.firestore.port;
-        assert(typeof firestorePort === 'number', "firestore port in firebase.json must be a number");
-        
+        assert(typeof firestorePort === 'number', 'firestore port in firebase.json must be a number');
+
         const firestore = appInstance.firestore();
         firestore.settings({
             host: `localhost:${firestorePort}`,
             ssl: false,
         });
-        
+
         // Configure Auth emulator
-        assert(firebaseConfig.emulators?.auth?.port, "firebase auth port must be defined in firebase.json emulators configuration");
+        assert(firebaseConfig.emulators?.auth?.port, 'firebase auth port must be defined in firebase.json emulators configuration');
         const authPort = firebaseConfig.emulators.auth.port;
-        assert(typeof authPort === 'number', "firebase auth port in firebase.json must be a number");
-        
+        assert(typeof authPort === 'number', 'firebase auth port in firebase.json must be a number');
+
         process.env['FIREBASE_AUTH_EMULATOR_HOST'] = `localhost:${authPort}`;
     }
 }

@@ -7,7 +7,7 @@ import { GroupMemberService } from '../GroupMemberService';
 
 /**
  * Strategy for handling comments on group entities
- * 
+ *
  * Groups are directly commentable entities where:
  * - Access verification checks group membership
  * - Group ID is the target ID itself
@@ -16,7 +16,7 @@ import { GroupMemberService } from '../GroupMemberService';
 export class GroupCommentStrategy implements ICommentStrategy {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly groupMemberService: GroupMemberService
+        private readonly groupMemberService: GroupMemberService,
     ) {}
 
     async verifyAccess(targetId: string, userId: string): Promise<void> {

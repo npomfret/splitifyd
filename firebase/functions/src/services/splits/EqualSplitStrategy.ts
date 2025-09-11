@@ -18,7 +18,7 @@ export class EqualSplitStrategy implements ISplitStrategy {
 
     calculateSplits(totalAmount: number, participants: string[], splits?: ExpenseSplit[]): ExpenseSplit[] {
         const splitAmount = totalAmount / participants.length;
-        
+
         return participants.map((userId) => ({
             userId,
             amount: Math.round(splitAmount * 100) / 100,

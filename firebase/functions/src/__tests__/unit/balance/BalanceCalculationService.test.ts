@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BalanceCalculationService } from '../../../services/balance/BalanceCalculationService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
-// Mock service registration  
+// Mock service registration
 const mockGetUsers = vi.fn();
 
 const createMockUserService = () => ({
-    getUsers: mockGetUsers
+    getUsers: mockGetUsers,
 });
 
 describe('BalanceCalculationService', () => {
@@ -30,8 +30,8 @@ describe('BalanceCalculationService', () => {
 
             // Create minimal mock objects with only required fields
             const mockExpenses = [
-                { 
-                    id: 'expense-1', 
+                {
+                    id: 'expense-1',
                     groupId,
                     description: 'Test',
                     amount: 100,
@@ -43,10 +43,10 @@ describe('BalanceCalculationService', () => {
                     date: new Date(),
                     category: 'Food',
                     createdAt: new Date(),
-                    deletedAt: null 
+                    deletedAt: null,
                 },
-                { 
-                    id: 'expense-2', 
+                {
+                    id: 'expense-2',
                     groupId,
                     description: 'Test',
                     amount: 50,
@@ -58,32 +58,24 @@ describe('BalanceCalculationService', () => {
                     date: new Date(),
                     category: 'Food',
                     createdAt: new Date(),
-                    deletedAt: null 
-                }
+                    deletedAt: null,
+                },
             ];
 
-            const mockSettlements = [
-                { id: 'settlement-1' }
-            ];
+            const mockSettlements = [{ id: 'settlement-1' }];
 
-            const mockGroup = { 
-                id: groupId, 
+            const mockGroup = {
+                id: groupId,
                 name: 'Test Group',
                 members: {
                     [userId1]: { userId: userId1, memberRole: 'admin', memberStatus: 'active' },
-                    [userId2]: { userId: userId2, memberRole: 'member', memberStatus: 'active' }
-                }
+                    [userId2]: { userId: userId2, memberRole: 'member', memberStatus: 'active' },
+                },
             };
 
-            const mockUserProfiles = [
-                { uid: userId1 },
-                { uid: userId2 }
-            ];
+            const mockUserProfiles = [{ uid: userId1 }, { uid: userId2 }];
 
-            const mockGroupMemberDocs = [
-                { userId: userId1 },
-                { userId: userId2 }
-            ];
+            const mockGroupMemberDocs = [{ userId: userId1 }, { userId: userId2 }];
 
             // Set up mocks
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue(mockExpenses as any);
@@ -117,9 +109,7 @@ describe('BalanceCalculationService', () => {
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
             // Execute and verify error
-            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
-                .rejects
-                .toThrow('Group not found');
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId)).rejects.toThrow('Group not found');
         });
 
         it('should throw error when group has no members', async () => {
@@ -127,17 +117,15 @@ describe('BalanceCalculationService', () => {
 
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
             mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
-            mockFirestoreReader.getGroup.mockResolvedValue({ 
+            mockFirestoreReader.getGroup.mockResolvedValue({
                 id: groupId,
-                members: {}
+                members: {},
             } as any);
             mockGetUsers.mockResolvedValue([]);
             mockFirestoreReader.getAllGroupMembers.mockResolvedValue([]);
 
             // Execute and verify error
-            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId))
-                .rejects
-                .toThrow(`Group ${groupId} has no members for balance calculation`);
+            await expect(balanceCalculationService.fetchBalanceCalculationData(groupId)).rejects.toThrow(`Group ${groupId} has no members for balance calculation`);
         });
 
         it('should filter out soft-deleted expenses', async () => {
@@ -145,8 +133,8 @@ describe('BalanceCalculationService', () => {
             const userId1 = 'user-1';
 
             const mockExpenses = [
-                { 
-                    id: 'expense-1', 
+                {
+                    id: 'expense-1',
                     groupId,
                     description: 'Test',
                     amount: 100,
@@ -158,17 +146,17 @@ describe('BalanceCalculationService', () => {
                     date: new Date(),
                     category: 'Food',
                     createdAt: new Date(),
-                    deletedAt: null 
-                }
+                    deletedAt: null,
+                },
             ];
 
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue(mockExpenses as any);
             mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
-            mockFirestoreReader.getGroup.mockResolvedValue({ 
+            mockFirestoreReader.getGroup.mockResolvedValue({
                 id: groupId,
                 members: {
-                    [userId1]: { userId: userId1, memberRole: 'admin', memberStatus: 'active' }
-                }
+                    [userId1]: { userId: userId1, memberRole: 'admin', memberStatus: 'active' },
+                },
             } as any);
             mockGetUsers.mockResolvedValue([{ uid: userId1 }]);
             mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId1 }] as any);

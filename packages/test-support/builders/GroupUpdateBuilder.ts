@@ -1,9 +1,4 @@
-import { 
-    randomString, 
-    randomChoice, 
-    randomCurrency, 
-    generateShortId 
-} from '../test-helpers';
+import { randomString, randomChoice, randomCurrency, generateShortId } from '../test-helpers';
 
 export interface GroupUpdate {
     name?: string;

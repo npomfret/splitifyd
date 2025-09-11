@@ -373,8 +373,9 @@ useEffect(() => {
 ```
 
 **The Problem:**
+
 1. Effect runs → calls `fetchData()` and `subscribeToChanges()`
-2. `fetchData()` completes → sets `initialized` to `true`  
+2. `fetchData()` completes → sets `initialized` to `true`
 3. React detects `initialized` changed → effect runs again
 4. `subscribeToChanges()` unsubscribes existing listener → creates new one
 5. **Result:** Constant subscription destruction/recreation = missed events
@@ -393,6 +394,7 @@ useEffect(() => {
 ```
 
 **Why This Works:**
+
 - Subscription is created once when user authenticates
 - No churn from state changes during data fetching
 - Real-time events are never missed due to subscription gaps
@@ -400,16 +402,17 @@ useEffect(() => {
 #### Subscription Churn Symptoms
 
 - **Missed real-time updates:** Users don't see changes made by others
-- **Intermittent synchronization:** Works sometimes, fails other times  
+- **Intermittent synchronization:** Works sometimes, fails other times
 - **Console logs show:** Repeated subscribe/unsubscribe cycles
 - **Race conditions:** Events arrive during subscription recreation gaps
 
 #### Detection in Logs
 
 Look for repeated patterns like:
+
 ```
 INFO: ChangeDetector: unsubscribe: {"key":"changes-userId"}
-INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}  
+INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}
 INFO: ChangeDetector: unsubscribe: {"key":"changes-userId"}
 INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}
 ```
@@ -417,6 +420,6 @@ INFO: ChangeDetector: starting new listener: {"key":"changes-userId"}
 #### Prevention Checklist
 
 - [ ] Remove state flags from `useEffect` dependencies that change during subscription setup
-- [ ] Only include authentication/user state in subscription effect dependencies  
+- [ ] Only include authentication/user state in subscription effect dependencies
 - [ ] Test multi-user scenarios to verify real-time updates work consistently
 - [ ] Check console logs for subscription churn patterns during development

@@ -25,7 +25,7 @@ describe('PolicyService - Unit Tests', () => {
         policyName: 'Test Policy',
         currentVersionHash: 'abc123',
         versions: {
-            'abc123': {
+            abc123: {
                 text: 'This is a test policy.',
                 createdAt: '2023-01-01T00:00:00.000Z',
             },
@@ -91,9 +91,7 @@ describe('PolicyService - Unit Tests', () => {
 
         it('should handle errors from firestore reader', async () => {
             // Arrange
-            (mockFirestoreReader.getAllPolicies as MockedFunction<any>).mockRejectedValue(
-                new Error('Firestore error')
-            );
+            (mockFirestoreReader.getAllPolicies as MockedFunction<any>).mockRejectedValue(new Error('Firestore error'));
 
             // Act & Assert
             await expect(policyService.listPolicies()).rejects.toThrow(ApiError);
@@ -122,7 +120,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'POLICY_NOT_FOUND',
-                })
+                }),
             );
         });
     });
@@ -132,7 +130,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyName = 'New Policy';
             const text = 'Policy text content';
-            
+
             (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue(null);
             (mockFirestoreWriter.createPolicy as MockedFunction<any>).mockResolvedValue(mockWriteResult);
 
@@ -149,7 +147,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyName = 'Existing Policy';
             const text = 'Policy text';
-            
+
             (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue({
                 id: 'existing',
                 exists: true,
@@ -160,7 +158,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
                     code: 'POLICY_EXISTS',
-                })
+                }),
             );
         });
 
@@ -170,14 +168,14 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'MISSING_FIELDS',
-                })
+                }),
             );
 
             await expect(policyService.createPolicy('name', '')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'MISSING_FIELDS',
-                })
+                }),
             );
         });
     });
@@ -187,7 +185,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyId = 'test-policy';
             const newText = 'Updated policy text';
-            
+
             (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue({
                 id: policyId,
                 exists: true,
@@ -195,7 +193,7 @@ describe('PolicyService - Unit Tests', () => {
                     policyName: 'Test Policy',
                     currentVersionHash: 'abc123',
                     versions: {
-                        'abc123': {
+                        abc123: {
                             text: 'Original text',
                             createdAt: '2023-01-01T00:00:00.000Z',
                         },
@@ -221,7 +219,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'POLICY_NOT_FOUND',
-                })
+                }),
             );
         });
     });
@@ -231,7 +229,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyId = 'test-policy';
             const versionHash = 'def456';
-            
+
             (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue({
                 id: policyId,
                 exists: true,
@@ -239,8 +237,8 @@ describe('PolicyService - Unit Tests', () => {
                     policyName: 'Test Policy',
                     currentVersionHash: 'abc123',
                     versions: {
-                        'abc123': { text: 'Old version', createdAt: '2023-01-01T00:00:00.000Z' },
-                        'def456': { text: 'New version', createdAt: '2023-01-02T00:00:00.000Z' },
+                        abc123: { text: 'Old version', createdAt: '2023-01-01T00:00:00.000Z' },
+                        def456: { text: 'New version', createdAt: '2023-01-02T00:00:00.000Z' },
                     },
                 }),
             });
@@ -255,7 +253,7 @@ describe('PolicyService - Unit Tests', () => {
                 policyId,
                 expect.objectContaining({
                     currentVersionHash: versionHash,
-                })
+                }),
             );
         });
 
@@ -263,7 +261,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyId = 'test-policy';
             const nonexistentHash = 'nonexistent';
-            
+
             (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue({
                 id: policyId,
                 exists: true,
@@ -271,7 +269,7 @@ describe('PolicyService - Unit Tests', () => {
                     policyName: 'Test Policy',
                     currentVersionHash: 'abc123',
                     versions: {
-                        'abc123': { text: 'Only version', createdAt: '2023-01-01T00:00:00.000Z' },
+                        abc123: { text: 'Only version', createdAt: '2023-01-01T00:00:00.000Z' },
                     },
                 }),
             });
@@ -281,7 +279,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'VERSION_NOT_FOUND',
-                })
+                }),
             );
         });
     });
@@ -312,7 +310,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.NOT_FOUND,
                     code: 'VERSION_NOT_FOUND',
-                })
+                }),
             );
         });
     });
@@ -322,7 +320,7 @@ describe('PolicyService - Unit Tests', () => {
             // Arrange
             const policyId = 'test-policy';
             const versionToDelete = 'old-version';
-            
+
             const mockPolicyWithMultipleVersions = {
                 id: policyId,
                 exists: true,
@@ -336,9 +334,7 @@ describe('PolicyService - Unit Tests', () => {
                 }),
             };
 
-            (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue(
-                mockPolicyWithMultipleVersions
-            );
+            (mockFirestoreReader.getRawPolicyDocument as MockedFunction<any>).mockResolvedValue(mockPolicyWithMultipleVersions);
             (mockFirestoreWriter.updatePolicy as MockedFunction<any>).mockResolvedValue(mockWriteResult);
 
             // Act
@@ -351,7 +347,7 @@ describe('PolicyService - Unit Tests', () => {
                     versions: expect.not.objectContaining({
                         'old-version': expect.anything(),
                     }),
-                })
+                }),
             );
         });
 
@@ -375,7 +371,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'CANNOT_DELETE_CURRENT',
-                })
+                }),
             );
         });
 
@@ -400,7 +396,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.BAD_REQUEST,
                     code: 'CANNOT_DELETE_CURRENT',
-                })
+                }),
             );
         });
     });
@@ -500,7 +496,7 @@ describe('PolicyService - Unit Tests', () => {
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.INTERNAL_ERROR,
                     code: 'VERSION_NOT_FOUND',
-                })
+                }),
             );
         });
     });

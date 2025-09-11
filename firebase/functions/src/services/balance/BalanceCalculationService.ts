@@ -1,5 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import {BalanceCalculationResult, BalanceCalculationInput, Expense, Settlement, GroupData, GroupMember} from './types';
+import { BalanceCalculationResult, BalanceCalculationInput, Expense, Settlement, GroupData, GroupMember } from './types';
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
@@ -7,34 +7,34 @@ import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '.
 import { measureDb } from '../../monitoring/measure';
 import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';
-import type {IFirestoreReader} from "../firestore";
-import {UserService} from "../UserService2";
-import {DELETED_AT_FIELD} from "@splitifyd/shared";
+import type { IFirestoreReader } from '../firestore';
+import { UserService } from '../UserService2';
+import { DELETED_AT_FIELD } from '@splitifyd/shared';
 
 export class BalanceCalculationService {
     private expenseProcessor: ExpenseProcessor;
     private settlementProcessor: SettlementProcessor;
     private debtSimplificationService: DebtSimplificationService;
 
-    constructor(private firestoreReader: IFirestoreReader, private userService: UserService) {
+    constructor(
+        private firestoreReader: IFirestoreReader,
+        private userService: UserService,
+    ) {
         this.expenseProcessor = new ExpenseProcessor();
         this.settlementProcessor = new SettlementProcessor();
         this.debtSimplificationService = new DebtSimplificationService();
     }
 
     async calculateGroupBalances(groupId: string): Promise<BalanceCalculationResult> {
-        return measureDb(
-            'balance-calculation',
-            async () => {
-                // Step 1: Fetch all required data
-                const input = await this.fetchBalanceCalculationData(groupId);
+        return measureDb('balance-calculation', async () => {
+            // Step 1: Fetch all required data
+            const input = await this.fetchBalanceCalculationData(groupId);
 
-                // Step 2: Calculate balances with the fetched data
-                const result = this.calculateGroupBalancesWithData(input);
+            // Step 2: Calculate balances with the fetched data
+            const result = this.calculateGroupBalancesWithData(input);
 
-                return result;
-            }
-        );
+            return result;
+        });
     }
 
     /**
@@ -43,9 +43,9 @@ export class BalanceCalculationService {
     calculateGroupBalancesWithData(input: BalanceCalculationInput): BalanceCalculationResult {
         // Validate input data for type safety
         const validatedInput = BalanceCalculationInputSchema.parse(input);
-        
+
         const startTime = Date.now();
-        
+
         // 1. Extract member IDs for initialization
         const memberIds = Object.keys(validatedInput.groupData.members);
 
@@ -65,9 +65,7 @@ export class BalanceCalculationService {
         const debtSimplificationTime = Date.now() - debtSimplificationStart;
 
         // 5. Get userBalances from balancesByCurrency
-        const userBalances = Object.keys(balancesByCurrency).length > 0 
-            ? balancesByCurrency[Object.keys(balancesByCurrency)[0]]
-            : {};
+        const userBalances = Object.keys(balancesByCurrency).length > 0 ? balancesByCurrency[Object.keys(balancesByCurrency)[0]] : {};
 
         // 6. Create and validate result
         const result = {
@@ -91,7 +89,7 @@ export class BalanceCalculationService {
                 expenseCount: validatedInput.expenses.length,
                 settlementCount: validatedInput.settlements.length,
                 memberCount: memberIds.length,
-                currencyCount: Object.keys(balancesByCurrency).length
+                currencyCount: Object.keys(balancesByCurrency).length,
             });
         }
 
@@ -101,11 +99,7 @@ export class BalanceCalculationService {
 
     async fetchBalanceCalculationData(groupId: string): Promise<BalanceCalculationInput> {
         // Fetch all required data in parallel for better performance
-        const [expenses, settlements, groupData] = await Promise.all([
-            this.fetchExpenses(groupId),
-            this.fetchSettlements(groupId),
-            this.fetchGroupData(groupId)
-        ]);
+        const [expenses, settlements, groupData] = await Promise.all([this.fetchExpenses(groupId), this.fetchSettlements(groupId), this.fetchGroupData(groupId)]);
 
         // Fetch member profiles after we have group data
         const memberIds = Object.keys(groupData.members);
@@ -181,7 +175,7 @@ export class BalanceCalculationService {
         }
 
         // Fetch members from group membership collection
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);;
+        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
         if (memberDocs.length === 0) {
             throw new Error(`Group ${groupId} has no members for balance calculation`);
         }

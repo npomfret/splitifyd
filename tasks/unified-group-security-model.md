@@ -562,8 +562,9 @@ class PermissionSync {
     - Permission change rate limiting (10/minute per group)
     - Optimistic locking for concurrent changes
 
-**Frontend Tasks**: 15. **Advanced UI Features** - Permission history viewer - Permission simulator showing role capabilities  
- - Batch member role changes - Real-time permission change notifications
+**Frontend Tasks**: 15. **Advanced UI Features** - Permission history viewer - Permission simulator showing role capabilities
+
+- Batch member role changes - Real-time permission change notifications
 
 16. **UX Enhancements**
     - Confirmation dialogs for permission downgrades

@@ -3,7 +3,7 @@ import { ApiDriver } from './ApiDriver';
 import { CreateExpenseRequestBuilder } from './builders';
 import { generateShortId } from './test-helpers';
 import { TestGroupManager } from './TestGroupManager';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 interface ExpenseOptions {
     amount?: number;
@@ -26,14 +26,9 @@ export class TestExpenseManager {
         return `${groupId}:${payerId}:${participantCount}`;
     }
 
-    public static async getOrCreateExpense(
-        group: Group,
-        users: UserToken[],
-        payer: UserToken,
-        options: ExpenseOptions = {}
-    ): Promise<any> {
+    public static async getOrCreateExpense(group: Group, users: UserToken[], payer: UserToken, options: ExpenseOptions = {}): Promise<any> {
         const { amount = 50.0, description, category = 'food', fresh = false } = options;
-        
+
         if (fresh) {
             return this.createFreshExpense(group, users, payer, options);
         }
@@ -49,12 +44,7 @@ export class TestExpenseManager {
         return this.expenseCache.get(cacheKey)!;
     }
 
-    private static async createFreshExpense(
-        group: Group,
-        users: UserToken[],
-        payer: UserToken,
-        options: ExpenseOptions = {}
-    ): Promise<any> {
+    private static async createFreshExpense(group: Group, users: UserToken[], payer: UserToken, options: ExpenseOptions = {}): Promise<any> {
         const { amount = 50.0, description, category = 'food' } = options;
         const uniqueId = generateShortId();
         const expenseDescription = description || `Shared expense ${uniqueId}`;
@@ -64,7 +54,7 @@ export class TestExpenseManager {
             .withDescription(expenseDescription)
             .withAmount(amount)
             .withPaidBy(payer.uid)
-            .withParticipants(users.map(u => u.uid))
+            .withParticipants(users.map((u) => u.uid))
             .withCategory(category)
             .withSplitType('equal')
             .build();
@@ -76,15 +66,13 @@ export class TestExpenseManager {
      * Creates a reusable expense setup for comment tests
      * Returns a group with a pre-existing expense for comment testing
      */
-    public static async getGroupWithExpenseForComments(
-        users: UserToken[]
-    ): Promise<{ group: Group; expense: any }> {
+    public static async getGroupWithExpenseForComments(users: UserToken[]): Promise<{ group: Group; expense: any }> {
         const group = await TestGroupManager.getOrCreateGroup(users, { memberCount: users.length });
         const expense = await this.getOrCreateExpense(group, users, users[0], {
             description: 'Expense for comment testing',
-            category: 'test'
+            category: 'test',
         });
-        
+
         return { group, expense };
     }
 

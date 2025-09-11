@@ -1,4 +1,3 @@
-async function globalTeardown() {
-}
+async function globalTeardown() {}
 
 export default globalTeardown;

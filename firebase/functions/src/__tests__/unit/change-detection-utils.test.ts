@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import {DocumentSnapshot, Timestamp} from "firebase-admin/firestore";
+import { DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { getChangedFields, getGroupChangedFields, calculatePriority, createChangeDocument, shouldNotifyUser } from '../../utils/change-detection';
 
 describe('Change Detection Utilities', () => {

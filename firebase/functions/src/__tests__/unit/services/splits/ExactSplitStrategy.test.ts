@@ -31,9 +31,7 @@ describe('ExactSplitStrategy', () => {
         });
 
         it('should throw error if splits are not provided', () => {
-            expect(() => strategy.validateSplits(100, participants)).toThrow(
-                new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants')
-            );
+            expect(() => strategy.validateSplits(100, participants)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if split amounts do not sum to total amount', () => {
@@ -42,9 +40,7 @@ describe('ExactSplitStrategy', () => {
                 { userId: 'user2', amount: 40 },
                 { userId: 'user3', amount: 20 }, // Total = 90, not 100
             ];
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(
-                new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount')
-            );
+            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_SPLIT_TOTAL', 'Split amounts must equal total amount'));
         });
     });
 
@@ -92,9 +88,7 @@ describe('ExactSplitStrategy', () => {
 
         it('should throw error if splits are not provided', () => {
             const participants = ['user1', 'user2'];
-            expect(() => strategy.calculateSplits(100, participants)).toThrow(
-                'Splits are required for exact split type'
-            );
+            expect(() => strategy.calculateSplits(100, participants)).toThrow('Splits are required for exact split type');
         });
     });
 });

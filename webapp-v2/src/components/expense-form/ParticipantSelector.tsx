@@ -22,7 +22,10 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
             <Stack spacing="md">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Split between <span className="text-red-500" data-testid="required-indicator">*</span>
+                        Split between{' '}
+                        <span className="text-red-500" data-testid="required-indicator">
+                            *
+                        </span>
                     </h2>
                     <div className="flex gap-2">
                         <Button type="button" variant="ghost" size="sm" onClick={handleSelectAll}>
@@ -62,7 +65,11 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                         );
                     })}
                 </div>
-                {validationErrors.participants && <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="validation-error-participants">{validationErrors.participants}</p>}
+                {validationErrors.participants && (
+                    <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="validation-error-participants">
+                        {validationErrors.participants}
+                    </p>
+                )}
             </Stack>
         </Card>
     );

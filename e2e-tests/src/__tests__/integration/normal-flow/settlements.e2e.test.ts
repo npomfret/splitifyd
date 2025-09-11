@@ -9,11 +9,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
             const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
@@ -59,10 +59,10 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
@@ -106,16 +106,16 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and setup
             const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditSettlement'), 'Testing settlement editing');
-            
+
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
             const joinGroupPage = new JoinGroupPage(user2Page);
@@ -175,16 +175,16 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
             const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('ValidationTest'), 'Testing form validation');
-            
+
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
             const joinGroupPage = new JoinGroupPage(user2Page);
@@ -240,16 +240,16 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
             const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('DeleteSettlement'), 'Testing settlement deletion');
-            
+
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
             const joinGroupPage = new JoinGroupPage(user2Page);
@@ -288,16 +288,16 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create two browser instances - User 1 and User 2
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            
+
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            
+
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
             const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CancelDelete'), 'Testing deletion cancellation');
-            
+
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
             const joinGroupPage = new JoinGroupPage(user2Page);

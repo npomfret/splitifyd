@@ -1,6 +1,6 @@
 /**
  * Unit Tests for Expense Change Tracking Logic
- * 
+ *
  * These tests verify the core logic for extracting affected users from expense changes:
  * 1. Extracts all affected users (paidBy + participants)
  * 2. Handles shared expenses between multiple users
@@ -30,7 +30,6 @@ function extractAffectedUsersFromExpense(beforeData: any, afterData: any): strin
 }
 
 describe('Expense Change Tracking Logic', () => {
-
     describe('Shared Expense Notifications', () => {
         test('should extract all participants when shared expense is created', () => {
             // Arrange: Create a shared expense between 3 users
@@ -38,8 +37,8 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-123',
                 paidBy: 'user1',
                 participants: ['user1', 'user2', 'user3'], // 3 participants
-                amount: 30.00,
-                description: 'Shared dinner'
+                amount: 30.0,
+                description: 'Shared dinner',
             };
 
             // Act: Extract affected users (expense creation = no beforeData)
@@ -56,8 +55,8 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-456',
                 paidBy: 'user1',
                 participants: ['user2'], // Only user2 participates, but user1 paid
-                amount: 20.00,
-                description: 'Coffee for friend'
+                amount: 20.0,
+                description: 'Coffee for friend',
             };
 
             // Act
@@ -74,8 +73,8 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-789',
                 paidBy: 'user1',
                 participants: ['user1', 'user2'], // user1 appears in both paidBy and participants
-                amount: 25.00,
-                description: 'Shared lunch'
+                amount: 25.0,
+                description: 'Shared lunch',
             };
 
             // Act
@@ -93,10 +92,10 @@ describe('Expense Change Tracking Logic', () => {
             // User1 creates a shared expense where both User1 and User2 participate
             const sharedExpenseData = {
                 groupId: 'multi-user-test-group',
-                paidBy: 'user1',                    // User1 pays
-                participants: ['user1', 'user2'],   // Both users participate  
-                amount: 50.00,
-                description: 'Shared expense between User1 and User2'
+                paidBy: 'user1', // User1 pays
+                participants: ['user1', 'user2'], // Both users participate
+                amount: 50.0,
+                description: 'Shared expense between User1 and User2',
             };
 
             // Act: Extract affected users from shared expense
@@ -105,13 +104,13 @@ describe('Expense Change Tracking Logic', () => {
             // Assert: CRITICAL - Both users must be identified as affected
             expect(affectedUsers).toHaveLength(2);
             expect(affectedUsers).toEqual(expect.arrayContaining(['user1', 'user2']));
-            
+
             // Log for debugging: Show exactly what users are extracted
             console.log('🐛 BUG TEST - Affected users extracted:', affectedUsers);
-            
+
             // If this test passes but the integration test fails, the bug is in:
             // 1. NotificationService.batchUpdateNotifications implementation
-            // 2. Individual user notification document updates  
+            // 2. Individual user notification document updates
             // 3. FirestoreWriter.updateUserNotification method
             // 4. The expense trigger is not receiving the correct expense data
         });
@@ -122,8 +121,8 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-solo',
                 paidBy: 'user1',
                 participants: [], // Empty participants
-                amount: 15.00,
-                description: 'Solo expense'
+                amount: 15.0,
+                description: 'Solo expense',
             };
 
             // Act
@@ -140,8 +139,8 @@ describe('Expense Change Tracking Logic', () => {
                 groupId: 'test-group-broken',
                 paidBy: 'user1',
                 // Missing participants array entirely
-                amount: 15.00,
-                description: 'Broken expense'
+                amount: 15.0,
+                description: 'Broken expense',
             };
 
             // Act & Assert: Should throw error when trying to iterate undefined participants

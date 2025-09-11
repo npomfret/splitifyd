@@ -17,13 +17,7 @@ interface UseFormSubmissionOptions {
  * Hook that handles form submission, navigation, and auto-save functionality
  * Focuses on the business logic around saving and navigation
  */
-export function useFormSubmission({ 
-    groupId, 
-    expenseId, 
-    isEditMode, 
-    isCopyMode, 
-    isInitialized 
-}: UseFormSubmissionOptions) {
+export function useFormSubmission({ groupId, expenseId, isEditMode, isCopyMode, isInitialized }: UseFormSubmissionOptions) {
     // Form values for auto-save dependency
     const description = useComputed(() => expenseFormStore.description);
     const amount = useComputed(() => expenseFormStore.amount);
@@ -46,20 +40,7 @@ export function useFormSubmission({
 
             return () => clearTimeout(timer);
         }
-    }, [
-        description.value, 
-        amount.value, 
-        date.value, 
-        time.value, 
-        paidBy.value, 
-        category.value, 
-        splitType.value, 
-        participants.value, 
-        splits.value, 
-        isEditMode, 
-        isCopyMode, 
-        isInitialized
-    ]);
+    }, [description.value, amount.value, date.value, time.value, paidBy.value, category.value, splitType.value, participants.value, splits.value, isEditMode, isCopyMode, isInitialized]);
 
     const handleSubmit = async (e: Event) => {
         e.preventDefault();

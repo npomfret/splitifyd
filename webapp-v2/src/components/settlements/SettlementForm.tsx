@@ -24,7 +24,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationError, setValidationError] = useState<string | null>(null);
     const modalRef = useRef<HTMLDivElement>(null);
-    
+
     // Form state - converted from module-level signals to component state
     const [payerId, setPayerId] = useState('');
     const [payeeId, setPayeeId] = useState('');
@@ -177,17 +177,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
     // Computed property for form validity
     const isFormValid = (() => {
         const amountNum = parseFloat(amount);
-        return (
-            payerId &&
-            payeeId &&
-            payerId !== payeeId &&
-            amount &&
-            !isNaN(amountNum) &&
-            amountNum > 0 &&
-            amountNum <= 999999.99 &&
-            date &&
-            !isDateInFuture(date)
-        );
+        return payerId && payeeId && payerId !== payeeId && amount && !isNaN(amountNum) && amountNum > 0 && amountNum <= 999999.99 && date && !isDateInFuture(date);
     })();
 
     const getMemberName = (userId: string): string => {
@@ -340,7 +330,9 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                         {/* Error Message */}
                         {validationError && (
                             <div class="p-3 bg-red-50 border border-red-200 rounded-md">
-                                <p class="text-sm text-red-600" role="alert" data-testid="settlement-validation-error">{validationError}</p>
+                                <p class="text-sm text-red-600" role="alert" data-testid="settlement-validation-error">
+                                    {validationError}
+                                </p>
                             </div>
                         )}
 

@@ -45,18 +45,10 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
 
         return (
             <div class="flex items-center gap-4">
-                <button 
-                    onClick={() => navigation.goToLogin()}
-                    class="text-gray-700 hover:text-purple-600 transition-colors" 
-                    data-testid="header-login-link"
-                >
+                <button onClick={() => navigation.goToLogin()} class="text-gray-700 hover:text-purple-600 transition-colors" data-testid="header-login-link">
                     {t('header.login')}
                 </button>
-                <button 
-                    onClick={() => navigation.goToRegister()}
-                    class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors" 
-                    data-testid="header-signup-link"
-                >
+                <button onClick={() => navigation.goToRegister()} class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors" data-testid="header-signup-link">
                     {t('header.signUp')}
                 </button>
             </div>
@@ -70,11 +62,7 @@ export function Header({ variant = 'default', showAuth = true }: HeaderProps) {
             <div class="max-w-7xl mx-auto px-4">
                 <nav class="flex items-center justify-between h-16">
                     <div class="flex items-center space-x-8">
-                        <button 
-                            onClick={() => isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome()}
-                            class="flex items-center"
-                            data-testid="header-logo-link"
-                        >
+                        <button onClick={() => (isAuthenticated.value ? navigation.goToDashboard() : navigation.goHome())} class="flex items-center" data-testid="header-logo-link">
                             <img src="/images/logo.svg" alt={t('header.logoAlt')} class="h-8" />
                         </button>
                         {getNavLinks()}

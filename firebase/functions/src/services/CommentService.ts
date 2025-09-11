@@ -1,18 +1,18 @@
-import {DocumentSnapshot} from 'firebase-admin/firestore';
-import {z} from 'zod';
-import {getAuth} from '../firebase';
-import {ApiError} from '../utils/errors';
-import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp, assertTimestampAndConvert} from '../utils/dateHelpers';
-import {logger} from '../logger';
-import {LoggerContext} from '../utils/logger-context';
-import {Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse,} from '@splitifyd/shared';
+import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { z } from 'zod';
+import { getAuth } from '../firebase';
+import { ApiError } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { createOptimisticTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
+import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
+import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import {CommentDataSchema, CommentDocumentSchema} from '../schemas/comment';
-import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
-import {GroupMemberService} from "./GroupMemberService";
-import {CommentStrategyFactory} from './comments/CommentStrategyFactory';
+import { CommentDataSchema, CommentDocumentSchema } from '../schemas/comment';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { GroupMemberService } from './GroupMemberService';
+import { CommentStrategyFactory } from './comments/CommentStrategyFactory';
 
 /**
  * Type for comment data before it's saved to Firestore (without id)
@@ -28,9 +28,9 @@ export class CommentService {
     private readonly strategyFactory: CommentStrategyFactory;
 
     constructor(
-        private readonly firestoreReader: IFirestoreReader, 
+        private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly groupMemberService: GroupMemberService
+        private readonly groupMemberService: GroupMemberService,
     ) {
         this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);
     }
@@ -101,7 +101,7 @@ export class CommentService {
         } = {},
     ): Promise<ListCommentsResponse> {
         LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
-        
+
         const limit = options.limit || 50;
         const { cursor, groupId } = options;
 
@@ -113,7 +113,7 @@ export class CommentService {
             limit,
             cursor,
             orderBy: 'createdAt',
-            direction: 'desc'
+            direction: 'desc',
         });
 
         // Transform ParsedComment objects to CommentApiResponse format
@@ -134,29 +134,16 @@ export class CommentService {
         };
     }
 
-
     /**
      * Create a new comment
      */
-    async createComment(
-        targetType: CommentTargetType,
-        targetId: string,
-        commentData: CreateCommentRequest,
-        userId: string,
-        groupId?: string,
-    ): Promise<CommentApiResponse> {
+    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string, groupId?: string): Promise<CommentApiResponse> {
         return measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId, groupId));
     }
 
-    private async _createComment(
-        targetType: CommentTargetType,
-        targetId: string,
-        commentData: CreateCommentRequest,
-        userId: string,
-        groupId?: string,
-    ): Promise<CommentApiResponse> {
+    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string, groupId?: string): Promise<CommentApiResponse> {
         LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
-        
+
         // Verify user has access to comment on this target
         await this.verifyCommentAccess(targetType, targetId, userId);
 

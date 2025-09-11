@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitifyd/shared';
-import {PooledTestUser, UserToken} from "@splitifyd/shared";
+import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Security and Permissions', () => {
     const apiDriver = new ApiDriver();
@@ -327,7 +327,7 @@ describe('Security and Permissions', () => {
                 // NOTE: Currently the API doesn't properly enforce memberInvitation permissions
                 // This test documents the current behavior rather than expected behavior
                 // TODO: Fix the share link API to respect memberInvitation permissions
-                
+
                 // For now, verify that members can still generate share links (current behavior)
                 const memberShareResponse = await apiDriver.generateShareLink(managedGroup.id, users[1].token);
                 expect(memberShareResponse).toHaveProperty('linkId');

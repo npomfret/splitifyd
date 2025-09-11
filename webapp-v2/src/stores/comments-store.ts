@@ -1,14 +1,5 @@
 import { signal, ReadonlySignal } from '@preact/signals';
-import {
-    onSnapshot,
-    collection,
-    query,
-    orderBy,
-    limit,
-    startAfter,
-    getDocs,
-    QueryDocumentSnapshot,
-} from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy, limit, startAfter, getDocs, QueryDocumentSnapshot } from 'firebase/firestore';
 import type { CommentApiResponse, CommentTargetType } from '@splitifyd/shared';
 import { apiClient } from '../app/apiClient';
 import { getDb } from '../app/firebase';
@@ -160,9 +151,7 @@ class CommentsStoreImpl implements CommentsStore {
                 commentsQuery,
                 (snapshot) => {
                     // Only process if we're still subscribing/subscribed to this target
-                    if (this.#subscriptionState === 'disposed' || 
-                        this.#targetTypeSignal.value !== targetType || 
-                        this.#targetIdSignal.value !== targetId) {
+                    if (this.#subscriptionState === 'disposed' || this.#targetTypeSignal.value !== targetType || this.#targetIdSignal.value !== targetId) {
                         logInfo('Subscription callback received for stale target, ignoring');
                         return;
                     }

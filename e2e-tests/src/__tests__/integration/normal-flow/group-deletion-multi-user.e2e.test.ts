@@ -23,7 +23,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
 
         // Get share link and have User2 join
         const shareLink = await groupDetailPage.getShareLink();
-        
+
         // Verify User2 is authenticated before attempting to join
         await expect(page2).toHaveURL(/\/dashboard/);
         await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -69,15 +69,13 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // Verify no errors occurred on User2's page during the real-time update
         const jsErrors: string[] = [];
         page2.on('pageerror', (error) => jsErrors.push(error.message));
-        
+
         // Brief wait to catch any JS errors
         await page2.waitForTimeout(500);
-        
+
         // Filter for relevant errors (ignore minor console warnings)
-        const criticalErrors = jsErrors.filter(error => 
-            error.includes('404') && error.includes('group')
-        );
-        
+        const criticalErrors = jsErrors.filter((error) => error.includes('404') && error.includes('group'));
+
         // We expect no critical errors - User2 should handle group deletion gracefully
         expect(criticalErrors).toHaveLength(0);
     });
@@ -101,7 +99,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // User2 joins the group
         const shareLink = await groupDetailPage.getShareLink();
         await expect(page2).toHaveURL(/\/dashboard/);
-        
+
         const joinGroupPage = new JoinGroupPage(page2, user2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
@@ -122,7 +120,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // User2 clicks on the group from dashboard to navigate to it
         await dashboardPage2.clickGroupCard(groupName);
         await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        
+
         // User2 leaves the group (not deletes - just leaves)
         await groupDetailPage2.clickLeaveGroup();
         await groupDetailPage2.confirmLeaveGroup();
@@ -160,7 +158,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // User2 joins
         const shareLink = await groupDetailPage.getShareLink();
         await expect(page2).toHaveURL(/\/dashboard/);
-        
+
         const joinGroupPage = new JoinGroupPage(page2, user2);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
         await groupDetailPage.waitForMemberCount(2);
@@ -231,24 +229,22 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         await page2.waitForTimeout(500);
 
         // Should be no critical errors related to the group deletion
-        const relevantErrors = jsErrors.filter(error => 
-            (error.includes('404') || error.includes('deleted')) && error.includes('group')
-        );
+        const relevantErrors = jsErrors.filter((error) => (error.includes('404') || error.includes('deleted')) && error.includes('group'));
         expect(relevantErrors).toHaveLength(0);
     });
 });
 
 simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
     simpleTest('should update all dashboards in real-time when owner deletes group', async ({ newLoggedInBrowser }, testInfo) => {
-        // Skip error checking for this test - 404 errors are expected when group detail 
+        // Skip error checking for this test - 404 errors are expected when group detail
         // stores try to refresh data for a deleted group
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors from group detail store refreshes after deletion' });
-        
+
         // Create three browser instances - User 1, User 2, and User 3
         const { page: page1, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
         const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
         const { page: page3, dashboardPage: dashboardPage3, user: user3 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(page1, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
@@ -263,13 +259,13 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
 
         // User 2 and User 3 join the group
         const shareLink = await groupDetailPage.getShareLink();
-        
+
         // User 2 joins
         await expect(page2).toHaveURL(/\/dashboard/);
         const joinGroupPage2 = new JoinGroupPage(page2, user2);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-        
-        // User 3 joins  
+
+        // User 3 joins
         await expect(page3).toHaveURL(/\/dashboard/);
         const joinGroupPage3 = new JoinGroupPage(page3, user3);
         await joinGroupPage3.joinGroupUsingShareLink(shareLink);
@@ -282,7 +278,7 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         // ALL users navigate to their dashboards
         await dashboardPage1.navigate();
         await dashboardPage1.waitForDashboard();
-        await dashboardPage2.navigate(); 
+        await dashboardPage2.navigate();
         await dashboardPage2.waitForDashboard();
         await dashboardPage3.navigate();
         await dashboardPage3.waitForDashboard();
@@ -294,9 +290,9 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
 
         // CRITICAL TEST SETUP:
         // User 1: Will delete the group (on group detail page)
-        // User 2: Stays on dashboard (should see real-time update) 
+        // User 2: Stays on dashboard (should see real-time update)
         // User 3: Stays on dashboard (should see real-time update)
-        
+
         // User 1 clicks on the group from dashboard to delete
         await dashboardPage1.clickGroupCard(groupName);
         await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -321,7 +317,7 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
 
         // CRITICAL TEST: All dashboards should update in real-time
         // This tests the change document subscription system
-        
+
         // User 1's dashboard (who deleted) should not show the group
         await dashboardPage1.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
 
@@ -334,21 +330,17 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         // Verify no critical errors occurred during real-time updates
         const jsErrors2: string[] = [];
         const jsErrors3: string[] = [];
-        
+
         page2.on('pageerror', (error) => jsErrors2.push(error.message));
         page3.on('pageerror', (error) => jsErrors3.push(error.message));
-        
+
         await page2.waitForTimeout(500);
         await page3.waitForTimeout(500);
-        
+
         // Filter for group-related errors (ignore other console noise)
-        const criticalErrors2 = jsErrors2.filter(error => 
-            error.includes('404') && error.includes('group')
-        );
-        const criticalErrors3 = jsErrors3.filter(error => 
-            error.includes('404') && error.includes('group')
-        );
-        
+        const criticalErrors2 = jsErrors2.filter((error) => error.includes('404') && error.includes('group'));
+        const criticalErrors3 = jsErrors3.filter((error) => error.includes('404') && error.includes('group'));
+
         // Users 2 and 3 should have no group-related errors
         // (they should handle the group deletion gracefully via subscription)
         expect(criticalErrors2).toHaveLength(0);

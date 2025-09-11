@@ -11,10 +11,7 @@ import { GroupMemberDocument, TopLevelGroupMemberDocument } from '@splitifyd/sha
  * @param groupUpdatedAt - The group's updatedAt timestamp for denormalization
  * @returns TopLevelGroupMemberDocument ready to be written to top-level collection (without timestamps)
  */
-export function createTopLevelMembershipDocument(
-    memberDoc: GroupMemberDocument, 
-    groupUpdatedAt: string
-): Omit<TopLevelGroupMemberDocument, 'createdAt' | 'updatedAt'> {
+export function createTopLevelMembershipDocument(memberDoc: GroupMemberDocument, groupUpdatedAt: string): Omit<TopLevelGroupMemberDocument, 'createdAt' | 'updatedAt'> {
     return {
         ...memberDoc,
         groupUpdatedAt,

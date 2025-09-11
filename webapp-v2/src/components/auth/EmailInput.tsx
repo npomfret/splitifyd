@@ -42,7 +42,12 @@ export function EmailInput({ value, onInput, error, placeholder = 'Enter your em
     return (
         <div class="space-y-1">
             <label for="email-input" class="block text-sm font-medium text-gray-700">
-                Email address {required && <span class="text-red-500" data-testid="required-indicator">*</span>}
+                Email address{' '}
+                {required && (
+                    <span class="text-red-500" data-testid="required-indicator">
+                        *
+                    </span>
+                )}
             </label>
             <input
                 id="email-input"

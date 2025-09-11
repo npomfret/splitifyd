@@ -59,7 +59,7 @@ let app: express.Application | null = null;
 function getApp(): express.Application {
     if (!app) {
         app = express();
-        
+
         // No need to initialize services - ApplicationBuilder handles it lazily
 
         // Disable ETags to prevent 304 responses
@@ -89,7 +89,7 @@ function setupRoutes(app: express.Application): void {
         // Use encapsulated health check operation
         const appBuilder = getAppBuilder();
         const firestoreWriter = appBuilder.buildFirestoreWriter();
-        
+
         const firestoreHealthCheck = await firestoreWriter.performHealthCheck();
         checks.firestore = {
             status: firestoreHealthCheck.success ? 'healthy' : 'unhealthy',
@@ -128,14 +128,14 @@ function setupRoutes(app: express.Application): void {
     // Performance metrics endpoint (for monitoring current stats)
     app.get('/metrics', (req: express.Request, res: express.Response) => {
         const snapshot = metrics.getSnapshot();
-        
+
         // Calculate aggregated stats for each metric type
         const calculateStats = (metricsList: any[]) => {
             if (!metricsList.length) return null;
-            
-            const durations = metricsList.map(m => m.duration).sort((a, b) => a - b);
-            const successCount = metricsList.filter(m => m.success).length;
-            
+
+            const durations = metricsList.map((m) => m.duration).sort((a, b) => a - b);
+            const successCount = metricsList.filter((m) => m.success).length;
+
             return {
                 count: metricsList.length,
                 successRate: successCount / metricsList.length,
@@ -144,7 +144,7 @@ function setupRoutes(app: express.Application): void {
                 p95: durations[Math.floor(durations.length * 0.95)] || 0,
                 p99: durations[Math.floor(durations.length * 0.99)] || 0,
                 minDuration: durations[0] || 0,
-                maxDuration: durations[durations.length - 1] || 0
+                maxDuration: durations[durations.length - 1] || 0,
             };
         };
 
@@ -154,15 +154,15 @@ function setupRoutes(app: express.Application): void {
             bufferSize: 100,
             metrics: {
                 api: calculateStats(snapshot.api),
-                db: calculateStats(snapshot.db), 
-                trigger: calculateStats(snapshot.trigger)
+                db: calculateStats(snapshot.db),
+                trigger: calculateStats(snapshot.trigger),
             },
             rawCounts: {
                 api: snapshot.api.length,
                 db: snapshot.db.length,
                 trigger: snapshot.trigger.length,
-                total: snapshot.api.length + snapshot.db.length + snapshot.trigger.length
-            }
+                total: snapshot.api.length + snapshot.db.length + snapshot.trigger.length,
+            },
         };
 
         res.json(report);
@@ -444,15 +444,9 @@ import { createNotificationTriggers } from './triggers/notification-triggers';
 const notificationTriggers = createNotificationTriggers();
 
 // Export notification triggers for user lifecycle events
-// Note: addUserToGroupNotifications and removeUserFromGroupNotifications were removed - 
+// Note: addUserToGroupNotifications and removeUserFromGroupNotifications were removed -
 // notification management now handled atomically in transactions
-export const { 
-    initializeUserNotifications, 
-    cleanupUserNotifications 
-} = notificationTriggers;
+export const { initializeUserNotifications, cleanupUserNotifications } = notificationTriggers;
 
 // Export scheduled functions
-export { 
-    logMetrics
-};
-
+export { logMetrics };

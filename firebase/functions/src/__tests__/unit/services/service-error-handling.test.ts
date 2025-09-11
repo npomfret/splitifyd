@@ -20,20 +20,20 @@ const createMockUserService = () => ({
     changePassword: vi.fn(),
     deleteAccount: vi.fn(),
     registerUser: vi.fn(),
-    createUserDirect: vi.fn()
+    createUserDirect: vi.fn(),
 });
 
 const createMockNotificationService = () => ({
     initializeUserNotifications: vi.fn(),
     updateUserNotification: vi.fn(),
-    getUserNotifications: vi.fn()
+    getUserNotifications: vi.fn(),
 });
 
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn()
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
 describe('Service-Level Error Handling - Subcollection Queries', () => {
@@ -53,7 +53,7 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
             mockFirestoreReader,
             {} as any, // mockFirestoreWriter
             mockUserService as any,
-            mockNotificationService as any
+            mockNotificationService as any,
         );
     });
 
@@ -63,12 +63,11 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
     describe('GroupMemberService - empty subcollection handling', () => {
         test('should handle empty member subcollection gracefully', async () => {
             // Mock empty subcollection through MockFirestoreReader
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers')
-                .mockResolvedValue([]);
+            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue([]);
 
             // Should return empty array, not throw
             const members = await groupMemberService.getAllGroupMembers('empty-group-id');
-            
+
             expect(members).toEqual([]);
             expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith('empty-group-id');
         });
@@ -76,26 +75,20 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle subcollection query timeout', async () => {
             // Mock query timeout through MockFirestoreReader
             const timeoutError = new Error('Query timed out after 30 seconds');
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers')
-                .mockRejectedValue(timeoutError);
+            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockRejectedValue(timeoutError);
 
             // Should let timeout errors bubble up
-            await expect(
-                groupMemberService.getAllGroupMembers('timeout-group-id')
-            ).rejects.toThrow('Query timed out after 30 seconds');
+            await expect(groupMemberService.getAllGroupMembers('timeout-group-id')).rejects.toThrow('Query timed out after 30 seconds');
         });
 
         test('should handle Firestore permission errors on subcollection access', async () => {
             // Mock permission denied error through MockFirestoreReader
             const permissionError = new Error('Missing or insufficient permissions');
             permissionError.name = 'FirebaseError';
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers')
-                .mockRejectedValue(permissionError);
+            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockRejectedValue(permissionError);
 
             // Should let permission errors bubble up
-            await expect(
-                groupMemberService.getAllGroupMembers('protected-group-id')
-            ).rejects.toThrow('Missing or insufficient permissions');
+            await expect(groupMemberService.getAllGroupMembers('protected-group-id')).rejects.toThrow('Missing or insufficient permissions');
         });
     });
 
@@ -111,12 +104,11 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                 theme: { name: 'Blue', colorIndex: i % 10 },
             }));
 
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers')
-                .mockResolvedValue(largeMemberSet);
+            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue(largeMemberSet);
 
             // Should handle large result sets efficiently
             const members = await groupMemberService.getAllGroupMembers('large-group-id');
-            
+
             expect(members).toHaveLength(1000);
             expect(members[0].userId).toBe('user-0');
             expect(members[999].userId).toBe('user-999');
@@ -151,12 +143,11 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                 },
             ];
 
-            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers')
-                .mockResolvedValue(validMembers);
+            vi.spyOn(mockFirestoreReader, 'getAllGroupMembers').mockResolvedValue(validMembers);
 
             // Should handle corrupted documents gracefully
             const members = await groupMemberService.getAllGroupMembers('group-with-corruption');
-            
+
             // Verify that the method doesn't crash with corrupted data
             expect(Array.isArray(members)).toBe(true);
             // At least the valid document should be processable
@@ -168,20 +159,21 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
         test('should handle partial subcollection query failures gracefully', async () => {
             // This test documents the pattern for handling partial failures in subcollection queries
             // Real implementation would be in integration tests with actual service methods
-            
+
             // Pattern: Services should handle individual query failures while continuing with valid operations
             // Example: When querying multiple members, one failure shouldn't break the entire operation
-            
+
             const mockService = {
-                getGroupMember: vi.fn()
+                getGroupMember: vi
+                    .fn()
                     .mockResolvedValueOnce({ userId: 'user1', memberRole: 'member' }) // Success
-                    .mockRejectedValueOnce(new Error('Network error'))          // Failure
-                    .mockResolvedValueOnce({ userId: 'user3', memberRole: 'admin' })  // Success
+                    .mockRejectedValueOnce(new Error('Network error')) // Failure
+                    .mockResolvedValueOnce({ userId: 'user3', memberRole: 'admin' }), // Success
             };
 
             // Verify the mock is set up correctly for partial failure patterns
             expect(mockService.getGroupMember).toBeDefined();
-            
+
             // In real scenarios, services would catch individual failures and continue processing
             const results = [];
             for (let i = 0; i < 3; i++) {
@@ -193,9 +185,9 @@ describe('Service-Level Error Handling - Subcollection Queries', () => {
                     results.push(null);
                 }
             }
-            
+
             expect(results).toHaveLength(3);
-            expect(results.filter(r => r !== null)).toHaveLength(2); // 2 successes, 1 failure
+            expect(results.filter((r) => r !== null)).toHaveLength(2); // 2 successes, 1 failure
         });
 
         test('should validate error types for proper handling', () => {

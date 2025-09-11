@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {CreateExpenseRequestBuilder, ApiDriver, TestGroupManager} from '@splitifyd/test-support';
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { CreateExpenseRequestBuilder, ApiDriver, TestGroupManager } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
-import {UserToken} from "@splitifyd/shared";
+import { UserToken } from '@splitifyd/shared';
 
 describe('Freeform Categories API Integration', () => {
     const apiDriver = new ApiDriver();

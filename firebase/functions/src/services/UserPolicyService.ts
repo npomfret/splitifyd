@@ -41,7 +41,7 @@ export interface AcceptPolicyRequest {
 export class UserPolicyService {
     constructor(
         private firestoreReader: IFirestoreReader,
-        private firestoreWriter: IFirestoreWriter
+        private firestoreWriter: IFirestoreWriter,
     ) {}
 
     /**
@@ -55,11 +55,7 @@ export class UserPolicyService {
         }
 
         if (!policy.versions[versionHash]) {
-            throw new ApiError(
-                HTTP_STATUS.BAD_REQUEST,
-                'INVALID_VERSION_HASH',
-                `Version hash ${versionHash} not found for policy ${policyId}`
-            );
+            throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_VERSION_HASH', `Version hash ${versionHash} not found for policy ${policyId}`);
         }
     }
 
@@ -72,7 +68,7 @@ export class UserPolicyService {
 
     private async _acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
         LoggerContext.update({ userId, policyId, operation: 'accept-policy', versionHash });
-        
+
         try {
             // Validate that the policy exists and the version hash is current
             await this.validatePolicyAndVersion(policyId, versionHash);
@@ -110,7 +106,7 @@ export class UserPolicyService {
 
     private async _acceptMultiplePolicies(userId: string, acceptances: AcceptPolicyRequest[]): Promise<Array<{ policyId: string; versionHash: string; acceptedAt: string }>> {
         LoggerContext.update({ userId, operation: 'accept-multiple-policies', count: acceptances.length });
-        
+
         try {
             // Validate all policies and version hashes first
             for (const acceptance of acceptances) {

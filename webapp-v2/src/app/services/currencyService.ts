@@ -39,7 +39,7 @@ export class CurrencyService {
     }
 
     // Recent currencies management (existing functionality)
-    
+
     /**
      * Set the user-scoped storage instance and load recent currencies
      * Called by auth store after user authentication
@@ -181,19 +181,11 @@ export class CurrencyService {
      * Group currencies into recent, common, and others
      */
     groupCurrencies(currencies: Currency[], recentCurrencies: string[] = []): GroupedCurrencies {
-        const recent = recentCurrencies
-            .map((code) => currencies.find((c) => c.acronym === code))
-            .filter((c): c is Currency => !!c);
+        const recent = recentCurrencies.map((code) => currencies.find((c) => c.acronym === code)).filter((c): c is Currency => !!c);
 
-        const common = this.commonCurrencyCodes
-            .map((code) => currencies.find((c) => c.acronym === code))
-            .filter((c): c is Currency => !!c && !recent.some((r) => r.acronym === c.acronym));
+        const common = this.commonCurrencyCodes.map((code) => currencies.find((c) => c.acronym === code)).filter((c): c is Currency => !!c && !recent.some((r) => r.acronym === c.acronym));
 
-        const others = currencies.filter(
-            (c) => 
-                !recent.some((r) => r.acronym === c.acronym) && 
-                !common.some((cm) => cm.acronym === c.acronym)
-        );
+        const others = currencies.filter((c) => !recent.some((r) => r.acronym === c.acronym) && !common.some((cm) => cm.acronym === c.acronym));
 
         return { recent, common, others };
     }
@@ -217,11 +209,7 @@ export class CurrencyService {
      * Get flat array of currencies for keyboard navigation
      */
     getFlatCurrencyArray(groupedCurrencies: GroupedCurrencies): Currency[] {
-        return [
-            ...groupedCurrencies.recent,
-            ...groupedCurrencies.common,
-            ...groupedCurrencies.others,
-        ];
+        return [...groupedCurrencies.recent, ...groupedCurrencies.common, ...groupedCurrencies.others];
     }
 
     /**

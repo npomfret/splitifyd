@@ -1,6 +1,6 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
-import {GroupDetailPage, JoinGroupPage} from '../../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
@@ -68,7 +68,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
         simpleTest('should redirect non-logged-in user to login then to group after login', async ({ newLoggedInBrowser }) => {
             // Create authenticated user and manually create unauthenticated browser
             const { page: page1, user: user1 } = await newLoggedInBrowser();
-            
+
             // Create a second browser context without authentication
             const browser = page1.context().browser();
             if (!browser) throw new Error('Browser not found');
@@ -104,13 +104,13 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
         simpleTest('should allow unregistered user to register and join group via share link', async ({ newLoggedInBrowser }) => {
             // Create authenticated user and manually create unauthenticated browser
             const { page: page1, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            
+
             // Create a second browser context without authentication
             const browser = page1.context().browser();
             if (!browser) throw new Error('Browser not found');
             const context2 = await browser.newContext();
             const page2 = await context2.newPage();
-            
+
             // Import page objects for unauthenticated flows
             const { RegisterPage, LoginPage } = await import('../../../pages');
             const registerPage = new RegisterPage(page2);
@@ -171,13 +171,13 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
         simpleTest('should allow user to login and then join group via share link', async ({ newLoggedInBrowser }) => {
             // Create authenticated user and manually create unauthenticated browser
             const { page: page1, user: user1, dashboardPage } = await newLoggedInBrowser();
-            
+
             // Create a second browser context without authentication
             const browser = page1.context().browser();
             if (!browser) throw new Error('Browser not found');
             const context2 = await browser.newContext();
             const page2 = await context2.newPage();
-            
+
             // Import page objects for unauthenticated flows
             const { LoginPage } = await import('../../../pages');
             const loginPage = new LoginPage(page2);
@@ -297,7 +297,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             // The app should show an error message for invalid links
             await expect(joinGroupPage.getErrorMessage()).toBeVisible();
 
-            // Should show specific error message using page object method  
+            // Should show specific error message using page object method
             const errorMessage = joinGroupPage.getSpecificErrorMessage(/Invalid share link|Group not found|expired/i);
             await expect(errorMessage).toBeVisible();
 

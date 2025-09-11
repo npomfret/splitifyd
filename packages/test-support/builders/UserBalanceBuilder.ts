@@ -53,14 +53,8 @@ export class DebtScenarios {
      */
     static simpleTwoPerson(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 50)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owedByUser('user1', 50)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 50).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owedByUser('user1', 50).build(),
         };
     }
 
@@ -70,16 +64,8 @@ export class DebtScenarios {
      */
     static reciprocalDebts(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 50)
-                .owedByUser('user2', 30)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user1', 30)
-                .owedByUser('user1', 50)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 50).owedByUser('user2', 30).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user1', 30).owedByUser('user1', 50).build(),
         };
     }
 
@@ -89,21 +75,9 @@ export class DebtScenarios {
      */
     static triangularCycle(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 30)
-                .owedByUser('user3', 30)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user3', 30)
-                .owedByUser('user1', 30)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owesUser('user1', 30)
-                .owedByUser('user2', 30)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 30).owedByUser('user3', 30).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user3', 30).owedByUser('user1', 30).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owesUser('user1', 30).owedByUser('user2', 30).build(),
         };
     }
 
@@ -113,31 +87,11 @@ export class DebtScenarios {
      */
     static fiveUserCircle(): Record<string, UserBalance> {
         return {
-            userA: new UserBalanceBuilder()
-                .withUserId('userA')
-                .owesUser('userB', 20)
-                .owedByUser('userE', 20)
-                .build(),
-            userB: new UserBalanceBuilder()
-                .withUserId('userB')
-                .owesUser('userC', 20)
-                .owedByUser('userA', 20)
-                .build(),
-            userC: new UserBalanceBuilder()
-                .withUserId('userC')
-                .owesUser('userD', 20)
-                .owedByUser('userB', 20)
-                .build(),
-            userD: new UserBalanceBuilder()
-                .withUserId('userD')
-                .owesUser('userE', 20)
-                .owedByUser('userC', 20)
-                .build(),
-            userE: new UserBalanceBuilder()
-                .withUserId('userE')
-                .owesUser('userA', 20)
-                .owedByUser('userD', 20)
-                .build(),
+            userA: new UserBalanceBuilder().withUserId('userA').owesUser('userB', 20).owedByUser('userE', 20).build(),
+            userB: new UserBalanceBuilder().withUserId('userB').owesUser('userC', 20).owedByUser('userA', 20).build(),
+            userC: new UserBalanceBuilder().withUserId('userC').owesUser('userD', 20).owedByUser('userB', 20).build(),
+            userD: new UserBalanceBuilder().withUserId('userD').owesUser('userE', 20).owedByUser('userC', 20).build(),
+            userE: new UserBalanceBuilder().withUserId('userE').owesUser('userA', 20).owedByUser('userD', 20).build(),
         };
     }
 
@@ -146,29 +100,11 @@ export class DebtScenarios {
      */
     static starNetwork(): Record<string, UserBalance> {
         return {
-            center: new UserBalanceBuilder()
-                .withUserId('center')
-                .owesUser('user1', 100)
-                .owesUser('user2', 50)
-                .owedByUser('user3', 80)
-                .owedByUser('user4', 70)
-                .build(),
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owedByUser('center', 100)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owedByUser('center', 50)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owesUser('center', 80)
-                .build(),
-            user4: new UserBalanceBuilder()
-                .withUserId('user4')
-                .owesUser('center', 70)
-                .build(),
+            center: new UserBalanceBuilder().withUserId('center').owesUser('user1', 100).owesUser('user2', 50).owedByUser('user3', 80).owedByUser('user4', 70).build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owedByUser('center', 100).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owedByUser('center', 50).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owesUser('center', 80).build(),
+            user4: new UserBalanceBuilder().withUserId('user4').owesUser('center', 70).build(),
         };
     }
 
@@ -177,14 +113,8 @@ export class DebtScenarios {
      */
     static belowThreshold(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 0.005)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owedByUser('user1', 0.005)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 0.005).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owedByUser('user1', 0.005).build(),
         };
     }
 
@@ -193,28 +123,10 @@ export class DebtScenarios {
      */
     static complexFourUser(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 40)
-                .owesUser('user3', 30) 
-                .owesUser('user4', 20)
-                .owedByUser('user2', 30)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user1', 30)
-                .owesUser('user4', 40)
-                .owedByUser('user1', 40)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owedByUser('user1', 30)
-                .build(),
-            user4: new UserBalanceBuilder()
-                .withUserId('user4')
-                .owesUser('user1', 20)
-                .owedByUser('user2', 40)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 40).owesUser('user3', 30).owesUser('user4', 20).owedByUser('user2', 30).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user1', 30).owesUser('user4', 40).owedByUser('user1', 40).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owedByUser('user1', 30).build(),
+            user4: new UserBalanceBuilder().withUserId('user4').owesUser('user1', 20).owedByUser('user2', 40).build(),
         };
     }
 
@@ -223,24 +135,10 @@ export class DebtScenarios {
      */
     static unevenChain(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 100)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user3', 50)
-                .owesUser('user4', 50)
-                .owedByUser('user1', 100)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owedByUser('user2', 50)
-                .build(),
-            user4: new UserBalanceBuilder()
-                .withUserId('user4')
-                .owedByUser('user2', 50)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 100).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user3', 50).owesUser('user4', 50).owedByUser('user1', 100).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owedByUser('user2', 50).build(),
+            user4: new UserBalanceBuilder().withUserId('user4').owedByUser('user2', 50).build(),
         };
     }
 
@@ -249,40 +147,12 @@ export class DebtScenarios {
      */
     static sixUserNetwork(): Record<string, UserBalance> {
         return {
-            alice: new UserBalanceBuilder()
-                .withUserId('alice')
-                .owesUser('bob', 50)
-                .owesUser('charlie', 30)
-                .owedByUser('frank', 40)
-                .build(),
-            bob: new UserBalanceBuilder()
-                .withUserId('bob')
-                .owesUser('diana', 60)
-                .owedByUser('alice', 50)
-                .owedByUser('eve', 30)
-                .build(),
-            charlie: new UserBalanceBuilder()
-                .withUserId('charlie')
-                .owesUser('eve', 45)
-                .owedByUser('alice', 30)
-                .owedByUser('diana', 25)
-                .build(),
-            diana: new UserBalanceBuilder()
-                .withUserId('diana')
-                .owesUser('charlie', 25)
-                .owesUser('frank', 35)
-                .owedByUser('bob', 60)
-                .build(),
-            eve: new UserBalanceBuilder()
-                .withUserId('eve')
-                .owesUser('bob', 30)
-                .owedByUser('charlie', 45)
-                .build(),
-            frank: new UserBalanceBuilder()
-                .withUserId('frank')
-                .owesUser('alice', 40)
-                .owedByUser('diana', 35)
-                .build(),
+            alice: new UserBalanceBuilder().withUserId('alice').owesUser('bob', 50).owesUser('charlie', 30).owedByUser('frank', 40).build(),
+            bob: new UserBalanceBuilder().withUserId('bob').owesUser('diana', 60).owedByUser('alice', 50).owedByUser('eve', 30).build(),
+            charlie: new UserBalanceBuilder().withUserId('charlie').owesUser('eve', 45).owedByUser('alice', 30).owedByUser('diana', 25).build(),
+            diana: new UserBalanceBuilder().withUserId('diana').owesUser('charlie', 25).owesUser('frank', 35).owedByUser('bob', 60).build(),
+            eve: new UserBalanceBuilder().withUserId('eve').owesUser('bob', 30).owedByUser('charlie', 45).build(),
+            frank: new UserBalanceBuilder().withUserId('frank').owesUser('alice', 40).owedByUser('diana', 35).build(),
         };
     }
 
@@ -291,33 +161,11 @@ export class DebtScenarios {
      */
     static asymmetricWhale(): Record<string, UserBalance> {
         return {
-            whale: new UserBalanceBuilder()
-                .withUserId('whale')
-                .owedByUser('user1', 1000)
-                .owedByUser('user2', 800)
-                .owedByUser('user3', 600)
-                .build(),
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('whale', 1000)
-                .owesUser('user4', 50)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('whale', 800)
-                .owesUser('user4', 30)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owesUser('whale', 600)
-                .owesUser('user4', 20)
-                .build(),
-            user4: new UserBalanceBuilder()
-                .withUserId('user4')
-                .owedByUser('user1', 50)
-                .owedByUser('user2', 30)
-                .owedByUser('user3', 20)
-                .build(),
+            whale: new UserBalanceBuilder().withUserId('whale').owedByUser('user1', 1000).owedByUser('user2', 800).owedByUser('user3', 600).build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('whale', 1000).owesUser('user4', 50).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('whale', 800).owesUser('user4', 30).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owesUser('whale', 600).owesUser('user4', 20).build(),
+            user4: new UserBalanceBuilder().withUserId('user4').owedByUser('user1', 50).owedByUser('user2', 30).owedByUser('user3', 20).build(),
         };
     }
 
@@ -326,51 +174,25 @@ export class DebtScenarios {
      */
     static allZeroBalances(): Record<string, UserBalance> {
         return {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').build(),
+            user2: new UserBalanceBuilder().withUserId('user2').build(),
         };
     }
 
     /**
      * Mixed currency scenarios - returns both USD and EUR balances separately
      */
-    static mixedCurrencyScenarios(): { usd: Record<string, UserBalance>, eur: Record<string, UserBalance> } {
+    static mixedCurrencyScenarios(): { usd: Record<string, UserBalance>; eur: Record<string, UserBalance> } {
         const usdBalances = {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owesUser('user2', 100)
-                .owedByUser('user3', 50)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user3', 80)
-                .owedByUser('user1', 100)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owesUser('user1', 50)
-                .owedByUser('user2', 80)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owesUser('user2', 100).owedByUser('user3', 50).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user3', 80).owedByUser('user1', 100).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owesUser('user1', 50).owedByUser('user2', 80).build(),
         };
 
         const eurBalances = {
-            user1: new UserBalanceBuilder()
-                .withUserId('user1')
-                .owedByUser('user2', 60)
-                .build(),
-            user2: new UserBalanceBuilder()
-                .withUserId('user2')
-                .owesUser('user1', 60)
-                .owesUser('user3', 40)
-                .build(),
-            user3: new UserBalanceBuilder()
-                .withUserId('user3')
-                .owedByUser('user2', 40)
-                .build(),
+            user1: new UserBalanceBuilder().withUserId('user1').owedByUser('user2', 60).build(),
+            user2: new UserBalanceBuilder().withUserId('user2').owesUser('user1', 60).owesUser('user3', 40).build(),
+            user3: new UserBalanceBuilder().withUserId('user3').owedByUser('user2', 40).build(),
         };
 
         return { usd: usdBalances, eur: eurBalances };

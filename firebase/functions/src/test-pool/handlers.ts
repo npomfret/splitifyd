@@ -1,9 +1,9 @@
 import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
-import {getFirestore, isEmulator} from '../firebase';
+import { getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
 import { FirestoreReader } from '../services/firestore/FirestoreReader';
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
@@ -26,9 +26,9 @@ export async function borrowTestUser(req: Request, res: Response): Promise<void>
         res.json(poolUser);
     } catch (error: any) {
         logger.error('Failed to borrow test user', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to borrow test user',
-            details: error.message
+            details: error.message,
         });
     }
 }
@@ -48,16 +48,16 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
 
     try {
         await pool.returnUser(email);
-        
+
         res.json({
             message: 'User returned to pool',
-            email
+            email,
         });
     } catch (error: any) {
         logger.error('Failed to return test user', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to return test user',
-            details: error.message
+            details: error.message,
         });
     }
 }
@@ -73,9 +73,9 @@ export async function getPoolStatus(_req: Request, res: Response): Promise<void>
         res.json(status);
     } catch (error: any) {
         logger.error('Failed to get pool status', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to get pool status',
-            details: error.message
+            details: error.message,
         });
     }
 }
@@ -91,20 +91,20 @@ export async function resetPool(_req: Request, res: Response): Promise<void> {
 
     try {
         await pool.resetPool();
-        
+
         logger.info('Test pool reset');
-        
+
         const status = await pool.getPoolStatus();
         res.json({
             success: true,
             message: 'Pool reset successfully',
-            status
+            status,
         });
     } catch (error: any) {
         logger.error('Failed to reset pool', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to reset pool',
-            details: error.message
+            details: error.message,
         });
     }
 }

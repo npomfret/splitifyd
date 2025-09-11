@@ -22,16 +22,16 @@ import {
     SettlementListItem,
     ShareLinkResponse,
     UserProfileResponse,
-    UserRegistration
+    UserRegistration,
 } from '@splitifyd/shared';
 
-import type {DocumentData} from 'firebase-admin/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
-import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
-import {Matcher, PollOptions, pollUntil} from "./Polling";
-import {CreateExpenseRequestBuilder, UserRegistrationBuilder} from "./builders";
-import {GroupBalances} from "@splitifyd/shared";
-import {PooledTestUser, UserToken} from "@splitifyd/shared";
+import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import { Matcher, PollOptions, pollUntil } from './Polling';
+import { CreateExpenseRequestBuilder, UserRegistrationBuilder } from './builders';
+import { GroupBalances } from '@splitifyd/shared';
+import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -75,8 +75,7 @@ export interface SettlementChangeDocument extends MinimalChangeDocument {
     groupId: string;
 }
 
-export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {
-}
+export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -108,35 +107,33 @@ export class ApiDriver {
             }
         }
 
-        const {uid, token} = await this.firebaseSignIn(userRegistration);
+        const { uid, token } = await this.firebaseSignIn(userRegistration);
 
         return {
             uid,
             token,
             email: userRegistration.email,
             displayName: userRegistration.displayName,
-        }
+        };
     }
 
     async borrowTestUser(): Promise<PooledTestUser> {
-        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string, token: string, password: string };
+        const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string; token: string; password: string };
 
-        const {email, password, token} = poolUser;
+        const { email, password, token } = poolUser;
 
         // Always use the custom token approach - it's more reliable than caching ID tokens
         // The custom token won't be revoked and can be exchanged for a fresh ID token each time
-        const res = await this.firebaseSignIn({email, password, token});
+        const res = await this.firebaseSignIn({ email, password, token });
 
-        if(!email)
-            throw Error();
-        if(!password)
-            throw Error();
+        if (!email) throw Error();
+        if (!password) throw Error();
 
         return {
             ...res,
             email,
-            password
-        }
+            password,
+        };
     }
 
     private async firebaseSignIn(userInfo: { email: string; password: string; token?: string }): Promise<UserToken> {
@@ -145,21 +142,18 @@ export class ApiDriver {
         let signInResponse: Response;
         if (userInfo.token) {
             // Exchange custom token for ID token
-            signInResponse = await fetch(
-                `http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`,
-                {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        token: userInfo.token,
-                        returnSecureToken: true
-                    })
-                }
-            );
+            signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: userInfo.token,
+                    returnSecureToken: true,
+                }),
+            });
         } else {
             signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     email: userInfo.email,
                     password: userInfo.password,
@@ -186,22 +180,17 @@ export class ApiDriver {
     }
 
     async returnTestUser(email: string): Promise<void> {
-        await this.apiRequest('/test-pool/return', 'POST', {email});
+        await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    createBasicExpense(groupId: string, paidByUid: string, token: string, amount: number = 10.00) {
-        return this.createMultiUserExpense(groupId, paidByUid, token, [paidByUid], amount)
+    createBasicExpense(groupId: string, paidByUid: string, token: string, amount: number = 10.0) {
+        return this.createMultiUserExpense(groupId, paidByUid, token, [paidByUid], amount);
     }
 
-    createMultiUserExpense(groupId: string, paidByUid: string, token: string, participantUids: string[], amount: number = 10.00) {
-        const expense = new CreateExpenseRequestBuilder()
-            .withGroupId(groupId)
-            .withAmount(amount)
-            .withPaidBy(paidByUid)
-            .withParticipants(participantUids)
-            .build();
+    createMultiUserExpense(groupId: string, paidByUid: string, token: string, participantUids: string[], amount: number = 10.0) {
+        const expense = new CreateExpenseRequestBuilder().withGroupId(groupId).withAmount(amount).withPaidBy(paidByUid).withParticipants(participantUids).build();
 
-        return this.createExpense(expense, token)
+        return this.createExpense(expense, token);
     }
 
     async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
@@ -279,37 +268,37 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
-        return pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
+        return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 10000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
     }
 
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
-        return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
+        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
-        return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
+        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
     }
 
     async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
-        const groupData = {name, description: `Test group created at ${new Date().toISOString()}`};
+        const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
 
         const group = await this.createGroup(groupData, creatorToken);
 
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         await this.addMembersViaShareLink(group.id, otherMembers, creatorToken);
-        const {group: updatedGroup} = await this.getGroupFullDetails(group.id, creatorToken);
+        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, creatorToken);
         return updatedGroup;
     }
 
     async addMembersViaShareLink(groupId: string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const {linkId} = await this.generateShareLink(groupId, creatorToken);
+            const { linkId } = await this.generateShareLink(groupId, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
@@ -323,15 +312,14 @@ export class ApiDriver {
     }
 
     async getGroup(groupId: string, token: string): Promise<Group> {
-        const res = await this.getGroupFullDetails(groupId, token)
+        const res = await this.getGroupFullDetails(groupId, token);
         return res.group;
     }
 
-    async assertExpense(groupId: string, expenseId:string, token: string) {
-        const {expenses} = await this.getGroupFullDetails(groupId, token);
-        const found = expenses.expenses.find(item => item.id === expenseId);
-        if(!found)
-            throw Error(`expect with id ${expenseId} not found in group ${groupId}`);
+    async assertExpense(groupId: string, expenseId: string, token: string) {
+        const { expenses } = await this.getGroupFullDetails(groupId, token);
+        const found = expenses.expenses.find((item) => item.id === expenseId);
+        if (!found) throw Error(`expect with id ${expenseId} not found in group ${groupId}`);
     }
 
     async getGroupFullDetails(
@@ -380,11 +368,11 @@ export class ApiDriver {
     }
 
     async applySecurityPreset(groupId: string, token: string, preset: SecurityPreset): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', {preset}, token);
+        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', { preset }, token);
     }
 
     async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', {role}, token);
+        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', { role }, token);
     }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {
@@ -424,7 +412,7 @@ export class ApiDriver {
     }
 
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', {currentPassword, newPassword}, token);
+        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
     async getUserProfile(token: string): Promise<UserProfileResponse> {
@@ -447,7 +435,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && {Authorization: `Bearer ${token}`}),
+                ...(token && { Authorization: `Bearer ${token}` }),
             },
         };
 
@@ -495,27 +483,26 @@ export class ApiDriver {
 
     async getSettlement(groupId: string, settlementId: string, token: string) {
         let res;
-        
+
         try {
             res = await this.getGroupFullDetails(groupId, token);
         } catch (error: any) {
             // If getGroupFullDetails fails, it means the user can't access the group
             // This should be treated as NOT_GROUP_MEMBER regardless of the specific error code
-            if ((error.status === 403 || error.status === 404) || 
-                (error.message && (error.message.includes('Group not found') || error.message.includes('403')))) {
+            if (error.status === 403 || error.status === 404 || (error.message && (error.message.includes('Group not found') || error.message.includes('403')))) {
                 const groupError = new Error(`Group access denied`);
                 (groupError as any).status = 403;
                 (groupError as any).message = 'status 403: NOT_GROUP_MEMBER';
                 throw groupError;
             }
-            
+
             // Re-throw other errors as-is
             throw error;
         }
-        
+
         // At this point, we have group access, so check if settlement exists
         const settlement = res.settlements.settlements.find((s: any) => s.id === settlementId);
-        
+
         if (!settlement) {
             // Create an error object with status and message properties to match expected test behavior
             const error = new Error(`Settlement not found`);
@@ -523,8 +510,7 @@ export class ApiDriver {
             (error as any).message = 'status 404: SETTLEMENT_NOT_FOUND';
             throw error;
         }
-        
+
         return settlement;
     }
-
 }

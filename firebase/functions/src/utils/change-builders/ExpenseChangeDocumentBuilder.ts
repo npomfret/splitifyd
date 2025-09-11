@@ -4,7 +4,7 @@ import { ChangeType, ChangeMetadata } from '../change-detection';
 
 /**
  * Builder for expense change documents
- * 
+ *
  * Expenses are child entities of groups and MUST include a groupId field in all
  * change documents. This builder encapsulates that requirement and ensures
  * proper validation.
@@ -12,15 +12,10 @@ import { ChangeType, ChangeMetadata } from '../change-detection';
 export class ExpenseChangeDocumentBuilder implements IChangeDocumentBuilder {
     /**
      * Create a standardized change document for an expense
-     * 
+     *
      * @throws Error if groupId is not provided in additionalData
      */
-    createChangeDocument(
-        entityId: string,
-        changeType: ChangeType,
-        metadata: ChangeMetadata,
-        additionalData: Record<string, any> = {}
-    ): Record<string, any> {
+    createChangeDocument(entityId: string, changeType: ChangeType, metadata: ChangeMetadata, additionalData: Record<string, any> = {}): Record<string, any> {
         if (!additionalData.groupId) {
             throw new Error('expense change document must include groupId');
         }
@@ -38,15 +33,10 @@ export class ExpenseChangeDocumentBuilder implements IChangeDocumentBuilder {
 
     /**
      * Create a minimal change document for an expense
-     * 
+     *
      * @throws Error if groupId is not provided in additionalData
      */
-    createMinimalChangeDocument(
-        entityId: string,
-        changeType: ChangeType,
-        affectedUsers: string[],
-        additionalData: Record<string, any> = {}
-    ): Record<string, any> {
+    createMinimalChangeDocument(entityId: string, changeType: ChangeType, affectedUsers: string[], additionalData: Record<string, any> = {}): Record<string, any> {
         const groupId = additionalData.groupId;
         if (!groupId) {
             throw new Error('expense change document must include groupId');

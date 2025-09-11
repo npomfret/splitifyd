@@ -51,25 +51,25 @@ Multiple services and utilities bypass the `FirestoreWriter` entirely and call `
 
 **Unguarded Write Operations Found In:**
 
-*   **`services/GroupMemberService.ts`**: Performs direct `.update()` calls to update group timestamps.
-*   **`services/UserPolicyService.ts`**: Directly updates user documents and creates its own batches.
-*   **`services/PolicyService.ts`**: Still contains a private `policiesCollection` and calls `.update()` and `.set()` on it directly.
-*   **`scheduled/cleanup.ts`**: Uses `getFirestore()` to create batches and add metrics directly.
-*   **`test-pool/TestUserPoolService.ts`**: Contains numerous direct `.set()` and `.update()` calls.
-*   **`user-management/assign-theme-color.ts`**: Uses a direct `transaction.set()` call.
-*   **`utils/optimistic-locking.ts`**: Contains direct `transaction.update()` calls.
+- **`services/GroupMemberService.ts`**: Performs direct `.update()` calls to update group timestamps.
+- **`services/UserPolicyService.ts`**: Directly updates user documents and creates its own batches.
+- **`services/PolicyService.ts`**: Still contains a private `policiesCollection` and calls `.update()` and `.set()` on it directly.
+- **`scheduled/cleanup.ts`**: Uses `getFirestore()` to create batches and add metrics directly.
+- **`test-pool/TestUserPoolService.ts`**: Contains numerous direct `.set()` and `.update()` calls.
+- **`user-management/assign-theme-color.ts`**: Uses a direct `transaction.set()` call.
+- **`utils/optimistic-locking.ts`**: Contains direct `transaction.update()` calls.
 
 ### 3.3. The Solution: Enforce Schema Validation on All Writes
 
 1.  **Harden the `FirestoreWriter` (Highest Priority):**
-    *   Modify every `update` method in `IFirestoreWriter` and `FirestoreWriter.ts`.
-    *   These methods must fetch the existing document, merge the requested updates with the existing data, and then validate the *entire resulting object* against the relevant Zod schema (e.g., `UserDocumentSchema`, `GroupDocumentSchema`) before performing the write.
-    *   The `updateUserNotification` method's special case for `FieldValue` operations must be re-evaluated and made safe.
+    - Modify every `update` method in `IFirestoreWriter` and `FirestoreWriter.ts`.
+    - These methods must fetch the existing document, merge the requested updates with the existing data, and then validate the _entire resulting object_ against the relevant Zod schema (e.g., `UserDocumentSchema`, `GroupDocumentSchema`) before performing the write.
+    - The `updateUserNotification` method's special case for `FieldValue` operations must be re-evaluated and made safe.
 
 2.  **Eliminate All Direct Writes:**
-    *   Systematically refactor every file identified in this audit.
-    *   Replace all direct `.set()`, `.update()`, and `.add()` calls with the appropriate (and newly hardened) method from the `FirestoreWriter` service.
-    *   Ensure all services and functions receive the `FirestoreWriter` via dependency injection.
+    - Systematically refactor every file identified in this audit.
+    - Replace all direct `.set()`, `.update()`, and `.add()` calls with the appropriate (and newly hardened) method from the `FirestoreWriter` service.
+    - Ensure all services and functions receive the `FirestoreWriter` via dependency injection.
 
 ## 4. Overall Conclusion
 

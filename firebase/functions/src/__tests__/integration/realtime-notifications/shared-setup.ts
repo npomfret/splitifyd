@@ -1,10 +1,10 @@
 // Shared setup for real-time notification integration tests
 // Contains common utilities, beforeEach/afterEach hooks, and test data builders
 
-import {beforeEach, afterEach} from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, NotificationDriver} from '@splitifyd/test-support';
-import {PooledTestUser} from '@splitifyd/shared';
-import {getFirestore} from '../../../firebase';
+import { beforeEach, afterEach } from 'vitest';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { PooledTestUser } from '@splitifyd/shared';
+import { getFirestore } from '../../../firebase';
 
 // Global test state
 export let users: PooledTestUser[];
@@ -27,24 +27,19 @@ export const cleanupNotificationTest = afterEach(() => {
 /**
  * @deprecated use AprDirver.apiDriver.createBasicExpense instead
  */
-export function createBasicExpense(groupId: string, amount: number = 10.00, userIndex: number = 0) {
-    return new CreateExpenseRequestBuilder()
-        .withGroupId(groupId)
-        .withAmount(amount)
-        .withPaidBy(users[userIndex].uid)
-        .withParticipants([users[userIndex].uid])
-        .build();
+export function createBasicExpense(groupId: string, amount: number = 10.0, userIndex: number = 0) {
+    return new CreateExpenseRequestBuilder().withGroupId(groupId).withAmount(amount).withPaidBy(users[userIndex].uid).withParticipants([users[userIndex].uid]).build();
 }
 
 /**
  * @deprecated use ApiDriver.createMultiUserExpense instead
  */
-export function createMultiUserExpense(groupId: string, amount: number = 10.00, participantIndices: number[] = [0, 1]) {
+export function createMultiUserExpense(groupId: string, amount: number = 10.0, participantIndices: number[] = [0, 1]) {
     return new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
         .withAmount(amount)
         .withPaidBy(users[participantIndices[0]].uid)
-        .withParticipants(participantIndices.map(i => users[i].uid))
+        .withParticipants(participantIndices.map((i) => users[i].uid))
         .build();
 }
 
@@ -52,15 +47,12 @@ export function createMultiUserExpense(groupId: string, amount: number = 10.00, 
  * @deprecated use AprDriver.createGroupWithMembers instead
  */
 export async function createMultiMemberGroup(memberIndices: number[] = [0, 1], creatorToken?: string) {
-    const group = await apiDriver.createGroup(
-        new CreateGroupRequestBuilder().build(),
-        creatorToken || users[memberIndices[0]].token
-    );
+    const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), creatorToken || users[memberIndices[0]].token);
 
     // Add other members if more than just creator
     if (memberIndices.length > 1) {
         const shareResponse = await apiDriver.generateShareLink(group.id, users[memberIndices[0]].token);
-        
+
         for (let i = 1; i < memberIndices.length; i++) {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[memberIndices[i]].token);
         }

@@ -26,7 +26,6 @@ vi.mock('@/utils/avatar', () => ({
     }),
 }));
 
-
 describe('CommentItem', () => {
     beforeEach(() => {
         vi.clearAllMocks();

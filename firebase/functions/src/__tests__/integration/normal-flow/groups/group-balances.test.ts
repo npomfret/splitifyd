@@ -6,9 +6,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
-import {PooledTestUser} from "@splitifyd/shared";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { PooledTestUser } from '@splitifyd/shared';
 
 describe('GET /groups/balances - Group Balances', () => {
     const apiDriver = new ApiDriver();
@@ -34,7 +34,7 @@ describe('GET /groups/balances - Group Balances', () => {
         // For empty group, balances should be empty
         expect(typeof balances.userBalances).toBe('object');
         expect(Array.isArray(balances.simplifiedDebts)).toBe(true);
-        
+
         // lastUpdated: Should be properly serialized as ISO string
         expect(balances.lastUpdated).toBeDefined();
         expect(typeof balances.lastUpdated).toBe('string');
@@ -154,7 +154,7 @@ describe('GET /groups/balances - Group Balances', () => {
 
         expect(balances.lastUpdated).toBeDefined();
         expect(balances.lastUpdated).not.toBeNull();
-        
+
         // lastUpdated: Should be properly serialized as ISO string
         expect(typeof balances.lastUpdated).toBe('string');
         expect(balances.lastUpdated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/); // ISO 8601 format

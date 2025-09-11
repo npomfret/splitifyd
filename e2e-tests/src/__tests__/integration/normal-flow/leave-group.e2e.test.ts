@@ -6,11 +6,11 @@ import { generateTestGroupName } from '../../../../../packages/test-support/test
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Leave Group E2E', () => {
-    test('user should be able to leave group and no longer access it', async ({newLoggedInBrowser}) => {
+    test('user should be able to leave group and no longer access it', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner and member
         const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
@@ -25,10 +25,10 @@ test.describe('Leave Group E2E', () => {
         // =============================================================
         // SETUP PHASE: Create group and add member
         // =============================================================
-        
+
         const groupName = generateTestGroupName('LeaveTest');
         const groupDescription = 'Testing leave group functionality';
-        
+
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
@@ -43,77 +43,78 @@ test.describe('Leave Group E2E', () => {
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify both users can see the group
-        await groupDetailPage.synchronizeMultiUserState([
-            { page: ownerPage, groupDetailPage },
-            { page: memberPage, groupDetailPage: memberGroupDetailPage },
-        ], 2, groupId);
+        await groupDetailPage.synchronizeMultiUserState(
+            [
+                { page: ownerPage, groupDetailPage },
+                { page: memberPage, groupDetailPage: memberGroupDetailPage },
+            ],
+            2,
+            groupId,
+        );
 
         // =============================================================
         // VERIFY INITIAL STATE: Group appears on member's dashboard
         // =============================================================
-        
+
         // Member navigates to dashboard to verify group is visible
         await memberDashboardPage.navigate();
         await expect(memberPage).toHaveURL(/\/dashboard/);
-        
+
         // Verify member can see the group on their dashboard
         await memberDashboardPage.waitForGroupToAppear(groupName);
 
         // =============================================================
         // LEAVE GROUP ACTION: Member leaves the group
         // =============================================================
-        
+
         // Member navigates back to the group
         await memberPage.goto(`/groups/${groupId}`);
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         // Member leaves the group
         await memberGroupDetailPage.leaveGroup();
-        
+
         // Verify member gets redirected to dashboard after leaving
         await expect(memberPage).toHaveURL(/\/dashboard/, { timeout: 10000 });
 
         // =============================================================
         // VERIFY DASHBOARD REMOVAL: Group no longer on dashboard
         // =============================================================
-        
+
         // Verify the group is no longer visible on member's dashboard
         await memberDashboardPage.waitForGroupToNotBePresent(groupName);
 
         // =============================================================
         // VERIFY ACCESS DENIED: Direct URL access should fail
         // =============================================================
-        
+
         // Member tries to access the group URL directly
         await memberPage.goto(`/groups/${groupId}`);
-        
+
         // Should be redirected to 404 or error page since they're no longer a member
         await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
 
         // =============================================================
         // VERIFY OWNER STATE: Owner still has access and sees updated member count
         // =============================================================
-        
+
         // Owner should still be able to access the group and see updated member count
         await ownerPage.goto(`/groups/${groupId}`);
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         // Wait for member count to update (should now be 1 - just the owner)
         await groupDetailPage.waitForMemberCount(1);
-        
+
         // Verify owner can still see group details
         await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
         await expect(groupDetailPage.getGroupDescription()).toHaveText(groupDescription);
-
     });
-    
-    test('user with outstanding balance cannot leave group until settled', async ({ 
-        newLoggedInBrowser 
-    }) => {
+
+    test('user with outstanding balance cannot leave group until settled', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner and member
         const { page: ownerPage, user: owner } = await newLoggedInBrowser();
         const { page: memberPage, user: member } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
@@ -130,13 +131,9 @@ test.describe('Leave Group E2E', () => {
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Test expense for balance validation')
-            .withAmount(60)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Test expense for balance validation').withAmount(60).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Wait for balances to update
         await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -145,13 +142,13 @@ test.describe('Leave Group E2E', () => {
         // Member tries to leave group but should be blocked due to outstanding balance
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
         await memberGroupDetailPage.clickLeaveGroup();
-        
+
         // Click confirm button - but leave action should fail due to validation
         await memberGroupDetailPage.confirmLeaveGroup();
-        
+
         // User should stay on the group page (validation working)
         await expect(memberPage).toHaveURL(/\/groups\//, { timeout: 5000 });
-        
+
         // Verify member is still in the group (leave was blocked)
         await ownerPage.goto(`/groups/${groupId}`);
         await groupDetailPage.waitForMemberCount(2);

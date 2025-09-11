@@ -31,9 +31,7 @@ describe('PercentageSplitStrategy', () => {
         });
 
         it('should throw error if splits are not provided', () => {
-            expect(() => strategy.validateSplits(100, participants)).toThrow(
-                new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants')
-            );
+            expect(() => strategy.validateSplits(100, participants)).toThrow(new ApiError(400, 'INVALID_SPLITS', 'Splits must be provided for all participants'));
         });
 
         it('should throw error if percentages do not sum to 100', () => {
@@ -42,9 +40,7 @@ describe('PercentageSplitStrategy', () => {
                 { userId: 'user2', amount: 40, percentage: 40 },
                 { userId: 'user3', amount: 20, percentage: 20 }, // Total = 90, not 100
             ];
-            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(
-                new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100')
-            );
+            expect(() => strategy.validateSplits(100, participants, splits)).toThrow(new ApiError(400, 'INVALID_PERCENTAGE_TOTAL', 'Percentages must add up to 100'));
         });
     });
 
@@ -77,9 +73,7 @@ describe('PercentageSplitStrategy', () => {
 
         it('should throw error if splits are not provided', () => {
             const participants = ['user1', 'user2'];
-            expect(() => strategy.calculateSplits(100, participants)).toThrow(
-                'Splits are required for percentage split type'
-            );
+            expect(() => strategy.calculateSplits(100, participants)).toThrow('Splits are required for percentage split type');
         });
     });
 });

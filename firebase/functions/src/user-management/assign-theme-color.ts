@@ -4,11 +4,11 @@ export async function assignThemeColor(): Promise<UserThemeColor> {
     // Pick a random color
     const colorIndex = Math.floor(Math.random() * USER_COLORS.length);
     const color = USER_COLORS[colorIndex];
-    
+
     // Pick a random pattern
     const patternIndex = Math.floor(Math.random() * COLOR_PATTERNS.length);
     const pattern = COLOR_PATTERNS[patternIndex];
-    
+
     return {
         light: color.light,
         dark: color.dark,

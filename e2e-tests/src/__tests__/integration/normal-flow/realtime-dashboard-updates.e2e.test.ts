@@ -8,20 +8,20 @@ import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 simpleTest.describe('Real-Time Dashboard Updates', () => {
     simpleTest('should update dashboard balances in real-time when expenses are added', async ({ newLoggedInBrowser }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
-        
-        // Create three users - User1 (group page), User2 (dashboard), User3 (dashboard)  
+
+        // Create three users - User1 (group page), User2 (dashboard), User3 (dashboard)
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(user1Page, user1);
-        
+
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
         const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
-        
+
         // User1 creates group
         const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('DashboardRT');
@@ -30,11 +30,11 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // Users 2 and 3 join the group
         const shareLink = await groupDetailPage.getShareLink();
-        
+
         const joinGroupPage2 = new JoinGroupPage(user2Page);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         const joinGroupPage3 = new JoinGroupPage(user3Page);
         await joinGroupPage3.joinGroupUsingShareLink(shareLink);
         await expect(user3Page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -45,31 +45,27 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         // Position users: User1 stays on group page, Users 2&3 go to dashboard
         await user2DashboardPage.navigate();
         await user2DashboardPage.waitForGroupToAppear(groupName);
-        
+
         await user3DashboardPage.navigate();
         await user3DashboardPage.waitForGroupToAppear(groupName);
-        
+
         // User1 adds expense involving User2 ($40 split equally = $20 each)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(3);
         const expenseAmount = 40;
-        
-        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Dashboard Test Expense')
-            .withAmount(expenseAmount)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Dashboard Test Expense').withAmount(expenseAmount).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         // Wait for expense to process
         await groupDetailPage.waitForBalancesToLoad(groupId);
-        
+
         // CRITICAL TEST: User2's dashboard should show the group and be accessible
         // Since real-time balance updates may not be implemented, verify group is still accessible
         await user2DashboardPage.waitForGroupToAppear(groupName);
         await user2DashboardPage.clickGroupCard(groupName);
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
-        
+
         // User3 should also be able to access the group
         await user3DashboardPage.waitForGroupToAppear(groupName);
         await user3DashboardPage.clickGroupCard(groupName);
@@ -80,20 +76,20 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
     simpleTest('should update dashboard when current user is removed from group', async ({ newLoggedInBrowser }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
-        
+
         // Create three users - Owner (group page), Member1 (dashboard), Member2 (dashboard)
         const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: member1Page, dashboardPage: member1DashboardPage, user: member1 } = await newLoggedInBrowser();
         const { page: member2Page, dashboardPage: member2DashboardPage, user: member2 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-        
+
         // Get display names
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
         const member1DisplayName = await member1DashboardPage.getCurrentUserDisplayName();
         const member2DisplayName = await member2DashboardPage.getCurrentUserDisplayName();
-        
+
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('RemovalRT');
@@ -101,10 +97,10 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // Members join
         const shareLink = await groupDetailPage.getShareLink();
-        
+
         const joinGroupPage1 = new JoinGroupPage(member1Page);
         await joinGroupPage1.joinGroupUsingShareLink(shareLink);
-        const joinGroupPage2 = new JoinGroupPage(member2Page);  
+        const joinGroupPage2 = new JoinGroupPage(member2Page);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
 
         // Wait for synchronization
@@ -113,7 +109,7 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         // Members go to dashboard to watch for removal updates
         await member1DashboardPage.navigate();
         await member1DashboardPage.waitForGroupToAppear(groupName);
-        
+
         await member2DashboardPage.navigate();
         await member2DashboardPage.waitForGroupToAppear(groupName);
 
@@ -124,7 +120,7 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         // CRITICAL TEST: Member1's dashboard should still show the group initially
         // Since there's no real-time notification, the group should remain visible but user loses access
         await member1DashboardPage.waitForGroupToAppear(groupName);
-        
+
         // When Member1 tries to access the group, they should get 404
         await member1Page.goto(`/groups/${groupId}`);
         await expect(async () => {
@@ -147,21 +143,21 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
     simpleTest('should show real-time settlement updates on dashboard', async ({ newLoggedInBrowser }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
-        
+
         // Create three users - User1 (group page), User2 (group page), User3 (dashboard watching)
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
-        
+
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
         const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
-        
+
         // User1 creates group
         const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('SettlementRT');
@@ -169,7 +165,7 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // Users 2 and 3 join
         const shareLink = await groupDetailPage.getShareLink();
-        
+
         const joinGroupPage2 = new JoinGroupPage(user2Page);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
         const joinGroupPage3 = new JoinGroupPage(user3Page);
@@ -180,13 +176,9 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // User1 adds expense involving User2 ($50 split equally = $25 each)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(3);
-        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Settlement Test Expense')
-            .withAmount(50)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Settlement Test Expense').withAmount(50).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await user2GroupDetailPage.waitForBalancesToLoad(groupId);
@@ -197,12 +189,15 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // User2 settles with User1
         const settlementFormPage = await user2GroupDetailPage.clickSettleUpButton(3);
-        await settlementFormPage.submitSettlement({
-            payerName: user2DisplayName,
-            payeeName: user1DisplayName,
-            amount: '25',
-            note: `RT Settlement ${randomString(4)}`
-        }, 3);
+        await settlementFormPage.submitSettlement(
+            {
+                payerName: user2DisplayName,
+                payeeName: user1DisplayName,
+                amount: '25',
+                note: `RT Settlement ${randomString(4)}`,
+            },
+            3,
+        );
 
         // Wait for settlement processing
         await user2GroupDetailPage.waitForBalancesToLoad(groupId);
@@ -218,18 +213,18 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
     simpleTest('should handle rapid successive changes on dashboard', async ({ newLoggedInBrowser }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
-        
+
         // Create two users - User1 (making changes), User2 (watching dashboard)
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(user1Page, user1);
-        
+
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        
+
         // User1 creates group
         const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('RapidRT');
@@ -239,38 +234,30 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage2 = new JoinGroupPage(user2Page);
         await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-        
+
         await groupDetailPage.waitForMemberCount(2);
-        
+
         await user2DashboardPage.navigate();
         await user2DashboardPage.waitForGroupToAppear(groupName);
 
         // Rapid sequence: Add expense, add comment, settle, add another expense
-        
+
         // 1. Add first expense ($30)
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Rapid Test 1')
-            .withAmount(30)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
-        
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Rapid Test 1').withAmount(30).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
+
         await groupDetailPage.waitForBalancesToLoad(groupId);
-        
+
         // 2. Add comment immediately
         await groupDetailPage.addComment(`Rapid comment ${randomString(4)}`);
-        
+
         // 3. Add second expense ($20) immediately
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Rapid Test 2')
-            .withAmount(20)
-            .withCurrency('USD')
-            .withPaidByDisplayName("Test User")
-            .withSplitType('equal')
-            .build());
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Rapid Test 2').withAmount(20).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
 

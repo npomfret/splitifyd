@@ -27,7 +27,7 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
 
     const handleDefaultLogin = async () => {
         if (disabled) return;
-        
+
         setLoading(true);
         try {
             const config = await firebaseConfigManager.getConfig();
@@ -49,16 +49,7 @@ export function DefaultLoginButton({ onFillForm, onSubmit, disabled }: DefaultLo
     }
 
     return (
-        <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={handleDefaultLogin}
-            disabled={disabled || loading}
-            loading={loading}
-            className="w-full"
-            data-testid="default-login-button"
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={handleDefaultLogin} disabled={disabled || loading} loading={loading} className="w-full" data-testid="default-login-button">
             Default Login
         </Button>
     );

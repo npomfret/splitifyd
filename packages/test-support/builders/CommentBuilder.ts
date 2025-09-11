@@ -1,10 +1,5 @@
 import type { CommentApiResponse } from '@splitifyd/shared';
-import { 
-    randomString, 
-    randomChoice, 
-    randomDate, 
-    generateShortId
-} from '../test-helpers';
+import { randomString, randomChoice, randomDate, generateShortId } from '../test-helpers';
 
 export class CommentBuilder {
     private comment: CommentApiResponse = {

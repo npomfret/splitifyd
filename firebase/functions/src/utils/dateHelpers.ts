@@ -22,7 +22,6 @@ export const createOptimisticTimestamp = (): Timestamp => {
     return Timestamp.now();
 };
 
-
 /**
  * Creates a true server-side timestamp placeholder
  * USE FOR: Document creation or general updates where precise timing isn't critical for logic
@@ -66,7 +65,7 @@ export const timestampToISO = (value: Timestamp | Date): string => {
 /**
  * Asserts that a value is a Date and converts to ISO string
  * Follows the "assert don't check" pattern - fails fast with clear errors
- * 
+ *
  * @param value - Value to check and convert
  * @param fieldName - Name of the field for error message
  * @returns ISO 8601 string
@@ -74,10 +73,7 @@ export const timestampToISO = (value: Timestamp | Date): string => {
  */
 export const assertDateAndConvert = (value: unknown, fieldName: string): string => {
     if (!(value instanceof Date)) {
-        throw new Error(
-            `Data contract violation: Expected Date for '${fieldName}' but got ${typeof value}. ` +
-            `This indicates corrupted data or inconsistent date handling.`
-        );
+        throw new Error(`Data contract violation: Expected Date for '${fieldName}' but got ${typeof value}. ` + `This indicates corrupted data or inconsistent date handling.`);
     }
     return value.toISOString();
 };
@@ -222,7 +218,7 @@ export const parseUTCOnly = (isoString: string): Timestamp | null => {
 /**
  * Asserts that a value is a Firestore Timestamp
  * Throws descriptive error if the data contract is violated
- * 
+ *
  * @param value - Value to check
  * @param fieldName - Name of the field for error message
  * @throws Error if value is not a Timestamp
@@ -237,7 +233,7 @@ export const assertTimestamp = (value: unknown, fieldName: string): Timestamp =>
 /**
  * Asserts that a value is a Firestore Timestamp and converts to ISO string
  * Follows the "assert don't check" pattern - fails fast with clear errors
- * 
+ *
  * @param value - Value to check and convert
  * @param fieldName - Name of the field for error message
  * @returns ISO 8601 string

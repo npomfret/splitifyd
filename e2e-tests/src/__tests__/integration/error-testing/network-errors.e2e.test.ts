@@ -102,7 +102,7 @@ test.describe('Error Handling', () => {
         // Already authenticated via fixture
 
         await dashboardPage.openCreateGroupModal();
-        
+
         // Wait for any initial dashboard API calls to settle before setting up interception
         await dashboardPage.page.waitForTimeout(1000);
 

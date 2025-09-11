@@ -1,6 +1,6 @@
 /**
  * Comprehensive Pagination Tests for FirestoreReader
- * 
+ *
  * These tests validate the critical pagination performance fixes implemented
  * to address the "fetch-all-then-paginate" anti-pattern identified in the
  * firestore-read-encapsulation-report.md
@@ -11,14 +11,13 @@ import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import type { GroupDocument } from '../../schemas';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
 
-
 describe('FirestoreReader Pagination Performance', () => {
     let mockReader: MockFirestoreReader;
-    
+
     beforeEach(() => {
         mockReader = new MockFirestoreReader();
     });
-    
+
     afterEach(() => {
         mockReader.resetAllMocks();
     });
@@ -33,7 +32,7 @@ describe('FirestoreReader Pagination Performance', () => {
                     .withCreatedBy('user-1')
                     .withCreatedAt('2024-01-01T00:00:00Z')
                     .withUpdatedAt('2024-01-01T00:00:00Z')
-                    .build()
+                    .build(),
             ];
 
             mockReader.mockGroupsForUser('test-user', testGroups, false);
@@ -45,7 +44,7 @@ describe('FirestoreReader Pagination Performance', () => {
             expect(result).toHaveProperty('hasMore');
             expect(result).toHaveProperty('nextCursor');
             expect(result).toHaveProperty('totalEstimate');
-            
+
             expect(Array.isArray(result.data)).toBe(true);
             expect(typeof result.hasMore).toBe('boolean');
             expect(result.hasMore).toBe(false);
@@ -53,10 +52,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should indicate hasMore=true when there are additional pages', async () => {
-            const testGroups = [
-                new FirestoreGroupBuilder().withId('group-1').build(),
-                new FirestoreGroupBuilder().withId('group-2').build()
-            ];
+            const testGroups = [new FirestoreGroupBuilder().withId('group-1').build(), new FirestoreGroupBuilder().withId('group-2').build()];
 
             mockReader.mockGroupsForUser('test-user', testGroups, true, 'cursor-123');
 
@@ -86,9 +82,9 @@ describe('FirestoreReader Pagination Performance', () => {
             expect(page1.data[9].id).toBe('group-10');
 
             // Second page using cursor
-            const page2 = await mockReader.getGroupsForUser('test-user', { 
-                limit: 10, 
-                cursor: page1.nextCursor 
+            const page2 = await mockReader.getGroupsForUser('test-user', {
+                limit: 10,
+                cursor: page1.nextCursor,
             });
             expect(page2.data).toHaveLength(10);
             expect(page2.hasMore).toBe(true);
@@ -97,9 +93,9 @@ describe('FirestoreReader Pagination Performance', () => {
             expect(page2.data[9].id).toBe('group-20');
 
             // Third page (partial)
-            const page3 = await mockReader.getGroupsForUser('test-user', { 
-                limit: 10, 
-                cursor: page2.nextCursor 
+            const page3 = await mockReader.getGroupsForUser('test-user', {
+                limit: 10,
+                cursor: page2.nextCursor,
             });
             expect(page3.data).toHaveLength(5); // Only 5 remaining
             expect(page3.hasMore).toBe(false);
@@ -109,15 +105,13 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle invalid cursors gracefully', async () => {
-            const testGroups: GroupDocument[] = [
-                { id: 'group-1', name: 'Group 1' } as GroupDocument
-            ];
+            const testGroups: GroupDocument[] = [{ id: 'group-1', name: 'Group 1' } as GroupDocument];
 
             mockReader.mockPaginatedGroups('test-user', testGroups, 10);
 
             // Test with invalid cursor - should start from beginning
-            const result = await mockReader.getGroupsForUser('test-user', { 
-                cursor: 'invalid-cursor-data' 
+            const result = await mockReader.getGroupsForUser('test-user', {
+                cursor: 'invalid-cursor-data',
             });
 
             expect(result.data).toHaveLength(1);
@@ -139,9 +133,7 @@ describe('FirestoreReader Pagination Performance', () => {
         });
 
         it('should handle single result efficiently', async () => {
-            const singleGroup = [
-                new FirestoreGroupBuilder().withId('only-group').build()
-            ];
+            const singleGroup = [new FirestoreGroupBuilder().withId('only-group').build()];
 
             mockReader.mockGroupsForUser('test-user', singleGroup, false);
 
@@ -170,11 +162,9 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should handle users with many groups efficiently', () => {
             // This test validates that the new implementation avoids the
             // "fetch-all-then-paginate" anti-pattern that caused 100x performance issues
-            
+
             const manyGroups = FirestoreGroupBuilder.buildMany(1000, (builder, i) => {
-                builder
-                    .withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`)
-                    .withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
+                builder.withCreatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`).withUpdatedAt(`2024-01-01T${String(i % 24).padStart(2, '0')}:00:00Z`);
             });
 
             mockReader.mockPaginatedGroups('heavy-user', manyGroups, 10);
@@ -183,13 +173,13 @@ describe('FirestoreReader Pagination Performance', () => {
             // process ~10-20 groups, not all 1000 groups like the old implementation
             return expect(async () => {
                 const result = await mockReader.getGroupsForUser('heavy-user', { limit: 10 });
-                
+
                 // These assertions validate the performance fix:
                 expect(result.data).toHaveLength(10); // Only requested amount
-                expect(result.hasMore).toBe(true);    // More pages available
+                expect(result.hasMore).toBe(true); // More pages available
                 expect(result.nextCursor).toBeDefined(); // Cursor for continuation
                 expect(result.totalEstimate).toBe(1000); // Total count estimate
-                
+
                 // Most importantly: This operation should complete in <50ms
                 // The old implementation would take 2-5 seconds for 1000 groups
             }).not.toThrow();
@@ -224,21 +214,21 @@ describe('FirestoreReader Pagination Performance', () => {
         it('should validate the 90% performance improvement claim', () => {
             // This is a conceptual test that validates the architectural improvement
             // In practice, these metrics would be measured in integration tests
-            
+
             const OLD_APPROACH_SIMULATION = {
                 // Old approach: fetch 1000 groups, sort all, then slice(0, 10)
-                firestoreReads: 1000,  // Read ALL groups
-                memoryUsage: 50000,    // Store all groups in memory
-                networkBytes: 500000,  // Transfer all group data
-                responseTimeMs: 2500   // Multiple seconds
+                firestoreReads: 1000, // Read ALL groups
+                memoryUsage: 50000, // Store all groups in memory
+                networkBytes: 500000, // Transfer all group data
+                responseTimeMs: 2500, // Multiple seconds
             };
 
             const NEW_APPROACH_EXPECTED = {
                 // New approach: query-level pagination with limits
-                firestoreReads: 15,    // Read only ~15 groups (buffer for deduplication)
-                memoryUsage: 750,      // Store only page data
-                networkBytes: 7500,    // Transfer only needed data
-                responseTimeMs: 200    // Sub-second response (better than 90% improvement)
+                firestoreReads: 15, // Read only ~15 groups (buffer for deduplication)
+                memoryUsage: 750, // Store only page data
+                networkBytes: 7500, // Transfer only needed data
+                responseTimeMs: 200, // Sub-second response (better than 90% improvement)
             };
 
             // Performance improvement calculations
@@ -249,7 +239,7 @@ describe('FirestoreReader Pagination Performance', () => {
 
             // Validate the performance claims from the report
             expect(readsImprovement).toBeGreaterThan(90); // 98.5% improvement
-            expect(memoryImprovement).toBeGreaterThan(95); // 98.5% improvement  
+            expect(memoryImprovement).toBeGreaterThan(95); // 98.5% improvement
             expect(networkImprovement).toBeGreaterThan(95); // 98.5% improvement
             expect(timeImprovement).toBeGreaterThan(90); // 90% improvement
 
@@ -261,21 +251,18 @@ describe('FirestoreReader Pagination Performance', () => {
 
 describe('MockFirestoreReader Pagination Support', () => {
     let mockReader: MockFirestoreReader;
-    
+
     beforeEach(() => {
         mockReader = new MockFirestoreReader();
     });
-    
+
     afterEach(() => {
         mockReader.resetAllMocks();
     });
 
     describe('Mock Helper Methods', () => {
         it('should support mockGroupsForUser with pagination parameters', async () => {
-            const testGroups = [
-                new FirestoreGroupBuilder().withId('group-1').build(),
-                new FirestoreGroupBuilder().withId('group-2').build()
-            ];
+            const testGroups = [new FirestoreGroupBuilder().withId('group-1').build(), new FirestoreGroupBuilder().withId('group-2').build()];
 
             // Test the enhanced mockGroupsForUser signature
             mockReader.mockGroupsForUser('test-user', testGroups, true, 'test-cursor');
@@ -300,17 +287,17 @@ describe('MockFirestoreReader Pagination Support', () => {
             expect(page1.hasMore).toBe(true);
 
             // Second page
-            const page2 = await mockReader.getGroupsForUser('test-user', { 
-                limit: 3, 
-                cursor: page1.nextCursor 
+            const page2 = await mockReader.getGroupsForUser('test-user', {
+                limit: 3,
+                cursor: page1.nextCursor,
             });
             expect(page2.data).toHaveLength(3);
             expect(page2.hasMore).toBe(true);
 
             // Third page (partial)
-            const page3 = await mockReader.getGroupsForUser('test-user', { 
-                limit: 3, 
-                cursor: page2.nextCursor 
+            const page3 = await mockReader.getGroupsForUser('test-user', {
+                limit: 3,
+                cursor: page2.nextCursor,
             });
             expect(page3.data).toHaveLength(1); // Only 1 remaining
             expect(page3.hasMore).toBe(false);

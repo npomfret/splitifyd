@@ -39,7 +39,9 @@ export function generateNewUserDetails(prefix = 'u') {
 }
 
 export function randomString(length: number = 8): string {
-    return Math.random().toString(36).substring(2, 2 + length);
+    return Math.random()
+        .toString(36)
+        .substring(2, 2 + length);
 }
 
 export function randomNumber(min: number = 1, max: number = 1000): number {

@@ -172,7 +172,7 @@ describe('GroupChangeDocumentBuilder', () => {
 
         it('should not require groupId for groups', () => {
             const result = builder.createMinimalChangeDocument('group123', 'updated', ['user1']);
-            
+
             expect(result).not.toHaveProperty('groupId');
             expect(result.id).toBe('group123');
             expect(result.type).toBe('group');

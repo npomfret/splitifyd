@@ -6,7 +6,7 @@
 import { Page } from '@playwright/test';
 import { ProxiedMethodError } from '../errors/test-errors';
 import { collectPageState } from './page-state-collector';
-import {PooledTestUser} from "@splitifyd/shared";
+import { PooledTestUser } from '@splitifyd/shared';
 
 /**
  * Configuration for the error handling proxy

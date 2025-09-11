@@ -244,7 +244,6 @@ class AuthStoreImpl implements AuthStore {
         this.#errorSignal.value = null;
     }
 
-
     async refreshAuthToken(): Promise<string> {
         // Deduplicate concurrent refresh requests
         if (this.refreshPromise) {

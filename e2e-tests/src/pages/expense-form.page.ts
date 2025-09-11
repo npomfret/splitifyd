@@ -9,7 +9,7 @@ export interface ExpenseFormData {
     description: string;
     amount: number;
     currency: string; // Required: must be explicitly provided
-    paidByDisplayName: string;// the display name
+    paidByDisplayName: string; // the display name
     splitType: 'equal' | 'exact' | 'percentage';
     participants?: string[]; // Optional: if not provided, selects all members
 }
@@ -25,13 +25,15 @@ export class ExpenseFormDataBuilder {
             currency: this.randomCurrency(),
             paidByDisplayName: 'Test User', // Default fallback for UI tests
             splitType: this.randomChoice(['equal', 'exact', 'percentage']),
-            participants: undefined // Will select all members by default
+            participants: undefined, // Will select all members by default
         };
     }
 
     // Helper methods (duplicated here to avoid import complexity in e2e tests)
     private randomString(length: number = 8): string {
-        return Math.random().toString(36).substring(2, 2 + length);
+        return Math.random()
+            .toString(36)
+            .substring(2, 2 + length);
     }
 
     private randomDecimal(min: number = 1, max: number = 1000, decimals: number = 2): number {
@@ -84,7 +86,7 @@ export class ExpenseFormDataBuilder {
             currency: this.expense.currency,
             paidByDisplayName: this.expense.paidByDisplayName,
             splitType: this.expense.splitType,
-            participants: this.expense.participants ? [...this.expense.participants] : undefined
+            participants: this.expense.participants ? [...this.expense.participants] : undefined,
         };
     }
 }
@@ -114,7 +116,7 @@ export class ExpenseFormPage extends BasePage {
 
         // Step 0: Ensure page is fully loaded and not in loading state
         await this.waitForDomContentLoaded();
-        
+
         // Wait for title to change from "Loading..." to actual page title
         await expect(async () => {
             const title = await this.page.title();
@@ -246,7 +248,7 @@ export class ExpenseFormPage extends BasePage {
     async selectPayer(payerIdentifier: string): Promise<void> {
         // First, try to find by UID (radio button value)
         const radioByUid = this.page.locator(`input[type="radio"][name="paidBy"][value="${payerIdentifier}"]`);
-        
+
         if (await radioByUid.isVisible().catch(() => false)) {
             // Found by UID - click the associated label
             const labelForUid = this.page.locator(`label:has(input[type="radio"][name="paidBy"][value="${payerIdentifier}"])`);
@@ -272,13 +274,9 @@ export class ExpenseFormPage extends BasePage {
         }
 
         // If we get here, we couldn't find the payer
-        const availableOptions = await this.page
-            .locator('label:has(input[type="radio"][name="paidBy"])')
-            .allTextContents();
-        
-        throw new Error(
-            `Could not find payer "${payerIdentifier}". Available options: ${availableOptions.join(', ')}`
-        );
+        const availableOptions = await this.page.locator('label:has(input[type="radio"][name="paidBy"])').allTextContents();
+
+        throw new Error(`Could not find payer "${payerIdentifier}". Available options: ${availableOptions.join(', ')}`);
     }
 
     async switchToExactAmounts(): Promise<void> {

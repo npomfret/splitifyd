@@ -250,13 +250,13 @@ export class JoinGroupPage extends BasePage {
                     const isOnGroupPage = currentUrl.match(groupDetailUrlPattern());
                     const hasError = await errorMessage.isVisible().catch(() => false);
                     const hasSuccess = await joinSuccessIndicator.isVisible().catch(() => false);
-                    
+
                     if (!isOnGroupPage && !hasError && !hasSuccess) {
                         throw new Error('Join operation in unknown state - no completion indicators found');
                     }
                     // If we reach here, one of the expected outcomes occurred
                 }).toPass({ timeout: 5000 });
-                
+
                 // Final state check
                 const currentUrl = this.page.url();
                 if (!currentUrl.match(groupDetailUrlPattern())) {

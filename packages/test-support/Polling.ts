@@ -11,7 +11,7 @@ export interface PollOptions {
 export type Matcher<T> = (value: T) => boolean | Promise<boolean>;
 
 export async function pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T>, options: PollOptions = {}): Promise<T> {
-    const {timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry} = options;
+    const { timeout = 10000, interval = 500, errorMsg = 'Condition not met', onRetry } = options;
 
     const startTime = Date.now();
     let lastError: Error | null = null;
@@ -37,4 +37,3 @@ export async function pollUntil<T>(fetcher: () => Promise<T>, matcher: Matcher<T
 
     throw new Error(`${errorMsg} after ${timeout}ms (${attempts} attempts). ` + `Last error: ${lastError?.message || 'None'}`);
 }
-

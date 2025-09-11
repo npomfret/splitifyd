@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ApiDriver, borrowTestUsers } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Group Lifecycle Edge Cases', () => {
     const apiDriver = new ApiDriver();
@@ -24,11 +24,11 @@ describe('Group Lifecycle Edge Cases', () => {
         const emptyGroup = await apiDriver.createGroup(groupData, users[0].token);
 
         // Verify the group was created
-        const {group: createdGroup} = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
+        const { group: createdGroup } = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
         expect(createdGroup.id).toBe(emptyGroup.id);
 
         // Should be able to get group details and verify no expenses
-        const {group: groupDetails} = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
+        const { group: groupDetails } = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
         expect(groupDetails).toHaveProperty('id');
 
         // Verify no expenses exist
@@ -149,9 +149,9 @@ describe('Group Lifecycle Edge Cases', () => {
         expect(expenses.expenses[0].amount).toBe(90);
 
         // Verify group details include balance info after expense creation
-        const {group: groupWithBalance} = await apiDriver.getGroupFullDetails(complexGroup.id, users[0].token);
+        const { group: groupWithBalance } = await apiDriver.getGroupFullDetails(complexGroup.id, users[0].token);
         expect(groupWithBalance).toHaveProperty('balance');
-        
+
         // When a single user pays for expenses they fully participate in, net balance is 0
         if (groupWithBalance.balance?.balancesByCurrency?.['USD']) {
             expect(groupWithBalance.balance.balancesByCurrency['USD'].netBalance).toBe(0);

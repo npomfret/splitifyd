@@ -5,16 +5,16 @@ import { validateRequestStructure, validateContentType } from '../middleware/val
 import { applySecurityHeaders } from '../middleware/security-headers';
 import { applyCacheControl } from '../middleware/cache-control';
 import { LoggerContext } from '../logger';
-import {detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest} from './i18n';
-import {ApplicationBuilder} from "../services/ApplicationBuilder";
-import {getFirestore} from "../firebase";
+import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, LocalizedRequest } from './i18n';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import { getFirestore } from '../firebase';
 
 export interface MiddlewareOptions {
     functionName?: string;
 }
 
 // Initialize services
-const applicationBuilder = new ApplicationBuilder(getFirestore())
+const applicationBuilder = new ApplicationBuilder(getFirestore());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
 
 /**
@@ -61,7 +61,6 @@ export const applyStandardMiddleware = (app: express.Application, options: Middl
     // Request logging is minimal - only log when something changes
     // Errors are logged by error handlers
 };
-
 
 /**
  * Middleware to add translation capabilities to requests

@@ -19,7 +19,7 @@ export interface EnhancedGroupDetailStore {
     error: string | null;
     hasMoreExpenses: boolean;
     hasMoreSettlements: boolean;
-    
+
     // Methods
     loadGroup(id: string): Promise<void>;
     subscribeToChanges(userId: string): void;
@@ -54,18 +54,42 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     private unsubscribeNotifications: (() => void) | null = null;
 
     // State getters
-    get group() { return this.#groupSignal.value; }
-    get members() { return this.#membersSignal.value; }
-    get expenses() { return this.#expensesSignal.value; }
-    get balances() { return this.#balancesSignal.value; }
-    get settlements() { return this.#settlementsSignal.value; }
-    get loading() { return this.#loadingSignal.value; }
-    get loadingMembers() { return this.#loadingMembersSignal.value; }
-    get loadingExpenses() { return this.#loadingExpensesSignal.value; }
-    get loadingSettlements() { return this.#loadingSettlementsSignal.value; }
-    get error() { return this.#errorSignal.value; }
-    get hasMoreExpenses() { return this.#hasMoreExpensesSignal.value; }
-    get hasMoreSettlements() { return this.#hasMoreSettlementsSignal.value; }
+    get group() {
+        return this.#groupSignal.value;
+    }
+    get members() {
+        return this.#membersSignal.value;
+    }
+    get expenses() {
+        return this.#expensesSignal.value;
+    }
+    get balances() {
+        return this.#balancesSignal.value;
+    }
+    get settlements() {
+        return this.#settlementsSignal.value;
+    }
+    get loading() {
+        return this.#loadingSignal.value;
+    }
+    get loadingMembers() {
+        return this.#loadingMembersSignal.value;
+    }
+    get loadingExpenses() {
+        return this.#loadingExpensesSignal.value;
+    }
+    get loadingSettlements() {
+        return this.#loadingSettlementsSignal.value;
+    }
+    get error() {
+        return this.#errorSignal.value;
+    }
+    get hasMoreExpenses() {
+        return this.#hasMoreExpensesSignal.value;
+    }
+    get hasMoreSettlements() {
+        return this.#hasMoreSettlementsSignal.value;
+    }
 
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
@@ -83,7 +107,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 this.#settlementsSignal.value = fullDetails.settlements.settlements;
                 this.#loadingSignal.value = false;
             });
-            
+
             permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
         } catch (error) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
@@ -107,28 +131,22 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             onTransactionChange: (groupId) => {
                 if (groupId !== this.currentGroupId) return;
                 logInfo('Transaction change detected', { groupId });
-                this.refreshAll().catch(error => 
-                    logError('Failed to refresh after transaction change', error)
-                );
+                this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
             },
             onGroupChange: (groupId) => {
                 if (groupId !== this.currentGroupId) return;
                 logInfo('Group change detected', { groupId });
-                this.refreshAll().catch(error => 
-                    logError('Failed to refresh after group change', error)
-                );
+                this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
             },
             onBalanceChange: (groupId) => {
                 if (groupId !== this.currentGroupId) return;
                 logInfo('Balance change detected', { groupId });
-                this.refreshAll().catch(error => 
-                    logError('Failed to refresh after balance change', error)
-                );
+                this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
             },
             onGroupRemoved: (groupId) => {
                 if (groupId !== this.currentGroupId) return;
                 logInfo('Group removed - clearing state without refresh', { groupId });
-                
+
                 // Clear state immediately without trying to fetch the deleted group
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -139,28 +157,25 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#settlementsSignal.value = [];
                     this.#loadingSignal.value = false;
                 });
-            }
+            },
         });
     }
 
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
-        
+
         try {
             await this.loadGroup(this.currentGroupId);
             logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
         } catch (error: any) {
-            const isGroupDeleted = 
-                error?.status === 404 || 
-                (error?.message && error.message.includes('404')) ||
-                (error?.code === 'NOT_FOUND');
-                
+            const isGroupDeleted = error?.status === 404 || (error?.message && error.message.includes('404')) || error?.code === 'NOT_FOUND';
+
             if (isGroupDeleted) {
-                logInfo('RefreshAll: Group has been deleted, clearing state', { 
+                logInfo('RefreshAll: Group has been deleted, clearing state', {
                     groupId: this.currentGroupId,
-                    error: error?.message || String(error)
+                    error: error?.message || String(error),
                 });
-                
+
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
                     this.#groupSignal.value = null;
@@ -170,11 +185,11 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#settlementsSignal.value = [];
                     this.#loadingSignal.value = false;
                 });
-                
+
                 this.currentGroupId = null;
                 return;
             }
-            
+
             logError('RefreshAll: Failed to refresh all data', { error, groupId: this.currentGroupId });
             throw error;
         }

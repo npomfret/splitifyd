@@ -134,7 +134,7 @@ export function getUIPort(): number {
 export function getProjectId(): string {
     const projectRoot = findProjectRoot();
     const firebaseRcPath = path.join(projectRoot, 'firebase', '.firebaserc');
-    
+
     try {
         const firebaseRcContent = fs.readFileSync(firebaseRcPath, 'utf8');
         const firebaseRc = JSON.parse(firebaseRcContent);
@@ -180,7 +180,7 @@ export function getPorts(): {
 export function getAllEmulatorPorts(): number[] {
     const config = loadFirebaseConfig();
     const ports: number[] = [];
-    
+
     if (config.emulators) {
         Object.values(config.emulators).forEach((emulator: any) => {
             if (emulator.port) {
@@ -188,7 +188,7 @@ export function getAllEmulatorPorts(): number[] {
             }
         });
     }
-    
+
     return ports;
 }
 

@@ -21,7 +21,7 @@ const mockT = vi.fn((key: string) => {
         'membersList.leaveGroupDialog.messageWithBalance': 'You have an outstanding balance. Please settle up before leaving.',
         'membersList.leaveGroupDialog.confirmText': 'Leave Group',
         'membersList.leaveGroupDialog.cancelText': 'Cancel',
-        'common.understood': 'Understood'
+        'common.understood': 'Understood',
     };
     return translations[key] || key;
 }) as any;
@@ -50,7 +50,7 @@ describe('LeaveGroupDialog', () => {
 
     it('renders the dialog when open', () => {
         render(<LeaveGroupDialog {...defaultProps} />);
-        
+
         expect(screen.getByRole('heading', { name: 'Leave Group' })).toBeInTheDocument();
         expect(screen.getByText('Are you sure you want to leave this group?')).toBeInTheDocument();
         expect(screen.getByTestId('confirm-button')).toHaveTextContent('Leave Group');
@@ -59,13 +59,13 @@ describe('LeaveGroupDialog', () => {
 
     it('does not render when closed', () => {
         render(<LeaveGroupDialog {...defaultProps} isOpen={false} />);
-        
+
         expect(screen.queryByText('Leave Group')).not.toBeInTheDocument();
     });
 
     it('shows different message when user has outstanding balance', () => {
         render(<LeaveGroupDialog {...defaultProps} hasOutstandingBalance={true} />);
-        
+
         expect(screen.getByText('You have an outstanding balance. Please settle up before leaving.')).toBeInTheDocument();
         expect(screen.getByText('Understood')).toBeInTheDocument();
     });
@@ -73,20 +73,20 @@ describe('LeaveGroupDialog', () => {
     it('calls onClose when cancel is clicked', () => {
         const onCloseMock = vi.fn();
         render(<LeaveGroupDialog {...defaultProps} onClose={onCloseMock} />);
-        
+
         const cancelButton = screen.getByTestId('cancel-button');
         fireEvent.click(cancelButton);
-        
+
         expect(onCloseMock).toHaveBeenCalledTimes(1);
     });
 
     it('prevents leaving when user has outstanding balance', async () => {
         const onCloseMock = vi.fn();
         render(<LeaveGroupDialog {...defaultProps} hasOutstandingBalance={true} onClose={onCloseMock} />);
-        
+
         const confirmButton = screen.getByTestId('confirm-button');
         fireEvent.click(confirmButton);
-        
+
         // Should not call API or navigate
         expect(mockApiClient.leaveGroup).not.toHaveBeenCalled();
         expect(mockRoute).not.toHaveBeenCalled();
@@ -95,12 +95,12 @@ describe('LeaveGroupDialog', () => {
     it('successfully leaves group when no outstanding balance', async () => {
         const onCloseMock = vi.fn();
         mockApiClient.leaveGroup.mockResolvedValueOnce(undefined);
-        
+
         render(<LeaveGroupDialog {...defaultProps} onClose={onCloseMock} />);
-        
+
         const confirmButton = screen.getByTestId('confirm-button');
         fireEvent.click(confirmButton);
-        
+
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
             expect(mockRoute).toHaveBeenCalledWith('/dashboard', false);
@@ -112,33 +112,33 @@ describe('LeaveGroupDialog', () => {
         const onCloseMock = vi.fn();
         const mockError = new Error('API Error');
         mockApiClient.leaveGroup.mockRejectedValueOnce(mockError);
-        
+
         render(<LeaveGroupDialog {...defaultProps} onClose={onCloseMock} />);
-        
+
         const confirmButton = screen.getByTestId('confirm-button');
         fireEvent.click(confirmButton);
-        
+
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
             expect(mockLogError).toHaveBeenCalledWith('Failed to leave group', mockError);
             expect(onCloseMock).toHaveBeenCalled();
         });
-        
+
         // Should not navigate on error
         expect(mockRoute).not.toHaveBeenCalled();
     });
 
     it('shows loading state while processing', async () => {
-        mockApiClient.leaveGroup.mockImplementationOnce(() => new Promise(resolve => setTimeout(resolve, 100)));
-        
+        mockApiClient.leaveGroup.mockImplementationOnce(() => new Promise((resolve) => setTimeout(resolve, 100)));
+
         render(<LeaveGroupDialog {...defaultProps} />);
-        
+
         const confirmButton = screen.getByTestId('confirm-button');
         fireEvent.click(confirmButton);
-        
+
         // Check that button is disabled during processing
         expect(confirmButton).toHaveAttribute('aria-busy', 'true');
-        
+
         await waitFor(() => {
             expect(mockApiClient.leaveGroup).toHaveBeenCalledWith('test-group-id');
         });
@@ -150,7 +150,7 @@ describe('LeaveGroupDialog', () => {
         const dialog = screen.getByTestId('leave-group-dialog');
         // The dialog should show warning styling when user has no balance
         expect(dialog).toBeInTheDocument();
-        
+
         // Test info variant (outstanding balance)
         rerender(<LeaveGroupDialog {...defaultProps} hasOutstandingBalance={true} />);
         const dialogWithBalance = screen.getByTestId('leave-group-dialog');

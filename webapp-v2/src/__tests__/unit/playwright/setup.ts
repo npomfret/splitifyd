@@ -23,18 +23,20 @@ export const mockFirebaseConfig: AppConfiguration = {
 
 export async function setupMocks(page: Page) {
     // Mock the config API endpoint that the app fetches during initialization
-    await page.route('**/api/config', route => route.fulfill({ 
-        status: 200, 
-        contentType: 'application/json',
-        body: JSON.stringify(mockFirebaseConfig)
-    }));
-    
+    await page.route('**/api/config', (route) =>
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(mockFirebaseConfig),
+        }),
+    );
+
     // Mock Firebase network requests to prevent actual Firebase initialization
-    await page.route('**/*firebaseapp.com/**', route => route.fulfill({ status: 200, body: '{}' }));
-    await page.route('**/*firebase.googleapis.com/**', route => route.fulfill({ status: 200, body: '{}' }));
-    await page.route('**/*identitytoolkit.googleapis.com/**', route => route.fulfill({ status: 200, body: '{}' }));
-    await page.route('**/*firestore.googleapis.com/**', route => route.fulfill({ status: 200, body: '{}' }));
-    
+    await page.route('**/*firebaseapp.com/**', (route) => route.fulfill({ status: 200, body: '{}' }));
+    await page.route('**/*firebase.googleapis.com/**', (route) => route.fulfill({ status: 200, body: '{}' }));
+    await page.route('**/*identitytoolkit.googleapis.com/**', (route) => route.fulfill({ status: 200, body: '{}' }));
+    await page.route('**/*firestore.googleapis.com/**', (route) => route.fulfill({ status: 200, body: '{}' }));
+
     // Simple but comprehensive Firebase mocking
     await page.addInitScript(() => {
         // Create mock objects that match the Firebase interface
@@ -51,7 +53,8 @@ export async function setupMocks(page: Page) {
             tenantId: null,
             delete: () => Promise.resolve(),
             getIdToken: (_forceRefresh?: boolean) => Promise.resolve('mock-id-token'),
-            getIdTokenResult: (_forceRefresh?: boolean) => Promise.resolve({ token: 'mock-id-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: 'mock', signInSecondFactor: null }),
+            getIdTokenResult: (_forceRefresh?: boolean) =>
+                Promise.resolve({ token: 'mock-id-token', claims: {}, authTime: '', expirationTime: '', issuedAtTime: '', signInProvider: 'mock', signInSecondFactor: null }),
             reload: () => Promise.resolve(),
             toJSON: () => ({ uid: 'mock-user-id', email: 'mock@example.com' }),
         };
@@ -70,8 +73,7 @@ export async function setupMocks(page: Page) {
                 setTimeout(() => callback(null), 0);
                 return () => {};
             },
-            signInWithEmailAndPassword: (_email: string, _password: string) => 
-                Promise.resolve({ user: mockUser, operationType: 'signIn', providerId: null, additionalUserInfo: null }),
+            signInWithEmailAndPassword: (_email: string, _password: string) => Promise.resolve({ user: mockUser, operationType: 'signIn', providerId: null, additionalUserInfo: null }),
             signOut: () => Promise.resolve(),
             sendPasswordResetEmail: (_email: string) => Promise.resolve(),
         };
@@ -84,7 +86,7 @@ export async function setupMocks(page: Page) {
                 projectId: 'mock-project',
                 storageBucket: 'mock.appspot.com',
                 messagingSenderId: '123456789',
-                appId: '1:123456789:web:mock'
+                appId: '1:123456789:web:mock',
             },
             automaticDataCollectionEnabled: false,
             delete: () => Promise.resolve(),
@@ -103,30 +105,33 @@ export async function setupMocks(page: Page) {
                     path: `${path}/${docPath || 'mock-doc'}`,
                     parent: null,
                     firestore: mockFirestore,
-                    get: () => Promise.resolve({ 
-                        id: docPath || 'mock-doc',
-                        exists: false, 
-                        data: () => undefined,
-                        get: () => undefined,
-                        ref: {},
-                    }),
+                    get: () =>
+                        Promise.resolve({
+                            id: docPath || 'mock-doc',
+                            exists: false,
+                            data: () => undefined,
+                            get: () => undefined,
+                            ref: {},
+                        }),
                     set: () => Promise.resolve(),
                     update: () => Promise.resolve(),
                     delete: () => Promise.resolve(),
                 }),
-                add: (_data: any) => Promise.resolve({ 
-                    id: 'mock-doc-id', 
-                    path: `${path}/mock-doc-id`,
-                    parent: null,
-                    firestore: mockFirestore 
-                }),
-                get: () => Promise.resolve({ 
-                    docs: [], 
-                    empty: true, 
-                    size: 0,
-                    forEach: () => {},
-                    query: null,
-                }),
+                add: (_data: any) =>
+                    Promise.resolve({
+                        id: 'mock-doc-id',
+                        path: `${path}/mock-doc-id`,
+                        parent: null,
+                        firestore: mockFirestore,
+                    }),
+                get: () =>
+                    Promise.resolve({
+                        docs: [],
+                        empty: true,
+                        size: 0,
+                        forEach: () => {},
+                        query: null,
+                    }),
             }),
         };
 
@@ -159,7 +164,7 @@ export async function setupMocks(page: Page) {
 
         // Mock common global access patterns
         (window as any).__FIREBASE_DEFAULTS__ = {
-            config: mockApp.options
+            config: mockApp.options,
         };
 
         console.log('Firebase mocking initialized for tests');
@@ -168,15 +173,15 @@ export async function setupMocks(page: Page) {
     // Mock ES6 module imports at the browser level
     await page.addInitScript(() => {
         // Intercept dynamic imports for Firebase modules
-        
+
         // Override System.js if present (used by some bundlers)
         if ((window as any).System) {
             const originalImport = (window as any).System.import;
-            (window as any).System.import = function(name: string) {
+            (window as any).System.import = function (name: string) {
                 if (name.includes('firebase/app')) {
                     return Promise.resolve({
                         initializeApp: (window as any).initializeApp,
-                        FirebaseApp: function() {}
+                        FirebaseApp: function () {},
                     });
                 }
                 if (name.includes('firebase/auth')) {
@@ -187,15 +192,15 @@ export async function setupMocks(page: Page) {
                         signOut: (window as any).signOut,
                         sendPasswordResetEmail: (window as any).sendPasswordResetEmail,
                         onAuthStateChanged: (window as any).onAuthStateChanged,
-                        Auth: function() {},
-                        User: function() {}
+                        Auth: function () {},
+                        User: function () {},
                     });
                 }
                 if (name.includes('firebase/firestore')) {
                     return Promise.resolve({
                         getFirestore: (window as any).getFirestore,
                         connectFirestoreEmulator: (window as any).connectFirestoreEmulator,
-                        Firestore: function() {}
+                        Firestore: function () {},
                     });
                 }
                 return originalImport.call(this, name);
@@ -205,7 +210,7 @@ export async function setupMocks(page: Page) {
         // Mock CommonJS require if present
         if ((window as any).require) {
             const originalRequire = (window as any).require;
-            (window as any).require = function(name: string) {
+            (window as any).require = function (name: string) {
                 if (name.includes('firebase')) {
                     return {
                         initializeApp: (window as any).initializeApp,
@@ -226,13 +231,12 @@ export async function setupMocks(page: Page) {
         // Mock Webpack's __webpack_require__ if present
         if ((window as any).__webpack_require__) {
             const originalWebpackRequire = (window as any).__webpack_require__;
-            (window as any).__webpack_require__ = function(moduleId: any) {
+            (window as any).__webpack_require__ = function (moduleId: any) {
                 // Check if this is a Firebase module by inspecting the module id
                 const result = originalWebpackRequire.call(this, moduleId);
-                
+
                 // If this looks like a Firebase module, replace its exports
-                if (result && typeof result === 'object' && 
-                    (result.initializeApp || result.getAuth || result.getFirestore)) {
+                if (result && typeof result === 'object' && (result.initializeApp || result.getAuth || result.getFirestore)) {
                     return {
                         ...result,
                         initializeApp: (window as any).initializeApp,
@@ -264,7 +268,7 @@ export async function waitForApp(page: Page) {
         timeout: 10000,
         state: 'attached',
     });
-    
+
     // Wait for any content to appear in the app or for a reasonable timeout
     try {
         await page.waitForSelector('#app > *', {
@@ -284,7 +288,7 @@ export async function clearAuthState(page: Page) {
     try {
         // Clear localStorage and sessionStorage only if we're on a page that allows it
         await page.evaluate(() => {
-            if (typeof Storage !== "undefined") {
+            if (typeof Storage !== 'undefined') {
                 localStorage.clear();
                 sessionStorage.clear();
             }
@@ -297,7 +301,7 @@ export async function clearAuthState(page: Page) {
         }
         // Otherwise silently ignore - about:blank doesn't allow localStorage access
     }
-    
+
     // Clear cookies
     await page.context().clearCookies();
 }
@@ -308,7 +312,7 @@ export async function clearAuthState(page: Page) {
 export async function setupTestIsolation(page: Page) {
     // Clear any existing state first
     await clearAuthState(page);
-    
+
     // Setup basic mocks
     await setupMocks(page);
 }
@@ -324,12 +328,14 @@ export async function mockAuthenticatedUser(page: Page) {
                 status: 200,
                 contentType: 'application/json',
                 body: JSON.stringify({
-                    users: [{
-                        localId: 'auth-user-id',
-                        email: 'authuser@example.com',
-                        displayName: 'Auth User',
-                        emailVerified: true,
-                    }]
+                    users: [
+                        {
+                            localId: 'auth-user-id',
+                            email: 'authuser@example.com',
+                            displayName: 'Auth User',
+                            emailVerified: true,
+                        },
+                    ],
                 }),
             });
         } else if (url.includes('accounts:signInWithPassword')) {
@@ -359,7 +365,7 @@ export async function mockAuthenticatedUser(page: Page) {
     // Mock authenticated API calls to our backend
     await page.route('**/api/**', async (route) => {
         const url = route.request().url();
-        
+
         if (url.includes('/api/groups')) {
             // Mock groups API
             await route.fulfill({
@@ -383,15 +389,18 @@ export async function mockAuthenticatedUser(page: Page) {
 
     // Set up authenticated state in localStorage
     await page.addInitScript(() => {
-        localStorage.setItem('firebase:authUser:test-api-key:[DEFAULT]', JSON.stringify({
-            uid: 'auth-user-id',
-            email: 'authuser@example.com',
-            displayName: 'Auth User',
-            stsTokenManager: {
-                accessToken: 'mock-auth-token',
-                refreshToken: 'mock-refresh-token',
-                expirationTime: Date.now() + 3600000,
-            }
-        }));
+        localStorage.setItem(
+            'firebase:authUser:test-api-key:[DEFAULT]',
+            JSON.stringify({
+                uid: 'auth-user-id',
+                email: 'authuser@example.com',
+                displayName: 'Auth User',
+                stsTokenManager: {
+                    accessToken: 'mock-auth-token',
+                    refreshToken: 'mock-refresh-token',
+                    expirationTime: Date.now() + 3600000,
+                },
+            }),
+        );
     });
 }

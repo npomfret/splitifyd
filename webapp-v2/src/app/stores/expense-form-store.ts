@@ -366,7 +366,7 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
                     throw new Error(`Amount must be a number, got ${typeof value}: ${value}`);
                 }
                 this.#amountSignal.value = value;
-                
+
                 // Recalculate splits based on current type
                 if (this.#splitTypeSignal.value === SplitTypes.EQUAL) {
                     this.calculateEqualSplits();
@@ -735,11 +735,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Refresh group data to show the new expense (non-blocking)
             // Don't await this to avoid blocking navigation
-            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()])
-                .catch((refreshError) => {
-                    // Log refresh error but don't fail the expense creation
-                    logWarning('Failed to refresh data after creating expense', { error: refreshError });
-                });
+            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]).catch((refreshError) => {
+                // Log refresh error but don't fail the expense creation
+                logWarning('Failed to refresh data after creating expense', { error: refreshError });
+            });
 
             return expense;
         } catch (error) {
@@ -787,11 +786,10 @@ class ExpenseFormStoreImpl implements ExpenseFormStore {
 
             // Refresh group data to show the updated expense (non-blocking)
             // Don't await this to avoid blocking navigation
-            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()])
-                .catch((refreshError) => {
-                    // Log refresh error but don't fail the expense update
-                    logWarning('Failed to refresh data after updating expense', { error: refreshError });
-                });
+            Promise.all([enhancedGroupDetailStore.refreshAll(), groupsStore.refreshGroups()]).catch((refreshError) => {
+                // Log refresh error but don't fail the expense update
+                logWarning('Failed to refresh data after updating expense', { error: refreshError });
+            });
 
             return expense;
         } catch (error) {

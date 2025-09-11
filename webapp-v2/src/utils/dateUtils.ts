@@ -120,7 +120,7 @@ export const getLastNight = (): Date => {
 /**
  * Asserts that a value is a Firestore Timestamp and converts to ISO string
  * Follows the "assert don't check" pattern - fails fast with clear errors
- * 
+ *
  * @param value - Value to check and convert
  * @param fieldName - Name of the field for error message
  * @returns ISO 8601 string
@@ -128,10 +128,7 @@ export const getLastNight = (): Date => {
  */
 export const assertTimestampAndConvert = (value: unknown, fieldName: string): string => {
     if (!(value instanceof Timestamp)) {
-        throw new Error(
-            `Data contract violation: Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}. ` +
-            `This indicates corrupted data or inconsistent timestamp handling.`
-        );
+        throw new Error(`Data contract violation: Expected Firestore Timestamp for '${fieldName}' but got ${typeof value}. ` + `This indicates corrupted data or inconsistent timestamp handling.`);
     }
     return value.toDate().toISOString();
 };

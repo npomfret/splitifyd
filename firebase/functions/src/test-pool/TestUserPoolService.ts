@@ -1,14 +1,14 @@
-import {getAuth} from '../firebase';
-import type {IFirestoreReader, IFirestoreWriter} from '../services/firestore';
-import {UserService} from "../services/UserService2";
+import { getAuth } from '../firebase';
+import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
+import { UserService } from '../services/UserService2';
 
 export interface PoolUser {
-    token: string
-    email: string
-    password: string
+    token: string;
+    email: string;
+    password: string;
 }
 
-interface FirestorePoolUser extends  PoolUser {
+interface FirestorePoolUser extends PoolUser {
     status: 'available' | 'borrowed';
     createdAt: FirebaseFirestore.Timestamp;
 }
@@ -22,11 +22,10 @@ export class TestUserPoolService {
     private static instance: TestUserPoolService;
 
     private constructor(
-        private readonly firestoreReader: IFirestoreReader, 
+        private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
-        private readonly userService: UserService
-    ) {
-    }
+        private readonly userService: UserService,
+    ) {}
 
     static getInstance(firestoreReader: IFirestoreReader, firestoreWriter: IFirestoreWriter, userService: UserService): TestUserPoolService {
         if (!TestUserPoolService.instance) {
@@ -41,22 +40,22 @@ export class TestUserPoolService {
             async (transaction) => {
                 // Query for available users using FirestoreReader
                 const availableUsers = await this.firestoreReader.getTestUsersByStatus('available', 1);
-                
+
                 if (availableUsers.length > 0) {
                     // Found an available user - claim it atomically
                     const doc = availableUsers[0];
                     const data = doc.data() as FirestorePoolUser;
-                    
+
                     // Update status to borrowed within transaction
                     this.firestoreWriter.updateInTransaction(transaction, doc.ref.path, { status: 'borrowed' });
-                    
+
                     return {
                         email: data.email,
                         token: data.token,
-                        password: data.password
+                        password: data.password,
                     };
                 }
-                
+
                 // No available users - return null to create new one outside transaction
                 return null;
             },
@@ -64,19 +63,20 @@ export class TestUserPoolService {
                 maxAttempts: 3,
                 context: {
                     operation: 'borrowTestUser',
-                    poolCollection: POOL_COLLECTION
-                }
-            }
+                    poolCollection: POOL_COLLECTION,
+                },
+            },
         );
-        
+
         if (result) {
-            return {// todo: this should problably be a PooledTestUser
+            return {
+                // todo: this should problably be a PooledTestUser
                 email: result.email!,
                 token: result.token!,
-                password: result.password!
+                password: result.password!,
             };
         }
-        
+
         // No available users found - create a new one
         // This is done outside transaction since createUser() involves Auth API calls
         const newUser = await this.createUser();
@@ -109,14 +109,14 @@ export class TestUserPoolService {
         const user = await this.userService.createUserDirect({
             email,
             password: POOL_PASSWORD,
-            displayName:`pool user ${id}`,
+            displayName: `pool user ${id}`,
             termsAccepted: true,
             cookiePolicyAccepted: true,
         });
 
         const token = await getAuth().createCustomToken(user.uid);
 
-        return {email, password: POOL_PASSWORD, token};
+        return { email, password: POOL_PASSWORD, token };
     }
 
     async getPoolStatus() {
@@ -126,14 +126,14 @@ export class TestUserPoolService {
     // Force cleanup all borrows (for testing/admin use)
     async resetPool(): Promise<void> {
         const borrowedDocs = await this.firestoreReader.getBorrowedTestUsers();
-        
+
         // Use bulk update for resetting all borrowed users to available
         if (borrowedDocs.length > 0) {
             const updateMap = new Map<string, any>();
             borrowedDocs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
                 updateMap.set(doc.ref.path, { status: 'available' });
             });
-            
+
             await this.firestoreWriter.bulkUpdate(updateMap);
         }
     }

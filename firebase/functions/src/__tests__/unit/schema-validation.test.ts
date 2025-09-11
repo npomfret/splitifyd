@@ -1,14 +1,6 @@
 import { describe, test, expect, beforeAll } from 'vitest';
 import { z } from 'zod';
-import { 
-    Group, 
-    GroupMemberWithProfile, 
-    MemberRoles, 
-    MemberStatuses, 
-    SecurityPresets,
-    PermissionLevels,
-    UserThemeColor
-} from '@splitifyd/shared';
+import { Group, GroupMemberWithProfile, MemberRoles, MemberStatuses, SecurityPresets, PermissionLevels, UserThemeColor } from '@splitifyd/shared';
 
 // Import webapp Zod schemas for validation
 // Note: These are the actual schemas used by the frontend to validate API responses
@@ -116,12 +108,12 @@ describe('Cross-Service Schema Validation', () => {
                 settingsManagement: PermissionLevels.ADMIN_ONLY,
             },
             inviteLinks: {
-                'default': {
+                default: {
                     createdAt: '2024-01-01T00:00:00.000Z',
                     createdBy: 'user-123',
                     maxUses: 10,
                     usedCount: 0,
-                }
+                },
             },
         };
 
@@ -146,21 +138,21 @@ describe('Cross-Service Schema Validation', () => {
                 // Add fields that are computed by the API
                 balance: {
                     balancesByCurrency: {
-                        'USD': {
+                        USD: {
                             currency: 'USD',
                             netBalance: 0,
                             totalOwed: 0,
                             totalOwing: 0,
-                        }
-                    }
+                        },
+                    },
                 },
                 lastActivity: '2 days ago',
                 lastActivityRaw: '2024-01-01T00:00:00.000Z',
                 lastExpense: {
                     description: 'Dinner',
-                    amount: 50.00,
+                    amount: 50.0,
                     date: '2024-01-01T00:00:00.000Z',
-                }
+                },
             };
 
             // This should not throw - the frontend schema should accept backend data
@@ -180,7 +172,7 @@ describe('Cross-Service Schema Validation', () => {
                 // Missing 'id' field
                 name: 'Test Group',
                 balance: {
-                    balancesByCurrency: {}
+                    balancesByCurrency: {},
                 },
                 lastActivity: '2 days ago',
                 lastActivityRaw: '2024-01-01T00:00:00.000Z',
@@ -197,7 +189,7 @@ describe('Cross-Service Schema Validation', () => {
                 id: 123, // Should be string, not number
                 name: 'Test Group',
                 balance: {
-                    balancesByCurrency: {}
+                    balancesByCurrency: {},
                 },
                 lastActivity: '2 days ago',
                 lastActivityRaw: '2024-01-01T00:00:00.000Z',
@@ -221,8 +213,8 @@ describe('Cross-Service Schema Validation', () => {
                 updatedAt: '2024-01-01T00:00:00.000Z',
                 securityPreset: 'custom', // Not supported by frontend schema
                 permissions: {
-                    expenseEditing: 'custom-level' // Invalid enum value
-                }
+                    expenseEditing: 'custom-level', // Invalid enum value
+                },
             };
 
             expect(() => GroupSchema.parse(apiGroupResponse)).toThrow();
@@ -244,7 +236,7 @@ describe('Cross-Service Schema Validation', () => {
         test('should detect member schema drift - wrong role enum', () => {
             const memberWithInvalidRole = {
                 ...mockGroupMember,
-                memberRole: 'super-admin' // Not a valid MemberRole
+                memberRole: 'super-admin', // Not a valid MemberRole
             };
 
             expect(() => GroupMemberWithProfileSchema.parse(memberWithInvalidRole)).toThrow();
@@ -253,7 +245,7 @@ describe('Cross-Service Schema Validation', () => {
         test('should detect member schema drift - wrong status enum', () => {
             const memberWithInvalidStatus = {
                 ...mockGroupMember,
-                memberStatus: 'inactive' // Not a valid MemberStatus in current system
+                memberStatus: 'inactive', // Not a valid MemberStatus in current system
             };
 
             expect(() => GroupMemberWithProfileSchema.parse(memberWithInvalidStatus)).toThrow();
@@ -287,7 +279,7 @@ describe('Cross-Service Schema Validation', () => {
         test('should reject invalid hex colors', () => {
             const invalidTheme = {
                 ...mockTheme,
-                light: 'not-a-hex-color'
+                light: 'not-a-hex-color',
             };
 
             expect(() => UserThemeColorSchema.parse(invalidTheme)).toThrow();
@@ -296,7 +288,7 @@ describe('Cross-Service Schema Validation', () => {
         test('should reject invalid color patterns', () => {
             const invalidTheme = {
                 ...mockTheme,
-                pattern: 'invalid-pattern' // Not in enum
+                pattern: 'invalid-pattern', // Not in enum
             };
 
             expect(() => UserThemeColorSchema.parse(invalidTheme)).toThrow();
@@ -315,7 +307,7 @@ describe('Cross-Service Schema Validation', () => {
         test('should validate permission approval types', () => {
             const validApprovalTypes = ['automatic', 'admin-required'];
             // These should match what's expected by frontend GroupSchema
-            validApprovalTypes.forEach(type => {
+            validApprovalTypes.forEach((type) => {
                 const testGroup = {
                     id: 'test',
                     name: 'test',
@@ -326,8 +318,8 @@ describe('Cross-Service Schema Validation', () => {
                     createdAt: 'test',
                     updatedAt: 'test',
                     permissions: {
-                        memberApproval: type
-                    }
+                        memberApproval: type,
+                    },
                 };
                 expect(() => GroupSchema.parse(testGroup)).not.toThrow();
             });
@@ -352,7 +344,7 @@ describe('Cross-Service Schema Validation', () => {
             // Frontend schema should ignore unknown fields rather than error
             // This allows for backward compatibility during migrations
             expect(() => GroupSchema.parse(groupWithDeprecatedMembers)).not.toThrow();
-            
+
             // But the parsed result should not include the deprecated field
             const parsed = GroupSchema.parse(groupWithDeprecatedMembers);
             expect(parsed).not.toHaveProperty('members');
@@ -365,7 +357,7 @@ describe('Cross-Service Schema Validation', () => {
                 id: 'expense-123',
                 groupId: 'group-123',
                 description: 'Test Expense',
-                amount: 50.00,
+                amount: 50.0,
                 splitBetween: ['user1', 'user2'], // Legacy field name
                 participants: ['user1', 'user2'], // Current field name
                 paidBy: 'user1',

@@ -6,19 +6,19 @@ vi.mock('@/app/firebase', () => ({
     getDb: vi.fn(() => ({
         // Mock Firestore instance
         collection: vi.fn(() => ({
-            doc: vi.fn(() => ({}))
-        }))
-    }))
+            doc: vi.fn(() => ({})),
+        })),
+    })),
 }));
 
 vi.mock('firebase/firestore', () => ({
     doc: vi.fn(() => ({
-        id: 'mocked-doc-ref'
+        id: 'mocked-doc-ref',
     })),
     onSnapshot: vi.fn(() => {
         // Return a mock unsubscribe function
         return vi.fn();
-    })
+    }),
 }));
 
 describe('UserNotificationDetector', () => {
@@ -50,9 +50,9 @@ describe('UserNotificationDetector', () => {
         const callbacks = {
             onGroupChange: vi.fn(),
             onTransactionChange: vi.fn(),
-            onBalanceChange: vi.fn()
+            onBalanceChange: vi.fn(),
         };
-        
+
         const unsubscribe = detector.subscribe('test-user-123', callbacks);
         expect(typeof unsubscribe).toBe('function');
     });
@@ -68,29 +68,29 @@ describe('UserNotificationDetector', () => {
 
     it('should dispose subscription when unsubscribe is called', () => {
         const unsubscribe = detector.subscribe('test-user', {});
-        
+
         // Calling unsubscribe should dispose the detector
         expect(() => unsubscribe()).not.toThrow();
     });
 
     it('should provide debug info', () => {
         const debugInfo = detector.getDebugInfo();
-        
+
         expect(debugInfo).toEqual({
             userId: null,
             isDisposed: false,
             hasListener: false,
             lastVersion: 0,
             trackedGroups: [],
-            retryCount: 0
+            retryCount: 0,
         });
     });
 
     it('should update debug info after subscription', () => {
         detector.subscribe('test-user-456', {});
-        
+
         const debugInfo = detector.getDebugInfo();
-        
+
         expect(debugInfo.userId).toBe('test-user-456');
         expect(debugInfo.hasListener).toBe(true);
     });

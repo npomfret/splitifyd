@@ -31,14 +31,14 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         // Create two browser instances - Owner and Member
         const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        
+
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Leave Test');
@@ -81,7 +81,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
     simpleTest('group owner should be able to remove multiple members', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking - removed members will get expected 404s when trying to access group
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when removed members lose access to group' });
-        
+
         // Create three browser instances - Owner, Member1 (on group page), Member2 (on dashboard)
         const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: member1Page, dashboardPage: member1DashboardPage, user: member1 } = await newLoggedInBrowser();

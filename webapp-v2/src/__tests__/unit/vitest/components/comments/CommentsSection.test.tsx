@@ -12,7 +12,7 @@ vi.mock('@heroicons/react/24/outline', () => ({
 // Mock the comments store without hoisting issues
 vi.mock('@/stores/comments-store', async () => {
     const { signal } = await import('@preact/signals');
-    
+
     return {
         commentsStore: {
             commentsSignal: signal([]),
@@ -76,7 +76,6 @@ vi.mock('@/components/comments/CommentInput', () => ({
         </div>
     ),
 }));
-
 
 // Import after mocks
 import { commentsStore } from '@/stores/comments-store';

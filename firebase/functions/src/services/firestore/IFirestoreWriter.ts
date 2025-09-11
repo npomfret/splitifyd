@@ -1,10 +1,10 @@
 /**
  * Firestore Writer Interface
- * 
+ *
  * Centralized interface for all Firestore write operations across the application.
  * This interface provides type-safe, validated write access to all collections with
  * consistent error handling, validation, and performance monitoring.
- * 
+ *
  * Design Principles:
  * - All write operations validate data before writing
  * - Consistent error handling and rollback strategies
@@ -37,12 +37,7 @@ export interface TransactionOptions {
         [key: string]: any;
     };
 }
-import type {
-    UserDocument,
-    GroupDocument,
-    ExpenseDocument,
-    SettlementDocument
-} from '../../schemas';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
 import type { ParsedComment as CommentDocument } from '../../schemas';
 import type { ShareLink } from '@splitifyd/shared';
 import type { UserNotificationGroup, CreateUserNotificationDocument } from '../../schemas/user-notifications';
@@ -242,11 +237,7 @@ export interface IFirestoreWriter {
      * @param shareLinkData - The share link data
      * @returns Document reference
      */
-    createShareLinkInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        shareLinkData: Omit<ShareLink, 'id'>
-    ): DocumentReference;
+    createShareLinkInTransaction(transaction: Transaction, groupId: string, shareLinkData: Omit<ShareLink, 'id'>): DocumentReference;
 
     // ========================================================================
     // Member Operations in Transactions
@@ -258,11 +249,7 @@ export interface IFirestoreWriter {
      * @param groupId - The group ID
      * @param updates - The update data
      */
-    updateGroupInTransaction(
-        transaction: Transaction,
-        groupId: string,
-        updates: any
-    ): void;
+    updateGroupInTransaction(transaction: Transaction, groupId: string, updates: any): void;
 
     // ========================================================================
     // Notification Operations
@@ -315,10 +302,7 @@ export interface IFirestoreWriter {
      * @param options - Optional transaction configuration including retry behavior
      * @returns Transaction result
      */
-    runTransaction<T>(
-        updateFunction: (transaction: Transaction) => Promise<T>,
-        options?: TransactionOptions
-    ): Promise<T>;
+    runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>, options?: TransactionOptions): Promise<T>;
 
     /**
      * Create a document within a transaction
@@ -328,12 +312,7 @@ export interface IFirestoreWriter {
      * @param data - The document data
      * @returns Document reference
      */
-    createInTransaction(
-        transaction: Transaction,
-        collection: string,
-        documentId: string | null,
-        data: any
-    ): DocumentReference;
+    createInTransaction(transaction: Transaction, collection: string, documentId: string | null, data: any): DocumentReference;
 
     /**
      * Update a document within a transaction
@@ -341,21 +320,14 @@ export interface IFirestoreWriter {
      * @param documentPath - The full document path
      * @param updates - The update data
      */
-    updateInTransaction(
-        transaction: Transaction,
-        documentPath: string,
-        updates: any
-    ): void;
+    updateInTransaction(transaction: Transaction, documentPath: string, updates: any): void;
 
     /**
      * Delete a document within a transaction
      * @param transaction - The transaction object
      * @param documentPath - The full document path
      */
-    deleteInTransaction(
-        transaction: Transaction,
-        documentPath: string
-    ): void;
+    deleteInTransaction(transaction: Transaction, documentPath: string): void;
 
     // ========================================================================
     // Generic Document Operations
@@ -479,7 +451,7 @@ export interface IFirestoreWriter {
     updateTestUserStatus(email: string, status: string): Promise<WriteResult>;
 
     // ========================================================================
-    // Transaction Helper Methods (Phase 1 - Transaction Foundation)  
+    // Transaction Helper Methods (Phase 1 - Transaction Foundation)
     // ========================================================================
 
     /**
@@ -488,14 +460,11 @@ export interface IFirestoreWriter {
      * @param documentPaths - Array of document paths to delete
      * @throws Error if any deletion fails (transaction will be aborted)
      */
-    bulkDeleteInTransaction(
-        transaction: Transaction,
-        documentPaths: string[]
-    ): void;
+    bulkDeleteInTransaction(transaction: Transaction, documentPaths: string[]): void;
 
     /**
      * Query and update multiple documents within a transaction
-     * @param transaction - The transaction context  
+     * @param transaction - The transaction context
      * @param collectionPath - Collection to query
      * @param queryConstraints - Query constraints (where clauses)
      * @param updates - Updates to apply to all matched documents
@@ -504,8 +473,8 @@ export interface IFirestoreWriter {
     queryAndUpdateInTransaction(
         transaction: Transaction,
         collectionPath: string,
-        queryConstraints: Array<{field: string, op: FirebaseFirestore.WhereFilterOp, value: any}>,
-        updates: Record<string, any>
+        queryConstraints: Array<{ field: string; op: FirebaseFirestore.WhereFilterOp; value: any }>,
+        updates: Record<string, any>,
     ): Promise<number>;
 
     /**
@@ -520,7 +489,7 @@ export interface IFirestoreWriter {
             collection: string;
             id?: string;
             data: any;
-        }>
+        }>,
     ): DocumentReference[];
 
     /**
@@ -529,10 +498,7 @@ export interface IFirestoreWriter {
      * @param documentPaths - Array of document paths to fetch
      * @returns Promise<Array<DocumentSnapshot | null>> Array of document snapshots (null for non-existent docs)
      */
-    getMultipleByPathsInTransaction(
-        transaction: Transaction,
-        documentPaths: string[]
-    ): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>>;
+    getMultipleByPathsInTransaction(transaction: Transaction, documentPaths: string[]): Promise<Array<FirebaseFirestore.DocumentSnapshot | null>>;
 
     // ========================================================================
     // Group Deletion and Recovery Operations
@@ -545,11 +511,7 @@ export interface IFirestoreWriter {
      * @param documentId - The document ID
      * @returns Document reference for transaction operations
      */
-    getDocumentReferenceInTransaction(
-        transaction: Transaction,
-        collection: string,
-        documentId: string
-    ): FirebaseFirestore.DocumentReference;
+    getDocumentReferenceInTransaction(transaction: Transaction, collection: string, documentId: string): FirebaseFirestore.DocumentReference;
 
     /**
      * Query groups by deletion status with timestamp filters
@@ -558,11 +520,7 @@ export interface IFirestoreWriter {
      * @param operator - Comparison operator for timestamp ('<=', '>=', etc.)
      * @returns Promise<Array<string>> Array of group IDs matching the criteria
      */
-    queryGroupsByDeletionStatus(
-        deletionStatus: string,
-        cutoffTimestamp?: FirebaseFirestore.Timestamp,
-        operator?: FirebaseFirestore.WhereFilterOp
-    ): Promise<string[]>;
+    queryGroupsByDeletionStatus(deletionStatus: string, cutoffTimestamp?: FirebaseFirestore.Timestamp, operator?: FirebaseFirestore.WhereFilterOp): Promise<string[]>;
 
     /**
      * Get a single document by path (for non-transaction operations)
@@ -570,10 +528,7 @@ export interface IFirestoreWriter {
      * @param documentId - The document ID
      * @returns Promise<DocumentSnapshot | null> Document snapshot or null if not found
      */
-    getSingleDocument(
-        collection: string,
-        documentId: string
-    ): Promise<FirebaseFirestore.DocumentSnapshot | null>;
+    getSingleDocument(collection: string, documentId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
      * Atomically delete a group membership and remove the user from notification tracking
@@ -591,5 +546,4 @@ export interface IFirestoreWriter {
      * @returns Batch write result
      */
     leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult>;
-
 }

@@ -6,7 +6,7 @@ import { PercentageSplitStrategy } from './PercentageSplitStrategy';
 
 export class SplitStrategyFactory {
     private static instance: SplitStrategyFactory;
-    
+
     private strategies: Map<string, ISplitStrategy>;
 
     private constructor() {

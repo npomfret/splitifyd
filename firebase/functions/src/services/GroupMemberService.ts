@@ -8,12 +8,12 @@ import { BalanceCalculationService } from './balance/BalanceCalculationService';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import {MemberRoles} from "@splitifyd/shared";
+import { MemberRoles } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 
 export class GroupMemberService {
     private balanceService: BalanceCalculationService;
-    
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
@@ -38,19 +38,14 @@ export class GroupMemberService {
      * @param targetUserId - The user being removed (could be same as requesting user for leave)
      * @param isLeaving - true for self-leave, false for admin removal
      */
-    private async _removeMemberFromGroup(
-        requestingUserId: string, 
-        groupId: string, 
-        targetUserId: string,
-        isLeaving: boolean
-    ): Promise<{ success: true; message: string }> {
+    private async _removeMemberFromGroup(requestingUserId: string, groupId: string, targetUserId: string, isLeaving: boolean): Promise<{ success: true; message: string }> {
         LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ 
-            userId: requestingUserId, 
+        LoggerContext.update({
+            userId: requestingUserId,
             operation: isLeaving ? 'leave-group' : 'remove-group-member',
-            ...(isLeaving ? {} : { memberId: targetUserId })
+            ...(isLeaving ? {} : { memberId: targetUserId }),
         });
-        
+
         if (!requestingUserId) {
             throw Errors.UNAUTHORIZED();
         }
@@ -102,9 +97,7 @@ export class GroupMemberService {
                 const targetBalance = currencyBalances[targetUserId];
 
                 if (targetBalance && Math.abs(targetBalance.netBalance) > 0.01) {
-                    const message = isLeaving 
-                        ? 'Cannot leave group with outstanding balance' 
-                        : 'Cannot remove member with outstanding balance';
+                    const message = isLeaving ? 'Cannot leave group with outstanding balance' : 'Cannot remove member with outstanding balance';
                     throw Errors.INVALID_INPUT({ message });
                 }
             }
@@ -112,20 +105,19 @@ export class GroupMemberService {
             // If it's our specific "outstanding balance" error from the validation above, re-throw it
             if (balanceError instanceof ApiError) {
                 const details = balanceError.details;
-                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance') ||
-                                            details?.message?.includes('Cannot remove member with outstanding balance');
+                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance') || details?.message?.includes('Cannot remove member with outstanding balance');
                 if (hasOutstandingBalance) {
                     throw balanceError;
                 }
             }
 
-            // For any other errors from calculateGroupBalances (e.g., database issues, data corruption), 
+            // For any other errors from calculateGroupBalances (e.g., database issues, data corruption),
             // log them for debugging and throw a generic error to the user
-            logger.error(`Unexpected error during balance check for ${isLeaving ? 'leaving' : 'member removal'}`, balanceError as Error, { 
-                groupId, 
+            logger.error(`Unexpected error during balance check for ${isLeaving ? 'leaving' : 'member removal'}`, balanceError as Error, {
+                groupId,
                 requestingUserId,
                 targetUserId,
-                operation: isLeaving ? 'leave-group' : 'remove-member'
+                operation: isLeaving ? 'leave-group' : 'remove-member',
             });
             throw Errors.INTERNAL_ERROR();
         }
@@ -152,27 +144,18 @@ export class GroupMemberService {
      * Path: group-memberships/{userId}_{groupId}
      */
     async createMember(groupId: string, memberDoc: GroupMemberDocument): Promise<void> {
-        return measureDb(
-            'CREATE_MEMBER',
-            async () => {
-                const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
-                const topLevelMemberDoc = createTopLevelMembershipDocument(
-                    memberDoc,
-                    new Date().toISOString()
-                );
+        return measureDb('CREATE_MEMBER', async () => {
+            const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
+            const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, new Date().toISOString());
 
-                await this.firestoreWriter.createDocument(
-                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`,
-                    topLevelMemberDoc
-                );
+            await this.firestoreWriter.createDocument(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, topLevelMemberDoc);
 
-                logger.info('Member added to top-level collection', { 
-                    groupId, 
-                    userId: memberDoc.userId,
-                    memberRole: memberDoc.memberRole 
-                });
-            }
-        );
+            logger.info('Member added to top-level collection', {
+                groupId,
+                userId: memberDoc.userId,
+                memberRole: memberDoc.memberRole,
+            });
+        });
     }
 
     /**
@@ -195,40 +178,31 @@ export class GroupMemberService {
      * Update a member in the top-level collection
      */
     async updateMember(groupId: string, userId: string, updates: Partial<GroupMemberDocument>): Promise<void> {
-        return measureDb(
-            'UPDATE_MEMBER',
-            async () => {
-                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-                
-                await this.firestoreWriter.updateDocument(
-                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`,
-                    updates
-                );
+        return measureDb('UPDATE_MEMBER', async () => {
+            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 
-                logger.info('Member updated in top-level collection', { 
-                    groupId, 
-                    userId,
-                    updates: Object.keys(updates)
-                });
-            }
-        );
+            await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, updates);
+
+            logger.info('Member updated in top-level collection', {
+                groupId,
+                userId,
+                updates: Object.keys(updates),
+            });
+        });
     }
 
     /**
      * Delete a member from top-level collection
      */
     async deleteMember(groupId: string, userId: string): Promise<void> {
-        return measureDb(
-            'DELETE_MEMBER',
-            async () => {
-                const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-                
-                // Use atomic batch operation to delete membership and remove from notifications
-                await this.firestoreWriter.deleteMemberAndNotifications(topLevelDocId, userId, groupId);
+        return measureDb('DELETE_MEMBER', async () => {
+            const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
 
-                logger.info('Member and notification tracking deleted atomically', { groupId, userId });
-            }
-        );
+            // Use atomic batch operation to delete membership and remove from notifications
+            await this.firestoreWriter.deleteMemberAndNotifications(topLevelDocId, userId, groupId);
+
+            logger.info('Member and notification tracking deleted atomically', { groupId, userId });
+        });
     }
 
     /**
@@ -236,7 +210,7 @@ export class GroupMemberService {
      * @deprecated Use firestoreReader.getGroupsForUserV2() instead
      */
     async getUserGroupsViaSubcollection(userId: string): Promise<string[]> {
-        // Use a high limit to maintain backward compatibility 
+        // Use a high limit to maintain backward compatibility
         // This method is expected to return ALL groups for a user
         const paginatedGroups = await this.firestoreReader.getGroupsForUserV2(userId, { limit: 1000 });
         return paginatedGroups.data.map((group: any) => group.id);

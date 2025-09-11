@@ -34,7 +34,10 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                 {/* Description */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        {t('expenseBasicFields.descriptionLabel')} <span className="text-red-500" data-testid="required-indicator">*</span>
+                        {t('expenseBasicFields.descriptionLabel')}{' '}
+                        <span className="text-red-500" data-testid="required-indicator">
+                            *
+                        </span>
                     </label>
                     <input
                         type="text"
@@ -113,7 +116,10 @@ export function ExpenseBasicFields({ description, amount, currency, date, time, 
                     {/* Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {t('expenseBasicFields.dateLabel')} <span className="text-red-500" data-testid="required-indicator">*</span>
+                            {t('expenseBasicFields.dateLabel')}{' '}
+                            <span className="text-red-500" data-testid="required-indicator">
+                                *
+                            </span>
                         </label>
                         <input
                             type="date"

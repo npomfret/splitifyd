@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { ApiDriver, borrowTestUsers, generateTestEmail, generateNewUserDetails, UserRegistrationBuilder } from '@splitifyd/test-support';
-import {PooledTestUser} from "@splitifyd/shared";
+import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Authentication and Registration', () => {
     const apiDriver = new ApiDriver();

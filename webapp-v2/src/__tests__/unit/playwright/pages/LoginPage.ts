@@ -19,7 +19,7 @@ export class LoginPage extends BasePage {
      */
     async navigate() {
         await this.navigateToPath(this.url);
-        
+
         // Verify we're on the login page
         await this.expectUrl(/\/login/);
     }
@@ -30,7 +30,7 @@ export class LoginPage extends BasePage {
     async fillLoginForm(email: string, password: string, rememberMe = false) {
         await this.fillPreactInput(this.getEmailInput(), email);
         await this.fillPreactInput(this.getPasswordInput(), password);
-        
+
         if (rememberMe) {
             await this.getRememberMeCheckbox().check();
         }

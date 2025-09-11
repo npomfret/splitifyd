@@ -1,10 +1,4 @@
-import { 
-    randomDecimal, 
-    randomDate, 
-    randomString, 
-    randomCurrency, 
-    generateShortId 
-} from '../test-helpers';
+import { randomDecimal, randomDate, randomString, randomCurrency, generateShortId } from '../test-helpers';
 
 export interface TestSettlement {
     groupId: string;

@@ -1,10 +1,10 @@
 /**
  * Firestore Reader Interface
- * 
+ *
  * Centralized interface for all Firestore read operations across the application.
  * This interface provides type-safe, validated access to all collections with
  * consistent error handling and performance monitoring.
- * 
+ *
  * Design Principles:
  * - All methods return validated, typed data using Zod schemas
  * - Consistent null return for missing documents
@@ -14,20 +14,10 @@
  */
 
 import type { Transaction, DocumentReference } from 'firebase-admin/firestore';
-import {
-    QueryOptions,
-    GroupMemberQueryOptions,
-    PaginatedResult
-} from '../../types/firestore-reader-types';
+import { QueryOptions, GroupMemberQueryOptions, PaginatedResult } from '../../types/firestore-reader-types';
 
 // Import parsed types from schemas
-import type {
-    UserDocument,
-    GroupDocument,
-    ExpenseDocument,
-    SettlementDocument,
-    PolicyDocument
-} from '../../schemas';
+import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
 import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
 import type { ParsedShareLink } from '../../schemas/sharelink';
@@ -90,7 +80,6 @@ export interface IFirestoreReader {
      */
     getUsersById(userIds: string[]): Promise<UserDocument[]>;
 
-
     // ========================================================================
     // Collection Read Operations - Group-related
     // ========================================================================
@@ -110,10 +99,17 @@ export interface IFirestoreReader {
      * @param options - Query options for pagination and filtering
      * @returns Paginated result containing group documents, hasMore flag, and nextCursor
      */
-    getGroupsForUserV2(userId: string, options?: { limit?: number; cursor?: string; orderBy?: {
-        field: string;
-        direction: 'asc' | 'desc';
-    }}): Promise<PaginatedResult<GroupDocument[]>>;
+    getGroupsForUserV2(
+        userId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            orderBy?: {
+                field: string;
+                direction: 'asc' | 'desc';
+            };
+        },
+    ): Promise<PaginatedResult<GroupDocument[]>>;
 
     /**
      * Get group members for a specific group
@@ -158,11 +154,14 @@ export interface IFirestoreReader {
      * @param options - Query options for pagination and filtering
      * @returns Object with expenses array, hasMore flag, and nextCursor
      */
-    getUserExpenses(userId: string, options?: {
-        limit?: number;
-        cursor?: string;
-        includeDeleted?: boolean;
-    }): Promise<{
+    getUserExpenses(
+        userId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        },
+    ): Promise<{
         expenses: ExpenseDocument[];
         hasMore: boolean;
         nextCursor?: string;
@@ -174,7 +173,10 @@ export interface IFirestoreReader {
      * @param limit - Maximum number of history records to return (default: 20)
      * @returns Object with history array and count
      */
-    getExpenseHistory(expenseId: string, limit?: number): Promise<{
+    getExpenseHistory(
+        expenseId: string,
+        limit?: number,
+    ): Promise<{
         history: any[];
         count: number;
     }>;
@@ -185,16 +187,18 @@ export interface IFirestoreReader {
      * @param options - Query options for pagination and filtering
      * @returns Object with expenses array, hasMore flag, and nextCursor
      */
-    getExpensesForGroupPaginated(groupId: string, options?: {
-        limit?: number;
-        cursor?: string;
-        includeDeleted?: boolean;
-    }): Promise<{
+    getExpensesForGroupPaginated(
+        groupId: string,
+        options?: {
+            limit?: number;
+            cursor?: string;
+            includeDeleted?: boolean;
+        },
+    ): Promise<{
         expenses: ExpenseDocument[];
         hasMore: boolean;
         nextCursor?: string;
     }>;
-
 
     // ========================================================================
     // Collection Read Operations - Settlement-related
@@ -208,19 +212,15 @@ export interface IFirestoreReader {
      */
     getSettlementsForGroup(groupId: string, options?: QueryOptions): Promise<SettlementDocument[]>;
 
-
     // ========================================================================
     // Collection Read Operations - Comment-related
     // ========================================================================
-
 
     // ========================================================================
     // Specialized Query Operations
     // ========================================================================
 
     // Note: getRecentGroupChanges removed as GROUP_CHANGES collection was unused
-
-
 
     // ========================================================================
     // Transaction-aware Read Operations
@@ -248,27 +248,19 @@ export interface IFirestoreReader {
      * @param refs - Array of document references to read
      * @returns Array of document snapshots
      */
-    getMultipleInTransaction<T>(
-        transaction: Transaction,
-        refs: DocumentReference[]
-    ): Promise<T[]>;
+    getMultipleInTransaction<T>(transaction: Transaction, refs: DocumentReference[]): Promise<T[]>;
 
     // ========================================================================
     // Real-time Subscription Operations
     // ========================================================================
 
-
-
-
     // ========================================================================
     // Batch Operations
     // ========================================================================
 
-
     // ========================================================================
     // Performance Metrics Operations
     // ========================================================================
-
 
     // ========================================================================
     // Utility Operations
@@ -358,7 +350,7 @@ export interface IFirestoreReader {
             cursor?: string;
             orderBy?: 'createdAt' | 'updatedAt';
             direction?: 'asc' | 'desc';
-        }
+        },
     ): Promise<{ comments: ParsedComment[]; hasMore: boolean; nextCursor?: string }>;
 
     /**
@@ -417,11 +409,7 @@ export interface IFirestoreReader {
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
      */
-    getOldDocuments(
-        collection: string,
-        cutoffDate: Date,
-        limit?: number
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+    getOldDocuments(collection: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
     /**
      * Get old documents for cleanup operations with custom timestamp field
@@ -431,12 +419,7 @@ export interface IFirestoreReader {
      * @param limit - Maximum number of documents to return
      * @returns Array of old document snapshots
      */
-    getOldDocumentsByField(
-        collection: string,
-        timestampField: string,
-        cutoffDate: Date,
-        limit?: number
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+    getOldDocumentsByField(collection: string, timestampField: string, cutoffDate: Date, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
     /**
      * Get a batch of documents from a collection (for deletion operations)
@@ -444,10 +427,7 @@ export interface IFirestoreReader {
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
      */
-    getDocumentsBatch(
-        collection: string,
-        limit?: number
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+    getDocumentsBatch(collection: string, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
     /**
      * Get metrics documents based on timestamp field
@@ -457,12 +437,7 @@ export interface IFirestoreReader {
      * @param limit - Maximum number of documents to return
      * @returns Array of document snapshots
      */
-    getMetricsDocuments(
-        collection: string,
-        timestampField: string,
-        cutoffTimestamp: any,
-        limit?: number
-    ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
+    getMetricsDocuments(collection: string, timestampField: string, cutoffTimestamp: any, limit?: number): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
     /**
      * Get the size of a collection
@@ -526,7 +501,7 @@ export interface IFirestoreReader {
             filterUserId?: string;
             startDate?: string;
             endDate?: string;
-        }
+        },
     ): Promise<{
         settlements: SettlementDocument[];
         hasMore: boolean;
@@ -575,13 +550,7 @@ export interface IFirestoreReader {
      * @param docId - The document ID within the subcollection
      * @returns Document data or null if not found
      */
-    getSubcollectionDocument(
-        parentCollection: string,
-        parentDocId: string,
-        subcollectionName: string,
-        docId: string
-    ): Promise<any | null>;
-
+    getSubcollectionDocument(parentCollection: string, parentDocId: string, subcollectionName: string, docId: string): Promise<any | null>;
 
     // ========================================================================
     // Test User Pool Operations (Enhanced)
@@ -625,7 +594,7 @@ export interface IFirestoreReader {
             orderBy?: { field: string; direction: 'asc' | 'desc' };
             limit?: number;
             startAfter?: FirebaseFirestore.DocumentSnapshot;
-        }
+        },
     ): Promise<FirebaseFirestore.DocumentSnapshot[]>;
 
     // ========================================================================
@@ -655,7 +624,7 @@ export interface IFirestoreReader {
     /**
      * Get raw document data in a transaction
      * @param transaction - Firestore transaction
-     * @param collection - Collection name  
+     * @param collection - Collection name
      * @param docId - Document ID
      * @returns Raw document snapshot or null if not found
      */
@@ -677,7 +646,7 @@ export interface IFirestoreReader {
     getRawGroupDocument(groupId: string): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
     /**
-     * Get raw policy document for optimistic locking scenarios  
+     * Get raw policy document for optimistic locking scenarios
      * @param policyId - The policy ID
      * @returns Raw document snapshot or null if not found
      */
@@ -733,10 +702,9 @@ export interface IFirestoreReader {
 
     /**
      * Get group membership documents in a transaction
-     * @param transaction - The Firestore transaction  
+     * @param transaction - The Firestore transaction
      * @param groupId - The group ID to query memberships for
      * @returns Array of raw document snapshots
      */
     getGroupMembershipsInTransaction(transaction: Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot>;
-
 }

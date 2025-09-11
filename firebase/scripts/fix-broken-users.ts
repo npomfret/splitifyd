@@ -2,7 +2,7 @@
 import * as fs from 'fs';
 import * as admin from 'firebase-admin';
 import { Firestore, Timestamp } from 'firebase-admin/firestore';
-import { UserRecord } from "firebase-admin/auth";
+import { UserRecord } from 'firebase-admin/auth';
 import { execSync } from 'child_process';
 import { FirestoreCollections, SystemUserRoles, UserThemeColor } from '@splitifyd/shared';
 import { parseEnvironment, initializeFirebase } from './firebase-init';
@@ -19,7 +19,6 @@ initializeFirebase(env);
 
 const { isEmulator, environment } = env;
 console.log(`🎯 Running user fixing for ${environment}`);
-
 
 // We'll import Firebase-dependent modules dynamically after initialization
 

@@ -3,7 +3,7 @@ import { setupMocks } from './setup';
 
 /**
  * Simple Playwright tests for create group modal validation
- * 
+ *
  * These tests focus on testing the modal component in isolation.
  * They DO NOT require the Firebase emulator.
  */
@@ -11,7 +11,7 @@ import { setupMocks } from './setup';
 test.describe('Create Group Modal Validation', () => {
     test.beforeEach(async ({ page }) => {
         await setupMocks(page);
-        
+
         // Create a simple test page with the modal
         await page.setContent(`
             <!DOCTYPE html>
@@ -87,7 +87,7 @@ test.describe('Create Group Modal Validation', () => {
         // Verify modal is visible
         await expect(page.locator('[role="dialog"]')).toBeVisible();
         await expect(page.locator('h2').filter({ hasText: 'Create New Group' })).toBeVisible();
-        
+
         // Verify form elements
         await expect(page.locator('#group-name')).toBeVisible();
         await expect(page.locator('#group-description')).toBeVisible();
@@ -97,18 +97,18 @@ test.describe('Create Group Modal Validation', () => {
 
     test('validates required group name', async ({ page }) => {
         const submitButton = page.locator('#submit-btn');
-        
+
         // Initially disabled (empty name)
         await expect(submitButton).toBeDisabled();
-        
+
         // Fill with single character - still disabled
         await page.fill('#group-name', 'a');
         await expect(submitButton).toBeDisabled();
-        
+
         // Fill with valid name - enabled
         await page.fill('#group-name', 'Test Group');
         await expect(submitButton).toBeEnabled();
-        
+
         // Clear name - disabled again
         await page.fill('#group-name', '');
         await expect(submitButton).toBeDisabled();
@@ -119,11 +119,11 @@ test.describe('Create Group Modal Validation', () => {
         await page.fill('#group-name', 'Test Group');
         const submitButton = page.locator('#submit-btn');
         await expect(submitButton).toBeEnabled();
-        
+
         // Add description
         await page.fill('[data-testid="group-description-input"]', 'Optional description');
         await expect(submitButton).toBeEnabled();
-        
+
         // Clear description - should still be enabled
         await page.fill('[data-testid="group-description-input"]', '');
         await expect(submitButton).toBeEnabled();
@@ -132,26 +132,26 @@ test.describe('Create Group Modal Validation', () => {
     test('closes modal on cancel', async ({ page }) => {
         const modal = page.locator('[role="dialog"]');
         const cancelButton = page.locator('#cancel-btn');
-        
+
         // Modal should be visible initially
         await expect(modal).toBeVisible();
-        
+
         // Click cancel
         await cancelButton.click();
-        
+
         // Modal should be hidden
         await expect(modal).not.toBeVisible();
     });
 
     test('closes modal on escape key', async ({ page }) => {
         const modal = page.locator('[role="dialog"]');
-        
+
         // Modal should be visible initially
         await expect(modal).toBeVisible();
-        
+
         // Press escape
         await page.keyboard.press('Escape');
-        
+
         // Modal should be hidden
         await expect(modal).not.toBeVisible();
     });

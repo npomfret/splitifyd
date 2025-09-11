@@ -8,8 +8,8 @@ import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, borr
 import { GroupService } from '../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
-import {PooledTestUser} from "@splitifyd/shared";
-import {ApplicationBuilder} from "../../services/ApplicationBuilder";
+import { PooledTestUser } from '@splitifyd/shared';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('Groups API', () => {
     const apiDriver = new ApiDriver();
@@ -24,10 +24,7 @@ describe('Groups API', () => {
 
     describe('Group Creation', () => {
         test('should create a new group with minimal data', async () => {
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Test Group ${uuidv4()}`)
-                .withDescription('A test group for API testing')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName(`Test Group ${uuidv4()}`).withDescription('A test group for API testing').build();
 
             const response = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -38,9 +35,7 @@ describe('Groups API', () => {
         });
 
         test('should create a group with member objects', async () => {
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Group with Members ${uuidv4()}`)
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName(`Group with Members ${uuidv4()}`).build();
 
             const response = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -50,9 +45,7 @@ describe('Groups API', () => {
 
         test('should set default security preset and permissions', async () => {
             const creator = users[0];
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Security Test Group')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName('Security Test Group').build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 
@@ -62,10 +55,7 @@ describe('Groups API', () => {
         });
 
         test('should be able to fetch balances immediately after creating group', async () => {
-            const groupData = new CreateGroupRequestBuilder()
-                .withName(`Balance Test Group ${uuidv4()}`)
-                .withDescription('Testing immediate balance fetch')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName(`Balance Test Group ${uuidv4()}`).withDescription('Testing immediate balance fetch').build();
 
             const createdGroup = await apiDriver.createGroup(groupData, users[0].token);
 
@@ -306,10 +296,7 @@ describe('Groups API', () => {
         test('should create a group with minimal data via service', async () => {
             const creator = users[0];
 
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Test Group')
-                .withDescription('A test group')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName('Test Group').withDescription('A test group').build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 

@@ -3,8 +3,8 @@ import { ApiError } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { AuthenticatedRequest } from '../auth/middleware';
-import { getFirestore } from "../firebase";
-import { ApplicationBuilder } from "../services/ApplicationBuilder";
+import { getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);

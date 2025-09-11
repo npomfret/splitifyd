@@ -1,6 +1,6 @@
 /**
  * ApplicationBuilder - Simple service factory with dependency injection
- * 
+ *
  * Replaces the complex ServiceContainer/ServiceRegistry pattern with a straightforward
  * factory that creates services once and injects dependencies through constructors.
  */
@@ -24,12 +24,12 @@ import { NotificationService } from './notification-service';
 
 export class ApplicationBuilder {
     private readonly firestore: Firestore;
-    
+
     // Base infrastructure - created once
     private firestoreReader?: FirestoreReader;
     private firestoreWriter?: FirestoreWriter;
     private validationService?: FirestoreValidationService;
-    
+
     // Services - created lazily but cached
     private userService?: UserService;
     private groupService?: GroupService;
@@ -54,12 +54,7 @@ export class ApplicationBuilder {
 
     buildUserService(): UserService {
         if (!this.userService) {
-            this.userService = new UserService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildFirestoreValidationService(),
-                this.buildNotificationService()
-            );
+            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildFirestoreValidationService(), this.buildNotificationService());
         }
         return this.userService;
     }
@@ -75,7 +70,7 @@ export class ApplicationBuilder {
                 this.buildGroupMemberService(),
                 this.buildNotificationService(),
                 this.buildExpenseMetadataService(),
-                this.buildGroupShareService()
+                this.buildGroupShareService(),
             );
         }
         return this.groupService;
@@ -83,87 +78,56 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService(),
-                this.buildUserService()
-            );
+            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildUserService());
         }
         return this.expenseService;
     }
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService()
-            );
+            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.settlementService;
     }
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(
-                this.buildFirestoreReader(), 
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService()
-            );
+            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.commentService;
     }
 
     buildPolicyService(): PolicyService {
         if (!this.policyService) {
-            this.policyService = new PolicyService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter()
-            );
+            this.policyService = new PolicyService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.policyService;
     }
 
     buildUserPolicyService(): UserPolicyService {
         if (!this.userPolicyService) {
-            this.userPolicyService = new UserPolicyService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter()
-            );
+            this.userPolicyService = new UserPolicyService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.userPolicyService;
     }
 
     buildGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
-            this.groupMemberService = new GroupMemberService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildUserService(),
-                this.buildNotificationService()
-            );
+            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildUserService(), this.buildNotificationService());
         }
         return this.groupMemberService;
     }
 
     buildGroupPermissionService(): GroupPermissionService {
         if (!this.groupPermissionService) {
-            this.groupPermissionService = new GroupPermissionService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter()
-            );
+            this.groupPermissionService = new GroupPermissionService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.groupPermissionService;
     }
 
     buildGroupShareService(): GroupShareService {
         if (!this.groupShareService) {
-            this.groupShareService = new GroupShareService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService()
-            );
+            this.groupShareService = new GroupShareService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
         }
         return this.groupShareService;
     }
@@ -177,10 +141,7 @@ export class ApplicationBuilder {
 
     buildNotificationService(): NotificationService {
         if (!this.notificationService) {
-            this.notificationService = new NotificationService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter()
-            );
+            this.notificationService = new NotificationService(this.buildFirestoreReader(), this.buildFirestoreWriter());
         }
         return this.notificationService;
     }
@@ -205,5 +166,4 @@ export class ApplicationBuilder {
         }
         return this.validationService;
     }
-
 }

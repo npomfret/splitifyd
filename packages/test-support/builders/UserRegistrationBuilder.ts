@@ -1,5 +1,5 @@
-import {generateNewUserDetails} from '../test-helpers';
-import {UserRegistration} from "@splitifyd/shared";
+import { generateNewUserDetails } from '../test-helpers';
+import { UserRegistration } from '@splitifyd/shared';
 
 export class UserRegistrationBuilder {
     private userRegistration: UserRegistration;
@@ -44,6 +44,6 @@ export class UserRegistrationBuilder {
     }
 
     build(): UserRegistration {
-        return {...this.userRegistration};
+        return { ...this.userRegistration };
     }
 }

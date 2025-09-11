@@ -1,11 +1,11 @@
-import {beforeEach, describe, expect, test} from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, generateShortId} from '@splitifyd/test-support';
-import {GroupService} from '../../../services/GroupService';
-import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
-import {ApiError} from '../../../utils/errors';
-import {getFirestore} from '../../../firebase';
-import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
-import {Group} from "@splitifyd/shared/src";
+import { beforeEach, describe, expect, test } from 'vitest';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, generateShortId } from '@splitifyd/test-support';
+import { GroupService } from '../../../services/GroupService';
+import { FirestoreCollections, PooledTestUser, SecurityPresets } from '@splitifyd/shared';
+import { ApiError } from '../../../utils/errors';
+import { getFirestore } from '../../../firebase';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { Group } from '@splitifyd/shared/src';
 
 // NOTE: GroupService returns the raw Group interface which uses group.members object format
 // This is different from the API endpoints which return GroupMemberWithProfile[] arrays
@@ -26,10 +26,7 @@ describe('GroupService - Integration Tests', () => {
         test('should create a group with minimal data', async () => {
             const creator = testUsers[0];
 
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Test Group')
-                .withDescription('A test group')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName('Test Group').withDescription('A test group').build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 
@@ -56,9 +53,7 @@ describe('GroupService - Integration Tests', () => {
         test('should set default security preset and permissions', async () => {
             const creator = testUsers[0];
 
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('Security Test Group')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName('Security Test Group').build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 
@@ -81,11 +76,7 @@ describe('GroupService - Integration Tests', () => {
             [creator, member, nonMember] = testUsers;
 
             // Create a test group
-            const group = await apiDriver.createGroupWithMembers(
-                `Test Group ${generateShortId()}`,
-                [creator, member],
-                creator.token
-            );
+            const group = await apiDriver.createGroupWithMembers(`Test Group ${generateShortId()}`, [creator, member], creator.token);
             testGroup = group;
         });
 
@@ -108,26 +99,18 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should throw NOT_FOUND for non-member', async () => {
-            await expect(groupService.getGroupFullDetails(testGroup.id, nonMember.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupFullDetails(testGroup.id, nonMember.uid)).rejects.toThrow(ApiError);
         });
 
         test('should throw NOT_FOUND for non-existent group', async () => {
-            await expect(groupService.getGroupFullDetails('nonexistent-group-id', creator.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupFullDetails('nonexistent-group-id', creator.uid)).rejects.toThrow(ApiError);
         });
 
         test('should calculate balances correctly with expenses', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(testGroup.id)
-                    .withPaidBy(creator.uid)
-                    .withParticipants([creator.uid, member.uid])
-                    .withAmount(100)
-                    .withSplitType('equal')
-                    .build(),
-                creator.token
+                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(creator.uid).withParticipants([creator.uid, member.uid]).withAmount(100).withSplitType('equal').build(),
+                creator.token,
             );
 
             // Get group with updated balance
@@ -151,11 +134,7 @@ describe('GroupService - Integration Tests', () => {
         beforeEach(async () => {
             [creator, member] = testUsers;
 
-            const group = await apiDriver.createGroupWithMembers(
-                `Test Group ${generateShortId()}`,
-                [creator, member],
-                creator.token
-            );
+            const group = await apiDriver.createGroupWithMembers(`Test Group ${generateShortId()}`, [creator, member], creator.token);
             testGroupId = group.id;
         });
 
@@ -180,8 +159,7 @@ describe('GroupService - Integration Tests', () => {
                 name: 'Unauthorized Update',
             };
 
-            await expect(groupService.updateGroup(testGroupId, member.uid, updateData))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.updateGroup(testGroupId, member.uid, updateData)).rejects.toThrow(ApiError);
         });
 
         test('should handle optimistic locking', async () => {
@@ -208,11 +186,7 @@ describe('GroupService - Integration Tests', () => {
         beforeEach(async () => {
             [creator, member] = testUsers;
 
-            const group = await apiDriver.createGroupWithMembers(
-                `Test Group ${generateShortId()}`,
-                [creator, member],
-                creator.token
-            );
+            const group = await apiDriver.createGroupWithMembers(`Test Group ${generateShortId()}`, [creator, member], creator.token);
             testGroupId = group.id;
         });
 
@@ -227,39 +201,31 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should prevent non-owner from deleting group', async () => {
-            await expect(groupService.deleteGroup(testGroupId, member.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.deleteGroup(testGroupId, member.uid)).rejects.toThrow(ApiError);
         });
 
         test('should successfully delete group with expenses (hard delete)', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(testGroupId)
-                    .withPaidBy(creator.uid)
-                    .withParticipants([creator.uid, member.uid])
-                    .withAmount(50)
-                    .withSplitType('equal')
-                    .build(),
-                creator.token
+                new CreateExpenseRequestBuilder().withGroupId(testGroupId).withPaidBy(creator.uid).withParticipants([creator.uid, member.uid]).withAmount(50).withSplitType('equal').build(),
+                creator.token,
             );
 
             // Hard delete should succeed even with active expenses
             const result = await groupService.deleteGroup(testGroupId, creator.uid);
-            
+
             expect(result.message).toBe('Group and all associated data deleted permanently');
 
             // Verify group and expense were both deleted
             const deletedGroup2 = await firestoreReader.getGroup(testGroupId);
             expect(deletedGroup2).toBeNull();
-            
+
             const deletedExpense = await firestoreReader.getExpense(expense.id);
             expect(deletedExpense).toBeNull();
         });
 
         test('should throw NOT_FOUND for non-existent group', async () => {
-            await expect(groupService.deleteGroup('nonexistent-group-id', creator.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.deleteGroup('nonexistent-group-id', creator.uid)).rejects.toThrow(ApiError);
         });
     });
 
@@ -271,11 +237,7 @@ describe('GroupService - Integration Tests', () => {
         beforeEach(async () => {
             [creator, member] = testUsers;
 
-            const group = await apiDriver.createGroupWithMembers(
-                `Test Group ${generateShortId()}`,
-                [creator, member],
-                creator.token
-            );
+            const group = await apiDriver.createGroupWithMembers(`Test Group ${generateShortId()}`, [creator, member], creator.token);
             testGroupId = group.id;
         });
 
@@ -292,25 +254,13 @@ describe('GroupService - Integration Tests', () => {
         test('should calculate balances correctly with multiple expenses', async () => {
             // Add multiple expenses
             const expense1 = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(testGroupId)
-                    .withPaidBy(creator.uid)
-                    .withParticipants([creator.uid, member.uid])
-                    .withAmount(100)
-                    .withSplitType('equal')
-                    .build(),
-                creator.token
+                new CreateExpenseRequestBuilder().withGroupId(testGroupId).withPaidBy(creator.uid).withParticipants([creator.uid, member.uid]).withAmount(100).withSplitType('equal').build(),
+                creator.token,
             );
 
             const expense2 = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(testGroupId)
-                    .withPaidBy(member.uid)
-                    .withParticipants([creator.uid, member.uid])
-                    .withAmount(60)
-                    .withSplitType('equal')
-                    .build(),
-                member.token
+                new CreateExpenseRequestBuilder().withGroupId(testGroupId).withPaidBy(member.uid).withParticipants([creator.uid, member.uid]).withAmount(60).withSplitType('equal').build(),
+                member.token,
             );
 
             const balances = await groupService.getGroupBalances(testGroupId, creator.uid);
@@ -318,7 +268,7 @@ describe('GroupService - Integration Tests', () => {
             // Creator paid $100, owes $30 to member (net: creator should be owed $20)
             // Member paid $60, owes $50 to creator (net: member should owe $20)
             expect(balances.balancesByCurrency).toBeDefined();
-            
+
             // Verify balance structure exists
             expect(balances.userBalances).toBeDefined();
             expect(balances.simplifiedDebts).toBeDefined();
@@ -329,18 +279,15 @@ describe('GroupService - Integration Tests', () => {
         });
 
         test('should throw UNAUTHORIZED for missing userId', async () => {
-            await expect(groupService.getGroupBalances(testGroupId, ''))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupBalances(testGroupId, '')).rejects.toThrow(ApiError);
         });
 
         test('should throw MISSING_FIELD for missing groupId', async () => {
-            await expect(groupService.getGroupBalances('', creator.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupBalances('', creator.uid)).rejects.toThrow(ApiError);
         });
 
         test('should throw NOT_FOUND for non-existent group', async () => {
-            await expect(groupService.getGroupBalances('nonexistent-group-id', creator.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupBalances('nonexistent-group-id', creator.uid)).rejects.toThrow(ApiError);
         });
     });
 
@@ -368,7 +315,7 @@ describe('GroupService - Integration Tests', () => {
             expect(response).toHaveProperty('count');
             expect(response).toHaveProperty('hasMore');
             expect(Array.isArray(response.groups)).toBe(true);
-            
+
             // Each group should have proper structure
             for (const group of response.groups) {
                 expect(group).toHaveProperty('id');
@@ -385,14 +332,10 @@ describe('GroupService - Integration Tests', () => {
             // Create 3 fresh groups to ensure we have enough for pagination testing
             const testGroups = [];
             for (let i = 0; i < 3; i++) {
-                const group = await apiDriver.createGroupWithMembers(
-                    `Pagination Test ${i} ${generateShortId()}`,
-                    [creator], 
-                    creator.token
-                );
+                const group = await apiDriver.createGroupWithMembers(`Pagination Test ${i} ${generateShortId()}`, [creator], creator.token);
                 testGroups.push(group);
             }
-            
+
             // Test limit=1
             const response = await groupService.listGroups(creator.uid, {
                 limit: 1,
@@ -417,20 +360,16 @@ describe('GroupService - Integration Tests', () => {
         test('should handle pagination with cursor', async () => {
             // Create test groups to ensure we have enough data for pagination
             for (let i = 0; i < 5; i++) {
-                await apiDriver.createGroupWithMembers(
-                    `Pagination Test Group ${i} ${generateShortId()}`,
-                    [creator], 
-                    creator.token
-                );
+                await apiDriver.createGroupWithMembers(`Pagination Test Group ${i} ${generateShortId()}`, [creator], creator.token);
             }
-            
+
             const firstPage = await groupService.listGroups(creator.uid, {
                 limit: 2,
             });
 
             expect(firstPage.groups.length).toBe(2);
             expect(firstPage.nextCursor).toBeTruthy();
-            
+
             const secondPage = await groupService.listGroups(creator.uid, {
                 limit: 2,
                 cursor: firstPage.nextCursor,
@@ -438,19 +377,15 @@ describe('GroupService - Integration Tests', () => {
 
             expect(secondPage.groups.length).toBeGreaterThan(0);
             // Groups should be different from first page
-            const firstPageIds = firstPage.groups.map(g => g.id);
-            const secondPageIds = secondPage.groups.map(g => g.id);
+            const firstPageIds = firstPage.groups.map((g) => g.id);
+            const secondPageIds = secondPage.groups.map((g) => g.id);
             expect(firstPageIds).not.toEqual(secondPageIds);
         });
 
         test('should include balance information for each group', async () => {
             // Create a fresh group for this test
-            const testGroup = await apiDriver.createGroupWithMembers(
-                `Balance Test Group ${generateShortId()}`,
-                [creator, member], 
-                creator.token
-            );
-            
+            const testGroup = await apiDriver.createGroupWithMembers(`Balance Test Group ${generateShortId()}`, [creator, member], creator.token);
+
             // Add an expense to test balance calculation
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
@@ -461,7 +396,7 @@ describe('GroupService - Integration Tests', () => {
                     .withDescription('Balance test expense')
                     .withSplitType('equal')
                     .build(),
-                creator.token
+                creator.token,
             );
 
             // Get group details to verify balance calculation works
@@ -493,28 +428,21 @@ describe('GroupService - Integration Tests', () => {
         beforeEach(async () => {
             [creator, member, nonMember] = testUsers;
 
-            const group = await apiDriver.createGroupWithMembers(
-                `Security Test Group ${generateShortId()}`,
-                [creator, member],
-                creator.token
-            );
+            const group = await apiDriver.createGroupWithMembers(`Security Test Group ${generateShortId()}`, [creator, member], creator.token);
             testGroupId = group.id;
         });
 
         test('should return NOT_FOUND instead of FORBIDDEN for security', async () => {
             // Non-member should get NOT_FOUND, not FORBIDDEN, to prevent group ID enumeration
-            await expect(groupService.getGroupFullDetails(testGroupId, nonMember.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.getGroupFullDetails(testGroupId, nonMember.uid)).rejects.toThrow(ApiError);
         });
 
         test('should enforce owner-only write operations', async () => {
             // Member should not be able to update group
-            await expect(groupService.updateGroup(testGroupId, member.uid, { name: 'Hacked Name' }))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.updateGroup(testGroupId, member.uid, { name: 'Hacked Name' })).rejects.toThrow(ApiError);
 
             // Member should not be able to delete group
-            await expect(groupService.deleteGroup(testGroupId, member.uid))
-                .rejects.toThrow(ApiError);
+            await expect(groupService.deleteGroup(testGroupId, member.uid)).rejects.toThrow(ApiError);
         });
 
         test('should allow members to read group data', async () => {
@@ -533,8 +461,7 @@ describe('GroupService - Integration Tests', () => {
             const creator = testUsers[0];
 
             // Valid group creation should work
-            const groupData = new CreateGroupRequestBuilder()
-                .build();
+            const groupData = new CreateGroupRequestBuilder().build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
             expect(group.id).toBeDefined();
@@ -546,24 +473,18 @@ describe('GroupService - Integration Tests', () => {
         test('should handle concurrent updates gracefully', async () => {
             const creator = testUsers[0];
 
-            const groupData = new CreateGroupRequestBuilder()
-                .build();
+            const groupData = new CreateGroupRequestBuilder().build();
 
             const group = await groupService.createGroup(creator.uid, groupData);
 
             // Multiple concurrent updates should handle optimistic locking
-            const updates = [
-                { name: `Update ${generateShortId()}` },
-                { name: `Update ${generateShortId()}` },
-            ];
+            const updates = [{ name: `Update ${generateShortId()}` }, { name: `Update ${generateShortId()}` }];
 
-            const updatePromises = updates.map(update =>
-                groupService.updateGroup(group.id, creator.uid, update)
-            );
+            const updatePromises = updates.map((update) => groupService.updateGroup(group.id, creator.uid, update));
 
             // At least one should succeed
             const results = await Promise.allSettled(updatePromises);
-            const successes = results.filter(r => r.status === 'fulfilled');
+            const successes = results.filter((r) => r.status === 'fulfilled');
             expect(successes.length).toBeGreaterThan(0);
 
             // Cleanup
@@ -575,9 +496,7 @@ describe('GroupService - Integration Tests', () => {
 
             // Empty name should be handled by validation layer
             // This test ensures the service doesn't crash
-            const groupData = new CreateGroupRequestBuilder()
-                .withName('')
-                .build();
+            const groupData = new CreateGroupRequestBuilder().withName('').build();
 
             try {
                 const group = await groupService.createGroup(creator.uid, groupData);

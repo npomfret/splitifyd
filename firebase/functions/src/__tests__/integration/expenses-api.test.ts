@@ -7,13 +7,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
-import {PooledTestUser} from "@splitifyd/shared";
-import {ApplicationBuilder} from "../../services/ApplicationBuilder";
-import {getFirestore} from "../../firebase";
+import { PooledTestUser } from '@splitifyd/shared';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { getFirestore } from '../../firebase';
 
 describe('Expenses API', () => {
     const apiDriver = new ApiDriver();
-    const expenseService = new ApplicationBuilder(getFirestore()).buildExpenseService()
+    const expenseService = new ApplicationBuilder(getFirestore()).buildExpenseService();
     let testGroup: any;
     let users: PooledTestUser[];
 
@@ -267,14 +267,9 @@ describe('Expenses API', () => {
             // Create a managed group for access control tests
             const group = await apiDriver.createGroupWithMembers('Access Control Test Group', [users[0], users[1], users[2]], users[0].token);
             managedGroupId = group.id;
-            
+
             // Set to managed group preset to enforce stricter permissions
-            await apiDriver.apiRequest(
-                `/groups/${managedGroupId}/security/preset`,
-                'POST',
-                { preset: 'managed' },
-                users[0].token
-            );
+            await apiDriver.apiRequest(`/groups/${managedGroupId}/security/preset`, 'POST', { preset: 'managed' }, users[0].token);
 
             // Create a test expense for access control tests
             const expense = await apiDriver.createExpense(
@@ -286,7 +281,7 @@ describe('Expenses API', () => {
                     .withDescription('Access Control Test Expense')
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                users[0].token,
             );
             expenseId = expense.id;
         });
@@ -316,13 +311,13 @@ describe('Expenses API', () => {
 
         test('should deny access to group member who is not participant', async () => {
             await expect(expenseService.getExpense(expenseId, users[2].uid)).rejects.toEqual(
-                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense')
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense'),
             );
         });
 
         test('should deny access to non-group member', async () => {
             await expect(expenseService.getExpense(expenseId, users[3].uid)).rejects.toEqual(
-                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense')
+                new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_EXPENSE_PARTICIPANT', 'You are not a participant in this expense'),
             );
         });
 

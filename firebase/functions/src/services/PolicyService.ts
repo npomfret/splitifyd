@@ -4,10 +4,7 @@ import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, timestampToISO } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
-import {
-    PolicyDocument,
-    PolicyVersion,
-} from '@splitifyd/shared';
+import { PolicyDocument, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
 import { z } from 'zod';
@@ -20,17 +17,13 @@ import { IFirestoreWriter } from './firestore/IFirestoreWriter';
 export class PolicyService {
     constructor(
         private firestoreReader: IFirestoreReader,
-        private firestoreWriter: IFirestoreWriter
+        private firestoreWriter: IFirestoreWriter,
     ) {}
 
     /**
      * Validates that a policy document remains valid after an update operation
      */
-    private async validatePolicyAfterUpdate(
-        policyId: string, 
-        operationType: 'update' | 'publish' | 'version deletion',
-        additionalContext: Record<string, any> = {}
-    ): Promise<void> {
+    private async validatePolicyAfterUpdate(policyId: string, operationType: 'update' | 'publish' | 'version deletion', additionalContext: Record<string, any> = {}): Promise<void> {
         const updatedDoc = await this.firestoreReader.getRawPolicyDocument(policyId);
         if (!updatedDoc) {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'POLICY_NOT_FOUND', `Policy not found after ${operationType}`);
@@ -66,11 +59,7 @@ export class PolicyService {
      */
     private validatePolicyDocument(data: any, docId: string): void {
         if (!data.policyName || !data.currentVersionHash || !data.versions) {
-            throw new ApiError(
-                HTTP_STATUS.INTERNAL_ERROR,
-                'CORRUPT_POLICY_DATA',
-                `Policy document ${docId} is missing required fields`
-            );
+            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', `Policy document ${docId} is missing required fields`);
         }
     }
 
@@ -152,11 +141,7 @@ export class PolicyService {
             }
 
             if (!policy.versions) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'CORRUPT_POLICY_DATA',
-                    'Policy document is missing versions data'
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
             }
 
             const version = policy.versions[hash];
@@ -188,7 +173,7 @@ export class PolicyService {
 
     private async _updatePolicy(id: string, text: string, publish: boolean = false): Promise<{ versionHash: string; currentVersionHash?: string }> {
         LoggerContext.update({ policyId: id, operation: 'update-policy', publish });
-        
+
         try {
             const doc = await this.firestoreReader.getRawPolicyDocument(id);
 
@@ -206,22 +191,14 @@ export class PolicyService {
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'CORRUPT_POLICY_DATA',
-                    'Policy document is missing versions data'
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
             }
 
             const versions = { ...data.versions };
-            
+
             // Check if this exact version already exists
             if (versions[versionHash]) {
-                throw new ApiError(
-                    HTTP_STATUS.CONFLICT,
-                    'VERSION_ALREADY_EXISTS',
-                    'A version with this content already exists'
-                );
+                throw new ApiError(HTTP_STATUS.CONFLICT, 'VERSION_ALREADY_EXISTS', 'A version with this content already exists');
             }
 
             versions[versionHash] = newVersion;
@@ -243,10 +220,10 @@ export class PolicyService {
             // Validate the updated document to ensure it's still valid
             await this.validatePolicyAfterUpdate(id, 'update');
 
-            logger.info('Policy updated', { 
-                policyId: id, 
-                versionHash, 
-                published: publish 
+            logger.info('Policy updated', {
+                policyId: id,
+                versionHash,
+                published: publish,
             });
 
             return { versionHash, currentVersionHash };
@@ -276,11 +253,7 @@ export class PolicyService {
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'CORRUPT_POLICY_DATA',
-                    'Policy document is missing versions data'
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
             }
 
             // Verify the version exists
@@ -318,7 +291,7 @@ export class PolicyService {
 
     private async _publishPolicy(id: string, versionHash: string): Promise<{ currentVersionHash: string }> {
         LoggerContext.update({ policyId: id, operation: 'publish-policy', versionHash });
-        
+
         return this.publishPolicyInternal(id, versionHash);
     }
 
@@ -402,7 +375,7 @@ export class PolicyService {
 
     private async _createPolicy(policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> {
         LoggerContext.update({ operation: 'create-policy', policyName, customId });
-        
+
         return this.createPolicyInternal(policyName, text, customId);
     }
 
@@ -419,31 +392,19 @@ export class PolicyService {
 
             const data = doc.data();
             if (!data || !data.versions) {
-                throw new ApiError(
-                    HTTP_STATUS.INTERNAL_ERROR,
-                    'CORRUPT_POLICY_DATA',
-                    'Policy document is missing versions data'
-                );
+                throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', 'Policy document is missing versions data');
             }
 
             const versions = data.versions;
 
             // Cannot delete current version
             if (data.currentVersionHash === hash) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'CANNOT_DELETE_CURRENT',
-                    'Cannot delete the current published version'
-                );
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_DELETE_CURRENT', 'Cannot delete the current published version');
             }
 
             // Cannot delete if it's the only version
             if (Object.keys(versions).length <= 1) {
-                throw new ApiError(
-                    HTTP_STATUS.BAD_REQUEST,
-                    'CANNOT_DELETE_ONLY',
-                    'Cannot delete the only version of a policy'
-                );
+                throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'CANNOT_DELETE_ONLY', 'Cannot delete the only version of a policy');
             }
 
             // Version must exist

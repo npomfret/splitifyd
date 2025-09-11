@@ -3,7 +3,7 @@ import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
 // Mock the problematic dependencies before importing
 vi.mock('../../../services/serviceRegistration', () => ({
-    getExpenseMetadataService: vi.fn()
+    getExpenseMetadataService: vi.fn(),
 }));
 
 vi.mock('../../../services/balance/index', () => ({}));
@@ -30,15 +30,15 @@ describe('ExpenseMetadataService', () => {
                     description: 'Latest Expense',
                     amount: 150,
                     date: { toDate: () => new Date('2024-01-15') },
-                    createdAt: { toDate: () => new Date('2024-01-15T10:00:00Z') }
+                    createdAt: { toDate: () => new Date('2024-01-15T10:00:00Z') },
                 },
                 {
                     id: 'expense-2',
                     description: 'Older Expense',
                     amount: 100,
                     date: { toDate: () => new Date('2024-01-10') },
-                    createdAt: { toDate: () => new Date('2024-01-10T10:00:00Z') }
-                }
+                    createdAt: { toDate: () => new Date('2024-01-10T10:00:00Z') },
+                },
             ];
 
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue(mockExpenses as any);
@@ -50,15 +50,15 @@ describe('ExpenseMetadataService', () => {
             expect(result.lastExpense).toEqual({
                 description: 'Latest Expense',
                 amount: 150,
-                date: new Date('2024-01-15')
+                date: new Date('2024-01-15'),
             });
 
             // Verify correct parameters passed to getExpensesForGroup
             expect(mockFirestoreReader.getExpensesForGroup).toHaveBeenCalledWith(groupId, {
                 orderBy: {
                     field: 'createdAt',
-                    direction: 'desc'
-                }
+                    direction: 'desc',
+                },
             });
         });
 
@@ -74,10 +74,7 @@ describe('ExpenseMetadataService', () => {
         });
 
         it('should throw error for empty groupId', async () => {
-            await expect(expenseMetadataService.calculateExpenseMetadata(''))
-                .rejects
-                .toThrow('Group ID is required');
+            await expect(expenseMetadataService.calculateExpenseMetadata('')).rejects.toThrow('Group ID is required');
         });
-
     });
 });

@@ -38,7 +38,7 @@ export class UnifiedConsoleHandler {
 
     constructor(
         private page: Page,
-        private options: ConsoleHandlerOptions = {}
+        private options: ConsoleHandlerOptions = {},
     ) {
         this.setupLogFile();
         this.attachListeners();
@@ -46,12 +46,12 @@ export class UnifiedConsoleHandler {
 
     private setupLogFile(): void {
         const { userIndex = 0, userEmail, testInfo } = this.options;
-        
+
         // Create log file path
         const testDir = testInfo?.outputDir || path.join(process.cwd(), 'e2e-tests', 'playwright-report', 'output');
         const userSuffix = userEmail ? userEmail.replace(/\s+/g, '-') : `user-${userIndex}`;
         this.logFile = path.join(testDir, `${userSuffix}-console.log`);
-        
+
         // Ensure directory exists
         if (!fs.existsSync(testDir)) {
             fs.mkdirSync(testDir, { recursive: true });
@@ -98,7 +98,7 @@ export class UnifiedConsoleHandler {
             if (this.disposed) return;
 
             const timestamp = new Date();
-            
+
             // Log to file
             const logEntry = `[${timestamp.toISOString()}] PAGE ERROR: ${error.name}: ${error.message}\n${error.stack || ''}\n`;
             fs.appendFileSync(this.logFile, logEntry, 'utf8');
@@ -119,7 +119,7 @@ export class UnifiedConsoleHandler {
     getErrors(): { consoleErrors: ConsoleError[]; pageErrors: PageError[] } {
         return {
             consoleErrors: [...this.consoleErrors],
-            pageErrors: [...this.pageErrors]
+            pageErrors: [...this.pageErrors],
         };
     }
 
@@ -156,9 +156,7 @@ export class UnifiedConsoleHandler {
         const testFailed = testInfo.status === 'failed' || testInfo.status === 'timedOut';
 
         // Check if this test has skip-error-checking annotation
-        const skipErrorChecking = testInfo.annotations.some(
-            (annotation) => annotation.type === 'skip-error-checking'
-        );
+        const skipErrorChecking = testInfo.annotations.some((annotation) => annotation.type === 'skip-error-checking');
 
         // On test failure, point to console log files
         if (testFailed) {
@@ -218,11 +216,7 @@ export class UnifiedConsoleHandler {
             // Attach page errors to test report
             if (hasPageErrors) {
                 const pageErrorReport = this.pageErrors
-                    .map((err, index) => 
-                        `${index + 1}. ${err.name}: ${err.message}\n` +
-                        `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` +
-                        `Time: ${err.timestamp.toISOString()}`
-                    )
+                    .map((err, index) => `${index + 1}. ${err.name}: ${err.message}\n` + `${err.stack ? `Stack trace:\n${err.stack}\n` : ''}` + `Time: ${err.timestamp.toISOString()}`)
                     .join('\n\n');
 
                 await testInfo.attach('page-errors.txt', {
@@ -233,9 +227,7 @@ export class UnifiedConsoleHandler {
 
             // FAIL THE TEST if there are errors and test hasn't already failed
             if (testInfo.status !== 'failed') {
-                throw new Error(
-                    `Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s). Check console log file above for details.`
-                );
+                throw new Error(`Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s). Check console log file above for details.`);
             }
         } else if ((hasConsoleErrors || hasPageErrors) && skipErrorChecking) {
             // Log that errors were detected but ignored due to annotation
@@ -261,9 +253,6 @@ export class UnifiedConsoleHandler {
 /**
  * Create and attach a unified console handler to a page
  */
-export function attachConsoleHandler(
-    page: Page,
-    options: ConsoleHandlerOptions = {}
-): UnifiedConsoleHandler {
+export function attachConsoleHandler(page: Page, options: ConsoleHandlerOptions = {}): UnifiedConsoleHandler {
     return new UnifiedConsoleHandler(page, options);
 }

@@ -52,10 +52,10 @@ interface UserNotificationDocument {
 
 /**
  * UserNotificationDetector - New notification system client
- * 
+ *
  * Replaces ChangeDetector by listening to a single per-user notification document
  * instead of multiple change document collections. This provides:
- * 
+ *
  * - 90% fewer Firestore operations
  * - Single listener per user instead of 3+
  * - No cleanup required (documents persist)
@@ -87,14 +87,14 @@ export class UserNotificationDetector {
         }
 
         logInfo('UserNotificationDetector: subscribe', { userId });
-        
+
         this.userId = userId;
         this.callbacks = callbacks;
         this.config = config || {};
-        
+
         // Start listening immediately
         this.startListener();
-        
+
         // Return unsubscribe function that cleans up without disposing
         return () => this.unsubscribe();
     }
@@ -108,13 +108,13 @@ export class UserNotificationDetector {
         }
 
         logInfo('UserNotificationDetector: starting listener', { userId: this.userId });
-        
+
         const docRef = doc(getDb(), 'user-notifications', this.userId);
-        
+
         this.listener = onSnapshot(
             docRef,
             (snapshot) => this.handleSnapshot(snapshot),
-            (error) => this.handleError(error)
+            (error) => this.handleError(error),
         );
     }
 
@@ -129,12 +129,12 @@ export class UserNotificationDetector {
             }
 
             const data = snapshot.data() as UserNotificationDocument;
-            
-            logInfo('UserNotificationDetector: received update', { 
+
+            logInfo('UserNotificationDetector: received update', {
                 userId: this.userId,
                 changeVersion: data.changeVersion,
                 lastVersion: this.lastVersion,
-                groupCount: Object.keys(data.groups || {}).length
+                groupCount: Object.keys(data.groups || {}).length,
             });
 
             // Skip if no new changes (first load or duplicate)
@@ -145,13 +145,12 @@ export class UserNotificationDetector {
 
             // Process changes
             this.processChanges(data);
-            
+
             // Update version
             this.lastVersion = data.changeVersion;
-            
+
             // Reset retry count on successful update
             this.retryCount = 0;
-            
         } catch (error) {
             logError('UserNotificationDetector: error processing snapshot', error as Error);
             this.handleError(error as Error);
@@ -168,25 +167,25 @@ export class UserNotificationDetector {
 
         for (const [groupId, groupData] of Object.entries(data.groups)) {
             const lastState = this.lastGroupStates.get(groupId);
-            
+
             // Check for group details changes
             if (this.callbacks.onGroupChange && this.hasGroupDetailsChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: group change detected', { groupId });
                 this.callbacks.onGroupChange(groupId);
             }
-            
+
             // Check for transaction changes (expenses/settlements)
             if (this.callbacks.onTransactionChange && this.hasTransactionChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: transaction change detected', { groupId });
                 this.callbacks.onTransactionChange(groupId);
             }
-            
+
             // Check for balance changes
             if (this.callbacks.onBalanceChange && this.hasBalanceChanged(groupId, groupData, lastState)) {
                 logInfo('UserNotificationDetector: balance change detected', { groupId });
                 this.callbacks.onBalanceChange(groupId);
             }
-            
+
             // Update last state
             this.lastGroupStates.set(groupId, { ...groupData });
         }
@@ -197,7 +196,7 @@ export class UserNotificationDetector {
             if (!currentGroupIds.has(groupId)) {
                 logInfo('UserNotificationDetector: group removed from user notifications', { groupId });
                 this.lastGroupStates.delete(groupId);
-                
+
                 // Notify callback that the group was removed (deleted or user was removed)
                 if (this.callbacks.onGroupRemoved) {
                     this.callbacks.onGroupRemoved(groupId);
@@ -209,48 +208,36 @@ export class UserNotificationDetector {
     /**
      * Check if group details have changed
      */
-    private hasGroupDetailsChanged(
-        groupId: string, 
-        current: GroupNotificationState, 
-        last: GroupNotificationState | undefined
-    ): boolean {
+    private hasGroupDetailsChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group - trigger change if there have been any updates
             return current.groupDetailsChangeCount > 0;
         }
-        
+
         return current.groupDetailsChangeCount > last.groupDetailsChangeCount;
     }
 
     /**
      * Check if transactions have changed
      */
-    private hasTransactionChanged(
-        groupId: string, 
-        current: GroupNotificationState, 
-        last: GroupNotificationState | undefined
-    ): boolean {
+    private hasTransactionChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group - trigger change if there have been any updates
             return current.transactionChangeCount > 0;
         }
-        
+
         return current.transactionChangeCount > last.transactionChangeCount;
     }
 
     /**
      * Check if balances have changed
      */
-    private hasBalanceChanged(
-        groupId: string, 
-        current: GroupNotificationState, 
-        last: GroupNotificationState | undefined
-    ): boolean {
+    private hasBalanceChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group - trigger change if there have been any updates
             return current.balanceChangeCount > 0;
         }
-        
+
         return current.balanceChangeCount > last.balanceChangeCount;
     }
 
@@ -258,9 +245,9 @@ export class UserNotificationDetector {
      * Handle subscription errors with retry logic
      */
     private handleError(error: Error): void {
-        logError('UserNotificationDetector: subscription error', error, { 
+        logError('UserNotificationDetector: subscription error', error, {
             userId: this.userId,
-            retryCount: this.retryCount
+            retryCount: this.retryCount,
         });
 
         // Call error callback if provided
@@ -274,25 +261,28 @@ export class UserNotificationDetector {
 
         if (this.retryCount < maxRetries && !this.isDisposed) {
             this.retryCount++;
-            
-            logInfo('UserNotificationDetector: retrying subscription', { 
+
+            logInfo('UserNotificationDetector: retrying subscription', {
                 retryCount: this.retryCount,
                 maxRetries,
-                retryDelay
+                retryDelay,
             });
-            
+
             // Stop current listener
             if (this.listener) {
                 this.listener();
                 this.listener = null;
             }
-            
+
             // Retry after delay
-            this.retryTimer = setTimeout(() => {
-                if (!this.isDisposed) {
-                    this.startListener();
-                }
-            }, retryDelay * Math.pow(2, this.retryCount - 1)); // Exponential backoff
+            this.retryTimer = setTimeout(
+                () => {
+                    if (!this.isDisposed) {
+                        this.startListener();
+                    }
+                },
+                retryDelay * Math.pow(2, this.retryCount - 1),
+            ); // Exponential backoff
         } else {
             logError('UserNotificationDetector: max retries exceeded, giving up');
         }
@@ -304,19 +294,19 @@ export class UserNotificationDetector {
      */
     unsubscribe(): void {
         logInfo('UserNotificationDetector: unsubscribing', { userId: this.userId });
-        
+
         // Clear retry timer
         if (this.retryTimer) {
             clearTimeout(this.retryTimer);
             this.retryTimer = null;
         }
-        
+
         // Stop listener
         if (this.listener) {
             this.listener();
             this.listener = null;
         }
-        
+
         // Clear subscription state but keep detector alive
         this.lastVersion = 0;
         this.lastGroupStates.clear();
@@ -336,9 +326,9 @@ export class UserNotificationDetector {
         }
 
         logInfo('UserNotificationDetector: disposing', { userId: this.userId });
-        
+
         this.isDisposed = true;
-        
+
         // Unsubscribe first
         this.unsubscribe();
     }
@@ -353,7 +343,7 @@ export class UserNotificationDetector {
             hasListener: !!this.listener,
             lastVersion: this.lastVersion,
             trackedGroups: Array.from(this.lastGroupStates.keys()),
-            retryCount: this.retryCount
+            retryCount: this.retryCount,
         };
     }
 }

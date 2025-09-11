@@ -34,7 +34,7 @@ export async function startEmulator(config: EmulatorConfig): Promise<ChildProces
         const staticAssetLogPattern = /hosting: GET \/.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|map|webmanifest)/;
 
         const lines = output.split('\n');
-        const filteredLines = lines.filter(line => !staticAssetLogPattern.test(line));
+        const filteredLines = lines.filter((line) => !staticAssetLogPattern.test(line));
 
         if (filteredLines.join('').trim().length > 0) {
             process.stdout.write(filteredLines.join('\n'));

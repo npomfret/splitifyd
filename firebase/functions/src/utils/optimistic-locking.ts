@@ -1,4 +1,3 @@
-
 import { Timestamp, Transaction, DocumentReference } from 'firebase-admin/firestore';
 import { Errors } from './errors';
 import { logger } from '../logger';

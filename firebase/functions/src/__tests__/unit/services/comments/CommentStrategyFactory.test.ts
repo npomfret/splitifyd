@@ -26,20 +26,20 @@ describe('CommentStrategyFactory', () => {
     describe('getStrategy', () => {
         it('should return GroupCommentStrategy for GROUP target type', () => {
             const strategy = factory.getStrategy(CommentTargetTypes.GROUP);
-            
+
             expect(strategy).toBeInstanceOf(GroupCommentStrategy);
         });
 
         it('should return ExpenseCommentStrategy for EXPENSE target type', () => {
             const strategy = factory.getStrategy(CommentTargetTypes.EXPENSE);
-            
+
             expect(strategy).toBeInstanceOf(ExpenseCommentStrategy);
         });
 
         it('should create new strategy instances for each call (no caching)', () => {
             const strategy1 = factory.getStrategy(CommentTargetTypes.GROUP);
             const strategy2 = factory.getStrategy(CommentTargetTypes.GROUP);
-            
+
             expect(strategy1).not.toBe(strategy2);
             expect(strategy1).toBeInstanceOf(GroupCommentStrategy);
             expect(strategy2).toBeInstanceOf(GroupCommentStrategy);
@@ -48,7 +48,7 @@ describe('CommentStrategyFactory', () => {
         it('should return different strategy instances for different types', () => {
             const groupStrategy = factory.getStrategy(CommentTargetTypes.GROUP);
             const expenseStrategy = factory.getStrategy(CommentTargetTypes.EXPENSE);
-            
+
             expect(groupStrategy).not.toBe(expenseStrategy);
             expect(groupStrategy).toBeInstanceOf(GroupCommentStrategy);
             expect(expenseStrategy).toBeInstanceOf(ExpenseCommentStrategy);
@@ -57,7 +57,7 @@ describe('CommentStrategyFactory', () => {
         it('should throw error for unknown target type', () => {
             // Test with invalid enum value by casting
             const invalidType = 'UNKNOWN_TYPE' as any;
-            
+
             expect(() => {
                 factory.getStrategy(invalidType);
             }).toThrow('Unsupported comment target type: UNKNOWN_TYPE');
@@ -84,7 +84,7 @@ describe('CommentStrategyFactory', () => {
             // Both strategies should be created with the injected dependencies
             expect(groupStrategy).toBeDefined();
             expect(expenseStrategy).toBeDefined();
-            
+
             // Verify they have access to the collection path methods (indicating proper construction)
             expect(typeof groupStrategy.getCollectionPath).toBe('function');
             expect(typeof expenseStrategy.getCollectionPath).toBe('function');

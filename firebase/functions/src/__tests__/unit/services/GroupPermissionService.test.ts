@@ -22,11 +22,11 @@ describe('GroupPermissionService', () => {
         it('should return user permissions when user is group member', async () => {
             const userId = 'test-user';
             const groupId = 'test-group';
-            
+
             // Mock group exists
             const testGroup = new FirestoreGroupBuilder()
                 .withId(groupId)
-                .withSecurityPreset('open')  // Test checks this value
+                .withSecurityPreset('open') // Test checks this value
                 .build();
 
             mockFirestoreReader.mockGroupExists(groupId, testGroup);
@@ -35,7 +35,7 @@ describe('GroupPermissionService', () => {
             const testMember = mockFirestoreReader.createTestGroupMemberDocument({
                 userId,
                 groupId,
-                memberRole: 'member'
+                memberRole: 'member',
             });
             mockFirestoreReader.mockMemberInSubcollection(groupId, testMember);
             mockFirestoreReader.mockGroupMembersSubcollection(groupId, [testMember]);
@@ -55,9 +55,7 @@ describe('GroupPermissionService', () => {
 
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(
-                groupPermissionService.getUserPermissions(userId, groupId)
-            ).rejects.toThrow('Group not found');
+            await expect(groupPermissionService.getUserPermissions(userId, groupId)).rejects.toThrow('Group not found');
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
         });
@@ -67,18 +65,14 @@ describe('GroupPermissionService', () => {
             const groupId = 'test-group';
 
             // Mock group exists
-            const testGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .build();
+            const testGroup = new FirestoreGroupBuilder().withId(groupId).build();
 
             mockFirestoreReader.mockGroupExists(groupId, testGroup);
 
             // Mock empty member list (user is not a member)
             mockFirestoreReader.mockGroupMembersSubcollection(groupId, []);
 
-            await expect(
-                groupPermissionService.getUserPermissions(userId, groupId)
-            ).rejects.toThrow('You are not a member of this group');
+            await expect(groupPermissionService.getUserPermissions(userId, groupId)).rejects.toThrow('You are not a member of this group');
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
             expect(mockFirestoreReader.getAllGroupMembers).toHaveBeenCalledWith(groupId);

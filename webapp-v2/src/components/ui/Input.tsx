@@ -74,7 +74,11 @@ export function Input({
             {label && (
                 <label htmlFor={inputId} className="block text-sm font-medium leading-6 text-gray-900 mb-2">
                     {label}
-                    {required && <span className="text-red-500 ml-1" data-testid="required-indicator">*</span>}
+                    {required && (
+                        <span className="text-red-500 ml-1" data-testid="required-indicator">
+                            *
+                        </span>
+                    )}
                 </label>
             )}
             <div className="relative">

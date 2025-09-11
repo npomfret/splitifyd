@@ -263,7 +263,7 @@ export const validateUpdateExpense = (body: any): UpdateExpenseRequest => {
         // Use strategy pattern to validate splits for updates
         const splitStrategyFactory = SplitStrategyFactory.getInstance();
         const splitStrategy = splitStrategyFactory.getStrategy(splitType);
-        
+
         if (splitStrategy.requiresSplitsData() && (!Array.isArray(splits) || splits.length !== participants.length)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SPLITS', 'Splits must be provided for all participants');
         }

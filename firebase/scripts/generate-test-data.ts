@@ -1,10 +1,10 @@
 #!/usr/bin/env tsx
 
-import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
-import type {Group} from '@splitifyd/shared';
-import {PREDEFINED_EXPENSE_CATEGORIES} from '@splitifyd/shared';
-import {UserRegistration} from "@splitifyd/shared";
-import {AuthenticatedFirebaseUser} from "@splitifyd/shared";
+import { ApiDriver, ExpenseBuilder } from '@splitifyd/test-support';
+import type { Group } from '@splitifyd/shared';
+import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
+import { UserRegistration } from '@splitifyd/shared';
+import { AuthenticatedFirebaseUser } from '@splitifyd/shared';
 
 // Initialize ApiDriver which handles all configuration
 const driver = new ApiDriver();
@@ -62,7 +62,7 @@ const generateTestUserRegistrations = (config: TestDataConfig): UserRegistration
         password: 'rrRR44$$',
         displayName: 'Bill Splitter',
         termsAccepted: true,
-        cookiePolicyAccepted: true
+        cookiePolicyAccepted: true,
     });
 
     // More realistic test users with @example.com emails
@@ -290,7 +290,7 @@ const generateRandomExpense = (): TestExpenseTemplate => {
 
 async function createTestPoolUsers(): Promise<void> {
     console.log('🏊 Initializing test pool users...');
-    
+
     const POOL_SIZE = 10;
 
     // Check which pool users already exist
@@ -369,7 +369,7 @@ async function createGroups(createdBy: AuthenticatedFirebaseUser, config: TestDa
 async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: GroupWithInvite[]): Promise<Map<string, AuthenticatedFirebaseUser[]>> {
     // Track which users are in which groups
     const groupMemberships = new Map<string, AuthenticatedFirebaseUser[]>();
-    
+
     // Initialize with the creator (test1@test.com) in all groups
     const creator = users[0];
     for (const group of groups) {
@@ -413,7 +413,7 @@ async function joinGroupsRandomly(users: AuthenticatedFirebaseUser[], groups: Gr
                             const members = groupMemberships.get(group.id) || [];
                             members.push(user);
                             groupMemberships.set(group.id, members);
-                        })
+                        }),
                     );
                 }
             }
@@ -881,16 +881,20 @@ export async function generateTestData(): Promise<void> {
     // Create first 3 test users in parallel
     console.log(`Creating first 3 test users in parallel...`);
     const userCreationStart = Date.now();
-    
+
     // Create first 3 users in parallel
     const firstThreeUsers = TEST_USERS.slice(0, 3);
     const remainingUsers = TEST_USERS.slice(3);
-    
-    const parallelUsers = await Promise.all(firstThreeUsers.map((userInfo) => (async function (userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
-        return await driver.createUser(userInfo);
-    })(userInfo)));
+
+    const parallelUsers = await Promise.all(
+        firstThreeUsers.map((userInfo) =>
+            (async function (userInfo: UserRegistration): Promise<AuthenticatedFirebaseUser> {
+                return await driver.createUser(userInfo);
+            })(userInfo),
+        ),
+    );
     console.log(`✓ Created ${parallelUsers.length} users in parallel`);
-    
+
     // Create remaining users sequentially if any
     const sequentialUsers = [];
     for (const userInfo of remainingUsers) {
@@ -898,7 +902,7 @@ export async function generateTestData(): Promise<void> {
         sequentialUsers.push(user);
         console.log(`✓ Created user: ${user.email}`);
     }
-    
+
     const users = [...parallelUsers, ...sequentialUsers];
     console.log(`✓ Total created ${users.length} users (${parallelUsers.length} parallel, ${sequentialUsers.length} sequential)`);
     logTiming('User creation', userCreationStart);
@@ -921,7 +925,7 @@ export async function generateTestData(): Promise<void> {
     // Log membership summary
     console.log('Group membership summary:');
     for (const [groupId, members] of groupMemberships.entries()) {
-        const group = groupsWithInvites.find(g => g.id === groupId);
+        const group = groupsWithInvites.find((g) => g.id === groupId);
         console.log(`  ${group?.name || groupId}: ${members.length} members`);
     }
 
@@ -930,7 +934,7 @@ export async function generateTestData(): Promise<void> {
     const refreshStart = Date.now();
     const refreshedGroups = await Promise.all(
         groupsWithInvites.map(async (group) => {
-            const {group: groupData} = await driver.getGroupFullDetails(group.id, test1User.token);
+            const { group: groupData } = await driver.getGroupFullDetails(group.id, test1User.token);
             return {
                 ...groupData,
                 inviteLink: group.inviteLink,

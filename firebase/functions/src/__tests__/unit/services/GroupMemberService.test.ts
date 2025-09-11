@@ -11,20 +11,20 @@ const createMockUserService = () => ({
     changePassword: vi.fn(),
     deleteAccount: vi.fn(),
     registerUser: vi.fn(),
-    createUserDirect: vi.fn()
+    createUserDirect: vi.fn(),
 });
 
 const createMockNotificationService = () => ({
     initializeUserNotifications: vi.fn(),
     updateUserNotification: vi.fn(),
-    getUserNotifications: vi.fn()
+    getUserNotifications: vi.fn(),
 });
 
 const createMockGroupMemberService = () => ({
     isGroupMemberAsync: vi.fn(),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn(),
-    getGroupMembersResponseFromSubcollection: vi.fn()
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
 describe('GroupMemberService', () => {
@@ -43,7 +43,7 @@ describe('GroupMemberService', () => {
             mockFirestoreReader,
             {} as any, // mockFirestoreWriter
             mockUserService as any,
-            mockNotificationService as any
+            mockNotificationService as any,
         );
     });
 
@@ -55,7 +55,7 @@ describe('GroupMemberService', () => {
             const userId = 'test-user';
             const testMember = mockFirestoreReader.createTestGroupMemberDocument({
                 userId,
-                groupId
+                groupId,
             });
 
             mockFirestoreReader.mockMemberInSubcollection(groupId, testMember);
@@ -85,12 +85,12 @@ describe('GroupMemberService', () => {
             const testMembers: GroupMemberDocument[] = [
                 mockFirestoreReader.createTestGroupMemberDocument({
                     userId: 'user1',
-                    groupId
+                    groupId,
                 }),
                 mockFirestoreReader.createTestGroupMemberDocument({
                     userId: 'user2',
-                    groupId
-                })
+                    groupId,
+                }),
             ];
 
             mockFirestoreReader.mockGroupMembersSubcollection(groupId, testMembers);

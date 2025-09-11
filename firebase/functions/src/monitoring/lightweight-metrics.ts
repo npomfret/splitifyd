@@ -1,6 +1,6 @@
 /**
  * Lightweight In-Memory Metrics System
- * 
+ *
  * Simple metrics collection with:
  * - 5% sampling rate
  * - Bounded circular buffers (max 100 per type)
@@ -45,7 +45,7 @@ class CircularBuffer<T> {
     }
 
     clearOlderThan(timestamp: number): void {
-        this.buffer = this.buffer.filter(item => (item as any).timestamp >= timestamp);
+        this.buffer = this.buffer.filter((item) => (item as any).timestamp >= timestamp);
         this.pointer = 0;
     }
 
@@ -88,7 +88,7 @@ export class LightweightMetrics {
             timestamp: Date.now(),
             operation,
             duration,
-            success
+            success,
         };
 
         // Add to appropriate buffer (overwrites oldest when full)
@@ -112,7 +112,7 @@ export class LightweightMetrics {
         return {
             api: this.apiMetrics.toArray(),
             db: this.dbMetrics.toArray(),
-            trigger: this.triggerMetrics.toArray()
+            trigger: this.triggerMetrics.toArray(),
         };
     }
 
@@ -137,17 +137,17 @@ export class LightweightMetrics {
     /**
      * Get memory usage stats
      */
-    getStats(): { 
-        totalMetrics: number; 
-        apiCount: number; 
-        dbCount: number; 
-        triggerCount: number; 
+    getStats(): {
+        totalMetrics: number;
+        apiCount: number;
+        dbCount: number;
+        triggerCount: number;
     } {
         return {
             totalMetrics: this.apiMetrics.size() + this.dbMetrics.size() + this.triggerMetrics.size(),
             apiCount: this.apiMetrics.size(),
             dbCount: this.dbMetrics.size(),
-            triggerCount: this.triggerMetrics.size()
+            triggerCount: this.triggerMetrics.size(),
         };
     }
 }

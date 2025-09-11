@@ -1,11 +1,11 @@
-import {beforeEach, describe, expect, test} from 'vitest';
+import { beforeEach, describe, expect, test } from 'vitest';
 
-import {ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder} from '@splitifyd/test-support';
-import {AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles} from '@splitifyd/shared';
-import {ApiError} from '../../../utils/errors';
-import {getAuth, getFirestore} from '../../../firebase';
-import type {IFirestoreReader} from '../../../services/firestore/IFirestoreReader';
-import {ApplicationBuilder} from "../../../services/ApplicationBuilder";
+import { ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles } from '@splitifyd/shared';
+import { ApiError } from '../../../utils/errors';
+import { getAuth, getFirestore } from '../../../firebase';
+import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 
 describe('UserService - Integration Tests', () => {
     const firestore = getFirestore();
@@ -19,16 +19,12 @@ describe('UserService - Integration Tests', () => {
     let users: PooledTestUser[];
 
     beforeEach(async () => {
-        users = await borrowTestUsers(3)
+        users = await borrowTestUsers(3);
     });
 
     describe('registerUser', () => {
         test('should register a new user with Firebase Auth and Firestore', async () => {
-            const userData = new UserRegistrationBuilder()
-                .withEmail('newuser@example.com')
-                .withPassword('SecurePass123!')
-                .withDisplayName('New User')
-                .build();
+            const userData = new UserRegistrationBuilder().withEmail('newuser@example.com').withPassword('SecurePass123!').withDisplayName('New User').build();
 
             const result = await userService.registerUser({
                 email: userData.email,
@@ -71,46 +67,44 @@ describe('UserService - Integration Tests', () => {
         test('should reject registration with existing email', async () => {
             const existingUser = users[0];
 
-            const duplicateData = new UserRegistrationBuilder()
-                .withEmail(existingUser.email)
-                .withPassword('DifferentPass123!')
-                .withDisplayName('Different Name')
-                .build();
+            const duplicateData = new UserRegistrationBuilder().withEmail(existingUser.email).withPassword('DifferentPass123!').withDisplayName('Different Name').build();
 
-            await expect(userService.registerUser({
-                email: duplicateData.email,
-                password: duplicateData.password,
-                displayName: duplicateData.displayName,
-                termsAccepted: true,
-                cookiePolicyAccepted: true,
-            })).rejects.toThrow();
+            await expect(
+                userService.registerUser({
+                    email: duplicateData.email,
+                    password: duplicateData.password,
+                    displayName: duplicateData.displayName,
+                    termsAccepted: true,
+                    cookiePolicyAccepted: true,
+                }),
+            ).rejects.toThrow();
         });
 
         test('should register with optional acceptance flags', async () => {
-            const userData = new UserRegistrationBuilder()
-                .withEmail('noaccept@example.com')
-                .withPassword('SecurePass123!')
-                .withDisplayName('Test User')
-                .build();
+            const userData = new UserRegistrationBuilder().withEmail('noaccept@example.com').withPassword('SecurePass123!').withDisplayName('Test User').build();
 
             // Test shows validation requires both to be true, so this test
             // will demonstrate the validation works correctly
-            await expect(userService.registerUser({
-                email: userData.email,
-                password: userData.password,
-                displayName: userData.displayName,
-                termsAccepted: false,
-                cookiePolicyAccepted: true,
-            })).rejects.toThrow('You must accept the Terms of Service');
+            await expect(
+                userService.registerUser({
+                    email: userData.email,
+                    password: userData.password,
+                    displayName: userData.displayName,
+                    termsAccepted: false,
+                    cookiePolicyAccepted: true,
+                }),
+            ).rejects.toThrow('You must accept the Terms of Service');
 
             // Also test the cookie policy validation
-            await expect(userService.registerUser({
-                email: userData.email,
-                password: userData.password,
-                displayName: userData.displayName,
-                termsAccepted: true,
-                cookiePolicyAccepted: false,
-            })).rejects.toThrow('You must accept the Cookie Policy');
+            await expect(
+                userService.registerUser({
+                    email: userData.email,
+                    password: userData.password,
+                    displayName: userData.displayName,
+                    termsAccepted: true,
+                    cookiePolicyAccepted: false,
+                }),
+            ).rejects.toThrow('You must accept the Cookie Policy');
         });
 
         test('should cleanup auth user if Firestore creation fails', async () => {
@@ -168,12 +162,10 @@ describe('UserService - Integration Tests', () => {
             expect(profile.updatedAt).toBeDefined();
         });
 
-
         test('should throw NOT_FOUND for non-existent user', async () => {
             const nonExistentUid = 'nonexistent-user-id';
 
-            await expect(userService.getUser(nonExistentUid))
-                .rejects.toThrow(ApiError);
+            await expect(userService.getUser(nonExistentUid)).rejects.toThrow(ApiError);
         });
 
         test('should validate Firestore user document structure', async () => {
@@ -191,7 +183,7 @@ describe('UserService - Integration Tests', () => {
 
     describe('getUsers', () => {
         test('should fetch multiple users efficiently', async () => {
-            const uids = users.map(u => u.uid);
+            const uids = users.map((u) => u.uid);
 
             const profiles = await userService.getUsers(uids);
 
@@ -220,7 +212,7 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should handle batching for large user sets', async () => {
-            const uids = users.map(u => u.uid);
+            const uids = users.map((u) => u.uid);
 
             // Add more UIDs to test batching (in real scenario this would be 100+)
             const allUids = [...uids];
@@ -237,11 +229,10 @@ describe('UserService - Integration Tests', () => {
     });
 
     describe('updateProfile', () => {
-
         let testUser: AuthenticatedFirebaseUser;
 
         beforeEach(async () => {
-            testUser = await apiDriver.createUser();// don't use a pooled user as we are modifiying it
+            testUser = await apiDriver.createUser(); // don't use a pooled user as we are modifiying it
         });
 
         test('should update display name in both Auth and Firestore', async () => {
@@ -288,7 +279,7 @@ describe('UserService - Integration Tests', () => {
             const authUser = await getAuth().getUser(testUser.uid);
             expect(authUser.photoURL).toBeUndefined();
 
-            // Verify Firestore was updated  
+            // Verify Firestore was updated
             const userData = await firestoreReader.getUser(testUser.uid);
             expect(userData).not.toBeNull();
             expect(userData!.photoURL).toBeNull();
@@ -298,7 +289,7 @@ describe('UserService - Integration Tests', () => {
             // Get initial profile
             const originalProfile = await userService.getUser(testUser.uid);
             const originalDisplayName = originalProfile.displayName;
-            
+
             // Update the profile
             await userService.updateProfile(testUser.uid, {
                 displayName: 'Updated Test Name',
@@ -313,9 +304,11 @@ describe('UserService - Integration Tests', () => {
         test('should throw NOT_FOUND for non-existent user', async () => {
             const nonExistentUid = 'nonexistent-user-id';
 
-            await expect(userService.updateProfile(nonExistentUid, {
-                displayName: 'Test',
-            })).rejects.toThrow(ApiError);
+            await expect(
+                userService.updateProfile(nonExistentUid, {
+                    displayName: 'Test',
+                }),
+            ).rejects.toThrow(ApiError);
         });
     });
 
@@ -343,13 +336,13 @@ describe('UserService - Integration Tests', () => {
             // Verify Firestore document was updated with proper timestamps
             const userData = await firestoreReader.getUser(testUser.uid);
             expect(userData).not.toBeNull();
-            
+
             // Verify passwordChangedAt timestamp exists and is recent
             expect(userData!.passwordChangedAt).toBeDefined();
             const passwordChangedAt = userData!.passwordChangedAt.toDate();
             expect(passwordChangedAt.getTime()).toBeGreaterThanOrEqual(beforeChange.getTime());
             expect(passwordChangedAt.getTime()).toBeLessThanOrEqual(Date.now());
-            
+
             // Verify updatedAt timestamp was also updated
             expect(userData!.updatedAt).toBeDefined();
             const updatedAt = userData!.updatedAt.toDate();
@@ -364,10 +357,12 @@ describe('UserService - Integration Tests', () => {
         test('should throw NOT_FOUND for non-existent user', async () => {
             const nonExistentUid = 'nonexistent-user-id';
 
-            await expect(userService.changePassword(nonExistentUid, {
-                currentPassword: 'OldPassword123!',
-                newPassword: 'NewPassword123!',
-            })).rejects.toThrow(ApiError);
+            await expect(
+                userService.changePassword(nonExistentUid, {
+                    currentPassword: 'OldPassword123!',
+                    newPassword: 'NewPassword123!',
+                }),
+            ).rejects.toThrow(ApiError);
         });
 
         test('should handle users without email', async () => {
@@ -375,7 +370,7 @@ describe('UserService - Integration Tests', () => {
             // since we control user creation. The service should handle
             // Firebase Auth users that somehow don't have email addresses.
             // We rely on the service's validation to catch this.
-            
+
             const result = await userService.changePassword(testUser.uid, {
                 currentPassword: 'OldPassword123!',
                 newPassword: 'NewPassword123!',
@@ -388,11 +383,7 @@ describe('UserService - Integration Tests', () => {
     describe('deleteAccount', () => {
         test('should delete user from both Auth and Firestore', async () => {
             // Create a dedicated user for deletion testing
-            const userData = new UserRegistrationBuilder()
-                .withEmail('todelete@example.com')
-                .withPassword('DeleteMe123!')
-                .withDisplayName('To Delete User')
-                .build();
+            const userData = new UserRegistrationBuilder().withEmail('todelete@example.com').withPassword('DeleteMe123!').withDisplayName('To Delete User').build();
 
             const registrationResult = await userService.registerUser({
                 email: userData.email,
@@ -412,8 +403,7 @@ describe('UserService - Integration Tests', () => {
             expect(deleteResult.message).toBe('Account deleted successfully');
 
             // Verify user was deleted from Firebase Auth
-            await expect(getAuth().getUser(userId))
-                .rejects.toThrow();
+            await expect(getAuth().getUser(userId)).rejects.toThrow();
 
             // Verify user was deleted from Firestore
             const deletedUserData = await firestoreReader.getUser(userId);
@@ -426,16 +416,14 @@ describe('UserService - Integration Tests', () => {
             const otherUser = await borrowTestUser();
 
             // Create a group with the user
-            const group = await apiDriver.createGroupWithMembers(
-                'Test Group for Deletion',
-                [userInGroup, otherUser],
-                userInGroup.token
-            );
+            const group = await apiDriver.createGroupWithMembers('Test Group for Deletion', [userInGroup, otherUser], userInGroup.token);
 
             // Try to delete user who is in a group
-            await expect(userService.deleteAccount(userInGroup.uid, {
-                confirmDelete: true,
-            })).rejects.toThrow(ApiError);
+            await expect(
+                userService.deleteAccount(userInGroup.uid, {
+                    confirmDelete: true,
+                }),
+            ).rejects.toThrow(ApiError);
 
             // Clean up group manually from Firestore since API auth is complex in this test
             await firestore.collection('groups').doc(group.id).delete();
@@ -445,21 +433,24 @@ describe('UserService - Integration Tests', () => {
             const testUser = users[0];
 
             // Try to delete without confirmation
-            await expect(userService.deleteAccount(testUser.uid, {
-                confirmDelete: false,
-            })).rejects.toThrow();
+            await expect(
+                userService.deleteAccount(testUser.uid, {
+                    confirmDelete: false,
+                }),
+            ).rejects.toThrow();
 
             // Try to delete without confirmDelete field
-            await expect(userService.deleteAccount(testUser.uid, {}))
-                .rejects.toThrow();
+            await expect(userService.deleteAccount(testUser.uid, {})).rejects.toThrow();
         });
 
         test('should throw NOT_FOUND for non-existent user', async () => {
             const nonExistentUid = 'nonexistent-user-id';
 
-            await expect(userService.deleteAccount(nonExistentUid, {
-                confirmDelete: true,
-            })).rejects.toThrow(ApiError);
+            await expect(
+                userService.deleteAccount(nonExistentUid, {
+                    confirmDelete: true,
+                }),
+            ).rejects.toThrow(ApiError);
         });
     });
 
@@ -479,7 +470,7 @@ describe('UserService - Integration Tests', () => {
             const testUser = users[0];
 
             const profile = await userService.getUser(testUser.uid);
-            
+
             // Verify Auth and Firestore have consistent data
             const authUser = await getAuth().getUser(testUser.uid);
             expect(profile.email).toBe(authUser.email);

@@ -107,10 +107,7 @@ export function PricingPage() {
                             </li>
                         </ul>
 
-                        <button 
-                            onClick={() => navigation.goToRegister()}
-                            class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
+                        <button onClick={() => navigation.goToRegister()} class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                             Sign Up (It's Still Free)
                         </button>
                     </div>
@@ -180,10 +177,7 @@ export function PricingPage() {
                             </li>
                         </ul>
 
-                        <button 
-                            onClick={() => navigation.goToRegister()}
-                            class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
+                        <button onClick={() => navigation.goToRegister()} class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                             Join Now (Seriously, No Catch)
                         </button>
                     </div>
@@ -252,10 +246,7 @@ export function PricingPage() {
                             </li>
                         </ul>
 
-                        <button 
-                            onClick={() => navigation.goToRegister()}
-                            class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                        >
+                        <button onClick={() => navigation.goToRegister()} class="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
                             Get Started (It's a Gift!)
                         </button>
                     </div>

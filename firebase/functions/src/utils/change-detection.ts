@@ -1,4 +1,4 @@
-import {DocumentData, DocumentSnapshot, Timestamp} from 'firebase-admin/firestore';
+import { DocumentData, DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
 import { ChangeDocumentBuilderFactory } from './change-builders';
 
 const builderFactory = new ChangeDocumentBuilderFactory();

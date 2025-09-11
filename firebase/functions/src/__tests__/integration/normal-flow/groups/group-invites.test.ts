@@ -6,10 +6,10 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, NotificationDriver} from '@splitifyd/test-support';
-import {PooledTestUser} from "@splitifyd/shared";
-import {getFirestore} from "../../../../firebase";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateGroupRequestBuilder, NotificationDriver } from '@splitifyd/test-support';
+import { PooledTestUser } from '@splitifyd/shared';
+import { getFirestore } from '../../../../firebase';
 
 describe('Invite Tracking', () => {
     const apiDriver = new ApiDriver();
@@ -20,12 +20,9 @@ describe('Invite Tracking', () => {
     beforeEach(async () => {
         users = await borrowTestUsers(3);
     });
-    
+
     beforeEach(async () => {
-        const groupData = new CreateGroupRequestBuilder()
-            .withName(`Invite Test Group ${uuidv4()}`)
-            .withDescription('Testing invite tracking')
-            .build();
+        const groupData = new CreateGroupRequestBuilder().withName(`Invite Test Group ${uuidv4()}`).withDescription('Testing invite tracking').build();
         testGroup = await apiDriver.createGroup(groupData, users[0].token);
     });
 
@@ -40,7 +37,7 @@ describe('Invite Tracking', () => {
         expect(joinResponse.success).toBe(true);
 
         // Get the updated group to verify invite tracking
-        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
         const found = members.members.find((m) => m.uid === users[1].uid)!;
 
@@ -61,7 +58,7 @@ describe('Invite Tracking', () => {
         await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
 
         // Get the updated group
-        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
 
         const found1 = members.members.find((m) => m.uid === users[1].uid)!;
         expect(found1).toHaveProperty('invitedBy', users[0].uid);
@@ -79,7 +76,7 @@ describe('Invite Tracking', () => {
         expect(joinResponse.success).toBe(true);
 
         // Verify the user was added with proper invite attribution
-        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
         const found = members.members.find((m) => m.uid === users[1].uid)!;
         expect(found).toHaveProperty('memberRole', 'member');
         expect(found).toHaveProperty('invitedBy', users[0].uid);
@@ -101,7 +98,7 @@ describe('Invite Tracking', () => {
         await apiDriver.joinGroupViaShareLink(shareLink1_new.linkId, users[2].token);
 
         // Verify invite attribution
-        const {members} = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+        const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
         const found = members.members.find((m) => m.uid === users[2].uid)!;
         expect(found).toHaveProperty('invitedBy', users[1].uid);
     });
@@ -112,7 +109,7 @@ describe('Invite Tracking', () => {
 
         // 2. User 0 creates a share link
         const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-        
+
         // 3. User 1 joins using the share link (listener captures this)
         const joinResponse = await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
         expect(joinResponse.success).toBe(true);
@@ -132,7 +129,7 @@ describe('Invite Tracking', () => {
         expect(groupState.groupDetailsChangeCount).toBeGreaterThanOrEqual(1);
         expect(groupState.transactionChangeCount).toBe(0);
         expect(groupState.balanceChangeCount).toBe(0);
-        
+
         console.log('✅ User notification document properly initialized when joining group');
     });
 });

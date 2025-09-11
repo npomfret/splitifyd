@@ -8,13 +8,13 @@ import { logger } from '../logger';
 
 /**
  * Centralized Firestore validation service for consistent schema enforcement across all services
- * 
+ *
  * This service provides a unified interface for all Firestore document validation:
  * - Consistent validation patterns across all services
  * - Performance monitoring for validation operations
  * - Enhanced error reporting with business context
  * - Fail-fast validation to catch data integrity issues early
- * 
+ *
  * Following the established incremental pattern, this service centralizes existing
  * validation infrastructure without disrupting current functionality.
  */
@@ -38,7 +38,7 @@ export class FirestoreValidationService {
 
     /**
      * Validate a single Firestore document after reading with performance monitoring
-     * 
+     *
      * @param schema - Zod schema to validate against
      * @param doc - Firestore document snapshot
      * @param schemaName - Name of schema for monitoring
@@ -52,7 +52,7 @@ export class FirestoreValidationService {
             userId?: string;
             operation?: string;
             additionalContext?: Record<string, any>;
-        } = {}
+        } = {},
     ): z.infer<T> {
         // Set business context for logging
         LoggerContext.update({
@@ -70,7 +70,7 @@ export class FirestoreValidationService {
 
     /**
      * Validate data before writing to Firestore with performance monitoring
-     * 
+     *
      * @param schema - Zod schema to validate against
      * @param data - Data to validate
      * @param schemaName - Name of schema for monitoring
@@ -86,7 +86,7 @@ export class FirestoreValidationService {
             userId?: string;
             operation?: string;
             additionalContext?: Record<string, any>;
-        } = {}
+        } = {},
     ): z.infer<T> {
         // Set business context for logging
         LoggerContext.update({
@@ -113,12 +113,11 @@ export class FirestoreValidationService {
     getValidationMetrics() {
         return getValidationMetrics();
     }
-
 }
 
 /**
  * Get singleton instance of FirestoreValidationService
- * 
+ *
  * Usage:
  * ```typescript
  * const validationService = getFirestoreValidationService();

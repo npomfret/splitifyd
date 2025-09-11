@@ -60,7 +60,7 @@ describe('EqualSplitStrategy', () => {
 
         it('should handle decimal amounts correctly', () => {
             const participants = ['user1', 'user2'];
-            const result = strategy.calculateSplits(10.50, participants);
+            const result = strategy.calculateSplits(10.5, participants);
 
             expect(result).toHaveLength(2);
             expect(result[0]).toEqual({ userId: 'user1', amount: 5.25 });

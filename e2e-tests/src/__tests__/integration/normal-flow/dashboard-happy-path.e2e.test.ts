@@ -1,9 +1,9 @@
-import {simpleTest, expect} from '../../../fixtures/simple-test.fixture';
-import {TestGroupWorkflow} from '../../../helpers';
-import {generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
-import {GroupWorkflow} from '../../../workflows';
-import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {GroupDetailPage, CreateGroupModalPage} from '../../../pages';
+import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { TestGroupWorkflow } from '../../../helpers';
+import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { GroupWorkflow } from '../../../workflows';
+import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import { GroupDetailPage, CreateGroupModalPage } from '../../../pages';
 
 simpleTest.describe('Dashboard User Journey', () => {
     simpleTest('should handle complete dashboard workflow with authentication persistence', async ({ newLoggedInBrowser }) => {

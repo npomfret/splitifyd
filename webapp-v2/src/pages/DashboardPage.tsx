@@ -31,11 +31,11 @@ export function DashboardPage() {
         if (authStore.user) {
             // Use unique component ID for reference counting
             const componentId = 'dashboard-page';
-            
+
             // Register component with reference-counted subscription
             // This prevents subscription churn when multiple components use the store
             enhancedGroupsStore.registerComponent(componentId, authStore.user.uid);
-            
+
             // Cleanup: deregister this component
             return () => {
                 enhancedGroupsStore.deregisterComponent(componentId);

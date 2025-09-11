@@ -7,7 +7,7 @@ import { GroupMemberService } from '../GroupMemberService';
 
 /**
  * Strategy for handling comments on expense entities
- * 
+ *
  * Expenses are commentable entities where:
  * - Access verification requires the expense to exist and user to be in the expense's group
  * - Group ID is resolved from the expense's groupId field
@@ -16,7 +16,7 @@ import { GroupMemberService } from '../GroupMemberService';
 export class ExpenseCommentStrategy implements ICommentStrategy {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly groupMemberService: GroupMemberService
+        private readonly groupMemberService: GroupMemberService,
     ) {}
 
     async verifyAccess(targetId: string, userId: string): Promise<void> {

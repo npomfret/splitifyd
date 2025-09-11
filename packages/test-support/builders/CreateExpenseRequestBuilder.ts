@@ -1,13 +1,5 @@
-import { 
-    randomString, 
-    randomDecimal, 
-    randomChoice, 
-    randomDate, 
-    randomCurrency, 
-    randomCategory, 
-    generateShortId 
-} from '../test-helpers';
-import {CreateExpenseRequest} from "@splitifyd/shared";
+import { randomString, randomDecimal, randomChoice, randomDate, randomCurrency, randomCategory, generateShortId } from '../test-helpers';
+import { CreateExpenseRequest } from '@splitifyd/shared';
 
 export class CreateExpenseRequestBuilder {
     private expense: CreateExpenseRequest;
@@ -90,14 +82,14 @@ export class CreateExpenseRequestBuilder {
                 const splitAmount = this.expense.amount / this.expense.participants.length;
                 splits = this.expense.participants.map((userId: string) => ({
                     userId,
-                    amount: splitAmount
+                    amount: splitAmount,
                 }));
             } else if (this.expense.splitType === 'exact') {
                 // For exact splits, distribute evenly as default
                 const splitAmount = this.expense.amount / this.expense.participants.length;
                 splits = this.expense.participants.map((userId: string) => ({
                     userId,
-                    amount: splitAmount
+                    amount: splitAmount,
                 }));
             } else if (this.expense.splitType === 'percentage') {
                 // For percentage splits, distribute evenly as default
@@ -106,7 +98,7 @@ export class CreateExpenseRequestBuilder {
                 splits = this.expense.participants.map((userId: string) => ({
                     userId,
                     amount: splitAmount,
-                    percentage: percentage
+                    percentage: percentage,
                 }));
             }
         }

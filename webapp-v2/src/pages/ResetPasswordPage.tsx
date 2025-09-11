@@ -86,11 +86,7 @@ export function ResetPasswordPage() {
                         </button>
 
                         <div class="text-center">
-                            <button
-                                type="button"
-                                onClick={() => navigationService.goToLogin()}
-                                class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                            >
+                            <button type="button" onClick={() => navigationService.goToLogin()} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                                 ← Back to Sign In
                             </button>
                         </div>
@@ -114,11 +110,7 @@ export function ResetPasswordPage() {
                 </SubmitButton>
 
                 <div class="text-center">
-                    <button
-                        type="button"
-                        onClick={() => navigationService.goToLogin()}
-                        class="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                    >
+                    <button type="button" onClick={() => navigationService.goToLogin()} class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                         ← Back to Sign In
                     </button>
                 </div>

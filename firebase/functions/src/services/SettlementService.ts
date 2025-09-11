@@ -1,4 +1,3 @@
-
 import { FieldValue } from 'firebase-admin/firestore';
 import { z } from 'zod';
 import { ApiError } from '../utils/errors';
@@ -7,19 +6,12 @@ import { createOptimisticTimestamp, safeParseISOToTimestamp, timestampToISO } fr
 import { getUpdatedAtTimestamp } from '../utils/optimistic-locking';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
-import {
-    Settlement,
-    CreateSettlementRequest,
-    UpdateSettlementRequest,
-    SettlementListItem,
-    RegisteredUser,
-    FirestoreCollections,
-} from '@splitifyd/shared';
+import { Settlement, CreateSettlementRequest, UpdateSettlementRequest, SettlementListItem, RegisteredUser, FirestoreCollections } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
 import { SettlementDocumentSchema } from '../schemas/settlement';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import { GroupMemberService } from "./GroupMemberService";
+import { GroupMemberService } from './GroupMemberService';
 
 // Re-export schema for backward compatibility
 export { SettlementDocumentSchema };
@@ -44,7 +36,6 @@ export class SettlementService {
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
     ) {}
-
 
     /**
      * Verify that specified users are members of the group using subcollection
@@ -103,7 +94,7 @@ export class SettlementService {
 
     private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
         LoggerContext.update({ settlementId, userId });
-        
+
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -115,10 +106,7 @@ export class SettlementService {
 
         await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
 
-        const [payerData, payeeData] = await Promise.all([
-            this.fetchUserData(settlement.payerId),
-            this.fetchUserData(settlement.payeeId)
-        ]);
+        const [payerData, payeeData] = await Promise.all([this.fetchUserData(settlement.payerId), this.fetchUserData(settlement.payeeId)]);
 
         return {
             id: settlement.id,
@@ -173,7 +161,7 @@ export class SettlementService {
     }> {
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({ userId, operation: 'list-settlements' });
-        
+
         await this.firestoreReader.verifyGroupMembership(groupId, userId);
 
         return this._getGroupSettlementsData(groupId, options);
@@ -189,7 +177,7 @@ export class SettlementService {
     private async _createSettlement(settlementData: CreateSettlementRequest, userId: string): Promise<Settlement> {
         LoggerContext.setBusinessContext({ groupId: settlementData.groupId });
         LoggerContext.update({ userId, operation: 'create-settlement', amount: settlementData.amount });
-        
+
         await this.firestoreReader.verifyGroupMembership(settlementData.groupId, userId);
         await this.verifyUsersInGroup(settlementData.groupId, [settlementData.payerId, settlementData.payeeId]);
 
@@ -216,7 +204,7 @@ export class SettlementService {
         // Create settlement - FirestoreWriter will generate ID and handle validation
         const createResult = await this.firestoreWriter.createSettlement(settlementDataToCreate);
         const settlementId = createResult.id;
-        
+
         // Update context with the created settlement ID
         LoggerContext.setBusinessContext({ settlementId });
 
@@ -244,7 +232,7 @@ export class SettlementService {
     private async _updateSettlement(settlementId: string, updateData: UpdateSettlementRequest, userId: string): Promise<SettlementListItem> {
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'update-settlement' });
-        
+
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -306,18 +294,15 @@ export class SettlementService {
                     operation: 'updateSettlement',
                     userId,
                     groupId: settlement.groupId,
-                    settlementId
-                }
-            }
+                    settlementId,
+                },
+            },
         );
 
         const updatedSettlement = await this.firestoreReader.getSettlement(settlementId);
 
         // Fetch user data for payer and payee to return complete response
-        const [payerData, payeeData] = await Promise.all([
-            this.fetchUserData(updatedSettlement!.payerId),
-            this.fetchUserData(updatedSettlement!.payeeId)
-        ]);
+        const [payerData, payeeData] = await Promise.all([this.fetchUserData(updatedSettlement!.payerId), this.fetchUserData(updatedSettlement!.payeeId)]);
 
         return {
             id: settlementId,
@@ -342,7 +327,7 @@ export class SettlementService {
     private async _deleteSettlement(settlementId: string, userId: string): Promise<void> {
         LoggerContext.setBusinessContext({ settlementId });
         LoggerContext.update({ userId, operation: 'delete-settlement' });
-        
+
         const settlementData = await this.firestoreReader.getSettlement(settlementId);
 
         if (!settlementData) {
@@ -386,9 +371,9 @@ export class SettlementService {
                     operation: 'deleteSettlement',
                     userId,
                     groupId: settlement.groupId,
-                    settlementId
-                }
-            }
+                    settlementId,
+                },
+            },
         );
     }
 
@@ -413,7 +398,7 @@ export class SettlementService {
     }> {
         LoggerContext.setBusinessContext({ groupId });
         LoggerContext.update({ operation: 'get-group-settlements-data', limit: options.limit || 50 });
-        
+
         const limit = options.limit || 50;
         const cursor = options.cursor;
         const filterUserId = options.userId;
@@ -425,15 +410,12 @@ export class SettlementService {
             cursor,
             filterUserId,
             startDate,
-            endDate
+            endDate,
         });
 
         const settlements: SettlementListItem[] = await Promise.all(
             result.settlements.map(async (settlement) => {
-                const [payerData, payeeData] = await Promise.all([
-                    this.fetchUserData(settlement.payerId),
-                    this.fetchUserData(settlement.payeeId)
-                ]);
+                const [payerData, payeeData] = await Promise.all([this.fetchUserData(settlement.payerId), this.fetchUserData(settlement.payeeId)]);
 
                 return {
                     id: settlement.id,

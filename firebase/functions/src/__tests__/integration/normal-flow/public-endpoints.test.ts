@@ -296,7 +296,7 @@ describe('Public Endpoints Tests', () => {
             expect(data).toHaveProperty('count');
             expect(typeof data.count).toBe('number');
             expect(typeof data.policies).toBe('object');
-            
+
             // Policies should be a Record/object, not an array
             expect(Array.isArray(data.policies)).toBe(false);
         });
@@ -326,7 +326,7 @@ describe('Public Endpoints Tests', () => {
             const response = await fetch(`${apiDriver.getBaseUrl()}/policies/non-existent-policy-id/current`);
 
             expect(response.status).toBe(404);
-            
+
             const data = await response.json();
             expect(data).toHaveProperty('error');
             expect(data.error).toHaveProperty('code');
@@ -355,7 +355,7 @@ describe('Public Endpoints Tests', () => {
             const invalidData = {
                 email: 'invalid-email-format',
                 password: 'validPassword123!',
-                displayName: 'Test User'
+                displayName: 'Test User',
             };
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
@@ -373,7 +373,7 @@ describe('Public Endpoints Tests', () => {
             const invalidData = {
                 email: 'test@example.com',
                 password: '123', // Too weak
-                displayName: 'Test User'
+                displayName: 'Test User',
             };
 
             const response = await fetch(`${apiDriver.getBaseUrl()}/register`, {
@@ -531,5 +531,4 @@ describe('Public Endpoints Tests', () => {
             expect([400, 405]).toContain(response.status);
         });
     });
-
 });

@@ -5,7 +5,7 @@ import type { ContextualLogger } from '../utils/contextual-logger';
 
 /**
  * Validation helper utilities for common Firestore operations
- * 
+ *
  * Provides convenient wrappers for validating documents during
  * read and write operations with proper monitoring.
  */
@@ -13,12 +13,7 @@ import type { ContextualLogger } from '../utils/contextual-logger';
 /**
  * Validate a Firestore document after reading
  */
-export function validateFirestoreDocument<T extends z.ZodSchema>(
-    schema: T,
-    doc: admin.firestore.DocumentSnapshot,
-    schemaName: string,
-    logger?: ContextualLogger
-): z.infer<T> {
+export function validateFirestoreDocument<T extends z.ZodSchema>(schema: T, doc: admin.firestore.DocumentSnapshot, schemaName: string, logger?: ContextualLogger): z.infer<T> {
     const data = doc.data();
     if (!data) {
         throw new Error(`Document ${doc.id} does not exist or has no data`);
@@ -48,7 +43,7 @@ export function validateBeforeWrite<T extends z.ZodSchema>(
         collection?: string;
         userId?: string;
         logger?: ContextualLogger;
-    }
+    },
 ): z.infer<T> {
     return validateWithMonitoring(schema, data, {
         schemaName,
@@ -69,7 +64,7 @@ export function validateUpdate<T extends z.ZodSchema>(
         collection?: string;
         userId?: string;
         logger?: ContextualLogger;
-    }
+    },
 ): z.infer<T> {
     return validateWithMonitoring(schema, updatedData, {
         schemaName,
@@ -86,7 +81,7 @@ export function monitorValidation<T extends z.ZodSchema>(
     schema: T,
     doc: admin.firestore.DocumentSnapshot,
     schemaName: string,
-    logger?: ContextualLogger
+    logger?: ContextualLogger,
 ): { isValid: boolean; data?: z.infer<T>; error?: EnhancedValidationError } {
     const data = doc.data();
     if (!data) {
@@ -119,7 +114,7 @@ export function validateDocumentBatch<T extends z.ZodSchema>(
     options: {
         skipInvalid?: boolean; // Skip invalid docs instead of throwing
         logger?: ContextualLogger;
-    } = {}
+    } = {},
 ): {
     validDocuments: Array<{ doc: admin.firestore.DocumentSnapshot; data: z.infer<T> }>;
     invalidDocuments: Array<{ doc: admin.firestore.DocumentSnapshot; error: EnhancedValidationError }>;
@@ -148,7 +143,7 @@ export function validateDocumentBatch<T extends z.ZodSchema>(
 
 /**
  * Create a validated transform function for use in services
- * 
+ *
  * Example:
  * ```typescript
  * const transformGroupDocument = createValidatedTransform(
@@ -161,11 +156,7 @@ export function validateDocumentBatch<T extends z.ZodSchema>(
  * );
  * ```
  */
-export function createValidatedTransform<TSchema extends z.ZodSchema, TResult>(
-    schema: TSchema,
-    schemaName: string,
-    transform: (validatedData: z.infer<TSchema>) => TResult
-) {
+export function createValidatedTransform<TSchema extends z.ZodSchema, TResult>(schema: TSchema, schemaName: string, transform: (validatedData: z.infer<TSchema>) => TResult) {
     return (doc: admin.firestore.DocumentSnapshot, logger?: ContextualLogger): TResult => {
         const validatedData = validateFirestoreDocument(schema, doc, schemaName, logger);
         return transform(validatedData);
@@ -183,12 +174,12 @@ export async function safeWrite<T>(
         documentId?: string;
         collection?: string;
         logger?: ContextualLogger;
-    }
+    },
 ): Promise<T> {
     try {
         // Validate before writing
         validationFn();
-        
+
         // Perform the write operation
         return await writeOperation();
     } catch (error) {

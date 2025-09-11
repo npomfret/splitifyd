@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, TestGroupManager} from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, TestGroupManager } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Expenses Full Details API', () => {
     const apiDriver = new ApiDriver();
@@ -12,7 +12,7 @@ describe('Expenses Full Details API', () => {
     let expenseId: string;
 
     beforeEach(async () => {
-        ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
+        [alice, bob, charlie, outsider] = await borrowTestUsers(4);
 
         // Use shared group for performance
         const group = await TestGroupManager.getOrCreateGroup([alice, bob, charlie], { memberCount: 3 });
@@ -20,7 +20,16 @@ describe('Expenses Full Details API', () => {
 
         // Create a test expense with unique description
         const uniqueId = Math.random().toString(36).slice(2, 10);
-        const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
+        const expense = await apiDriver.createExpense(
+            new CreateExpenseRequestBuilder()
+                .withGroupId(groupId)
+                .withDescription(`Full details test expense ${uniqueId}`)
+                .withPaidBy(alice.uid)
+                .withParticipants([alice.uid, bob.uid, charlie.uid])
+                .withSplitType('equal')
+                .build(),
+            alice.token,
+        );
         expenseId = expense.id;
     });
 

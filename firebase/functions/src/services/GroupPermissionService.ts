@@ -1,13 +1,13 @@
 import { measureDb } from '../monitoring/measure';
-import {FieldValue} from 'firebase-admin/firestore';
-import {ApiError, Errors} from '../utils/errors';
-import {logger} from '../logger';
-import {HTTP_STATUS} from '../constants';
-import {FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels} from '@splitifyd/shared';
-import {PermissionEngineAsync} from '../permissions/permission-engine-async';
-import {createOptimisticTimestamp} from '../utils/dateHelpers';
+import { FieldValue } from 'firebase-admin/firestore';
+import { ApiError, Errors } from '../utils/errors';
+import { logger } from '../logger';
+import { HTTP_STATUS } from '../constants';
+import { FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets, PermissionLevels } from '@splitifyd/shared';
+import { PermissionEngineAsync } from '../permissions/permission-engine-async';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
 
-import {getMemberDocFromArray, isAdminInDocArray} from '../utils/memberHelpers';
+import { getMemberDocFromArray, isAdminInDocArray } from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
 import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';
@@ -19,18 +19,17 @@ import type { GroupDocument } from '../schemas';
  * Transform GroupDocument (database schema) to Group (API type) with required defaults
  */
 function toGroup(groupDoc: GroupDocument): Group {
-
     return {
         ...groupDoc,
         securityPreset: groupDoc.securityPreset!,
-        permissions: groupDoc.permissions as GroupPermissions
+        permissions: groupDoc.permissions as GroupPermissions,
     };
 }
 
 export class GroupPermissionService {
     constructor(
         private readonly firestoreReader: IFirestoreReader,
-        private readonly firestoreWriter: IFirestoreWriter
+        private readonly firestoreWriter: IFirestoreWriter,
     ) {}
 
     /**
@@ -46,11 +45,15 @@ export class GroupPermissionService {
         // No additional validation needed here since FirestoreReader already validates
         logger.info('Group document validated successfully after operation', {
             groupId: groupDoc.id,
-            operationContext
+            operationContext,
         });
     }
 
-    async applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
+    async applySecurityPreset(
+        userId: string,
+        groupId: string,
+        preset: any,
+    ): Promise<{
         message: string;
         preset: any;
         permissions: any;
@@ -58,7 +61,11 @@ export class GroupPermissionService {
         return measureDb('GroupPermissionService.applySecurityPreset', async () => this._applySecurityPreset(userId, groupId, preset));
     }
 
-    private async _applySecurityPreset(userId: string, groupId: string, preset: any): Promise<{
+    private async _applySecurityPreset(
+        userId: string,
+        groupId: string,
+        preset: any,
+    ): Promise<{
         message: string;
         preset: any;
         permissions: any;
@@ -70,7 +77,7 @@ export class GroupPermissionService {
         if (!preset || !Object.values(SecurityPresets).includes(preset)) {
             throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_PRESET', 'Valid security preset is required');
         }
-        
+
         // Initial read outside transaction for permission checks
         const group = await this.firestoreReader.getGroup(groupId);
         if (!group) {
@@ -86,7 +93,7 @@ export class GroupPermissionService {
 
         // Get members to check permissions
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        
+
         if (!isAdminInDocArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You do not have permission to change security presets');
         }
@@ -112,8 +119,7 @@ export class GroupPermissionService {
                 // Optimistic locking check
                 const currentTimestamp = currentData.updatedAt;
                 if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
-                        'Group was modified by another user. Please refresh and try again.');
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Group was modified by another user. Please refresh and try again.');
                 }
 
                 // Perform the update
@@ -141,11 +147,11 @@ export class GroupPermissionService {
                     operation: 'applySecurityPreset',
                     userId,
                     groupId,
-                    preset
-                }
-            }
+                    preset,
+                },
+            },
         );
-        
+
         // Validate the group document after update
         await this.validateUpdatedGroupDocument({ id: groupId } as any, 'security preset application');
 
@@ -160,14 +166,22 @@ export class GroupPermissionService {
         };
     }
 
-    async updateGroupPermissions(userId: string, groupId: string, permissions: any): Promise<{
+    async updateGroupPermissions(
+        userId: string,
+        groupId: string,
+        permissions: any,
+    ): Promise<{
         message: string;
         permissions: any;
     }> {
         return measureDb('GroupPermissionService.updateGroupPermissions', async () => this._updateGroupPermissions(userId, groupId, permissions));
     }
 
-    private async _updateGroupPermissions(userId: string, groupId: string, permissions: any): Promise<{
+    private async _updateGroupPermissions(
+        userId: string,
+        groupId: string,
+        permissions: any,
+    ): Promise<{
         message: string;
         permissions: any;
     }> {
@@ -216,8 +230,7 @@ export class GroupPermissionService {
                 // Optimistic locking check
                 const currentTimestamp = currentData.updatedAt;
                 if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
-                        'Group was modified by another user. Please refresh and try again.');
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Group was modified by another user. Please refresh and try again.');
                 }
 
                 // Perform the update
@@ -243,11 +256,11 @@ export class GroupPermissionService {
                 context: {
                     operation: 'updateGroupPermissions',
                     userId,
-                    groupId
-                }
-            }
+                    groupId,
+                },
+            },
         );
-        
+
         // Validate the group document after update
         await this.validateUpdatedGroupDocument({ id: groupId } as any, 'group permissions update');
 
@@ -261,7 +274,12 @@ export class GroupPermissionService {
         };
     }
 
-    async setMemberRole(userId: string, groupId: string, targetUserId: string, role: any): Promise<{
+    async setMemberRole(
+        userId: string,
+        groupId: string,
+        targetUserId: string,
+        role: any,
+    ): Promise<{
         message: string;
         userId: string;
         oldRole: any;
@@ -270,7 +288,12 @@ export class GroupPermissionService {
         return measureDb('GroupPermissionService.setMemberRole', async () => this._setMemberRole(userId, groupId, targetUserId, role));
     }
 
-    private async _setMemberRole(userId: string, groupId: string, targetUserId: string, role: any): Promise<{
+    private async _setMemberRole(
+        userId: string,
+        groupId: string,
+        targetUserId: string,
+        role: any,
+    ): Promise<{
         message: string;
         userId: string;
         oldRole: any;
@@ -332,8 +355,7 @@ export class GroupPermissionService {
                 // Optimistic locking check
                 const currentTimestamp = currentData.updatedAt;
                 if (!currentTimestamp || !originalUpdatedAt || !currentTimestamp.isEqual(originalUpdatedAt)) {
-                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 
-                        'Group was modified by another user. Please refresh and try again.');
+                    throw new ApiError(HTTP_STATUS.CONFLICT, 'CONCURRENT_UPDATE', 'Group was modified by another user. Please refresh and try again.');
                 }
 
                 // Perform the update
@@ -351,19 +373,15 @@ export class GroupPermissionService {
                 updateData['permissionHistory'] = FieldValue.arrayUnion(changeLog);
 
                 this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUPS}/${groupId}`, updateData);
-                
+
                 // Also update the member in the top-level collection in the same transaction
                 const { getTopLevelMembershipDocId } = await import('../utils/groupMembershipHelpers');
                 const topLevelDocId = getTopLevelMembershipDocId(targetUserId, groupId);
-                this.firestoreWriter.updateInTransaction(
-                    transaction, 
-                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, 
-                    {
-                        memberRole: role,
-                        lastPermissionChange: now,
-                        updatedAt: createOptimisticTimestamp(),
-                    }
-                );
+                this.firestoreWriter.updateInTransaction(transaction, `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`, {
+                    memberRole: role,
+                    lastPermissionChange: now,
+                    updatedAt: createOptimisticTimestamp(),
+                });
             },
             {
                 maxAttempts: 3,
@@ -372,11 +390,11 @@ export class GroupPermissionService {
                     userId,
                     groupId,
                     targetUserId,
-                    role
-                }
-            }
+                    role,
+                },
+            },
         );
-        
+
         // Validate the group document after update
         await this.validateUpdatedGroupDocument({ id: groupId } as any, 'member role change');
 
@@ -393,7 +411,10 @@ export class GroupPermissionService {
         };
     }
 
-    async getUserPermissions(userId: string, groupId: string): Promise<{
+    async getUserPermissions(
+        userId: string,
+        groupId: string,
+    ): Promise<{
         userId: string;
         role: any;
         permissions: any;
@@ -410,14 +431,14 @@ export class GroupPermissionService {
 
         // Get members to check user membership
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        
+
         if (!getMemberDocFromArray(memberDocs, userId)) {
             throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_MEMBER', 'You are not a member of this group');
         }
 
         const userMember = getMemberDocFromArray(memberDocs, userId)!;
         const userRole = userMember.memberRole;
-        
+
         // Calculate permissions directly without calling PermissionEngineAsync to avoid service dependencies
         const permissions = this.calculateUserPermissions(toGroup(group), userMember);
 
@@ -494,7 +515,7 @@ export class GroupPermissionService {
 
         // For members and admins, check each permission level
         const permissions = group.permissions;
-        
+
         return {
             canEditAnyExpense: this.checkPermissionLevel(permissions.expenseEditing, member.memberRole, group.createdBy, member.userId),
             canDeleteAnyExpense: this.checkPermissionLevel(permissions.expenseDeletion, member.memberRole, group.createdBy, member.userId),

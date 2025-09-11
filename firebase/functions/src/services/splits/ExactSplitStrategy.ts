@@ -53,19 +53,19 @@ export class ExactSplitStrategy implements ISplitStrategy {
         if (!splits) {
             throw new Error('Splits are required for exact split type');
         }
-        
+
         // For exact splits, we just return the provided splits as they already contain the exact amounts
-        return splits.map(split => {
+        return splits.map((split) => {
             const result: ExpenseSplit = {
                 userId: split.userId,
                 amount: split.amount!,
             };
-            
+
             // Only include percentage if it's actually defined (not undefined)
             if (split.percentage !== undefined) {
                 result.percentage = split.percentage;
             }
-            
+
             return result;
         });
     }

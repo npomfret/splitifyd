@@ -9,12 +9,12 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
         const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
-        
+
         const groupWorkflow = new GroupWorkflow(user1Page);
 
         // Verify all 3 users are distinct
@@ -75,7 +75,7 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
 
         // Check that all 3 users can see all 3 members on their respective pages
         await expect(groupDetailPage.getTextElement(user1Name).first()).toBeVisible();
-        await expect(groupDetailPage.getTextElement(user2Name).first()).toBeVisible();  
+        await expect(groupDetailPage.getTextElement(user2Name).first()).toBeVisible();
         await expect(groupDetailPage.getTextElement(user3Name).first()).toBeVisible();
 
         await expect(groupDetailPage2.getTextElement(user1Name).first()).toBeVisible();

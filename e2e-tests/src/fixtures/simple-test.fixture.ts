@@ -21,34 +21,34 @@ export interface SimpleTestFixtures {
 export const simpleTest = base.extend<SimpleTestFixtures>({
     newLoggedInBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
-        
+
         const createLoggedInBrowser = async () => {
             // Create new browser context and page
             const context = await browser.newContext();
             const page = await context.newPage();
-            
+
             // Set up console handling
             const consoleHandler = attachConsoleHandler(page, { testInfo });
-            
+
             // Get user from pool and log in
             const userPool = getUserPool();
             const user = await userPool.claimUser(browser);
-            
+
             const authWorkflow = new AuthenticationWorkflow(page);
             await authWorkflow.loginExistingUser(user);
-            
+
             // Create dashboard page
             const dashboardPage = new DashboardPage(page, user);
-            
+
             // Track this browser instance for cleanup
             const browserInstance: BrowserInstance = {
                 page,
                 context,
                 user,
-                consoleHandler
+                consoleHandler,
             };
             browserInstances.push(browserInstance);
-            
+
             return { page, dashboardPage, user };
         };
 
@@ -62,12 +62,12 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                     // Process any errors that occurred during the test
                     await instance.consoleHandler.processErrors(testInfo);
                     instance.consoleHandler.dispose();
-                    
+
                     // Release user back to pool
                     if (instance.user) {
                         await userPool.releaseUser(instance.user);
                     }
-                    
+
                     // Close context
                     await instance.context.close();
                 } catch (error) {
@@ -78,33 +78,33 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                         throw error;
                     }
                 }
-            })
+            }),
         );
     },
 
     newEmptyBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
-        
+
         const createEmptyBrowser = async () => {
             // Create new browser context and page
             const context = await browser.newContext();
             const page = await context.newPage();
-            
+
             // Set up console handling
             const consoleHandler = attachConsoleHandler(page, { testInfo });
-            
+
             // Navigate to login page
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
-            
+
             // Track this browser instance for cleanup
             const browserInstance: BrowserInstance = {
                 page,
                 context,
-                consoleHandler
+                consoleHandler,
             };
             browserInstances.push(browserInstance);
-            
+
             return { page, loginPage };
         };
 
@@ -117,7 +117,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                     // Process any errors that occurred during the test
                     await instance.consoleHandler.processErrors(testInfo);
                     instance.consoleHandler.dispose();
-                    
+
                     // Close context
                     await instance.context.close();
                 } catch (error) {
@@ -128,9 +128,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                         throw error;
                     }
                 }
-            })
+            }),
         );
-    }
+    },
 });
 
 export { expect } from '@playwright/test';

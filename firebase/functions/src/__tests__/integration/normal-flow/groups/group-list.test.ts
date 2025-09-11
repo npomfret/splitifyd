@@ -6,9 +6,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
-import {PooledTestUser} from "@splitifyd/shared";
+import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
+import { PooledTestUser } from '@splitifyd/shared';
 
 describe('GET /groups - List Groups', () => {
     const apiDriver = new ApiDriver();
@@ -73,11 +73,8 @@ describe('GET /groups - List Groups', () => {
 
     test('should support ordering', async () => {
         // Create an additional group with a slight delay to ensure different timestamps
-        await new Promise(resolve => setTimeout(resolve, 100));
-        const latestGroup = await apiDriver.createGroup(
-            new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), 
-            users[0].token
-        );
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        const latestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(), users[0].token);
 
         const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
         const responseAsc = await apiDriver.listGroups(users[0].token, { order: 'asc' });
@@ -88,7 +85,7 @@ describe('GET /groups - List Groups', () => {
 
         // The most recently created group should be first in desc order
         expect(responseDesc.groups[0].id).toBe(latestGroup.id);
-        
+
         // The groups should be in different order for desc vs asc
         expect(responseDesc.groups[0].id).not.toBe(responseAsc.groups[0].id);
     });
@@ -132,8 +129,8 @@ describe('GET /groups - List Groups', () => {
         const response = await apiDriver.listGroups(users[0].token);
         expect(response.groups).toBeDefined();
         expect(response.groups.length).toBeGreaterThan(0);
-        
-        // Use the first group from the list 
+
+        // Use the first group from the list
         const testGroup = response.groups[0];
 
         // Add an expense

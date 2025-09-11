@@ -1,6 +1,6 @@
 /**
  * Configuration for production monitoring of the scalable membership architecture
- * 
+ *
  * This file defines performance thresholds and monitoring rules specifically
  * for the subcollection-based membership system introduced in the scalability migration.
  */
@@ -20,11 +20,11 @@ export interface SamplingRateConfig {
     triggerExecutionRate: number;
     /** Sampling rate for validation operations */
     validationRate: number;
-    
+
     /** Special conditions */
-    errorSamplingRate: number;        // Errors are always important
-    slowOperationRate: number;        // Slow ops need attention
-    criticalOperationRate: number;    // Critical ops must be tracked
+    errorSamplingRate: number; // Errors are always important
+    slowOperationRate: number; // Slow ops need attention
+    criticalOperationRate: number; // Critical ops must be tracked
 }
 
 export interface SubcollectionMonitoringThresholds {
@@ -67,18 +67,18 @@ export interface CollectionGroupMonitoringThresholds {
  */
 export const SAMPLING_RATES: SamplingRateConfig = {
     // Base sampling rates by operation type
-    serviceCallRate: 0.05,           // 5% of service calls
-    databaseOperationRate: 0.10,      // 10% of database operations
-    queryOperationRate: 0.10,         // 10% of queries
-    batchOperationRate: 0.20,         // 20% of batch operations
-    transactionRate: 0.20,            // 20% of transactions
-    triggerExecutionRate: 0.15,       // 15% of trigger executions
-    validationRate: 0.01,             // 1% of validations (very frequent)
-    
+    serviceCallRate: 0.05, // 5% of service calls
+    databaseOperationRate: 0.1, // 10% of database operations
+    queryOperationRate: 0.1, // 10% of queries
+    batchOperationRate: 0.2, // 20% of batch operations
+    transactionRate: 0.2, // 20% of transactions
+    triggerExecutionRate: 0.15, // 15% of trigger executions
+    validationRate: 0.01, // 1% of validations (very frequent)
+
     // Special conditions - always sample these
-    errorSamplingRate: 1.0,           // 100% of errors
-    slowOperationRate: 1.0,           // 100% of slow operations
-    criticalOperationRate: 1.0,       // 100% of critical operations
+    errorSamplingRate: 1.0, // 100% of errors
+    slowOperationRate: 1.0, // 100% of slow operations
+    criticalOperationRate: 1.0, // 100% of critical operations
 };
 
 /**
@@ -91,23 +91,23 @@ export const SUBCOLLECTION_MONITORING_CONFIG: {
     sampling: SamplingRateConfig;
 } = {
     subcollectionQueries: {
-        queryWarningThreshold: 100,    // Subcollection queries should be < 100ms
-        queryCriticalThreshold: 500,   // Alert if > 500ms (indicates index issues)
-        maxDocumentCount: 1000,        // Alert if group has > 1000 members
-        failureRateThreshold: 0.05,    // Alert if > 5% of queries fail
-        minSampleSize: 10,             // Need at least 10 samples for statistical analysis
+        queryWarningThreshold: 100, // Subcollection queries should be < 100ms
+        queryCriticalThreshold: 500, // Alert if > 500ms (indicates index issues)
+        maxDocumentCount: 1000, // Alert if group has > 1000 members
+        failureRateThreshold: 0.05, // Alert if > 5% of queries fail
+        minSampleSize: 10, // Need at least 10 samples for statistical analysis
     },
     triggers: {
-        executionWarningThreshold: 1000,   // Triggers should complete in < 1s
-        executionCriticalThreshold: 5000,  // Alert if trigger takes > 5s
-        memberFetchThreshold: 200,         // Member fetching within triggers should be < 200ms
-        changeDocumentThreshold: 100,      // Change document creation should be < 100ms
+        executionWarningThreshold: 1000, // Triggers should complete in < 1s
+        executionCriticalThreshold: 5000, // Alert if trigger takes > 5s
+        memberFetchThreshold: 200, // Member fetching within triggers should be < 200ms
+        changeDocumentThreshold: 100, // Change document creation should be < 100ms
     },
     collectionGroup: {
-        queryWarningThreshold: 200,    // CollectionGroup queries should be < 200ms
-        queryCriticalThreshold: 1000,  // Alert if > 1s (may indicate missing composite index)
-        maxGroupsPerUser: 100,         // Alert if user is in > 100 groups
-        expectedIndexUsage: true,      // Expect queries to use the collectionGroup index
+        queryWarningThreshold: 200, // CollectionGroup queries should be < 200ms
+        queryCriticalThreshold: 1000, // Alert if > 1s (may indicate missing composite index)
+        maxGroupsPerUser: 100, // Alert if user is in > 100 groups
+        expectedIndexUsage: true, // Expect queries to use the collectionGroup index
     },
     sampling: SAMPLING_RATES,
 };
@@ -118,7 +118,7 @@ export const SUBCOLLECTION_MONITORING_CONFIG: {
 export const MONITORING_LABELS = {
     SUBCOLLECTION_OPERATIONS: {
         GET_MEMBER: 'subcollection.getMember',
-        GET_MEMBERS: 'subcollection.getMembers', 
+        GET_MEMBERS: 'subcollection.getMembers',
         CREATE_MEMBER: 'subcollection.createMember',
         UPDATE_MEMBER: 'subcollection.updateMember',
         DELETE_MEMBER: 'subcollection.deleteMember',
@@ -138,10 +138,7 @@ export const MONITORING_LABELS = {
 /**
  * Get appropriate monitoring threshold based on operation type and collection
  */
-export function getMonitoringThreshold(
-    operationType: string,
-    collection: string
-): { warning: number; critical: number } {
+export function getMonitoringThreshold(operationType: string, collection: string): { warning: number; critical: number } {
     // Subcollection operations
     if (collection.includes('/members')) {
         return {
@@ -177,11 +174,10 @@ export function isLargeResultSet(count: number, operationType: string): boolean 
     if (operationType === 'collection-group') {
         return count > SUBCOLLECTION_MONITORING_CONFIG.collectionGroup.maxGroupsPerUser;
     }
-    
+
     if (operationType.includes('subcollection')) {
         return count > SUBCOLLECTION_MONITORING_CONFIG.subcollectionQueries.maxDocumentCount;
     }
 
     return false;
 }
-

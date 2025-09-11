@@ -1,14 +1,14 @@
-import {Timestamp, FieldValue} from 'firebase-admin/firestore';
-import {Errors} from '../utils/errors';
-import {Group, UpdateGroupRequest} from '../types/group-types';
-import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
-import {BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema} from '../schemas';
-import {GroupDataSchema, GroupDocument} from '../schemas';
-import {BalanceCalculationService} from './balance/BalanceCalculationService';
-import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
-import {logger, LoggerContext} from '../logger';
-import {createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp, assertTimestampAndConvert} from '../utils/dateHelpers';
-import {PermissionEngine} from '../permissions';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { Errors } from '../utils/errors';
+import { Group, UpdateGroupRequest } from '../types/group-types';
+import { CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
+import { BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema } from '../schemas';
+import { GroupDataSchema, GroupDocument } from '../schemas';
+import { BalanceCalculationService } from './balance/BalanceCalculationService';
+import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
+import { logger, LoggerContext } from '../logger';
+import { createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
+import { PermissionEngine } from '../permissions';
 import { measureDb } from '../monitoring/measure';
 import type { IFirestoreReader } from './firestore/IFirestoreReader';
 import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
@@ -22,7 +22,7 @@ import { ExpenseService } from './ExpenseService';
 import { SettlementService } from './SettlementService';
 import { GroupMemberService } from './GroupMemberService';
 import { NotificationService } from './notification-service';
-import {GroupShareService} from "./GroupShareService";
+import { GroupShareService } from './GroupShareService';
 import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 import type { UserNotificationGroup } from '../schemas/user-notifications';
 
@@ -37,7 +37,7 @@ type SettlementWithGroupId = SettlementDocument & { groupId: string };
  */
 export class GroupService {
     private balanceService: BalanceCalculationService;
-    
+
     constructor(
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
@@ -67,13 +67,16 @@ export class GroupService {
         const expenseMetadata = await this.expenseMetadataService.calculateExpenseMetadata(group.id);
 
         // Calculate currency-specific balances with proper typing
-        const balancesByCurrency: Record<string, {
-            currency: string;
-            netBalance: number;
-            totalOwed: number;
-            totalOwing: number;
-        }> = {};
-        
+        const balancesByCurrency: Record<
+            string,
+            {
+                currency: string;
+                netBalance: number;
+                totalOwed: number;
+                totalOwing: number;
+            }
+        > = {};
+
         if (validatedBalances.balancesByCurrency) {
             for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
@@ -84,7 +87,7 @@ export class GroupService {
                         totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
                         totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
                     };
-                    
+
                     // Validate the currency display data structure
                     const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
                     balancesByCurrency[currency] = validatedCurrencyData;
@@ -178,7 +181,7 @@ export class GroupService {
             const allExpenses = [];
             for (const groupId of chunk) {
                 const expenses = await this.firestoreReader.getExpensesForGroup(groupId);
-                allExpenses.push(...expenses.map(expense => ({ ...expense, groupId })));
+                allExpenses.push(...expenses.map((expense) => ({ ...expense, groupId })));
             }
             return allExpenses;
         });
@@ -187,7 +190,7 @@ export class GroupService {
             const allSettlements = [];
             for (const groupId of chunk) {
                 const settlements = await this.firestoreReader.getSettlementsForGroup(groupId);
-                allSettlements.push(...settlements.map(settlement => ({ ...settlement, groupId })));
+                allSettlements.push(...settlements.map((settlement) => ({ ...settlement, groupId })));
             }
             return allSettlements;
         });
@@ -318,13 +321,13 @@ export class GroupService {
                 cursor: cursor,
                 orderBy: {
                     field: 'updatedAt',
-                    direction: order
-                }
+                    direction: order,
+                },
             });
 
             // Note: recentGroupChanges removed as GROUP_CHANGES collection was unused
             return {
-                paginatedGroups
+                paginatedGroups,
             };
         })();
 
@@ -332,7 +335,7 @@ export class GroupService {
         const { groups, groupIds } = await (async () => {
             // Extract groups data from paginated result
             const groupsData = paginatedGroups.data;
-            
+
             // FirestoreReader already handled pagination, use all returned groups
             const returnedGroups = groupsData;
 
@@ -349,7 +352,7 @@ export class GroupService {
                 permissions: groupData.permissions as any,
             }));
             const groupIds = groups.map((group) => group.id);
-            
+
             return { groups, groupIds };
         })();
 
@@ -364,13 +367,11 @@ export class GroupService {
             // Batch fetch user profiles for all members across all groups
             const allMemberIds = new Set<string>();
             const membersByGroup = new Map<string, string[]>();
-            
+
             // Fetch members for each group
-            const memberPromises = groups.map((group: Group) => 
-                this.groupMemberService.getAllGroupMembers(group.id)
-            );
+            const memberPromises = groups.map((group: Group) => this.groupMemberService.getAllGroupMembers(group.id));
             const membersArrays = await Promise.all(memberPromises);
-            
+
             // Collect all member IDs and create mapping
             groups.forEach((group: Group, index: number) => {
                 const memberDocs = membersArrays[index];
@@ -378,9 +379,9 @@ export class GroupService {
                 membersByGroup.set(group.id, memberIds);
                 memberIds.forEach((memberId: string) => allMemberIds.add(memberId));
             });
-            
+
             const allMemberProfiles = await this.userService.getUsers(Array.from(allMemberIds));
-            
+
             return { allMemberProfiles, membersByGroup };
         })();
 
@@ -392,7 +393,7 @@ export class GroupService {
                 return expenseMetadata.count > 0;
             });
 
-            const balancePromises = groupsWithExpenses.map((group: Group) => 
+            const balancePromises = groupsWithExpenses.map((group: Group) =>
                 this.balanceService.calculateGroupBalances(group.id).catch((error: Error) => {
                     logger.error('Error calculating balances', error, { groupId: group.id });
                     return {
@@ -402,7 +403,7 @@ export class GroupService {
                         simplifiedDebts: [],
                         lastUpdated: new Date().toISOString(),
                     };
-                })
+                }),
             );
 
             const balanceResults = await Promise.all(balancePromises);
@@ -417,119 +418,122 @@ export class GroupService {
         // Step 6: Process each group using batched data - no more database calls!
         const groupsWithBalances: Group[] = await (async () => {
             return groups.map((group: Group) => {
-            // Get pre-fetched data for this group (no database calls)
-            const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
+                // Get pre-fetched data for this group (no database calls)
+                const expenseMetadata = expenseMetadataByGroup.get(group.id) || { count: 0 };
 
-            // Get member profiles for this group
-            const memberIds = membersByGroup.get(group.id) || [];
-            const memberProfiles = new Map<string, UserProfile>();
-            for (const memberId of memberIds) {
-                const profile = allMemberProfiles.get(memberId);
-                if (profile) {
-                    memberProfiles.set(memberId, profile);
-                }
-            }
-
-            // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
-            const groupBalances = balanceMap.get(group.id) || {
-                groupId: group.id,
-                balancesByCurrency: {},
-                userBalances: {},
-                simplifiedDebts: [],
-                lastUpdated: Timestamp.now(),
-            };
-
-            // Calculate currency-specific balances with proper typing
-            const balancesByCurrency: Record<string, {
-                currency: string;
-                netBalance: number;
-                totalOwed: number;
-                totalOwing: number;
-            }> = {};
-            
-            if (groupBalances.balancesByCurrency) {
-                // Validate the balance data with schema first
-                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-                
-                for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
-                    const currencyUserBalance = currencyBalances[userId];
-                    if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
-                        const currencyDisplayData = {
-                            currency,
-                            netBalance: currencyUserBalance.netBalance,
-                            totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
-                            totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
-                        };
-                        
-                        // Validate the currency display data structure
-                        const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
-                        balancesByCurrency[currency] = validatedCurrencyData;
+                // Get member profiles for this group
+                const memberIds = membersByGroup.get(group.id) || [];
+                const memberProfiles = new Map<string, UserProfile>();
+                for (const memberId of memberIds) {
+                    const profile = allMemberProfiles.get(memberId);
+                    if (profile) {
+                        memberProfiles.set(memberId, profile);
                     }
                 }
-            }
 
-            // Format last activity using pre-fetched metadata
-            // expenseMetadata.lastExpenseTime is Date | undefined, group.updatedAt is ISO string
-            const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
-            let lastActivity: string;
-            let lastActivityRaw: string;
-            
-            try {
-                // lastActivityDate should always be a Date at this point
-                if (!(lastActivityDate instanceof Date) || isNaN(lastActivityDate.getTime())) {
-                    throw new Error(`Expected valid Date for lastActivityDate but got ${typeof lastActivityDate}`);
-                }
-                
-                lastActivityRaw = lastActivityDate.toISOString();
-                lastActivity = this.formatRelativeTime(lastActivityRaw);
-            } catch (error) {
-                logger.warn('Failed to format last activity time, using group updatedAt', { 
-                    error, 
-                    lastActivityDate, 
-                    groupId: group.id 
-                });
-                lastActivityRaw = group.updatedAt;
-                lastActivity = this.formatRelativeTime(group.updatedAt);
-            }
+                // 🚀 OPTIMIZED: Use pre-calculated balance or empty balance
+                const groupBalances = balanceMap.get(group.id) || {
+                    groupId: group.id,
+                    balancesByCurrency: {},
+                    userBalances: {},
+                    simplifiedDebts: [],
+                    lastUpdated: Timestamp.now(),
+                };
 
-            // Get user's balance from first available currency with proper typing
-            let userBalance: {
-                netBalance: number;
-                totalOwed: number;
-                totalOwing: number;
-            } = {
-                netBalance: 0,
-                totalOwed: 0,
-                totalOwing: 0,
-            };
-            
-            if (groupBalances.balancesByCurrency) {
-                // Use validated balance data from above
-                const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
-                const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
-                
-                if (currencyBalancesArray.length > 0) {
-                    const firstCurrencyBalances = currencyBalancesArray[0];
-                    if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
-                        const balance = firstCurrencyBalances[userId];
-                        userBalance = {
-                            netBalance: balance.netBalance,
-                            totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
-                            totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
-                        };
+                // Calculate currency-specific balances with proper typing
+                const balancesByCurrency: Record<
+                    string,
+                    {
+                        currency: string;
+                        netBalance: number;
+                        totalOwed: number;
+                        totalOwing: number;
+                    }
+                > = {};
+
+                if (groupBalances.balancesByCurrency) {
+                    // Validate the balance data with schema first
+                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+
+                    for (const [currency, currencyBalances] of Object.entries(validatedBalances.balancesByCurrency)) {
+                        const currencyUserBalance = currencyBalances[userId];
+                        if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
+                            const currencyDisplayData = {
+                                currency,
+                                netBalance: currencyUserBalance.netBalance,
+                                totalOwed: currencyUserBalance.netBalance > 0 ? currencyUserBalance.netBalance : 0,
+                                totalOwing: currencyUserBalance.netBalance < 0 ? Math.abs(currencyUserBalance.netBalance) : 0,
+                            };
+
+                            // Validate the currency display data structure
+                            const validatedCurrencyData = CurrencyBalanceDisplaySchema.parse(currencyDisplayData);
+                            balancesByCurrency[currency] = validatedCurrencyData;
+                        }
                     }
                 }
-            }
 
-            return {
-                ...group,
-                balance: {
-                    userBalance,
-                    balancesByCurrency,
-                },
-                lastActivity,
-                lastActivityRaw,
-            };
+                // Format last activity using pre-fetched metadata
+                // expenseMetadata.lastExpenseTime is Date | undefined, group.updatedAt is ISO string
+                const lastActivityDate = expenseMetadata.lastExpenseTime ?? new Date(group.updatedAt);
+                let lastActivity: string;
+                let lastActivityRaw: string;
+
+                try {
+                    // lastActivityDate should always be a Date at this point
+                    if (!(lastActivityDate instanceof Date) || isNaN(lastActivityDate.getTime())) {
+                        throw new Error(`Expected valid Date for lastActivityDate but got ${typeof lastActivityDate}`);
+                    }
+
+                    lastActivityRaw = lastActivityDate.toISOString();
+                    lastActivity = this.formatRelativeTime(lastActivityRaw);
+                } catch (error) {
+                    logger.warn('Failed to format last activity time, using group updatedAt', {
+                        error,
+                        lastActivityDate,
+                        groupId: group.id,
+                    });
+                    lastActivityRaw = group.updatedAt;
+                    lastActivity = this.formatRelativeTime(group.updatedAt);
+                }
+
+                // Get user's balance from first available currency with proper typing
+                let userBalance: {
+                    netBalance: number;
+                    totalOwed: number;
+                    totalOwing: number;
+                } = {
+                    netBalance: 0,
+                    totalOwed: 0,
+                    totalOwing: 0,
+                };
+
+                if (groupBalances.balancesByCurrency) {
+                    // Use validated balance data from above
+                    const validatedBalances = BalanceCalculationResultSchema.parse(groupBalances);
+                    const currencyBalancesArray = Object.values(validatedBalances.balancesByCurrency);
+
+                    if (currencyBalancesArray.length > 0) {
+                        const firstCurrencyBalances = currencyBalancesArray[0];
+                        if (firstCurrencyBalances && firstCurrencyBalances[userId]) {
+                            const balance = firstCurrencyBalances[userId];
+                            userBalance = {
+                                netBalance: balance.netBalance,
+                                totalOwed: balance.netBalance > 0 ? balance.netBalance : 0,
+                                totalOwing: balance.netBalance < 0 ? Math.abs(balance.netBalance) : 0,
+                            };
+                        }
+                    }
+                }
+
+                return {
+                    ...group,
+                    balance: {
+                        userBalance,
+                        balancesByCurrency,
+                    },
+                    lastActivity,
+                    lastActivityRaw,
+                };
             });
         })();
 
@@ -561,8 +565,7 @@ export class GroupService {
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
     async createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
-        return measureDb('createGroup', async () => this._createGroup(userId, groupData)
-        );
+        return measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 
     private async _createGroup(userId: string, createGroupRequest: CreateGroupRequest): Promise<Group> {
@@ -608,7 +611,7 @@ export class GroupService {
         }
 
         // Pre-calculate member data outside transaction for speed
-            
+
         const memberDoc: GroupMemberDocument = {
             userId: userId,
             groupId: groupId,
@@ -617,7 +620,7 @@ export class GroupService {
             joinedAt: now.toDate().toISOString(),
             memberStatus: MemberStatuses.ACTIVE,
         };
-        
+
         const memberServerTimestamp = createTrueServerTimestamp();
         const memberDocWithTimestamps = {
             ...memberDoc,
@@ -632,39 +635,21 @@ export class GroupService {
             lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is creating the group
             transactionChangeCount: 0,
             balanceChangeCount: 0,
-            groupDetailsChangeCount: 1 // Set to 1 because the user is creating the group
+            groupDetailsChangeCount: 1, // Set to 1 because the user is creating the group
         };
 
         // Atomic transaction: create group, member, and notification documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
-            this.firestoreWriter.createInTransaction(
-                transaction,
-                FirestoreCollections.GROUPS,
-                groupId,
-                documentToWrite
-            );
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
             // Write to top-level collection for improved querying
-            const topLevelMemberDoc = createTopLevelMembershipDocument(
-                memberDoc,
-                timestampToISO(now)
-            );
-            this.firestoreWriter.createInTransaction(
-                transaction,
-                FirestoreCollections.GROUP_MEMBERSHIPS,
-                getTopLevelMembershipDocId(userId, groupId),
-                {
-                    ...topLevelMemberDoc,
-                    createdAt: memberServerTimestamp,
-                    updatedAt: memberServerTimestamp,
-                }
-            );
+            const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, timestampToISO(now));
+            this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
+                ...topLevelMemberDoc,
+                createdAt: memberServerTimestamp,
+                updatedAt: memberServerTimestamp,
+            });
             // Initialize group notifications for creator atomically
-            this.firestoreWriter.setUserNotificationGroupInTransaction(
-                transaction,
-                userId,
-                groupId,
-                notificationGroupData
-            );
+            this.firestoreWriter.setUserNotificationGroupInTransaction(transaction, userId, groupId, notificationGroupData);
         });
 
         // Add group context to logger
@@ -675,7 +660,7 @@ export class GroupService {
         if (!groupData) {
             throw new Error('Failed to fetch created group');
         }
-        
+
         // Convert GroupDocument to Group format
         const group: Group = {
             id: groupData.id,
@@ -704,7 +689,7 @@ export class GroupService {
         // Update with optimistic locking and transaction retry logic
         await this.firestoreWriter.runTransaction(async (transaction) => {
             // IMPORTANT: All reads must happen before any writes in Firestore transactions
-            
+
             // PHASE 1: ALL READS FIRST
             const freshDoc = await this.firestoreReader.getRawGroupDocumentInTransaction(transaction, groupId);
             if (!freshDoc) {
@@ -733,9 +718,9 @@ export class GroupService {
                 description: updatedData.description,
                 updatedAt: updatedData.updatedAt,
             });
-            
+
             // Update denormalized groupUpdatedAt in all membership documents
-            membershipSnapshot.docs.forEach(doc => {
+            membershipSnapshot.docs.forEach((doc) => {
                 transaction.update(doc.ref, {
                     groupUpdatedAt: updatedData.updatedAt.toISOString(),
                     updatedAt: createTrueServerTimestamp(),
@@ -763,50 +748,48 @@ export class GroupService {
      * @returns Promise<void>
      */
     private async markGroupForDeletion(groupId: string): Promise<void> {
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
-                transaction, 
-                FirestoreCollections.GROUPS, 
-                groupId
-            );
-            const groupSnap = await transaction.get(groupRef);
-            
-            if (!groupSnap.exists) {
-                throw new Error(`Group ${groupId} not found`);
-            }
-            
-            const groupData = groupSnap.data();
-            
-            // Check if already deleting
-            if (groupData?.deletionStatus === 'deleting') {
-                logger.warn('Group is already marked for deletion', { groupId });
-                throw new Error('Group deletion is already in progress');
-            }
-            
-            // Check if deletion failed and we've exceeded max attempts
-            if (groupData?.deletionStatus === 'failed' && 
-                (groupData?.deletionAttempts || 0) >= FIRESTORE.MAX_DELETION_ATTEMPTS) {
-                throw new Error(`Group deletion has failed ${FIRESTORE.MAX_DELETION_ATTEMPTS} times. Manual intervention required.`);
-            }
-            
-            // Mark for deletion
-            const updatedData: Partial<GroupDocument> = {
-                deletionStatus: 'deleting' as const,
-                deletionStartedAt: Timestamp.now(),
-                deletionAttempts: (groupData?.deletionAttempts || 0) + 1,
-                updatedAt: Timestamp.now()
-            };
-            
-            transaction.update(groupRef, updatedData);
-            
-            logger.info('Group marked for deletion', { 
-                groupId, 
-                attempt: updatedData.deletionAttempts
-            });
-        }, {
-            maxAttempts: 3,
-            context: { operation: 'markGroupForDeletion', groupId }
-        });
+        await this.firestoreWriter.runTransaction(
+            async (transaction) => {
+                const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
+                const groupSnap = await transaction.get(groupRef);
+
+                if (!groupSnap.exists) {
+                    throw new Error(`Group ${groupId} not found`);
+                }
+
+                const groupData = groupSnap.data();
+
+                // Check if already deleting
+                if (groupData?.deletionStatus === 'deleting') {
+                    logger.warn('Group is already marked for deletion', { groupId });
+                    throw new Error('Group deletion is already in progress');
+                }
+
+                // Check if deletion failed and we've exceeded max attempts
+                if (groupData?.deletionStatus === 'failed' && (groupData?.deletionAttempts || 0) >= FIRESTORE.MAX_DELETION_ATTEMPTS) {
+                    throw new Error(`Group deletion has failed ${FIRESTORE.MAX_DELETION_ATTEMPTS} times. Manual intervention required.`);
+                }
+
+                // Mark for deletion
+                const updatedData: Partial<GroupDocument> = {
+                    deletionStatus: 'deleting' as const,
+                    deletionStartedAt: Timestamp.now(),
+                    deletionAttempts: (groupData?.deletionAttempts || 0) + 1,
+                    updatedAt: Timestamp.now(),
+                };
+
+                transaction.update(groupRef, updatedData);
+
+                logger.info('Group marked for deletion', {
+                    groupId,
+                    attempt: updatedData.deletionAttempts,
+                });
+            },
+            {
+                maxAttempts: 3,
+                context: { operation: 'markGroupForDeletion', groupId },
+            },
+        );
     }
 
     /**
@@ -828,57 +811,59 @@ export class GroupService {
             chunks.push(documentPaths.slice(i, i + FIRESTORE.DELETION_BATCH_SIZE));
         }
 
-        logger.info('Deleting documents in batches', { 
-            collectionType, 
-            groupId, 
+        logger.info('Deleting documents in batches', {
+            collectionType,
+            groupId,
             totalDocuments: documentPaths.length,
             batchCount: chunks.length,
-            batchSize: FIRESTORE.DELETION_BATCH_SIZE
+            batchSize: FIRESTORE.DELETION_BATCH_SIZE,
         });
 
         // Process each chunk in its own transaction
         for (let i = 0; i < chunks.length; i++) {
             const chunk = chunks[i];
             const batchNumber = i + 1;
-            
+
             try {
-                await this.firestoreWriter.runTransaction(async (transaction) => {
-                    logger.info('Processing deletion batch', { 
-                        collectionType, 
-                        groupId, 
-                        batchNumber, 
-                        batchSize: chunk.length,
-                        totalBatches: chunks.length 
-                    });
-                    
-                    this.firestoreWriter.bulkDeleteInTransaction(transaction, chunk);
-                }, {
-                    maxAttempts: 3,
-                    context: { 
-                        operation: 'deleteBatch', 
-                        groupId, 
-                        collectionType, 
-                        batchNumber,
-                        batchSize: chunk.length
-                    }
-                });
+                await this.firestoreWriter.runTransaction(
+                    async (transaction) => {
+                        logger.info('Processing deletion batch', {
+                            collectionType,
+                            groupId,
+                            batchNumber,
+                            batchSize: chunk.length,
+                            totalBatches: chunks.length,
+                        });
 
-                logger.info('Deletion batch completed successfully', { 
-                    collectionType, 
-                    groupId, 
-                    batchNumber,
-                    batchSize: chunk.length
-                });
+                        this.firestoreWriter.bulkDeleteInTransaction(transaction, chunk);
+                    },
+                    {
+                        maxAttempts: 3,
+                        context: {
+                            operation: 'deleteBatch',
+                            groupId,
+                            collectionType,
+                            batchNumber,
+                            batchSize: chunk.length,
+                        },
+                    },
+                );
 
-            } catch (error) {
-                logger.error('Deletion batch failed', { 
-                    collectionType, 
-                    groupId, 
+                logger.info('Deletion batch completed successfully', {
+                    collectionType,
+                    groupId,
                     batchNumber,
                     batchSize: chunk.length,
-                    error: error instanceof Error ? error.message : String(error)
                 });
-                
+            } catch (error) {
+                logger.error('Deletion batch failed', {
+                    collectionType,
+                    groupId,
+                    batchNumber,
+                    batchSize: chunk.length,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+
                 // Mark group as failed and rethrow
                 await this.markGroupDeletionFailed(groupId, error instanceof Error ? error.message : String(error));
                 throw error;
@@ -893,31 +878,30 @@ export class GroupService {
      */
     private async markGroupDeletionFailed(groupId: string, errorMessage: string): Promise<void> {
         try {
-            await this.firestoreWriter.runTransaction(async (transaction) => {
-                const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
-                    transaction, 
-                    FirestoreCollections.GROUPS, 
-                    groupId
-                );
-                const groupSnap = await transaction.get(groupRef);
-                
-                if (groupSnap.exists) {
-                    transaction.update(groupRef, {
-                        deletionStatus: 'failed' as const,
-                        updatedAt: Timestamp.now()
-                    });
-                }
-            }, {
-                maxAttempts: 3,
-                context: { operation: 'markGroupDeletionFailed', groupId }
-            });
-            
+            await this.firestoreWriter.runTransaction(
+                async (transaction) => {
+                    const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
+                    const groupSnap = await transaction.get(groupRef);
+
+                    if (groupSnap.exists) {
+                        transaction.update(groupRef, {
+                            deletionStatus: 'failed' as const,
+                            updatedAt: Timestamp.now(),
+                        });
+                    }
+                },
+                {
+                    maxAttempts: 3,
+                    context: { operation: 'markGroupDeletionFailed', groupId },
+                },
+            );
+
             logger.error('Group deletion marked as failed', { groupId, errorMessage });
         } catch (markError) {
-            logger.error('Failed to mark group deletion as failed', { 
-                groupId, 
+            logger.error('Failed to mark group deletion as failed', {
+                groupId,
                 originalError: errorMessage,
-                markError: markError instanceof Error ? markError.message : String(markError)
+                markError: markError instanceof Error ? markError.message : String(markError),
             });
         }
     }
@@ -928,34 +912,33 @@ export class GroupService {
      * @returns Promise<void>
      */
     private async finalizeGroupDeletion(groupId: string): Promise<void> {
-        await this.firestoreWriter.runTransaction(async (transaction) => {
-            const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
-                transaction, 
-                FirestoreCollections.GROUPS, 
-                groupId
-            );
-            const groupSnap = await transaction.get(groupRef);
-            
-            if (!groupSnap.exists) {
-                logger.warn('Group document not found during finalization', { groupId });
-                return;
-            }
-            
-            const groupData = groupSnap.data();
-            
-            // Verify group is marked for deletion
-            if (groupData?.deletionStatus !== 'deleting') {
-                throw new Error(`Group ${groupId} is not marked for deletion. Current status: ${groupData?.deletionStatus || 'none'}`);
-            }
-            
-            // Delete the main group document
-            transaction.delete(groupRef);
-            
-            logger.info('Group document deleted successfully', { groupId });
-        }, {
-            maxAttempts: 3,
-            context: { operation: 'finalizeGroupDeletion', groupId }
-        });
+        await this.firestoreWriter.runTransaction(
+            async (transaction) => {
+                const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
+                const groupSnap = await transaction.get(groupRef);
+
+                if (!groupSnap.exists) {
+                    logger.warn('Group document not found during finalization', { groupId });
+                    return;
+                }
+
+                const groupData = groupSnap.data();
+
+                // Verify group is marked for deletion
+                if (groupData?.deletionStatus !== 'deleting') {
+                    throw new Error(`Group ${groupId} is not marked for deletion. Current status: ${groupData?.deletionStatus || 'none'}`);
+                }
+
+                // Delete the main group document
+                transaction.delete(groupRef);
+
+                logger.info('Group document deleted successfully', { groupId });
+            },
+            {
+                maxAttempts: 3,
+                context: { operation: 'finalizeGroupDeletion', groupId },
+            },
+        );
     }
 
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
@@ -964,13 +947,13 @@ export class GroupService {
 
         // Get member list BEFORE deletion for change tracking
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        const memberIds = memberDocs ? memberDocs.map(doc => doc.userId) : [];
-        
-        logger.info('Initiating atomic group deletion', { 
-            groupId, 
+        const memberIds = memberDocs ? memberDocs.map((doc) => doc.userId) : [];
+
+        logger.info('Initiating atomic group deletion', {
+            groupId,
             memberCount: memberIds.length,
             members: memberIds,
-            operation: 'ATOMIC_DELETE'
+            operation: 'ATOMIC_DELETE',
         });
 
         try {
@@ -980,19 +963,11 @@ export class GroupService {
 
             // PHASE 2: Discover all related data
             logger.info('Step 2: Discovering all related data', { groupId });
-            const {
-                expenses,
-                settlements,
-                shareLinks,
-                groupComments,
-                expenseComments: expenseCommentSnapshots
-            } = await this.firestoreReader.getGroupDeletionData(groupId);
+            const { expenses, settlements, shareLinks, groupComments, expenseComments: expenseCommentSnapshots } = await this.firestoreReader.getGroupDeletionData(groupId);
 
             // Calculate total documents for logging
-            const totalDocuments = expenses.size + settlements.size + 
-                                 shareLinks.size +
-                                 groupComments.size + (memberDocs?.length || 0) + 
-                                 expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
+            const totalDocuments =
+                expenses.size + settlements.size + shareLinks.size + groupComments.size + (memberDocs?.length || 0) + expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0);
 
             logger.info('Data discovery complete', {
                 groupId,
@@ -1003,8 +978,8 @@ export class GroupService {
                     shareLinks: shareLinks.size,
                     groupComments: groupComments.size,
                     members: memberDocs?.length || 0,
-                    expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0)
-                }
+                    expenseComments: expenseCommentSnapshots.reduce((sum, snapshot) => sum + snapshot.size, 0),
+                },
             });
 
             // PHASE 3: Clean up notifications for all members
@@ -1017,7 +992,7 @@ export class GroupService {
                         logger.warn('Failed to remove user from group notifications during group deletion', {
                             groupId,
                             userId: memberDoc.userId,
-                            error: error instanceof Error ? error.message : String(error)
+                            error: error instanceof Error ? error.message : String(error),
                         });
                         // Continue with other members - don't fail the entire deletion
                     }
@@ -1028,32 +1003,32 @@ export class GroupService {
             logger.info('Step 4: Deleting collections atomically', { groupId });
 
             // Delete expenses
-            const expensePaths = expenses.docs.map(doc => doc.ref.path);
+            const expensePaths = expenses.docs.map((doc) => doc.ref.path);
             await this.deleteBatch('expenses', groupId, expensePaths);
 
-            // Delete settlements  
-            const settlementPaths = settlements.docs.map(doc => doc.ref.path);
+            // Delete settlements
+            const settlementPaths = settlements.docs.map((doc) => doc.ref.path);
             await this.deleteBatch('settlements', groupId, settlementPaths);
 
             // Delete share links
-            const shareLinkPaths = shareLinks.docs.map(doc => doc.ref.path);
+            const shareLinkPaths = shareLinks.docs.map((doc) => doc.ref.path);
             await this.deleteBatch('share-links', groupId, shareLinkPaths);
 
             // Delete group comments
-            const groupCommentPaths = groupComments.docs.map(doc => doc.ref.path);
+            const groupCommentPaths = groupComments.docs.map((doc) => doc.ref.path);
             await this.deleteBatch('group-comments', groupId, groupCommentPaths);
 
             // Delete expense comments
             const expenseCommentPaths: string[] = [];
-            expenseCommentSnapshots.forEach(snapshot => {
-                snapshot.docs.forEach(doc => expenseCommentPaths.push(doc.ref.path));
+            expenseCommentSnapshots.forEach((snapshot) => {
+                snapshot.docs.forEach((doc) => expenseCommentPaths.push(doc.ref.path));
             });
             await this.deleteBatch('expense-comments', groupId, expenseCommentPaths);
 
             // Delete memberships from top-level collection
             const membershipPaths: string[] = [];
             if (memberDocs) {
-                memberDocs.forEach(memberDoc => {
+                memberDocs.forEach((memberDoc) => {
                     const topLevelDocId = getTopLevelMembershipDocId(memberDoc.userId, groupId);
                     const topLevelPath = `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`;
                     membershipPaths.push(topLevelPath);
@@ -1068,21 +1043,20 @@ export class GroupService {
             // Set group context
             LoggerContext.setBusinessContext({ groupId });
 
-            logger.info('Atomic group deletion completed successfully', { 
-                groupId, 
+            logger.info('Atomic group deletion completed successfully', {
+                groupId,
                 totalDocuments,
-                operation: 'ATOMIC_DELETE_SUCCESS'
+                operation: 'ATOMIC_DELETE_SUCCESS',
             });
 
             return { message: 'Group and all associated data deleted permanently' };
-
         } catch (error) {
             logger.error('Atomic group deletion failed', {
                 groupId,
                 error: error instanceof Error ? error.message : String(error),
-                operation: 'ATOMIC_DELETE_FAILED'
+                operation: 'ATOMIC_DELETE_FAILED',
             });
-            
+
             // The markGroupDeletionFailed method is called within deleteBatch if needed
             // Group will remain marked as 'failed' for manual intervention
             throw error;
@@ -1095,28 +1069,24 @@ export class GroupService {
      * @returns Array of group IDs that may need recovery
      */
     async findStuckDeletions(olderThanMinutes: number = 30): Promise<string[]> {
-        const cutoffTime = new Date(Date.now() - (olderThanMinutes * 60 * 1000));
+        const cutoffTime = new Date(Date.now() - olderThanMinutes * 60 * 1000);
         const cutoffTimestamp = Timestamp.fromDate(cutoffTime);
-        
+
         try {
-            const stuckGroupIds = await this.firestoreWriter.queryGroupsByDeletionStatus(
-                'deleting',
-                cutoffTimestamp,
-                '<='
-            );
-            
+            const stuckGroupIds = await this.firestoreWriter.queryGroupsByDeletionStatus('deleting', cutoffTimestamp, '<=');
+
             logger.warn('Found groups stuck in deleting status', {
                 count: stuckGroupIds.length,
                 groupIds: stuckGroupIds,
                 olderThanMinutes,
-                operation: 'findStuckDeletions'
+                operation: 'findStuckDeletions',
             });
 
             return stuckGroupIds;
         } catch (error) {
             logger.error('Failed to find stuck deletions', {
                 error: error instanceof Error ? error.message : String(error),
-                olderThanMinutes
+                olderThanMinutes,
             });
             return [];
         }
@@ -1128,97 +1098,96 @@ export class GroupService {
      * @param forceCleanup - If true, marks as failed instead of retrying
      * @returns Recovery result
      */
-    async recoverFailedDeletion(groupId: string, forceCleanup: boolean = false): Promise<{
+    async recoverFailedDeletion(
+        groupId: string,
+        forceCleanup: boolean = false,
+    ): Promise<{
         success: boolean;
         action: 'retried' | 'marked_failed' | 'not_found' | 'completed';
         message: string;
     }> {
         try {
-            const groupDoc = await this.firestoreWriter.getSingleDocument(
-                FirestoreCollections.GROUPS,
-                groupId
-            );
+            const groupDoc = await this.firestoreWriter.getSingleDocument(FirestoreCollections.GROUPS, groupId);
 
             if (!groupDoc || !groupDoc.exists) {
                 return {
                     success: true,
                     action: 'completed',
-                    message: 'Group no longer exists - deletion completed'
+                    message: 'Group no longer exists - deletion completed',
                 };
             }
 
             const groupData = groupDoc.data();
-            
+
             if (groupData?.deletionStatus !== 'deleting') {
                 return {
                     success: false,
                     action: 'not_found',
-                    message: `Group is not in deleting status. Current status: ${groupData?.deletionStatus || 'none'}`
+                    message: `Group is not in deleting status. Current status: ${groupData?.deletionStatus || 'none'}`,
                 };
             }
 
             const attempts = groupData?.deletionAttempts || 0;
-            
+
             if (forceCleanup || attempts >= FIRESTORE.MAX_DELETION_ATTEMPTS) {
                 // Mark as failed for manual intervention
                 await this.markGroupDeletionFailed(groupId, 'Recovery: Maximum attempts exceeded or forced cleanup');
-                
+
                 logger.warn('Group deletion marked as failed during recovery', {
                     groupId,
                     attempts,
                     forceCleanup,
-                    operation: 'recoverFailedDeletion'
+                    operation: 'recoverFailedDeletion',
                 });
 
                 return {
                     success: true,
                     action: 'marked_failed',
-                    message: `Group marked as failed after ${attempts} attempts`
+                    message: `Group marked as failed after ${attempts} attempts`,
                 };
             } else {
                 // Reset deletion status to allow retry
-                await this.firestoreWriter.runTransaction(async (transaction) => {
-                    const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(
-                        transaction, 
-                        FirestoreCollections.GROUPS, 
-                        groupId
-                    );
-                    const freshDoc = await transaction.get(groupRef);
-                    if (freshDoc.exists) {
-                        transaction.update(freshDoc.ref, {
-                            deletionStatus: undefined,
-                            deletionStartedAt: undefined,
-                            updatedAt: Timestamp.now()
-                        });
-                    }
-                }, {
-                    maxAttempts: 3,
-                    context: { operation: 'recoverFailedDeletion', groupId }
-                });
+                await this.firestoreWriter.runTransaction(
+                    async (transaction) => {
+                        const groupRef = this.firestoreWriter.getDocumentReferenceInTransaction(transaction, FirestoreCollections.GROUPS, groupId);
+                        const freshDoc = await transaction.get(groupRef);
+                        if (freshDoc.exists) {
+                            transaction.update(freshDoc.ref, {
+                                deletionStatus: undefined,
+                                deletionStartedAt: undefined,
+                                updatedAt: Timestamp.now(),
+                            });
+                        }
+                    },
+                    {
+                        maxAttempts: 3,
+                        context: { operation: 'recoverFailedDeletion', groupId },
+                    },
+                );
 
                 logger.info('Group deletion status reset for retry', {
                     groupId,
                     previousAttempts: attempts,
-                    operation: 'recoverFailedDeletion'
+                    operation: 'recoverFailedDeletion',
                 });
 
                 return {
                     success: true,
                     action: 'retried',
-                    message: `Group deletion reset for retry (was attempt ${attempts})`
+                    message: `Group deletion reset for retry (was attempt ${attempts})`,
                 };
             }
         } catch (error) {
             logger.error('Failed to recover group deletion', {
                 groupId,
                 error: error instanceof Error ? error.message : String(error),
-                operation: 'recoverFailedDeletion'
+                operation: 'recoverFailedDeletion',
             });
 
             return {
                 success: false,
                 action: 'not_found',
-                message: `Recovery failed: ${error instanceof Error ? error.message : String(error)}`
+                message: `Recovery failed: ${error instanceof Error ? error.message : String(error)}`,
             };
         }
     }
@@ -1237,17 +1206,14 @@ export class GroupService {
         message: string;
     }> {
         try {
-            const groupDoc = await this.firestoreWriter.getSingleDocument(
-                FirestoreCollections.GROUPS,
-                groupId
-            );
+            const groupDoc = await this.firestoreWriter.getSingleDocument(FirestoreCollections.GROUPS, groupId);
 
             if (!groupDoc || !groupDoc.exists) {
                 return {
                     exists: false,
                     status: 'none',
                     canRetry: false,
-                    message: 'Group does not exist - may have been successfully deleted'
+                    message: 'Group does not exist - may have been successfully deleted',
                 };
             }
 
@@ -1261,14 +1227,12 @@ export class GroupService {
                     exists: true,
                     status: 'none',
                     canRetry: true,
-                    message: 'Group is not being deleted'
+                    message: 'Group is not being deleted',
                 };
             }
 
             const canRetry = deletionStatus === 'failed' || attempts < FIRESTORE.MAX_DELETION_ATTEMPTS;
-            const statusMessage = deletionStatus === 'deleting' 
-                ? `Deletion in progress (attempt ${attempts})`
-                : `Deletion failed after ${attempts} attempts`;
+            const statusMessage = deletionStatus === 'deleting' ? `Deletion in progress (attempt ${attempts})` : `Deletion failed after ${attempts} attempts`;
 
             return {
                 exists: true,
@@ -1276,19 +1240,19 @@ export class GroupService {
                 startedAt: startedAt?.toDate().toISOString(),
                 attempts,
                 canRetry,
-                message: statusMessage
+                message: statusMessage,
             };
         } catch (error) {
             logger.error('Failed to get deletion status', {
                 groupId,
-                error: error instanceof Error ? error.message : String(error)
+                error: error instanceof Error ? error.message : String(error),
             });
 
             return {
                 exists: false,
                 status: 'none',
                 canRetry: false,
-                message: `Failed to check status: ${error instanceof Error ? error.message : String(error)}`
+                message: `Failed to check status: ${error instanceof Error ? error.message : String(error)}`,
             };
         }
     }
@@ -1297,18 +1261,23 @@ export class GroupService {
      * Get group balances for a user
      * Returns simplified debts and balance information
      */
-    async getGroupBalances(groupId: string, userId: string): Promise<{
+    async getGroupBalances(
+        groupId: string,
+        userId: string,
+    ): Promise<{
         groupId: string;
         userBalances: any;
         simplifiedDebts: any;
         lastUpdated: string;
         balancesByCurrency: Record<string, any>;
     }> {
-        return measureDb('getGroupBalances', async () => this._getGroupBalances(groupId, userId)
-        );
+        return measureDb('getGroupBalances', async () => this._getGroupBalances(groupId, userId));
     }
 
-    private async _getGroupBalances(groupId: string, userId: string): Promise<{
+    private async _getGroupBalances(
+        groupId: string,
+        userId: string,
+    ): Promise<{
         groupId: string;
         userBalances: any;
         simplifiedDebts: any;
@@ -1337,7 +1306,7 @@ export class GroupService {
         if (!membersData.has(userId)) {
             throw Errors.FORBIDDEN();
         }
-        
+
         // Check if user is a member using the async helper
         if (!(await this.groupMemberService.isGroupMemberAsync(groupId, userId))) {
             throw Errors.FORBIDDEN();
@@ -1363,14 +1332,14 @@ export class GroupService {
      * @returns Complete group details
      */
     async getGroupFullDetails(
-        groupId: string, 
-        userId: string, 
+        groupId: string,
+        userId: string,
         options: {
             expenseLimit?: number;
             expenseCursor?: string;
             settlementLimit?: number;
             settlementCursor?: string;
-        } = {}
+        } = {},
     ) {
         if (!userId) {
             throw Errors.UNAUTHORIZED();
@@ -1416,7 +1385,6 @@ export class GroupService {
             settlements: settlementsData,
         };
     }
-
 }
 
 // ServiceRegistry handles service instantiation

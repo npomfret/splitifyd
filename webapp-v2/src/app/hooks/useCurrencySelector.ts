@@ -49,11 +49,7 @@ export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }:
     // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (
-                dropdownRef.current && 
-                !dropdownRef.current.contains(event.target as Node) && 
-                !currencyButtonRef.current?.contains(event.target as Node)
-            ) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node) && !currencyButtonRef.current?.contains(event.target as Node)) {
                 closeDropdown();
             }
         };
@@ -132,16 +128,16 @@ export function useCurrencySelector({ onCurrencyChange, recentCurrencies = [] }:
         searchTerm,
         isLoadingCurrencies,
         highlightedIndex,
-        
+
         // Data
         filteredCurrencies,
         groupedCurrencies,
-        
+
         // Refs
         dropdownRef,
         searchInputRef,
         currencyButtonRef,
-        
+
         // Handlers
         handleCurrencySelect,
         handleCurrencyClick,

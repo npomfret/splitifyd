@@ -15,7 +15,7 @@ export class FirestoreGroupBuilder {
     constructor() {
         const defaultUserId = `user-${generateShortId()}`;
         const defaultGroupId = `group-${generateShortId()}`;
-        
+
         this.group = {
             id: defaultGroupId,
             name: `Test Group ${randomString(4)}`,
@@ -82,12 +82,12 @@ export class FirestoreGroupBuilder {
         return this;
     }
 
-    withMembers(members: Record<string, { role?: 'admin' | 'member', status?: 'active' | 'pending' }>): this {
+    withMembers(members: Record<string, { role?: 'admin' | 'member'; status?: 'active' | 'pending' }>): this {
         // Clear existing members except creator
         this.group.members = {
             [this.group.createdBy]: this.group.members[this.group.createdBy],
         };
-        
+
         // Add new members
         Object.entries(members).forEach(([userId, config]) => {
             this.withMember(userId, config.role, config.status);
@@ -127,7 +127,7 @@ export class FirestoreGroupBuilder {
             { light: '#96CEB4', dark: '#96CEB4', name: 'Mint Green' },
             { light: '#FFEAA7', dark: '#FFEAA7', name: 'Sunny Yellow' },
         ];
-        
+
         const color = randomChoice(colors);
         return {
             ...color,
@@ -147,7 +147,7 @@ export class FirestoreGroupBuilder {
             { light: '#96CEB4', dark: '#96CEB4', name: 'Mint Green' },
             { light: '#FFEAA7', dark: '#FFEAA7', name: 'Sunny Yellow' },
         ];
-        
+
         return {
             ...colors[colorIndex],
             pattern: 'solid',
@@ -166,13 +166,12 @@ export class FirestoreGroupBuilder {
      */
     static buildMany(count: number, customizer?: (builder: FirestoreGroupBuilder, index: number) => void): any[] {
         return Array.from({ length: count }, (_, i) => {
-            const builder = new FirestoreGroupBuilder()
-                .withId(`group-${i + 1}`);
-            
+            const builder = new FirestoreGroupBuilder().withId(`group-${i + 1}`);
+
             if (customizer) {
                 customizer(builder, i);
             }
-            
+
             return builder.build();
         });
     }

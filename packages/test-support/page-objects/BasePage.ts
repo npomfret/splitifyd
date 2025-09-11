@@ -44,7 +44,7 @@ export abstract class BasePage {
     private async validateInputValue(input: Locator, expectedValue: string): Promise<void> {
         const actualValue = await input.inputValue();
         const inputType = await input.getAttribute('type');
-        
+
         // For number inputs, compare numeric values to handle normalization (e.g., "75.50" -> "75.5")
         if (inputType === 'number') {
             const expectedNum = parseFloat(expectedValue);
@@ -54,7 +54,7 @@ export abstract class BasePage {
                 return; // Values are numerically equal
             }
         }
-        
+
         // For non-number inputs or when numeric comparison fails, use string comparison
         if (actualValue !== expectedValue) {
             throw new Error(`Input validation failed. Expected: "${expectedValue}", Actual: "${actualValue}"`);
@@ -69,46 +69,46 @@ export abstract class BasePage {
         const input = typeof selector === 'string' ? this._page.locator(selector) : selector;
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
-        
+
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 // Single click and wait for focus
                 await input.click();
                 await this.waitForFocus(input);
-                
+
                 // Clear and validate
                 await input.fill('');
                 await this.validateInputValue(input, '');
-                
+
                 // Ensure still focused before typing
                 await this.waitForFocus(input);
                 await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
-                
+
                 // Check if this is a number input or has decimal inputMode
                 const inputType = await input.getAttribute('type');
                 const inputMode = await input.getAttribute('inputMode');
-                
+
                 // Use fill() for number inputs or decimal inputs to handle decimals correctly
                 if (inputType === 'number' || inputMode === 'decimal') {
                     await input.fill(value);
                 } else {
                     await input.pressSequentially(value);
                 }
-                
+
                 // Manually trigger input event to ensure Preact onChange handlers are called
                 // This is crucial for Preact components that rely on onChange events to update their state
                 await input.dispatchEvent('input');
-                
+
                 // Blur to trigger Preact validation
                 await input.blur();
-                
+
                 // Check if input was successful
                 const actualValue = await input.inputValue();
                 if (actualValue === value) {
                     await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
                     return; // Success!
                 }
-                
+
                 // For number/decimal inputs, check if values are numerically equal (handles decimal normalization)
                 if (inputType === 'number' || inputMode === 'decimal') {
                     const expectedNum = parseFloat(value);
@@ -118,11 +118,11 @@ export abstract class BasePage {
                         return; // Success!
                     }
                 }
-                
+
                 if (attempt === maxRetries) {
                     throw new Error(`Failed to fill input after ${maxRetries} attempts. Expected: "${value}", Got: "${actualValue}"`);
                 }
-                
+
                 // Wait before retry
                 await this._page.waitForTimeout(100);
             } catch (error) {
@@ -133,7 +133,7 @@ export abstract class BasePage {
                 await this._page.waitForTimeout(100);
             }
         }
-        
+
         // Final validation
         await this.validateInputValue(input, value);
         await this._page.waitForLoadState('domcontentloaded', { timeout: 1000 });
@@ -186,7 +186,6 @@ export abstract class BasePage {
     async expectUrl(pattern: RegExp | string, timeout = 5000): Promise<void> {
         await expect(this._page).toHaveURL(pattern, { timeout });
     }
-
 
     /**
      * Navigation helpers with base URL handling

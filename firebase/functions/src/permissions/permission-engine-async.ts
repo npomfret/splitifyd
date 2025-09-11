@@ -1,6 +1,6 @@
 import { Group, MemberRole, PermissionLevel, GroupPermissions, SecurityPreset, SecurityPresets, MemberRoles, PermissionLevels, MemberStatuses } from '@splitifyd/shared';
 import { ExpenseData } from '@splitifyd/shared';
-import {IFirestoreReader} from "../services/firestore";
+import { IFirestoreReader } from '../services/firestore';
 
 export interface PermissionCheckOptions {
     expense?: ExpenseData;
@@ -12,7 +12,13 @@ export class PermissionEngineAsync {
     /**
      * Check if a user has permission to perform an action in a group (async version)
      */
-    static async checkPermission(firestoreReader: IFirestoreReader, group: Group, userId: string, action: keyof GroupPermissions | 'viewGroup', options: PermissionCheckOptions = {}): Promise<boolean> {
+    static async checkPermission(
+        firestoreReader: IFirestoreReader,
+        group: Group,
+        userId: string,
+        action: keyof GroupPermissions | 'viewGroup',
+        options: PermissionCheckOptions = {},
+    ): Promise<boolean> {
         if (!group.permissions) {
             throw new Error(`Group ${group.id} is missing permissions configuration`);
         }
@@ -79,11 +85,15 @@ export class PermissionEngineAsync {
     /**
      * Check if user can change another user's role (async version)
      */
-    static async canChangeRole(firestoreReader: IFirestoreReader, groupId: string, createdBy: string, actorUserId: string, targetUserId: string, newRole: MemberRole): Promise<{ allowed: boolean; reason?: string }> {
-        const [actorMember, targetMember] = await Promise.all([
-            firestoreReader.getGroupMember(groupId, actorUserId),
-            firestoreReader.getGroupMember(groupId, targetUserId),
-        ]);
+    static async canChangeRole(
+        firestoreReader: IFirestoreReader,
+        groupId: string,
+        createdBy: string,
+        actorUserId: string,
+        targetUserId: string,
+        newRole: MemberRole,
+    ): Promise<{ allowed: boolean; reason?: string }> {
+        const [actorMember, targetMember] = await Promise.all([firestoreReader.getGroupMember(groupId, actorUserId), firestoreReader.getGroupMember(groupId, targetUserId)]);
 
         if (!actorMember || !targetMember) {
             return { allowed: false, reason: 'User not found in group' };

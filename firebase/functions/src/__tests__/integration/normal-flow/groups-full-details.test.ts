@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager} from '@splitifyd/test-support';
-import {UserToken} from "@splitifyd/shared";
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager } from '@splitifyd/test-support';
+import { UserToken } from '@splitifyd/shared';
 
 describe('Groups Full Details API', () => {
     const apiDriver = new ApiDriver();
@@ -13,7 +13,7 @@ describe('Groups Full Details API', () => {
     let outsider: UserToken;
 
     beforeEach(async () => {
-        ([alice, bob, charlie, outsider] = await borrowTestUsers(4));
+        [alice, bob, charlie, outsider] = await borrowTestUsers(4);
 
         // Use shared group for performance
         const group = await TestGroupManager.getOrCreateGroup([alice, bob, charlie], { memberCount: 3 });
@@ -24,9 +24,21 @@ describe('Groups Full Details API', () => {
         it('should return consolidated group data with all components', async () => {
             // Add some test data to make the response more interesting
             const uniqueId = Math.random().toString(36).slice(2, 10);
-            const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(groupId).withDescription(`Full details test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
+            const expense = await apiDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription(`Full details test ${uniqueId}`)
+                    .withPaidBy(alice.uid)
+                    .withParticipants([alice.uid, bob.uid, charlie.uid])
+                    .withSplitType('equal')
+                    .build(),
+                alice.token,
+            );
 
-            await apiDriver.createSettlement(new SettlementBuilder().withGroupId(groupId).withPayer(bob.uid).withPayee(alice.uid).withAmount(20).withNote(`Settlement test ${uniqueId}`).build(), bob.token);
+            await apiDriver.createSettlement(
+                new SettlementBuilder().withGroupId(groupId).withPayer(bob.uid).withPayee(alice.uid).withAmount(20).withNote(`Settlement test ${uniqueId}`).build(),
+                bob.token,
+            );
 
             // Test the consolidated endpoint
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token);
@@ -63,9 +75,7 @@ describe('Groups Full Details API', () => {
 
             // Verify settlements data - check that our settlement is included
             expect(fullDetails.settlements.settlements.length).toBeGreaterThanOrEqual(1);
-            const ourSettlement = fullDetails.settlements.settlements.find((s: any) => 
-                s.payer.uid === bob.uid && s.payee.uid === alice.uid && s.amount === 20
-            );
+            const ourSettlement = fullDetails.settlements.settlements.find((s: any) => s.payer.uid === bob.uid && s.payee.uid === alice.uid && s.amount === 20);
             expect(ourSettlement).toBeDefined();
         });
 
@@ -187,7 +197,16 @@ describe('Groups Full Details API', () => {
         it('should return consistent data across individual and consolidated endpoints', async () => {
             // Add test data
             const uniqueId = Math.random().toString(36).slice(2, 10);
-            await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(groupId).withDescription(`Consistency test ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid]).withSplitType('equal').build(), alice.token);
+            await apiDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withDescription(`Consistency test ${uniqueId}`)
+                    .withPaidBy(alice.uid)
+                    .withParticipants([alice.uid, bob.uid])
+                    .withSplitType('equal')
+                    .build(),
+                alice.token,
+            );
 
             // Get data from both consolidated and individual endpoints
             const [fullDetails, expenses, balances] = await Promise.all([
@@ -199,12 +218,10 @@ describe('Groups Full Details API', () => {
             // Verify consistency
             expect(fullDetails.expenses.expenses).toEqual(expenses.expenses);
             expect(fullDetails.balances.groupId).toBe(balances.groupId);
-            
+
             // Verify members data is properly populated in consolidated endpoint
             expect(fullDetails.members.members).toHaveLength(3);
-            expect(fullDetails.members.members.map(m => m.uid)).toEqual(
-                expect.arrayContaining([alice.uid, bob.uid])
-            );
+            expect(fullDetails.members.members.map((m) => m.uid)).toEqual(expect.arrayContaining([alice.uid, bob.uid]));
         });
 
         it('should handle invalid group ID', async () => {

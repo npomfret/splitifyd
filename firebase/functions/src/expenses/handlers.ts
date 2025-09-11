@@ -5,8 +5,8 @@ import { ApiError, Errors } from '../utils/errors';
 import { logger } from '../logger';
 import { HTTP_STATUS } from '../constants';
 import { validateCreateExpense, validateUpdateExpense, validateExpenseId } from './validation';
-import { getFirestore } from "../firebase";
-import { ApplicationBuilder } from "../services/ApplicationBuilder";
+import { getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
@@ -89,7 +89,7 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
 
 export const listUserExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
-    
+
     // Validate and sanitize limit parameter
     const limitParam = req.query.limit as string;
     let limit = 50; // default
@@ -106,21 +106,21 @@ export const listUserExpenses = async (req: AuthenticatedRequest, res: Response)
         }
         limit = parsedLimit;
     }
-    
+
     // Validate other parameters
     const cursor = req.query.cursor as string;
     const includeDeletedParam = req.query.includeDeleted as string;
     const includeDeleted = includeDeletedParam === 'true';
-    
+
     // Validate includeDeleted parameter if provided
     if (includeDeletedParam !== undefined && includeDeletedParam !== 'true' && includeDeletedParam !== 'false') {
         throw Errors.INVALID_INPUT('includeDeleted parameter must be "true" or "false"');
     }
-    
+
     // Check for unsupported parameters
     const supportedParams = ['limit', 'cursor', 'includeDeleted'];
     const providedParams = Object.keys(req.query);
-    const unsupportedParams = providedParams.filter(param => !supportedParams.includes(param));
+    const unsupportedParams = providedParams.filter((param) => !supportedParams.includes(param));
     if (unsupportedParams.length > 0) {
         throw Errors.INVALID_INPUT(`Unsupported parameters: ${unsupportedParams.join(', ')}. Supported parameters are: ${supportedParams.join(', ')}`);
     }

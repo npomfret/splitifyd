@@ -21,13 +21,7 @@ interface UseFormInitializationOptions {
  * Hook that handles form initialization for different modes (create, edit, copy)
  * Manages loading data and populating the form based on the mode
  */
-export function useFormInitialization({ 
-    groupId, 
-    expenseId, 
-    isEditMode, 
-    isCopyMode, 
-    sourceExpenseId 
-}: UseFormInitializationOptions) {
+export function useFormInitialization({ groupId, expenseId, isEditMode, isCopyMode, sourceExpenseId }: UseFormInitializationOptions) {
     const isInitialized = useSignal(false);
     const initError = useSignal<string | null>(null);
     const authStore = useAuth();

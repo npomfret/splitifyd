@@ -5,7 +5,7 @@ vi.mock('firebase-admin/firestore', () => {
     function MockTimestamp(this: any, seconds?: number, nanoseconds?: number) {
         const actualSeconds = seconds || 0;
         const actualNanoseconds = nanoseconds || 0;
-        
+
         this.seconds = actualSeconds;
         this.nanoseconds = actualNanoseconds;
         this.toDate = () => new Date(actualSeconds * 1000 + actualNanoseconds / 1000000);
@@ -33,13 +33,13 @@ vi.mock('firebase-admin/firestore', () => {
         increment: (n: number) => ({ _type: 'increment', operand: n }),
         arrayUnion: (...elements: any[]) => ({ _type: 'arrayUnion', elements }),
         arrayRemove: (...elements: any[]) => ({ _type: 'arrayRemove', elements }),
-        delete: () => ({ _type: 'delete' })
+        delete: () => ({ _type: 'delete' }),
     };
 
     return {
         Timestamp: MockTimestamp,
         FieldValue: MockFieldValue,
-        getFirestore: vi.fn()
+        getFirestore: vi.fn(),
     };
 });
 
@@ -48,9 +48,9 @@ import { Timestamp, FieldValue, getFirestore } from 'firebase-admin/firestore';
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
-import {SettlementService} from "../../services/SettlementService";
-import {GroupMemberService} from "../../services/GroupMemberService";
-import {GroupShareService} from "../../services/GroupShareService";
+import { SettlementService } from '../../services/SettlementService';
+import { GroupMemberService } from '../../services/GroupMemberService';
+import { GroupShareService } from '../../services/GroupShareService';
 
 // Get the mocked function
 const mockGetFirestore = vi.mocked(getFirestore);
@@ -64,7 +64,7 @@ const createMockUserService = () => ({
     deleteAccount: vi.fn(),
     registerUser: vi.fn(),
     createUserDirect: vi.fn(),
-    getAllGroupMembers: vi.fn().mockResolvedValue([])
+    getAllGroupMembers: vi.fn().mockResolvedValue([]),
 });
 
 const createMockExpenseService = () => ({
@@ -72,7 +72,7 @@ const createMockExpenseService = () => ({
     getExpense: vi.fn(),
     createExpense: vi.fn(),
     updateExpense: vi.fn(),
-    deleteExpense: vi.fn()
+    deleteExpense: vi.fn(),
 });
 
 const createMockSettlementService = () => ({
@@ -80,7 +80,7 @@ const createMockSettlementService = () => ({
     getSettlement: vi.fn(),
     createSettlement: vi.fn(),
     updateSettlement: vi.fn(),
-    deleteSettlement: vi.fn()
+    deleteSettlement: vi.fn(),
 });
 
 const createMockGroupMemberService = () => ({
@@ -88,7 +88,7 @@ const createMockGroupMemberService = () => ({
     isGroupOwnerAsync: vi.fn().mockResolvedValue(true),
     getGroupMember: vi.fn(),
     getAllGroupMembers: vi.fn().mockResolvedValue([]),
-    getGroupMembersResponseFromSubcollection: vi.fn()
+    getGroupMembersResponseFromSubcollection: vi.fn(),
 });
 
 const createMockNotificationService = () => ({
@@ -96,21 +96,21 @@ const createMockNotificationService = () => ({
     updateUserNotification: vi.fn(),
     getUserNotifications: vi.fn(),
     removeUserFromGroup: vi.fn(),
-    addUserToGroupNotificationTracking: vi.fn()
+    addUserToGroupNotificationTracking: vi.fn(),
 });
 
 const createMockExpenseMetadataService = () => ({
     calculateExpenseMetadata: vi.fn().mockResolvedValue({
         expenseCount: 0,
         lastExpenseTime: undefined,
-    })
+    }),
 });
 
 const createMockGroupShareService = () => ({
     generateShareableLink: vi.fn(),
     previewGroupByLink: vi.fn(),
     joinGroupByLink: vi.fn(),
-    getThemeColorForMember: vi.fn()
+    getThemeColorForMember: vi.fn(),
 });
 
 // Mock Firebase dependencies
@@ -121,10 +121,10 @@ vi.mock('../../firebase', () => ({
                 get: vi.fn(),
                 set: vi.fn(),
                 update: vi.fn(),
-                delete: vi.fn()
-            }))
-        }))
-    }))
+                delete: vi.fn(),
+            })),
+        })),
+    })),
 }));
 
 // Mock date helper functions
@@ -135,7 +135,7 @@ vi.mock('../../utils/dateHelpers', () => ({
         toDate: () => new Date('2023-01-01T10:30:00.000Z'),
         toMillis: () => 1672570200000,
         isEqual: () => true,
-        valueOf: () => 1672570200000
+        valueOf: () => 1672570200000,
     }),
     createTrueServerTimestamp: () => ({}),
     getRelativeTime: vi.fn((timestamp: any) => {
@@ -161,7 +161,7 @@ vi.mock('../../utils/dateHelpers', () => ({
             return value.toDate().toISOString();
         }
         return '2023-01-01T10:30:00.000Z';
-    })
+    }),
 }));
 
 describe('GroupService - Unit Tests', () => {
@@ -198,9 +198,9 @@ describe('GroupService - Unit Tests', () => {
             // Group deletion and recovery operations
             getDocumentReferenceInTransaction: vi.fn(),
             queryGroupsByDeletionStatus: vi.fn(),
-            getSingleDocument: vi.fn()
+            getSingleDocument: vi.fn(),
         };
-        
+
         mockUserService = createMockUserService();
         mockExpenseService = createMockExpenseService();
         mockSettlementService = createMockSettlementService();
@@ -208,7 +208,7 @@ describe('GroupService - Unit Tests', () => {
         mockNotificationService = createMockNotificationService();
         mockExpenseMetadataService = createMockExpenseMetadataService();
         mockGroupShareService = createMockGroupShareService();
-        
+
         groupService = new GroupService(
             mockFirestoreReader,
             mockFirestoreWriter,
@@ -218,28 +218,28 @@ describe('GroupService - Unit Tests', () => {
             mockGroupMemberService as any,
             mockNotificationService as any,
             mockExpenseMetadataService as any,
-            mockGroupShareService as any
+            mockGroupShareService as any,
         );
 
         // Reset all mocks
         vi.clearAllMocks();
         mockFirestoreReader.resetAllMocks();
         mockGetFirestore.mockClear();
-        
+
         // Set up default mock implementations after clearing
         mockFirestoreWriter.bulkDelete.mockResolvedValue({
             successCount: 1,
             failureCount: 0,
-            results: [{ id: 'test-group-123', success: true }]
+            results: [{ id: 'test-group-123', success: true }],
         });
-        
+
         // Default mock for ExpenseMetadataService dependency
         mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
         mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
-        
+
         // Mock expense metadata service
         mockExpenseMetadataService.calculateExpenseMetadata.mockResolvedValue({});
-        
+
         // Mock group share service
         mockGroupShareService.getThemeColorForMember.mockReturnValue('#4f46e5');
     });
@@ -250,12 +250,12 @@ describe('GroupService - Unit Tests', () => {
             const groupId = 'test-group-456';
             const createGroupRequest = {
                 name: 'Test Group',
-                description: 'Test Description'
+                description: 'Test Description',
             };
 
             // Mock generateDocumentId to return a predictable ID
             mockFirestoreWriter.generateDocumentId.mockReturnValue(groupId);
-            
+
             // Mock successful transaction execution
             mockFirestoreWriter.runTransaction.mockImplementation(async (callback: any) => {
                 const mockTransaction = {};
@@ -263,18 +263,11 @@ describe('GroupService - Unit Tests', () => {
             });
 
             // Mock reader to return the created group
-            const expectedGroup = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withName(createGroupRequest.name)
-                .withDescription(createGroupRequest.description)
-                .withCreatedBy(userId)
-                .build();
+            const expectedGroup = new FirestoreGroupBuilder().withId(groupId).withName(createGroupRequest.name).withDescription(createGroupRequest.description).withCreatedBy(userId).build();
             mockFirestoreReader.getGroup.mockResolvedValue(expectedGroup);
 
             // Mock members for balance calculation
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-            ]);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
 
             // Call the method under test
             const result = await groupService.createGroup(userId, createGroupRequest);
@@ -290,7 +283,7 @@ describe('GroupService - Unit Tests', () => {
             // Check that all three atomic operations were called
             expect(mockFirestoreWriter.createInTransaction).toHaveBeenCalledTimes(2); // Group + membership
             expect(mockFirestoreWriter.setUserNotificationGroupInTransaction).toHaveBeenCalledTimes(1);
-            
+
             // Verify notification data structure
             const notificationCall = mockFirestoreWriter.setUserNotificationGroupInTransaction.mock.calls[0];
             expect(notificationCall[0]).toBeDefined();
@@ -299,10 +292,10 @@ describe('GroupService - Unit Tests', () => {
             expect(notificationCall[3]).toEqual({
                 lastTransactionChange: null,
                 lastBalanceChange: null,
-                lastGroupDetailsChange: { _type: "serverTimestamp" },
+                lastGroupDetailsChange: { _type: 'serverTimestamp' },
                 transactionChangeCount: 0,
                 balanceChangeCount: 0,
-                groupDetailsChangeCount: 1
+                groupDetailsChangeCount: 1,
             });
         });
 
@@ -310,7 +303,7 @@ describe('GroupService - Unit Tests', () => {
             const userId = 'test-user-123';
             const createGroupRequest = {
                 name: 'Test Group',
-                description: 'Test Description'
+                description: 'Test Description',
             };
 
             // Mock transaction to fail
@@ -318,8 +311,7 @@ describe('GroupService - Unit Tests', () => {
             mockFirestoreWriter.runTransaction.mockRejectedValue(transactionError);
 
             // Call should throw the transaction error
-            await expect(groupService.createGroup(userId, createGroupRequest))
-                .rejects.toThrow();
+            await expect(groupService.createGroup(userId, createGroupRequest)).rejects.toThrow();
 
             // Verify no separate notification call was made (it should be rolled back with the transaction)
             expect(mockNotificationService.addUserToGroupNotificationTracking).not.toHaveBeenCalled();
@@ -330,18 +322,13 @@ describe('GroupService - Unit Tests', () => {
         it('should return group data when group exists and user has access', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
-            const mockGroupData = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .withName('Test Group')
-                .build();
+            const mockGroupData = new FirestoreGroupBuilder().withId(groupId).withName('Test Group').build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             // Mock user access - make sure user is a member
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                { userId: userId, memberRole: 'member', memberStatus: 'active' }
-            ]);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'member', memberStatus: 'active' }]);
 
             // Access the private method via type assertion
             const result = await (groupService as any).fetchGroupWithAccess(groupId, userId);
@@ -358,9 +345,7 @@ describe('GroupService - Unit Tests', () => {
 
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(
-                (groupService as any).fetchGroupWithAccess(groupId, userId)
-            ).rejects.toThrow('Group not found');
+            await expect((groupService as any).fetchGroupWithAccess(groupId, userId)).rejects.toThrow('Group not found');
         });
     });
 
@@ -368,25 +353,21 @@ describe('GroupService - Unit Tests', () => {
         it('should delete group when no expenses exist', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
-            
-            const mockGroupData = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .build();
+
+            const mockGroupData = new FirestoreGroupBuilder().withId(groupId).build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-            ]);
-            
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
+
             // Mock the getGroupDeletionData method with empty QuerySnapshot-like objects
             const mockEmptyQuerySnapshot = {
                 size: 0,
                 docs: [],
                 forEach: vi.fn(),
-                empty: true
+                empty: true,
             } as any;
 
             mockFirestoreReader.getGroupDeletionData.mockResolvedValue({
@@ -396,7 +377,7 @@ describe('GroupService - Unit Tests', () => {
                 balanceChanges: mockEmptyQuerySnapshot,
                 shareLinks: mockEmptyQuerySnapshot,
                 groupComments: mockEmptyQuerySnapshot,
-                expenseComments: []
+                expenseComments: [],
             });
 
             const result = await groupService.deleteGroup(groupId, userId);
@@ -409,10 +390,8 @@ describe('GroupService - Unit Tests', () => {
         it('should successfully delete group with expenses (hard delete)', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
-            
-            const mockGroupData = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .build();
+
+            const mockGroupData = new FirestoreGroupBuilder().withId(groupId).build();
 
             const mockExpense = new FirestoreExpenseBuilder()
                 .withId('expense-1')
@@ -431,27 +410,27 @@ describe('GroupService - Unit Tests', () => {
             // Mock user as group owner for write access
             mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
             // Mock members for balance calculation
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-            ]);
-            
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
+
             // Mock the getGroupDeletionData method with QuerySnapshot containing expense
             const mockExpenseQuerySnapshot = {
                 size: 1,
-                docs: [{
-                    ref: { path: 'expenses/expense-1' },
-                    id: 'expense-1',
-                    data: () => mockExpense
-                }],
+                docs: [
+                    {
+                        ref: { path: 'expenses/expense-1' },
+                        id: 'expense-1',
+                        data: () => mockExpense,
+                    },
+                ],
                 forEach: vi.fn(),
-                empty: false
+                empty: false,
             } as any;
 
             const mockEmptyQuerySnapshot = {
                 size: 0,
                 docs: [],
                 forEach: vi.fn(),
-                empty: true
+                empty: true,
             } as any;
 
             mockFirestoreReader.getGroupDeletionData.mockResolvedValue({
@@ -461,7 +440,7 @@ describe('GroupService - Unit Tests', () => {
                 balanceChanges: mockEmptyQuerySnapshot,
                 shareLinks: mockEmptyQuerySnapshot,
                 groupComments: mockEmptyQuerySnapshot,
-                expenseComments: []
+                expenseComments: [],
             });
 
             const result = await groupService.deleteGroup(groupId, userId);
@@ -476,29 +455,25 @@ describe('GroupService - Unit Tests', () => {
         it('should return group balances for valid group and user', async () => {
             const groupId = 'test-group-123';
             const userId = 'test-user-123';
-            
-            const mockGroupData = new FirestoreGroupBuilder()
-                .withId(groupId)
-                .build();
+
+            const mockGroupData = new FirestoreGroupBuilder().withId(groupId).build();
 
             mockFirestoreReader.getGroup.mockResolvedValue(mockGroupData);
-            
+
             // Mock required data for balance calculations
             mockFirestoreReader.getExpensesForGroup.mockResolvedValue([]);
             mockFirestoreReader.getSettlementsForGroup.mockResolvedValue([]);
-            
+
             // Mock getUsers to return a Map with the user
             const mockUserProfile = { uid: userId, email: 'test@example.com', displayName: 'Test User' };
             const userProfilesMap = new Map([[userId, mockUserProfile]]);
             mockUserService.getUsers.mockResolvedValue(userProfilesMap);
-            
+
             // Mock group member check to return true (user is a member)
             mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
-            
+
             // Mock group members for balance calculation (DataFetcher calls userService.getAllGroupMembers)
-            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                { userId: userId, memberRole: 'member', memberStatus: 'active' }
-            ]);
+            mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'member', memberStatus: 'active' }]);
 
             const result = await groupService.getGroupBalances(groupId, userId);
 
@@ -516,9 +491,7 @@ describe('GroupService - Unit Tests', () => {
 
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
-            await expect(
-                groupService.getGroupBalances(groupId, userId)
-            ).rejects.toThrow('Group not found');
+            await expect(groupService.getGroupBalances(groupId, userId)).rejects.toThrow('Group not found');
         });
     });
 
@@ -538,10 +511,7 @@ describe('GroupService - Unit Tests', () => {
 
                 await groupService['firestoreWriter'].bulkDeleteInTransaction(mockTransaction, documentPaths);
 
-                expect(mockFirestoreWriter.bulkDeleteInTransaction).toHaveBeenCalledWith(
-                    mockTransaction,
-                    documentPaths
-                );
+                expect(mockFirestoreWriter.bulkDeleteInTransaction).toHaveBeenCalledWith(mockTransaction, documentPaths);
             });
         });
 
@@ -555,19 +525,9 @@ describe('GroupService - Unit Tests', () => {
 
                 mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(expectedCount);
 
-                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(
-                    mockTransaction,
-                    collection,
-                    whereConditions,
-                    updates
-                );
+                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(mockTransaction, collection, whereConditions, updates);
 
-                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(
-                    mockTransaction,
-                    collection,
-                    whereConditions,
-                    updates
-                );
+                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(mockTransaction, collection, whereConditions, updates);
                 expect(result).toBe(expectedCount);
             });
         });
@@ -576,7 +536,7 @@ describe('GroupService - Unit Tests', () => {
             it('should enable atomic group updates in Phase 2', async () => {
                 // This test verifies that the infrastructure is in place for Phase 2
                 // GroupService.updateGroup implementation to use queryAndUpdateInTransaction
-                
+
                 const mockTransaction = { update: vi.fn() } as any;
                 const collection = 'group-memberships';
                 const whereConditions = [{ field: 'groupId', op: '==' as const, value: 'test-group' }];
@@ -584,20 +544,10 @@ describe('GroupService - Unit Tests', () => {
 
                 mockFirestoreWriter.queryAndUpdateInTransaction.mockResolvedValue(2);
 
-                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(
-                    mockTransaction,
-                    collection,
-                    whereConditions,
-                    updates
-                );
+                const result = await groupService['firestoreWriter'].queryAndUpdateInTransaction(mockTransaction, collection, whereConditions, updates);
 
                 expect(result).toBe(2);
-                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(
-                    mockTransaction,
-                    collection,
-                    whereConditions,
-                    updates
-                );
+                expect(mockFirestoreWriter.queryAndUpdateInTransaction).toHaveBeenCalledWith(mockTransaction, collection, whereConditions, updates);
             });
         });
     });
@@ -613,7 +563,7 @@ describe('GroupService - Unit Tests', () => {
 
         it('should batch fetch expenses and settlements for multiple groups', async () => {
             const groupIds = ['group1', 'group2'];
-            
+
             const mockExpense1 = new FirestoreExpenseBuilder()
                 .withId('expense-1')
                 .withGroupId('group1')
@@ -627,13 +577,9 @@ describe('GroupService - Unit Tests', () => {
                 .withParticipants(['user1'])
                 .build();
 
-            mockFirestoreReader.getExpensesForGroup
-                .mockResolvedValueOnce([mockExpense1])
-                .mockResolvedValueOnce([]);
+            mockFirestoreReader.getExpensesForGroup.mockResolvedValueOnce([mockExpense1]).mockResolvedValueOnce([]);
 
-            mockFirestoreReader.getSettlementsForGroup
-                .mockResolvedValueOnce([])
-                .mockResolvedValueOnce([]);
+            mockFirestoreReader.getSettlementsForGroup.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
             const result = await (groupService as any).batchFetchGroupData(groupIds);
 
@@ -666,20 +612,20 @@ describe('GroupService - Unit Tests', () => {
             // Test the logic that processes currency-specific balances
             const userId = 'test-user';
             const mockBalancesByCurrency = {
-                'USD': {
-                    [userId]: { netBalance: 50.75, totalOwed: 50.75, totalOwing: 0 }
+                USD: {
+                    [userId]: { netBalance: 50.75, totalOwed: 50.75, totalOwing: 0 },
                 },
-                'EUR': {
-                    [userId]: { netBalance: -25.50, totalOwed: 0, totalOwing: 25.50 }
+                EUR: {
+                    [userId]: { netBalance: -25.5, totalOwed: 0, totalOwing: 25.5 },
                 },
-                'GBP': {
-                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 } // Below threshold
-                }
+                GBP: {
+                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 }, // Below threshold
+                },
             };
 
             // Simulate the processing logic from listGroups
             const balancesByCurrency: Record<string, any> = {};
-            
+
             for (const [currency, currencyBalances] of Object.entries(mockBalancesByCurrency)) {
                 const currencyUserBalance = currencyBalances[userId];
                 if (currencyUserBalance && Math.abs(currencyUserBalance.netBalance) > 0.01) {
@@ -699,19 +645,19 @@ describe('GroupService - Unit Tests', () => {
 
             expect(balancesByCurrency.USD.totalOwed).toBe(50.75);
             expect(balancesByCurrency.USD.totalOwing).toBe(0);
-            
+
             expect(balancesByCurrency.EUR.totalOwed).toBe(0);
-            expect(balancesByCurrency.EUR.totalOwing).toBe(25.50);
+            expect(balancesByCurrency.EUR.totalOwing).toBe(25.5);
         });
 
         it('should handle edge cases in balance processing', () => {
             const userId = 'test-user';
-            
+
             // Test with exactly threshold amount (0.01)
             const exactThresholdBalance = {
-                'USD': {
-                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 }
-                }
+                USD: {
+                    [userId]: { netBalance: 0.01, totalOwed: 0.01, totalOwing: 0 },
+                },
             };
 
             const balancesByCurrency: Record<string, any> = {};
@@ -738,18 +684,18 @@ describe('GroupService - Unit Tests', () => {
                 {
                     id: 'exp1',
                     createdAt: '2023-01-03T10:00:00Z',
-                    deletedAt: undefined
+                    deletedAt: undefined,
                 },
                 {
                     id: 'exp2',
                     createdAt: '2023-01-01T10:00:00Z',
-                    deletedAt: undefined
+                    deletedAt: undefined,
                 },
                 {
                     id: 'exp3',
                     createdAt: '2023-01-02T10:00:00Z',
-                    deletedAt: '2023-01-04T10:00:00Z' // Soft-deleted
-                }
+                    deletedAt: '2023-01-04T10:00:00Z', // Soft-deleted
+                },
             ];
 
             // Simulate the metadata calculation logic from batchFetchGroupData
@@ -771,7 +717,7 @@ describe('GroupService - Unit Tests', () => {
 
         it('should handle empty expense list', () => {
             const mockExpenses: any[] = [];
-            
+
             const nonDeletedExpenses = mockExpenses.filter((expense) => !expense.deletedAt);
             const metadata = {
                 count: nonDeletedExpenses.length,
@@ -787,13 +733,13 @@ describe('GroupService - Unit Tests', () => {
                 {
                     id: 'exp1',
                     createdAt: '2023-01-01T10:00:00Z',
-                    deletedAt: '2023-01-02T10:00:00Z'
+                    deletedAt: '2023-01-02T10:00:00Z',
                 },
                 {
                     id: 'exp2',
                     createdAt: '2023-01-01T10:00:00Z',
-                    deletedAt: '2023-01-03T10:00:00Z'
-                }
+                    deletedAt: '2023-01-03T10:00:00Z',
+                },
             ];
 
             const nonDeletedExpenses = mockExpenses.filter((expense) => !expense.deletedAt);
@@ -818,7 +764,7 @@ describe('GroupService - Unit Tests', () => {
                 updatedAt: '2023-01-01T12:00:00Z',
                 securityPreset: 'open' as const,
                 presetAppliedAt: '2023-01-01T10:00:00Z',
-                permissions: { canAddExpense: true, canEditExpense: true }
+                permissions: { canAddExpense: true, canEditExpense: true },
             };
 
             // Simulate the transformation logic from listGroups
@@ -847,12 +793,12 @@ describe('GroupService - Unit Tests', () => {
         it('should extract user balance from first available currency', () => {
             const userId = 'test-user';
             const mockBalancesByCurrency = {
-                'USD': {
-                    [userId]: { netBalance: 25.50, totalOwed: 25.50, totalOwing: 0 }
+                USD: {
+                    [userId]: { netBalance: 25.5, totalOwed: 25.5, totalOwing: 0 },
                 },
-                'EUR': {
-                    [userId]: { netBalance: -10.75, totalOwed: 0, totalOwing: 10.75 }
-                }
+                EUR: {
+                    [userId]: { netBalance: -10.75, totalOwed: 0, totalOwing: 10.75 },
+                },
             };
 
             // Simulate the user balance extraction logic from listGroups
@@ -861,7 +807,7 @@ describe('GroupService - Unit Tests', () => {
                 totalOwed: 0,
                 totalOwing: 0,
             };
-            
+
             const currencyBalancesArray = Object.values(mockBalancesByCurrency);
             if (currencyBalancesArray.length > 0) {
                 const firstCurrencyBalances = currencyBalancesArray[0];
@@ -875,8 +821,8 @@ describe('GroupService - Unit Tests', () => {
                 }
             }
 
-            expect(userBalance.netBalance).toBe(25.50);
-            expect(userBalance.totalOwed).toBe(25.50);
+            expect(userBalance.netBalance).toBe(25.5);
+            expect(userBalance.totalOwed).toBe(25.5);
             expect(userBalance.totalOwing).toBe(0);
         });
 
@@ -889,7 +835,7 @@ describe('GroupService - Unit Tests', () => {
                 totalOwed: 0,
                 totalOwing: 0,
             };
-            
+
             const currencyBalancesArray = Object.values(mockBalancesByCurrency);
             if (currencyBalancesArray.length > 0) {
                 const firstCurrencyBalances = currencyBalancesArray[0] as any;
@@ -918,10 +864,7 @@ describe('GroupService - Unit Tests', () => {
             it('should mark group for deletion with proper state', async () => {
                 const groupId = 'test-group-123';
                 const userId = 'test-user-123';
-                const mockGroup = new FirestoreGroupBuilder()
-                    .withId(groupId)
-                    .withCreatedBy(userId)
-                    .build();
+                const mockGroup = new FirestoreGroupBuilder().withId(groupId).withCreatedBy(userId).build();
 
                 mockFirestoreReader.getGroup.mockResolvedValue(mockGroup);
                 mockFirestoreReader.getAllGroupMembers.mockResolvedValue([]);
@@ -941,11 +884,11 @@ describe('GroupService - Unit Tests', () => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({
                         exists: true,
-                        data: () => ({ ...mockGroup })
+                        data: () => ({ ...mockGroup }),
                     }),
-                    update: vi.fn()
+                    update: vi.fn(),
                 };
-                
+
                 mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
                     return await fn(mockTransaction);
                 });
@@ -953,25 +896,18 @@ describe('GroupService - Unit Tests', () => {
                 // Access private method and call it
                 await (groupService as any).markGroupForDeletion(groupId);
 
-                expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledWith(
-                    expect.any(Function),
-                    {
-                        maxAttempts: 3,
-                        context: { operation: 'markGroupForDeletion', groupId }
-                    }
-                );
-                
-                expect(mockFirestoreWriter.getDocumentReferenceInTransaction).toHaveBeenCalledWith(
-                    mockTransaction,
-                    'groups',
-                    groupId
-                );
+                expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledWith(expect.any(Function), {
+                    maxAttempts: 3,
+                    context: { operation: 'markGroupForDeletion', groupId },
+                });
+
+                expect(mockFirestoreWriter.getDocumentReferenceInTransaction).toHaveBeenCalledWith(mockTransaction, 'groups', groupId);
                 expect(mockTransaction.update).toHaveBeenCalledWith(
                     mockGroupRef,
                     expect.objectContaining({
                         deletionStatus: 'deleting',
-                        deletionAttempts: 1
-                    })
+                        deletionAttempts: 1,
+                    }),
                 );
             });
 
@@ -988,17 +924,16 @@ describe('GroupService - Unit Tests', () => {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
-                            deletionAttempts: 1
-                        })
-                    })
+                            deletionAttempts: 1,
+                        }),
+                    }),
                 };
 
                 mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
                     return await fn(mockTransaction);
                 });
 
-                await expect((groupService as any).markGroupForDeletion(groupId))
-                    .rejects.toThrow('Group deletion is already in progress');
+                await expect((groupService as any).markGroupForDeletion(groupId)).rejects.toThrow('Group deletion is already in progress');
             });
 
             it('should prevent deletion of failed groups at max attempts', async () => {
@@ -1014,17 +949,16 @@ describe('GroupService - Unit Tests', () => {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'failed',
-                            deletionAttempts: 3
-                        })
-                    })
+                            deletionAttempts: 3,
+                        }),
+                    }),
                 };
 
                 mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
                     return await fn(mockTransaction);
                 });
 
-                await expect((groupService as any).markGroupForDeletion(groupId))
-                    .rejects.toThrow('Group deletion has failed 3 times. Manual intervention required.');
+                await expect((groupService as any).markGroupForDeletion(groupId)).rejects.toThrow('Group deletion has failed 3 times. Manual intervention required.');
             });
         });
 
@@ -1042,7 +976,7 @@ describe('GroupService - Unit Tests', () => {
 
                 // Should create 3 batches: 20 + 20 + 5
                 expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledTimes(3);
-                
+
                 // Check that bulkDeleteInTransaction was called for each batch
                 expect(mockFirestoreWriter.bulkDeleteInTransaction).toHaveBeenCalledTimes(3);
             });
@@ -1062,13 +996,11 @@ describe('GroupService - Unit Tests', () => {
                 const error = new Error('Transaction failed');
 
                 mockFirestoreWriter.runTransaction.mockRejectedValue(error);
-                
-                // Mock markGroupDeletionFailed
-                const markFailedSpy = vi.spyOn(groupService as any, 'markGroupDeletionFailed')
-                    .mockResolvedValue(undefined);
 
-                await expect((groupService as any).deleteBatch('expenses', groupId, documentPaths))
-                    .rejects.toThrow('Transaction failed');
+                // Mock markGroupDeletionFailed
+                const markFailedSpy = vi.spyOn(groupService as any, 'markGroupDeletionFailed').mockResolvedValue(undefined);
+
+                await expect((groupService as any).deleteBatch('expenses', groupId, documentPaths)).rejects.toThrow('Transaction failed');
 
                 expect(markFailedSpy).toHaveBeenCalledWith(groupId, 'Transaction failed');
             });
@@ -1086,9 +1018,9 @@ describe('GroupService - Unit Tests', () => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({
                         exists: true,
-                        data: () => ({ deletionStatus: 'deleting' })
+                        data: () => ({ deletionStatus: 'deleting' }),
                     }),
-                    delete: vi.fn()
+                    delete: vi.fn(),
                 };
 
                 mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
@@ -1098,13 +1030,10 @@ describe('GroupService - Unit Tests', () => {
                 await (groupService as any).finalizeGroupDeletion(groupId);
 
                 expect(mockTransaction.delete).toHaveBeenCalled();
-                expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledWith(
-                    expect.any(Function),
-                    {
-                        maxAttempts: 3,
-                        context: { operation: 'finalizeGroupDeletion', groupId }
-                    }
-                );
+                expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledWith(expect.any(Function), {
+                    maxAttempts: 3,
+                    context: { operation: 'finalizeGroupDeletion', groupId },
+                });
             });
 
             it('should reject if group is not marked for deletion', async () => {
@@ -1118,16 +1047,15 @@ describe('GroupService - Unit Tests', () => {
                 const mockTransaction = {
                     get: vi.fn().mockResolvedValue({
                         exists: true,
-                        data: () => ({ deletionStatus: 'none' })
-                    })
+                        data: () => ({ deletionStatus: 'none' }),
+                    }),
                 };
 
                 mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
                     return await fn(mockTransaction);
                 });
 
-                await expect((groupService as any).finalizeGroupDeletion(groupId))
-                    .rejects.toThrow('Group test-group-123 is not marked for deletion');
+                await expect((groupService as any).finalizeGroupDeletion(groupId)).rejects.toThrow('Group test-group-123 is not marked for deletion');
             });
         });
 
@@ -1135,24 +1063,17 @@ describe('GroupService - Unit Tests', () => {
             it('should execute atomic deletion process', async () => {
                 const groupId = 'test-group-123';
                 const userId = 'test-user-123';
-                const mockGroup = new FirestoreGroupBuilder()
-                    .withId(groupId)
-                    .withCreatedBy(userId)
-                    .build();
+                const mockGroup = new FirestoreGroupBuilder().withId(groupId).withCreatedBy(userId).build();
 
                 // Set up mocks for the full deletion process
                 mockFirestoreReader.getGroup.mockResolvedValue(mockGroup);
-                mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                    { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-                ]);
+                mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
                 mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
                 mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
-                
+
                 // Mock userService.getAllGroupMembers for DataFetcher balance calculation
-                mockUserService.getAllGroupMembers.mockResolvedValue([
-                    { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-                ]);
-                
+                mockUserService.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
+
                 // Mock getGroupDeletionData
                 mockFirestoreReader.getGroupDeletionData.mockResolvedValue({
                     expenses: { size: 0, docs: [] },
@@ -1161,16 +1082,13 @@ describe('GroupService - Unit Tests', () => {
                     balanceChanges: { size: 0, docs: [] },
                     shareLinks: { size: 0, docs: [] },
                     groupComments: { size: 0, docs: [] },
-                    expenseComments: []
+                    expenseComments: [],
                 });
 
                 // Mock all the atomic helper methods
-                const markForDeletionSpy = vi.spyOn(groupService as any, 'markGroupForDeletion')
-                    .mockResolvedValue(undefined);
-                const deleteBatchSpy = vi.spyOn(groupService as any, 'deleteBatch')
-                    .mockResolvedValue(undefined);
-                const finalizeDeletionSpy = vi.spyOn(groupService as any, 'finalizeGroupDeletion')
-                    .mockResolvedValue(undefined);
+                const markForDeletionSpy = vi.spyOn(groupService as any, 'markGroupForDeletion').mockResolvedValue(undefined);
+                const deleteBatchSpy = vi.spyOn(groupService as any, 'deleteBatch').mockResolvedValue(undefined);
+                const finalizeDeletionSpy = vi.spyOn(groupService as any, 'finalizeGroupDeletion').mockResolvedValue(undefined);
 
                 // Mock notification service
                 mockNotificationService.removeUserFromGroup.mockResolvedValue(undefined);
@@ -1185,29 +1103,20 @@ describe('GroupService - Unit Tests', () => {
             it('should handle deletion failures gracefully', async () => {
                 const groupId = 'test-group-123';
                 const userId = 'test-user-123';
-                const mockGroup = new FirestoreGroupBuilder()
-                    .withId(groupId)
-                    .withCreatedBy(userId)
-                    .build();
+                const mockGroup = new FirestoreGroupBuilder().withId(groupId).withCreatedBy(userId).build();
 
                 mockFirestoreReader.getGroup.mockResolvedValue(mockGroup);
-                mockFirestoreReader.getAllGroupMembers.mockResolvedValue([
-                    { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-                ]);
+                mockFirestoreReader.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
                 mockGroupMemberService.isGroupMemberAsync.mockResolvedValue(true);
                 mockGroupMemberService.isGroupOwnerAsync.mockResolvedValue(true);
-                
+
                 // Mock userService.getAllGroupMembers for DataFetcher balance calculation
-                mockUserService.getAllGroupMembers.mockResolvedValue([
-                    { userId: userId, memberRole: 'admin', memberStatus: 'active' }
-                ]);
+                mockUserService.getAllGroupMembers.mockResolvedValue([{ userId: userId, memberRole: 'admin', memberStatus: 'active' }]);
 
                 // Mock failure in markGroupForDeletion
-                vi.spyOn(groupService as any, 'markGroupForDeletion')
-                    .mockRejectedValue(new Error('Transaction failed'));
+                vi.spyOn(groupService as any, 'markGroupForDeletion').mockRejectedValue(new Error('Transaction failed'));
 
-                await expect(groupService.deleteGroup(groupId, userId))
-                    .rejects.toThrow('Transaction failed');
+                await expect(groupService.deleteGroup(groupId, userId)).rejects.toThrow('Transaction failed');
             });
         });
 
@@ -1215,7 +1124,7 @@ describe('GroupService - Unit Tests', () => {
             describe('findStuckDeletions', () => {
                 it('should find groups stuck in deleting status', async () => {
                     const stuckGroupIds = ['group1', 'group2'];
-                    
+
                     // Mock the encapsulated queryGroupsByDeletionStatus method
                     mockFirestoreWriter.queryGroupsByDeletionStatus.mockResolvedValue(stuckGroupIds);
 
@@ -1225,7 +1134,7 @@ describe('GroupService - Unit Tests', () => {
                     expect(mockFirestoreWriter.queryGroupsByDeletionStatus).toHaveBeenCalledWith(
                         'deleting',
                         expect.any(Object), // Timestamp
-                        '<='
+                        '<=',
                     );
                 });
             });
@@ -1233,15 +1142,15 @@ describe('GroupService - Unit Tests', () => {
             describe('getDeletionStatus', () => {
                 it('should return deletion status for existing group', async () => {
                     const groupId = 'test-group-123';
-                    
+
                     // Mock the encapsulated getSingleDocument method
                     const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
                             deletionAttempts: 2,
-                            deletionStartedAt: Timestamp.fromDate(new Date())
-                        })
+                            deletionStartedAt: Timestamp.fromDate(new Date()),
+                        }),
                     };
                     mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
@@ -1256,7 +1165,7 @@ describe('GroupService - Unit Tests', () => {
 
                 it('should return not exists for non-existent group', async () => {
                     const groupId = 'nonexistent-group';
-                    
+
                     // Mock the encapsulated getSingleDocument method to return null
                     mockFirestoreWriter.getSingleDocument.mockResolvedValue(null);
 
@@ -1272,19 +1181,18 @@ describe('GroupService - Unit Tests', () => {
             describe('recoverFailedDeletion', () => {
                 it('should mark group as failed when at max attempts', async () => {
                     const groupId = 'test-group-123';
-                    
+
                     // Mock the encapsulated getSingleDocument method
                     const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
-                            deletionAttempts: 3
-                        })
+                            deletionAttempts: 3,
+                        }),
                     };
                     mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
-                    const markFailedSpy = vi.spyOn(groupService as any, 'markGroupDeletionFailed')
-                        .mockResolvedValue(undefined);
+                    const markFailedSpy = vi.spyOn(groupService as any, 'markGroupDeletionFailed').mockResolvedValue(undefined);
 
                     const result = await groupService.recoverFailedDeletion(groupId, false);
 
@@ -1296,14 +1204,14 @@ describe('GroupService - Unit Tests', () => {
 
                 it('should reset deletion status for retry', async () => {
                     const groupId = 'test-group-123';
-                    
+
                     // Mock the encapsulated getSingleDocument method
                     const mockSnapshot = {
                         exists: true,
                         data: () => ({
                             deletionStatus: 'deleting',
-                            deletionAttempts: 1
-                        })
+                            deletionAttempts: 1,
+                        }),
                     };
                     mockFirestoreWriter.getSingleDocument.mockResolvedValue(mockSnapshot);
 
@@ -1313,11 +1221,11 @@ describe('GroupService - Unit Tests', () => {
                     const mockTransaction = {
                         get: vi.fn().mockResolvedValue({
                             exists: true,
-                            ref: mockDocRef
+                            ref: mockDocRef,
                         }),
-                        update: vi.fn()
+                        update: vi.fn(),
                     };
-                    
+
                     mockFirestoreWriter.runTransaction.mockImplementation(async (fn: any) => {
                         return await fn(mockTransaction);
                     });
@@ -1332,8 +1240,8 @@ describe('GroupService - Unit Tests', () => {
                         mockDocRef,
                         expect.objectContaining({
                             deletionStatus: undefined,
-                            deletionStartedAt: undefined
-                        })
+                            deletionStartedAt: undefined,
+                        }),
                     );
                 });
             });

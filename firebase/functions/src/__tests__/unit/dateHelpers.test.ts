@@ -40,7 +40,6 @@ describe('dateHelpers', () => {
         });
     });
 
-
     describe('createTrueServerTimestamp', () => {
         it('should create a FieldValue.serverTimestamp', () => {
             const serverTimestamp = createTrueServerTimestamp();
@@ -251,9 +250,9 @@ describe('dateHelpers', () => {
         it('should not mutate the original date', () => {
             const originalDate = new Date('2024-01-15T15:30:45.123Z');
             const originalISO = originalDate.toISOString();
-            
+
             getStartOfDay(originalDate);
-            
+
             expect(originalDate.toISOString()).toBe(originalISO);
         });
     });
@@ -269,9 +268,9 @@ describe('dateHelpers', () => {
         it('should not mutate the original date', () => {
             const originalDate = new Date('2024-01-15T10:30:00.000Z');
             const originalISO = originalDate.toISOString();
-            
+
             getEndOfDay(originalDate);
-            
+
             expect(originalDate.toISOString()).toBe(originalISO);
         });
     });
@@ -304,9 +303,7 @@ describe('dateHelpers', () => {
         });
 
         it('should throw error for non-UTC format', () => {
-            expect(() => parseUTCOnly('2024-01-15T10:30:00+05:00')).toThrow(
-                'Date must be in UTC format'
-            );
+            expect(() => parseUTCOnly('2024-01-15T10:30:00+05:00')).toThrow('Date must be in UTC format');
         });
     });
 
@@ -333,7 +330,7 @@ describe('dateHelpers', () => {
             const futureDate = new Date();
             futureDate.setDate(futureDate.getDate() + 2);
             const result = validateUTCDate(futureDate.toISOString());
-            
+
             expect(result.valid).toBe(false);
             expect(result.error).toBe('Date cannot be in the future');
         });
@@ -342,7 +339,7 @@ describe('dateHelpers', () => {
             const oldDate = new Date();
             oldDate.setFullYear(oldDate.getFullYear() - 15);
             const result = validateUTCDate(oldDate.toISOString());
-            
+
             expect(result.valid).toBe(false);
             expect(result.error).toContain('more than 10 years in the past');
         });

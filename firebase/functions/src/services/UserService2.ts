@@ -1,24 +1,24 @@
-import {UpdateRequest, UserRecord} from "firebase-admin/auth";
-import {Timestamp} from 'firebase-admin/firestore';
-import {getAuth} from '../firebase';
-import {AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor} from '@splitifyd/shared';
-import {logger} from '../logger';
-import {LoggerContext} from '../utils/logger-context';
-import {ApiError, Errors} from '../utils/errors';
-import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp} from '../utils/dateHelpers';
-import {getCurrentPolicyVersions} from '../auth/policy-helpers';
-import {assignThemeColor} from '../user-management/assign-theme-color';
-import {validateRegisterRequest} from '../auth/validation';
-import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
-import {measureDb} from '../monitoring/measure';
-import {UserDataSchema} from '../schemas/user';
-import {FirestoreValidationService} from './FirestoreValidationService';
-import {NotificationService} from './notification-service';
-import {CreateRequest} from "firebase-admin/lib/auth/auth-config";
-import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
-import {type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile} from "@splitifyd/shared/src";
+import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import { Timestamp } from 'firebase-admin/firestore';
+import { getAuth } from '../firebase';
+import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
+import { ApiError, Errors } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
+import { getCurrentPolicyVersions } from '../auth/policy-helpers';
+import { assignThemeColor } from '../user-management/assign-theme-color';
+import { validateRegisterRequest } from '../auth/validation';
+import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
+import { measureDb } from '../monitoring/measure';
+import { UserDataSchema } from '../schemas/user';
+import { FirestoreValidationService } from './FirestoreValidationService';
+import { NotificationService } from './notification-service';
+import { CreateRequest } from 'firebase-admin/lib/auth/auth-config';
+import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
 
 /**
  * User profile interface for consistent user data across the application
@@ -71,7 +71,7 @@ export class UserService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly validationService: FirestoreValidationService,
-        private readonly notificationService: NotificationService
+        private readonly notificationService: NotificationService,
     ) {}
 
     /**
@@ -112,7 +112,7 @@ export class UserService {
     }
 
     private async _getUser(userId: string): Promise<UserProfile> {
-        LoggerContext.update({userId});
+        LoggerContext.update({ userId });
 
         try {
             // Get user from Firebase Auth
@@ -149,7 +149,7 @@ export class UserService {
     }
 
     private async _getUsers(uids: string[]): Promise<Map<string, UserProfile>> {
-        LoggerContext.update({operation: 'batch-get-users', userCount: uids.length});
+        LoggerContext.update({ operation: 'batch-get-users', userCount: uids.length });
 
         const result = new Map<string, UserProfile>();
 
@@ -169,7 +169,7 @@ export class UserService {
      * Fetch a batch of users and add to result map
      */
     private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
-        const getUsersResult = await getAuth().getUsers(uids.map((uid) => ({uid})));
+        const getUsersResult = await getAuth().getUsers(uids.map((uid) => ({ uid })));
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
@@ -202,7 +202,7 @@ export class UserService {
     }
 
     private async _updateProfile(userId: string, requestBody: unknown, language: string = 'en'): Promise<UserProfile> {
-        LoggerContext.update({userId, operation: 'update-profile'});
+        LoggerContext.update({ userId, operation: 'update-profile' });
 
         // Validate the request body with localized error messages
         const validatedData = validateUpdateUserProfile(requestBody, language);
@@ -236,17 +236,12 @@ export class UserService {
 
             // Validate update object before applying to Firestore
             try {
-                this.validationService.validateBeforeWrite(
-                    UserDataSchema,
-                    firestoreUpdate,
-                    'UserData',
-                    {
-                        documentId: userId,
-                        collection: 'users',
-                        userId,
-                        operation: 'updateProfile',
-                    }
-                );
+                this.validationService.validateBeforeWrite(UserDataSchema, firestoreUpdate, 'UserData', {
+                    documentId: userId,
+                    collection: 'users',
+                    userId,
+                    operation: 'updateProfile',
+                });
             } catch (error) {
                 logger.error('User document update validation failed', error as Error, {
                     userId,
@@ -280,7 +275,7 @@ export class UserService {
      * @throws ApiError if password change fails
      */
     async changePassword(userId: string, requestBody: unknown): Promise<{ message: string }> {
-        LoggerContext.update({userId, operation: 'change-password'});
+        LoggerContext.update({ userId, operation: 'change-password' });
 
         // Validate the request body
         const validatedData = validateChangePassword(requestBody);
@@ -332,7 +327,7 @@ export class UserService {
      * @throws ApiError if deletion fails or user has active groups
      */
     async deleteAccount(userId: string, requestBody: unknown): Promise<{ message: string }> {
-        LoggerContext.update({userId, operation: 'delete-account'});
+        LoggerContext.update({ userId, operation: 'delete-account' });
 
         // Validate the request body - ensures confirmDelete is true
         validateDeleteUser(requestBody);
@@ -378,7 +373,7 @@ export class UserService {
 
     async getGroupMembersResponseFromSubcollection(groupId: string): Promise<GroupMembersResponse> {
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        const memberIds = memberDocs.map(doc => doc.userId);
+        const memberIds = memberDocs.map((doc) => doc.userId);
 
         const memberProfiles = await this.getUsers(memberIds);
 
@@ -446,7 +441,7 @@ export class UserService {
     }
 
     private async _registerUser(requestBody: UserRegistration): Promise<RegisterUserResult> {
-        LoggerContext.update({operation: 'register-user'});
+        LoggerContext.update({ operation: 'register-user' });
 
         // Validate the request body
         const userRegistration = validateRegisterRequest(requestBody);
@@ -457,7 +452,7 @@ export class UserService {
             success: true,
             message: 'Account created successfully',
             user,
-        }
+        };
     }
 
     async createUserDirect(userRegistration: UserRegistration): Promise<RegisteredUser> {
@@ -469,7 +464,7 @@ export class UserService {
             userRecord = await getAuth().createUser(c);
 
             // Add userId to context now that user is created
-            LoggerContext.update({userId: userRecord.uid});
+            LoggerContext.update({ userId: userRecord.uid });
 
             // Get current policy versions for user acceptance
             const currentPolicyVersions = await getCurrentPolicyVersions(this.firestoreReader);
@@ -481,7 +476,7 @@ export class UserService {
 
             // Create user document in Firestore
             const userDoc: FirestoreUserDocument = {
-                email: userRegistration.email,// todo: this looks like a security issue
+                email: userRegistration.email, // todo: this looks like a security issue
                 displayName: userRegistration.displayName,
                 role: SystemUserRoles.SYSTEM_USER, // Default role for new users
                 createdAt: createOptimisticTimestamp(),
@@ -501,17 +496,12 @@ export class UserService {
             // Validate user document before writing to Firestore
             try {
                 const validationService = this.validationService;
-                validationService.validateBeforeWrite(
-                    UserDataSchema,
-                    userDoc,
-                    'UserData',
-                    {
-                        documentId: userRecord.uid,
-                        collection: 'users',
-                        userId: userRecord.uid,
-                        operation: 'registerUser',
-                    }
-                );
+                validationService.validateBeforeWrite(UserDataSchema, userDoc, 'UserData', {
+                    documentId: userRecord.uid,
+                    collection: 'users',
+                    userId: userRecord.uid,
+                    operation: 'registerUser',
+                });
             } catch (error) {
                 logger.error('User document validation failed during registration', error as Error, {
                     userId: userRecord.uid,
@@ -536,7 +526,7 @@ export class UserService {
                     await getAuth().deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
-                    LoggerContext.update({userId: userRecord.uid});
+                    LoggerContext.update({ userId: userRecord.uid });
                     logger.error('Failed to cleanup orphaned auth user', cleanupError as Error);
                 }
             }

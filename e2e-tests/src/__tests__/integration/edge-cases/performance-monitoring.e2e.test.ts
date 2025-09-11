@@ -63,20 +63,20 @@ simpleTest.describe('Performance Monitoring E2E', () => {
         const performanceMetrics = await page.evaluate(() => {
             const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
             const paint = performance.getEntriesByType('paint');
-            
+
             return {
                 // Time to First Byte
                 ttfb: navigation.responseStart - navigation.fetchStart,
                 // DOM Content Loaded
                 domContentLoaded: navigation.domContentLoadedEventEnd - navigation.fetchStart,
                 // First Contentful Paint
-                fcp: paint.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
+                fcp: paint.find((entry) => entry.name === 'first-contentful-paint')?.startTime || 0,
                 // Load Complete
                 loadComplete: navigation.loadEventEnd - navigation.fetchStart,
                 // DNS Lookup Time
                 dnsTime: navigation.domainLookupEnd - navigation.domainLookupStart,
                 // Connection Time
-                connectionTime: navigation.connectEnd - navigation.connectStart
+                connectionTime: navigation.connectEnd - navigation.connectStart,
             };
         });
 
@@ -113,16 +113,16 @@ simpleTest.describe('Performance Monitoring E2E', () => {
         page.on('response', (response) => {
             const url = response.url();
             const status = response.status();
-            
+
             // Track resource types
             const resourceType = getResourceType(url);
             resourceTypes.set(resourceType, (resourceTypes.get(resourceType) || 0) + 1);
-            
+
             // Track failed requests
             if (status >= 400) {
                 failedRequests.push(`${status} - ${url}`);
             }
-            
+
             // No 4xx or 5xx errors should occur
             expect(status).toBeLessThan(400);
         });
@@ -130,13 +130,13 @@ simpleTest.describe('Performance Monitoring E2E', () => {
         // Visit all main pages
         await homepagePage.navigate();
         await page.waitForLoadState('networkidle');
-        
+
         await loginPage.navigate();
         await page.waitForLoadState('networkidle');
-        
+
         await registerPage.navigate();
         await page.waitForLoadState('networkidle');
-        
+
         await pricingPage.navigate();
         await page.waitForLoadState('networkidle');
 

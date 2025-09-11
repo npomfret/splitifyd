@@ -7,14 +7,14 @@ import { HTTP_STATUS } from '../../../constants';
 // Mock the service registration
 const mockFirestoreReader = new MockFirestoreReader();
 vi.mock('../../../services/serviceRegistration', () => ({
-    getFirestoreReader: vi.fn(() => mockFirestoreReader)
+    getFirestoreReader: vi.fn(() => mockFirestoreReader),
 }));
 
 // Mock logger
 vi.mock('../../../logger', () => ({
     logger: {
-        error: vi.fn()
-    }
+        error: vi.fn(),
+    },
 }));
 
 describe('Policy Helpers', () => {
@@ -33,18 +33,18 @@ describe('Policy Helpers', () => {
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1'
+                    currentVersionHash: 'hash1',
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy2',
                     policyName: 'Privacy Policy',
-                    currentVersionHash: 'hash2'
+                    currentVersionHash: 'hash2',
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3'
-                })
+                    currentVersionHash: 'hash3',
+                }),
             ];
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
@@ -53,9 +53,9 @@ describe('Policy Helpers', () => {
 
             expect(mockFirestoreReader.getAllPolicies).toHaveBeenCalledWith();
             expect(result).toEqual({
-                'policy1': 'hash1',
-                'policy2': 'hash2',
-                'policy3': 'hash3'
+                policy1: 'hash1',
+                policy2: 'hash2',
+                policy3: 'hash3',
             });
         });
 
@@ -72,18 +72,18 @@ describe('Policy Helpers', () => {
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1'
+                    currentVersionHash: 'hash1',
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy2',
                     policyName: 'Privacy Policy',
-                    currentVersionHash: undefined as any // Missing version hash
+                    currentVersionHash: undefined as any, // Missing version hash
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3'
-                })
+                    currentVersionHash: 'hash3',
+                }),
             ];
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
@@ -91,8 +91,8 @@ describe('Policy Helpers', () => {
             const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(result).toEqual({
-                'policy1': 'hash1',
-                'policy3': 'hash3'
+                policy1: 'hash1',
+                policy3: 'hash3',
             });
         });
 
@@ -101,18 +101,18 @@ describe('Policy Helpers', () => {
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1'
+                    currentVersionHash: 'hash1',
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy2',
                     policyName: 'Privacy Policy',
-                    currentVersionHash: '' // Empty string
+                    currentVersionHash: '', // Empty string
                 }),
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3'
-                })
+                    currentVersionHash: 'hash3',
+                }),
             ];
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
@@ -121,8 +121,8 @@ describe('Policy Helpers', () => {
 
             // Empty string should be excluded
             expect(result).toEqual({
-                'policy1': 'hash1',
-                'policy3': 'hash3'
+                policy1: 'hash1',
+                policy3: 'hash3',
             });
         });
 
@@ -131,7 +131,7 @@ describe('Policy Helpers', () => {
             mockFirestoreReader.getAllPolicies.mockRejectedValue(firestoreError);
 
             await expect(getCurrentPolicyVersions(mockFirestoreReader)).rejects.toThrow(ApiError);
-            
+
             try {
                 await getCurrentPolicyVersions(mockFirestoreReader);
             } catch (error) {
@@ -153,10 +153,7 @@ describe('Policy Helpers', () => {
             }
 
             const { logger } = await import('../../../logger');
-            expect(logger.error).toHaveBeenCalledWith(
-                'Failed to get current policy versions',
-                firestoreError
-            );
+            expect(logger.error).toHaveBeenCalledWith('Failed to get current policy versions', firestoreError);
         });
 
         it('should handle null policies in the array', async () => {
@@ -165,14 +162,14 @@ describe('Policy Helpers', () => {
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy1',
                     policyName: 'Terms of Service',
-                    currentVersionHash: 'hash1'
+                    currentVersionHash: 'hash1',
                 }),
                 null as any, // Null policy
                 mockFirestoreReader.createTestPolicyDocument({
                     id: 'policy3',
                     policyName: 'Cookie Policy',
-                    currentVersionHash: 'hash3'
-                })
+                    currentVersionHash: 'hash3',
+                }),
             ].filter(Boolean); // This would normally filter out null values
 
             mockFirestoreReader.getAllPolicies.mockResolvedValue(mockPolicies);
@@ -180,8 +177,8 @@ describe('Policy Helpers', () => {
             const result = await getCurrentPolicyVersions(mockFirestoreReader);
 
             expect(result).toEqual({
-                'policy1': 'hash1',
-                'policy3': 'hash3'
+                policy1: 'hash1',
+                policy3: 'hash3',
             });
         });
     });

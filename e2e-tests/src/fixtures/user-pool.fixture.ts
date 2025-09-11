@@ -1,5 +1,5 @@
-import {ApiDriver} from '@splitifyd/test-support';
-import {PooledTestUser} from "@splitifyd/shared";
+import { ApiDriver } from '@splitifyd/test-support';
+import { PooledTestUser } from '@splitifyd/shared';
 
 /**
  * Thin wrapper around the remote test user pool API.
@@ -14,7 +14,7 @@ export class UserPool {
         if (UserPool.instance) {
             throw new Error('UserPool has already been instantiated! Use getUserPool() to get the existing instance.');
         }
-        
+
         UserPool.instance = this;
         this.apiDriver = new ApiDriver();
         console.log('🔧 User pool initialized (remote API mode)');
@@ -43,9 +43,9 @@ export class UserPool {
         }
 
         this.usersInUse.delete(user.uid);
-        
+
         await this.apiDriver.returnTestUser(user.email);
-        
+
         console.log(`🏊 Returned pool user: ${user.email}`);
     }
 }

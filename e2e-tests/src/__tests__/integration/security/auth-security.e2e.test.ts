@@ -51,7 +51,7 @@ simpleTest.describe('Multi-User Security', () => {
         // Create two browser instances - User 1 and User 2
         const { page: page1, dashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: page2, user: user2 } = await newLoggedInBrowser();
-        
+
         // Create page objects
         const createGroupModalPage = new CreateGroupModalPage(page1, user1);
 

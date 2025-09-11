@@ -6,19 +6,18 @@ import type { GroupMemberDocument } from '@splitifyd/shared';
  * Used to migrate from group.members object structure to array structure
  */
 
-
 /**
  * Check if a user is a member of the group
  */
 export const isMemberInArray = (members: GroupMemberWithProfile[], userId: string): boolean => {
-    return members.some(member => member.uid === userId);
+    return members.some((member) => member.uid === userId);
 };
 
 /**
  * Find a member document in the array by user ID
  */
 export const getMemberDocFromArray = (members: GroupMemberDocument[], userId: string): GroupMemberDocument | undefined => {
-    return members.find(member => member.userId === userId);
+    return members.find((member) => member.userId === userId);
 };
 
 /**
@@ -33,7 +32,7 @@ export const isAdminInDocArray = (members: GroupMemberDocument[], userId: string
  * Find a member in the array by user ID (for GroupMemberWithProfile arrays)
  */
 export const getMemberFromArray = (members: GroupMemberWithProfile[], userId: string): GroupMemberWithProfile | undefined => {
-    return members.find(member => member.uid === userId);
+    return members.find((member) => member.uid === userId);
 };
 
 /**

@@ -1,14 +1,14 @@
 /**
  * FirestoreReader Unit Tests
- * 
+ *
  * Tests the basic functionality of the FirestoreReader service and MockFirestoreReader
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
 import { FirestoreReader } from '../../services/firestore/FirestoreReader';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
-import {getFirestore} from "../../firebase";
-import {ApplicationBuilder} from "../../services/ApplicationBuilder";
+import { getFirestore } from '../../firebase';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
@@ -32,23 +32,23 @@ describe('FirestoreReader', () => {
 
     test('should have all required interface methods', () => {
         const reader = new FirestoreReader(firestore);
-        
+
         // Document operations
         expect(typeof reader.getUser).toBe('function');
         expect(typeof reader.getGroup).toBe('function');
         expect(typeof reader.getExpense).toBe('function');
         expect(typeof reader.getSettlement).toBe('function');
         expect(typeof reader.getPolicy).toBe('function');
-        
+
         // Collection operations
         expect(typeof reader.getUsersById).toBe('function');
         expect(typeof reader.getGroupsForUser).toBe('function');
         expect(typeof reader.getExpensesForGroup).toBe('function');
-        
+
         // Transaction operations
         expect(typeof reader.getGroupInTransaction).toBe('function');
         expect(typeof reader.getUserInTransaction).toBe('function');
-        
+
         // Utility operations
         expect(typeof reader.documentExists).toBe('function');
     });
@@ -89,20 +89,20 @@ describe('MockFirestoreReader', () => {
         const testUser = MockFirestoreReader.createTestUser('user123');
         expect(testUser.id).toBe('user123');
         expect(testUser.email).toContain('@test.com');
-        
+
         const testGroup = MockFirestoreReader.createTestGroup('group456');
         expect(testGroup.id).toBe('group456');
         expect(testGroup.name).toContain('Test Group');
-        
+
         const testExpense = MockFirestoreReader.createTestExpense('expense789');
         expect(testExpense.id).toBe('expense789');
-        expect(testExpense.amount).toBe(10.00);
+        expect(testExpense.amount).toBe(10.0);
     });
 
     test('should allow mocking user existence', () => {
         const testUser = MockFirestoreReader.createTestUser('test-user');
         mockReader.mockUserExists('test-user', testUser);
-        
+
         // Mock is configured, can verify it was set up
         expect(mockReader.getUser).toBeDefined();
     });
