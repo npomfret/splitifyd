@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, ExpenseBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, PermissionLevels, Group } from '@splitifyd/shared';
 import {PooledTestUser, UserToken} from "@splitifyd/shared";
 
@@ -128,7 +128,7 @@ describe('Security and Permissions', () => {
 
             test('should prevent users from accessing other users expenses', async () => {
                 // Create an expense that excludes user[2]
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription('Private Expense')
                     .withAmount(100)
@@ -230,7 +230,7 @@ describe('Security and Permissions', () => {
             });
 
             test('any member can create expenses', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(openGroup.id)
                     .withDescription('Test expense by member')
                     .withAmount(50)
@@ -247,7 +247,7 @@ describe('Security and Permissions', () => {
 
             test('any member can edit any expense', async () => {
                 // Member 1 creates expense
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(openGroup.id)
                     .withDescription('Original description')
                     .withAmount(100)
@@ -298,7 +298,7 @@ describe('Security and Permissions', () => {
 
             test('only owner and admin can edit expenses', async () => {
                 // Create expense as member, include owner as participant so they can access it
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(managedGroup.id)
                     .withDescription('Member expense')
                     .withAmount(100)

@@ -1,8 +1,8 @@
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, GroupDetailPage } from '../../../pages';
 import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Leave Group E2E', () => {
@@ -130,13 +130,12 @@ test.describe('Leave Group E2E', () => {
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('Test expense for balance validation')
             .withAmount(60)
             .withCurrency('USD')
-            .withPaidBy(owner.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([owner.uid, member.uid])
             .build());
 
         // Wait for balances to update

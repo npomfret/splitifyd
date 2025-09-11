@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
 import {PooledTestUser} from "@splitifyd/shared";
 
 describe('GET /groups/balances - Group Balances', () => {
@@ -48,7 +48,7 @@ describe('GET /groups/balances - Group Balances', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
         // Create an expense where user 0 pays for everyone
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Dinner for everyone')
             .withAmount(150) // $1.50
@@ -81,7 +81,7 @@ describe('GET /groups/balances - Group Balances', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
         // Create multiple expenses with different payers
-        const expenseData1 = new ExpenseBuilder()
+        const expenseData1 = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Lunch')
             .withAmount(60) // $0.60
@@ -90,7 +90,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withSplitType('equal')
             .build();
 
-        const expenseData2 = new ExpenseBuilder()
+        const expenseData2 = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Coffee')
             .withAmount(20) // $0.20
@@ -167,7 +167,7 @@ describe('GET /groups/balances - Group Balances', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
 
         // Create expenses that would benefit from debt simplification
-        const expenseData1 = new ExpenseBuilder()
+        const expenseData1 = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('User 0 pays for all')
             .withAmount(300) // $3.00
@@ -176,7 +176,7 @@ describe('GET /groups/balances - Group Balances', () => {
             .withSplitType('equal')
             .build();
 
-        const expenseData2 = new ExpenseBuilder()
+        const expenseData2 = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('User 1 pays for User 0 and 2')
             .withAmount(120) // $1.20

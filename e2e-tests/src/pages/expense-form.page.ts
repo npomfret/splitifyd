@@ -5,13 +5,88 @@ import { PooledTestUser } from '@splitifyd/shared';
 import { groupDetailUrlPattern } from './group-detail.page.ts';
 
 // Match the ExpenseData interface from GroupDetailPage
-interface ExpenseData {
+export interface ExpenseFormData {
     description: string;
     amount: number;
     currency: string; // Required: must be explicitly provided
     paidByDisplayName: string;// the display name
     splitType: 'equal' | 'exact' | 'percentage';
     participants?: string[]; // Optional: if not provided, selects all members
+}
+
+// Builder for ExpenseData used in UI tests
+export class ExpenseFormDataBuilder {
+    private expense: ExpenseFormData;
+
+    constructor() {
+        this.expense = {
+            description: `${this.randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${this.randomString(4)}`,
+            amount: this.randomDecimal(5, 500),
+            currency: this.randomCurrency(),
+            paidByDisplayName: 'Test User', // Default fallback for UI tests
+            splitType: this.randomChoice(['equal', 'exact', 'percentage']),
+            participants: undefined // Will select all members by default
+        };
+    }
+
+    // Helper methods (duplicated here to avoid import complexity in e2e tests)
+    private randomString(length: number = 8): string {
+        return Math.random().toString(36).substring(2, 2 + length);
+    }
+
+    private randomDecimal(min: number = 1, max: number = 1000, decimals: number = 2): number {
+        const value = Math.random() * (max - min) + min;
+        return Number(value.toFixed(decimals));
+    }
+
+    private randomChoice<T>(choices: T[]): T {
+        return choices[Math.floor(Math.random() * choices.length)];
+    }
+
+    private randomCurrency(): string {
+        return this.randomChoice(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY']);
+    }
+
+    withDescription(description: string): this {
+        this.expense.description = description;
+        return this;
+    }
+
+    withAmount(amount: number): this {
+        this.expense.amount = amount;
+        return this;
+    }
+
+    withCurrency(currency: string): this {
+        this.expense.currency = currency;
+        return this;
+    }
+
+    withPaidByDisplayName(displayName: string): this {
+        this.expense.paidByDisplayName = displayName;
+        return this;
+    }
+
+    withSplitType(splitType: 'equal' | 'exact' | 'percentage'): this {
+        this.expense.splitType = splitType;
+        return this;
+    }
+
+    withParticipants(participants: string[]): this {
+        this.expense.participants = [...participants];
+        return this;
+    }
+
+    build(): ExpenseFormData {
+        return {
+            description: this.expense.description,
+            amount: this.expense.amount,
+            currency: this.expense.currency,
+            paidByDisplayName: this.expense.paidByDisplayName,
+            splitType: this.expense.splitType,
+            participants: this.expense.participants ? [...this.expense.participants] : undefined
+        };
+    }
 }
 
 export class ExpenseFormPage extends BasePage {
@@ -240,7 +315,7 @@ export class ExpenseFormPage extends BasePage {
      * Submit a complete expense with all required fields.
      * This method handles the full expense creation flow.
      */
-    async submitExpense(expense: ExpenseData): Promise<void> {
+    async submitExpense(expense: ExpenseFormData): Promise<void> {
         // Fill expense description
         await this.fillDescription(expense.description);
 

@@ -7,7 +7,7 @@ import {beforeEach, describe, expect, test} from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
 import { SecurityPresets, MemberRoles, Group } from '@splitifyd/shared';
 import {UserToken} from "@splitifyd/shared";
 
@@ -29,7 +29,7 @@ describe('Permission System Edge Cases', () => {
         });
 
         test('non-member cannot create expenses', async () => {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Non-member attempt')
                 .withAmount(50)
@@ -131,7 +131,7 @@ describe('Permission System Edge Cases', () => {
 
         test('role change invalidates permissions immediately', async () => {
             // First, member can create expenses (open collaboration default)
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(cacheGroup.id)
                 .withDescription('Before role change')
                 .withAmount(100)
@@ -165,7 +165,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Now viewer cannot create expenses (permission should be immediately invalidated)
-            const newExpenseData = new ExpenseBuilder()
+            const newExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(cacheGroup.id)
                 .withDescription('After role change')
                 .withAmount(50)
@@ -194,7 +194,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Member cannot edit admin's expense in managed mode
-            const adminExpenseData = new ExpenseBuilder()
+            const adminExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(managedGroup.id)
                 .withDescription('Admin expense')
                 .withAmount(200)
@@ -248,7 +248,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Create expense as member
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(customGroup.id)
                 .withDescription('Custom permission test')
                 .withAmount(75)
@@ -287,7 +287,7 @@ describe('Permission System Edge Cases', () => {
             );
 
             // Member can create/edit expenses
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(customGroup.id)
                 .withDescription('Mixed permission test')
                 .withAmount(120)
@@ -325,7 +325,7 @@ describe('Permission System Edge Cases', () => {
         test('concurrent expense operations work correctly', async () => {
             // Create multiple expenses concurrently
             const expensePromises = Array.from({ length: 3 }, (_, i) => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(concurrentGroup.id)
                     .withDescription(`Concurrent expense ${i + 1}`)
                     .withAmount(25 * (i + 1))

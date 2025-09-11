@@ -3,7 +3,7 @@ import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../page
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
 simpleTest.describe('Real-Time Edge Cases', () => {
     simpleTest('should handle user leaving while being added to new expense', async ({ newLoggedInBrowser }, testInfo) => {
@@ -56,13 +56,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseDescription = `Edge Leave Test ${randomString(4)}`;
         
         // Attempt to create expense including the leaving user
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(60)
             .withCurrency('USD')
-            .withPaidBy(creator.uid)
+            .withPaidByDisplayName(creatorDisplayName)
             .withSplitType('equal')
-            .withParticipants([creator.uid, leaving.uid, staying.uid]) // Including leaving user
             .build());
 
         // Wait for system to resolve the conflict
@@ -133,13 +132,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create expense creating debt (Owner paid $80, others owe $20 each)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(4);
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('Settlement Edge Test')
             .withAmount(80)
             .withCurrency('USD')
-            .withPaidBy(owner.uid)
+            .withPaidByDisplayName(ownerDisplayName)
             .withSplitType('equal')
-            .withParticipants([owner.uid, settling.uid, target.uid, watcher.uid])
             .build());
 
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -235,24 +233,22 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         
         // 1. User1 adds expense
         const expense1FormPage = await user1GroupDetailPage.clickAddExpenseButton(4);
-        await expense1FormPage.submitExpense(new ExpenseBuilder()
+        await expense1FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Stress 1 ${randomString(3)}`)
             .withAmount(40)
             .withCurrency('USD')
-            .withPaidBy(user1.uid)
+            .withPaidByDisplayName(user1DisplayName)
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build());
         
         // 2. User2 adds expense immediately  
         const expense2FormPage = await user2GroupDetailPage.clickAddExpenseButton(4);
-        await expense2FormPage.submitExpense(new ExpenseBuilder()
+        await expense2FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Stress 2 ${randomString(3)}`)
             .withAmount(30)
             .withCurrency('USD')
-            .withPaidBy(user2.uid)
+            .withPaidByDisplayName(user2DisplayName)
             .withSplitType('equal')
-            .withParticipants([user2.uid, user4.uid])
             .build());
 
         // 3. User1 adds comment
@@ -260,13 +256,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // 4. User4 adds expense
         const expense4FormPage = await user4GroupDetailPage.clickAddExpenseButton(4);
-        await expense4FormPage.submitExpense(new ExpenseBuilder()
+        await expense4FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Stress 3 ${randomString(3)}`)
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(user4.uid)
+            .withPaidByDisplayName(user4DisplayName)
             .withSplitType('equal')
-            .withParticipants([user1.uid, user4.uid])
             .build());
 
         // 5. User2 settles immediately
@@ -344,13 +339,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseFormPage = await activeGroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Network Test ${randomString(4)}`;
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(60)
             .withCurrency('USD')
-            .withPaidBy(active.uid)
+            .withPaidByDisplayName(activeDisplayName)
             .withSplitType('equal')
-            .withParticipants([active.uid, online.uid, offline.uid])
             .build());
 
         await activeGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -369,13 +363,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Add another expense to test continued real-time after "reconnection"
         const expense2FormPage = await activeGroupDetailPage.clickAddExpenseButton(3);
-        await expense2FormPage.submitExpense(new ExpenseBuilder()
+        await expense2FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`After Reconnect ${randomString(4)}`)
             .withAmount(30)
             .withCurrency('USD')
-            .withPaidBy(active.uid)
+            .withPaidByDisplayName(activeDisplayName)
             .withSplitType('equal')
-            .withParticipants([active.uid, offline.uid])
             .build());
 
         await activeGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -424,13 +417,12 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseFormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Conflict Test ${randomString(4)}`;
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(60)
             .withCurrency('USD')
-            .withPaidBy(editor1.uid)
+            .withPaidByDisplayName(editor1DisplayName)
             .withSplitType('equal')
-            .withParticipants([editor1.uid, editor2.uid, watcher.uid])
             .build());
 
         await editor1GroupDetailPage.waitForBalancesToLoad(groupId);

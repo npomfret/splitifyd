@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ExpenseBuilder, ApiDriver, TestGroupManager} from '@splitifyd/test-support';
+import {CreateExpenseRequestBuilder, ApiDriver, TestGroupManager} from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import {UserToken} from "@splitifyd/shared";
 
@@ -21,7 +21,7 @@ describe('Freeform Categories API Integration', () => {
         test('should create expense with custom category name', async () => {
             const uniqueId = uuidv4().slice(0, 8);
             const customCategory = `Custom Office Supplies ${uniqueId}`;
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Pens and notebooks ${uniqueId}`)
                 .withAmount(25.99)
@@ -40,7 +40,7 @@ describe('Freeform Categories API Integration', () => {
 
         test('should create expense with category containing special characters', async () => {
             const specialCategory = 'Café & Restaurant - Fine Dining';
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Business lunch')
                 .withAmount(75.5)
@@ -58,7 +58,7 @@ describe('Freeform Categories API Integration', () => {
 
         test('should create expense with category containing numbers and safe unicode characters', async () => {
             const safeCategory = 'iPhone 15 Pro - Mobile Device';
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('New phone')
                 .withAmount(999.0)
@@ -76,7 +76,7 @@ describe('Freeform Categories API Integration', () => {
 
         test('should create expense with maximum length category (50 characters)', async () => {
             const maxLengthCategory = 'A'.repeat(50); // Exactly 50 characters
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test expense')
                 .withAmount(10.0)
@@ -96,7 +96,7 @@ describe('Freeform Categories API Integration', () => {
     describe('Category Validation Edge Cases', () => {
         test('should reject expense with category exceeding 50 characters', async () => {
             const tooLongCategory = 'A'.repeat(51); // 51 characters
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test expense')
                 .withAmount(10.0)
@@ -110,7 +110,7 @@ describe('Freeform Categories API Integration', () => {
         });
 
         test('should reject expense with empty category', async () => {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test expense')
                 .withAmount(10.0)
@@ -124,7 +124,7 @@ describe('Freeform Categories API Integration', () => {
         });
 
         test('should reject expense with whitespace-only category', async () => {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test expense')
                 .withAmount(10.0)
@@ -141,7 +141,7 @@ describe('Freeform Categories API Integration', () => {
     describe('Expense Updates with Custom Categories', () => {
         test('should update expense from predefined to custom category', async () => {
             // Create expense with predefined category
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Dinner')
                 .withAmount(45.0)
@@ -174,7 +174,7 @@ describe('Freeform Categories API Integration', () => {
         test('should update expense from custom to predefined category', async () => {
             // Create expense with custom category
             const customCategory = 'Custom Business Expense';
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Office supplies')
                 .withAmount(35.0)
@@ -206,7 +206,7 @@ describe('Freeform Categories API Integration', () => {
         test('should update expense between different custom categories', async () => {
             // Create expense with first custom category
             const firstCategory = 'Home Improvement - Kitchen';
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Kitchen renovation')
                 .withAmount(150.0)
@@ -240,7 +240,7 @@ describe('Freeform Categories API Integration', () => {
             const predefinedCategories = PREDEFINED_EXPENSE_CATEGORIES.map((cat) => cat.name).slice(0, 3); // just try some of them
 
             for (const category of predefinedCategories) {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Test ${category}`)
                     .withAmount(20.0)
@@ -261,7 +261,7 @@ describe('Freeform Categories API Integration', () => {
     describe('Category Security and Sanitization', () => {
         test('should reject categories with potential HTML content for security', async () => {
             const categoryWithHtml = '<script>alert("xss")</script>Office Supplies';
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test security')
                 .withAmount(10.0)
@@ -277,7 +277,7 @@ describe('Freeform Categories API Integration', () => {
 
         test('should handle categories with special SQL-like characters', async () => {
             const sqlLikeCategory = "'; DROP TABLE expenses; --";
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test SQL-like input')
                 .withAmount(10.0)

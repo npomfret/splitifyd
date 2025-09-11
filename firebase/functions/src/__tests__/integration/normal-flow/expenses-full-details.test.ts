@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {ApiDriver, borrowTestUsers, ExpenseBuilder, TestGroupManager} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, TestGroupManager} from '@splitifyd/test-support';
 import {UserToken} from "@splitifyd/shared";
 
 describe('Expenses Full Details API', () => {
@@ -20,7 +20,7 @@ describe('Expenses Full Details API', () => {
 
         // Create a test expense with unique description
         const uniqueId = Math.random().toString(36).slice(2, 10);
-        const expense = await apiDriver.createExpense(new ExpenseBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
+        const expense = await apiDriver.createExpense(new CreateExpenseRequestBuilder().withGroupId(groupId).withDescription(`Full details test expense ${uniqueId}`).withPaidBy(alice.uid).withParticipants([alice.uid, bob.uid, charlie.uid]).withSplitType('equal').build(), alice.token);
         expenseId = expense.id;
     });
 
@@ -81,7 +81,7 @@ describe('Expenses Full Details API', () => {
             // Create expense with custom splits
             const uniqueId = Math.random().toString(36).slice(2, 10);
             const complexExpense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withDescription(`Complex expense test ${uniqueId}`)
                     .withAmount(100)

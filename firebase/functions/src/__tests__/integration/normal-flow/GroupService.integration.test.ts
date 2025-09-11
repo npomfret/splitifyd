@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, test} from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder, generateShortId} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, generateShortId} from '@splitifyd/test-support';
 import {GroupService} from '../../../services/GroupService';
 import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
 import {ApiError} from '../../../utils/errors';
@@ -120,7 +120,7 @@ describe('GroupService - Integration Tests', () => {
         test('should calculate balances correctly with expenses', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
@@ -234,7 +234,7 @@ describe('GroupService - Integration Tests', () => {
         test('should successfully delete group with expenses (hard delete)', async () => {
             // Add an expense to the group
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroupId)
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
@@ -292,7 +292,7 @@ describe('GroupService - Integration Tests', () => {
         test('should calculate balances correctly with multiple expenses', async () => {
             // Add multiple expenses
             const expense1 = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroupId)
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])
@@ -303,7 +303,7 @@ describe('GroupService - Integration Tests', () => {
             );
 
             const expense2 = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroupId)
                     .withPaidBy(member.uid)
                     .withParticipants([creator.uid, member.uid])
@@ -453,7 +453,7 @@ describe('GroupService - Integration Tests', () => {
             
             // Add an expense to test balance calculation
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(creator.uid)
                     .withParticipants([creator.uid, member.uid])

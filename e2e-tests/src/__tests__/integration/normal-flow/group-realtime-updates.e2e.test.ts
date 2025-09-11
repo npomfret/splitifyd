@@ -1,9 +1,9 @@
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
 
 simpleTest.describe('Group Real-Time Updates E2E', () => {
     // This test has been enhanced to test true real-time updates WITHOUT page reloads
@@ -159,13 +159,13 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const expenseDescription = `Lunch ${randomString(4)}`;
         const expenseAmount = 60; // $60 split 3 ways = $20 each
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(expenseAmount)
             .withCurrency('USD')
-            .withPaidBy(user1.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid, user3.uid]) // User 4 deliberately excluded
+// User 4 deliberately excluded
             .build());
         
         // Wait for balances to update

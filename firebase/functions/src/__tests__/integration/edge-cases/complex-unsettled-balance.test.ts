@@ -1,6 +1,6 @@
 import {describe, test, expect, beforeEach} from 'vitest';
 import {ApiDriver, CreateGroupRequestBuilder, borrowTestUsers} from '@splitifyd/test-support';
-import { ExpenseBuilder } from '@splitifyd/test-support';
+import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { SettlementBuilder } from '@splitifyd/test-support';
 import {UserToken} from "@splitifyd/shared";
 
@@ -35,7 +35,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         const currency = 'USD';
 
         // Alice adds beach house expense ($800) - paid by Alice, split equally among all
-        const expense1Data = new ExpenseBuilder()
+        const expense1Data = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Beach House Rental')
             .withAmount(80000) // $800.00 in cents
@@ -48,7 +48,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.createExpense(expense1Data, user1.token);
 
         // Bob adds restaurant expense ($120) - paid by Bob, split equally among all
-        const expense2Data = new ExpenseBuilder()
+        const expense2Data = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Restaurant Dinner')
             .withAmount(12000) // $120.00 in cents
@@ -110,7 +110,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Alice pays $150 expense split equally between Alice and Bob
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('One Person Pays')
             .withAmount(150) // $150.00 in dollars (not cents!)
@@ -214,7 +214,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user3.token);
 
         // Alice pays $300 USD expense, split equally among all 3
-        const usdExpense = new ExpenseBuilder()
+        const usdExpense = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Hotel - USD')
             .withAmount(300)
@@ -226,7 +226,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.createExpense(usdExpense, user1.token);
 
         // Bob pays €240 EUR expense, split equally among all 3
-        const eurExpense = new ExpenseBuilder()
+        const eurExpense = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Dinner - EUR')
             .withAmount(240)
@@ -238,7 +238,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.createExpense(eurExpense, user2.token);
 
         // Charlie pays £180 GBP expense, split equally among all 3
-        const gbpExpense = new ExpenseBuilder()
+        const gbpExpense = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Transport - GBP')
             .withAmount(180)
@@ -297,7 +297,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Alice pays $200 expense, split equally - Bob owes Alice $100
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Large Expense')
             .withAmount(200)
@@ -369,7 +369,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Alice pays $120 expense, split equally - Bob owes Alice $60
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Shared Expense')
             .withAmount(120)
@@ -411,7 +411,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Create the exact same expense as the E2E test
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('Test Expense - Equal Split')
             .withAmount(150) // $150.00 in dollars - same as E2E test
@@ -460,7 +460,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
         // Alice pays $200 USD expense, split equally - Bob owes Alice $100 USD
-        const usdExpense = new ExpenseBuilder()
+        const usdExpense = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('USD Expense')
             .withAmount(200)
@@ -472,7 +472,7 @@ describe('Complex Unsettled Balance - API Integration Test', () => {
         await apiDriver.createExpense(usdExpense, user1.token);
 
         // Bob pays €150 EUR expense, split equally - Alice owes Bob €75 EUR
-        const eurExpense = new ExpenseBuilder()
+        const eurExpense = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription('EUR Expense')
             .withAmount(150)

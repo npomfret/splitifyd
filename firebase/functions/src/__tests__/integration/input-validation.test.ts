@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, TestGroupManager, ExpenseBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, TestGroupManager, CreateExpenseRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
 import {PooledTestUser} from "@splitifyd/shared";
 
@@ -22,7 +22,7 @@ describe('Input Validation', () => {
         describe('Decimal Precision Edge Cases', () => {
             test('should handle very small amounts with proper precision', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(0.01) // 1 cent
                     .withDescription(`Small amount test ${uniqueId}`)
@@ -45,7 +45,7 @@ describe('Input Validation', () => {
 
             test('should handle amounts with many decimal places', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(33.333333) // Many decimal places
                     .withDescription(`Decimal places test ${uniqueId}`)
@@ -68,7 +68,7 @@ describe('Input Validation', () => {
 
             test('should handle very large amounts', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(999999.99) // Nearly one million
                     .withDescription(`Large amount test ${uniqueId}`)
@@ -92,7 +92,7 @@ describe('Input Validation', () => {
         describe('Invalid Amount Validation', () => {
             test('should reject zero amounts', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(0)
                     .withDescription(`Zero amount test ${uniqueId}`)
@@ -105,7 +105,7 @@ describe('Input Validation', () => {
 
             test('should reject negative amounts', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(-50)
                     .withDescription(`Negative amount test ${uniqueId}`)
@@ -117,7 +117,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject very small negative numbers', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withAmount(-0.01)
@@ -131,7 +131,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject negative infinity', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withAmount(Number.NEGATIVE_INFINITY)
@@ -145,7 +145,7 @@ describe('Input Validation', () => {
             });
 
             test('should handle NaN values gracefully', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withAmount(NaN)
@@ -160,7 +160,7 @@ describe('Input Validation', () => {
 
             test('should reject negative amounts when updating expense', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withAmount(100)
@@ -184,7 +184,7 @@ describe('Input Validation', () => {
     describe('Split Validation', () => {
         describe('Exact Split Validation', () => {
             test('should reject splits that do not add up to total amount', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -200,7 +200,7 @@ describe('Input Validation', () => {
 
             test('should accept splits with minor rounding differences (within 1 cent)', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Rounding test ${uniqueId}`)
                     .withAmount(100)
@@ -223,7 +223,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject splits with differences greater than 1 cent', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -238,7 +238,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject negative split amounts', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -253,7 +253,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject zero split amounts', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -268,7 +268,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject duplicate users in splits', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(100)
                     .withPaidBy(users[0].uid)
@@ -284,7 +284,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject splits for users not in participants list', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -299,7 +299,7 @@ describe('Input Validation', () => {
             });
 
             test('should require splits for all participants in exact split type', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('exact')
@@ -316,7 +316,7 @@ describe('Input Validation', () => {
 
         describe('Percentage Split Validation', () => {
             test('should reject percentages that do not add up to 100%', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('percentage')
@@ -332,7 +332,7 @@ describe('Input Validation', () => {
 
             test('should accept percentages with minor rounding differences (within 0.01%)', async () => {
                 const uniqueId = uuidv4().slice(0, 8);
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Percentage rounding test ${uniqueId}`)
                     .withAmount(100)
@@ -355,7 +355,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject negative percentages', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('percentage')
@@ -370,7 +370,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject percentages over 100%', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('percentage')
@@ -384,7 +384,7 @@ describe('Input Validation', () => {
             });
 
             test('should require splits for all participants in percentage split type', async () => {
-                const expenseData = new ExpenseBuilder()
+                const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
                     .withSplitType('percentage')
@@ -460,7 +460,7 @@ describe('Input Validation', () => {
     describe('Date Validation', () => {
         test('should reject invalid date formats', async () => {
             const expenseData = {
-                ...new ExpenseBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
+                ...new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build(),
                 date: 'invalid-date-format',
             };
 
@@ -471,7 +471,7 @@ describe('Input Validation', () => {
             const futureDate = new Date();
             futureDate.setFullYear(futureDate.getFullYear() + 1);
 
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDate(futureDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             await expect(apiDriver.createExpense(expenseData, users[0].token)).rejects.toThrow();
         });
@@ -481,7 +481,7 @@ describe('Input Validation', () => {
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Valid date test ${uniqueId}`).withDate(validDate.toISOString()).withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
@@ -491,7 +491,7 @@ describe('Input Validation', () => {
     describe('Category Validation', () => {
         test('should accept valid category', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const expenseData = new ExpenseBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
+            const expenseData = new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withDescription(`Valid category test ${uniqueId}`).withCategory('food').withPaidBy(users[0].uid).withParticipants([users[0].uid]).withSplitType('equal').build();
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();

@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
 import {PooledTestUser} from "@splitifyd/shared";
 
 describe('GET /groups - List Groups', () => {
@@ -137,7 +137,7 @@ describe('GET /groups - List Groups', () => {
         const testGroup = response.groups[0];
 
         // Add an expense
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription(`Test expense for listGroups`)
             .withAmount(100)

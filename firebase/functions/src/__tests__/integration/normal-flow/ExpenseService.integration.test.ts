@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import {ApiDriver, ExpenseBuilder, borrowTestUsers} from '@splitifyd/test-support';
+import {ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers} from '@splitifyd/test-support';
 import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
@@ -43,7 +43,7 @@ describe('ExpenseService - Integration Tests', () => {
         beforeEach(async () => {
             // Create a test expense for getExpense tests
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(alice.uid)
                     .withParticipants([alice.uid, bob.uid])
@@ -100,7 +100,7 @@ describe('ExpenseService - Integration Tests', () => {
         beforeEach(async () => {
             // Create multiple test expenses
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(alice.uid)
                     .withParticipants([alice.uid, bob.uid])
@@ -112,7 +112,7 @@ describe('ExpenseService - Integration Tests', () => {
             );
 
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(bob.uid)
                     .withParticipants([alice.uid, bob.uid])
@@ -124,7 +124,7 @@ describe('ExpenseService - Integration Tests', () => {
             );
 
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(alice.uid)
                     .withParticipants([alice.uid, charlie.uid])
@@ -336,7 +336,7 @@ describe('ExpenseService - Integration Tests', () => {
         beforeEach(async () => {
             // Create expense to update
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(alice.uid)
                     .withParticipants([alice.uid, bob.uid])
@@ -404,7 +404,7 @@ describe('ExpenseService - Integration Tests', () => {
         beforeEach(async () => {
             // Create expense to delete
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(groupId)
                     .withPaidBy(alice.uid)
                     .withParticipants([alice.uid, bob.uid])

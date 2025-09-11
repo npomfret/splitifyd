@@ -7,7 +7,7 @@ import {
     setupNotificationTest, cleanupNotificationTest, 
     createBasicExpense, createMultiMemberGroup
 } from './shared-setup';
-import {CreateGroupRequestBuilder, ExpenseBuilder} from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, CreateExpenseRequestBuilder} from '@splitifyd/test-support';
 
 describe('Multi-User Notifications Integration Tests', () => {
     setupNotificationTest;
@@ -211,7 +211,7 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             // 3. Test different expense participation combinations
             console.log('Creating expense 1: User1 solo expense...');
-            const expense1 = new ExpenseBuilder()
+            const expense1 = new CreateExpenseRequestBuilder()
                 .withGroupId(multiUserGroup.id)
                 .withAmount(10.00)
                 .withPaidBy(users[0].uid)
@@ -226,7 +226,7 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('Creating expense 2: User1 + User2 expense (excludes User3)...');
             const beforeExpense2 = Date.now();
-            const expense2 = new ExpenseBuilder()
+            const expense2 = new CreateExpenseRequestBuilder()
                 .withGroupId(multiUserGroup.id)
                 .withAmount(20.00)
                 .withPaidBy(users[0].uid)
@@ -240,7 +240,7 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('Creating expense 3: User2 + User3 expense (excludes User1)...');
             const beforeExpense3 = Date.now();
-            const expense3 = new ExpenseBuilder()
+            const expense3 = new CreateExpenseRequestBuilder()
                 .withGroupId(multiUserGroup.id)
                 .withAmount(30.00)
                 .withPaidBy(users[1].uid)
@@ -254,7 +254,7 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('Creating expense 4: All users expense...');
             const beforeExpense4 = Date.now();
-            const expense4 = new ExpenseBuilder()
+            const expense4 = new CreateExpenseRequestBuilder()
                 .withGroupId(multiUserGroup.id)
                 .withAmount(40.00)
                 .withPaidBy(users[0].uid)

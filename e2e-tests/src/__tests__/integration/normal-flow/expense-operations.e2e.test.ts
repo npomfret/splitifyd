@@ -2,7 +2,7 @@ import {simpleTest as test, expect} from '../../../fixtures/simple-test.fixture'
 import {GroupDetailPage, ExpenseDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {ExpenseBuilder} from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import {v4 as uuidv4} from 'uuid';
 
 test.describe('Basic Expense Operations E2E', () => {
@@ -16,11 +16,11 @@ test.describe('Basic Expense Operations E2E', () => {
 
         // Create expense using page object
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Test Expense Lifecycle ${uniqueId}`)
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(groupInfo.user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -56,11 +56,11 @@ test.describe('Basic Expense Operations E2E', () => {
 
         // Step 1: Create initial expense with equal split
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(totalMembers);
-        const initialExpenseData = new ExpenseBuilder()
+        const initialExpenseData = new ExpenseFormDataBuilder()
             .withDescription(`Edit Split Test ${uniqueId}`)
             .withAmount(100) // Nice round number for testing
             .withCurrency('USD')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build();
 

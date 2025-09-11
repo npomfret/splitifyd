@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import {CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, AppDriver, ApiDriver, borrowTestUsers, generateShortId} from '@splitifyd/test-support';
+import {CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, AppDriver, ApiDriver, borrowTestUsers, generateShortId} from '@splitifyd/test-support';
 import {getFirestore} from "../../../firebase";
 import {UserToken} from "@splitifyd/shared";
 
@@ -102,7 +102,7 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
@@ -128,7 +128,7 @@ describe('User Notification System Integration Tests', () => {
 
             // Create expense with multiple participants
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
@@ -158,7 +158,7 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
@@ -189,7 +189,7 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
@@ -222,7 +222,7 @@ describe('User Notification System Integration Tests', () => {
             await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
 
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid])
@@ -292,7 +292,7 @@ describe('User Notification System Integration Tests', () => {
 
             // Create expense
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])

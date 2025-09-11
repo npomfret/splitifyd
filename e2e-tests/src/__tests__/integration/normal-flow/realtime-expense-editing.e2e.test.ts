@@ -1,9 +1,9 @@
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { ExpenseBuilder } from '@splitifyd/test-support';
 
 simpleTest.describe('Real-Time Expense Editing', () => {
     simpleTest('should show expense edits in real-time to all users on group page', async ({ newLoggedInBrowser }, testInfo) => {
@@ -47,13 +47,12 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const originalDescription = `Edit Test ${randomString(4)}`;
         const originalAmount = 60;
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(originalDescription)
             .withAmount(originalAmount)
             .withCurrency('USD')
-            .withPaidBy(editor.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([editor.uid, watcher1.uid, watcher2.uid])
             .build());
 
         // Wait for expense to appear for all users
@@ -147,13 +146,12 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const originalDescription = `Dashboard Edit ${randomString(4)}`;
         const originalAmount = 40;
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(originalDescription)
             .withAmount(originalAmount)
             .withCurrency('USD')
-            .withPaidBy(editor.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([editor.uid, dashWatcher1.uid])
             .build());
 
         await editorGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -221,26 +219,24 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expense1FormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
         const expense1Description = `Concurrent Test 1 ${randomString(4)}`;
         
-        await expense1FormPage.submitExpense(new ExpenseBuilder()
+        await expense1FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expense1Description)
             .withAmount(30)
             .withCurrency('USD')
-            .withPaidBy(editor1.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([editor1.uid, editor2.uid, watcher.uid])
             .build());
 
         // Editor2 creates second expense (concurrent with first)
         const expense2FormPage = await editor2GroupDetailPage.clickAddExpenseButton(3);
         const expense2Description = `Concurrent Test 2 ${randomString(4)}`;
         
-        await expense2FormPage.submitExpense(new ExpenseBuilder()
+        await expense2FormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expense2Description)
             .withAmount(45)
             .withCurrency('USD')
-            .withPaidBy(editor2.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([editor1.uid, editor2.uid, watcher.uid])
             .build());
 
         // Wait for both expenses to appear
@@ -329,13 +325,12 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expenseFormPage = await deleterGroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Delete Test ${randomString(4)}`;
         
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(deleter.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([deleter.uid, groupWatcher.uid])
             .build());
 
         await deleterGroupDetailPage.waitForBalancesToLoad(groupId);

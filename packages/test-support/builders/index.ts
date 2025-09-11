@@ -3,7 +3,7 @@ export { CreateGroupRequestBuilder } from './CreateGroupRequestBuilder';
 export { GroupMemberBuilder } from './GroupMemberBuilder';
 export { GroupMemberDocumentBuilder } from './GroupMemberDocumentBuilder';
 export { GroupChangeDocumentBuilder } from './GroupChangeDocumentBuilder';
-export { ExpenseBuilder } from './ExpenseBuilder';
+export { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
 export { SettlementBuilder } from './SettlementBuilder';
 export { ExpenseUpdateBuilder } from './ExpenseUpdateBuilder';
 export { SettlementUpdateBuilder } from './SettlementUpdateBuilder';

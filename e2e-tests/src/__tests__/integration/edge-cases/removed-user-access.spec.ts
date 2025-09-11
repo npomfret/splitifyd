@@ -4,7 +4,7 @@ import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
 import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {DashboardPage, JoinGroupPage} from '../../../pages';
-import {ExpenseBuilder} from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
 
 simpleTest.describe('Multi-User Group Access', () => {
@@ -48,13 +48,12 @@ simpleTest.describe('Multi-User Group Access', () => {
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
         await expect(user2Page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
-        const sharedExpense = new ExpenseBuilder()
+        const sharedExpense = new ExpenseFormDataBuilder()
             .withDescription(`Shared Expense ${uniqueId}`)
             .withAmount(25.50)
             .withCurrency('USD')
-            .withPaidBy(user2.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build();
         
         await expenseFormPage.submitExpense(sharedExpense);
@@ -95,25 +94,23 @@ simpleTest.describe('Multi-User Group Access', () => {
         
         // Both users add expenses to create some activity
         const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);
-        await adminExpenseForm.submitExpense(new ExpenseBuilder()
+        await adminExpenseForm.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Admin Expense ${uniqueId}`)
             .withAmount(50.00)
             .withCurrency('USD')
-            .withPaidBy(adminUser.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([adminUser.uid, memberUser.uid])
             .build());
         
         await groupDetailPage.waitForBalancesToLoad(groupId);
         
         // Member adds expense
-        const memberExpense = new ExpenseBuilder()
+        const memberExpense = new ExpenseFormDataBuilder()
             .withDescription(`Member Expense ${uniqueId}`)
             .withAmount(30.00)
             .withCurrency('USD')
-            .withPaidBy(memberUser.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([adminUser.uid, memberUser.uid])
             .build();
         
         const memberExpenseForm = await memberGroupDetailPage.clickAddExpenseButton(2);

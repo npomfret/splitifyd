@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, ExpenseBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import {PooledTestUser} from "@splitifyd/shared";
@@ -24,7 +24,7 @@ describe('Expenses API', () => {
 
     describe('Expense Creation', () => {
         test('should add an expense to the group', async () => {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withPaidBy(users[0].uid)
                 .withParticipants(users.slice(0, 3).map((u) => u.uid)) // Only use the 3 members in the group
@@ -42,7 +42,7 @@ describe('Expenses API', () => {
         });
 
         test('should add an expense with an unequal split', async () => {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Unequal Split Expense')
                 .withAmount(100)
@@ -78,7 +78,7 @@ describe('Expenses API', () => {
             // Add multiple expenses with unique descriptions for this test
             const uniqueId = uuidv4().slice(0, 8);
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(100)
                     .withPaidBy(users[0].uid)
@@ -90,7 +90,7 @@ describe('Expenses API', () => {
             );
 
             await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(50)
                     .withPaidBy(users[1].uid)
@@ -113,7 +113,7 @@ describe('Expenses API', () => {
 
     describe('Expense Updates', () => {
         test('should update an expense', async () => {
-            const initialExpenseData = new ExpenseBuilder()
+            const initialExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withAmount(100)
                 .withPaidBy(users[0].uid)
@@ -139,7 +139,7 @@ describe('Expenses API', () => {
 
         test('should allow expense creator to edit their expense', async () => {
             const uniqueId = uuidv4().slice(0, 8);
-            const initialExpenseData = new ExpenseBuilder()
+            const initialExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Original Expense ${uniqueId}`)
                 .withAmount(100)
@@ -176,7 +176,7 @@ describe('Expenses API', () => {
 
         test('should allow group owner to edit any expense', async () => {
             // Create expense by user 1
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('User 1 Expense')
                 .withAmount(50)
@@ -212,7 +212,7 @@ describe('Expenses API', () => {
             );
 
             // Create expense by user 0
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Owner Expense')
                 .withAmount(100)
@@ -228,7 +228,7 @@ describe('Expenses API', () => {
         });
 
         test('should recalculate splits when amount is updated with equal split type', async () => {
-            const testExpenseData = new ExpenseBuilder()
+            const testExpenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Split Recalculation Test')
                 .withAmount(100)
@@ -278,7 +278,7 @@ describe('Expenses API', () => {
 
             // Create a test expense for access control tests
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder()
+                new CreateExpenseRequestBuilder()
                     .withGroupId(managedGroupId)
                     .withPaidBy(users[0].uid)
                     .withParticipants([users[0].uid, users[1].uid])
@@ -334,7 +334,7 @@ describe('Expenses API', () => {
     describe('Edit History Tracking', () => {
         test('should track edit history when expense is updated', async () => {
             // Create expense
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('History Test Expense')
                 .withAmount(100)

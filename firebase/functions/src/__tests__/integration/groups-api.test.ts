@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, borrowTestUsers, borrowTestUser } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, borrowTestUsers, borrowTestUser } from '@splitifyd/test-support';
 import { GroupService } from '../../services/GroupService';
 import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
@@ -134,7 +134,7 @@ describe('Groups API', () => {
 
         test('should include balance information', async () => {
             // Create an expense to generate balance
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription('Test expense')
                 .withAmount(100)

@@ -1,6 +1,6 @@
 import { Group } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
-import { ExpenseBuilder } from './builders';
+import { CreateExpenseRequestBuilder } from './builders';
 import { generateShortId } from './test-helpers';
 import { TestGroupManager } from './TestGroupManager';
 import {UserToken} from "@splitifyd/shared";
@@ -59,7 +59,7 @@ export class TestExpenseManager {
         const uniqueId = generateShortId();
         const expenseDescription = description || `Shared expense ${uniqueId}`;
 
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(group.id)
             .withDescription(expenseDescription)
             .withAmount(amount)

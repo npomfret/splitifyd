@@ -3,7 +3,7 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
-import {ExpenseBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
 import {UserToken} from "@splitifyd/shared";
 
 describe('Optimistic Locking Integration Tests', () => {
@@ -115,7 +115,7 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create an expense
             const expense = await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
+                new CreateExpenseRequestBuilder().withGroupId(group.id).withDescription('Test Expense').withAmount(100).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
 
@@ -163,11 +163,11 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Create multiple expenses
             const expense1 = await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Test Expense for Deletion').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
+                new CreateExpenseRequestBuilder().withGroupId(group.id).withDescription('Test Expense for Deletion').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
             await apiDriver.createExpense(
-                new ExpenseBuilder().withGroupId(group.id).withDescription('Another expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
+                new CreateExpenseRequestBuilder().withGroupId(group.id).withDescription('Another expense').withAmount(50).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).withSplitType('equal').build(),
                 users[0].token,
             );
 
@@ -259,7 +259,7 @@ describe('Optimistic Locking Integration Tests', () => {
             const promises = [
                 apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
                 apiDriver.createExpense(
-                    new ExpenseBuilder()
+                    new CreateExpenseRequestBuilder()
                         .withGroupId(group.id)
                         .withDescription('Race condition expense')
                         .withAmount(100)

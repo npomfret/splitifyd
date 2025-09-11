@@ -6,7 +6,7 @@
 
 import { describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateGroupRequestBuilder, ExpenseBuilder, SettlementBuilder, borrowTestUsers } from '@splitifyd/test-support';
+import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers } from '@splitifyd/test-support';
 import { getFirestore } from '../../../firebase';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -32,7 +32,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
         // Create an expense
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Expense to be deleted')
             .withAmount(50)
@@ -85,7 +85,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         const expenseIds: string[] = [];
         
         for (let i = 1; i <= 3; i++) {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Expense ${i}`)
                 .withAmount(25 * i)
@@ -170,7 +170,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
         // Create an active expense (don't delete it)
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Active expense')
             .withAmount(75)
@@ -222,7 +222,7 @@ describe('Group Deletion with Soft-Deleted Expenses', () => {
         // Create multiple expenses (both active and soft-deleted) to populate various collections
         const expenses = [];
         for (let i = 1; i <= 4; i++) {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(groupId)
                 .withAmount(25 * i)
                 .withPaidBy(users[i - 1].uid)

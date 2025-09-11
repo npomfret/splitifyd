@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import {ExpenseBuilder, CreateGroupRequestBuilder, ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
 import {UserToken} from "@splitifyd/shared";
 
 describe('Group Lifecycle Edge Cases', () => {
@@ -59,7 +59,7 @@ describe('Group Lifecycle Edge Cases', () => {
 
         const createdExpenseIds = [];
         for (const expense of expenses) {
-            const expenseData = new ExpenseBuilder()
+            const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(multiExpenseGroup.id)
                 .withAmount(expense.amount)
                 .withDescription(expense.description)
@@ -103,7 +103,7 @@ describe('Group Lifecycle Edge Cases', () => {
         // Focus on expense deletion functionality rather than balance recalculation
 
         // Create an expense
-        const expenseData = new ExpenseBuilder()
+        const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('To Be Deleted Test')
             .withAmount(100) // Test expense deletion - this is what the test is about
@@ -133,7 +133,7 @@ describe('Group Lifecycle Edge Cases', () => {
         const complexGroup = await apiDriver.createGroup(complexGroupData, users[0].token);
 
         // Scenario: Mixed split types in one group - just verify structure
-        const expenseData1 = new ExpenseBuilder()
+        const expenseData1 = new CreateExpenseRequestBuilder()
             .withGroupId(complexGroup.id)
             .withAmount(90) // Complex split scenario - this is what the test is about
             .withPaidBy(users[0].uid)
@@ -162,7 +162,7 @@ describe('Group Lifecycle Edge Cases', () => {
         // Focus on expense update functionality rather than balance recalculation
 
         // Create initial expense
-        const initialExpenseData = new ExpenseBuilder()
+        const initialExpenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withDescription('Update Test Expense')
             .withAmount(50) // Test expense updates - this is what the test is about

@@ -4,7 +4,7 @@ import {GroupWorkflow} from '../../../workflows';
 import {JoinGroupPage, GroupDetailPage} from '../../../pages';
 import {generateTestGroupName} from '../../../../../packages/test-support/test-helpers.ts';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {ExpenseBuilder} from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
 test.describe('Multi-User Collaboration E2E', () => {
     test('should handle group sharing via share link', async ({ newLoggedInBrowser }) => {
@@ -70,13 +70,12 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('User 1 Lunch')
             .withAmount(25)
             .withCurrency('USD')
-            .withPaidBy(user1.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build());
 
         // Wait for User 1's expense to be fully processed and synced
@@ -89,13 +88,12 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // SEQUENTIAL EXPENSE ADDITION: User 2 adds expense ONLY AFTER User 1's expense is synchronized
         const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
-        const user2Expense = new ExpenseBuilder()
+        const user2Expense = new ExpenseFormDataBuilder()
             .withDescription('User 2 Dinner')
             .withAmount(40)
             .withCurrency('USD')
-            .withPaidBy(user2.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build();
         await expenseFormPage2.submitExpense(user2Expense);
 
@@ -135,11 +133,11 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         for (const expenseInfo of expenseData) {
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-            await expenseFormPage.submitExpense(new ExpenseBuilder()
+            await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
                 .withDescription(expenseInfo.description)
                 .withAmount(expenseInfo.amount)
                 .withCurrency('USD')
-                .withPaidBy(user.uid)
+                .withPaidByDisplayName("Test User")
                 .withSplitType('equal')
                 .build());
 
@@ -200,13 +198,12 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // User 1 pays for shared expense AFTER synchronization
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('Shared Meal')
             .withAmount(100)
             .withCurrency('USD')
-            .withPaidBy(user1.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build());
 
         // Wait for expense to be fully processed

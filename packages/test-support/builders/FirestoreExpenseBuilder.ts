@@ -1,11 +1,11 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { ExpenseBuilder } from './ExpenseBuilder';
+import { CreateExpenseRequestBuilder } from './CreateExpenseRequestBuilder';
 
 /**
  * Builder for creating Firestore-compatible expense documents in tests
  * Extends ExpenseBuilder to add Firestore-specific fields like id, timestamps
  */
-export class FirestoreExpenseBuilder extends ExpenseBuilder {
+export class FirestoreExpenseBuilder extends CreateExpenseRequestBuilder {
     private firestoreFields: any = {
         id: 'expense-1',
         createdBy: 'default-user-id',
@@ -38,7 +38,7 @@ export class FirestoreExpenseBuilder extends ExpenseBuilder {
             ...this.firestoreFields,
             ...baseExpense,
             // Ensure splits exists for validation
-            splits: baseExpense.splits || [{ userId: baseExpense.paidByDisplayName, amount: baseExpense.amount }],
+            splits: baseExpense.splits || [{ userId: baseExpense.paidBy, amount: baseExpense.amount }],
             // Convert date string to Firestore Timestamp
             date: Timestamp.fromDate(new Date(baseExpense.date)),
         };

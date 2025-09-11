@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 
 import {ApiDriver, borrowTestUsers} from '@splitifyd/test-support';
-import { CreateGroupRequestBuilder, ExpenseBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import {UserToken} from "@splitifyd/shared";
 
 describe('Balance Calculation Integration Test', () => {
@@ -31,7 +31,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLinkId, user2.token);
 
         // Step 4: User 1 adds a shared expense ($100, split equally between User 1 and User 2)
-        const expense1Data = new ExpenseBuilder()
+        const expense1Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(100)
             .withCurrency('USD')
@@ -55,7 +55,7 @@ describe('Balance Calculation Integration Test', () => {
         expect(user2BalanceAfterFirst.netBalance).toBe(-50); // User 2 owes $50
 
         // Step 5: User 2 adds another shared expense ($60, split equally)
-        const expense2Data = new ExpenseBuilder()
+        const expense2Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(60)
             .withCurrency('USD')
@@ -91,7 +91,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLinkId, user3.token);
 
         // Step 7: User 3 adds an expense ($90, split equally among all three)
-        const expense3Data = new ExpenseBuilder()
+        const expense3Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(90)
             .withCurrency('USD')
@@ -206,7 +206,7 @@ describe('Balance Calculation Integration Test', () => {
         
         // Step 2: Create expenses that result in circular debts
         // User 1 pays $120 for User 1 and User 2 (User 2 owes User 1 $60)
-        const expense1Data = new ExpenseBuilder()
+        const expense1Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(120)
             .withCurrency('USD')
@@ -217,7 +217,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.createExpense(expense1Data, user1.token);
         
         // User 2 pays $150 for User 2 and User 3 (User 3 owes User 2 $75)
-        const expense2Data = new ExpenseBuilder()
+        const expense2Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(150)
             .withCurrency('USD')
@@ -228,7 +228,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.createExpense(expense2Data, user2.token);
         
         // User 3 pays $90 for User 3 and User 1 (User 1 owes User 3 $45)
-        const expense3Data = new ExpenseBuilder()
+        const expense3Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(90)
             .withCurrency('USD')
@@ -316,7 +316,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
         
         // User 1 pays $50, split equally (User 2 owes $25)
-        const expense1Data = new ExpenseBuilder()
+        const expense1Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(50)
             .withCurrency('USD')
@@ -327,7 +327,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.createExpense(expense1Data, user1.token);
         
         // User 2 pays $50, split equally (User 1 owes $25)
-        const expense2Data = new ExpenseBuilder()
+        const expense2Data = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(50)
             .withCurrency('USD')
@@ -373,7 +373,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.joinGroupViaShareLink(shareLinkId, user3.token);
         
         // Create expenses in USD
-        const usdExpense1 = new ExpenseBuilder()
+        const usdExpense1 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(300) // $300
             .withCurrency('USD')
@@ -384,7 +384,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.createExpense(usdExpense1, user1.token);
         
         // Create expenses in EUR
-        const eurExpense1 = new ExpenseBuilder()
+        const eurExpense1 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(150) // €150
             .withCurrency('EUR')
@@ -394,7 +394,7 @@ describe('Balance Calculation Integration Test', () => {
             .build();
         await apiDriver.createExpense(eurExpense1, user2.token);
         
-        const eurExpense2 = new ExpenseBuilder()
+        const eurExpense2 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(60) // €60
             .withCurrency('EUR')
@@ -405,7 +405,7 @@ describe('Balance Calculation Integration Test', () => {
         await apiDriver.createExpense(eurExpense2, user3.token);
         
         // Create expenses in GBP
-        const gbpExpense1 = new ExpenseBuilder()
+        const gbpExpense1 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(90) // £90
             .withCurrency('GBP')
@@ -554,7 +554,7 @@ describe('Balance Calculation Integration Test', () => {
         
         // Create multiple USD expenses at different times
         // (simulating potential exchange rate changes if converted from another currency)
-        const expense1 = new ExpenseBuilder()
+        const expense1 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(100)
             .withCurrency('USD')
@@ -567,7 +567,7 @@ describe('Balance Calculation Integration Test', () => {
         // Small delay to simulate time passing
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        const expense2 = new ExpenseBuilder()
+        const expense2 = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(80)
             .withCurrency('USD')

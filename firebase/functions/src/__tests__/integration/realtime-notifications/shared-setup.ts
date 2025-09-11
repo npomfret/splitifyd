@@ -2,7 +2,7 @@
 // Contains common utilities, beforeEach/afterEach hooks, and test data builders
 
 import {beforeEach, afterEach} from 'vitest';
-import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder, NotificationDriver} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, NotificationDriver} from '@splitifyd/test-support';
 import {PooledTestUser} from '@splitifyd/shared';
 import {getFirestore} from '../../../firebase';
 
@@ -28,7 +28,7 @@ export const cleanupNotificationTest = afterEach(() => {
  * @deprecated use AprDirver.apiDriver.createBasicExpense instead
  */
 export function createBasicExpense(groupId: string, amount: number = 10.00, userIndex: number = 0) {
-    return new ExpenseBuilder()
+    return new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
         .withAmount(amount)
         .withPaidBy(users[userIndex].uid)
@@ -40,7 +40,7 @@ export function createBasicExpense(groupId: string, amount: number = 10.00, user
  * @deprecated use ApiDriver.createMultiUserExpense instead
  */
 export function createMultiUserExpense(groupId: string, amount: number = 10.00, participantIndices: number[] = [0, 1]) {
-    return new ExpenseBuilder()
+    return new CreateExpenseRequestBuilder()
         .withGroupId(groupId)
         .withAmount(amount)
         .withPaidBy(users[participantIndices[0]].uid)

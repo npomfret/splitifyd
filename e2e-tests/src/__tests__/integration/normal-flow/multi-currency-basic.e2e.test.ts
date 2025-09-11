@@ -2,7 +2,7 @@ import {simpleTest, expect} from '../../../fixtures/simple-test.fixture';
 import {GroupDetailPage} from '../../../pages';
 import {TestGroupWorkflow} from '../../../helpers';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {ExpenseBuilder} from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 
 simpleTest.describe('Multi-Currency Basic Functionality', () => {
@@ -24,11 +24,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense using page object methods
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Lunch ${uniqueId}`)
             .withAmount(25.0)
             .withCurrency('USD')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -38,11 +38,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Dinner ${uniqueId}`)
             .withAmount(30.0)
             .withCurrency('EUR')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -75,11 +75,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create first expense with EUR
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Coffee ${uniqueId}`)
             .withAmount(5.5)
             .withCurrency('EUR')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -88,11 +88,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create second expense - should default to EUR (remembered from first)
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Snack ${uniqueId}`)
             .withAmount(3.25)
             .withCurrency('EUR') // Should be remembered by the system
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -118,21 +118,21 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Taxi ${uniqueId}`)
             .withAmount(20.0)
             .withCurrency('USD')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Museum ${uniqueId}`)
             .withAmount(15.0)
             .withCurrency('EUR')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -173,29 +173,29 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Add expenses in different currencies
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`USD Test ${uniqueId}`)
             .withAmount(50.0)
             .withCurrency('USD')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`EUR Test ${uniqueId}`)
             .withAmount(40.0)
             .withCurrency('EUR')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage3.submitExpense(new ExpenseBuilder()
+        await expenseFormPage3.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`GBP Test ${uniqueId}`)
             .withAmount(30.0)
             .withCurrency('GBP')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -250,11 +250,11 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         for (const { currency, amount, expectedSymbol } of testCases) {
             // Create expense with specific currency
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-            await expenseFormPage.submitExpense(new ExpenseBuilder()
+            await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
                 .withDescription(`Test ${currency} ${uniqueId}`)
                 .withAmount(amount)
                 .withCurrency(currency)
-                .withPaidBy(user.uid)
+                .withPaidByDisplayName("Test User")
                 .withSplitType('equal')
                 .build());
 

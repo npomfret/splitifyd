@@ -3,7 +3,7 @@ import {GroupWorkflow} from '../../../workflows';
 import {generateShortId} from '../../../../../packages/test-support/test-helpers.ts';
 import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
-import {ExpenseBuilder} from '@splitifyd/test-support';
+import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
 test.describe('Balance Visualization - Comprehensive', () => {
     test('should display settled state for single-user group', async ({ newLoggedInBrowser }) => {
@@ -31,11 +31,11 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         // Add a single expense to verify single-user balance calculation
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
-        await expenseFormPage.submitExpense(new ExpenseBuilder()
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('Single User Expense')
             .withAmount(50)
             .withCurrency('USD')
-            .withPaidBy(user.uid)
+            .withPaidByDisplayName("Test User")
             .withSplitType('equal')
             .build());
 
@@ -82,13 +82,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         // SEQUENTIAL EXPENSES: User1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseBuilder()
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('User1 Equal Payment')
             .withAmount(100.0)
-            .withPaidBy(user1.uid)
+            .withPaidByDisplayName("Test User")
             .withCurrency('USD')
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build());
 
         // Wait for first expense to be synced via real-time updates
@@ -100,13 +99,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         // User2 adds expense AFTER User1's is synchronized
         const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseBuilder()
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
             .withDescription('User2 Equal Payment')
             .withAmount(100.0)
-            .withPaidBy(user2.uid)
+            .withPaidByDisplayName("Test User")
             .withCurrency('USD')
             .withSplitType('equal')
-            .withParticipants([user1.uid, user2.uid])
             .build());
 
         // Wait for second expense to be processed

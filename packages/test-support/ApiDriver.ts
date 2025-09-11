@@ -29,7 +29,7 @@ import type {DocumentData} from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 import {Matcher, PollOptions, pollUntil} from "./Polling";
-import {ExpenseBuilder, UserRegistrationBuilder} from "./builders";
+import {CreateExpenseRequestBuilder, UserRegistrationBuilder} from "./builders";
 import {GroupBalances} from "@splitifyd/shared";
 import {PooledTestUser, UserToken} from "@splitifyd/shared";
 
@@ -194,7 +194,7 @@ export class ApiDriver {
     }
 
     createMultiUserExpense(groupId: string, paidByUid: string, token: string, participantUids: string[], amount: number = 10.00) {
-        const expense = new ExpenseBuilder()
+        const expense = new CreateExpenseRequestBuilder()
             .withGroupId(groupId)
             .withAmount(amount)
             .withPaidBy(paidByUid)
