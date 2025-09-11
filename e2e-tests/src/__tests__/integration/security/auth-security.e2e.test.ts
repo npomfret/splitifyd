@@ -45,7 +45,9 @@ simpleTest.describe('Authentication Security', () => {
 });
 
 simpleTest.describe('Multi-User Security', () => {
-    simpleTest('should prevent users from accessing other users groups', async ({ newLoggedInBrowser }) => {
+    simpleTest('should prevent users from accessing other users groups', async ({ newLoggedInBrowser }, testInfo) => {
+        // Skip error checking - unauthorized user will get expected 404s when trying to access private group
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when unauthorized user tries to access private group' });
         // Create two browser instances - User 1 and User 2
         const { page: page1, dashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: page2, user: user2 } = await newLoggedInBrowser();

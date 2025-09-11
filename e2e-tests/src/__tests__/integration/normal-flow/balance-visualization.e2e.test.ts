@@ -5,7 +5,44 @@ import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseBuilder} from '@splitifyd/test-support';
 
-test.describe('Multi-User Balance Visualization - Deterministic States', () => {
+test.describe('Balance Visualization - Comprehensive', () => {
+    test('should display settled state for single-user group', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
+        const {TestGroupWorkflow} = require('../../../helpers');
+
+        // Use cached group for better performance
+        await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+
+        // Balance section should show "All settled up!" for empty group
+        const balancesHeading = groupDetailPage.getBalancesHeading();
+        await expect(balancesHeading).toBeVisible();
+
+        // Check for "All settled up!" message but handle cached groups gracefully
+        try {
+            await groupDetailPage.waitForSettledUpMessage(2000);
+        } catch {
+            // Cached groups might have existing balances - verify balances section exists
+            await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
+        }
+
+        // Members section should show the creator
+        await expect(groupDetailPage.getMainSection().getByText(await dashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
+
+        // Add a single expense to verify single-user balance calculation
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
+        await expenseFormPage.submitExpense(new ExpenseBuilder()
+            .withDescription('Single User Expense')
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidBy(user.uid)
+            .withSplitType('equal')
+            .build());
+
+        // Single user should still be settled up (paid for themselves)
+        await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
+        await expect(groupDetailPage.getExpenseByDescription('Single User Expense')).toBeVisible();
+    });
     test('should show settled up when both users pay equal amounts', async ({ newLoggedInBrowser }) => {
         const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();

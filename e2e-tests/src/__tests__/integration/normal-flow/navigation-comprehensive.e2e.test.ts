@@ -76,4 +76,41 @@ test.describe('Comprehensive Navigation E2E', () => {
         const privacyLink = homepagePage.getPrivacyLink();
         await expect(privacyLink).toBeVisible();
     });
+
+    test('should support keyboard navigation accessibility', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
+        await homepagePage.navigate();
+
+        // Test keyboard navigation on homepage
+        await page.keyboard.press('Tab'); // Focus first focusable element
+        
+        // Test that focused element is visible
+        const focusedElement = await page.locator(':focus').first();
+        await expect(focusedElement).toBeVisible();
+        
+        // Test Enter key navigation on focusable links
+        const loginLink = homepagePage.getLoginLink();
+        await loginLink.focus();
+        await page.keyboard.press('Enter');
+        await expect(page).toHaveURL(/\/login/);
+        
+        // Test keyboard navigation on login form
+        const loginPage = new LoginPage(page);
+        await page.keyboard.press('Tab'); // Focus email input
+        await page.keyboard.type('test@example.com');
+        
+        await page.keyboard.press('Tab'); // Focus password input
+        await page.keyboard.type('password123');
+        
+        await page.keyboard.press('Tab'); // Focus submit button
+        const submitButton = page.locator(':focus');
+        const buttonText = await submitButton.textContent();
+        expect(buttonText?.toLowerCase()).toContain('sign in');
+        
+        // Test escape and navigation back
+        await page.keyboard.press('Escape'); // Should not break anything
+        await page.goBack();
+        await expect(page).toHaveURL(EMULATOR_URL);
+    });
 });

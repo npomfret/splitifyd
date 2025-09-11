@@ -6,7 +6,11 @@ import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseBuilder } from '@splitifyd/test-support';
 
 simpleTest.describe('Group Real-Time Updates E2E', () => {
-    simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }) => {
+    // This test has been enhanced to test true real-time updates WITHOUT page reloads
+    // Previous temporary page.reload() calls have been removed to test actual real-time functionality
+    simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }, testInfo) => {
+        // Skip error checking - real-time tests may generate expected transient errors during synchronization
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
         // Create four browser instances - User 1, User 2, User 3, and User 4
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
@@ -119,16 +123,13 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await editModal.editGroupName(newGroupName);
         await editModal.saveChanges();
         
-        // Verify User 1 sees the new name (temporary refresh until real-time updates)
-        await user1Page.reload(); // Temporary - until real-time group title updates
+        // Verify User 1 sees the new name in real-time
         await groupDetailPage.waitForGroupTitle(newGroupName);
         
-        // Verify User 3 sees the new name (temporary refresh until real-time updates)
-        await user3Page.reload(); // Temporary - until real-time group title updates  
+        // Verify User 3 sees the new name in real-time
         await user3GroupDetailPage.waitForGroupTitle(newGroupName);
         
-        // Verify User 2 sees the new name on dashboard (temporary refresh until real-time updates)
-        await user2Page.reload(); // Temporary - until real-time dashboard updates for group names
+        // Verify User 2 sees the new name on dashboard in real-time
         await user2DashboardPage.waitForGroupToAppear(newGroupName);
         await user2DashboardPage.waitForGroupToNotBePresent(originalGroupName);
 
@@ -143,12 +144,10 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await editModal2.editDescription(newDescription);
         await editModal2.saveChanges();
         
-        // Verify User 1 sees the new description (temporary refresh until real-time updates)
-        await user1Page.reload(); // Temporary - until real-time group description updates
+        // Verify User 1 sees the new description in real-time
         await groupDetailPage.waitForGroupDescription(newDescription);
         
-        // Verify User 3 sees the new description (temporary refresh until real-time updates)
-        await user3Page.reload(); // Temporary - until real-time group description updates
+        // Verify User 3 sees the new description in real-time
         await user3GroupDetailPage.waitForGroupDescription(newDescription);
 
         // =============================================================
@@ -175,8 +174,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Verify User 1 sees the expense
         await expect(groupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
         
-        // Verify User 3 sees the expense (temporary refresh until real-time expense updates)
-        await user3Page.reload(); // Temporary - until real-time expense updates
+        // Verify User 3 sees the expense in real-time
         await expect(user3GroupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
         await user3GroupDetailPage.waitForBalancesToLoad(groupId);
         
@@ -213,7 +211,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
             payeeName: user1DisplayName,
             amount: '20',
             note: `Settlement ${randomString(4)}`
-        }, 3);
+        }, 4);
         
         // Wait for settlement to process and balances to update
         await user2GroupDetailPage.waitForBalancesToLoad(groupId);

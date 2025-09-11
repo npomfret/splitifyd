@@ -102,21 +102,15 @@ test.describe('Basic Expense Operations E2E', () => {
         await expect(updateButton).toBeVisible();
         await updateButton.click();
 
-        // Step 7: Verify navigation back to group page
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
-        
-        // Step 8: Navigate back to expense detail to verify changes
-        await groupDetailPage.clickExpenseToView(`Edit Split Test ${uniqueId}`);
-        
-        // Verify expense detail page loads
+        // Step 7: Verify we remain on expense detail page after update
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-
+        
         // Step 9: Verify the split amounts have changed to exact values
         // For single user test, amount should remain $100.00
         await expect(groupDetailPage.getCurrencyAmount('100.00').first()).toBeVisible();
 
         // Step 10: Navigate back to group to verify balance updates
-        await page.goBack();
+        await expenseDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
         
         // Wait for balances to recalculate
