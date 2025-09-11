@@ -1,0 +1,64 @@
+// Shared setup for real-time notification integration tests
+// Contains common utilities, beforeEach/afterEach hooks, and test data builders
+
+import {beforeEach, afterEach} from 'vitest';
+import {ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, ExpenseBuilder, NotificationDriver} from '@splitifyd/test-support';
+import {PooledTestUser} from '@splitifyd/shared';
+import {getFirestore} from '../../../firebase';
+
+// Global test state
+export let users: PooledTestUser[];
+export let testGroup: any;
+export const apiDriver = new ApiDriver();
+export const notificationDriver = new NotificationDriver(getFirestore());
+
+// Common beforeEach setup for all notification tests
+export const setupNotificationTest = beforeEach(async () => {
+    users = await borrowTestUsers(3);
+    testGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
+});
+
+// Common afterEach cleanup for all notification tests
+export const cleanupNotificationTest = afterEach(() => {
+    // Cleanup any remaining listeners
+    notificationDriver.stopAllListeners();
+});
+
+// Helper function to create a basic expense for testing
+export function createBasicExpense(groupId: string, amount: number = 10.00, userIndex: number = 0) {
+    return new ExpenseBuilder()
+        .withGroupId(groupId)
+        .withAmount(amount)
+        .withPaidBy(users[userIndex].uid)
+        .withParticipants([users[userIndex].uid])
+        .build();
+}
+
+// Helper function to create a multi-user expense
+export function createMultiUserExpense(groupId: string, amount: number = 10.00, participantIndices: number[] = [0, 1]) {
+    return new ExpenseBuilder()
+        .withGroupId(groupId)
+        .withAmount(amount)
+        .withPaidBy(users[participantIndices[0]].uid)
+        .withParticipants(participantIndices.map(i => users[i].uid))
+        .build();
+}
+
+// Helper function to create a group with multiple members
+export async function createMultiMemberGroup(memberIndices: number[] = [0, 1], creatorToken?: string) {
+    const group = await apiDriver.createGroup(
+        new CreateGroupRequestBuilder().build(),
+        creatorToken || users[memberIndices[0]].token
+    );
+
+    // Add other members if more than just creator
+    if (memberIndices.length > 1) {
+        const shareResponse = await apiDriver.generateShareLink(group.id, users[memberIndices[0]].token);
+        
+        for (let i = 1; i < memberIndices.length; i++) {
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[memberIndices[i]].token);
+        }
+    }
+
+    return group;
+}
