@@ -1313,6 +1313,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                 try {
                     const updates = {
                         [`groups.${groupId}`]: FieldValue.delete(),
+                        changeVersion: FieldValue.increment(1),
                         lastModified: FieldValue.serverTimestamp()
                     };
 
@@ -2147,6 +2148,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     const notificationRef = this.db.doc(`user-notifications/${userId}`);
                     const notificationUpdates = {
                         [`groups.${groupId}`]: FieldValue.delete(),
+                        changeVersion: FieldValue.increment(1),
                         lastModified: FieldValue.serverTimestamp()
                     };
                     batch.update(notificationRef, notificationUpdates);
@@ -2208,6 +2210,7 @@ export class FirestoreWriter implements IFirestoreWriter {
                     const notificationRef = this.db.doc(`user-notifications/${userId}`);
                     const notificationUpdates = {
                         [`groups.${groupId}`]: FieldValue.delete(),
+                        changeVersion: FieldValue.increment(1),
                         lastModified: FieldValue.serverTimestamp()
                     };
                     batch.update(notificationRef, notificationUpdates);
