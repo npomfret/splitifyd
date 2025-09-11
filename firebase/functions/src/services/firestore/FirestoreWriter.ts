@@ -1577,7 +1577,11 @@ export class FirestoreWriter implements IFirestoreWriter {
         
         const message = error.message.toLowerCase();
         
-        if (message.includes('concurrent') || message.includes('contention')) {
+        // Handle specific Firebase emulator error that occurs during concurrent updates
+        if (message.includes('transaction is invalid or closed')) {
+            return 'concurrency';
+        }
+        if (message.includes('concurrent') || message.includes('contention') || message.includes('conflict')) {
             return 'concurrency';
         }
         if (message.includes('timeout') || message.includes('deadline')) {
@@ -1591,6 +1595,11 @@ export class FirestoreWriter implements IFirestoreWriter {
         }
         if (message.includes('permission') || message.includes('unauthorized')) {
             return 'permission';
+        }
+        
+        // Check error codes as well
+        if ((error as any).code === 'ABORTED' || (error as any).code === 'FAILED_PRECONDITION' || (error as any).code === 10) {
+            return 'concurrency';
         }
         
         return 'other';
