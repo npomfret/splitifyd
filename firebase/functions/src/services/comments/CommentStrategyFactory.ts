@@ -36,17 +36,4 @@ export class CommentStrategyFactory {
                 throw new Error(`Unsupported comment target type: ${targetType}`);
         }
     }
-
-    /**
-     * Static factory method for one-off strategy creation
-     *
-     * @param targetType - The type of entity being commented on
-     * @param firestoreReader - Firestore reader dependency
-     * @param groupMemberService - Group member service dependency
-     * @returns Strategy implementation for the target type
-     */
-    static createStrategy(targetType: CommentTargetType, firestoreReader: IFirestoreReader, groupMemberService: GroupMemberService): ICommentStrategy {
-        const factory = new CommentStrategyFactory(firestoreReader, groupMemberService);
-        return factory.getStrategy(targetType);
-    }
 }

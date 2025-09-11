@@ -4,7 +4,6 @@
  */
 
 import { FirestoreTimestamp, MemberRole, MemberStatus } from '@splitifyd/shared';
-import type { Transaction } from 'firebase-admin/firestore';
 
 /**
  * Pagination options for collection queries
@@ -33,33 +32,6 @@ export interface GroupMemberQueryOptions {
     includeInactive?: boolean;
     roles?: MemberRole[];
     statuses?: MemberStatus[];
-}
-
-/**
- * Comment target specification
- */
-export interface CommentTarget {
-    type: 'group' | 'expense';
-    id: string;
-}
-
-/**
- * Real-time subscription callback types
- */
-export type GroupSubscriptionCallback = (group: any | null) => void;
-export type ExpenseListSubscriptionCallback = (expenses: any[]) => void;
-export type CommentListSubscriptionCallback = (comments: any[]) => void;
-
-/**
- * Unsubscribe function type for real-time listeners
- */
-export type UnsubscribeFunction = () => void;
-
-/**
- * Transaction context for read operations
- */
-export interface TransactionContext {
-    transaction: Transaction;
 }
 
 /**
@@ -114,22 +86,4 @@ export interface OrderBy {
 export interface BatchGroupFetchOptions {
     orderBy: OrderBy;
     limit: number;
-}
-
-/**
- * Cursor encoding/decoding utilities
- */
-export interface CursorUtils {
-    encodeCursor(data: GroupsPaginationCursor): string;
-    decodeCursor(cursor: string): GroupsPaginationCursor;
-}
-
-/**
- * Error handling context for FirestoreReader operations
- */
-export interface ReadErrorContext {
-    operation: string;
-    collection?: string;
-    documentId?: string;
-    query?: Record<string, any>;
 }

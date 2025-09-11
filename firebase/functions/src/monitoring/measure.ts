@@ -27,11 +27,6 @@ export async function measure<T>(type: MetricType, operation: string, fn: () => 
 }
 
 /**
- * Convenience function for API operations
- */
-export const measureApi = <T>(operation: string, fn: () => Promise<T>): Promise<T> => measure('api', operation, fn);
-
-/**
  * Convenience function for database operations
  */
 export const measureDb = <T>(operation: string, fn: () => Promise<T>): Promise<T> => measure('db', operation, fn);
@@ -59,12 +54,3 @@ export function measureSync<T>(type: MetricType, operation: string, fn: () => T)
         metrics.record(type, operation, duration, success);
     }
 }
-
-/**
- * Synchronous convenience functions
- */
-export const measureApiSync = <T>(operation: string, fn: () => T): T => measureSync('api', operation, fn);
-
-export const measureDbSync = <T>(operation: string, fn: () => T): T => measureSync('db', operation, fn);
-
-export const measureTriggerSync = <T>(operation: string, fn: () => T): T => measureSync('trigger', operation, fn);

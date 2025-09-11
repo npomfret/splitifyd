@@ -1,4 +1,4 @@
-import { DocumentData, DocumentSnapshot, Timestamp } from 'firebase-admin/firestore';
+import { DocumentData, DocumentSnapshot } from 'firebase-admin/firestore';
 import { ChangeDocumentBuilderFactory } from './change-builders';
 
 const builderFactory = new ChangeDocumentBuilderFactory();
@@ -179,27 +179,4 @@ export function createMinimalChangeDocument(entityId: string, entityType: 'group
     const builder = builderFactory.getBuilder(entityType);
     const additionalData = groupId ? { groupId } : {};
     return builder.createMinimalChangeDocument(entityId, changeType, affectedUsers, additionalData);
-}
-
-/**
- * Create a minimal balance change document
- * Balances are always recalculated, never created/updated/deleted
- *
- * Structure:
- * {
- *   groupId: "abc123",      // Group whose balances changed
- *   type: "balance",        // Always "balance"
- *   action: "recalculated", // Always "recalculated"
- *   timestamp: Timestamp,   // When the change occurred
- *   users: ["user1", ...]   // Affected users who should refresh
- * }
- */
-export function createMinimalBalanceChangeDocument(groupId: string, affectedUsers: string[]): Record<string, any> {
-    return removeUndefinedFields({
-        groupId,
-        type: 'balance',
-        action: 'recalculated',
-        timestamp: Timestamp.now(),
-        users: affectedUsers,
-    });
 }

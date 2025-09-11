@@ -1,7 +1,6 @@
-import { Timestamp, Transaction, DocumentReference } from 'firebase-admin/firestore';
+import { Timestamp } from 'firebase-admin/firestore';
 import { Errors } from './errors';
 import { logger } from '../logger';
-import { createOptimisticTimestamp } from './dateHelpers';
 
 /**
  * Optimistic locking utilities using updatedAt timestamps
@@ -10,60 +9,6 @@ import { createOptimisticTimestamp } from './dateHelpers';
  * IMPORTANT: Uses precise timestamps (Timestamp.now()) for conflict detection
  * because we need actual timestamp values for comparison logic.
  */
-
-/**
- * Update a document with timestamp validation and new timestamp
- * NOTE: This does NOT perform the timestamp check - caller must do that BEFORE any writes
- *
- * ⚠️ DEPRECATED: This function has a design flaw - use checkAndUpdateWithTimestamp instead
- */
-export const updateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp): Promise<void> => {
-    // DO NOT perform reads here - Firestore requires all reads before writes
-    // Caller must verify timestamp before calling this function
-
-    // Apply update with new optimistic timestamp (for optimistic locking)
-    transaction.update(docRef, {
-        ...updates,
-        updatedAt: createOptimisticTimestamp(),
-    });
-
-    // Document updated with optimistic lock
-};
-
-/**
- * 🎯 CORRECT: Check timestamp conflict and update document in proper transaction order
- * This function follows Firestore's requirement: ALL reads must come before ANY writes
- */
-export const checkAndUpdateWithTimestamp = async (transaction: Transaction, docRef: DocumentReference, updates: any, originalTimestamp: Timestamp, firestoreReader?: any): Promise<void> => {
-    // Step 1: READ FIRST (as required by Firestore)
-    let freshDoc;
-    if (firestoreReader) {
-        freshDoc = await firestoreReader.getRawDocumentInTransactionWithRef(transaction, docRef);
-        if (!freshDoc) {
-            throw Errors.NOT_FOUND('Document');
-        }
-    } else {
-        // Fallback to direct transaction.get for backward compatibility
-        freshDoc = await transaction.get(docRef);
-        if (!freshDoc.exists) {
-            throw Errors.NOT_FOUND('Document');
-        }
-    }
-
-    // Step 2: VALIDATE timestamp
-    const currentTimestamp = freshDoc.data()?.updatedAt;
-    if (!currentTimestamp || !currentTimestamp.isEqual(originalTimestamp)) {
-        throw Errors.CONCURRENT_UPDATE();
-    }
-
-    // Step 3: WRITE (after all reads and validations)
-    transaction.update(docRef, {
-        ...updates,
-        updatedAt: createOptimisticTimestamp(),
-    });
-
-    // Document updated with optimistic lock
-};
 
 /**
  * 🎯 ENHANCED: Extract and validate updatedAt timestamp from document data

@@ -7,13 +7,6 @@ import type { GroupMemberDocument } from '@splitifyd/shared';
  */
 
 /**
- * Check if a user is a member of the group
- */
-export const isMemberInArray = (members: GroupMemberWithProfile[], userId: string): boolean => {
-    return members.some((member) => member.uid === userId);
-};
-
-/**
  * Find a member document in the array by user ID
  */
 export const getMemberDocFromArray = (members: GroupMemberDocument[], userId: string): GroupMemberDocument | undefined => {
@@ -33,12 +26,4 @@ export const isAdminInDocArray = (members: GroupMemberDocument[], userId: string
  */
 export const getMemberFromArray = (members: GroupMemberWithProfile[], userId: string): GroupMemberWithProfile | undefined => {
     return members.find((member) => member.uid === userId);
-};
-
-/**
- * Check if a user is an admin in the member array (for GroupMemberWithProfile arrays)
- */
-export const isAdminInArray = (members: GroupMemberWithProfile[], userId: string): boolean => {
-    const member = getMemberFromArray(members, userId);
-    return member?.memberRole === MemberRoles.ADMIN;
 };

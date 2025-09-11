@@ -63,22 +63,6 @@ export const timestampToISO = (value: Timestamp | Date): string => {
 };
 
 /**
- * Asserts that a value is a Date and converts to ISO string
- * Follows the "assert don't check" pattern - fails fast with clear errors
- *
- * @param value - Value to check and convert
- * @param fieldName - Name of the field for error message
- * @returns ISO 8601 string
- * @throws Error if value is not a Date
- */
-export const assertDateAndConvert = (value: unknown, fieldName: string): string => {
-    if (!(value instanceof Date)) {
-        throw new Error(`Data contract violation: Expected Date for '${fieldName}' but got ${typeof value}. ` + `This indicates corrupted data or inconsistent date handling.`);
-    }
-    return value.toISOString();
-};
-
-/**
  * Validates date is within acceptable range
  * @param date - Date to validate
  * @param maxYearsAgo - Maximum years in the past (default 10)
