@@ -8,6 +8,8 @@ import {
     generateShortId 
 } from '../test-helpers';
 
+//todo: WTF is this?  this should build a CreateExpenseRequest
+
 export interface TestExpense {
     groupId: string;
     description: string;

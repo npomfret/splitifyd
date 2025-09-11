@@ -108,8 +108,7 @@ describe('Invite Tracking', () => {
 
     test('should initialize notification document when user joins group via share link', async () => {
         // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-        const listeners = await notificationDriver.setupListenersFirst([users[1].uid]);
-        const listener = listeners[0];
+        const [listener] = await notificationDriver.setupListenersFirst([users[1].uid]);
 
         // 2. User 0 creates a share link
         const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);

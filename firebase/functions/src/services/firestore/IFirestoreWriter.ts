@@ -575,4 +575,21 @@ export interface IFirestoreWriter {
         documentId: string
     ): Promise<FirebaseFirestore.DocumentSnapshot | null>;
 
+    /**
+     * Atomically delete a group membership and remove the user from notification tracking
+     * @param membershipDocId - The membership document ID to delete
+     * @param userId - The user ID to remove from notifications
+     * @param groupId - The group ID to remove from notifications
+     * @returns Batch write result
+     */
+    deleteMemberAndNotifications(membershipDocId: string, userId: string, groupId: string): Promise<BatchWriteResult>;
+
+    /**
+     * Atomically update group timestamp, delete membership, and remove from notifications
+     * @param groupId - The group ID to update
+     * @param userId - The user ID to remove from notifications
+     * @returns Batch write result
+     */
+    leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult>;
+
 }

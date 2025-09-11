@@ -30,34 +30,6 @@ export function createNotificationTriggers() {
             }
         ),
 
-
-        removeUserFromGroupNotifications: onDocumentDeleted(
-            {
-                document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
-                region: 'us-central1',
-            },
-            async (event) => {
-                const membershipData = event.data?.data();
-                if (!membershipData) {
-                    logger.error('membership-data-missing', {membershipId: event.params.membershipId});
-                    return;
-                }
-
-                const groupId = membershipData.groupId;
-                const userId = membershipData.userId;
-
-                return measureTrigger('removeUserFromGroupNotifications',
-                    async () => {
-
-                        await notificationService.updateUserNotification(userId, groupId, 'group');
-
-                        await notificationService.removeUserFromGroup(userId, groupId);
-
-                        logger.info('user-removed-from-group', {userId, groupId});
-                    });
-            }
-        ),
-
         cleanupUserNotifications: onDocumentDeleted(
             {
                 document: `${FirestoreCollections.USERS}/{userId}`,

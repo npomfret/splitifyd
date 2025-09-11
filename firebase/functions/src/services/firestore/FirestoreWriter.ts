@@ -18,6 +18,7 @@ import type {
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../../logger';
 import { FirestoreCollections, CommentTargetTypes, type CommentTargetType } from '@splitifyd/shared';
+import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 import { measureDb } from '../../monitoring/measure';
 
 // Import schemas for validation
@@ -2130,5 +2131,132 @@ export class FirestoreWriter implements IFirestoreWriter {
             });
             throw new Error(`Failed to get document: ${collection}/${documentId}`);
         }
+    }
+
+    async deleteMemberAndNotifications(membershipDocId: string, userId: string, groupId: string): Promise<BatchWriteResult> {
+        return measureDb('FirestoreWriter.deleteMemberAndNotifications',
+            async () => {
+                try {
+                    const batch = this.db.batch();
+                    
+                    // Delete membership document
+                    const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
+                    batch.delete(membershipRef);
+                    
+                    // Remove group from user's notification document
+                    const notificationRef = this.db.doc(`user-notifications/${userId}`);
+                    const notificationUpdates = {
+                        [`groups.${groupId}`]: FieldValue.delete(),
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+                    batch.update(notificationRef, notificationUpdates);
+                    
+                    await batch.commit();
+
+                    logger.info('Member and notification tracking deleted atomically', { 
+                        userId, 
+                        groupId, 
+                        membershipDocId 
+                    });
+
+                    return {
+                        successCount: 2, // membership deletion + notification removal
+                        failureCount: 0,
+                        results: [
+                            { id: membershipDocId, success: true, timestamp: new Date() as any },
+                            { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() as any }
+                        ]
+                    };
+                } catch (error) {
+                    logger.error('Atomic member and notification deletion failed', error);
+                    return {
+                        successCount: 0,
+                        failureCount: 2,
+                        results: [
+                            { 
+                                id: membershipDocId, 
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Unknown error'
+                            },
+                            { 
+                                id: `user-notification-${userId}-${groupId}`, 
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Unknown error'
+                            }
+                        ]
+                    };
+                }
+            });
+    }
+
+    async leaveGroupAtomic(groupId: string, userId: string): Promise<BatchWriteResult> {
+        return measureDb('FirestoreWriter.leaveGroupAtomic',
+            async () => {
+                try {
+                    // Generate membership document ID using helper function
+                    const membershipDocId = getTopLevelMembershipDocId(userId, groupId);
+                    
+                    const batch = this.db.batch();
+                    
+                    // Update group timestamp (triggers group change notifications for remaining members)
+                    const groupRef = this.db.doc(`${FirestoreCollections.GROUPS}/${groupId}`);
+                    batch.update(groupRef, {
+                        lastModified: FieldValue.serverTimestamp()
+                    });
+
+                    // Remove group from user's notification document
+                    const notificationRef = this.db.doc(`user-notifications/${userId}`);
+                    const notificationUpdates = {
+                        [`groups.${groupId}`]: FieldValue.delete(),
+                        lastModified: FieldValue.serverTimestamp()
+                    };
+                    batch.update(notificationRef, notificationUpdates);
+
+                    // Delete membership document
+                    const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
+                    batch.delete(membershipRef);
+
+                    await batch.commit();
+
+                    logger.info('User left group atomically - group updated, membership deleted, notifications cleaned up', { 
+                        userId, 
+                        groupId, 
+                        membershipDocId 
+                    });
+
+                    return {
+                        successCount: 3, // group update + membership deletion + notification removal
+                        failureCount: 0,
+                        results: [
+                            { id: groupId, success: true, timestamp: new Date() as any },
+                            { id: membershipDocId, success: true, timestamp: new Date() as any },
+                            { id: `user-notification-${userId}-${groupId}`, success: true, timestamp: new Date() as any }
+                        ]
+                    };
+                } catch (error) {
+                    logger.error('Atomic leave group operation failed', error);
+                    return {
+                        successCount: 0,
+                        failureCount: 3,
+                        results: [
+                            { 
+                                id: groupId, 
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Unknown error'
+                            },
+                            { 
+                                id: `${userId}_${groupId}`, 
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Unknown error'
+                            },
+                            { 
+                                id: `user-notification-${userId}-${groupId}`, 
+                                success: false,
+                                error: error instanceof Error ? error.message : 'Unknown error'
+                            }
+                        ]
+                    };
+                }
+            });
     }
 }

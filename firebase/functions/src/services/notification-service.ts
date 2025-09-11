@@ -43,6 +43,16 @@ export class NotificationService {
         changeType: ChangeType
     ): Promise<WriteResult> {
         return measureDb('NotificationService.updateUserNotification', async () => {
+            // DEFENSIVE: Check if user actually has this group before updating
+            const existingNotification = await this.firestoreReader.getUserNotification(userId);
+            if (!existingNotification?.groups?.[groupId]) {
+                // User doesn't have this group - they may have been removed
+                return {
+                    id: userId,
+                    success: true // Return success but don't update
+                };
+            }
+
             // Map changeType to proper field names
             const fieldMap = {
                 'transaction': { count: 'transactionChangeCount', last: 'lastTransactionChange' },

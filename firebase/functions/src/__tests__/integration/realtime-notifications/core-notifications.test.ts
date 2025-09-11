@@ -154,10 +154,8 @@ describe('Core Notifications Integration Tests', () => {
                 expect(balanceEvent.groupState?.balanceChangeCount).toBeGreaterThan(0);
             } catch (error) {
                 // Balance changes might not always trigger separately from transaction changes
-                // Check if we got a transaction change instead
-                const transactionEvents = listener.getEventsSince(beforeExpenseTimestamp)
-                    .filter(e => e.groupId === testGroup.id && e.type === 'transaction');
-                expect(transactionEvents.length).toBeGreaterThan(0);
+                // Wait for transaction event instead and verify it exists
+                await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
                 console.log('Balance change not triggered separately, but transaction change detected');
             }
         });

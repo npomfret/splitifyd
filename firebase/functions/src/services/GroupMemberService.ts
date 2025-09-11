@@ -24,95 +24,38 @@ export class GroupMemberService {
     }
 
     async leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
-        return measureDb('GroupMemberService.leaveGroup', async () => this._leaveGroup(userId, groupId));
-    }
-
-    private async _leaveGroup(userId: string, groupId: string): Promise<{ success: true; message: string }> {
-        LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ userId, operation: 'leave-group' });
-        
-        if (!userId) {
-            throw Errors.UNAUTHORIZED();
-        }
-
-        const group = await this.firestoreReader.getGroup(groupId);
-        if (!group) {
-            throw Errors.NOT_FOUND('Group');
-        }
-
-        const memberDoc = await this.firestoreReader.getGroupMember(groupId, userId);
-        if (!memberDoc) {
-            throw Errors.INVALID_INPUT({ message: 'You are not a member of this group' });
-        }
-
-        if (group.createdBy === userId) {
-            throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
-        }
-
-        const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
-        if (memberDocs.length === 1) {
-            throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
-        }
-
-        try {
-            const groupBalance = await this.balanceService.calculateGroupBalances(groupId);
-            const balancesByCurrency = groupBalance.balancesByCurrency;
-
-            for (const currency in balancesByCurrency) {
-                const currencyBalances = balancesByCurrency[currency];
-                const userBalance = currencyBalances[userId];
-
-                if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
-                    throw Errors.INVALID_INPUT({ message: 'Cannot leave group with outstanding balance' });
-                }
-            }
-        } catch (balanceError: unknown) {
-            // If it's our specific "outstanding balance" error from the validation above, re-throw it
-            if (balanceError instanceof ApiError) {
-                // Check if it's the expected ApiError with outstanding balance message
-                const details = balanceError.details;
-                if (details?.message?.includes('Cannot leave group with outstanding balance')) {
-                    throw balanceError;
-                }
-            }
-
-            // For any other errors from calculateGroupBalances (e.g., database issues, data corruption), 
-            // log them for debugging and throw a generic error to the user
-            logger.error('Unexpected error during balance check for leaving group', balanceError as Error, { 
-                groupId, 
-                userId,
-                operation: 'leave-group'
-            });
-            throw Errors.INTERNAL_ERROR();
-        }
-
-        // Update group timestamp
-        await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUPS}/${groupId}`, {});
-
-        await this.deleteMember(groupId, userId);
-
-        LoggerContext.setBusinessContext({ groupId });
-        logger.info('member-left', { id: userId, groupId });
-
-        return {
-            success: true,
-            message: 'Successfully left the group',
-        };
+        return measureDb('GroupMemberService.leaveGroup', async () => this._removeMemberFromGroup(userId, groupId, userId, true));
     }
 
     async removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
-        return measureDb('GroupMemberService.removeGroupMember', async () => this._removeGroupMember(userId, groupId, memberId));
+        return measureDb('GroupMemberService.removeGroupMember', async () => this._removeMemberFromGroup(userId, groupId, memberId, false));
     }
 
-    private async _removeGroupMember(userId: string, groupId: string, memberId: string): Promise<{ success: true; message: string }> {
+    /**
+     * Unified method to handle both self-leaving and admin removal of members
+     * @param requestingUserId - The user making the request
+     * @param groupId - The group ID
+     * @param targetUserId - The user being removed (could be same as requesting user for leave)
+     * @param isLeaving - true for self-leave, false for admin removal
+     */
+    private async _removeMemberFromGroup(
+        requestingUserId: string, 
+        groupId: string, 
+        targetUserId: string,
+        isLeaving: boolean
+    ): Promise<{ success: true; message: string }> {
         LoggerContext.setBusinessContext({ groupId });
-        LoggerContext.update({ userId, operation: 'remove-group-member', memberId });
+        LoggerContext.update({ 
+            userId: requestingUserId, 
+            operation: isLeaving ? 'leave-group' : 'remove-group-member',
+            ...(isLeaving ? {} : { memberId: targetUserId })
+        });
         
-        if (!userId) {
+        if (!requestingUserId) {
             throw Errors.UNAUTHORIZED();
         }
 
-        if (!memberId) {
+        if (!isLeaving && !targetUserId) {
             throw Errors.MISSING_FIELD('memberId');
         }
 
@@ -121,64 +64,82 @@ export class GroupMemberService {
             throw Errors.NOT_FOUND('Group');
         }
 
-        if (group.createdBy !== userId) {
-            throw Errors.FORBIDDEN();
-        }
-
-        const memberDoc = await this.firestoreReader.getGroupMember(groupId, memberId);
+        const memberDoc = await this.firestoreReader.getGroupMember(groupId, targetUserId);
         if (!memberDoc) {
-            throw Errors.INVALID_INPUT({ message: 'User is not a member of this group' });
+            const message = isLeaving ? 'You are not a member of this group' : 'User is not a member of this group';
+            throw Errors.INVALID_INPUT({ message });
         }
 
-        if (memberId === group.createdBy) {
-            throw Errors.INVALID_INPUT({ message: 'Group creator cannot be removed' });
+        // Authorization and validation logic
+        if (isLeaving) {
+            // User leaving themselves
+            if (group.createdBy === targetUserId) {
+                throw Errors.INVALID_INPUT({ message: 'Group creator cannot leave the group' });
+            }
+
+            const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
+            if (memberDocs.length === 1) {
+                throw Errors.INVALID_INPUT({ message: 'Cannot leave group - you are the only member' });
+            }
+        } else {
+            // Admin removing someone else
+            if (group.createdBy !== requestingUserId) {
+                throw Errors.FORBIDDEN();
+            }
+
+            if (targetUserId === group.createdBy) {
+                throw Errors.INVALID_INPUT({ message: 'Group creator cannot be removed' });
+            }
         }
 
+        // Balance validation (same logic for both scenarios)
         try {
             const groupBalance = await this.balanceService.calculateGroupBalances(groupId);
             const balancesByCurrency = groupBalance.balancesByCurrency;
 
             for (const currency in balancesByCurrency) {
                 const currencyBalances = balancesByCurrency[currency];
-                const memberBalance = currencyBalances[memberId];
+                const targetBalance = currencyBalances[targetUserId];
 
-                if (memberBalance && Math.abs(memberBalance.netBalance) > 0.01) {
-                    throw Errors.INVALID_INPUT({ message: 'Cannot remove member with outstanding balance' });
+                if (targetBalance && Math.abs(targetBalance.netBalance) > 0.01) {
+                    const message = isLeaving 
+                        ? 'Cannot leave group with outstanding balance' 
+                        : 'Cannot remove member with outstanding balance';
+                    throw Errors.INVALID_INPUT({ message });
                 }
             }
         } catch (balanceError: unknown) {
             // If it's our specific "outstanding balance" error from the validation above, re-throw it
             if (balanceError instanceof ApiError) {
-                // Check if it's the expected ApiError with outstanding balance message
                 const details = balanceError.details;
-                if (details?.message?.includes('Cannot remove member with outstanding balance')) {
+                const hasOutstandingBalance = details?.message?.includes('Cannot leave group with outstanding balance') ||
+                                            details?.message?.includes('Cannot remove member with outstanding balance');
+                if (hasOutstandingBalance) {
                     throw balanceError;
                 }
             }
 
             // For any other errors from calculateGroupBalances (e.g., database issues, data corruption), 
             // log them for debugging and throw a generic error to the user
-            logger.error('Unexpected error during balance check for member removal', balanceError as Error, { 
+            logger.error(`Unexpected error during balance check for ${isLeaving ? 'leaving' : 'member removal'}`, balanceError as Error, { 
                 groupId, 
-                userId,
-                memberId,
-                operation: 'remove-member'
+                requestingUserId,
+                targetUserId,
+                operation: isLeaving ? 'leave-group' : 'remove-member'
             });
             throw Errors.INTERNAL_ERROR();
         }
 
-        // Update group timestamp  
-        await this.firestoreWriter.updateDocument(`${FirestoreCollections.GROUPS}/${groupId}`, {});
-
-        // Also remove from subcollection
-        await this.deleteMember(groupId, memberId);
+        // Atomically update group, delete membership, and clean up notifications
+        await this.firestoreWriter.leaveGroupAtomic(groupId, targetUserId);
 
         LoggerContext.setBusinessContext({ groupId });
-        logger.info('member-removed', { id: memberId, groupId });
+        const logEvent = isLeaving ? 'member-left' : 'member-removed';
+        logger.info(logEvent, { id: targetUserId, groupId });
 
         return {
             success: true,
-            message: 'Member removed successfully',
+            message: isLeaving ? 'Successfully left the group' : 'Member removed successfully',
         };
     }
 
@@ -262,14 +223,10 @@ export class GroupMemberService {
             async () => {
                 const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
                 
-                await this.firestoreWriter.deleteDocument(
-                    `${FirestoreCollections.GROUP_MEMBERSHIPS}/${topLevelDocId}`
-                );
+                // Use atomic batch operation to delete membership and remove from notifications
+                await this.firestoreWriter.deleteMemberAndNotifications(topLevelDocId, userId, groupId);
 
-                // Remove notification tracking for departed member
-                await this.notificationService.removeUserFromGroup(userId, groupId);
-
-                logger.info('Member deleted from top-level collection', { groupId, userId });
+                logger.info('Member and notification tracking deleted atomically', { groupId, userId });
             }
         );
     }

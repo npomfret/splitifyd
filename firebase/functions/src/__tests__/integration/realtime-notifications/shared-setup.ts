@@ -24,7 +24,9 @@ export const cleanupNotificationTest = afterEach(() => {
     notificationDriver.stopAllListeners();
 });
 
-// Helper function to create a basic expense for testing
+/**
+ * @deprecated use AprDirver.apiDriver.createBasicExpense instead
+ */
 export function createBasicExpense(groupId: string, amount: number = 10.00, userIndex: number = 0) {
     return new ExpenseBuilder()
         .withGroupId(groupId)
@@ -34,7 +36,9 @@ export function createBasicExpense(groupId: string, amount: number = 10.00, user
         .build();
 }
 
-// Helper function to create a multi-user expense
+/**
+ * @deprecated use ApiDriver.createMultiUserExpense instead
+ */
 export function createMultiUserExpense(groupId: string, amount: number = 10.00, participantIndices: number[] = [0, 1]) {
     return new ExpenseBuilder()
         .withGroupId(groupId)
@@ -44,7 +48,9 @@ export function createMultiUserExpense(groupId: string, amount: number = 10.00, 
         .build();
 }
 
-// Helper function to create a group with multiple members
+/**
+ * @deprecated use AprDriver.createGroupWithMembers instead
+ */
 export async function createMultiMemberGroup(memberIndices: number[] = [0, 1], creatorToken?: string) {
     const group = await apiDriver.createGroup(
         new CreateGroupRequestBuilder().build(),
