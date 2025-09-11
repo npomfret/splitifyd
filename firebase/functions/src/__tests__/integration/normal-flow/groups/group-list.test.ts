@@ -6,7 +6,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { borrowTestUsers } from '@splitifyd/test-support';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { PooledTestUser } from '@splitifyd/shared';
 

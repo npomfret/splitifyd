@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { borrowTestUsers } from '@splitifyd/test-support/test-pool-helpers';
+import { borrowTestUsers } from '@splitifyd/test-support';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
