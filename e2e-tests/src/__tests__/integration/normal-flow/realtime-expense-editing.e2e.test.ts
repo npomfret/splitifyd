@@ -47,8 +47,13 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const originalDescription = `Edit Test ${randomString(4)}`;
         const originalAmount = 60;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(originalDescription).withAmount(originalAmount).withCurrency('USD').withPaidByDisplayName(editorDisplayName).withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(originalDescription)
+            .withAmount(originalAmount)
+            .withCurrency('USD')
+            .withPaidByDisplayName(editorDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Wait for expense to appear for all users
@@ -227,8 +232,13 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expense2FormPage = await editor2GroupDetailPage.clickAddExpenseButton(3);
         const expense2Description = `Concurrent Test 2 ${randomString(4)}`;
 
-        await expense2FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense2Description).withAmount(45).withCurrency('USD').withPaidByDisplayName(editor2DisplayName).withSplitType('equal').build(),
+        await expense2FormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expense2Description)
+            .withAmount(45)
+            .withCurrency('USD')
+            .withPaidByDisplayName(editor2DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Wait for both expenses to appear

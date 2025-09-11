@@ -53,8 +53,13 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(3);
         const expenseAmount = 40;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Dashboard Test Expense').withAmount(expenseAmount).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Dashboard Test Expense')
+            .withAmount(expenseAmount)
+            .withCurrency('USD')
+            .withPaidByDisplayName(user1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Wait for expense to process
@@ -176,8 +181,13 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // User1 adds expense involving User2 ($50 split equally = $25 each)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(3);
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Settlement Test Expense').withAmount(50).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Settlement Test Expense')
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidByDisplayName(user1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -244,8 +254,13 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // 1. Add first expense ($30)
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Rapid Test 1').withAmount(30).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Rapid Test 1')
+            .withAmount(30)
+            .withCurrency('USD')
+            .withPaidByDisplayName(user1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
@@ -255,8 +270,13 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
 
         // 3. Add second expense ($20) immediately
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage2.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Rapid Test 2').withAmount(20).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Rapid Test 2')
+            .withAmount(20)
+            .withCurrency('USD')
+            .withPaidByDisplayName(user1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);

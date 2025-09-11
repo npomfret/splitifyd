@@ -14,6 +14,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
 
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -24,8 +27,13 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense using page object methods
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Lunch ${uniqueId}`).withAmount(25.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Lunch ${uniqueId}`)
+            .withAmount(25.0)
+            .withCurrency('USD')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Verify back on group page with USD expense
@@ -34,8 +42,13 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Dinner ${uniqueId}`).withAmount(30.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Dinner ${uniqueId}`)
+            .withAmount(30.0)
+            .withCurrency('EUR')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Verify both expenses with separate currencies
@@ -57,6 +70,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
 
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -67,8 +83,13 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create first expense with EUR
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Coffee ${uniqueId}`).withAmount(5.5).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Coffee ${uniqueId}`)
+            .withAmount(5.5)
+            .withCurrency('EUR')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Verify expense was created with EUR
@@ -81,7 +102,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withDescription(`Snack ${uniqueId}`)
                 .withAmount(3.25)
                 .withCurrency('EUR') // Should be remembered by the system
-                .withPaidByDisplayName('Test User')
+                .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
                 .build(),
         );
@@ -98,6 +119,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
 
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -108,14 +132,24 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Create USD expense
         const uniqueId = generateShortId();
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Taxi ${uniqueId}`).withAmount(20.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Taxi ${uniqueId}`)
+            .withAmount(20.0)
+            .withCurrency('USD')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Create EUR expense
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Museum ${uniqueId}`).withAmount(15.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Museum ${uniqueId}`)
+            .withAmount(15.0)
+            .withCurrency('EUR')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Verify both expenses were created with proper currency display
@@ -144,6 +178,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Verify starting on dashboard
         await expect(page).toHaveURL(/\/dashboard/);
 
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -155,18 +192,33 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
 
         // Add expenses in different currencies
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`USD Test ${uniqueId}`).withAmount(50.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`USD Test ${uniqueId}`)
+            .withAmount(50.0)
+            .withCurrency('USD')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`EUR Test ${uniqueId}`).withAmount(40.0).withCurrency('EUR').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`EUR Test ${uniqueId}`)
+            .withAmount(40.0)
+            .withCurrency('EUR')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage3.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`GBP Test ${uniqueId}`).withAmount(30.0).withCurrency('GBP').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage3.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`GBP Test ${uniqueId}`)
+            .withAmount(30.0)
+            .withCurrency('GBP')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // STEP 1: Navigate back to dashboard and FIRST verify the group appears
@@ -201,6 +253,9 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
 
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
@@ -225,7 +280,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                     .withDescription(`Test ${currency} ${uniqueId}`)
                     .withAmount(amount)
                     .withCurrency(currency)
-                    .withPaidByDisplayName('Test User')
+                    .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .build(),
             );

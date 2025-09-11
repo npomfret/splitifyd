@@ -10,14 +10,23 @@ test.describe('Basic Expense Operations E2E', () => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
         const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
+        
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
         const groupInfo = { user };
         const memberCount = 1;
 
         // Create expense using page object
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Test Expense Lifecycle ${uniqueId}`).withAmount(50).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Test Expense Lifecycle ${uniqueId}`)
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidByDisplayName(userDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Verify expense appears in list
@@ -45,6 +54,10 @@ test.describe('Basic Expense Operations E2E', () => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
         const groupDetailPage = new GroupDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
+        
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
 
         // Note: For now, testing with single user only as multi-user setup is not available
@@ -56,7 +69,7 @@ test.describe('Basic Expense Operations E2E', () => {
             .withDescription(`Edit Split Test ${uniqueId}`)
             .withAmount(100) // Nice round number for testing
             .withCurrency('USD')
-            .withPaidByDisplayName('Test User')
+            .withPaidByDisplayName(userDisplayName)
             .withSplitType('equal')
             .build();
 

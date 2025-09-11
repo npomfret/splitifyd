@@ -176,7 +176,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
                 .withDescription(expenseDescription)
                 .withAmount(expenseAmount)
                 .withCurrency('USD')
-                .withPaidByDisplayName('Test User')
+                .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
                 // User 4 deliberately excluded
                 .build(),

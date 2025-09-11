@@ -112,8 +112,11 @@ test.describe('Leave Group E2E', () => {
 
     test('user with outstanding balance cannot leave group until settled', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner and member
-        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
-        const { page: memberPage, user: member } = await newLoggedInBrowser();
+        const { page: ownerPage, user: owner, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: memberPage, user: member, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
@@ -131,8 +134,13 @@ test.describe('Leave Group E2E', () => {
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Test expense for balance validation').withAmount(60).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Test expense for balance validation')
+            .withAmount(60)
+            .withCurrency('USD')
+            .withPaidByDisplayName(user1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Wait for balances to update
@@ -142,6 +150,8 @@ test.describe('Leave Group E2E', () => {
         // Member tries to leave group but should be blocked due to outstanding balance
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
         await memberGroupDetailPage.clickLeaveGroup();
+
+        // todo: this is flawed - the app is working, it doesn't let you leave.  but instead of (or as well as) a console error, the user should be told why they cannot leave
 
         // Click confirm button - but leave action should fail due to validation
         await memberGroupDetailPage.confirmLeaveGroup();

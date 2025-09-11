@@ -56,8 +56,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseDescription = `Edge Leave Test ${randomString(4)}`;
 
         // Attempt to create expense including the leaving user
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(creatorDisplayName).withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expenseDescription)
+            .withAmount(60)
+            .withCurrency('USD')
+            .withPaidByDisplayName(creatorDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         // Wait for system to resolve the conflict
@@ -128,8 +133,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create expense creating debt (Owner paid $80, others owe $20 each)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(4);
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Settlement Edge Test').withAmount(80).withCurrency('USD').withPaidByDisplayName(ownerDisplayName).withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription('Settlement Edge Test')
+            .withAmount(80)
+            .withCurrency('USD')
+            .withPaidByDisplayName(ownerDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -343,8 +353,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseFormPage = await activeGroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Network Test ${randomString(4)}`;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(activeDisplayName).withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expenseDescription)
+            .withAmount(60)
+            .withCurrency('USD')
+            .withPaidByDisplayName(activeDisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await activeGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -419,8 +434,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseFormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Conflict Test ${randomString(4)}`;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(editor1DisplayName).withSplitType('equal').build(),
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expenseDescription)
+            .withAmount(60)
+            .withCurrency('USD')
+            .withPaidByDisplayName(editor1DisplayName)
+            .withSplitType('equal')
+            .build()
         );
 
         await editor1GroupDetailPage.waitForBalancesToLoad(groupId);
