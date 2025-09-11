@@ -22,8 +22,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should create notification document when user creates first group', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before group creation
             const beforeGroupTimestamp = Date.now();
@@ -49,8 +48,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should update notification when expense is added to group', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
@@ -79,7 +77,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should have separate notification documents for different users', async () => {
             // 1. START LISTENERS FIRST  
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
 
             // 2. Create separate groups for each user to test independence
             const user1Group = await apiDriver.createGroup(
@@ -93,12 +91,12 @@ describe('Real-time Notifications Integration Tests', () => {
             );
 
             // 3. Wait for each user to receive notification for their own group
-            await listeners[0].waitForEventCount(user1Group.id, 'group', 1);
-            await listeners[1].waitForEventCount(user2Group.id, 'group', 1);
+            await listener1.waitForEventCount(user1Group.id, 'group', 1);
+            await listener2.waitForEventCount(user2Group.id, 'group', 1);
 
             // 4. Verify each user received their specific group event (test isolation)
-            const user1GroupEvent = listeners[0].getLatestEvent(user1Group.id, 'group');
-            const user2GroupEvent = listeners[1].getLatestEvent(user2Group.id, 'group');
+            const user1GroupEvent = listener1.getLatestEvent(user1Group.id, 'group');
+            const user2GroupEvent = listener2.getLatestEvent(user2Group.id, 'group');
 
             expect(user1GroupEvent).toBeDefined();
             expect(user1GroupEvent!.groupId).toBe(user1Group.id);
@@ -111,8 +109,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should increment change version when notifications are updated', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS  
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Get initial version from existing group
             const initialGroupEvent = listener.getLatestEvent(testGroup.id, 'group');
@@ -144,8 +141,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should contain correct group state in notifications', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Wait for group creation event from beforeEach
             await listener.waitForEventCount(testGroup.id, 'group', 1);
@@ -167,8 +163,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should receive real-time notification when expense is created', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
@@ -199,8 +194,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should receive balance change notification after expense creation', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
@@ -232,8 +226,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should handle multiple rapid expense creations without missing notifications', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpensesTimestamp = Date.now();
@@ -266,8 +259,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should detect when group is deleted from notifications', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // Create an expense to ensure group exists in notifications
             const expense = new ExpenseBuilder()
@@ -298,8 +290,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should verify notification event structure using listeners', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            const listener = listeners[0];
+            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
@@ -330,8 +321,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
         test('should handle listener restart after network interruption simulation', async () => {
             // 1. START INITIAL LISTENER FIRST - BEFORE ANY ACTIONS
-            const listeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            let listener = listeners[0];
+            let [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // Create first expense
             const beforeExpense1Timestamp = Date.now();
@@ -361,8 +351,7 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // 2. Reconnect with new listener (captures all state changes)
             console.log('Simulating reconnection...');
-            const reconnectListeners = await notificationDriver.setupListenersFirst([users[0].uid]);
-            listener = reconnectListeners[0];
+            [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
 
             // Should automatically receive current notification state
             await listener.waitForEventCount(testGroup.id, 'transaction', 1);
@@ -385,7 +374,7 @@ describe('Real-time Notifications Integration Tests', () => {
         test('should notify all 3 users for all expenses regardless of participation', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
             const userIds = [users[0].uid, users[1].uid, users[2].uid];
-            const listeners = await notificationDriver.setupListenersFirst(userIds);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
             
             // 2. Create group and perform setup (listeners capture everything)
             const multiUserGroup = await apiDriver.createGroup(
@@ -404,9 +393,9 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // Wait for all users to receive group events (when they joined the group)
             await Promise.all([
-                listeners[0].waitForEventCount(multiUserGroup.id, 'group', 1),
-                listeners[1].waitForEventCount(multiUserGroup.id, 'group', 1),
-                listeners[2].waitForEventCount(multiUserGroup.id, 'group', 1)
+                listener1.waitForEventCount(multiUserGroup.id, 'group', 1),
+                listener2.waitForEventCount(multiUserGroup.id, 'group', 1),
+                listener3.waitForEventCount(multiUserGroup.id, 'group', 1)
             ]);
 
             // 3. Mark timestamp before expense tests begin
@@ -424,7 +413,7 @@ describe('Real-time Notifications Integration Tests', () => {
             await apiDriver.createExpense(expense1, users[0].token);
 
             // Wait for all listeners to receive the transaction event
-            await notificationDriver.waitForAllListenersToReceiveEvent(listeners, multiUserGroup.id, 'transaction', beforeExpensesTimestamp);
+            await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpensesTimestamp);
 
             console.log('Creating expense 2: User1 + User2 expense (excludes User3)...');
             const beforeExpense2Timestamp = Date.now();
@@ -438,7 +427,7 @@ describe('Real-time Notifications Integration Tests', () => {
             await apiDriver.createExpense(expense2, users[0].token);
 
             // Wait for all listeners to receive the transaction event
-            await notificationDriver.waitForAllListenersToReceiveEvent(listeners, multiUserGroup.id, 'transaction', beforeExpense2Timestamp);
+            await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense2Timestamp);
 
             console.log('Creating expense 3: User2 + User3 expense (excludes User1)...');
             const beforeExpense3Timestamp = Date.now();
@@ -452,7 +441,7 @@ describe('Real-time Notifications Integration Tests', () => {
             await apiDriver.createExpense(expense3, users[1].token);
 
             // Wait for all listeners to receive the transaction event
-            await notificationDriver.waitForAllListenersToReceiveEvent(listeners, multiUserGroup.id, 'transaction', beforeExpense3Timestamp);
+            await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense3Timestamp);
 
             console.log('Creating expense 4: All users expense...');
             const beforeExpense4Timestamp = Date.now();
@@ -466,12 +455,12 @@ describe('Real-time Notifications Integration Tests', () => {
             await apiDriver.createExpense(expense4, users[0].token);
 
             // Wait for all listeners to receive the transaction event
-            await notificationDriver.waitForAllListenersToReceiveEvent(listeners, multiUserGroup.id, 'transaction', beforeExpense4Timestamp);
+            await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense4Timestamp);
 
             // Already verified that all listeners received events above
 
             // 4. Verify all listeners received transaction events for the 4 expenses
-            const transactionEventsSinceStart = listeners.map(listener => 
+            const transactionEventsSinceStart = [listener1, listener2, listener3].map(listener => 
                 listener.getEventsSince(beforeExpensesTimestamp).filter(e => 
                     e.groupId === multiUserGroup.id && e.type === 'transaction'
                 )
@@ -486,9 +475,9 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // 5. Verify listeners received at least 4 transaction events each (test isolation: only check THIS group)
             await Promise.all([
-                listeners[0].waitForEventCount(multiUserGroup.id, 'transaction', 4),
-                listeners[1].waitForEventCount(multiUserGroup.id, 'transaction', 4),
-                listeners[2].waitForEventCount(multiUserGroup.id, 'transaction', 4)
+                listener1.waitForEventCount(multiUserGroup.id, 'transaction', 4),
+                listener2.waitForEventCount(multiUserGroup.id, 'transaction', 4),
+                listener3.waitForEventCount(multiUserGroup.id, 'transaction', 4)
             ]);
 
             console.log('✅ All users verified to receive 4+ transaction events for the test group through listener events only');
@@ -497,7 +486,7 @@ describe('Real-time Notifications Integration Tests', () => {
         test('should notify all group members when group name or description changes', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
             const userIds = [users[0].uid, users[1].uid, users[2].uid];
-            const listeners = await notificationDriver.setupListenersFirst(userIds);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners will capture this)
             const multiUserGroup = await apiDriver.createGroup(
@@ -522,14 +511,14 @@ describe('Real-time Notifications Integration Tests', () => {
             }, users[0].token);
 
             // 6. Wait for all users to receive the specific group update event
-            await notificationDriver.waitForAllListenersToReceiveEvent(listeners, multiUserGroup.id, 'group', beforeUpdateTimestamp);
+            await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'group', beforeUpdateTimestamp);
 
             // 7. Verify the events are what we expect
-            const user1UpdateEvents = listeners[0].getEventsSince(beforeUpdateTimestamp)
+            const user1UpdateEvents = listener1.getEventsSince(beforeUpdateTimestamp)
                 .filter((e: any) => e.groupId === multiUserGroup.id && e.type === 'group');
-            const user2UpdateEvents = listeners[1].getEventsSince(beforeUpdateTimestamp)
+            const user2UpdateEvents = listener2.getEventsSince(beforeUpdateTimestamp)
                 .filter((e: any) => e.groupId === multiUserGroup.id && e.type === 'group');
-            const user3UpdateEvents = listeners[2].getEventsSince(beforeUpdateTimestamp)
+            const user3UpdateEvents = listener3.getEventsSince(beforeUpdateTimestamp)
                 .filter((e: any) => e.groupId === multiUserGroup.id && e.type === 'group');
 
             // Each user should receive at least the group update event we triggered
@@ -541,7 +530,7 @@ describe('Real-time Notifications Integration Tests', () => {
             console.log(`📊 Events after update timestamp - User1: ${user1UpdateEvents.length}, User2: ${user2UpdateEvents.length}, User3: ${user3UpdateEvents.length}`);
 
             // 8. Verify the complete event sequence for user1 (can see everything)
-            const allUser1GroupEvents = listeners[0].getEventsForGroup(multiUserGroup.id);
+            const allUser1GroupEvents = listener1.getEventsForGroup(multiUserGroup.id);
             console.log(`👀 User1 complete event sequence: ${allUser1GroupEvents.map((e: any) => e.type).join(' → ')}`);
             
             // Should have events for: initial creation, user2 join, user3 join, update
@@ -556,7 +545,7 @@ describe('Real-time Notifications Integration Tests', () => {
         test('should notify existing members when new member joins group', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
             const userIds = [users[0].uid, users[1].uid, users[2].uid];
-            const listeners = await notificationDriver.setupListenersFirst(userIds);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a group with user1 initially (listeners capture this)
             const membershipGroup = await apiDriver.createGroup(
@@ -578,26 +567,26 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // 6. Wait for existing members (user1 and user2) to receive group change notifications
             console.log('⏳ Waiting for existing members to be notified of new member join...');
-            await listeners[0].waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
-            await listeners[1].waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
+            await listener1.waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
+            await listener2.waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
 
             // 7. Verify the join event was captured correctly
-            const user1JoinEvents = listeners[0].getEventsSince(beforeUser3JoinTimestamp)
+            const user1JoinEvents = listener1.getEventsSince(beforeUser3JoinTimestamp)
                 .filter((e: any) => e.groupId === membershipGroup.id && e.type === 'group');
-            const user2JoinEvents = listeners[1].getEventsSince(beforeUser3JoinTimestamp)
+            const user2JoinEvents = listener2.getEventsSince(beforeUser3JoinTimestamp)
                 .filter((e: any) => e.groupId === membershipGroup.id && e.type === 'group');
 
             expect(user1JoinEvents.length).toBeGreaterThanOrEqual(1); // Should get at least one join event
             expect(user2JoinEvents.length).toBeGreaterThanOrEqual(1); // Should get at least one join event
 
             // 8. Wait for the new member (user3) to receive their group event
-            await listeners[2].waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
-            const user3GroupEvent = listeners[2].getLatestEvent(membershipGroup.id, 'group');
+            await listener3.waitForNewEvent(membershipGroup.id, 'group', beforeUser3JoinTimestamp);
+            const user3GroupEvent = listener3.getLatestEvent(membershipGroup.id, 'group');
             expect(user3GroupEvent).toBeDefined();
             expect(user3GroupEvent!.groupId).toBe(membershipGroup.id);
 
             // 9. Verify the complete event sequence shows the full membership story
-            const allUser1GroupEvents = listeners[1].getEventsForGroup(membershipGroup.id);
+            const allUser1GroupEvents = listener2.getEventsForGroup(membershipGroup.id);
             console.log(`👀 User1 complete membership sequence: ${allUser1GroupEvents.map((e: any) => e.type).join(' → ')}`);
             
             // User1 should see: initial creation, user2 join, user3 join
@@ -612,7 +601,7 @@ describe('Real-time Notifications Integration Tests', () => {
         test('should notify remaining members when member leaves group', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
             const userIds = [users[0].uid, users[1].uid, users[2].uid];
-            const listeners = await notificationDriver.setupListenersFirst(userIds);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners capture this)
             const leaveTestGroup = await apiDriver.createGroup(
@@ -627,9 +616,9 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // 4. Wait for all users to receive group events (ensuring they're all members)
             await Promise.all([
-                listeners[0].waitForEventCount(leaveTestGroup.id, 'group', 1),
-                listeners[1].waitForEventCount(leaveTestGroup.id, 'group', 1),
-                listeners[2].waitForEventCount(leaveTestGroup.id, 'group', 1)
+                listener1.waitForEventCount(leaveTestGroup.id, 'group', 1),
+                listener2.waitForEventCount(leaveTestGroup.id, 'group', 1),
+                listener3.waitForEventCount(leaveTestGroup.id, 'group', 1)
             ]);
 
             // 5. Mark timestamp before the leave action
@@ -641,16 +630,16 @@ describe('Real-time Notifications Integration Tests', () => {
 
             // 7. Wait for remaining members to receive group change events from the leave
             await Promise.all([
-                listeners[0].waitForNewEvent(leaveTestGroup.id, 'group', beforeLeaveTimestamp),
-                listeners[1].waitForNewEvent(leaveTestGroup.id, 'group', beforeLeaveTimestamp)
+                listener1.waitForNewEvent(leaveTestGroup.id, 'group', beforeLeaveTimestamp),
+                listener2.waitForNewEvent(leaveTestGroup.id, 'group', beforeLeaveTimestamp)
             ]);
 
             // 8. The leaving member should have the group removed from their notifications
             // Instead of waiting for group_removed event, check that no more group events come for user3
             // and verify the remaining members received the leave notification
-            const user1GroupEvent = listeners[0].getEventsSince(beforeLeaveTimestamp)
+            const user1GroupEvent = listener1.getEventsSince(beforeLeaveTimestamp)
                 .find(e => e.groupId === leaveTestGroup.id && e.type === 'group');
-            const user2GroupEvent = listeners[1].getEventsSince(beforeLeaveTimestamp)
+            const user2GroupEvent = listener2.getEventsSince(beforeLeaveTimestamp)
                 .find(e => e.groupId === leaveTestGroup.id && e.type === 'group');
 
             expect(user1GroupEvent).toBeDefined();
