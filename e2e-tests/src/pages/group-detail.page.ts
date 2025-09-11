@@ -55,12 +55,10 @@ export class GroupDetailPage extends BasePage {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        // Assert button is visible and enabled before clicking
+        // Get button and click it (clickButton will handle attachment wait internally)
         const settleButton = this.getSettleUpButton();
-        await expect(settleButton).toBeVisible();
-        await expect(settleButton).toBeEnabled();
 
-        await this.clickButton(settleButton, { buttonName: 'Settle with payment' });
+        await this.clickButton(settleButton, { buttonName: 'Settle up' });
 
         // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page);
@@ -1553,13 +1551,48 @@ export class GroupDetailPage extends BasePage {
         const leaveGroupHeading = this.page.getByRole('heading', { name: /leave group/i });
         await expect(leaveGroupHeading).toBeVisible();
 
+        // Check for any error messages that might prevent leaving
+        const errorElements = await this.page.locator('[role="alert"], .text-red-500, .error').count();
+        if (errorElements > 0) {
+            const errorText = await this.page.locator('[role="alert"], .text-red-500, .error').first().textContent();
+            throw new Error(`Cannot leave group due to error: ${errorText}`);
+        }
+
         // Click confirm button with data-testid
         const confirmButton = this.page.getByTestId('confirm-button');
         await expect(confirmButton).toBeEnabled();
+        
+        const clickTime = Date.now();
+        console.log('🕒 Clicking leave group confirm button at:', new Date(clickTime).toISOString());
         await confirmButton.click();
 
-        // Wait for confirmation UI to close and navigation to occur
-        await expect(leaveGroupHeading).not.toBeVisible({ timeout: 5000 });
+        // Wait for confirmation UI to close and navigation to occur with better error handling  
+        try {
+            await expect(leaveGroupHeading).not.toBeVisible({ timeout: 3000 });
+            const closeTime = Date.now();
+            const duration = closeTime - clickTime;
+            console.log(`🕒 Modal closed after ${duration}ms`);
+            
+            if (duration > 1000) {
+                console.warn(`⚠️ SLOW MODAL CLOSE: Took ${duration}ms (expected <1000ms)`);
+            }
+        } catch (timeoutError) {
+            // Check if there are any error messages preventing the leave
+            const postClickErrors = await this.page.locator('[role="alert"], .text-red-500, .error').count();
+            if (postClickErrors > 0) {
+                const errorText = await this.page.locator('[role="alert"], .text-red-500, .error').first().textContent();
+                throw new Error(`Leave group failed with error: ${errorText}`);
+            }
+            
+            // Check if the button is still enabled (might indicate a failed action)
+            const stillEnabled = await confirmButton.isEnabled().catch(() => false);
+            if (stillEnabled) {
+                throw new Error('Leave group confirmation button is still enabled - action may have failed');
+            }
+            
+            // Re-throw the timeout error with more context
+            throw new Error(`Leave group modal did not close within 10 seconds. Modal still visible: ${await leaveGroupHeading.isVisible()}`);
+        }
     }
 }
 

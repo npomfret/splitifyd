@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage, JoinGroupPage, RegisterPage, DashboardPage } from '../../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
@@ -115,56 +115,37 @@ simpleTest.describe('Group Management', () => {
     });
 
     simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
+        // Create two browser sessions with pooled users
+        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
+        
+        const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
+        const groupWorkflow = new GroupWorkflow(ownerPage);
 
-        // Create a group with the first user as owner
+        // Owner creates a group
         const groupName = 'Owner Only Settings';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Only owner can edit');
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Only owner can edit');
+        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
 
-        // Get the share link (this method closes the modal automatically)
-        const shareLink = await groupDetailPage.getShareLink();
+        // Get the share link
+        const shareLink = await ownerGroupDetailPage.getShareLink();
 
-        // Navigate to dashboard first before signing out
-        await page.goto('/dashboard');
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-        // Sign out current user
-        const dashboard = new DashboardPage(page);
-        await dashboard.logout();
-
-        // Wait for redirect to login page
-        await expect(page).toHaveURL(/\/login/);
-
-        // Create a new user
-        const registerPage = new RegisterPage(page);
-        await registerPage.navigate();
-
-        const timestamp = Date.now();
-        const newUserEmail = `nonowner${timestamp}@test.com`;
-        await registerPage.register('Non Owner', newUserEmail, 'TestPass123!');
-
-        // Wait for dashboard
-        await expect(page).toHaveURL(/\/dashboard/);
-
-        // Join the group via share link
-        const joinGroupPage = new JoinGroupPage(page);
+        // Member joins the group via share link
+        const joinGroupPage = new JoinGroupPage(memberPage);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
-        // Should be on the group page now
-        await expect(page).toHaveURL(groupDetailUrlPattern());
+        // Verify owner CAN see settings button
+        const ownerSettingsButton = ownerGroupDetailPage.getSettingsButton();
+        await expect(ownerSettingsButton).toBeVisible();
 
-        // Wait for page to fully load and ensure group detail is visible
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        await expect(groupDetailPage.getGroupTitle()).toBeVisible();
+        // Verify member CANNOT see settings button
+        const memberSettingsButton = memberGroupDetailPage.getSettingsButton();
+        await expect(memberSettingsButton).not.toBeVisible();
 
-        // Verify settings button is NOT visible for non-owner
-        const settingsButton = groupDetailPage.getSettingsButton();
-        await expect(settingsButton).not.toBeVisible();
-
-        // Verify the group name is still visible
-        await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
+        // Verify both can see the group name
+        await expect(ownerGroupDetailPage.getGroupTitle()).toHaveText(groupName);
+        await expect(memberGroupDetailPage.getGroupTitle()).toHaveText(groupName);
     });
 });

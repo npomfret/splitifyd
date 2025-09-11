@@ -320,15 +320,11 @@ export abstract class BasePage {
     ): Promise<void> {
         const { buttonName, skipEnabledCheck = false, timeout = 2000 } = options || {};
 
+        // Ensure button is attached to DOM before proceeding
+        await button.waitFor({ state: 'attached', timeout });
+        
         // Get button text for error messages if not provided
         const buttonText = buttonName || (await button.textContent()) || 'button';
-
-        await button.waitFor({ state: 'attached', timeout });
-
-        const exists = (await button.count()) > 0;
-        if (!exists) {
-            throw new Error(`Button "${buttonText}" not found in the DOM. Check your selector.`);
-        }
 
         // Check visibility with clear error message
         try {

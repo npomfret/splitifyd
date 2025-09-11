@@ -49,6 +49,10 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             };
             browserInstances.push(browserInstance);
 
+            const displayName = await dashboardPage.getCurrentUserDisplayName()
+
+            console.log(`Using: "${displayName}" ${user.email} ${user.uid}`);
+
             return { page, dashboardPage, user };
         };
 

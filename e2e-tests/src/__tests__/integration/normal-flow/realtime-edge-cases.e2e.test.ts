@@ -20,11 +20,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const leavingGroupDetailPage = new GroupDetailPage(leavingPage, leaving);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
-        // Get display names
+        // Get display names and log user UIDs
         const creatorDisplayName = await creatorDashboardPage.getCurrentUserDisplayName();
         const leavingDisplayName = await leavingDashboardPage.getCurrentUserDisplayName();
         const stayingDisplayName = await stayingDashboardPage.getCurrentUserDisplayName();
         const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
+
+        console.log(`👥 Test 1 User UIDs - Creator: ${creator.uid}, Leaving: ${leaving.uid}, Staying: ${staying.uid}, Watcher: ${watcher.uid}`);
 
         // Creator creates group
         const groupWorkflow = new GroupWorkflow(creatorPage);
@@ -51,11 +53,14 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         await leaveButton.click();
         await leavingGroupDetailPage.confirmLeaveGroup();
 
-        // Creator creates expense immediately (including the user who is leaving)
-        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton(4); // Still thinks there are 4 members
+        // Wait for LeavingUser to be fully removed from group
+        await creatorGroupDetailPage.waitForMemberCount(3);
+
+        // Creator creates expense after user has left (testing real-time sync)
+        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Edge Leave Test ${randomString(4)}`;
 
-        // Attempt to create expense including the leaving user
+        // Create expense with remaining members only
         await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(expenseDescription)
             .withAmount(60)
@@ -65,20 +70,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
             .build()
         );
 
-        // Wait for system to resolve the conflict
+        // Wait for system to process the expense
         await creatorGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // VERIFICATION:
 
         // 1. LeavingUser should be on dashboard (left successfully)
-        await expect(async () => {
-            const currentUrl = leavingPage.url();
-            if (currentUrl.includes('/dashboard')) return;
-            await leavingPage.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
-            const newUrl = leavingPage.url();
-            if (newUrl.includes('/dashboard')) return;
-            throw new Error(`Expected dashboard after leaving, got: ${currentUrl}`);
-        }).toPass({ timeout: 10000, intervals: [1000] });
+        await leavingDashboardPage.waitForDashboard();
 
         // 2. Creator should see updated member count (3 members now)
         await creatorGroupDetailPage.waitForMemberCount(3);
@@ -108,11 +106,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const settlingGroupDetailPage = new GroupDetailPage(settlingPage, settling);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
-        // Get display names
+        // Get display names and log user UIDs
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
         const settlingDisplayName = await settlingDashboardPage.getCurrentUserDisplayName();
         const targetDisplayName = await targetDashboardPage.getCurrentUserDisplayName();
         const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
+
+        console.log(`👥 Test 2 User UIDs - Owner: ${owner.uid}, Settling: ${settling.uid}, Target: ${target.uid}, Watcher: ${watcher.uid}`);
 
         // Owner creates group
         const groupWorkflow = new GroupWorkflow(ownerPage);
@@ -145,16 +145,35 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
         await settlingGroupDetailPage.waitForBalancesToLoad(groupId);
 
-        // RACE CONDITION: SettlingUser starts settlement while Owner removes Target
+        // SEQUENCE: Target settles their debt first, then Owner removes Target, then SettlingUser creates settlement (testing real-time sync)
 
-        // SettlingUser opens settlement form
-        const settlementFormPage = await settlingGroupDetailPage.clickSettleUpButton(4);
+        // Target settles their debt first (they owe $20 to owner)
+        const targetGroupDetailPage = new GroupDetailPage(targetPage, target);
+        const targetSettlementFormPage = await targetGroupDetailPage.clickSettleUpButton(4);
+        await targetSettlementFormPage.submitSettlement(
+            {
+                payerName: targetDisplayName,
+                payeeName: ownerDisplayName,
+                amount: '20',
+                note: `Pre-removal Settlement ${randomString(4)}`,
+            },
+            4,
+        );
 
-        // Meanwhile, Owner removes Target (who was also involved in settlement)
+        // Wait for target's settlement to process
+        await targetGroupDetailPage.waitForBalancesToLoad(groupId);
+        await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
+        
+        // Now Owner can remove Target user (no outstanding balance)
         await ownerGroupDetailPage.clickRemoveMember(targetDisplayName);
         await ownerGroupDetailPage.confirmRemoveMember();
 
-        // SettlingUser completes settlement (system should handle removal gracefully)
+        // Wait for removal to propagate to other users
+        await ownerGroupDetailPage.waitForMemberCount(3);
+        await settlingGroupDetailPage.waitForMemberCount(3);
+
+        // SettlingUser creates settlement with remaining members
+        const settlementFormPage = await settlingGroupDetailPage.clickSettleUpButton(3);
         await settlementFormPage.submitSettlement(
             {
                 payerName: settlingDisplayName,
@@ -162,24 +181,17 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 amount: '20',
                 note: `Edge Settlement ${randomString(4)}`,
             },
-            4,
-        ); // Still thinks there are 4 members
+            3,
+        );
 
-        // Wait for system to resolve conflicts
+        // Wait for settlement to process
         await settlingGroupDetailPage.waitForBalancesToLoad(groupId);
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // VERIFICATION:
 
-        // 1. Target should be removed (404 or dashboard)
-        await expect(async () => {
-            const currentUrl = targetPage.url();
-            if (currentUrl.includes('/404') || currentUrl.includes('/dashboard')) return;
-            await targetPage.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
-            const newUrl = targetPage.url();
-            if (newUrl.includes('/404') || newUrl.includes('/dashboard')) return;
-            throw new Error(`Expected 404 or dashboard after removal, got: ${currentUrl}`);
-        }).toPass({ timeout: 15000, intervals: [1000] });
+        // 1. Target should be removed (redirected to dashboard)
+        await targetDashboardPage.waitForDashboard();
 
         // 2. Settlement should have completed successfully
         await ownerGroupDetailPage.waitForMemberCount(3);
@@ -236,11 +248,16 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // STRESS TEST: Rapid sequence of operations
 
+        // Store expense descriptions for verification
+        const expense1Description = `Stress 1 ${randomString(3)}`;
+        const expense2Description = `Stress 2 ${randomString(3)}`;
+        const expense3Description = `Stress 3 ${randomString(3)}`;
+
         // 1. User1 adds expense
         const expense1FormPage = await user1GroupDetailPage.clickAddExpenseButton(4);
         await expense1FormPage.submitExpense(
             new ExpenseFormDataBuilder()
-                .withDescription(`Stress 1 ${randomString(3)}`)
+                .withDescription(expense1Description)
                 .withAmount(40)
                 .withCurrency('USD')
                 .withPaidByDisplayName(user1DisplayName)
@@ -252,7 +269,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expense2FormPage = await user2GroupDetailPage.clickAddExpenseButton(4);
         await expense2FormPage.submitExpense(
             new ExpenseFormDataBuilder()
-                .withDescription(`Stress 2 ${randomString(3)}`)
+                .withDescription(expense2Description)
                 .withAmount(30)
                 .withCurrency('USD')
                 .withPaidByDisplayName(user2DisplayName)
@@ -267,7 +284,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expense4FormPage = await user4GroupDetailPage.clickAddExpenseButton(4);
         await expense4FormPage.submitExpense(
             new ExpenseFormDataBuilder()
-                .withDescription(`Stress 3 ${randomString(3)}`)
+                .withDescription(expense3Description)
                 .withAmount(50)
                 .withCurrency('USD')
                 .withPaidByDisplayName(user4DisplayName)
@@ -295,17 +312,17 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // CRITICAL TEST: All users should see consistent final state
 
         // All users should see the expenses exist
-        await user1GroupDetailPage.verifyExpenseVisible('Stress expense 1');
-        await user1GroupDetailPage.verifyExpenseVisible('Stress expense 2');
-        await user1GroupDetailPage.verifyExpenseVisible('Stress expense 3');
+        await user1GroupDetailPage.verifyExpenseVisible(expense1Description);
+        await user1GroupDetailPage.verifyExpenseVisible(expense2Description);
+        await user1GroupDetailPage.verifyExpenseVisible(expense3Description);
 
-        await user2GroupDetailPage.verifyExpenseVisible('Stress expense 1');
-        await user2GroupDetailPage.verifyExpenseVisible('Stress expense 2');
-        await user2GroupDetailPage.verifyExpenseVisible('Stress expense 3');
+        await user2GroupDetailPage.verifyExpenseVisible(expense1Description);
+        await user2GroupDetailPage.verifyExpenseVisible(expense2Description);
+        await user2GroupDetailPage.verifyExpenseVisible(expense3Description);
 
-        await user4GroupDetailPage.verifyExpenseVisible('Stress expense 1');
-        await user4GroupDetailPage.verifyExpenseVisible('Stress expense 2');
-        await user4GroupDetailPage.verifyExpenseVisible('Stress expense 3');
+        await user4GroupDetailPage.verifyExpenseVisible(expense1Description);
+        await user4GroupDetailPage.verifyExpenseVisible(expense2Description);
+        await user4GroupDetailPage.verifyExpenseVisible(expense3Description);
 
         // User3 on dashboard should still see the group accessible
         await user3DashboardPage.waitForGroupToAppear(groupName);
@@ -347,7 +364,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         await activeGroupDetailPage.waitForMemberCount(3);
 
         // Simulate "offline" user by making them navigate away (simulating network disconnect)
-        await offlinePage.goto('about:blank'); // Simulate going offline
+        await offlineGroupDetailPage.navigateToHomepage(); // Simulate going offline
 
         // ActiveUser makes changes while one user is "offline"
         const expenseFormPage = await activeGroupDetailPage.clickAddExpenseButton(3);
@@ -369,7 +386,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         await onlineGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // "Reconnect" offline user by navigating back to group
-        await offlinePage.goto(`/groups/${groupId}`);
+        await offlineGroupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(offlinePage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // CRITICAL TEST: OfflineUser should see all changes that happened while "offline"

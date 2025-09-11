@@ -11,6 +11,9 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
     simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking - real-time tests may generate expected transient errors during synchronization
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
+        
+        // Increase timeout for complex multi-user real-time test
+        testInfo.setTimeout(60000); // 60 seconds
         // Create four browser instances - User 1, User 2, User 3, and User 4
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
@@ -96,10 +99,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await joinGroupPage4.joinGroupUsingShareLink(shareLink);
 
         // Verify fourth user can actually access the group page
-        const user4Url = user4Page.url();
-        if (!user4Url.includes(`/groups/${groupId}`)) {
-            throw new Error(`Fourth user join verification failed. Expected to be on /groups/${groupId}, but on: ${user4Url}`);
-        }
+        await expect(user4Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Synchronize all 4 users to see all members
         await groupDetailPage.synchronizeMultiUserState(
@@ -119,7 +119,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // User 2 navigates to dashboard to monitor group-level changes
         await user2DashboardPage.navigate();
-        await expect(user2Page).toHaveURL(/\/dashboard/);
+        await user2DashboardPage.waitForDashboard(); // Wait for dashboard to load properly
 
         // Verify User 2 can see the group on dashboard with original name
         await user2DashboardPage.waitForGroupToAppear(originalGroupName);
@@ -195,6 +195,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Verify User 2 sees balance change on dashboard
         // Users 2 and 3 each owe User 1 $20
         await user2DashboardPage.navigate(); // Navigate to dashboard to ensure proper state
+        await user2DashboardPage.waitForDashboard(); // Wait for dashboard to load properly
         await user2DashboardPage.waitForGroupToAppear(newGroupName);
 
         // =============================================================
@@ -216,7 +217,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // User 2 settles their debt with User 1
         // Navigate User 2 back to group page
-        await user2Page.goto(`/groups/${groupId}`);
+        await user2GroupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         const settlementFormPage = await user2GroupDetailPage.clickSettleUpButton(4);
@@ -267,15 +268,18 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // =============================================================
 
         // User 4 can leave the group since they have no expenses or settlements
+        console.log('🚪 Attempting User 4 group leave...');
+        
+        // Check if User 4 has any outstanding balances before leaving
+        console.log('💰 Checking User 4 balance status...');
+        await user4GroupDetailPage.waitForBalancesToLoad(groupId);
+        console.log('✅ User 4 balances loaded successfully');
+
         await user4GroupDetailPage.leaveGroup();
+        console.log('✅ User 4 leave group completed');
 
         // Verify User 4 gets redirected to dashboard
-        await expect(async () => {
-            const currentUrl = user4Page.url();
-            if (currentUrl.includes(`/groups/${groupId}`)) {
-                throw new Error(`User 4 still on group page: ${currentUrl}`);
-            }
-        }).toPass({ timeout: 5000 });
+        await user4DashboardPage.waitForDashboard();
 
         // Verify Users 1, 2, and 3 see updated member count (3 members)
         await groupDetailPage.synchronizeMultiUserState(

@@ -6,7 +6,9 @@ import { generateTestGroupName } from '../../../../../packages/test-support/src/
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Leave Group E2E', () => {
-    test('user should be able to leave group and no longer access it', async ({ newLoggedInBrowser }) => {
+    test('user should be able to leave group and no longer access it', async ({ newLoggedInBrowser }, testInfo) => {
+        // Skip error checking - 404 errors and console errors are expected when trying to access removed group
+        testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when accessing removed group' });
         // Create two browser instances - owner and member
         const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
@@ -85,13 +87,14 @@ test.describe('Leave Group E2E', () => {
         await memberDashboardPage.waitForGroupToNotBePresent(groupName);
 
         // =============================================================
-        // VERIFY ACCESS DENIED: Direct URL access should fail
+        // VERIFY ACCESS DENIED: Notification + refresh + 404 flow
         // =============================================================
 
-        // Member tries to access the group URL directly
+        // Member tries to access the group URL directly - should get 404 and console errors (expected)
         await memberPage.goto(`/groups/${groupId}`);
 
         // Should be redirected to 404 or error page since they're no longer a member
+        // Console errors are expected here as the app tries to load group data that no longer exists for this user
         await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
 
         // =============================================================
@@ -113,10 +116,9 @@ test.describe('Leave Group E2E', () => {
     test('user with outstanding balance cannot leave group until settled', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner and member
         const { page: ownerPage, user: owner, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, user: member, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
@@ -162,5 +164,94 @@ test.describe('Leave Group E2E', () => {
         // Verify member is still in the group (leave was blocked)
         await ownerPage.goto(`/groups/${groupId}`);
         await groupDetailPage.waitForMemberCount(2);
+    });
+
+    test('member removed while on group page should get 404 on refresh', async ({ newLoggedInBrowser }, testInfo) => {
+        // Skip error checking - 404 errors and console errors are expected when member is removed
+        testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when member removed from group' });
+        
+        // Create owner and member browsers
+        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
+
+        const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
+
+        // Create group and add member
+        const groupName = generateTestGroupName('RemoveFromGroupPage');
+        const groupWorkflow = new GroupWorkflow(ownerPage);
+        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal while on group page');
+
+        // Member joins group
+        const shareLink = await ownerGroupDetailPage.getShareLink();
+        const joinGroupPage = new JoinGroupPage(memberPage);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+
+        // Synchronize both users to ensure member is properly added
+        await ownerGroupDetailPage.synchronizeMultiUserState([
+            { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
+            { page: memberPage, groupDetailPage: memberGroupDetailPage }
+        ], 2, groupId);
+
+        // Member stays on group page while owner removes them
+        // (In real app, this would happen via owner clicking "Remove member" in settings)
+        
+        // TODO: For now, we'll simulate this by having the member leave and then try to access
+        // In a real implementation, the owner would remove the member through group settings
+        
+        // Member stays on the group page, but we'll simulate removal by having them leave via API
+        // and then trying to refresh/access the page
+        await memberGroupDetailPage.leaveGroup(); // This simulates being removed
+        
+        // Member tries to refresh the page - should get 404 and console errors (expected)
+        await memberPage.reload();
+        
+        // Should be redirected away from group or show error state
+        // Console errors are expected as the app tries to reload group data that no longer exists
+        await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
+        
+        // Owner should see member count updated to 1
+        await ownerPage.goto(`/groups/${groupId}`);
+        await ownerGroupDetailPage.waitForMemberCount(1);
+    });
+
+    test('member removed while on dashboard should see group disappear cleanly', async ({ newLoggedInBrowser }) => {
+        // Create owner and member browsers
+        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
+
+        const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
+
+        // Create group and add member
+        const groupName = generateTestGroupName('RemoveFromDashboard');
+        const groupWorkflow = new GroupWorkflow(ownerPage);
+        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal while on dashboard');
+
+        // Member joins group
+        const shareLink = await ownerGroupDetailPage.getShareLink();
+        const joinGroupPage = new JoinGroupPage(memberPage);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+
+        // Member navigates to dashboard and verifies group is visible
+        await memberDashboardPage.navigate();
+        await memberDashboardPage.waitForGroupToAppear(groupName);
+
+        // Owner removes member (simulated by member leaving via API)
+        // In real app, owner would do this through group settings UI
+        await memberPage.goto(`/groups/${groupId}`);
+        await memberGroupDetailPage.leaveGroup(); // Simulate removal
+
+        // Member goes back to dashboard - group should disappear cleanly with no errors
+        await memberDashboardPage.navigate();
+        await memberDashboardPage.waitForDashboard(); // Ensure dashboard loads properly
+        
+        // Group should no longer be visible on dashboard - this should happen cleanly without errors
+        await memberDashboardPage.waitForGroupToNotBePresent(groupName);
+        
+        // No navigation errors or console errors should occur on dashboard
+        // (unlike when trying to access group page directly)
+        await expect(memberPage).toHaveURL(/\/dashboard/);
     });
 });
