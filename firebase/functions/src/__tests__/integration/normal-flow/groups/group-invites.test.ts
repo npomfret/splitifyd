@@ -9,10 +9,11 @@ import { v4 as uuidv4 } from 'uuid';
 import {borrowTestUsers} from '@splitifyd/test-support/test-pool-helpers';
 import {ApiDriver, CreateGroupRequestBuilder, NotificationDriver} from '@splitifyd/test-support';
 import {PooledTestUser} from "@splitifyd/shared";
+import {getFirestore} from "../../../../firebase";
 
 describe('Invite Tracking', () => {
     const apiDriver = new ApiDriver();
-    const notificationDriver = new NotificationDriver();
+    const notificationDriver = new NotificationDriver(getFirestore());
     let testGroup: any;
     let users: PooledTestUser[];
 

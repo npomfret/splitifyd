@@ -44,14 +44,10 @@ export interface NotificationEvent {
  * the webapp relies on. Follows the same pattern as ApiDriver.
  */
 export class NotificationDriver {
-    private firestore: any;
     private activeListeners = new Map<string, NotificationListener>();
 
-    constructor(firestore?: admin.firestore.Firestore) {
-        // Use provided firestore instance or default admin instance
-        this.firestore = firestore || admin.firestore();
+    constructor(private firestore: admin.firestore.Firestore) {
     }
-
 
     /**
      * Stop listening for a specific user
