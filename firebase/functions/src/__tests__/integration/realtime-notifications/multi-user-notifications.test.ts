@@ -2,7 +2,7 @@
 // Tests notification behavior across multiple users and group membership scenarios
 
 import { describe, expect, test } from 'vitest';
-import { users, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, user3, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { CreateGroupRequestBuilder, CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 
 describe('Multi-User Notifications Integration Tests', () => {
@@ -12,12 +12,12 @@ describe('Multi-User Notifications Integration Tests', () => {
     describe('User Independence Tests', () => {
         test('should have separate notification documents for different users', async () => {
             // 1. START LISTENERS FIRST
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Create separate groups for each user to test independence
-            const user1Group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
+            const user1Group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
-            const user2Group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[1].token);
+            const user2Group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user2.token);
 
             // 3. Wait for each user to receive notification for their own group
             await listener1.waitForEventCount(user1Group.id, 'group', 1);
@@ -40,11 +40,11 @@ describe('Multi-User Notifications Integration Tests', () => {
     describe('Group Membership Notifications', () => {
         test('should notify all group members when group name or description changes', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
-            const userIds = [users[0].uid, users[1].uid, users[2].uid];
+            const userIds = [user1.uid, user2.uid, user3.uid];
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners will capture this)
-            const multiUserGroup = await apiDriver.createGroupWithMembers('Multi-User Test Group', [users[0], users[1], users[2]], users[0].token);
+            const multiUserGroup = await apiDriver.createGroupWithMembers('Multi-User Test Group', [user1, user2, user3], user1.token);
 
             // 3. Perform the action being tested
             console.log('🔄 Updating group name and description...');
@@ -55,7 +55,7 @@ describe('Multi-User Notifications Integration Tests', () => {
                     name: 'Updated Group Name',
                     description: 'Updated description for testing notifications',
                 },
-                users[0].token,
+                user1.token,
             );
 
             // 4. Wait for all users to receive the specific group update event
@@ -93,20 +93,20 @@ describe('Multi-User Notifications Integration Tests', () => {
 
         test('should notify existing members when new member joins group', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
-            const userIds = [users[0].uid, users[1].uid, users[2].uid];
+            const userIds = [user1.uid, user2.uid, user3.uid];
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a group with user1 initially (listeners capture this)
-            const membershipGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
+            const membershipGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
             // 3. User 2 joins first (listeners capture this)
-            const shareResponse = await apiDriver.generateShareLink(membershipGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[1].token);
+            const shareResponse = await apiDriver.generateShareLink(membershipGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // 4. Perform the action being tested - User 3 joins (new member)
             console.log('👤 User 3 joining group...');
             const beforeJoin = Date.now();
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[2].token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user3.token);
 
             // 5. Wait for existing members (user1 and user2) to receive group change notifications
             console.log('⏳ Waiting for existing members to be notified of new member join...');
@@ -144,11 +144,11 @@ describe('Multi-User Notifications Integration Tests', () => {
 
         test('should notify remaining members when member leaves group', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
-            const userIds = [users[0].uid, users[1].uid, users[2].uid];
+            const userIds = [user1.uid, user2.uid, user3.uid];
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create a 3-user test group (listeners capture this)
-            const leaveTestGroup = await apiDriver.createGroupWithMembers('Leave Test Group', [users[0], users[1], users[2]], users[0].token);
+            const leaveTestGroup = await apiDriver.createGroupWithMembers('Leave Test Group', [user1, user2, user3], user1.token);
 
             // 3. Wait for all users to receive group events (ensuring they're all members)
             await Promise.all([
@@ -160,7 +160,7 @@ describe('Multi-User Notifications Integration Tests', () => {
             // 4. User 3 leaves the group
             console.log('User 3 leaving group...');
             const beforeLeave = Date.now();
-            await apiDriver.leaveGroup(leaveTestGroup.id, users[2].token);
+            await apiDriver.leaveGroup(leaveTestGroup.id, user3.token);
 
             // 5. Wait for remaining members to receive group change events from the leave
             await Promise.all([listener1.waitForNewEvent(leaveTestGroup.id, 'group', beforeLeave), listener2.waitForNewEvent(leaveTestGroup.id, 'group', beforeLeave)]);
@@ -179,11 +179,11 @@ describe('Multi-User Notifications Integration Tests', () => {
     describe('Multi-User Expense Scenarios', () => {
         test('should notify all 3 users for all expenses regardless of participation', async () => {
             // 1. START LISTENERS FIRST - BEFORE ANY ACTIONS
-            const userIds = [users[0].uid, users[1].uid, users[2].uid];
+            const userIds = [user1.uid, user2.uid, user3.uid];
             const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst(userIds);
 
             // 2. Create group and perform setup (listeners capture everything)
-            const multiUserGroup = await apiDriver.createGroupWithMembers('Expense Test Group', [users[0], users[1], users[2]], users[0].token);
+            const multiUserGroup = await apiDriver.createGroupWithMembers('Expense Test Group', [user1, user2, user3], user1.token);
 
             // Wait for all users to receive group events (when they joined the group)
             await Promise.all([
@@ -194,9 +194,9 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             // 3. Test different expense participation combinations
             console.log('Creating expense 1: User1 solo expense...');
-            const expense1 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(10.0).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build();
+            const expense1 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(10.0).withPaidBy(user1.uid).withParticipants([user1.uid]).build();
 
-            await apiDriver.createExpense(expense1, users[0].token);
+            await apiDriver.createExpense(expense1, user1.token);
 
             const beforeExpense1 = Date.now();
             // Wait for all listeners to receive the transaction event
@@ -204,18 +204,18 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('Creating expense 2: User1 + User2 expense (excludes User3)...');
             const beforeExpense2 = Date.now();
-            const expense2 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(20.0).withPaidBy(users[0].uid).withParticipants([users[0].uid, users[1].uid]).build();
+            const expense2 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(20.0).withPaidBy(user1.uid).withParticipants([user1.uid, user2.uid]).build();
 
-            await apiDriver.createExpense(expense2, users[0].token);
+            await apiDriver.createExpense(expense2, user1.token);
 
             // Wait for all listeners to receive the transaction event
             await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense2);
 
             console.log('Creating expense 3: User2 + User3 expense (excludes User1)...');
             const beforeExpense3 = Date.now();
-            const expense3 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(30.0).withPaidBy(users[1].uid).withParticipants([users[1].uid, users[2].uid]).build();
+            const expense3 = new CreateExpenseRequestBuilder().withGroupId(multiUserGroup.id).withAmount(30.0).withPaidBy(user2.uid).withParticipants([user2.uid, user3.uid]).build();
 
-            await apiDriver.createExpense(expense3, users[1].token);
+            await apiDriver.createExpense(expense3, user2.token);
 
             // Wait for all listeners to receive the transaction event
             await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense3);
@@ -225,11 +225,11 @@ describe('Multi-User Notifications Integration Tests', () => {
             const expense4 = new CreateExpenseRequestBuilder()
                 .withGroupId(multiUserGroup.id)
                 .withAmount(40.0)
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                .withPaidBy(user1.uid)
+                .withParticipants([user1.uid, user2.uid, user3.uid])
                 .build();
 
-            await apiDriver.createExpense(expense4, users[0].token);
+            await apiDriver.createExpense(expense4, user1.token);
 
             // Wait for all listeners to receive the transaction event
             await notificationDriver.waitForAllListenersToReceiveEvent([listener1, listener2, listener3], multiUserGroup.id, 'transaction', beforeExpense4);

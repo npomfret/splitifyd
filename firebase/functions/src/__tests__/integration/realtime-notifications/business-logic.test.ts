@@ -2,7 +2,7 @@
 // Tests notification system integration with business logic and permissions
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { CreateGroupRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Business Logic Integration Tests', () => {
@@ -12,18 +12,18 @@ describe('Business Logic Integration Tests', () => {
     describe('Permission-Based Notifications', () => {
         test('should notify users only for groups they have access to', async () => {
             // 1. Create a second group with different members
-            const separateGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Separate Group').build(), users[1].token);
+            const separateGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Separate Group').build(), user2.token);
 
             // 2. Set up listeners for multiple users
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 3. Create expense in main group - only user[0] should be notified
             const beforeExpense1 = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 25.0);
 
             // 4. Create expense in separate group - only user[1] should be notified
             const beforeExpense2 = Date.now();
-            await apiDriver.createBasicExpense(separateGroup.id, users[1].uid, users[1].token, 30.0);
+            await apiDriver.createBasicExpense(separateGroup.id, user2.uid, user2.token, 30.0);
 
             // 5. Wait for notifications
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense1);
@@ -42,28 +42,28 @@ describe('Business Logic Integration Tests', () => {
 
         test('should handle group permission changes', async () => {
             // 1. Set up listeners for all users
-            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid, users[2].uid]);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
 
             // 2. Add user2 to the group via share link
             const beforeJoin = Date.now();
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
             await listener2.waitForNewEvent(testGroup.id, 'group', beforeJoin);
 
             // 3. Create an expense - both user1 and user2 should get notifications
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 40.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 40.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             // 4. Remove user2 from group
-            await apiDriver.removeGroupMember(testGroup.id, users[1].uid, users[0].token);
+            await apiDriver.removeGroupMember(testGroup.id, user2.uid, user1.token);
 
             // 5. Create another expense - only user1 should get notifications now
             // Capture timestamp after removal to avoid race conditions with cleanup events
             const beforeExpense2 = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 50.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 50.0);
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense2);
 
@@ -91,24 +91,24 @@ describe('Business Logic Integration Tests', () => {
 
         test('should notify remaining members when admin removes a user from group', async () => {
             // 1. Set up listeners for all users
-            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid, users[2].uid]);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
 
             // 2. Add user2 and user3 to the group
-            const shareLink1 = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink1.linkId, users[1].token);
-            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
+            const shareLink1 = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink1.linkId, user2.token);
+            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, user3.token);
 
             // 3. Create some activity to establish all users are in the group
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 30.0);
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener3.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             // 4. Admin (user1) removes user2 from the group
             const beforeRemoval = Date.now();
-            await apiDriver.removeGroupMember(testGroup.id, users[1].uid, users[0].token);
+            await apiDriver.removeGroupMember(testGroup.id, user2.uid, user1.token);
 
             // 5. Verify remaining members (user1 and user3) get group notification about member removal
             await listener1.waitForNewEvent(testGroup.id, 'group', beforeRemoval);
@@ -143,17 +143,17 @@ describe('Business Logic Integration Tests', () => {
     describe('Feature-Specific Notifications', () => {
         test('should handle comment notifications', async () => {
             // 1. Set up listeners for multiple users
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group for comment testing
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Create an expense first
-            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 35.0);
+            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 35.0);
 
             // 4. Add comment to the expense
-            await apiDriver.createExpenseComment(createdExpense.id, 'This is a test comment', users[1].token);
+            await apiDriver.createExpenseComment(createdExpense.id, 'This is a test comment', user2.token);
 
             // 5. Wait for any potential comment-related notifications
             // Note: This test may reveal if comment notifications are implemented
@@ -177,10 +177,10 @@ describe('Business Logic Integration Tests', () => {
 
         test('should handle expense metadata changes', async () => {
             // 1. Set up listener
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Create an expense
-            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 45.0);
+            const createdExpense = await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 45.0);
 
             // 3. Edit the expense metadata
             const beforeEdit = Date.now();
@@ -189,7 +189,7 @@ describe('Business Logic Integration Tests', () => {
                 amount: 55.0,
             };
 
-            await apiDriver.updateExpense(createdExpense.id, editRequest, users[0].token);
+            await apiDriver.updateExpense(createdExpense.id, editRequest, user1.token);
 
             // 4. Wait for edit-related notifications
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeEdit);
@@ -203,14 +203,14 @@ describe('Business Logic Integration Tests', () => {
 
         test('should handle currency conversion scenarios', async () => {
             // 1. Set up listener
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Create a group with specific currency
-            const currencyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Currency Test Group').withDescription('EUR currency group').build(), users[0].token);
+            const currencyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Currency Test Group').withDescription('EUR currency group').build(), user1.token);
 
             // 3. Create expense in EUR group
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(currencyGroup.id, users[0].uid, users[0].token, 25.5);
+            await apiDriver.createBasicExpense(currencyGroup.id, user1.uid, user1.token, 25.5);
 
             // 4. Wait for notifications
             await listener.waitForNewEvent(currencyGroup.id, 'transaction', beforeExpense);

@@ -2,7 +2,7 @@
 // Tests notification system performance under load and with large data sets
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Performance & Scalability Integration Tests', () => {
     setupNotificationTest;
@@ -11,7 +11,7 @@ describe('Performance & Scalability Integration Tests', () => {
     describe('High Volume Operations', () => {
         test('should handle multiple rapid expense creations without missing notifications', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Create multiple expenses rapidly and track them with event counts
             console.log('Creating multiple expenses rapidly...');
@@ -19,7 +19,7 @@ describe('Performance & Scalability Integration Tests', () => {
 
             for (let i = 0; i < 3; i++) {
                 const beforeExpense = Date.now();
-                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 10 + i);
+                await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 10 + i);
                 
                 // Wait for this expense to trigger a notification using a fresh timestamp
                 const event = await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -40,17 +40,17 @@ describe('Performance & Scalability Integration Tests', () => {
             // This test simulates large group behavior with a smaller set
 
             // 1. Set up listeners for all available users
-            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid, users[2].uid]);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
 
             // 2. Add all users to the group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
-            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
+            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, user3.token);
 
             // 3. Create an expense that affects all group members
             const beforeExpense = Date.now();
-            await apiDriver.createMultiUserExpense(testGroup.id, users[0].uid, users[0].token, [users[0].uid, users[1].uid, users[2].uid], 90.0);
+            await apiDriver.createMultiUserExpense(testGroup.id, user1.uid, user1.token, [user1.uid, user2.uid, user3.uid], 90.0);
 
             // 4. Verify all users receive notifications within reasonable time
             const startTime = Date.now();
@@ -69,11 +69,11 @@ describe('Performance & Scalability Integration Tests', () => {
 
         test('should handle burst of concurrent operations', async () => {
             // 1. Set up listeners for multiple users
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Create burst of concurrent operations
             const concurrentPromises = [];
@@ -82,6 +82,7 @@ describe('Performance & Scalability Integration Tests', () => {
             // Multiple users creating expenses simultaneously
             for (let i = 0; i < 4; i++) {
                 const userIndex = i % 2; // Alternate between user 0 and 1
+                const users = [user1, user2];
                 concurrentPromises.push(apiDriver.createBasicExpense(testGroup.id, users[userIndex].uid, users[userIndex].token, 15 + i));
             }
 
@@ -105,19 +106,19 @@ describe('Performance & Scalability Integration Tests', () => {
             // This test ensures the system handles batching correctly
 
             // 1. Set up listener
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Test that the notification system works with normal load
             //    (In practice, hitting 500+ operations would require hundreds of users)
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 55.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 55.0);
 
             // 3. Verify notification processing works correctly
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             // 4. Test multiple operations in sequence (simulating batch behavior)
             for (let i = 0; i < 3; i++) {
-                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 20 + i);
+                await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 20 + i);
                 await new Promise((resolve) => setTimeout(resolve, 100));
             }
 
@@ -135,13 +136,13 @@ describe('Performance & Scalability Integration Tests', () => {
             // This test ensures the system manages document size appropriately
 
             // 1. Set up listener
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Create multiple expenses to build up notification history
             const numberOfExpenses = 10;
 
             for (let i = 0; i < numberOfExpenses; i++) {
-                await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 5 + i);
+                await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 5 + i);
                 await new Promise((resolve) => setTimeout(resolve, 150));
             }
 
@@ -155,7 +156,7 @@ describe('Performance & Scalability Integration Tests', () => {
 
             // 5. Test that the system continues to work with accumulated history
             const beforeFinalExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 99.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 99.0);
 
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeFinalExpense);
 

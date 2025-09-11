@@ -2,7 +2,7 @@
 // Tests notification system integration with other services and features
 
 import { describe, test, expect } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Cross-Service Integration Tests', () => {
@@ -12,15 +12,15 @@ describe('Cross-Service Integration Tests', () => {
     describe('Service Integration', () => {
         test('should integrate with balance calculation changes', async () => {
             // 1. Set up listeners for multiple users
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Create a multi-user expense that creates imbalance
             const beforeExpense = Date.now();
-            await apiDriver.createMultiUserExpense(testGroup.id, users[0].uid, users[0].token, [users[0].uid, users[1].uid]);
+            await apiDriver.createMultiUserExpense(testGroup.id, user1.uid, user1.token, [user1.uid, user2.uid]);
 
             // 4. Wait for balance notifications
             await listener1.waitForNewEvent(testGroup.id, 'balance', beforeExpense);
@@ -28,9 +28,9 @@ describe('Cross-Service Integration Tests', () => {
 
             // 5. Create a settlement to change balances
             const beforeSettlement = Date.now();
-            const settlement = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(30.0).build();
+            const settlement = new SettlementBuilder().withGroupId(testGroup.id).withPayer(user2.uid).withPayee(user1.uid).withAmount(30.0).build();
 
-            await apiDriver.createSettlement(settlement, users[1].token);
+            await apiDriver.createSettlement(settlement, user2.token);
 
             // 6. Wait for settlement-related balance changes
             await listener1.waitForNewEvent(testGroup.id, 'balance', beforeSettlement);
@@ -48,11 +48,11 @@ describe('Cross-Service Integration Tests', () => {
 
         test('should integrate with policy changes', async () => {
             // 1. Set up listeners
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Update group settings - this should trigger group detail notifications
             const beforeUpdate = Date.now();
@@ -62,7 +62,7 @@ describe('Cross-Service Integration Tests', () => {
                     name: 'Updated Policy Group',
                     description: 'Group with updated policies',
                 },
-                users[0].token,
+                user1.token,
             );
 
             // 4. Wait for group update notifications
@@ -84,18 +84,18 @@ describe('Cross-Service Integration Tests', () => {
 
         test('should handle user profile changes affecting notifications', async () => {
             // 1. Set up listeners
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. User profile changes don't directly trigger notifications,
             //    but they shouldn't break notification delivery
 
             // Create expense after any potential profile changes
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 25.0);
 
             // 4. Verify notifications still work normally
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
@@ -118,20 +118,20 @@ describe('Cross-Service Integration Tests', () => {
     describe('Feature Integration', () => {
         test('should integrate with group sharing and invitations', async () => {
             // 1. Set up listeners for multiple users
-            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid, users[2].uid]);
+            const [listener1, listener2, listener3] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid, user3.uid]);
 
             // 2. Add user2 to group (simulates invitation acceptance)
             const beforeUser2Join = Date.now();
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Verify existing members get notified of new member
             await listener1.waitForNewEvent(testGroup.id, 'group', beforeUser2Join);
 
             // 4. Add third user
             const beforeUser3Join = Date.now();
-            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
+            const shareLink2 = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, user3.token);
 
             // 5. Verify all existing members get notified
             await listener1.waitForNewEvent(testGroup.id, 'group', beforeUser3Join);
@@ -149,15 +149,15 @@ describe('Cross-Service Integration Tests', () => {
 
         test('should handle notification preferences and settings', async () => {
             // 1. Set up listeners
-            const [listener1, listener2] = await notificationDriver.setupListenersFirst([users[0].uid, users[1].uid]);
+            const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // 2. Add user2 to group
-            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // 3. Test that notifications work with default settings
             const beforeExpense = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 30.0);
 
             // 4. Verify both users receive notifications with default settings
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);

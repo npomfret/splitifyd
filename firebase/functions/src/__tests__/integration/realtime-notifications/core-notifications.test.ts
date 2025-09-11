@@ -2,7 +2,7 @@
 // Tests fundamental notification document functionality and basic notification behavior
 
 import { describe, expect, test } from 'vitest';
-import { users, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Core Notifications Integration Tests', () => {
     setupNotificationTest;
@@ -11,7 +11,7 @@ describe('Core Notifications Integration Tests', () => {
     describe('Basic Notification Document Operations', () => {
         test('should create notification document when user creates first group', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Mark timestamp before group creation
             const beforeGroupTimestamp = Date.now();
@@ -36,12 +36,12 @@ describe('Core Notifications Integration Tests', () => {
 
         test('should update notification when expense is added to group', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
 
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token);
 
             // 3. Wait for new transaction event (proves notification was updated)
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
@@ -58,7 +58,7 @@ describe('Core Notifications Integration Tests', () => {
 
         test('should increment change version when notifications are updated', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Get initial version from existing group
             const initialGroupEvent = listener.getLatestEvent(testGroup.id, 'group');
@@ -68,7 +68,7 @@ describe('Core Notifications Integration Tests', () => {
             const beforeExpenseTimestamp = Date.now();
 
             // Create an expense to trigger a change
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 5.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 5.0);
 
             // 4. Wait for new transaction event (proves version will change)
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
@@ -83,7 +83,7 @@ describe('Core Notifications Integration Tests', () => {
 
         test('should contain correct group state in notifications', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Wait for group creation event from beforeEach
             await listener.waitForEventCount(testGroup.id, 'group', 1);
@@ -107,32 +107,32 @@ describe('Core Notifications Integration Tests', () => {
     describe('Real-time Event Delivery', () => {
         test('should receive real-time notification when expense is created', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
 
             // Create an expense to trigger notifications
             console.log('Creating expense to trigger notification...');
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 25.5);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 25.5);
 
             // 3. Wait for new transaction change event
             const event = await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
 
             expect(event.groupId).toBe(testGroup.id);
             expect(event.type).toBe('transaction');
-            expect(event.userId).toBe(users[0].uid);
+            expect(event.userId).toBe(user1.uid);
             expect(event.groupState?.transactionChangeCount).toBeGreaterThan(0);
         });
 
         test('should receive balance change notification after expense creation', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
 
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 50.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 50.0);
 
             // 3. Wait for new balance event after timestamp
             try {
@@ -150,13 +150,13 @@ describe('Core Notifications Integration Tests', () => {
 
         test('should verify notification event structure using listeners', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([users[0].uid]);
+            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
             // 2. Mark timestamp before expense creation
             const beforeExpenseTimestamp = Date.now();
 
             // 3. Create expense for the test group
-            await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 30.0);
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 30.0);
 
             // 4. Wait for transaction event
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
