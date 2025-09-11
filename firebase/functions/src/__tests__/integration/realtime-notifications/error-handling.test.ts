@@ -2,7 +2,7 @@
 // Tests notification system behavior under error conditions and recovery scenarios
 
 import { describe, test, expect } from 'vitest';
-import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Error Handling & Recovery Integration Tests', () => {
     setupNotificationTest;

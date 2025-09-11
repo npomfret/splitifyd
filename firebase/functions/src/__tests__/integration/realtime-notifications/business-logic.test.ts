@@ -3,7 +3,7 @@
 
 import { describe, test, expect } from 'vitest';
 import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
-import { CreateGroupRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 describe('Business Logic Integration Tests', () => {
     setupNotificationTest;

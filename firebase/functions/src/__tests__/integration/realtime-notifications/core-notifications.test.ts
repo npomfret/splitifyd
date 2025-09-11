@@ -2,7 +2,7 @@
 // Tests fundamental notification document functionality and basic notification behavior
 
 import { describe, expect, test } from 'vitest';
-import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Core Notifications Integration Tests', () => {
     setupNotificationTest;

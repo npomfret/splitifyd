@@ -2,7 +2,7 @@
 // Tests notification system data consistency and edge case handling
 
 import { describe, expect, test } from 'vitest';
-import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 import { SettlementBuilder } from '@splitifyd/test-support';
 
 describe('Data Consistency & Edge Cases Integration Tests', () => {

@@ -2,7 +2,7 @@
 // Tests notification lifecycle management through UserService business logic
 
 import { describe, test, expect } from 'vitest';
-import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
+import { user1, user2, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('User Notification Service Integration Tests', () => {
     setupNotificationTest;
