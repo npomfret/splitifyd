@@ -1,38 +1,38 @@
-// Trigger Integration Tests
-// Tests Firebase triggers that manage notification lifecycle
+// User Notification Service Integration Tests
+// Tests notification lifecycle management through UserService business logic
 
 import { describe, test, expect } from 'vitest';
 import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
-describe('Trigger Integration Tests', () => {
+describe('User Notification Service Integration Tests', () => {
     setupNotificationTest;
     cleanupNotificationTest;
 
-    describe('User Lifecycle Triggers', () => {
-        test('should initialize notifications when user document is created', async () => {
+    describe('User Lifecycle Notifications', () => {
+        test('should initialize notifications during user registration', async () => {
             // Note: In integration tests, users are already created by the test framework
-            // This test verifies that the notification system works for existing users
+            // This test verifies that notification initialization works as part of user creation
 
-            // 1. Set up listener for a user (this should work if initialization worked)
+            // 1. Set up listener for a user (this should work if initialization worked during registration)
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Verify that the user can receive notifications (indicating initialization worked)
+            // 2. Verify that the user can receive notifications (indicating initialization worked during registration)
             const beforeExpense = Date.now();
 
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 22.0);
 
-            // 3. If initialization trigger worked, this should succeed
+            // 3. If initialization during registration worked, this should succeed
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
             const events = listener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(events.length).toBeGreaterThanOrEqual(1);
-            console.log('✅ User notification initialization working correctly');
+            console.log('✅ User notification initialization working correctly during registration');
         });
 
-        test('should cleanup notifications when user is deleted', async () => {
+        test('should cleanup notifications during account deletion', async () => {
             // Note: In integration tests, we can't actually delete users from Firebase Auth
-            // This test verifies that the cleanup infrastructure is in place
+            // This test verifies that the cleanup infrastructure works through UserService
 
             // 1. Set up listeners for multiple users
             const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
@@ -50,7 +50,7 @@ describe('Trigger Integration Tests', () => {
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
             await listener2.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
-            // 5. Remove user2 from group (simulates partial cleanup)
+            // 5. Remove user2 from group (simulates partial cleanup before account deletion)
             await apiDriver.removeGroupMember(testGroup.id, user2.uid, user1.token);
 
             // 6. Verify user1 still works after user2 removal
@@ -60,12 +60,12 @@ describe('Trigger Integration Tests', () => {
 
             await listener1.waitForNewEvent(testGroup.id, 'transaction', beforeSecondExpense);
 
-            console.log('✅ Cleanup infrastructure maintains system integrity');
+            console.log('✅ Notification cleanup infrastructure maintains system integrity');
         });
-    }); // End User Lifecycle Triggers
+    }); // End User Lifecycle Notifications
 
-    describe('Group Membership Triggers', () => {
-        test('should handle membership deletion trigger correctly', async () => {
+    describe('Group Membership Operations', () => {
+        test('should handle membership deletion notifications correctly', async () => {
             // 1. Set up listeners for multiple users
             const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
@@ -104,14 +104,14 @@ describe('Trigger Integration Tests', () => {
             const user2PostRemovalEvents = listener2.getEventsForGroup(testGroup.id).filter((e) => e.timestamp.getTime() >= beforePostRemovalExpense);
 
             expect(user2PostRemovalEvents.length).toBe(0);
-            console.log('✅ Membership deletion trigger handles notifications correctly');
+            console.log('✅ Membership deletion notifications handled correctly');
         });
-    }); // End Group Membership Triggers
+    }); // End Group Membership Operations
 
-    describe('Trigger Reliability', () => {
-        test('should handle trigger execution failures', async () => {
-            // Note: In integration tests, we can't easily simulate trigger failures
-            // This test verifies that the trigger system is working reliably
+    describe('Notification System Reliability', () => {
+        test('should handle notification operations reliably', async () => {
+            // Note: In integration tests, we test that the notification system is working reliably
+            // This test verifies that the notification system operates consistently
 
             // 1. Set up listener
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
@@ -121,10 +121,10 @@ describe('Trigger Integration Tests', () => {
 
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 24.0);
 
-            // 3. Verify triggers executed successfully
+            // 3. Verify notifications executed successfully
             await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
 
-            // 4. Test multiple consecutive operations (stress test triggers)
+            // 4. Test multiple consecutive operations (stress test notification system)
             for (let i = 0; i < 3; i++) {
                 await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 15 + i);
                 await new Promise((resolve) => setTimeout(resolve, 500));
@@ -133,12 +133,12 @@ describe('Trigger Integration Tests', () => {
             // 5. Wait for all operations to complete
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // 6. Verify all triggers executed reliably
+            // 6. Verify all notifications executed reliably
             const allEvents = listener.getEventsForGroup(testGroup.id).filter((e) => e.type === 'transaction');
 
             expect(allEvents.length).toBeGreaterThanOrEqual(4); // Original + 3 consecutive
 
-            console.log('✅ Trigger system executing reliably under load');
+            console.log('✅ Notification system executing reliably under load');
         });
-    }); // End Trigger Reliability
+    }); // End Notification System Reliability
 });

@@ -437,16 +437,9 @@ export const api = onRequest(
 // Export Firestore triggers for realtime change tracking
 export { trackGroupChanges, trackExpenseChanges, trackSettlementChanges };
 
-// Create notification triggers with shared metrics storage
-import { createNotificationTriggers } from './triggers/notification-triggers';
-
-// Initialize notification triggers
-const notificationTriggers = createNotificationTriggers();
-
-// Export notification triggers for user lifecycle events
-// Note: addUserToGroupNotifications and removeUserFromGroupNotifications were removed -
-// notification management now handled atomically in transactions
-export const { initializeUserNotifications, cleanupUserNotifications } = notificationTriggers;
+// Note: User notification lifecycle is now handled directly in UserService business logic
+// - Notification document creation: UserService.createUserDirect()
+// - Notification document deletion: UserService.deleteAccount()
 
 // Export scheduled functions
 export { logMetrics };

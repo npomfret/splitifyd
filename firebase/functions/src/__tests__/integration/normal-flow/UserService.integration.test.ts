@@ -408,6 +408,10 @@ describe('UserService - Integration Tests', () => {
             // Verify user was deleted from Firestore
             const deletedUserData = await firestoreReader.getUser(userId);
             expect(deletedUserData).toBeNull();
+
+            // Verify user notification document was also deleted
+            const deletedNotificationData = await firestoreReader.getDocumentForTesting('user-notifications', userId);
+            expect(deletedNotificationData).toBeNull();
         });
 
         test('should prevent deletion of users with active groups', async () => {

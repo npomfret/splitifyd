@@ -341,10 +341,21 @@ export class UserService {
                 throw Errors.INVALID_INPUT('Cannot delete account while member of groups. Please leave all groups first.');
             }
 
-            // Delete user data from Firestore first (before Auth deletion)
-            await this.firestoreWriter.deleteUser(userId);
+            // Delete Firestore documents atomically in a transaction
+            await this.firestoreWriter.runTransaction(async (transaction) => {
+                // Delete user document
+                this.firestoreWriter.deleteInTransaction(transaction, `users/${userId}`);
+                
+                // Delete user notification document
+                this.firestoreWriter.deleteInTransaction(transaction, `user-notifications/${userId}`);
+            }, {
+                context: {
+                    operation: 'delete-user-account',
+                    userId,
+                }
+            });
 
-            // Delete user from Firebase Auth
+            // Delete user from Firebase Auth (must be outside transaction)
             await getAuth().deleteUser(userId);
 
             logger.info('User account deleted successfully');
