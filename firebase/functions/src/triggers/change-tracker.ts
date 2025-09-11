@@ -56,6 +56,15 @@ export const trackGroupChanges = onDocumentWritten(
     },
 );
 
+async function userIdsForGroup(groupId: string) {
+    const affectedUsers: string[] = [];
+    const members = await firestoreReader.getAllGroupMembers(groupId);
+    members.forEach(member => {
+        affectedUsers.push(member.userId);
+    });
+    return affectedUsers;
+}
+
 export const trackExpenseChanges = onDocumentWritten(
     {
         document: `${FirestoreCollections.EXPENSES}/{expenseId}`,
@@ -65,7 +74,6 @@ export const trackExpenseChanges = onDocumentWritten(
         const expenseId = event.params.expenseId;
         const {before, after, changeType} = extractDataChange(event);
 
-        const beforeData = before?.data();
         const afterData = after?.data();
 
         const groupId = afterData?.groupId;
@@ -77,24 +85,11 @@ export const trackExpenseChanges = onDocumentWritten(
         const changedFields = getChangedFields(before, after);
 
         calculatePriority(changeType, changedFields, 'expense');
+        const affectedUsers = await userIdsForGroup(groupId);
+        await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'transaction');
+        await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'balance');
 
-        const affectedUsers = new Set<string>();
-
-        if (afterData) {
-            affectedUsers.add(afterData.paidBy);
-            afterData.participants.forEach((userId: string) => affectedUsers.add(userId));
-        }
-        if (beforeData) {
-            affectedUsers.add(beforeData.paidBy);
-            beforeData.participants.forEach((userId: string) => affectedUsers.add(userId));
-        }
-
-
-
-        await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'transaction');
-        await notificationService.batchUpdateNotifications(Array.from(affectedUsers), groupId!, 'balance');
-
-        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.size});
+        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
     },
 );
 
@@ -108,7 +103,6 @@ export const trackSettlementChanges = onDocumentWritten(
         const {before, after, changeType} = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
-            const beforeData = before?.data();
             const afterData = after?.data();
 
             const groupId = afterData?.groupId;
@@ -116,21 +110,7 @@ export const trackSettlementChanges = onDocumentWritten(
                 return;
             }
 
-            const affectedUsers = await (async (): Promise<string[]> => {
-                const users = new Set<string>();
-
-                if (afterData) {
-                    users.add(afterData.payerId);
-                    users.add(afterData.payeeId);
-                }
-                if (beforeData) {
-                    users.add(beforeData.payerId);
-                    users.add(beforeData.payeeId);
-                }
-
-                return Array.from(users);
-            })();
-
+            const affectedUsers = await userIdsForGroup(groupId);
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
 
