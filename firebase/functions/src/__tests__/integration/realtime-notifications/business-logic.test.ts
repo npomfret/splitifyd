@@ -61,6 +61,7 @@ describe('Business Logic Integration Tests', () => {
             await apiDriver.removeGroupMember(testGroup.id, users[1].uid, users[0].token);
 
             // 5. Create another expense - only user1 should get notifications now
+            // Capture timestamp after removal to avoid race conditions with cleanup events
             const beforeExpense2 = Date.now();
             await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 50.0);
 
@@ -78,7 +79,11 @@ describe('Business Logic Integration Tests', () => {
             );
 
             // User2 should have events from before removal but not after
-            const user2EventsAfterRemoval = allUser2Events.filter((e) => e.timestamp.getTime() >= beforeExpense2);
+            // Exclude 'group_removed' event as that's expected during cleanup
+            const user2EventsAfterRemoval = allUser2Events.filter((e) => 
+                e.timestamp.getTime() >= beforeExpense2 && 
+                e.type !== 'group_removed'
+            );
             expect(user2EventsAfterRemoval.length).toBe(0);
 
             console.log('✅ Permission changes affect notification delivery correctly');
