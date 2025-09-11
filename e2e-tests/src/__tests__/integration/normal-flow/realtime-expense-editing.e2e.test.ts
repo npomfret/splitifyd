@@ -2,7 +2,7 @@ import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 simpleTest.describe('Real-Time Expense Editing', () => {
@@ -48,7 +48,7 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const originalAmount = 60;
 
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(originalDescription).withAmount(originalAmount).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+            new ExpenseFormDataBuilder().withDescription(originalDescription).withAmount(originalAmount).withCurrency('USD').withPaidByDisplayName(editorDisplayName).withSplitType('equal').build(),
         );
 
         // Wait for expense to appear for all users
@@ -142,9 +142,13 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const originalDescription = `Dashboard Edit ${randomString(4)}`;
         const originalAmount = 40;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(originalDescription).withAmount(originalAmount).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
-        );
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+                .withDescription(originalDescription)
+                .withAmount(originalAmount)
+                .withCurrency('USD')
+                .withPaidByDisplayName(editorDisplayName)
+                .withSplitType('equal')
+                .build());
 
         await editorGroupDetailPage.waitForBalancesToLoad(groupId);
 
@@ -211,16 +215,20 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expense1FormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
         const expense1Description = `Concurrent Test 1 ${randomString(4)}`;
 
-        await expense1FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense1Description).withAmount(30).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
-        );
+        await expense1FormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expense1Description)
+            .withAmount(30)
+            .withCurrency('USD')
+            .withPaidByDisplayName(editor1DisplayName)
+            .withSplitType('equal')
+            .build());
 
         // Editor2 creates second expense (concurrent with first)
         const expense2FormPage = await editor2GroupDetailPage.clickAddExpenseButton(3);
         const expense2Description = `Concurrent Test 2 ${randomString(4)}`;
 
         await expense2FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense2Description).withAmount(45).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
+            new ExpenseFormDataBuilder().withDescription(expense2Description).withAmount(45).withCurrency('USD').withPaidByDisplayName(editor2DisplayName).withSplitType('equal').build(),
         );
 
         // Wait for both expenses to appear
@@ -309,9 +317,13 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expenseFormPage = await deleterGroupDetailPage.clickAddExpenseButton(3);
         const expenseDescription = `Delete Test ${randomString(4)}`;
 
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(50).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
-        );
+        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(expenseDescription)
+            .withAmount(50)
+            .withCurrency('USD')
+            .withPaidByDisplayName(deleterDisplayName)
+            .withSplitType('equal')
+            .build());
 
         await deleterGroupDetailPage.waitForBalancesToLoad(groupId);
 
@@ -326,14 +338,13 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const expenseToDelete = deleterGroupDetailPage.getExpenseByDescription(expenseDescription);
         await expect(expenseToDelete).toBeVisible();
 
-        // Click expense to go to detail page, then delete
+        // Click expense to go to detail page, then delete from there
         await deleterGroupDetailPage.clickExpenseToView(expenseDescription);
         const expenseDetailPage = new ExpenseDetailPage(deleterPage, deleter);
         await expenseDetailPage.waitForPageReady();
 
-        // Navigate back to group page to delete the expense
-        await deleterPage.goBack();
-        await deleterGroupDetailPage.deleteExpense();
+        // Delete the expense from the expense detail page
+        await expenseDetailPage.deleteExpense();
 
         // Should redirect back to group page after deletion
         await expect(deleterPage).toHaveURL(groupDetailUrlPattern(groupId));

@@ -1,7 +1,7 @@
 import { expect, simpleTest } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, CreateGroupModalPage } from '../../../pages';
 import { LoginPage, RegisterPage } from '../../../pages';
-import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 /**
  * Comprehensive Form Validation Test Suite

@@ -2,7 +2,7 @@ import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixtur
 import { GroupDetailPage } from '../../../pages';
 import { GroupWorkflow } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
-import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Freeform Categories E2E', () => {

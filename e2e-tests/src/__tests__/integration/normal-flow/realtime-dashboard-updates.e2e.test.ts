@@ -2,7 +2,7 @@ import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName, randomString } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 simpleTest.describe('Real-Time Dashboard Updates', () => {

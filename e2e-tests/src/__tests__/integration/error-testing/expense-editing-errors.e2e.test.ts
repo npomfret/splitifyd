@@ -1,6 +1,6 @@
 import { simpleTest as test } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, ExpenseDetailPage } from '../../../pages';
-import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 

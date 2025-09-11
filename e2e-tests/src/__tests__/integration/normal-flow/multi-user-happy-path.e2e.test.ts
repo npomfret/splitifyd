@@ -2,7 +2,7 @@ import { expect, simpleTest as test } from '../../../fixtures/simple-test.fixtur
 import { TestGroupWorkflow } from '../../../helpers';
 import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, GroupDetailPage } from '../../../pages';
-import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 

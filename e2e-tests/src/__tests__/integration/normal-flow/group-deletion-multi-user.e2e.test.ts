@@ -1,7 +1,7 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 
 import { GroupWorkflow } from '../../../workflows';
-import { generateShortId } from '../../../../../packages/test-support/test-helpers';
+import { generateShortId } from '../../../../../packages/test-support/src/test-helpers';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 
 simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {

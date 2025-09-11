@@ -1,7 +1,7 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
+import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
 

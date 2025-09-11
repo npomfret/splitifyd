@@ -23,7 +23,7 @@ export class ExpenseFormDataBuilder {
             description: `${this.randomChoice(['Dinner', 'Lunch', 'Coffee', 'Gas', 'Movie', 'Grocery'])} ${this.randomString(4)}`,
             amount: this.randomDecimal(5, 500),
             currency: this.randomCurrency(),
-            paidByDisplayName: 'Test User', // Default fallback for UI tests
+            paidByDisplayName: '', // No default - must be explicitly set
             splitType: this.randomChoice(['equal', 'exact', 'percentage']),
             participants: undefined, // Will select all members by default
         };
@@ -80,6 +80,10 @@ export class ExpenseFormDataBuilder {
     }
 
     build(): ExpenseFormData {
+        if (!this.expense.paidByDisplayName || this.expense.paidByDisplayName.trim() === '') {
+            throw new Error('ExpenseFormDataBuilder.build(): paidByDisplayName is required but was not set. Use .withPaidByDisplayName(displayName) to specify who paid for this expense.');
+        }
+        
         return {
             description: this.expense.description,
             amount: this.expense.amount,

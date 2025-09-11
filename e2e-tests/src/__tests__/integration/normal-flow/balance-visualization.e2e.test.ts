@@ -1,6 +1,6 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupWorkflow } from '../../../workflows';
-import { generateShortId } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateShortId } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';

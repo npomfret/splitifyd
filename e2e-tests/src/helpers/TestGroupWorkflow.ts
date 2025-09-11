@@ -1,7 +1,7 @@
 import { Page } from '@playwright/test';
 import { DashboardPage, GroupDetailPage } from '../pages';
 import { GroupWorkflow } from '../workflows';
-import { generateTestGroupName } from '../../../packages/test-support/test-helpers';
+import { generateTestGroupName } from '../../../packages/test-support/src/test-helpers';
 
 interface GroupOptions {
     fresh?: boolean;

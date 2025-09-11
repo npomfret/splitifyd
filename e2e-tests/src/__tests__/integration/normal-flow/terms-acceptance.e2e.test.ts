@@ -1,6 +1,6 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { RegisterPage } from '../../../pages';
-import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/test-helpers.ts';
+import { DEFAULT_PASSWORD, generateTestEmail } from '../../../../../packages/test-support/src/test-helpers.ts';
 
 simpleTest.describe('Terms and Cookie Policy Acceptance', () => {
     simpleTest('should display both terms and cookie policy checkboxes', async ({ newEmptyBrowser }) => {

@@ -1,10 +1,10 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import {expect, simpleTest} from '../../../fixtures/simple-test.fixture';
 
-import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
-import { generateShortId, generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
-import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import { DashboardPage, JoinGroupPage } from '../../../pages';
-import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
+import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
+import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/src/test-helpers.ts';
+import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
+import {DashboardPage, JoinGroupPage} from '../../../pages';
+import {ExpenseFormDataBuilder} from '../../../pages/expense-form.page';
 
 simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
@@ -47,11 +47,15 @@ simpleTest.describe('Multi-User Group Access', () => {
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
         await expect(user2Page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
+        // Get the actual display name from the dashboard page
+        const user2DashboardPage = new DashboardPage(user2Page, user2);
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        
         const sharedExpense = new ExpenseFormDataBuilder()
             .withDescription(`Shared Expense ${uniqueId}`)
             .withAmount(25.5)
             .withCurrency('USD')
-            .withPaidByDisplayName('Test User')
+            .withPaidByDisplayName(user2DisplayName)
             .withSplitType('equal')
             .build();
 
@@ -92,24 +96,32 @@ simpleTest.describe('Multi-User Group Access', () => {
         await memberGroupDetailPage.waitForMemberCount(2);
 
         // Both users add expenses to create some activity
+        const adminDashboardPage = new DashboardPage(adminPage, adminUser);
+        const adminDisplayName = await adminDashboardPage.getCurrentUserDisplayName();
+        
         const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);
-        await adminExpenseForm.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`Admin Expense ${uniqueId}`).withAmount(50.0).withCurrency('USD').withPaidByDisplayName('Test User').withSplitType('equal').build(),
-        );
+        await adminExpenseForm.submitExpense(new ExpenseFormDataBuilder()
+            .withDescription(`Admin Expense ${uniqueId}`)
+            .withAmount(50.0)
+            .withCurrency('USD')
+            .withPaidByDisplayName(adminDisplayName)
+            .withSplitType('equal')
+            .build());
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
 
         // Member adds expense
-        const memberExpense = new ExpenseFormDataBuilder()
+        const memberDashboardPage = new DashboardPage(memberPage, memberUser);
+        const memberDisplayName = await memberDashboardPage.getCurrentUserDisplayName();
+
+        const memberExpenseForm = await memberGroupDetailPage.clickAddExpenseButton(2);
+        await memberExpenseForm.submitExpense(new ExpenseFormDataBuilder()
             .withDescription(`Member Expense ${uniqueId}`)
             .withAmount(30.0)
             .withCurrency('USD')
-            .withPaidByDisplayName('Test User')
+            .withPaidByDisplayName(memberDisplayName)
             .withSplitType('equal')
-            .build();
-
-        const memberExpenseForm = await memberGroupDetailPage.clickAddExpenseButton(2);
-        await memberExpenseForm.submitExpense(memberExpense);
+            .build());
 
         // Verify both expenses are visible to both users
         await groupDetailPage.waitForBalancesToLoad(groupId);

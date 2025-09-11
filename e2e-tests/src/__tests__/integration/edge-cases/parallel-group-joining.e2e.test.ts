@@ -1,7 +1,7 @@
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/test-helpers.ts';
+import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
 
 simpleTest.describe('Parallel Group Joining Edge Cases', () => {
     simpleTest('should handle multiple users joining group in parallel', async ({ newLoggedInBrowser }) => {
