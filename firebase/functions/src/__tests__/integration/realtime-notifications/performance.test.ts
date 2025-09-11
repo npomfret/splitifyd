@@ -15,12 +15,16 @@ describe('Performance & Scalability Integration Tests', () => {
 
             // 2. Create multiple expenses rapidly and track them with event counts
             console.log('Creating multiple expenses rapidly...');
-            const beforeExpensesTimestamp = Date.now();
+            let lastEventTimestamp = Date.now();
 
             for (let i = 0; i < 3; i++) {
+                const beforeExpense = Date.now();
                 await apiDriver.createBasicExpense(testGroup.id, users[0].uid, users[0].token, 10 + i);
-                // Wait for this expense to trigger a notification
-                await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpensesTimestamp);
+                
+                // Wait for this expense to trigger a notification using a fresh timestamp
+                const event = await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpense);
+                lastEventTimestamp = event.timestamp.getTime();
+                
                 await new Promise((resolve) => setTimeout(resolve, 200));
             }
 
