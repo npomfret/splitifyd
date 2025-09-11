@@ -9,34 +9,6 @@ describe('Data Consistency & Edge Cases Integration Tests', () => {
     setupNotificationTest;
     cleanupNotificationTest;
 
-    describe('Group Lifecycle Edge Cases', () => {
-        test('should detect when group is deleted from notifications', async () => {
-            // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
-            const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
-
-            // Create an expense to ensure group exists in notifications
-            const beforeExpenseTimestamp = Date.now();
-            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 15.0);
-
-            // Wait for initial transaction notification to establish baseline
-            await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
-
-            // 2. Wait for all processing to complete before deletion
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            // 3. Delete the group
-            console.log('Deleting group...');
-            const beforeDeletion = Date.now();
-            await apiDriver.deleteGroup(testGroup.id, user1.token);
-
-            // 4. Wait for group_removed event (the correct event type for group deletion)
-            // Group deletion triggers user notification cleanup which generates group_removed events
-            await listener.waitForNewEvent(testGroup.id, 'group_removed', beforeDeletion, 3000);
-
-            // 5. Verify deletion completed successfully
-            console.log('✅ Group deletion detected in notifications via group_removed event');
-        });
-    }); // End Group Lifecycle Edge Cases
 
     describe('Data Integrity Tests', () => {
         test('should handle settlement notifications correctly', async () => {

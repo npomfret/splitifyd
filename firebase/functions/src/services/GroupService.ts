@@ -1,30 +1,29 @@
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
-import { Errors } from '../utils/errors';
-import { Group, UpdateGroupRequest } from '../types/group-types';
-import { CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
-import { BalanceCalculationResultSchema, CurrencyBalanceDisplaySchema, BalanceDisplaySchema } from '../schemas';
-import { GroupDataSchema, GroupDocument } from '../schemas';
-import { BalanceCalculationService } from './balance/BalanceCalculationService';
-import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
-import { logger, LoggerContext } from '../logger';
-import { createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO, assertTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
-import { PermissionEngine } from '../permissions';
-import { measureDb } from '../monitoring/measure';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
-import type { BalanceCalculationResult } from './balance';
-import type { UserProfile } from '../services/UserService2';
-import type { ExpenseDocument } from '../schemas/expense';
-import type { SettlementDocument } from '../schemas/settlement';
-import { ExpenseMetadataService } from './expenseMetadataService';
-import { UserService } from './UserService2';
-import { ExpenseService } from './ExpenseService';
-import { SettlementService } from './SettlementService';
-import { GroupMemberService } from './GroupMemberService';
-import { NotificationService } from './notification-service';
-import { GroupShareService } from './GroupShareService';
-import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
-import type { UserNotificationGroup } from '../schemas/user-notifications';
+import {FieldValue, Timestamp} from 'firebase-admin/firestore';
+import {Errors} from '../utils/errors';
+import {Group, UpdateGroupRequest} from '../types/group-types';
+import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
+import {BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument} from '../schemas';
+import {BalanceCalculationService} from './balance/BalanceCalculationService';
+import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
+import {logger, LoggerContext} from '../logger';
+import {assertTimestamp, assertTimestampAndConvert, createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
+import {PermissionEngine} from '../permissions';
+import {measureDb} from '../monitoring/measure';
+import type {IFirestoreReader} from './firestore/IFirestoreReader';
+import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
+import type {BalanceCalculationResult} from './balance';
+import type {UserProfile} from '../services/UserService2';
+import type {ExpenseDocument} from '../schemas/expense';
+import type {SettlementDocument} from '../schemas/settlement';
+import {ExpenseMetadataService} from './expenseMetadataService';
+import {UserService} from './UserService2';
+import {ExpenseService} from './ExpenseService';
+import {SettlementService} from './SettlementService';
+import {GroupMemberService} from './GroupMemberService';
+import {NotificationService} from './notification-service';
+import {GroupShareService} from './GroupShareService';
+import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
+import type {UserNotificationGroup} from '../schemas/user-notifications';
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -641,13 +640,14 @@ export class GroupService {
         // Atomic transaction: create group, member, and notification documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
+
             // Write to top-level collection for improved querying
-            const topLevelMemberDoc = createTopLevelMembershipDocument(memberDoc, timestampToISO(now));
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                ...topLevelMemberDoc,
+                ...(createTopLevelMembershipDocument(memberDoc, timestampToISO(now))),
                 createdAt: memberServerTimestamp,
                 updatedAt: memberServerTimestamp,
             });
+
             // Initialize group notifications for creator atomically
             this.firestoreWriter.setUserNotificationGroupInTransaction(transaction, userId, groupId, notificationGroupData);
         });
@@ -982,25 +982,9 @@ export class GroupService {
                 },
             });
 
-            // PHASE 3: Clean up notifications for all members
-            logger.info('Step 3: Cleaning up notifications', { groupId, memberCount: memberIds.length });
-            if (memberDocs && memberDocs.length > 0) {
-                for (const memberDoc of memberDocs) {
-                    try {
-                        await this.notificationService.removeUserFromGroup(memberDoc.userId, groupId);
-                    } catch (error) {
-                        logger.warn('Failed to remove user from group notifications during group deletion', {
-                            groupId,
-                            userId: memberDoc.userId,
-                            error: error instanceof Error ? error.message : String(error),
-                        });
-                        // Continue with other members - don't fail the entire deletion
-                    }
-                }
-            }
-
-            // PHASE 4: Delete collections in atomic batches
-            logger.info('Step 4: Deleting collections atomically', { groupId });
+            // PHASE 3: Delete collections in atomic batches
+            // Note: Notification cleanup now happens automatically via membership deletion triggers
+            logger.info('Step 3: Deleting collections atomically', { groupId });
 
             // Delete expenses
             const expensePaths = expenses.docs.map((doc) => doc.ref.path);
@@ -1036,8 +1020,8 @@ export class GroupService {
             }
             await this.deleteBatch('memberships', groupId, membershipPaths);
 
-            // PHASE 5: Finalize by deleting main group document (atomic)
-            logger.info('Step 5: Finalizing group deletion', { groupId });
+            // PHASE 4: Finalize by deleting main group document (atomic)
+            logger.info('Step 4: Finalizing group deletion', { groupId });
             await this.finalizeGroupDeletion(groupId);
 
             // Set group context

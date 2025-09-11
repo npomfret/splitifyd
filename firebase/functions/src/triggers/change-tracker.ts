@@ -1,12 +1,12 @@
-import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { logger } from '../logger';
-import { getChangedFields, getGroupChangedFields, calculatePriority, ChangeType } from '../utils/change-detection';
-import { FirestoreCollections } from '@splitifyd/shared';
-import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { ParamsOf } from 'firebase-functions';
-import { measureTrigger } from '../monitoring/measure';
-import { getFirestore } from '../firebase';
-import { ApplicationBuilder } from '../services/ApplicationBuilder';
+import {Change, FirestoreEvent, onDocumentWritten, onDocumentDeleted} from 'firebase-functions/v2/firestore';
+import {logger} from '../logger';
+import {ChangeType} from '../utils/change-detection';
+import {FirestoreCollections} from '@splitifyd/shared';
+import {DocumentSnapshot} from 'firebase-admin/firestore';
+import {ParamsOf} from 'firebase-functions';
+import {measureTrigger} from '../monitoring/measure';
+import {getFirestore} from '../firebase';
+import {ApplicationBuilder} from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const appBuilder = new ApplicationBuilder(firestore);
@@ -20,10 +20,10 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const { changeType } = extractDataChange(event);
+        const {changeType} = extractDataChange(event);
 
         if (changeType === 'deleted') {
-            logger.info('group-deleted', { groupId });
+            logger.info('group-deleted', {groupId});
             return;
         }
 
@@ -31,9 +31,10 @@ export const trackGroupChanges = onDocumentWritten(
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
 
-            logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
+            logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
         });
     },
+
 );
 
 export const trackExpenseChanges = onDocumentWritten(
@@ -43,7 +44,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const { after } = extractDataChange(event);
+        const {after} = extractDataChange(event);
 
         const afterData = after?.data();
 
@@ -56,7 +57,7 @@ export const trackExpenseChanges = onDocumentWritten(
         await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'transaction');
         await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'balance');
 
-        logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.length });
+        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
     },
 );
 
@@ -67,7 +68,7 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const { before, after } = extractDataChange(event);
+        const {after} = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
             const afterData = after?.data();
@@ -81,9 +82,49 @@ export const trackSettlementChanges = onDocumentWritten(
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
 
-            logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
+            logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
 
-            return { groupId, affectedUserCount: affectedUsers.length };
+            return {groupId, affectedUserCount: affectedUsers.length};
+        });
+    },
+);
+
+export const trackMembershipDeletion = onDocumentDeleted(
+    {
+        document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
+        region: 'us-central1',
+    },
+    async (event) => {
+        const membershipId = event.params.membershipId;
+        const deletedData = event.data?.data();
+
+        if (!deletedData) {
+            throw Error(`No data found for deleted membership ${membershipId}`);
+        }
+
+        const userId = deletedData.userId;
+        const groupId = deletedData.groupId;
+
+        if (!userId || !groupId) {
+            throw Error(`Missing required fields in deleted membership ${membershipId}: userId=${userId}, groupId=${groupId}`);
+        }
+
+        return measureTrigger('trackMembershipDeletion', async () => {
+            // Get group details for the notification
+            const group = await firestoreReader.getGroup(groupId);
+            
+            // Send removal notification to the user using standard group change notification
+            await notificationService.batchUpdateNotifications([userId], groupId, 'group');
+            
+            // Clean up the user's notification document after sending the notification
+            await notificationService.removeUserFromGroup(userId, groupId);
+
+            logger.info('user-removal-notification-sent', {
+                userId,
+                groupId,
+                groupName: group?.name || 'Unknown Group',
+                membershipId
+            });
         });
     },
 );
@@ -101,5 +142,5 @@ function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | unde
         changeType = 'updated';
     }
 
-    return { before, after, changeType };
+    return {before, after, changeType};
 }

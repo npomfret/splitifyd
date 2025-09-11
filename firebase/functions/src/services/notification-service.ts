@@ -188,4 +188,5 @@ export class NotificationService {
             return await this.firestoreWriter.removeUserNotificationGroup(userId, groupId);
         });
     }
+
 }

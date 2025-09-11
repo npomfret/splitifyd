@@ -330,20 +330,30 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                         );
                 },
                 onGroupRemoved: (groupId) => {
+                    // Find the group name before removing it
+                    const currentGroups = this.#groupsSignal.value;
+                    const removedGroup = currentGroups.find((group) => group.id === groupId);
+                    const groupName = removedGroup?.name || 'Unknown Group';
+
                     logInfo('Group removed - removing from list without refresh', {
                         userId,
                         groupId,
-                        currentGroupCount: this.#groupsSignal.value.length,
+                        groupName,
+                        currentGroupCount: currentGroups.length,
                     });
 
                     // Remove the group from the list immediately without fetching
-                    const currentGroups = this.#groupsSignal.value;
                     const filteredGroups = currentGroups.filter((group) => group.id !== groupId);
 
                     if (filteredGroups.length !== currentGroups.length) {
                         this.#groupsSignal.value = filteredGroups;
+                        
+                        // Show user-friendly notification about removal
+                        console.info(`📨 You've been removed from "${groupName}"`);
+                        
                         logInfo('Group removed from dashboard', {
                             groupId,
+                            groupName,
                             oldCount: currentGroups.length,
                             newCount: filteredGroups.length,
                         });
