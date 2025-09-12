@@ -72,14 +72,21 @@ describe('Optimistic Locking Integration Tests', () => {
 
         test('should prevent concurrent group updates', async () => {
             // User 1 creates a group
-            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Concurrent Update Test Group').withDescription('Testing concurrent updates').build(), users[0].token);
+            const group = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName('Concurrent Update Test Group')
+                    .withDescription('Testing concurrent updates').build(),
+                users[0].token);
 
             // Share with User 2
             const shareLink = await apiDriver.generateShareLink(group.id, users[0].token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // Same user tries to update the group simultaneously (testing optimistic locking)
-            const updatePromises = [apiDriver.updateGroup(group.id, {name: 'First Update'}, users[0].token), apiDriver.updateGroup(group.id, {name: 'Second Update'}, users[0].token)];
+            const updatePromises = [
+                apiDriver.updateGroup(group.id, {name: 'First Update'}, users[0].token),
+                apiDriver.updateGroup(group.id, {name: 'Second Update'}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(updatePromises);
 
