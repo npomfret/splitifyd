@@ -34,19 +34,30 @@ export class NotificationService {
 
     /**
      * Update a single user's notification document
-     * Uses atomic operations to ensure consistency
+     * Delegates to batchUpdateNotificationsMultipleTypes for consistency
      */
     async updateUserNotification(userId: string, groupId: string, changeType: ChangeType): Promise<WriteResult> {
-        return measureDb('NotificationService.updateUserNotification', async () => {
-            // DEFENSIVE: Check if user actually has this group before updating
-            const existingNotification = await this.firestoreReader.getUserNotification(userId);
-            if (!existingNotification?.groups?.[groupId]) {
-                // User doesn't have this group - they may have been removed
-                return {
-                    id: userId,
-                    success: true, // Return success but don't update
-                };
-            }
+        const batchResult = await this.batchUpdateNotificationsMultipleTypes([userId], groupId, [changeType]);
+        return batchResult.results[0]; // Return the single result from batch of 1
+    }
+
+    /**
+     * Batch update multiple users' notification documents
+     * Delegates to batchUpdateNotificationsMultipleTypes for consistency
+     */
+    async batchUpdateNotifications(userIds: string[], groupId: string, changeType: ChangeType): Promise<BatchWriteResult> {
+        return this.batchUpdateNotificationsMultipleTypes(userIds, groupId, [changeType]);
+    }
+
+    /**
+     * Batch update multiple users' notification documents with multiple change types atomically
+     * Processes multiple change types for each user in a single atomic operation
+     */
+    async batchUpdateNotificationsMultipleTypes(userIds: string[], groupId: string, changeTypes: ChangeType[]): Promise<BatchWriteResult> {
+        return measureDb('NotificationService.batchUpdateNotificationsMultipleTypes', async () => {
+            let successCount = 0;
+            let failureCount = 0;
+            const results = [];
 
             // Map changeType to proper field names
             const fieldMap = {
@@ -55,44 +66,33 @@ export class NotificationService {
                 group: { count: 'groupDetailsChangeCount', last: 'lastGroupDetailsChange' },
             };
 
-            const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
-
-            // Use dot notation with update() to avoid overwriting nested objects
-            const updates = {
-                changeVersion: FieldValue.increment(1),
-                [`groups.${groupId}.${lastChangeFieldName}`]: FieldValue.serverTimestamp(),
-                [`groups.${groupId}.${countFieldName}`]: FieldValue.increment(1),
-            };
-
-            try {
-                return await this.firestoreWriter.updateUserNotification(userId, updates);
-            } catch (error) {
-                // DEBUGGING: Log failed update with details
-                logger.error('NotificationService.updateUserNotification failed', error as Error, {
-                    userId,
-                    groupId,
-                    changeType,
-                    updateKeys: Object.keys(updates),
-                    errorMessage: error instanceof Error ? error.message : 'Unknown error',
-                });
-                throw error;
-            }
-        });
-    }
-
-    /**
-     * Batch update multiple users' notification documents
-     * Processes in chunks to avoid Firestore batch limits
-     */
-    async batchUpdateNotifications(userIds: string[], groupId: string, changeType: ChangeType): Promise<BatchWriteResult> {
-        return measureDb('NotificationService.batchUpdateNotifications', async () => {
-            let successCount = 0;
-            let failureCount = 0;
-            const results = [];
-
             for (const userId of userIds) {
                 try {
-                    const result = await this.updateUserNotification(userId, groupId, changeType);
+                    // DEFENSIVE: Check if user actually has this group before updating
+                    const existingNotification = await this.firestoreReader.getUserNotification(userId);
+                    if (!existingNotification?.groups?.[groupId]) {
+                        // User doesn't have this group - they may have been removed
+                        results.push({
+                            id: userId,
+                            success: true, // Return success but don't update
+                        });
+                        successCount++;
+                        continue;
+                    }
+
+                    // Build updates for all change types in single atomic operation
+                    const updates: Record<string, any> = {
+                        changeVersion: FieldValue.increment(changeTypes.length),
+                    };
+
+                    // Add updates for each change type
+                    for (const changeType of changeTypes) {
+                        const { count: countFieldName, last: lastChangeFieldName } = fieldMap[changeType];
+                        updates[`groups.${groupId}.${lastChangeFieldName}`] = FieldValue.serverTimestamp();
+                        updates[`groups.${groupId}.${countFieldName}`] = FieldValue.increment(1);
+                    }
+
+                    const result = await this.firestoreWriter.updateUserNotification(userId, updates);
 
                     // VALIDATION: Verify the write was successful
                     if (result.success) {
@@ -103,19 +103,26 @@ export class NotificationService {
 
                     results.push(result);
                 } catch (error) {
+                    // DEBUGGING: Log failed update with details
+                    logger.error('NotificationService.batchUpdateNotificationsMultipleTypes failed', error as Error, {
+                        userId,
+                        groupId,
+                        changeTypes,
+                        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    });
                     failureCount++;
                     results.push({ id: userId, success: false });
                 }
             }
 
             // DEBUGGING: Log the final batch result
-            logger.info('NotificationService.batchUpdateNotifications completed', {
+            logger.info('NotificationService.batchUpdateNotificationsMultipleTypes completed', {
                 totalUsers: userIds.length,
                 successCount,
                 failureCount,
                 groupId,
-                changeType,
-                operation: 'batch-update-complete',
+                changeTypes,
+                operation: 'batch-update-multiple-types-complete',
             });
 
             return {

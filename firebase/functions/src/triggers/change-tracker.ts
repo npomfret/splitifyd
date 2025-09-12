@@ -54,8 +54,7 @@ export const trackExpenseChanges = onDocumentWritten(
         }
 
         const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-        await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'transaction');
-        await notificationService.batchUpdateNotifications(affectedUsers, groupId!, 'balance');
+        await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId!, ['transaction', 'balance']);
 
         logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
     },
@@ -79,8 +78,7 @@ export const trackSettlementChanges = onDocumentWritten(
             }
 
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'transaction');
-            await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'balance');
+            await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
 
             logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
 
