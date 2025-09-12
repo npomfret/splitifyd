@@ -80,16 +80,26 @@
       "mcp__typescript-mcp",
       "mcp__typescript-mcp__*"
     ],
-    "deny": ["Bash(git commit:*)", "Bash(git push:*)"]
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
   },
   "mcpServers": {
     "puppeteer": {
       "command": "npx",
-      "args": ["-y", "@cloudflare/puppeteer-core", "puppeteer-mcp"]
+      "args": [
+        "-y",
+        "@cloudflare/puppeteer-core",
+        "puppeteer-mcp"
+      ]
     },
     "ide": {
       "command": "npx",
-      "args": ["-y", "@vonloxx/mcp-ide"]
+      "args": [
+        "-y",
+        "@vonloxx/mcp-ide"
+      ]
     }
   }
 }
