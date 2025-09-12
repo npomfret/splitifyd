@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { generateShortId } from '@splitifyd/test-support';
 import { PolicyService } from '../../../services/PolicyService';
 import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
 import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
@@ -11,7 +12,9 @@ describe('PolicyService - Integration Tests', () => {
     let firestoreReader: FirestoreReader;
     let firestoreWriter: FirestoreWriter;
     let firestore: FirebaseFirestore.Firestore;
-    let testPolicyIds: string[] = [];
+
+    // Helper to generate unique policy names for each test
+    const uniquePolicyName = (baseName: string) => `${baseName} ${generateShortId()}`;
 
     beforeEach(async () => {
         // Initialize real Firestore instances for integration testing
@@ -21,31 +24,16 @@ describe('PolicyService - Integration Tests', () => {
 
         // Create service with real dependencies
         policyService = new PolicyService(firestoreReader, firestoreWriter);
-
-        // Clear test policy IDs for cleanup
-        testPolicyIds = [];
     });
 
-    afterEach(async () => {
-        // Clean up test policies
-        for (const policyId of testPolicyIds) {
-            try {
-                await firestore.collection(FirestoreCollections.POLICIES).doc(policyId).delete();
-            } catch (error) {
-                // Ignore cleanup errors
-                console.warn(`Failed to cleanup test policy ${policyId}:`, error);
-            }
-        }
-    });
 
     describe('End-to-End Policy Management', () => {
         it('should create, read, update, and publish policies', async () => {
             // Step 1: Create a new policy
-            const policyName = 'Integration Test Policy';
+            const policyName = uniquePolicyName('Integration Test Policy');
             const initialText = 'Initial policy content for integration testing.';
 
             const createResult = await policyService.createPolicy(policyName, initialText);
-            testPolicyIds.push(createResult.id);
 
             expect(createResult).toHaveProperty('id');
             expect(createResult).toHaveProperty('currentVersionHash');
@@ -108,8 +96,7 @@ describe('PolicyService - Integration Tests', () => {
 
         it('should handle policy version management correctly', async () => {
             // Create policy with multiple versions
-            const createResult = await policyService.createPolicy('Version Test', 'Version 1');
-            testPolicyIds.push(createResult.id);
+            const createResult = await policyService.createPolicy(uniquePolicyName('Version Test'), 'Version 1');
 
             const version2 = await policyService.updatePolicy(createResult.id, 'Version 2', false);
             const version3 = await policyService.updatePolicy(createResult.id, 'Version 3', false);
@@ -139,8 +126,7 @@ describe('PolicyService - Integration Tests', () => {
         });
 
         it('should enforce version constraints correctly', async () => {
-            const createResult = await policyService.createPolicy('Constraint Test', 'Original');
-            testPolicyIds.push(createResult.id);
+            const createResult = await policyService.createPolicy(uniquePolicyName('Constraint Test'), 'Original');
 
             // Cannot delete current version
             await expect(policyService.deletePolicyVersion(createResult.id, createResult.currentVersionHash)).rejects.toThrow(
@@ -162,11 +148,11 @@ describe('PolicyService - Integration Tests', () => {
 
         it('should prevent duplicate policy creation', async () => {
             // Create initial policy
-            const result1 = await policyService.createPolicy('Duplicate Test', 'Content 1');
-            testPolicyIds.push(result1.id);
+            const duplicateName = uniquePolicyName('Duplicate Test');
+            const result1 = await policyService.createPolicy(duplicateName, 'Content 1');
 
             // Attempt to create policy with same name (should generate same ID)
-            await expect(policyService.createPolicy('Duplicate Test', 'Content 2')).rejects.toThrow(
+            await expect(policyService.createPolicy(duplicateName, 'Content 2')).rejects.toThrow(
                 expect.objectContaining({
                     statusCode: HTTP_STATUS.CONFLICT,
                     code: 'POLICY_EXISTS',
@@ -176,9 +162,10 @@ describe('PolicyService - Integration Tests', () => {
 
         it('should handle policy listing correctly', async () => {
             // Create multiple policies
-            const policy1 = await policyService.createPolicy('List Test 1', 'Content 1');
-            const policy2 = await policyService.createPolicy('List Test 2', 'Content 2');
-            testPolicyIds.push(policy1.id, policy2.id);
+            const policy1Name = uniquePolicyName('List Test 1');
+            const policy2Name = uniquePolicyName('List Test 2');
+            const policy1 = await policyService.createPolicy(policy1Name, 'Content 1');
+            const policy2 = await policyService.createPolicy(policy2Name, 'Content 2');
 
             // Test listPolicies
             const listResult = await policyService.listPolicies();
@@ -194,14 +181,13 @@ describe('PolicyService - Integration Tests', () => {
             expect(currentResult.policies).toHaveProperty(policy1.id);
             expect(currentResult.policies).toHaveProperty(policy2.id);
             expect(currentResult.policies[policy1.id]).toEqual({
-                policyName: 'List Test 1',
+                policyName: policy1Name,
                 currentVersionHash: policy1.currentVersionHash,
             });
         });
 
         it('should handle concurrent version creation correctly', async () => {
-            const createResult = await policyService.createPolicy('Concurrent Test', 'Base content');
-            testPolicyIds.push(createResult.id);
+            const createResult = await policyService.createPolicy(uniquePolicyName('Concurrent Test'), 'Base content');
 
             // Create same content version - should fail
             await expect(
@@ -267,8 +253,7 @@ describe('PolicyService - Integration Tests', () => {
             // This test verifies that the service is using IFirestoreWriter methods
             // rather than direct Firestore calls
 
-            const createResult = await policyService.createPolicy('Write Test', 'Content');
-            testPolicyIds.push(createResult.id);
+            const createResult = await policyService.createPolicy(uniquePolicyName('Write Test'), 'Content');
 
             // Verify policy was created (tests createPolicy method)
             const policy = await policyService.getPolicy(createResult.id);

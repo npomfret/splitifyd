@@ -87,8 +87,6 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('✅ All users notified of group changes with complete event capture');
 
-            // Cleanup
-            notificationDriver.stopAllListeners();
         });
 
         test('should notify existing members when new member joins group', async () => {
@@ -138,8 +136,6 @@ describe('Multi-User Notifications Integration Tests', () => {
 
             console.log('✅ Existing members notified when new member joins with complete event capture');
 
-            // Cleanup
-            notificationDriver.stopAllListeners();
         });
 
         test('should notify remaining members when member leaves group', async () => {

@@ -2,8 +2,7 @@
 
 import {beforeEach, describe, expect, test} from 'vitest';
 
-import {borrowTestUsers} from '@splitifyd/test-support';
-import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SettlementBuilder} from '@splitifyd/test-support';
 import {UserToken} from '@splitifyd/shared';
 
 describe('Optimistic Locking Integration Tests', () => {
@@ -282,15 +281,21 @@ describe('Optimistic Locking Integration Tests', () => {
     });
 
     describe('Cross-Entity Race Conditions', () => {
+
         test('should handle user joining while expense is being created', async () => {
+            const user1Token = users[0].token;
+
             // User 1 creates a group
             const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Cross-Entity Race Test').withDescription('Testing cross-entity race conditions').build(),
-                users[0].token,
+                new CreateGroupRequestBuilder()
+                    .withName('Cross-Entity Race Test')
+                    .withDescription('Testing cross-entity race conditions')
+                    .build(),
+                user1Token,
             );
 
             // Generate share link
-            const shareLink = await apiDriver.generateShareLink(group.id, users[0].token);
+            const shareLink = await apiDriver.generateShareLink(group.id, user1Token);
 
             // User 2 joins while User 1 creates expense simultaneously
             const promises = [
@@ -304,7 +309,7 @@ describe('Optimistic Locking Integration Tests', () => {
                         .withParticipants([users[0].uid]) // Only original user initially
                         .withSplitType('equal')
                         .build(),
-                    users[0].token,
+                    user1Token,
                 ),
             ];
 
@@ -316,30 +321,33 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state
-            const {members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {members} = await apiDriver.getGroupFullDetails(group.id, user1Token);
             const member1 = members.members.find((m) => m.uid === users[1].uid);
             expect(member1).toBeDefined();
 
-            const expenses = await apiDriver.getGroupExpenses(group.id, users[0].token);
+            const expenses = await apiDriver.getGroupExpenses(group.id, user1Token);
             expect(expenses.expenses.length).toBe(1);
             expect(expenses.expenses[0].description).toBe('Race condition expense');
         });
 
         test('should handle concurrent group updates from same user', async () => {
+            const user1Token = users[0].token;
+
             // Create a group
             const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Concurrent Updates Test').withDescription('Testing concurrent updates from same user').build(),
-                users[0].token,
+                new CreateGroupRequestBuilder()
+                    .withName('Concurrent Updates Test')
+                    .withDescription('Testing concurrent updates from same user')
+                    .build(),
+                user1Token,
             );
 
             // Perform multiple concurrent updates with same user (proper optimistic locking test)
-            const operations = [
-                apiDriver.updateGroup(group.id, {name: 'Update 1'}, users[0].token),
-                apiDriver.updateGroup(group.id, {name: 'Update 2'}, users[0].token),
-                apiDriver.updateGroup(group.id, {description: 'Updated description'}, users[0].token),
-            ];
-
-            const results = await Promise.allSettled(operations);
+            const results = await Promise.allSettled([
+                apiDriver.updateGroup(group.id, {name: 'Update 1'}, user1Token),
+                apiDriver.updateGroup(group.id, {name: 'Update 2'}, user1Token),
+                apiDriver.updateGroup(group.id, {description: 'Updated description'}, user1Token),
+            ]);
 
             // At least one should succeed
             const successes = results.filter((r) => r.status === 'fulfilled');
@@ -359,7 +367,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state integrity
-            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, user1Token);
 
             // Group should have been updated by at least one operation
             expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || finalGroup.description === 'Updated description').toBeTruthy();

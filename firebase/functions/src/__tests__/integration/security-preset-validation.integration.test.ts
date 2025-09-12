@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { getFirestore } from '../../firebase';
 import { ApiDriver, UserRegistrationBuilder } from '@splitifyd/test-support';
 import { SecurityPresets } from '@splitifyd/shared';
@@ -6,18 +6,7 @@ import { SecurityPresets } from '@splitifyd/shared';
 describe('Security Preset Validation - Integration Test', () => {
     const driver = new ApiDriver();
     const firestore = getFirestore();
-    let testGroupId: string;
 
-    afterEach(async () => {
-        // Clean up test groups
-        if (testGroupId) {
-            try {
-                await firestore.collection('groups').doc(testGroupId).delete();
-            } catch (error) {
-                // Ignore cleanup errors
-            }
-        }
-    });
 
     it('should handle groups with invalid securityPreset values when fetching groups list', async () => {
         // Create a user for testing
@@ -30,7 +19,6 @@ describe('Security Preset Validation - Integration Test', () => {
         };
 
         const validGroup = await driver.createGroup(validGroupData, testUser.token);
-        testGroupId = validGroup.id;
 
         // Now directly insert a group with invalid securityPreset using Firestore SDK
         const invalidGroupId = 'invalid-group-' + Date.now();
@@ -81,8 +69,6 @@ describe('Security Preset Validation - Integration Test', () => {
         // For now, we expect an error because of the invalid data
         // The actual validation error happens when the frontend tries to parse the response
 
-        // Clean up the invalid group
-        await firestore.collection('groups').doc(invalidGroupId).delete();
     });
 
     it('should successfully fetch groups when all have valid securityPreset values', async () => {
@@ -114,10 +100,6 @@ describe('Security Preset Validation - Integration Test', () => {
             expect(groupIds).toContain(group.id);
         }
 
-        // Clean up
-        for (const group of createdGroups) {
-            await firestore.collection('groups').doc(group.id).delete();
-        }
     });
 
     it('should identify which groups have invalid securityPreset values', async () => {
@@ -188,9 +170,5 @@ describe('Security Preset Validation - Integration Test', () => {
             }
         }
 
-        // Clean up all test groups
-        for (const groupInfo of groups) {
-            await firestore.collection('groups').doc(groupInfo.id).delete();
-        }
     });
 });

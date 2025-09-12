@@ -13,13 +13,10 @@ describe('Core Notifications Integration Tests', () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Mark timestamp before group creation
-            const beforeGroupTimestamp = Date.now();
+            // 2. Wait for group notification event (proves document was created and updated)
+            await listener.waitForEventCount(testGroup.id, 'group', 1);
 
-            // 3. Wait for group notification event (proves document was created and updated)
-            await listener.waitForNewEvent(testGroup.id, 'group', beforeGroupTimestamp);
-
-            // 4. Verify the event was received and has the expected structure
+            // 3. Verify the event was received and has the expected structure
             const groupEvent = listener.getLatestEvent(testGroup.id, 'group');
             expect(groupEvent).toBeDefined();
             expect(groupEvent!.groupId).toBe(testGroup.id);
@@ -38,13 +35,11 @@ describe('Core Notifications Integration Tests', () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Mark timestamp before expense creation
-            const beforeExpenseTimestamp = Date.now();
-
+            // 2. Create expense to trigger notification update
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token);
 
-            // 3. Wait for new transaction event (proves notification was updated)
-            await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
+            // 3. Wait for transaction event (proves notification was updated)
+            await listener.waitForEventCount(testGroup.id, 'transaction', 1);
 
             // 4. Verify the transaction event was received with expected data
             const transactionEvent = listener.getLatestEvent(testGroup.id, 'transaction');
@@ -60,18 +55,16 @@ describe('Core Notifications Integration Tests', () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Get initial version from existing group
+            // 2. Wait for initial group event and get version
+            await listener.waitForEventCount(testGroup.id, 'group', 1);
             const initialGroupEvent = listener.getLatestEvent(testGroup.id, 'group');
             const initialVersion = initialGroupEvent?.version || 0;
 
-            // 3. Mark timestamp before expense creation
-            const beforeExpenseTimestamp = Date.now();
-
-            // Create an expense to trigger a change
+            // 3. Create an expense to trigger a change
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 5.0);
 
-            // 4. Wait for new transaction event (proves version will change)
-            await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
+            // 4. Wait for transaction event (proves version will change)
+            await listener.waitForEventCount(testGroup.id, 'transaction', 1);
 
             // 5. Verify version incremented by checking the transaction event
             const transactionEvent = listener.getLatestEvent(testGroup.id, 'transaction');
@@ -109,42 +102,41 @@ describe('Core Notifications Integration Tests', () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Mark timestamp before expense creation
-            const beforeExpenseTimestamp = Date.now();
-
-            // Create an expense to trigger notifications
+            // 2. Create an expense to trigger notifications
             console.log('Creating expense to trigger notification...');
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 25.5);
 
-            // 3. Wait for new transaction change event
-            const event = await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
+            // 3. Wait for transaction change event
+            await listener.waitForEventCount(testGroup.id, 'transaction', 1);
+            const event = listener.getLatestEvent(testGroup.id, 'transaction');
 
-            expect(event.groupId).toBe(testGroup.id);
-            expect(event.type).toBe('transaction');
-            expect(event.userId).toBe(user1.uid);
-            expect(event.groupState?.transactionChangeCount).toBeGreaterThan(0);
+            expect(event).toBeDefined();
+            expect(event!.groupId).toBe(testGroup.id);
+            expect(event!.type).toBe('transaction');
+            expect(event!.userId).toBe(user1.uid);
+            expect(event!.groupState?.transactionChangeCount).toBeGreaterThan(0);
         });
 
         test('should receive balance change notification after expense creation', async () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Mark timestamp before expense creation
-            const beforeExpenseTimestamp = Date.now();
-
+            // 2. Create expense to trigger balance and transaction changes
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 50.0);
 
-            // 3. Wait for new balance event after timestamp
-            try {
-                const balanceEvent = await listener.waitForNewEvent(testGroup.id, 'balance', beforeExpenseTimestamp);
+            // 3. Wait for transaction event (always triggered)
+            await listener.waitForEventCount(testGroup.id, 'transaction', 1);
+
+            // 4. Check if balance event was also triggered
+            const balanceEvents = listener.getEventsForGroup(testGroup.id).filter(e => e.type === 'balance');
+            if (balanceEvents.length > 0) {
+                const balanceEvent = balanceEvents[balanceEvents.length - 1];
                 expect(balanceEvent.groupId).toBe(testGroup.id);
                 expect(balanceEvent.type).toBe('balance');
                 expect(balanceEvent.groupState?.balanceChangeCount).toBeGreaterThan(0);
-            } catch (error) {
-                // Balance changes might not always trigger separately from transaction changes
-                // Wait for transaction event instead and verify it exists
-                await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
-                console.log('Balance change not triggered separately, but transaction change detected');
+                console.log('✅ Balance change notification received');
+            } else {
+                console.log('✅ Balance change not triggered separately (transaction change detected)');
             }
         });
 
@@ -152,14 +144,11 @@ describe('Core Notifications Integration Tests', () => {
             // 1. START LISTENER FIRST - BEFORE ANY ACTIONS
             const [listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            // 2. Mark timestamp before expense creation
-            const beforeExpenseTimestamp = Date.now();
-
-            // 3. Create expense for the test group
+            // 2. Create expense for the test group
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 30.0);
 
-            // 4. Wait for transaction event
-            await listener.waitForNewEvent(testGroup.id, 'transaction', beforeExpenseTimestamp);
+            // 3. Wait for transaction event
+            await listener.waitForEventCount(testGroup.id, 'transaction', 1);
             const transactionEvent = listener.getLatestEvent(testGroup.id, 'transaction');
 
             expect(transactionEvent).toBeDefined();

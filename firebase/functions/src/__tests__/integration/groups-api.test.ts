@@ -316,8 +316,6 @@ describe('Groups API', () => {
             expect(firestoreGroup!.createdAt).toBeDefined();
             expect(firestoreGroup!.updatedAt).toBeDefined();
 
-            // Cleanup
-            await getFirestore().collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
     });
 });

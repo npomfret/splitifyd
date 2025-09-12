@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
-import { ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder, generateShortId } from '@splitifyd/test-support';
 import { AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { getAuth, getFirestore } from '../../../firebase';
@@ -24,7 +24,7 @@ describe('UserService - Integration Tests', () => {
 
     describe('registerUser', () => {
         test('should register a new user with Firebase Auth and Firestore', async () => {
-            const userData = new UserRegistrationBuilder().withEmail('newuser@example.com').withPassword('SecurePass123!').withDisplayName('New User').build();
+            const userData = new UserRegistrationBuilder().withEmail(`newuser-${generateShortId()}@example.com`).withPassword('SecurePass123!').withDisplayName('New User').build();
 
             const result = await userService.registerUser({
                 email: userData.email,
@@ -59,9 +59,6 @@ describe('UserService - Integration Tests', () => {
             expect(userData_firestore!.createdAt).toBeDefined();
             expect(userData_firestore!.updatedAt).toBeDefined();
 
-            // Cleanup
-            await getAuth().deleteUser(result.user.uid!);
-            await firestore.collection('users').doc(result.user.uid!).delete();
         });
 
         test('should reject registration with existing email', async () => {
@@ -81,7 +78,7 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should register with optional acceptance flags', async () => {
-            const userData = new UserRegistrationBuilder().withEmail('noaccept@example.com').withPassword('SecurePass123!').withDisplayName('Test User').build();
+            const userData = new UserRegistrationBuilder().withEmail(`noaccept-${generateShortId()}@example.com`).withPassword('SecurePass123!').withDisplayName('Test User').build();
 
             // Test shows validation requires both to be true, so this test
             // will demonstrate the validation works correctly
@@ -108,29 +105,11 @@ describe('UserService - Integration Tests', () => {
         });
 
         test('should cleanup auth user if Firestore creation fails', async () => {
-            // This is hard to test directly without mocking, but we can test
-            // that the service handles the cleanup correctly by testing edge cases
-            const userData = new UserRegistrationBuilder().build();
+            // This test verifies that successful registration creates both Auth and Firestore records
+            const userData = new UserRegistrationBuilder().withEmail(`cleanup-test-${generateShortId()}@example.com`).build();
 
-            try {
-                // This should succeed normally
-                const result = await userService.registerUser({
-                    email: userData.email,
-                    password: userData.password,
-                    displayName: userData.displayName,
-                    termsAccepted: true,
-                    cookiePolicyAccepted: true,
-                });
-
-                // Cleanup the successful registration
-                await getAuth().deleteUser(result.user.uid!);
-                await firestore.collection('users').doc(result.user.uid!).delete();
-            } catch (error) {
-                // If registration failed, no cleanup needed
-            }
-
-            // Verify no orphaned users exist by trying to register again
-            const result2 = await userService.registerUser({
+            // Registration should succeed
+            const result = await userService.registerUser({
                 email: userData.email,
                 password: userData.password,
                 displayName: userData.displayName,
@@ -138,11 +117,27 @@ describe('UserService - Integration Tests', () => {
                 cookiePolicyAccepted: true,
             });
 
-            expect(result2.success).toBe(true);
+            expect(result.success).toBe(true);
+            expect(result.user.uid).toBeDefined();
 
-            // Cleanup
-            await getAuth().deleteUser(result2.user.uid!);
-            await firestore.collection('users').doc(result2.user.uid!).delete();
+            // Verify both Auth and Firestore records were created
+            const authUser = await getAuth().getUser(result.user.uid!);
+            expect(authUser.email).toBe(userData.email);
+
+            const firestoreUser = await firestoreReader.getUser(result.user.uid!);
+            expect(firestoreUser).not.toBeNull();
+            expect(firestoreUser!.email).toBe(userData.email);
+
+            // Attempting to register with the same email should fail (as expected)
+            await expect(
+                userService.registerUser({
+                    email: userData.email,
+                    password: userData.password,
+                    displayName: userData.displayName,
+                    termsAccepted: true,
+                    cookiePolicyAccepted: true,
+                }),
+            ).rejects.toThrow('An account with this email already exists');
         });
     });
 
@@ -383,7 +378,7 @@ describe('UserService - Integration Tests', () => {
     describe('deleteAccount', () => {
         test('should delete user from both Auth and Firestore', async () => {
             // Create a dedicated user for deletion testing
-            const userData = new UserRegistrationBuilder().withEmail('todelete@example.com').withPassword('DeleteMe123!').withDisplayName('To Delete User').build();
+            const userData = new UserRegistrationBuilder().withEmail(`todelete-${generateShortId()}@example.com`).withPassword('DeleteMe123!').withDisplayName('To Delete User').build();
 
             const registrationResult = await userService.registerUser({
                 email: userData.email,
@@ -430,7 +425,6 @@ describe('UserService - Integration Tests', () => {
             ).rejects.toThrow(ApiError);
 
             // Clean up group manually from Firestore since API auth is complex in this test
-            await firestore.collection('groups').doc(group.id).delete();
         });
 
         test('should require confirmation for deletion', async () => {

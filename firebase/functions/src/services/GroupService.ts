@@ -24,6 +24,7 @@ import {NotificationService} from './notification-service';
 import {GroupShareService} from './GroupShareService';
 import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
 import type {UserNotificationGroup} from '../schemas/user-notifications';
+import {CreateGroupRequestBuilder} from "@splitifyd/test-support";
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -563,7 +564,7 @@ export class GroupService {
      * Create a new group with the creator as the owner/admin
      * IMPORTANT: The creator is automatically added as a member with 'owner' role
      */
-    async createGroup(userId: string, groupData: CreateGroupRequest): Promise<Group> {
+    async createGroup(userId: string, groupData: CreateGroupRequest = new CreateGroupRequestBuilder().build()): Promise<Group> {
         return measureDb('createGroup', async () => this._createGroup(userId, groupData));
     }
 

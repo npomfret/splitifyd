@@ -11,27 +11,29 @@ describe('Business Logic Integration Tests', () => {
 
     describe('Permission-Based Notifications', () => {
         test('should notify users only for groups they have access to', async () => {
-            // 1. Create a second group with different members
-            const separateGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Separate Group').build(), user2.token);
-
-            // 2. Set up listeners for multiple users
+            // 1. Set up listeners FIRST to capture all events
             const [listener1, listener2] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
-            // 3. Create expense in main group - only user1 should be notified
+            // 2. Add user2 to testGroup so both users are members
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
+
+            // 3. Create expense in testGroup - both users should be notified (they're both members)
             await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 25.0);
             await listener1.waitForEventCount(testGroup.id, 'transaction', 1);
-            
-            // 4. Create expense in separate group - only user2 should be notified
-            await apiDriver.createBasicExpense(separateGroup.id, user2.uid, user2.token, 30.0);
-            await listener2.waitForEventCount(separateGroup.id, 'transaction', 1);
+            await listener2.waitForEventCount(testGroup.id, 'transaction', 1);
 
-            // 5. Verify user1 only gets events for their group (user1 should have no events for separateGroup)
-            const user1SeparateEvents = listener1.getEventsForGroup(separateGroup.id);
-            expect(user1SeparateEvents.length).toBe(0);
+            // 4. Remove user2 from the group to test access control
+            await apiDriver.removeGroupMember(testGroup.id, user2.uid, user1.token);
+            await listener1.waitForEventCount(testGroup.id, 'group', 1);
 
-            // 6. Verify user2 only gets events for their group (user2 should have no events for testGroup)
-            const user2MainEvents = listener2.getEventsForGroup(testGroup.id);
-            expect(user2MainEvents.length).toBe(0);
+            // 5. Create another expense - only user1 should be notified now
+            await apiDriver.createBasicExpense(testGroup.id, user1.uid, user1.token, 35.0);
+            await listener1.waitForEventCount(testGroup.id, 'transaction', 2);
+
+            // 6. Verify user2 did not receive notification for the second expense
+            const user2TransactionEvents = listener2.getEventsForGroup(testGroup.id).filter(e => e.type === 'transaction');
+            expect(user2TransactionEvents.length).toBe(1); // Only the first expense before removal
 
             console.log('✅ Users only receive notifications for groups they belong to');
         });

@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager } from '@splitifyd/test-support';
-import { UserToken } from '@splitifyd/shared';
+import {beforeEach, describe, expect, it} from 'vitest';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, generateShortId, SettlementBuilder, TestGroupManager} from '@splitifyd/test-support';
+import {UserToken} from '@splitifyd/shared';
 
 describe('Groups Full Details API', () => {
     const apiDriver = new ApiDriver();
@@ -109,8 +109,9 @@ describe('Groups Full Details API', () => {
             const expenseCountBefore = beforeDetails.expenses.expenses.length;
 
             // Create many expenses to test pagination
-            const uniqueId = Math.random().toString(36).slice(2, 10);
-            const expensePromises = Array.from({ length: 25 }, (_, i) =>
+            const uniqueId = generateShortId();
+
+            await Promise.all(Array.from({length: 25}, (_, i) =>
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(groupId)
@@ -122,8 +123,7 @@ describe('Groups Full Details API', () => {
                         .build(),
                     alice.token,
                 ),
-            );
-            await Promise.all(expensePromises);
+            ));
 
             const fullDetails = await apiDriver.getGroupFullDetails(groupId, alice.token);
 

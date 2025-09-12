@@ -1,11 +1,10 @@
-import { beforeEach, describe, expect, test } from 'vitest';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, generateShortId } from '@splitifyd/test-support';
-import { GroupService } from '../../../services/GroupService';
-import { FirestoreCollections, PooledTestUser, SecurityPresets } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
-import { getFirestore } from '../../../firebase';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { Group } from '@splitifyd/shared/src';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, generateShortId} from '@splitifyd/test-support';
+import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
+import {ApiError} from '../../../utils/errors';
+import {getFirestore} from '../../../firebase';
+import {ApplicationBuilder} from '../../../services/ApplicationBuilder';
+import {Group} from '@splitifyd/shared/src';
 
 // NOTE: GroupService returns the raw Group interface which uses group.members object format
 // This is different from the API endpoints which return GroupMemberWithProfile[] arrays
@@ -46,8 +45,6 @@ describe('GroupService - Integration Tests', () => {
             expect(firestoreGroup!.createdAt).toBeDefined();
             expect(firestoreGroup!.updatedAt).toBeDefined();
 
-            // Cleanup
-            await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should set default security preset and permissions', async () => {
@@ -61,8 +58,6 @@ describe('GroupService - Integration Tests', () => {
             expect(group.permissions).toBeDefined();
             expect(group.presetAppliedAt).toBeDefined();
 
-            // Cleanup
-            await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
     });
 
@@ -121,8 +116,6 @@ describe('GroupService - Integration Tests', () => {
             expect(result.balances.balancesByCurrency).toBeDefined();
             expect(result.balances.userBalances).toBeDefined();
 
-            // Cleanup expense
-            await firestore.collection(FirestoreCollections.EXPENSES).doc(expense.id).delete();
         });
     });
 
@@ -273,9 +266,6 @@ describe('GroupService - Integration Tests', () => {
             expect(balances.userBalances).toBeDefined();
             expect(balances.simplifiedDebts).toBeDefined();
 
-            // Cleanup
-            await firestore.collection(FirestoreCollections.EXPENSES).doc(expense1.id).delete();
-            await firestore.collection(FirestoreCollections.EXPENSES).doc(expense2.id).delete();
         });
 
         test('should throw UNAUTHORIZED for missing userId', async () => {
@@ -461,34 +451,27 @@ describe('GroupService - Integration Tests', () => {
             const creator = testUsers[0];
 
             // Valid group creation should work
-            const groupData = new CreateGroupRequestBuilder().build();
-
-            const group = await groupService.createGroup(creator.uid, groupData);
+            const group = await groupService.createGroup(creator.uid);
             expect(group.id).toBeDefined();
-
-            // Cleanup
-            await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should handle concurrent updates gracefully', async () => {
             const creator = testUsers[0];
 
-            const groupData = new CreateGroupRequestBuilder().build();
-
-            const group = await groupService.createGroup(creator.uid, groupData);
+            const group = await groupService.createGroup(creator.uid);
 
             // Multiple concurrent updates should handle optimistic locking
-            const updates = [{ name: `Update ${generateShortId()}` }, { name: `Update ${generateShortId()}` }];
-
-            const updatePromises = updates.map((update) => groupService.updateGroup(group.id, creator.uid, update));
+            const updates = [
+                { name: `Update ${generateShortId()}` },
+                { name: `Update ${generateShortId()}` }
+            ];
 
             // At least one should succeed
-            const results = await Promise.allSettled(updatePromises);
+            const results = await Promise.allSettled(
+                updates.map((update) => groupService.updateGroup(group.id, creator.uid, update)));
+
             const successes = results.filter((r) => r.status === 'fulfilled');
             expect(successes.length).toBeGreaterThan(0);
-
-            // Cleanup
-            await firestore.collection(FirestoreCollections.GROUPS).doc(group.id).delete();
         });
 
         test('should handle malformed input gracefully', async () => {
