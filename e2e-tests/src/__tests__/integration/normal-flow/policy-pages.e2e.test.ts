@@ -1,4 +1,4 @@
-import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { simpleTest } from '../../../fixtures';
 import { HomepagePage } from '../../../pages';
 import { waitForApp } from '../../../helpers';
 

@@ -20,8 +20,8 @@ import { QueryOptions, GroupMemberQueryOptions, PaginatedResult } from '../../ty
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';
 import type { GroupMemberDocument, CommentTargetType } from '@splitifyd/shared';
 import type { UserNotificationDocument } from '../../schemas/user-notifications';
-import type { ParsedShareLink } from '../../schemas/sharelink';
-import type { ParsedComment } from '../../schemas/comment';
+import type { ParsedShareLink } from '../../schemas';
+import type { ParsedComment } from '../../schemas';
 
 export interface IFirestoreReader {
     // ========================================================================

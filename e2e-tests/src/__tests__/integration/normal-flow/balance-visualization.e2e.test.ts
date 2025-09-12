@@ -1,6 +1,5 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupWorkflow } from '../../../workflows';
-import { generateShortId } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateShortId } from '@splitifyd/test-support';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
@@ -9,10 +8,10 @@ import { TestGroupWorkflow } from '../../../helpers';
 test.describe('Balance Visualization - Comprehensive', () => {
     test('should display settled state for single-user group', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Use cached group for better performance
-        await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Balance section should show "All settled up!" for empty group
         const balancesHeading = groupDetailPage.getBalancesHeading();
@@ -57,13 +56,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group with unique ID
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+        const groupId = groupDetailPage.inferGroupId();
         const memberCount = 2;
 
         // Get share link
@@ -149,13 +147,11 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
-        await groupWorkflow.createGroupAndNavigate(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Single Payer Debt Test ${uniqueId}`, 'Testing single payer debt');
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -201,13 +197,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -271,13 +266,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -346,13 +340,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -398,14 +391,13 @@ test.describe('Balance with Settlement Calculations', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
         const memberCount = 2;
 
         // Create group and verify
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
+        const groupId = groupDetailPage.inferGroupId();
         await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
 
         // Get share link
@@ -500,12 +492,11 @@ test.describe('Balance with Settlement Calculations', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
 
         const uniqueId = generateShortId();
-        const groupId = await groupWorkflow.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();

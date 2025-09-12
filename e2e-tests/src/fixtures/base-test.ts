@@ -1,5 +1,5 @@
 import { test as base } from '@playwright/test';
-import { attachConsoleHandler } from '../helpers/unified-console-handler';
+import { attachConsoleHandler } from '../helpers';
 
 // Extend base test to inject Playwright flag, i18n language setting, and unified console handling
 export const test = base.extend({

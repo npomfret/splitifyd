@@ -1,13 +1,10 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage } from '../../../pages';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
 import { PLACEHOLDERS } from '../../../constants/selectors';
-import { GroupWorkflow } from '../../../workflows';
 
 test.describe('Member Management E2E', () => {
     test('should display current group members', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
         await dashboardPage.navigateToDashboard();
@@ -15,11 +12,10 @@ test.describe('Member Management E2E', () => {
 
         // Create a group
         const groupName = 'Members Display Group';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for member display');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member display');
 
         // Should show the current user as a member in the main content area
         // Use the groupDetailPage page object model instead of direct selectors
-        const groupDetailPage = new GroupDetailPage(page, user);
         await expect(groupDetailPage.getUserName(await dashboardPage.getCurrentUserDisplayName())).toBeVisible();
 
         // Look for members section showing 1 member
@@ -28,8 +24,6 @@ test.describe('Member Management E2E', () => {
 
     test('should show member in expense split options', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
         await dashboardPage.navigateToDashboard();
@@ -37,7 +31,7 @@ test.describe('Member Management E2E', () => {
 
         // Create a group
         const groupName = 'Split Test Group';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for split options');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for split options');
 
         // Navigate to add expense
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
@@ -61,8 +55,6 @@ test.describe('Member Management E2E', () => {
 
     test('should show creator as admin', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
         await dashboardPage.navigateToDashboard();
@@ -70,7 +62,7 @@ test.describe('Member Management E2E', () => {
 
         // Create a group
         const groupName = 'Admin Test Group';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for admin badge');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for admin badge');
 
         // Creator should have admin badge - we expect a specific UI element
         // The UI must show "admin" text for the group creator
@@ -79,8 +71,6 @@ test.describe('Member Management E2E', () => {
 
     test('should show share functionality', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
         await dashboardPage.navigateToDashboard();
@@ -88,7 +78,7 @@ test.describe('Member Management E2E', () => {
 
         // Create a group
         const groupName = 'Share Test Group';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for sharing');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for sharing');
 
         // Share button should be visible and functional
         const shareButton = groupDetailPage.getShareButton();
@@ -103,8 +93,6 @@ test.describe('Member Management E2E', () => {
 
     test('should handle member count display', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
         await dashboardPage.navigateToDashboard();
@@ -112,7 +100,7 @@ test.describe('Member Management E2E', () => {
 
         // Create a group
         const groupName = 'Member Count Group';
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Test group for member count');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member count');
 
         // Should show member count
         const memberCount = groupDetailPage.getMemberCountElement();

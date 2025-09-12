@@ -1,6 +1,4 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Advanced Splitting Options', () => {
@@ -8,10 +6,10 @@ test.describe('Advanced Splitting Options', () => {
 
     test('should create expenses with all split types in comprehensive user journey', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
 
-        // Create a single group for the entire user journey using helper method
-        const groupId = await GroupWorkflow.createGroup(page, 'Advanced Splitting Test Group', undefined);
+        // Create a single group for the entire user journey
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate('Advanced Splitting Test Group', undefined);
+        const groupId = groupDetailPage.inferGroupId();
         const expectedMemberCount = 1;
 
         // === EQUAL SPLIT EXPENSE ===

@@ -1,9 +1,9 @@
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import {SettlementData} from "../../../pages/settlement-form.page.ts";
 
 simpleTest.describe('Group Real-Time Updates E2E', () => {
     // This test has been enhanced to test true real-time updates WITHOUT page reloads
@@ -21,7 +21,6 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
         const user3GroupDetailPage = new GroupDetailPage(user3Page, user3);
         const user4GroupDetailPage = new GroupDetailPage(user4Page, user4);
@@ -56,8 +55,8 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const originalDescription = 'Testing real-time group updates';
 
         // User 1 creates the group
-        const groupWorkflow = new GroupWorkflow(user1Page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(originalGroupName, originalDescription);
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(originalGroupName, originalDescription);
+        const groupId = groupDetailPage.inferGroupId();
         await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Get share link for other users
@@ -227,7 +226,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
                 payeeName: user1DisplayName,
                 amount: '20',
                 note: `Settlement ${randomString(4)}`,
-            },
+            } as SettlementData,
             4,
         );
 

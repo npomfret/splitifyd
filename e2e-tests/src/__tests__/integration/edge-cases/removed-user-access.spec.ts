@@ -1,7 +1,7 @@
 import {expect, simpleTest} from '../../../fixtures/simple-test.fixture';
 
-import {GroupWorkflow, MultiUserWorkflow} from '../../../workflows';
-import {generateShortId, generateTestGroupName} from '../../../../../packages/test-support/src/test-helpers.ts';
+import {MultiUserWorkflow} from '../../../workflows';
+import {generateShortId, generateTestGroupName} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {DashboardPage, JoinGroupPage} from '../../../pages';
 import {ExpenseFormDataBuilder} from '../../../pages/expense-form.page';
@@ -9,11 +9,10 @@ import {ExpenseFormDataBuilder} from '../../../pages/expense-form.page';
 simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - User 1 and User 2
-        const { page: user1Page, dashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
         const { page: user2Page, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new (await import('../../../pages')).GroupDetailPage(user1Page, user1);
         const groupDetailPage2 = new (await import('../../../pages')).GroupDetailPage(user2Page, user2);
 
         // Verify both users start on dashboard
@@ -22,9 +21,9 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // User 1 creates a group with unique identifier
         const uniqueId = generateShortId();
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName(`Collaboration-${uniqueId}`);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Multi-user testing with removed access scenarios');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Multi-user testing with removed access scenarios');
+        const groupId = groupDetailPage.inferGroupId();
         await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // User 2 joins via share link using proper workflow
@@ -72,7 +71,7 @@ simpleTest.describe('Multi-User Group Access', () => {
 
     simpleTest('should handle user access correctly after group member removal', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Admin and Member
-        const { page: adminPage, dashboardPage, user: adminUser } = await newLoggedInBrowser();
+        const { page: adminPage, dashboardPage: adminDashboardPage, user: adminUser } = await newLoggedInBrowser();
         const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
 
         // Create page objects
@@ -81,9 +80,9 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Create group and add second user (similar setup)
         const uniqueId = generateShortId();
-        const groupWorkflow = new GroupWorkflow(adminPage);
         const groupName = generateTestGroupName(`RemovalTest-${uniqueId}`);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing user removal scenarios');
+        const adminGroupDetailPage = await adminDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal scenarios');
+        const groupId = adminGroupDetailPage.inferGroupId();
 
         // Get share link and have second user join
         const multiUserWorkflow = new MultiUserWorkflow();
@@ -96,7 +95,6 @@ simpleTest.describe('Multi-User Group Access', () => {
         await memberGroupDetailPage.waitForMemberCount(2);
 
         // Both users add expenses to create some activity
-        const adminDashboardPage = new DashboardPage(adminPage, adminUser);
         const adminDisplayName = await adminDashboardPage.getCurrentUserDisplayName();
         
         const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);

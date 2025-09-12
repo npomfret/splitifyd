@@ -1,8 +1,7 @@
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, GroupDetailPage } from '../../../pages';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Leave Group E2E', () => {
@@ -14,7 +13,6 @@ test.describe('Leave Group E2E', () => {
         const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         // Verify users are distinct
@@ -32,8 +30,8 @@ test.describe('Leave Group E2E', () => {
         const groupDescription = 'Testing leave group functionality';
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, groupDescription);
+        const groupId = groupDetailPage.inferGroupId();
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Get share link for member to join
@@ -115,19 +113,18 @@ test.describe('Leave Group E2E', () => {
 
     test('user with outstanding balance cannot leave group until settled', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner and member
-        const { page: ownerPage, user: owner, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: ownerPage, user: owner, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: member } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         // Create group and add member
         const groupName = generateTestGroupName('BalanceLeaveTest');
-        const groupWorkflow = new GroupWorkflow(ownerPage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing leave with balance');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing leave with balance');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Add member to group
         const shareLink = await groupDetailPage.getShareLink();
@@ -140,7 +137,7 @@ test.describe('Leave Group E2E', () => {
             .withDescription('Test expense for balance validation')
             .withAmount(60)
             .withCurrency('USD')
-            .withPaidByDisplayName(user1DisplayName)
+            .withPaidByDisplayName(ownerDisplayName)
             .withSplitType('equal')
             .build()
         );
@@ -171,7 +168,7 @@ test.describe('Leave Group E2E', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when member removed from group' });
         
         // Create owner and member browsers
-        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: ownerPage, user: owner, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: member } = await newLoggedInBrowser();
 
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
@@ -179,11 +176,11 @@ test.describe('Leave Group E2E', () => {
 
         // Create group and add member
         const groupName = generateTestGroupName('RemoveFromGroupPage');
-        const groupWorkflow = new GroupWorkflow(ownerPage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal while on group page');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing member removal while on group page');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Member joins group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
+        const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(memberPage);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -218,7 +215,7 @@ test.describe('Leave Group E2E', () => {
 
     test('member removed while on dashboard should see group disappear cleanly', async ({ newLoggedInBrowser }) => {
         // Create owner and member browsers
-        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
+        const { page: ownerPage, user: owner, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
 
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
@@ -226,11 +223,11 @@ test.describe('Leave Group E2E', () => {
 
         // Create group and add member
         const groupName = generateTestGroupName('RemoveFromDashboard');
-        const groupWorkflow = new GroupWorkflow(ownerPage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member removal while on dashboard');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing member removal while on dashboard');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Member joins group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
+        const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(memberPage);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
 

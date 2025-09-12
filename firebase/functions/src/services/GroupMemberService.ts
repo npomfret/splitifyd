@@ -4,10 +4,10 @@ import { NotificationService } from './notification-service';
 import { logger, LoggerContext } from '../logger';
 import { FirestoreCollections } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
-import { BalanceCalculationService } from './balance/BalanceCalculationService';
+import { BalanceCalculationService } from './balance';
 import { measureDb } from '../monitoring/measure';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
 import { MemberRoles } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId, createTopLevelMembershipDocument } from '../utils/groupMembershipHelpers';
 

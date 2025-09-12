@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { LoginPage } from '../../../pages';
 simpleTest.describe('Network Resilience E2E', () => {
     simpleTest('should handle network errors gracefully', async ({ newEmptyBrowser }) => {

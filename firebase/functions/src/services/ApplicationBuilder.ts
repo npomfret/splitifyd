@@ -6,8 +6,8 @@
  */
 
 import type { Firestore } from 'firebase-admin/firestore';
-import { FirestoreReader } from './firestore/FirestoreReader';
-import { FirestoreWriter } from './firestore/FirestoreWriter';
+import { FirestoreReader } from './firestore';
+import { FirestoreWriter } from './firestore';
 import { UserService } from './UserService2';
 import { GroupService } from './GroupService';
 import { ExpenseService } from './ExpenseService';

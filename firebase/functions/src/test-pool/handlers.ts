@@ -2,7 +2,6 @@ import type { Request, Response } from 'express';
 import { TestUserPoolService } from './TestUserPoolService';
 import { getFirestore, isEmulator } from '../firebase';
 import { logger } from '../logger';
-import { FirestoreReader } from '../services/firestore/FirestoreReader';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();

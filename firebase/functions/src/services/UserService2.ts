@@ -12,12 +12,12 @@ import { assignThemeColor } from '../user-management/assign-theme-color';
 import { validateRegisterRequest } from '../auth/validation';
 import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
 import { measureDb } from '../monitoring/measure';
-import { UserDataSchema } from '../schemas/user';
+import { UserDataSchema } from '../schemas';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
 import { CreateRequest } from 'firebase-admin/lib/auth/auth-config';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
 import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
 
 /**

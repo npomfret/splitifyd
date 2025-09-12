@@ -1,18 +1,16 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../helpers';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Freeform Categories E2E', () => {
     test('should allow user to select predefined category from suggestions', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('PredefinedCat'), 'Testing predefined category selection');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -48,11 +46,11 @@ test.describe('Freeform Categories E2E', () => {
 
     test('should allow user to enter custom category text', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('CustomCat'), 'Testing custom category input');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('CustomCat'), 'Testing custom category input');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -81,11 +79,11 @@ test.describe('Freeform Categories E2E', () => {
 
     test('should filter suggestions as user types', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('FilterCat'), 'Testing category filtering');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('FilterCat'), 'Testing category filtering');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -120,11 +118,11 @@ test.describe('Freeform Categories E2E', () => {
 
     test('should support keyboard navigation in suggestions', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -160,10 +158,10 @@ test.describe('Freeform Categories E2E', () => {
         // @skip-error-checking - May have API validation issues with special characters
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues with special characters' });
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('SpecialCat'), 'Testing special characters');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('SpecialCat'), 'Testing special characters');
+        const groupId = groupDetailPage.inferGroupId();
         const memberCount = 1;
 
         // Navigate to expense form with proper waiting

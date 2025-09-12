@@ -1,4 +1,4 @@
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreReader } from './firestore';
 
 export interface ExpenseMetadata {
     expenseCount: number;

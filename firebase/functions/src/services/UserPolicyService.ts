@@ -4,8 +4,8 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { measureDb } from '../monitoring/measure';
-import { IFirestoreReader } from './firestore/IFirestoreReader';
-import { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { IFirestoreReader } from './firestore';
+import { IFirestoreWriter } from './firestore';
 
 /**
  * Interface for policy acceptance status

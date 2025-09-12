@@ -19,7 +19,7 @@
 
 import { FieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
+import type { IFirestoreReader } from './firestore';
 import type { BatchWriteResult, IFirestoreWriter, WriteResult } from './firestore/IFirestoreWriter';
 import { type CreateUserNotificationDocument } from '../schemas/user-notifications';
 import { measureDb } from '../monitoring/measure';

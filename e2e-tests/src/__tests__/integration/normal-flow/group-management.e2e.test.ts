@@ -1,19 +1,17 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 simpleTest.describe('Group Management', () => {
     simpleTest('should allow group owner to edit group name', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Create a group
-        const groupId = await groupWorkflow.createGroupAndNavigate('Original Group Name', 'Original description');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate('Original Group Name', 'Original description');
+        const groupId = groupDetailPage.inferGroupId();
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Wait for group page to load
@@ -43,11 +41,9 @@ simpleTest.describe('Group Management', () => {
 
     simpleTest('should validate group name when editing', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group
-        await groupWorkflow.createGroupAndNavigate('Test Group', 'Test description');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate('Test Group', 'Test description');
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         // Wait for the page to fully settle
         await expect(groupDetailPage.getGroupTitle()).toBeVisible();
@@ -83,13 +79,11 @@ simpleTest.describe('Group Management', () => {
 
     simpleTest('should disable save button when no changes made', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Create a group
         const groupName = 'No Changes Group';
         const groupDescription = 'No changes description';
-        await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, groupDescription);
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Open edit modal
@@ -114,18 +108,19 @@ simpleTest.describe('Group Management', () => {
         await editModal.cancel();
     });
 
-    simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
+    simpleTest('should not show settings button for non-owner', async ({newLoggedInBrowser}) => {
         // Create two browser sessions with pooled users
-        const { page: ownerPage, user: owner } = await newLoggedInBrowser();
-        const { page: memberPage, user: member } = await newLoggedInBrowser();
-        
+        const {page: ownerPage, user: owner, dashboardPage} = await newLoggedInBrowser();
+        const {page: memberPage, user: member} = await newLoggedInBrowser();
+
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
-        const groupWorkflow = new GroupWorkflow(ownerPage);
 
         // Owner creates a group
         const groupName = 'Owner Only Settings';
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Only owner can edit');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Only owner can edit');
+        const groupId = groupDetailPage.inferGroupId();
+
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Get the share link

@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, test} from 'vitest';
 import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, generateShortId} from '@splitifyd/test-support';
-import {FirestoreCollections, PooledTestUser, SecurityPresets} from '@splitifyd/shared';
+import {PooledTestUser, SecurityPresets} from '@splitifyd/shared';
 import {ApiError} from '../../../utils/errors';
 import {getFirestore} from '../../../firebase';
 import {ApplicationBuilder} from '../../../services/ApplicationBuilder';

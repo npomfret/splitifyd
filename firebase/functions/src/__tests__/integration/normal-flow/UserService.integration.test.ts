@@ -4,7 +4,6 @@ import { ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder, ge
 import { AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { getAuth, getFirestore } from '../../../firebase';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
 import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 
 describe('UserService - Integration Tests', () => {

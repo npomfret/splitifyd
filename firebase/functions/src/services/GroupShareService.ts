@@ -7,10 +7,10 @@ import {HTTP_STATUS} from '../constants';
 import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
 import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
 import {measureDb} from '../monitoring/measure';
-import {ShareLinkDataSchema} from '../schemas/sharelink';
+import {ShareLinkDataSchema} from '../schemas';
 import type {UserNotificationGroup} from '../schemas/user-notifications';
-import type {IFirestoreReader} from './firestore/IFirestoreReader';
-import type {IFirestoreWriter} from './firestore/IFirestoreWriter';
+import type {IFirestoreReader} from './firestore';
+import type {IFirestoreWriter} from './firestore';
 import type {GroupMemberService} from './GroupMemberService';
 import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
 

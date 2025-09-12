@@ -6,10 +6,10 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { PolicyDocument, PolicyVersion } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas/policy';
+import { PolicyDocumentSchema, PolicyDataSchema } from '../schemas';
 import { z } from 'zod';
-import { IFirestoreReader } from './firestore/IFirestoreReader';
-import { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { IFirestoreReader } from './firestore';
+import { IFirestoreWriter } from './firestore';
 
 /**
  * Service for managing policy operations

@@ -8,8 +8,8 @@ import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 
 import { getMemberDocFromArray, isAdminInDocArray } from '../utils/memberHelpers';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
 import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { MemberStatuses } from '@splitifyd/shared';

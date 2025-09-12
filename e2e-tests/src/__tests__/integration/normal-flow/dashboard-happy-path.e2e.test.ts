@@ -1,9 +1,8 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
-import { TestGroupWorkflow } from '../../../helpers';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
-import { GroupWorkflow } from '../../../workflows';
+import { simpleTest, expect } from '../../../fixtures';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { GroupDetailPage, CreateGroupModalPage } from '../../../pages';
+import { TestGroupWorkflow } from '../../../helpers';
 
 simpleTest.describe('Dashboard User Journey', () => {
     simpleTest('should handle complete dashboard workflow with authentication persistence', async ({ newLoggedInBrowser }) => {
@@ -32,9 +31,7 @@ simpleTest.describe('Dashboard User Journey', () => {
 
     simpleTest('should handle complete group creation and navigation workflow', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Phase 1: Modal interaction - open, verify, cancel
         await dashboardPage.openCreateGroupModal();
@@ -50,6 +47,7 @@ simpleTest.describe('Dashboard User Journey', () => {
         // Phase 2: Successful group creation and navigation
         // Use TestGroupWorkflow for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        const groupDetailPage = new GroupDetailPage(page, user);
 
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
         // Verify we're on a valid group page by checking for the general group title heading
@@ -64,12 +62,12 @@ simpleTest.describe('Dashboard User Journey', () => {
     simpleTest('should properly clear all state and prevent unauthorized access after logout', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
         const createGroupModalPage = new CreateGroupModalPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Phase 1: Create some user data before logout to verify it gets cleared
         // For logout test, we need a fresh group to test access control properly
         const groupName = generateTestGroupName('LogoutTest');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Test data for logout verification');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test data for logout verification');
+        const groupId = groupDetailPage.inferGroupId();
         const groupUrl = page.url(); // Capture the protected group URL
 
         // Navigate back to dashboard and verify we have user data

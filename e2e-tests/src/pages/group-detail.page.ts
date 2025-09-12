@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
-import { SettlementFormPage } from './settlement-form.page';
+import {SettlementData, SettlementFormPage} from './settlement-form.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import { DashboardPage } from './dashboard.page.ts';
@@ -549,12 +549,7 @@ export class GroupDetailPage extends BasePage {
      * Record settlement and synchronize across multiple users using proper page object composition
      */
     async recordSettlementAndSync(
-        settlementOptions: {
-            payerName: string;
-            payeeName: string;
-            amount: string;
-            note: string;
-        },
+        settlementOptions: SettlementData,
         pages: Array<{ page: any; groupDetailPage: any; userName?: string }>,
         expectedMemberCount: number,
         groupId: string,

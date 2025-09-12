@@ -5,8 +5,7 @@ import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, borrowTestUsers, borrowTestUser } from '@splitifyd/test-support';
-import { GroupService } from '../../services/GroupService';
-import { SecurityPresets, FirestoreCollections } from '@splitifyd/shared';
+import { SecurityPresets } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 import { PooledTestUser } from '@splitifyd/shared';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';

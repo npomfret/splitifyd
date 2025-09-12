@@ -2,7 +2,7 @@ import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixtur
 import { CreateGroupModalPage } from '../../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../../config/timeouts';
 import { SELECTORS } from '../../../constants/selectors';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Error Handling', () => {

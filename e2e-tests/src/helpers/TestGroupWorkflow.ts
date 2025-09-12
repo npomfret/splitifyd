@@ -1,7 +1,6 @@
 import { Page } from '@playwright/test';
 import { DashboardPage, GroupDetailPage } from '../pages';
-import { GroupWorkflow } from '../workflows';
-import { generateTestGroupName } from '../../../packages/test-support/src/test-helpers';
+import { generateTestGroupName } from '@splitifyd/test-support';
 
 interface GroupOptions {
     fresh?: boolean;
@@ -150,7 +149,10 @@ export class TestGroupWorkflow {
         const groupName = generateTestGroupName('E2E');
         const groupDescription = description || `E2E Test Group for automated testing`;
 
-        const groupWorkflow = new GroupWorkflow(page);
-        return groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+        // Get dashboard page to create group
+        const { DashboardPage } = await import('../pages/dashboard.page');
+        const dashboardPage = new DashboardPage(page);
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, groupDescription);
+        return groupDetailPage.inferGroupId();
     }
 }

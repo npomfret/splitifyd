@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BalanceCalculationService } from '../../../services/balance/BalanceCalculationService';
+import { BalanceCalculationService } from '../../../services/balance';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
-import type { BalanceCalculationInput } from '../../../services/balance/types';
+import type { BalanceCalculationInput } from '../../../services/balance';
 import { Timestamp } from 'firebase-admin/firestore';
 
 // Mock service registration

@@ -1,7 +1,6 @@
 import { simpleTest as test } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage, ExpenseDetailPage } from '../../../pages';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
-import { GroupWorkflow } from '../../../workflows';
+import { ExpenseDetailPage } from '../../../pages';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 test.describe('Expense Editing Error Testing', () => {
@@ -10,11 +9,11 @@ test.describe('Expense Editing Error Testing', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('EditAmount'), 'Testing expense amount editing');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -61,11 +60,11 @@ test.describe('Expense Editing Error Testing', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const expectedMemberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('EditAmountDown'), 'Testing expense amount decrease');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);
@@ -106,11 +105,11 @@ test.describe('Expense Editing Error Testing', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues during editing' });
 
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const expectedMemberCount = 1;
 
-        // Use helper method to create group and prepare for expenses
-        const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('EditDesc'), 'Testing expense description editing');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('EditDesc'), 'Testing expense description editing');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const formPage = await groupDetailPage.clickAddExpenseButton(expectedMemberCount);

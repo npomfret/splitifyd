@@ -1,7 +1,6 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 
-import { GroupWorkflow } from '../../../workflows';
-import { generateShortId } from '../../../../../packages/test-support/src/test-helpers';
+import { generateShortId } from '@splitifyd/test-support';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 
 simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
@@ -11,15 +10,14 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group with unique ID
         const uniqueId = generateShortId();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const groupName = `Owner Delete Test ${uniqueId}-${randomSuffix}`;
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing owner deletion');
+        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing owner deletion');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link and have User2 join
         const shareLink = await groupDetailPage.getShareLink();
@@ -86,15 +84,14 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Setup 2-person group
         const uniqueId = generateShortId();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const groupName = `Member Leave Test ${uniqueId}-${randomSuffix}`;
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member leaving');
+        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing member leaving');
+        const groupId = groupDetailPage.inferGroupId();
 
         // User2 joins the group
         const shareLink = await groupDetailPage.getShareLink();
@@ -145,15 +142,14 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         const user2DisplayName = await dashboardPage2.getCurrentUserDisplayName();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(page, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupWorkflow = new GroupWorkflow(page);
 
         // Setup group with expenses (testing hard delete with data)
         const uniqueId = generateShortId();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const groupName = `Hard Delete Test ${uniqueId}-${randomSuffix}`;
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing hard delete with expenses');
+        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing hard delete with expenses');
+        const groupId = groupDetailPage.inferGroupId();
 
         // User2 joins
         const shareLink = await groupDetailPage.getShareLink();
@@ -246,16 +242,15 @@ simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
         const { page: page3, dashboardPage: dashboardPage3, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(page1, user1);
         const groupDetailPage2 = new GroupDetailPage(page2, user2);
         const groupDetailPage3 = new GroupDetailPage(page3, user3);
-        const groupWorkflow = new GroupWorkflow(page1);
 
         // Create group with User 1 as owner
         const uniqueId = generateShortId();
         const randomSuffix = Math.random().toString(36).substring(2, 8);
         const groupName = `Dashboard Update Test ${uniqueId}-${randomSuffix}`;
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time dashboard updates');
+        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing real-time dashboard updates');
+        const groupId = groupDetailPage.inferGroupId();
 
         // User 2 and User 3 join the group
         const shareLink = await groupDetailPage.getShareLink();

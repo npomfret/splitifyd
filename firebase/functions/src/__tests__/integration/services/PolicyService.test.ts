@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { generateShortId } from '@splitifyd/test-support';
 import { PolicyService } from '../../../services/PolicyService';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
-import { FirestoreWriter } from '../../../services/firestore/FirestoreWriter';
+import { FirestoreReader } from '../../../services/firestore';
+import { FirestoreWriter } from '../../../services/firestore';
 import { getFirestore } from '../../../firebase';
-import { FirestoreCollections } from '@splitifyd/shared';
 import { HTTP_STATUS } from '../../../constants';
 
 describe('PolicyService - Integration Tests', () => {

@@ -1,6 +1,6 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { SettingsPage, RegisterPage, DashboardPage } from '../../../pages';
-import { generateNewUserDetails } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateNewUserDetails } from '@splitifyd/test-support';
 
 simpleTest.describe('User Profile Management', () => {
     simpleTest('should allow user to view their profile information', async ({ newLoggedInBrowser }) => {

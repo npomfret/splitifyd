@@ -43,14 +43,11 @@ vi.mock('firebase-admin/firestore', () => {
     };
 });
 
-import { Timestamp, FieldValue, getFirestore } from 'firebase-admin/firestore';
+import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 
 import { GroupService } from '../../services/GroupService';
 import { MockFirestoreReader } from '../test-utils/MockFirestoreReader';
 import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-support';
-import { SettlementService } from '../../services/SettlementService';
-import { GroupMemberService } from '../../services/GroupMemberService';
-import { GroupShareService } from '../../services/GroupShareService';
 
 // Get the mocked function
 const mockGetFirestore = vi.mocked(getFirestore);

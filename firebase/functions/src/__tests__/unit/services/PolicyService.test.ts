@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, type MockedFunction } from 'vitest';
 import { PolicyService } from '../../../services/PolicyService';
-import type { IFirestoreReader } from '../../../services/firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../../../services/firestore';
 import type { IFirestoreWriter, WriteResult } from '../../../services/firestore/IFirestoreWriter';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';

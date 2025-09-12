@@ -1,6 +1,6 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { RegisterPage } from '../../../pages';
-import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/src/test-helpers';
+import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '@splitifyd/test-support';
 
 test.describe('Registration Loading State', () => {
     test('should show loading spinner during registration', async ({ newEmptyBrowser }) => {

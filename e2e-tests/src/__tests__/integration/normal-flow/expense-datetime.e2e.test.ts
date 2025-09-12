@@ -1,19 +1,14 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
+import { simpleTest, expect } from '../../../fixtures';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 simpleTest.describe('Expense Date and Time Selection', () => {
     simpleTest('should handle all date convenience buttons and time input scenarios', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
         const memberCount = 1;
 
-        // Verify starting state
-        await expect(page).toHaveURL(/\/dashboard/);
-
-        // Create group and prepare for expenses using helper method
-        const groupId = await GroupWorkflow.createGroup(page, 'DateTime Test Group', 'Testing date and time inputs');
+        // Create group and navigate to it
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate('DateTime Test Group', 'Testing date and time inputs');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);

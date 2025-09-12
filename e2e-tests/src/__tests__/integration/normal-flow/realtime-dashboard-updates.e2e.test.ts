@@ -1,9 +1,9 @@
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import {SettlementData} from "../../../pages/settlement-form.page.ts";
 
 simpleTest.describe('Real-Time Dashboard Updates', () => {
     simpleTest('should update dashboard balances in real-time when expenses are added', async ({ newLoggedInBrowser }, testInfo) => {
@@ -15,7 +15,6 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
 
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -23,9 +22,9 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('DashboardRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing dashboard real-time updates');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing dashboard real-time updates');
+        const groupId = groupDetailPage.inferGroupId();
         await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Users 2 and 3 join the group
@@ -88,7 +87,6 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const { page: member2Page, dashboardPage: member2DashboardPage, user: member2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         // Get display names
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
@@ -96,9 +94,9 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const member2DisplayName = await member2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('RemovalRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing removal real-time updates');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing removal real-time updates');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Members join
         const shareLink = await groupDetailPage.getShareLink();
@@ -155,7 +153,6 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
 
         // Get display names
@@ -164,9 +161,9 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('SettlementRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing settlement dashboard updates');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing settlement dashboard updates');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Users 2 and 3 join
         const shareLink = await groupDetailPage.getShareLink();
@@ -205,7 +202,7 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
                 payeeName: user1DisplayName,
                 amount: '25',
                 note: `RT Settlement ${randomString(4)}`,
-            },
+            } as SettlementData,
             3,
         );
 
@@ -229,16 +226,15 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
 
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('RapidRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing rapid changes');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing rapid changes');
+        const groupId = groupDetailPage.inferGroupId();
 
         // User2 joins and goes to dashboard
         const shareLink = await groupDetailPage.getShareLink();

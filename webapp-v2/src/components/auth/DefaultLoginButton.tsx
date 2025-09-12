@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { Button } from '../ui';
-import { firebaseConfigManager } from '../../app/firebase-config';
+import { firebaseConfigManager } from '@/app/firebase-config.ts';
 
 interface DefaultLoginButtonProps {
     onFillForm: (email: string, password: string) => void;

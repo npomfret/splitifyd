@@ -13,8 +13,6 @@ import { FieldPath, Timestamp, Filter } from 'firebase-admin/firestore';
 import { measureDb } from '../../monitoring/measure';
 import { safeParseISOToTimestamp, assertTimestamp } from '../../utils/dateHelpers';
 import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
-import { CommentStrategyFactory } from '../comments/CommentStrategyFactory';
-import { GroupMemberService } from '../GroupMemberService';
 
 // Import all schemas for validation
 import {
@@ -27,8 +25,8 @@ import {
     // Note: GroupChangeDocumentSchema removed as unused
 } from '../../schemas';
 import { UserNotificationDocumentSchema, type UserNotificationDocument } from '../../schemas/user-notifications';
-import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas/sharelink';
-import { CommentDocumentSchema, type ParsedComment } from '../../schemas/comment';
+import { ShareLinkDocumentSchema, type ParsedShareLink } from '../../schemas';
+import { CommentDocumentSchema, type ParsedComment } from '../../schemas';
 
 // Import types
 import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument, PolicyDocument } from '../../schemas';

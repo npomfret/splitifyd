@@ -4,7 +4,7 @@ import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
-import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
+import type { IFirestoreWriter } from '../../../services/firestore';
 
 // Create mock GroupMemberService
 const createMockGroupMemberService = () => ({

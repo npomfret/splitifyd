@@ -1,7 +1,6 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 
 // Increase timeout for this complex multi-user test
 simpleTest.setTimeout(30000);
@@ -14,11 +13,9 @@ simpleTest.describe('Three User Settlement Management', () => {
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
         const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
 
-        const groupWorkflow = new GroupWorkflow(user1Page);
 
         // Verify all 3 users are distinct to prevent flaky test failures
 
@@ -35,15 +32,16 @@ simpleTest.describe('Three User Settlement Management', () => {
         expect(user1DisplayName).not.toBe(user3DisplayName);
         expect(user2DisplayName).not.toBe(user3DisplayName);
 
+        // 1. Create a group with 3 users
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
+        const groupId = groupDetailPage.inferGroupId();
+
         // Verify correct users are shown in UI
         // The new UI shows display names in the user button but not as the accessible name
         // Use .first() to avoid strict mode violations when display name appears multiple times
         await expect(groupDetailPage.getTextElement(user1DisplayName).first()).toBeVisible();
         await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
         await expect(groupDetailPage3.getTextElement(user3DisplayName).first()).toBeVisible();
-
-        // 1. Create a group with 3 users
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
 
         // Get share link and have users join SEQUENTIALLY (not concurrently)
         const shareLink = await groupDetailPage.getShareLink();
@@ -107,7 +105,7 @@ simpleTest.describe('Three User Settlement Management', () => {
             {
                 description: 'Group dinner expense',
                 amount: 120,
-                paidByDisplayName: user1.uid,
+                paidByDisplayName: user1DisplayName,
                 currency: 'USD',
                 splitType: 'equal',
             },

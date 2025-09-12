@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { simpleTest } from '../../../fixtures/simple-test.fixture';
+import { simpleTest } from '../../../fixtures';
 import { CreateGroupModalPage } from '../../../pages';
 
 simpleTest.describe('Input Validation Security', () => {

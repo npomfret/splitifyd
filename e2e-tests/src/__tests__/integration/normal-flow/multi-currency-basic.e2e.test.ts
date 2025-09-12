@@ -1,9 +1,9 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage } from '../../../pages';
 import { TestGroupWorkflow } from '../../../helpers';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
-import { generateShortId } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateShortId } from '@splitifyd/test-support';
 
 simpleTest.describe('Multi-Currency Basic Functionality', () => {
     simpleTest('should handle multi-currency expenses separately', async ({ newLoggedInBrowser }) => {

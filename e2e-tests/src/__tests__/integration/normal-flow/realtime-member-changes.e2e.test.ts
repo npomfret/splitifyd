@@ -1,7 +1,6 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
 simpleTest.describe('Real-Time Member Changes', () => {
@@ -15,7 +14,6 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
 
         // Get display names
@@ -25,9 +23,9 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('MemberJoinRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time member joining');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing real-time member joining');
+        const groupId = groupDetailPage.inferGroupId();
 
         // User2 joins initially
         const shareLink = await groupDetailPage.getShareLink();
@@ -71,7 +69,6 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const { page: member3Page, dashboardPage: member3DashboardPage, user: member3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const member2GroupDetailPage = new GroupDetailPage(member2Page, member2);
 
         // Get display names
@@ -81,9 +78,9 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const member3DisplayName = await member3DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('MemberRemoveRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time member removal');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time member removal');
+        const groupId = groupDetailPage.inferGroupId();
 
         // All members join
         const shareLink = await groupDetailPage.getShareLink();
@@ -144,7 +141,6 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const member2GroupDetailPage = new GroupDetailPage(member2Page, member2);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
@@ -156,9 +152,9 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('ConcurrentRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing concurrent member changes');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing concurrent member changes');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Initial members join (owner, member1, member2, watcher = 4 total)
         const shareLink = await groupDetailPage.getShareLink();
@@ -246,7 +242,6 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const { page: newPage, dashboardPage: newDashboardPage, user: newUser } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
         const existingGroupDetailPage = new GroupDetailPage(existingPage, existing);
 
         // Get display names
@@ -255,9 +250,9 @@ simpleTest.describe('Real-Time Member Changes', () => {
         const newDisplayName = await newDashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('AddNotifyRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing add member notifications');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing add member notifications');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Existing member joins initially
         const shareLink = await groupDetailPage.getShareLink();

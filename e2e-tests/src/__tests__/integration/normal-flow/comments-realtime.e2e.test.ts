@@ -1,5 +1,4 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupWorkflow } from '../../../workflows';
 import { JoinGroupPage, ExpenseDetailPage, GroupDetailPage } from '../../../pages';
 import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
@@ -8,16 +7,15 @@ import { v4 as uuidv4 } from 'uuid';
 test.describe('Real-time Comments E2E', () => {
     test('should support real-time group comments across multiple users', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Alice and Bob
-        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: alicePage, user: alice, dashboardPage: aliceDashboardPage } = await newLoggedInBrowser();
         const { page: bobPage, user: bob } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(alicePage, alice);
         const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Alice creates a group
-        const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Comments'), 'Testing real-time comments');
+        const groupDetailPage = await aliceDashboardPage.createGroupAndNavigate(generateTestGroupName('Comments'), 'Testing real-time comments');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Verify Alice is on the group page
         await expect(alicePage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -102,12 +100,11 @@ test.describe('Real-time Comments E2E', () => {
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(alicePage, alice);
         const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Alice creates a group and adds an expense
-        const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('ExpenseComments'), 'Testing expense comments');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('ExpenseComments'), 'Testing expense comments');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Bob joins the group
         const shareLink = await groupDetailPage.getShareLink();
@@ -193,16 +190,15 @@ test.describe('Real-time Comments E2E', () => {
 
     test('should handle comment errors gracefully without breaking real-time updates', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Alice and Bob
-        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: alicePage, user: alice, dashboardPage: aliceDashboardPage } = await newLoggedInBrowser();
         const { page: bobPage, user: bob } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(alicePage, alice);
         const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Setup group with both users
-        const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('invalid comments'), 'testing invalid comment submissions');
+        const groupDetailPage = await aliceDashboardPage.createGroupAndNavigate(generateTestGroupName('invalid comments'), 'testing invalid comment submissions');
+        const groupId = groupDetailPage.inferGroupId();
 
         const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(bobPage);
@@ -252,16 +248,15 @@ test.describe('Real-time Comments E2E', () => {
 
     test('should maintain comment order and author information in real-time', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Alice and Bob
-        const { page: alicePage, user: alice } = await newLoggedInBrowser();
+        const { page: alicePage, user: alice, dashboardPage: aliceDashboardPage } = await newLoggedInBrowser();
         const { page: bobPage, user: bob } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(alicePage, alice);
         const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
 
         // Setup group
-        const groupWorkflow = new GroupWorkflow(alicePage);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('OrderTest'), 'Testing comment order and authorship');
+        const groupDetailPage = await aliceDashboardPage.createGroupAndNavigate(generateTestGroupName('OrderTest'), 'Testing comment order and authorship');
+        const groupId = groupDetailPage.inferGroupId();
 
         const shareLink = await groupDetailPage.getShareLink();
         const joinGroupPage = new JoinGroupPage(bobPage);

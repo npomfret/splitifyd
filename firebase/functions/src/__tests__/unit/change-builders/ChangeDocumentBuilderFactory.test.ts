@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { ChangeDocumentBuilderFactory } from '../../../utils/change-builders/ChangeDocumentBuilderFactory';
-import { GroupChangeDocumentBuilder } from '../../../utils/change-builders/GroupChangeDocumentBuilder';
-import { ExpenseChangeDocumentBuilder } from '../../../utils/change-builders/ExpenseChangeDocumentBuilder';
-import { SettlementChangeDocumentBuilder } from '../../../utils/change-builders/SettlementChangeDocumentBuilder';
+import { ChangeDocumentBuilderFactory } from '../../../utils/change-builders';
+import { GroupChangeDocumentBuilder } from '../../../utils/change-builders';
+import { ExpenseChangeDocumentBuilder } from '../../../utils/change-builders';
+import { SettlementChangeDocumentBuilder } from '../../../utils/change-builders';
 
 describe('ChangeDocumentBuilderFactory', () => {
     let factory: ChangeDocumentBuilderFactory;

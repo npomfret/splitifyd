@@ -3,7 +3,7 @@ import { UserNotificationDetector } from '@/utils/user-notification-detector';
 import { logWarning, logError, logInfo } from '@/utils/browser-logger';
 import type { ExpenseData, Group, GroupBalances, GroupMemberWithProfile, SettlementListItem } from '@splitifyd/shared';
 import { apiClient } from '../apiClient';
-import { permissionsStore } from '../../stores/permissions-store';
+import { permissionsStore } from '@/stores/permissions-store.ts';
 
 export interface EnhancedGroupDetailStore {
     // State

@@ -1,4 +1,4 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { waitForApp } from '../../../helpers';
 import { TIMEOUTS } from '../../../config/timeouts';
 import { RegisterPage, LoginPage, HomepagePage, PricingPage } from '../../../pages';

@@ -2,7 +2,7 @@ import { CommentTargetType, CommentTargetTypes } from '@splitifyd/shared';
 import { ICommentStrategy } from './ICommentStrategy';
 import { GroupCommentStrategy } from './GroupCommentStrategy';
 import { ExpenseCommentStrategy } from './ExpenseCommentStrategy';
-import type { IFirestoreReader } from '../firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 
 /**

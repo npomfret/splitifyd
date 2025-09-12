@@ -1,4 +1,4 @@
-import { PermissionEngine } from '../../permissions/permission-engine';
+import { PermissionEngine } from '../../permissions';
 import { SecurityPresets, PermissionLevels } from '@splitifyd/shared';
 
 describe('PermissionEngine', () => {

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers } from '@splitifyd/test-support';
-import { ExpenseService } from '../../../services/ExpenseService';
 import { SplitTypes } from '@splitifyd/shared';
 import { ApiError } from '../../../utils/errors';
 import { HTTP_STATUS } from '../../../constants';

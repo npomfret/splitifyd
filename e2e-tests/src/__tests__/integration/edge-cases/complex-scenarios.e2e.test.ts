@@ -1,7 +1,6 @@
 import { expect, simpleTest as test } from '../../../fixtures/simple-test.fixture';
 
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
 
@@ -16,7 +15,6 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Get display names
         const aliceDisplayName = await dashboardPage.getCurrentUserDisplayName();
         const bobDisplayName = await bobDashboardPage.getCurrentUserDisplayName();
-        const groupWorkflow = new GroupWorkflow(alicePage);
 
         // Navigate Alice to dashboard and create group
         await dashboardPage.navigateToDashboard();
@@ -25,7 +23,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Create group with Alice
         const groupName = 'Vacation Trip 2024';
         const groupDescription = 'Summer vacation expenses';
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, groupDescription);
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, groupDescription);
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link from Alice's page
         const aliceGroupDetailPage = new GroupDetailPage(alicePage);

@@ -1,6 +1,6 @@
 import { simpleTest as test, expect } from '../../../fixtures/simple-test.fixture';
 import { TIMEOUT_CONTEXTS } from '../../../config/timeouts';
-import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '../../../../../packages/test-support/src/test-helpers';
+import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '@splitifyd/test-support';
 import { DashboardPage, RegisterPage } from '../../../pages';
 
 test.describe('Duplicate User Registration E2E', () => {

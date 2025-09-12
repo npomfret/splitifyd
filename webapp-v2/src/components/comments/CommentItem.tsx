@@ -1,5 +1,5 @@
-import { formatDistanceToNow } from '../../utils/dateUtils';
-import { getInitials } from '../../utils/avatar';
+import { formatDistanceToNow } from '@/utils/dateUtils.ts';
+import { getInitials } from '@/utils/avatar.ts';
 import type { CommentApiResponse } from '@splitifyd/shared';
 
 interface CommentItemProps {

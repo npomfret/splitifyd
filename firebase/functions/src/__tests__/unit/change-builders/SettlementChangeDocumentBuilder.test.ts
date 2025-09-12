@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
-import { SettlementChangeDocumentBuilder } from '../../../utils/change-builders/SettlementChangeDocumentBuilder';
+import { SettlementChangeDocumentBuilder } from '../../../utils/change-builders';
 import { ChangeMetadata } from '../../../utils/change-detection';
 
 describe('SettlementChangeDocumentBuilder', () => {

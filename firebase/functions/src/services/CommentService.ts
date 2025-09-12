@@ -8,9 +8,9 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { CommentDataSchema, CommentDocumentSchema } from '../schemas/comment';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import { CommentDataSchema, CommentDocumentSchema } from '../schemas';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';
 import { CommentStrategyFactory } from './comments/CommentStrategyFactory';
 

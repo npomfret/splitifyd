@@ -4,7 +4,7 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
-import { attachConsoleHandler } from '../helpers/unified-console-handler';
+import { attachConsoleHandler } from '../helpers';
 
 interface BrowserInstance {
     page: Page;

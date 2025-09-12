@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
-import { GroupChangeDocumentBuilder } from '../../../utils/change-builders/GroupChangeDocumentBuilder';
+import { GroupChangeDocumentBuilder } from '../../../utils/change-builders';
 import { ChangeMetadata } from '../../../utils/change-detection';
 
 describe('GroupChangeDocumentBuilder', () => {

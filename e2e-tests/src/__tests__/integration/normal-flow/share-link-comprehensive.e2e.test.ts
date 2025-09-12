@@ -1,7 +1,7 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupWorkflow, MultiUserWorkflow } from '../../../workflows';
+import { MultiUserWorkflow } from '../../../workflows';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { DEFAULT_PASSWORD, generateNewUserDetails, generateShortId, generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { getUserPool } from '../../../fixtures/user-pool.fixture';
 
@@ -17,8 +17,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
             // Create group with user1
             const uniqueId = generateShortId();
-            const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Share Link Test ${uniqueId}`, 'Testing share link functionality');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from user1's page
             const multiUserWorkflow = new MultiUserWorkflow(); // Not using browser here
@@ -41,16 +41,16 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
         simpleTest('should show appropriate message when logged-in user is already a member', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: page1, user: user1 } = await newLoggedInBrowser();
+            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
             const { page: page2, user: user2 } = await newLoggedInBrowser();
 
             // Create page objects
-            const groupDetailPage = new GroupDetailPage(page1, user1);
 
             // Create group and add user2
             const uniqueId = generateShortId();
-            const groupWorkflow = new GroupWorkflow(page1);
-            await groupWorkflow.createGroupAndNavigate(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName("ShareLink"), "Test group for share links");
+            const groupId = groupDetailPage.inferGroupId();
+            await user1DashboardPage.createGroupAndNavigate(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -67,7 +67,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
     simpleTest.describe('Share Link - Not Logged In User', () => {
         simpleTest('should redirect non-logged-in user to login then to group after login', async ({ newLoggedInBrowser }) => {
             // Create authenticated user and manually create unauthenticated browser
-            const { page: page1, user: user1 } = await newLoggedInBrowser();
+            const { page: page1, user: user1, dashboardPage } = await newLoggedInBrowser();
 
             // Create a second browser context without authentication
             const browser = page1.context().browser();
@@ -88,8 +88,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             expect(isLoggedIn).toBe(false); // Confirm user is not logged in
 
             // Create group with authenticated user
-            const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(`Login Required Test ${generateShortId()}`, 'Testing login requirement');
+            const groupDetailPage = await dashboardPage.createGroupAndNavigate(`Login Required Test ${generateShortId()}`, 'Testing login requirement');
+        const groupId = groupDetailPage.inferGroupId();
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -118,8 +118,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
             // Create group with authenticated user
             const uniqueId = generateShortId();
-            const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(`Register Test ${uniqueId}`, 'Testing registration via share link');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Register Test ${uniqueId}`, 'Testing registration via share link');
+        const groupId = groupDetailPage.inferGroupId();
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -170,7 +170,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
         simpleTest('should allow user to login and then join group via share link', async ({ newLoggedInBrowser }) => {
             // Create authenticated user and manually create unauthenticated browser
-            const { page: page1, user: user1, dashboardPage } = await newLoggedInBrowser();
+            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
 
             // Create a second browser context without authentication
             const browser = page1.context().browser();
@@ -184,8 +184,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
             // Create group with authenticated user
             const uniqueId = generateShortId();
-            const groupWorkflow = new GroupWorkflow(page1);
-            const groupId = await groupWorkflow.createGroupAndNavigate(`Login Then Join ${uniqueId}`, 'Testing login then join flow');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Login Then Join ${uniqueId}`, 'Testing login then join flow');
+        const groupId = groupDetailPage.inferGroupId();
 
             const multiUserWorkflow = new MultiUserWorkflow();
             const shareLink = await multiUserWorkflow.getShareLink(page1);
@@ -229,7 +229,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const user2DisplayName = await groupDetailPage2.getCurrentUserDisplayName();
 
             // Both users should be visible
-            await expect(groupDetailPage2.getTextElement(await dashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
+            await expect(groupDetailPage2.getTextElement(await user1DashboardPage.getCurrentUserDisplayName()).first()).toBeVisible();
             await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
 
             // Clean up - release the user back to the pool

@@ -1,9 +1,9 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
+import {SettlementData} from "../../../pages/settlement-form.page.ts";
 
 simpleTest.describe('Real-Time Edge Cases', () => {
     simpleTest('should handle user leaving while being added to new expense', async ({ newLoggedInBrowser }, testInfo) => {
@@ -16,7 +16,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const creatorGroupDetailPage = new GroupDetailPage(creatorPage, creator);
         const leavingGroupDetailPage = new GroupDetailPage(leavingPage, leaving);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
@@ -29,9 +28,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         console.log(`👥 Test 1 User UIDs - Creator: ${creator.uid}, Leaving: ${leaving.uid}, Staying: ${staying.uid}, Watcher: ${watcher.uid}`);
 
         // Creator creates group
-        const groupWorkflow = new GroupWorkflow(creatorPage);
         const groupName = generateTestGroupName('LeaveEdge');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing user leaving during expense creation');
+        const creatorGroupDetailPage = await creatorDashboardPage.createGroupAndNavigate(groupName, 'Testing user leaving during expense creation');
+        const groupId = creatorGroupDetailPage.inferGroupId();
 
         // All users join
         const shareLink = await creatorGroupDetailPage.getShareLink();
@@ -102,7 +101,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
         const settlingGroupDetailPage = new GroupDetailPage(settlingPage, settling);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
@@ -115,9 +113,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         console.log(`👥 Test 2 User UIDs - Owner: ${owner.uid}, Settling: ${settling.uid}, Target: ${target.uid}, Watcher: ${watcher.uid}`);
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('RemovalEdge');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing removal during settlement');
+        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing removal during settlement');
+        const groupId = ownerGroupDetailPage.inferGroupId();
 
         // All users join
         const shareLink = await ownerGroupDetailPage.getShareLink();
@@ -156,7 +154,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 payeeName: ownerDisplayName,
                 amount: '20',
                 note: `Pre-removal Settlement ${randomString(4)}`,
-            },
+            } as SettlementData,
             4,
         );
 
@@ -180,7 +178,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 payeeName: ownerDisplayName,
                 amount: '20',
                 note: `Edge Settlement ${randomString(4)}`,
-            },
+            } as SettlementData,
             3,
         );
 
@@ -214,7 +212,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
 
         // Create page objects
-        const user1GroupDetailPage = new GroupDetailPage(user1Page, user1);
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
         const user3GroupDetailPage = new GroupDetailPage(user3Page, user3);
         const user4GroupDetailPage = new GroupDetailPage(user4Page, user4);
@@ -226,9 +223,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
-        const groupWorkflow = new GroupWorkflow(user1Page);
         const groupName = generateTestGroupName('StressRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Stress testing real-time updates');
+        const user1GroupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Stress testing real-time updates');
+        const groupId = user1GroupDetailPage.inferGroupId();
 
         // All users join
         const shareLink = await user1GroupDetailPage.getShareLink();
@@ -339,7 +336,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: offlinePage, dashboardPage: offlineDashboardPage, user: offline } = await newLoggedInBrowser();
 
         // Create page objects
-        const activeGroupDetailPage = new GroupDetailPage(activePage, active);
         const onlineGroupDetailPage = new GroupDetailPage(onlinePage, online);
         const offlineGroupDetailPage = new GroupDetailPage(offlinePage, offline);
 
@@ -349,9 +345,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const offlineDisplayName = await offlineDashboardPage.getCurrentUserDisplayName();
 
         // ActiveUser creates group
-        const groupWorkflow = new GroupWorkflow(activePage);
         const groupName = generateTestGroupName('NetworkRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing network instability');
+        const activeGroupDetailPage = await activeDashboardPage.createGroupAndNavigate(groupName, 'Testing network instability');
+        const groupId = activeGroupDetailPage.inferGroupId();
 
         // Others join
         const shareLink = await activeGroupDetailPage.getShareLink();
@@ -423,7 +419,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const editor1GroupDetailPage = new GroupDetailPage(editor1Page, editor1);
         const editor2GroupDetailPage = new GroupDetailPage(editor2Page, editor2);
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
 
@@ -433,9 +428,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         // Editor1 creates group
-        const groupWorkflow = new GroupWorkflow(editor1Page);
         const groupName = generateTestGroupName('ConflictRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing conflicting edits');
+        const editor1GroupDetailPage = await editor1DashboardPage.createGroupAndNavigate(groupName, 'Testing conflicting edits');
+        const groupId = editor1GroupDetailPage.inferGroupId();
 
         // Others join
         const shareLink = await editor1GroupDetailPage.getShareLink();

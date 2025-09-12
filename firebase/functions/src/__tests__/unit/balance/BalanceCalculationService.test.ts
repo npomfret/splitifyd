@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { BalanceCalculationService } from '../../../services/balance/BalanceCalculationService';
+import { BalanceCalculationService } from '../../../services/balance';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 
 // Mock service registration

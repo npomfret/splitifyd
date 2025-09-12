@@ -2,7 +2,6 @@
 // Tests notification system performance under load and with large data sets
 
 import { describe, test, expect } from 'vitest';
-import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { user1, user2, user3, testGroup, apiDriver, notificationDriver, setupNotificationTest, cleanupNotificationTest } from './shared-setup';
 
 describe('Performance & Scalability Integration Tests', () => {

@@ -2,7 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { useComputed } from '@preact/signals';
 import { CommentsList } from './CommentsList';
 import { CommentInput } from './CommentInput';
-import { commentsStore } from '../../stores/comments-store';
+import { commentsStore } from '@/stores/comments-store.ts';
 import type { CommentTargetType } from '@splitifyd/shared';
 
 interface CommentsSectionProps {

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GroupPermissionService } from '../../../services/GroupPermissionService';
 import { MockFirestoreReader } from '../../test-utils/MockFirestoreReader';
 import { FirestoreGroupBuilder } from '@splitifyd/test-support';
-import type { IFirestoreWriter } from '../../../services/firestore/IFirestoreWriter';
+import type { IFirestoreWriter } from '../../../services/firestore';
 
 describe('GroupPermissionService', () => {
     let groupPermissionService: GroupPermissionService;

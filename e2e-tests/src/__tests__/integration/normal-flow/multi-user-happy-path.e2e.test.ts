@@ -1,8 +1,6 @@
 import {expect, simpleTest as test} from '../../../fixtures/simple-test.fixture';
-import {TestGroupWorkflow} from '../../../helpers';
-import {GroupWorkflow} from '../../../workflows';
-import {GroupDetailPage, JoinGroupPage} from '../../../pages';
-import {generateTestGroupName} from '../../../../../packages/test-support/src/test-helpers.ts';
+import {JoinGroupPage} from '../../../pages';
+import {generateTestGroupName} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../../pages/group-detail.page.ts';
 import {ExpenseFormDataBuilder} from '../../../pages/expense-form.page';
 
@@ -11,7 +9,6 @@ test.describe('Multi-User Collaboration E2E', () => {
     test('should allow multiple users to add expenses to same group', async ({newLoggedInBrowser}) => {
         // Create first user
         const {page, dashboardPage: user1DashboardPage, user} = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
 
         // Create second user
         const {page: page2, dashboardPage: user2DashboardPage, user: user2} = await newLoggedInBrowser();
@@ -20,8 +17,8 @@ test.describe('Multi-User Collaboration E2E', () => {
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         const memberCount = 2;
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
@@ -78,12 +75,9 @@ test.describe('Multi-User Collaboration E2E', () => {
     });
 
     test('should show group creator as admin', async ({newLoggedInBrowser}) => {
-        const {page, user} = await newLoggedInBrowser();
+        const {page, user, dashboardPage} = await newLoggedInBrowser();
 
-        const groupWorkflow = new GroupWorkflow(page);
-        await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Admin'), 'Testing admin badge');
-
-        const groupDetailPage = new GroupDetailPage(page, user);
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Admin'), 'Testing admin badge');
         await expect(groupDetailPage.getAdminBadge()).toBeVisible();
     });
 
@@ -93,9 +87,8 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         const user1DisplayName = await dashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Solo'), 'Testing multiple expenses');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Solo'), 'Testing multiple expenses');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Add multiple expenses
         const expenseData = [
@@ -129,15 +122,12 @@ test.describe('Multi-User Collaboration E2E', () => {
         const {page, user, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
         const {page: page2, user: user2, dashboardPage: user2DashboardPage} = await newLoggedInBrowser();
 
-        // Create page objects
-        const groupDetailPage = new GroupDetailPage(page, user);
-
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         const memberCount = 2;
-        const groupWorkflow = new GroupWorkflow(page);
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link - verify page state first with detailed error messages
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));

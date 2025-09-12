@@ -2,7 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from './base.page';
 import { PooledTestUser } from '@splitifyd/shared';
 
-interface SettlementData {
+export interface SettlementData {
     payerName: string; // Display name of who paid
     payeeName: string; // Display name of who received payment
     amount: string;

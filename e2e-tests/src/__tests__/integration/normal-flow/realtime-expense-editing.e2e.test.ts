@@ -1,7 +1,6 @@
 import { ExpenseFormDataBuilder } from '../../../pages/expense-form.page';
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName, randomString } from "@splitifyd/test-support";
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
 
@@ -25,9 +24,9 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const watcher2DisplayName = await watcher2DashboardPage.getCurrentUserDisplayName();
 
         // Editor creates group
-        const groupWorkflow = new GroupWorkflow(editorPage);
         const groupName = generateTestGroupName('EditRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time expense editing');
+        const groupDetailPage = await editorDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time expense editing');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Watchers join
         const shareLink = await editorGroupDetailPage.getShareLink();
@@ -122,9 +121,9 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const dashWatcher2DisplayName = await dashWatcher2DashboardPage.getCurrentUserDisplayName();
 
         // Editor creates group
-        const groupWorkflow = new GroupWorkflow(editorPage);
         const groupName = generateTestGroupName('DashEditRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing dashboard real-time expense editing');
+        const groupDetailPage = await editorDashboardPage.createGroupAndNavigate(groupName, 'Testing dashboard real-time expense editing');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Watchers join then go to dashboard
         const shareLink = await editorGroupDetailPage.getShareLink();
@@ -202,9 +201,9 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         // Editor1 creates group
-        const groupWorkflow = new GroupWorkflow(editor1Page);
         const groupName = generateTestGroupName('ConcurrentEdit');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing concurrent expense editing');
+        const groupDetailPage = await editor1DashboardPage.createGroupAndNavigate(groupName, 'Testing concurrent expense editing');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Others join
         const shareLink = await editor1GroupDetailPage.getShareLink();
@@ -305,12 +304,12 @@ simpleTest.describe('Real-Time Expense Editing', () => {
         const dashWatcherDisplayName = await dashWatcherDashboardPage.getCurrentUserDisplayName();
 
         // Deleter creates group
-        const groupWorkflow = new GroupWorkflow(deleterPage);
         const groupName = generateTestGroupName('DeleteRT');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing real-time expense deletion');
+        const groupDetailPage = await deleterDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time expense deletion');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Others join
-        const shareLink = await deleterGroupDetailPage.getShareLink();
+        const shareLink = await groupDetailPage.getShareLink();
 
         const joinGroupPageGroup = new JoinGroupPage(groupWatcherPage);
         await joinGroupPageGroup.joinGroupUsingShareLink(shareLink);

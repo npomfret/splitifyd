@@ -3,7 +3,7 @@ import { BalanceCalculationResult, BalanceCalculationInput, Expense, Settlement,
 import { ExpenseProcessor } from './ExpenseProcessor';
 import { SettlementProcessor } from './SettlementProcessor';
 import { DebtSimplificationService } from './DebtSimplificationService';
-import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas/balance';
+import { BalanceCalculationResultSchema, BalanceCalculationInputSchema } from '../../schemas';
 import { measureDb } from '../../monitoring/measure';
 import { logger } from '../../logger';
 import { timestampToISO } from '../../utils/dateHelpers';

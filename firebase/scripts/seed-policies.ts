@@ -25,7 +25,6 @@ initializeFirebase(env);
 
 import { getFirestore } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
-import { PolicyService } from '../functions/src/services/PolicyService';
 
 // Get Firebase instances
 const firestoreDb = getFirestore();

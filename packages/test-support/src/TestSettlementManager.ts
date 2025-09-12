@@ -2,7 +2,6 @@ import { AuthenticatedFirebaseUser, Group } from '@splitifyd/shared';
 import { ApiDriver } from './ApiDriver';
 import { SettlementBuilder } from './builders';
 import { generateShortId } from './test-helpers';
-import { TestGroupManager } from './TestGroupManager';
 
 interface SettlementOptions {
     amount?: number;

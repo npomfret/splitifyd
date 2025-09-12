@@ -1,7 +1,6 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
+import { simpleTest, expect } from '../../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { generateTestGroupName } from '@splitifyd/test-support';
 
 simpleTest.describe('Parallel Group Joining Edge Cases', () => {
     simpleTest('should handle multiple users joining group in parallel', async ({ newLoggedInBrowser }) => {
@@ -11,11 +10,8 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(user1Page, user1);
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
         const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
-
-        const groupWorkflow = new GroupWorkflow(user1Page);
 
         // Verify all 3 users are distinct
         expect(user1.email).not.toBe(user2.email);
@@ -23,7 +19,8 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         expect(user2.email).not.toBe(user3.email);
 
         // Create group with first user
-        const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('Parallel'), 'Testing parallel join');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Ensure we're on the group page before getting share link
         await user1Page.waitForURL(`**/groups/${groupId}**`);

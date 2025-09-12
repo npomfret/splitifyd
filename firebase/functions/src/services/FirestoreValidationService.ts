@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import * as admin from 'firebase-admin';
-import { validateFirestoreDocument, validateBeforeWrite } from '../schemas/validation-helpers';
-import { getValidationMetrics } from '../schemas/validation-monitor';
+import { validateFirestoreDocument, validateBeforeWrite } from '../schemas';
+import { getValidationMetrics } from '../schemas';
 import { ContextualLogger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
 import { logger } from '../logger';

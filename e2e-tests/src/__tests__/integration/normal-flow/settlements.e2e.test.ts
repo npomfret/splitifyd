@@ -1,7 +1,7 @@
-import { simpleTest } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { simpleTest } from '../../../fixtures';
+import { JoinGroupPage } from '../../../pages';
+import { generateTestGroupName } from '@splitifyd/test-support';
+import {SettlementData} from "../../../pages/settlement-form.page.ts";
 
 simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
@@ -10,14 +10,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and add second user
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('SettlementHistory'), 'Testing settlement history');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('SettlementHistory'), 'Testing settlement history');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -27,7 +24,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const settlementData = {
+            const settlementData: SettlementData = {
                 payerName: await groupDetailPage.getCurrentUserDisplayName(),
                 payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
                 amount: '100.50',
@@ -57,14 +54,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and add second user
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('PayeeCreator'), 'Testing payee as creator');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('PayeeCreator'), 'Testing payee as creator');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -74,7 +68,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const settlementData = {
+            const settlementData: SettlementData = {
                 payerName: await user2DashboardPage.getCurrentUserDisplayName(),
                 payeeName: await groupDetailPage.getCurrentUserDisplayName(),
                 amount: '75.00',
@@ -102,14 +96,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and setup
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('EditSettlement'), 'Testing settlement editing');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('EditSettlement'), 'Testing settlement editing');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -119,7 +110,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const initialData = {
+            const initialData: SettlementData = {
                 payerName: await groupDetailPage.getCurrentUserDisplayName(),
                 payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
                 amount: '100.50',
@@ -169,14 +160,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('ValidationTest'), 'Testing form validation');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('ValidationTest'), 'Testing form validation');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -185,7 +173,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const initialData = {
+            const initialData: SettlementData = {
                 payerName: await groupDetailPage.getCurrentUserDisplayName(),
                 payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
                 amount: '50.00',
@@ -232,14 +220,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('DeleteSettlement'), 'Testing settlement deletion');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('DeleteSettlement'), 'Testing settlement deletion');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -248,7 +233,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const settlementData = {
+            const settlementData: SettlementData = {
                 payerName: await groupDetailPage.getCurrentUserDisplayName(),
                 payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
                 amount: '100.00',
@@ -278,14 +263,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            // Create page objects
-            const groupDetailPage = new GroupDetailPage(user1Page, user1);
-
-            const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
 
             // Create group and settlement
-            const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('CancelDelete'), 'Testing deletion cancellation');
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('CancelDelete'), 'Testing deletion cancellation');
+            const groupId = groupDetailPage.inferGroupId();
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
@@ -294,7 +276,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
-            const settlementData = {
+            const settlementData: SettlementData = {
                 payerName: await groupDetailPage.getCurrentUserDisplayName(),
                 payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
                 amount: '75.00',

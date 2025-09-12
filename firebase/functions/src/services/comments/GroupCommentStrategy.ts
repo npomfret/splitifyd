@@ -2,7 +2,7 @@ import { ICommentStrategy } from './ICommentStrategy';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { FirestoreCollections } from '@splitifyd/shared';
-import type { IFirestoreReader } from '../firestore/IFirestoreReader';
+import type { IFirestoreReader } from '../firestore';
 import { GroupMemberService } from '../GroupMemberService';
 
 /**

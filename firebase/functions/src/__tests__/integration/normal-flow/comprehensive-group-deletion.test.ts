@@ -8,7 +8,7 @@ import { describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, borrowTestUsers } from '@splitifyd/test-support';
 import { getFirestore } from '../../../firebase';
-import { FirestoreReader } from '../../../services/firestore/FirestoreReader';
+import { FirestoreReader } from '../../../services/firestore';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { getTopLevelMembershipDocId } from '../../../utils/groupMembershipHelpers';
 

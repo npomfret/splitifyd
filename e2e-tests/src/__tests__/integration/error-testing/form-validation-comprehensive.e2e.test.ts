@@ -1,8 +1,7 @@
 import { expect, simpleTest } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage, CreateGroupModalPage } from '../../../pages';
+import { CreateGroupModalPage } from '../../../pages';
 import { LoginPage, RegisterPage } from '../../../pages';
-import { generateTestEmail, generateTestGroupName, generateTestUserName } from '../../../../../packages/test-support/src/test-helpers.ts';
-import { GroupWorkflow } from '../../../workflows';
+import { generateTestEmail, generateTestGroupName, generateTestUserName } from '@splitifyd/test-support';
 /**
  * Comprehensive Form Validation Test Suite
  * Consolidates validation testing from:
@@ -93,10 +92,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
     simpleTest.describe('Expense Form Validation', () => {
         simpleTest('Expense form required fields and negative values', async ({ newLoggedInBrowser }) => {
             const { page, dashboardPage, user } = await newLoggedInBrowser();
-            const groupDetailPage = new GroupDetailPage(page, user);
 
-            // Use helper method to create group and prepare for expenses
-            const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('Validation'), 'Testing form validation');
+            // Create group and navigate to it
+            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Validation'), 'Testing form validation');
+            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting
@@ -140,10 +139,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
 
         simpleTest('Exact split validation', async ({ newLoggedInBrowser }) => {
             const { page, dashboardPage, user } = await newLoggedInBrowser();
-            const groupDetailPage = new GroupDetailPage(page, user);
 
-            // Use helper method to create group and prepare for expenses
-            const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('ExactSplit'), 'Testing exact split validation');
+            // Create group and navigate to it
+            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
+            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting
@@ -165,10 +164,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
 
         simpleTest('Percentage split validation', async ({ newLoggedInBrowser }) => {
             const { page, dashboardPage, user } = await newLoggedInBrowser();
-            const groupDetailPage = new GroupDetailPage(page, user);
 
-            // Use helper method to create group and prepare for expenses
-            const groupId = await GroupWorkflow.createGroup(page, generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
+            // Create group and navigate to it
+            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
+            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting

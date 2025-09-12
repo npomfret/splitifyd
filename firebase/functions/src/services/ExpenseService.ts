@@ -9,10 +9,10 @@ import { CreateExpenseRequest, DELETED_AT_FIELD, FirestoreCollections, SplitType
 import { calculateSplits, Expense } from '../expenses/validation';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
-import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas/expense';
+import { ExpenseDocumentSchema, ExpenseSplitSchema } from '../schemas';
 import { measureDb } from '../monitoring/measure';
-import type { IFirestoreReader } from './firestore/IFirestoreReader';
-import type { IFirestoreWriter } from './firestore/IFirestoreWriter';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
 import type { GroupDocument } from '../schemas';
 import { GroupMemberService } from './GroupMemberService';
 import { UserService } from './UserService2';

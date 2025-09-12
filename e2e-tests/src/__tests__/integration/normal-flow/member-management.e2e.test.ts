@@ -1,19 +1,15 @@
-import { simpleTest, expect } from '../../../fixtures/simple-test.fixture';
-import { GroupDetailPage, JoinGroupPage } from '../../../pages';
-import { GroupWorkflow } from '../../../workflows';
-import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
+import { simpleTest, expect } from '../../../fixtures';
+import { JoinGroupPage } from '../../../pages';
+import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
-import {Page} from "@playwright/test";
 
 simpleTest.describe('Member Management - Owner Restrictions', () => {
     simpleTest('group owner should not see leave button and should see settings', async ({ newLoggedInBrowser }) => {
-        const { page, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
-        const groupWorkflow = new GroupWorkflow(page);
+        const { page, user, dashboardPage } = await newLoggedInBrowser();
 
         // Create a group as owner
         const groupName = generateTestGroupName('Owner Test');
-        await groupWorkflow.createGroupAndNavigate(groupName, 'Testing owner restrictions');
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Testing owner restrictions');
 
         // Wait for group to load
         await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
@@ -33,16 +29,13 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: ownerPage, dashboardPage: user1DashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
 
-        // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Leave Test');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing member leave functionality');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing member leave functionality');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -84,16 +77,15 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: member2Page, dashboardPage: member2DashboardPage, user: member2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
         const member1DisplayName = await member1DashboardPage.getCurrentUserDisplayName();
         const member2DisplayName = await member2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Multi Remove Test');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing multiple member removal scenarios');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing multiple member removal scenarios');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -146,15 +138,14 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Balance Test');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing balance restrictions');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing balance restrictions');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link and have member join
         const shareLink = await groupDetailPage.getShareLink();
@@ -212,15 +203,14 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Remove Balance');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing removal with balance');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing removal with balance');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
@@ -255,15 +245,14 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: memberPage, dashboardPage: user2DashboardPage, user: member } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage = new GroupDetailPage(ownerPage, owner);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupWorkflow = new GroupWorkflow(ownerPage);
         const groupName = generateTestGroupName('Last Member');
-        const groupId = await groupWorkflow.createGroupAndNavigate(groupName, 'Testing last member removal');
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing last member removal');
+        const groupId = groupDetailPage.inferGroupId();
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
