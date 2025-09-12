@@ -48,7 +48,12 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #hasMoreExpensesSignal = signal<boolean>(true);
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
 
-    // State
+    // Reference counting infrastructure for multi-group support
+    readonly #subscriberCounts = new Map<string, number>();
+    readonly #activeSubscriptions = new Map<string, () => void>();
+    readonly #notificationDetectors = new Map<string, UserNotificationDetector>();
+
+    // Legacy state for backward compatibility
     private currentGroupId: string | null = null;
     private notificationDetector = new UserNotificationDetector();
     private unsubscribeNotifications: (() => void) | null = null;
@@ -196,10 +201,14 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
+        // Legacy API - only clean up legacy subscriptions, not reference-counted ones
         if (this.unsubscribeNotifications) {
             this.unsubscribeNotifications();
             this.unsubscribeNotifications = null;
         }
+        
+        // Note: We do NOT clear #subscriberCounts or call permissionsStore.dispose()
+        // to avoid breaking other components that might be using the reference-counted API
     }
 
     reset(): void {
@@ -218,14 +227,62 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.currentGroupId = null;
     }
 
-    // Reference-counted registration (simplified)
+    // Reference-counted registration - proper implementation
     async registerComponent(groupId: string, userId: string): Promise<void> {
-        await this.loadGroup(groupId);
-        this.subscribeToChanges(userId);
+        logInfo(`Registering component for group: ${groupId}`);
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+        this.#subscriberCounts.set(groupId, currentCount + 1);
+
+        if (currentCount === 0) {
+            // First subscriber for this group - create subscription
+            logInfo(`First component for ${groupId}, loading group and creating subscription`);
+            await this.loadGroup(groupId);
+            this.#subscribeToGroupChanges(groupId, userId);
+        } else {
+            // Additional subscriber - just ensure we have the data
+            if (this.currentGroupId !== groupId) {
+                // Switch to this group if it's different from the currently loaded one
+                await this.loadGroup(groupId);
+            }
+        }
+
+        // Update permissions store
+        permissionsStore.registerComponent(groupId, userId);
     }
 
     deregisterComponent(groupId: string): void {
-        this.dispose();
+        logInfo(`Deregistering component for group: ${groupId}`);
+        const currentCount = this.#subscriberCounts.get(groupId) || 0;
+
+        if (currentCount <= 1) {
+            logInfo(`Last component for ${groupId}, disposing subscription`);
+            this.#subscriberCounts.delete(groupId);
+            
+            // Clean up subscription for this specific group
+            const unsubscribe = this.#activeSubscriptions.get(groupId);
+            if (unsubscribe) {
+                unsubscribe();
+                this.#activeSubscriptions.delete(groupId);
+            }
+
+            // Clean up notification detector
+            const detector = this.#notificationDetectors.get(groupId);
+            if (detector) {
+                detector.dispose();
+                this.#notificationDetectors.delete(groupId);
+            }
+
+            // If this was the current group, clear the state
+            if (this.currentGroupId === groupId) {
+                this.#clearGroupData();
+                this.currentGroupId = null;
+            }
+        } else {
+            this.#subscriberCounts.set(groupId, currentCount - 1);
+        }
+
+        // Update permissions store
+        permissionsStore.deregisterComponent(groupId);
     }
 
     // Pagination methods (simplified - just stubs for now)
@@ -239,6 +296,66 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
         logInfo('fetchSettlements: Not implemented in minimal version');
+    }
+
+    // Private helper methods for reference counting
+
+    /**
+     * Create subscription for a specific group with reference counting
+     */
+    #subscribeToGroupChanges(groupId: string, userId: string): void {
+        logInfo('Setting up notification subscriptions for reference-counted group', {
+            groupId,
+            userId,
+        });
+
+        const detector = new UserNotificationDetector();
+        this.#notificationDetectors.set(groupId, detector);
+
+        const unsubscribe = detector.subscribe(userId, {
+            onTransactionChange: (changeGroupId) => {
+                if (changeGroupId !== groupId) return;
+                logInfo('Transaction change detected for reference-counted group', { groupId: changeGroupId });
+                this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
+            },
+            onGroupChange: (changeGroupId) => {
+                if (changeGroupId !== groupId) return;
+                logInfo('Group change detected for reference-counted group', { groupId: changeGroupId });
+                this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
+            },
+            onBalanceChange: (changeGroupId) => {
+                if (changeGroupId !== groupId) return;
+                logInfo('Balance change detected for reference-counted group', { groupId: changeGroupId });
+                this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
+            },
+            onGroupRemoved: (changeGroupId) => {
+                if (changeGroupId !== groupId) return;
+                logInfo('Group removed - clearing state for reference-counted group', { groupId: changeGroupId });
+                this.#clearGroupData();
+            },
+        });
+
+        this.#activeSubscriptions.set(groupId, unsubscribe);
+    }
+
+    /**
+     * Clear group data (for when group is removed or switching groups)
+     */
+    #clearGroupData(): void {
+        batch(() => {
+            this.#groupSignal.value = null;
+            this.#membersSignal.value = [];
+            this.#expensesSignal.value = [];
+            this.#balancesSignal.value = null;
+            this.#settlementsSignal.value = [];
+            this.#errorSignal.value = null;
+            this.#loadingSignal.value = false;
+            this.#loadingMembersSignal.value = false;
+            this.#loadingExpensesSignal.value = false;
+            this.#loadingSettlementsSignal.value = false;
+            this.#hasMoreExpensesSignal.value = true;
+            this.#hasMoreSettlementsSignal.value = false;
+        });
     }
 }
 

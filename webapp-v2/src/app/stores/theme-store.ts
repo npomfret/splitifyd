@@ -1,4 +1,4 @@
-import { signal, computed } from '@preact/signals';
+import { signal,  ReadonlySignal } from '@preact/signals';
 import type { UserThemeColor } from '@splitifyd/shared';
 import type { User } from '@/types/auth.ts';
 
@@ -17,26 +17,32 @@ export interface ThemeActions {
 
 export interface ThemeStore extends ThemeState, ThemeActions {}
 
-// Signals for theme state
-const userThemesSignal = signal<Map<string, UserThemeColor>>(new Map());
-const isDarkModeSignal = signal<boolean>(typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
-
-// Computed signal for current user's theme
-const currentUserThemeSignal = computed<UserThemeColor | null>(() => {
-    // This will be updated by the auth store
-    return null;
-});
-
 class ThemeStoreImpl implements ThemeStore {
-    // State getters
+    // Private signals - encapsulated within the class
+    readonly #userThemesSignal = signal<Map<string, UserThemeColor>>(new Map());
+    readonly #isDarkModeSignal = signal<boolean>(typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : false);
+    readonly #currentUserThemeSignal = signal<UserThemeColor | null>(null);
+
+    // State getters - readonly values for external consumers
     get userThemes() {
-        return userThemesSignal.value;
+        return this.#userThemesSignal.value;
     }
     get isDarkMode() {
-        return isDarkModeSignal.value;
+        return this.#isDarkModeSignal.value;
     }
     get currentUserTheme() {
-        return currentUserThemeSignal.value;
+        return this.#currentUserThemeSignal.value;
+    }
+
+    // Signal accessors for reactive components - return readonly signals
+    get userThemesSignal(): ReadonlySignal<Map<string, UserThemeColor>> {
+        return this.#userThemesSignal;
+    }
+    get isDarkModeSignal(): ReadonlySignal<boolean> {
+        return this.#isDarkModeSignal;
+    }
+    get currentUserThemeSignal(): ReadonlySignal<UserThemeColor | null> {
+        return this.#currentUserThemeSignal;
     }
 
     private constructor() {
@@ -51,20 +57,20 @@ class ThemeStoreImpl implements ThemeStore {
         if (typeof window !== 'undefined') {
             // Listen for system dark mode changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                isDarkModeSignal.value = e.matches;
+                this.#isDarkModeSignal.value = e.matches;
                 this.updateCSSVariables();
             });
         }
     }
 
     setUserTheme(userId: string, themeColor: UserThemeColor): void {
-        const newMap = new Map(userThemesSignal.value);
+        const newMap = new Map(this.#userThemesSignal.value);
         newMap.set(userId, themeColor);
-        userThemesSignal.value = newMap;
+        this.#userThemesSignal.value = newMap;
     }
 
     setDarkMode(isDark: boolean): void {
-        isDarkModeSignal.value = isDark;
+        this.#isDarkModeSignal.value = isDark;
         this.updateCSSVariables();
     }
 
@@ -77,7 +83,7 @@ class ThemeStoreImpl implements ThemeStore {
         }
 
         // Check if theme is cached in the store
-        return userThemesSignal.value.get(user.uid) || null;
+        return this.#userThemesSignal.value.get(user.uid) || null;
     }
 
     applyThemeToDOM(themeColor: UserThemeColor | null, isDark: boolean): void {
@@ -113,6 +119,9 @@ class ThemeStoreImpl implements ThemeStore {
     updateCurrentUserTheme(user: User | null): void {
         const theme = this.getCurrentUserTheme(user);
 
+        // Update current user theme signal
+        this.#currentUserThemeSignal.value = theme;
+
         if (theme) {
             // Cache the theme
             if (user) {
@@ -126,12 +135,13 @@ class ThemeStoreImpl implements ThemeStore {
 
     // Get theme colors for other users (for avatars, etc.)
     getThemeForUser(userId: string): UserThemeColor | null {
-        return userThemesSignal.value.get(userId) || null;
+        return this.#userThemesSignal.value.get(userId) || null;
     }
 
     // Clear all cached themes (for logout)
     reset(): void {
-        userThemesSignal.value = new Map();
+        this.#userThemesSignal.value = new Map();
+        this.#currentUserThemeSignal.value = null;
     }
 }
 

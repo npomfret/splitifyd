@@ -4,47 +4,70 @@
  * Manages the state for joining a group via share link
  */
 
-import { signal } from '@preact/signals';
+import { signal, ReadonlySignal } from '@preact/signals';
 import { apiClient } from '../apiClient';
 import type { Group } from '@splitifyd/shared';
 
-// Signals for join group state
-const groupSignal = signal<Group | null>(null);
-const memberCountSignal = signal<number>(0);
-const loadingPreviewSignal = signal<boolean>(false);
-const joiningSignal = signal<boolean>(false);
-const joinSuccessSignal = signal<boolean>(false);
-const errorSignal = signal<string | null>(null);
-const linkIdSignal = signal<string | null>(null);
-
 class JoinGroupStore {
-    // State getters
+    // Private signals - encapsulated within the class
+    readonly #groupSignal = signal<Group | null>(null);
+    readonly #memberCountSignal = signal<number>(0);
+    readonly #loadingPreviewSignal = signal<boolean>(false);
+    readonly #joiningSignal = signal<boolean>(false);
+    readonly #joinSuccessSignal = signal<boolean>(false);
+    readonly #errorSignal = signal<string | null>(null);
+    readonly #linkIdSignal = signal<string | null>(null);
+
+    // State getters - readonly values for external consumers
     get group() {
-        return groupSignal.value;
+        return this.#groupSignal.value;
     }
     get memberCount() {
-        return memberCountSignal.value;
+        return this.#memberCountSignal.value;
     }
     get loadingPreview() {
-        return loadingPreviewSignal.value;
+        return this.#loadingPreviewSignal.value;
     }
     get joining() {
-        return joiningSignal.value;
+        return this.#joiningSignal.value;
     }
     get joinSuccess() {
-        return joinSuccessSignal.value;
+        return this.#joinSuccessSignal.value;
     }
     get error() {
-        return errorSignal.value;
+        return this.#errorSignal.value;
     }
     get linkId() {
-        return linkIdSignal.value;
+        return this.#linkIdSignal.value;
+    }
+
+    // Signal accessors for reactive components - return readonly signals
+    get groupSignal(): ReadonlySignal<Group | null> {
+        return this.#groupSignal;
+    }
+    get memberCountSignal(): ReadonlySignal<number> {
+        return this.#memberCountSignal;
+    }
+    get loadingPreviewSignal(): ReadonlySignal<boolean> {
+        return this.#loadingPreviewSignal;
+    }
+    get joiningSignal(): ReadonlySignal<boolean> {
+        return this.#joiningSignal;
+    }
+    get joinSuccessSignal(): ReadonlySignal<boolean> {
+        return this.#joinSuccessSignal;
+    }
+    get errorSignal(): ReadonlySignal<string | null> {
+        return this.#errorSignal;
+    }
+    get linkIdSignal(): ReadonlySignal<string | null> {
+        return this.#linkIdSignal;
     }
 
     async loadGroupPreview(linkId: string) {
-        loadingPreviewSignal.value = true;
-        errorSignal.value = null;
-        linkIdSignal.value = linkId;
+        this.#loadingPreviewSignal.value = true;
+        this.#errorSignal.value = null;
+        this.#linkIdSignal.value = linkId;
 
         try {
             // Load preview data without joining the group
@@ -73,36 +96,36 @@ class JoinGroupStore {
                 lastActivityRaw: new Date().toISOString(),
             };
 
-            groupSignal.value = group;
-            memberCountSignal.value = preview.memberCount;
-            loadingPreviewSignal.value = false;
+            this.#groupSignal.value = group;
+            this.#memberCountSignal.value = preview.memberCount;
+            this.#loadingPreviewSignal.value = false;
 
             // If user is already a member, redirect them to the group
             if (preview.isAlreadyMember) {
-                joinSuccessSignal.value = true;
+                this.#joinSuccessSignal.value = true;
             }
         } catch (error: any) {
-            loadingPreviewSignal.value = false;
+            this.#loadingPreviewSignal.value = false;
 
             if (error.code === 'INVALID_LINK') {
-                errorSignal.value = 'This invitation link is invalid or has expired';
+                this.#errorSignal.value = 'This invitation link is invalid or has expired';
             } else if (error.code === 'GROUP_NOT_FOUND') {
-                errorSignal.value = 'This group no longer exists';
+                this.#errorSignal.value = 'This group no longer exists';
             } else {
-                errorSignal.value = error.message || 'Failed to load group information';
+                this.#errorSignal.value = error.message || 'Failed to load group information';
             }
         }
     }
 
     async joinGroup(linkId: string): Promise<Group | null> {
-        joiningSignal.value = true;
-        errorSignal.value = null;
+        this.#joiningSignal.value = true;
+        this.#errorSignal.value = null;
 
         try {
             const group = await apiClient.joinGroupByLink(linkId);
-            groupSignal.value = group;
-            joiningSignal.value = false;
-            joinSuccessSignal.value = true;
+            this.#groupSignal.value = group;
+            this.#joiningSignal.value = false;
+            this.#joinSuccessSignal.value = true;
             return group;
         } catch (error: any) {
             let errorMessage = 'Failed to join group';
@@ -119,24 +142,24 @@ class JoinGroupStore {
                 errorMessage = error.message;
             }
 
-            joiningSignal.value = false;
-            errorSignal.value = errorMessage;
+            this.#joiningSignal.value = false;
+            this.#errorSignal.value = errorMessage;
             return null;
         }
     }
 
     reset() {
-        groupSignal.value = null;
-        memberCountSignal.value = 0;
-        loadingPreviewSignal.value = false;
-        joiningSignal.value = false;
-        joinSuccessSignal.value = false;
-        errorSignal.value = null;
-        linkIdSignal.value = null;
+        this.#groupSignal.value = null;
+        this.#memberCountSignal.value = 0;
+        this.#loadingPreviewSignal.value = false;
+        this.#joiningSignal.value = false;
+        this.#joinSuccessSignal.value = false;
+        this.#errorSignal.value = null;
+        this.#linkIdSignal.value = null;
     }
 
     clearError() {
-        errorSignal.value = null;
+        this.#errorSignal.value = null;
     }
 }
 
