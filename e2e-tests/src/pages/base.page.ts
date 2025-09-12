@@ -4,13 +4,10 @@ import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { PooledTestUser } from '@splitifyd/shared';
 
 export abstract class BasePage {
-    protected userInfo?: PooledTestUser;
-
     constructor(
         protected _page: Page,
-        userInfo?: PooledTestUser,
+        protected userInfo?: PooledTestUser,
     ) {
-        this.userInfo = userInfo;
 
         // Apply automatic error handling proxy to all derived classes
         // This wraps all async methods to automatically capture context on errors
@@ -604,9 +601,14 @@ export abstract class BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async navigateToDashboard(): Promise<void> {
-        await this._page.goto(`${EMULATOR_URL}/dashboard`);
-        await this.waitForDomContentLoaded();
+    async navigateToDashboard(): Promise<any> {
+        await this.openUserMenu();
+        await this.getDashboardLink().click();
+        await expect(this._page).toHaveURL(/\/dashboard/);
+        
+        // Import DashboardPage dynamically to avoid circular dependency
+        const { DashboardPage } = await import('./dashboard.page');
+        return new DashboardPage(this._page, this.userInfo);
     }
 
     async navigateToShareLink(shareLink: string): Promise<void> {

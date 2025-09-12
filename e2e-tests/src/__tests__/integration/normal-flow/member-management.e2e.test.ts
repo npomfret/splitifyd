@@ -3,10 +3,11 @@ import { GroupDetailPage, JoinGroupPage } from '../../../pages';
 import { GroupWorkflow } from '../../../workflows';
 import { generateTestGroupName } from '../../../../../packages/test-support/src/test-helpers.ts';
 import { groupDetailUrlPattern } from '../../../pages/group-detail.page.ts';
+import {Page} from "@playwright/test";
 
 simpleTest.describe('Member Management - Owner Restrictions', () => {
     simpleTest('group owner should not see leave button and should see settings', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const groupDetailPage = new GroupDetailPage(page, user);
         const groupWorkflow = new GroupWorkflow(page);
 
@@ -34,7 +35,6 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -49,11 +49,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // Member joins the group
-        const joinGroupPage = new JoinGroupPage(memberPage);
-        await memberPage.goto(shareLink);
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
-        await joinGroupPage.getJoinGroupButton().click();
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
 
         // Wait for both users to see each other in the member list
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -89,7 +85,6 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-        const member1GroupDetailPage = new GroupDetailPage(member1Page, member1);
 
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
         const member1DisplayName = await member1DashboardPage.getCurrentUserDisplayName();
@@ -105,17 +100,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // Both members join the group
-        const joinGroupPage1 = new JoinGroupPage(member1Page);
-        await member1Page.goto(shareLink);
-        await expect(joinGroupPage1.getJoinGroupHeading()).toBeVisible();
-        await joinGroupPage1.getJoinGroupButton().click();
-        await expect(member1Page).toHaveURL(groupDetailUrlPattern(groupId));
-
-        const joinGroupPage2 = new JoinGroupPage(member2Page);
-        await member2Page.goto(shareLink);
-        await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
-        await joinGroupPage2.getJoinGroupButton().click();
-        await expect(member2Page).toHaveURL(groupDetailUrlPattern(groupId));
+        const member1GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member1Page, shareLink, groupId)
+        const member2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member2Page, shareLink, groupId)
 
         // Wait for all users to see each other (3 members total)
         await groupDetailPage.waitForMemberCount(3);
@@ -124,8 +110,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         // Position users for different removal scenarios:
         // - Member1 stays on group page (will get 404 errors)
         // - Member2 goes to dashboard (will see group disappear from list)
-        await member2Page.goto('/dashboard');
-        await expect(member2Page).toHaveURL(/\/dashboard/);
+        await member2GroupDetailPage.navigateToDashboard();
         await member2DashboardPage.waitForGroupToAppear(groupName);
 
         // Owner removes Member1 first (who is on the group page)
@@ -133,20 +118,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.confirmRemoveMember();
 
         // Verify Member1 gets 404 (since they're viewing the group page)
-        await expect(async () => {
-            const currentUrl = member1Page.url();
-            if (currentUrl.includes('/404')) {
-                return;
-            }
-            if (currentUrl.includes('/groups/')) {
-                await member1Page.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
-                const newUrl = member1Page.url();
-                if (newUrl.includes('/404')) {
-                    return;
-                }
-            }
-            throw new Error(`Member1 expected 404 page, but got: ${currentUrl}`);
-        }).toPass({ timeout: 10000, intervals: [1000] });
+        await member1GroupDetailPage.waitForRedirectAwayFromGroup(groupId);
 
         // Owner should see updated member count (2 members remaining: owner + member2)
         await groupDetailPage.waitForMemberCount(2);
@@ -158,21 +130,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Verify Member2 can no longer access the group (should get 404)
         await member2Page.goto(`/groups/${groupId}`);
-        await expect(async () => {
-            const currentUrl = member2Page.url();
-            if (currentUrl.includes('/404')) {
-                return;
-            }
-            // If we're still on the group page, reload to trigger the access check
-            if (currentUrl.includes('/groups/')) {
-                await member2Page.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
-                const newUrl = member2Page.url();
-                if (newUrl.includes('/404')) {
-                    return;
-                }
-            }
-            throw new Error(`Member2 expected 404 page after removal, but got: ${currentUrl}`);
-        }).toPass({ timeout: 10000, intervals: [1000] });
+        await member2GroupDetailPage.waitForRedirectAwayFromGroup(groupId);
 
         // Owner should see final member count (only 1 member: the owner)
         await groupDetailPage.waitForMemberCount(1);
@@ -189,7 +147,6 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -201,11 +158,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Get share link and have member join
         const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage = new JoinGroupPage(memberPage);
-        await memberPage.goto(shareLink);
-        await expect(joinGroupPage.getJoinGroupHeading()).toBeVisible();
-        await joinGroupPage.getJoinGroupButton().click();
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -260,7 +213,6 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(ownerPage, owner);
-        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
 
         const ownerDisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -272,10 +224,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage = new JoinGroupPage(memberPage);
-        await memberPage.goto(shareLink);
-        await joinGroupPage.getJoinGroupButton().click();
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -318,13 +267,12 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage = new JoinGroupPage(memberPage);
-        await memberPage.goto(shareLink);
-        await joinGroupPage.getJoinGroupButton().click();
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await groupDetailPage2.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        await groupDetailPage2.navigateToDashboard();// move away from the page to avoid 404 errors in console after the removal happens
 
         // Owner removes the only other member
         await groupDetailPage.clickRemoveMember(memberDisplayName);

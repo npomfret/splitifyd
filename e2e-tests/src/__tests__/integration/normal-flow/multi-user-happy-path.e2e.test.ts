@@ -22,18 +22,13 @@ test.describe('Multi-User Collaboration E2E', () => {
         const memberCount = 2;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('MultiExp'), 'Testing concurrent expenses');
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const joinGroupPage2 = new JoinGroupPage(page2);
 
         await page2.goto(shareLink);
-        await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
 
-        await joinGroupPage2.getJoinGroupButton().click();
-        await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId)
 
         // Wait for synchronization of users
         await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
@@ -136,7 +131,6 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Create page objects
         const groupDetailPage = new GroupDetailPage(page, user);
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -144,19 +138,13 @@ test.describe('Multi-User Collaboration E2E', () => {
         const memberCount = 2;
         const groupWorkflow = new GroupWorkflow(page);
         const groupId = await groupWorkflow.createGroupAndNavigate(generateTestGroupName('Balance'), 'Testing balance calculations');
-        const user1 = user;
 
         // Get share link - verify page state first with detailed error messages
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage2 = new JoinGroupPage(page2);
-        await page2.goto(shareLink);
-        await expect(joinGroupPage2.getJoinGroupHeading()).toBeVisible();
-
-        await joinGroupPage2.getJoinGroupButton().click();
-        await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId)
 
         // WAIT for user synchronization before adding expense
         await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);

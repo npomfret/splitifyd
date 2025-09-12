@@ -10,7 +10,7 @@ test.describe('Member Management E2E', () => {
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
-        await page.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create a group
@@ -32,7 +32,7 @@ test.describe('Member Management E2E', () => {
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
-        await page.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create a group
@@ -65,7 +65,7 @@ test.describe('Member Management E2E', () => {
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
-        await page.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create a group
@@ -83,7 +83,7 @@ test.describe('Member Management E2E', () => {
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
-        await page.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create a group
@@ -107,7 +107,7 @@ test.describe('Member Management E2E', () => {
         const groupWorkflow = new GroupWorkflow(page);
 
         // Navigate to dashboard
-        await page.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create a group

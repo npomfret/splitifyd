@@ -1,7 +1,7 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { PooledTestUser } from '@splitifyd/shared';
-import { groupDetailUrlPattern } from './group-detail.page.ts';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {PooledTestUser} from '@splitifyd/shared';
+import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
 
 /**
  * Page object for join group functionality via share links.
@@ -12,7 +12,13 @@ export class JoinGroupPage extends BasePage {
         super(page, userInfo);
     }
 
-    // Core selectors with retry logic
+    static async joinGroupViaShareLink(page: Page, shareLink: string, groupId?: string) {
+        const joinGroupPage = new JoinGroupPage(page);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+        return new GroupDetailPage(page, joinGroupPage.userInfo);
+    }
+
     getJoinGroupHeading(): Locator {
         return this.page.getByRole('heading', { name: /join group/i });
     }
@@ -187,6 +193,8 @@ export class JoinGroupPage extends BasePage {
     async joinGroupUsingShareLink(shareLink: string): Promise<void> {
         // Navigate to the share link
         await this.navigateToShareLink(shareLink);
+
+        await expect(this.getJoinGroupHeading()).toBeVisible();
 
         // Wait a bit for page to stabilize
         await this.waitForDomContentLoaded();

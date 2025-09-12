@@ -21,6 +21,10 @@ export class GroupDetailPage extends BasePage {
         super(page, userInfo);
     }
 
+    inferGroupId() {
+        return this.getUrlParam('groupId')!;
+    }
+
     // Element accessors for group information
     getGroupTitle() {
         // The group title is specifically an h1 element

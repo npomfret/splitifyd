@@ -12,7 +12,6 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Create page objects
             const groupDetailPage = new GroupDetailPage(user1Page, user1);
-            const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
 
             const groupWorkflow = new GroupWorkflow(user1Page);
             const memberCount = 2;
@@ -22,9 +21,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             // Create settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -71,9 +68,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             // Create settlement where creator is the payee (receives money)
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -118,9 +113,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             // Create initial settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -187,9 +180,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -252,9 +243,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -300,9 +289,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const joinGroupPage = new JoinGroupPage(user2Page);
-            await user2Page.goto(shareLink);
-            await joinGroupPage.getJoinGroupButton().click();
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);

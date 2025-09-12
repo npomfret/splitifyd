@@ -19,7 +19,7 @@ test.describe('Complex Unsettled Group Scenario', () => {
         const groupWorkflow = new GroupWorkflow(alicePage);
 
         // Navigate Alice to dashboard and create group
-        await alicePage.goto('/dashboard');
+        await dashboardPage.navigateToDashboard();
         await dashboardPage.waitForDashboard();
 
         // Create group with Alice
