@@ -274,7 +274,8 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await user4GroupDetailPage.waitForBalancesToLoad(groupId);
         console.log('✅ User 4 balances loaded successfully');
 
-        await user4GroupDetailPage.leaveGroup();
+        const leaveModal = await user4GroupDetailPage.clickLeaveGroup();
+        await leaveModal.confirmLeaveGroup();
         console.log('✅ User 4 leave group completed');
 
         // Verify User 4 gets redirected to dashboard

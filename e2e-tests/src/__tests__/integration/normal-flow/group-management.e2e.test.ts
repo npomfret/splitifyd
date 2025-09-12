@@ -55,26 +55,26 @@ simpleTest.describe('Group Management', () => {
         await editModal.clearGroupName();
 
         // Save button should be disabled with empty name
-        await expect(editModal.saveButton).toBeVisible();
-        await expect(editModal.saveButton).toBeDisabled();
+        await expect(editModal.getSaveButton()).toBeVisible();
+        await expect(editModal.getSaveButton()).toBeDisabled();
 
         // Try with too short name
         await editModal.editGroupName('A');
         // Save button should be disabled with a single character
-        await expect(editModal.saveButton).toBeDisabled();
+        await expect(editModal.getSaveButton()).toBeDisabled();
 
         // Try with valid name
         await editModal.editGroupName('some oterh Valid Name');
         // Save button should be enabled now
-        await expect(editModal.saveButton).toBeEnabled();
+        await expect(editModal.getSaveButton()).toBeEnabled();
 
         // Clear again and check button is disabled
         await editModal.clearGroupName();
-        await expect(editModal.saveButton).toBeDisabled();
+        await expect(editModal.getSaveButton()).toBeDisabled();
 
         // Cancel the modal
         await editModal.cancel();
-        await expect(editModal.modal).not.toBeVisible();
+        await expect(editModal.getModal()).not.toBeVisible();
     });
 
     simpleTest('should disable save button when no changes made', async ({ newLoggedInBrowser }) => {
@@ -90,19 +90,19 @@ simpleTest.describe('Group Management', () => {
         const editModal = await groupDetailPage.openEditGroupModal();
 
         // Verify save button is disabled when no changes
-        await expect(editModal.saveButton).toBeDisabled();
+        await expect(editModal.getSaveButton()).toBeDisabled();
 
         // Make a change
         await editModal.editGroupName('Changed Name');
 
         // Now save button should be enabled
-        await expect(editModal.saveButton).toBeEnabled();
+        await expect(editModal.getSaveButton()).toBeEnabled();
 
         // Revert the change
         await editModal.editGroupName(groupName);
 
         // Save button should be disabled again
-        await expect(editModal.saveButton).toBeDisabled();
+        await expect(editModal.getSaveButton()).toBeDisabled();
 
         // Close modal
         await editModal.cancel();

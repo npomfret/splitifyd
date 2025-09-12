@@ -52,10 +52,10 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
 
         // Member clicks Leave Group
-        await memberGroupDetailPage.clickLeaveGroup();
+        const leaveModal = await memberGroupDetailPage.clickLeaveGroup();
 
         // Confirm in the dialog
-        await memberGroupDetailPage.confirmLeaveGroup();
+        await leaveModal.confirmLeaveGroup();
 
         // Member should be redirected to dashboard
         await expect(memberPage).toHaveURL(/\/dashboard/);
@@ -106,8 +106,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await member2DashboardPage.waitForGroupToAppear(groupName);
 
         // Owner removes Member1 first (who is on the group page)
-        await groupDetailPage.clickRemoveMember(member1DisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
+        await removeMember1Modal.confirmRemoveMember();
 
         // Verify Member1 gets 404 (since they're viewing the group page)
         await member1GroupDetailPage.waitForRedirectAwayFromGroup(groupId);
@@ -117,8 +117,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.verifyMemberNotVisible(member1DisplayName);
 
         // Now remove Member2 (who is on dashboard)
-        await groupDetailPage.clickRemoveMember(member2DisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMember2Modal = await groupDetailPage.clickRemoveMember(member2DisplayName);
+        await removeMember2Modal.confirmRemoveMember();
 
         // Verify Member2 can no longer access the group (should get 404)
         await member2Page.goto(`/groups/${groupId}`);
@@ -171,13 +171,13 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Member tries to leave group
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
-        await memberGroupDetailPage.clickLeaveGroup();
+        const leaveModalWithBalance = await memberGroupDetailPage.clickLeaveGroup();
 
         // Should see error message about outstanding balance
-        await memberGroupDetailPage.verifyLeaveErrorMessage();
+        await leaveModalWithBalance.verifyLeaveErrorMessage();
 
         // Cancel the leave attempt
-        await memberGroupDetailPage.cancelLeaveGroup();
+        await leaveModalWithBalance.cancelLeaveGroup();
 
         // Member records a settlement to clear the balance
         const settlementFormPage = await memberGroupDetailPage.clickSettleUpButton(2);
@@ -190,8 +190,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await memberGroupDetailPage.waitForBalancesToLoad(groupId);
 
         // Now member should be able to leave
-        await memberGroupDetailPage.clickLeaveGroup();
-        await memberGroupDetailPage.confirmLeaveGroup();
+        const leaveModalAfterSettlement = await memberGroupDetailPage.clickLeaveGroup();
+        await leaveModalAfterSettlement.confirmLeaveGroup();
 
         // Member should be redirected to dashboard
         await expect(memberPage).toHaveURL(/\/dashboard/);
@@ -264,8 +264,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage2.navigateToDashboard();// move away from the page to avoid 404 errors in console after the removal happens
 
         // Owner removes the only other member
-        await groupDetailPage.clickRemoveMember(memberDisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMemberModal = await groupDetailPage.clickRemoveMember(memberDisplayName);
+        await removeMemberModal.confirmRemoveMember();
 
         // Owner should still be in the group
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));

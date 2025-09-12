@@ -3,6 +3,9 @@ import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import {SettlementData, SettlementFormPage} from './settlement-form.page';
+import { EditGroupModalPage } from './edit-group-modal.page';
+import { LeaveGroupModalPage } from './leave-group-modal.page';
+import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import { DashboardPage } from './dashboard.page.ts';
@@ -820,172 +823,17 @@ export class GroupDetailPage extends BasePage {
     /**
      * Opens the edit group modal by clicking the settings button
      */
-    async openEditGroupModal() {
+    async openEditGroupModal(): Promise<EditGroupModalPage> {
         const settingsButton = this.getSettingsButton();
         await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
 
-        // Wait for modal to appear
-        await expect(this.page.getByRole('dialog')).toBeVisible();
-
-        // Return a simple modal object with the methods the tests expect
-        const modal = this.page.getByRole('dialog');
-        const saveButton = modal.getByRole('button', { name: 'Save Changes' });
-
-        return {
-            modal,
-            saveButton,
-            editGroupName: async (name: string) => {
-                const nameInput = modal.locator('input[type="text"]').first();
-                // Use Preact-aware input filling
-                await this.fillPreactInput(nameInput, name);
-
-                // Defensive check: verify the value persisted (catches real-time update bug)
-                // Use polling to ensure value has stabilized
-                await expect(async () => {
-                    const currentValue = await nameInput.inputValue();
-                    if (currentValue !== name) {
-                        throw new Error('Form value still changing');
-                    }
-                }).toPass({ timeout: 500, intervals: [50, 100] });
-                const currentValue = await nameInput.inputValue();
-                if (currentValue !== name) {
-                    throw new Error(`Form field was reset! Expected name "${name}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
-                }
-            },
-            clearGroupName: async () => {
-                const nameInput = modal.locator('input[type="text"]').first();
-                // Clear using fillPreactInput with empty string
-                await this.fillPreactInput(nameInput, '');
-                // Trigger blur to ensure validation runs
-                await nameInput.blur();
-            },
-            editDescription: async (description: string) => {
-                const descriptionTextarea = modal.locator('textarea').first();
-                // Use fillPreactInput for proper Preact signal updates
-                await this.fillPreactInput(descriptionTextarea, description);
-
-                // Defensive check: verify the value persisted
-                await expect(async () => {
-                    const currentValue = await descriptionTextarea.inputValue();
-                    if (currentValue !== description) {
-                        throw new Error('Form value still changing');
-                    }
-                }).toPass({ timeout: 500, intervals: [50, 100] });
-                const currentValue = await descriptionTextarea.inputValue();
-                if (currentValue !== description) {
-                    throw new Error(`Form field was reset! Expected description "${description}" but got "${currentValue}". This indicates a real-time update bug where the modal resets user input.`);
-                }
-            },
-            saveChanges: async () => {
-                // Double-check form values right before save to ensure they haven't been reset
-                const nameInput = modal.locator('input[type="text"]').first();
-                const descTextarea = modal.locator('textarea').first();
-                const finalName = await nameInput.inputValue();
-                const finalDesc = await descTextarea.inputValue();
-
-                // Validate the form state
-                if (!finalName || finalName.trim().length < 2) {
-                    throw new Error(`Invalid form state before save: name="${finalName}" (minimum 2 characters required). The form may have been reset by a real-time update.`);
-                }
-
-                // Wait for button to stabilize in enabled state
-                await expect(saveButton).toBeEnabled({ timeout: 2000 });
-
-                // Brief stability check - ensure button remains enabled (no race condition)
-                await expect(async () => {
-                    const isEnabled = await saveButton.isEnabled();
-                    if (!isEnabled) {
-                        throw new Error('Save button became disabled - race condition detected');
-                    }
-                }).toPass({ timeout: 200, intervals: [25, 50] });
-                const isStillEnabled = await saveButton.isEnabled();
-                if (!isStillEnabled) {
-                    throw new Error(
-                        `Save button became disabled after stability check. This indicates a race condition. Form values at time of failure: name="${finalName}", description="${finalDesc}"`,
-                    );
-                }
-
-                await saveButton.click();
-                // Wait for the modal to close after saving
-                // Use a longer timeout as the save operation might take time
-                await expect(modal).not.toBeVisible({ timeout: 2000 });
-                await this.waitForDomContentLoaded();
-
-                // Wait for the data refresh to complete (since no real-time websockets yet)
-                // Look for any loading indicators that appear during refresh
-                const spinner = this.page.locator('.animate-spin');
-                const spinnerCount = await spinner.count();
-                if (spinnerCount > 0) {
-                    // Wait for any spinners to disappear
-                    await expect(spinner.first()).not.toBeVisible({ timeout: 5000 });
-                }
-
-                // Wait for modal to close (indicates data has propagated)
-                await expect(modal).not.toBeVisible({ timeout: 1000 });
-            },
-            cancel: async () => {
-                const cancelButton = modal.getByRole('button', { name: 'Cancel' });
-                await cancelButton.click();
-            },
-            deleteGroup: async () => {
-                const deleteButton = modal.getByRole('button', { name: 'Delete Group' });
-                await deleteButton.click();
-            },
-        };
+        // Create and return the EditGroupModalPage instance
+        const editModal = new EditGroupModalPage(this.page);
+        await editModal.waitForModalVisible();
+        
+        return editModal;
     }
 
-    /**
-     * Handles the delete confirmation dialog with hard delete confirmation text input
-     */
-    async handleDeleteConfirmDialog(confirm: boolean, groupName?: string) {
-        // Wait for confirmation dialog to appear
-        // The confirmation dialog appears on top of the edit modal
-        await this.waitForDomContentLoaded();
-
-        // The ConfirmDialog component creates a fixed overlay with the Delete Group title
-        // Look for the modal content within the overlay - it has "Delete Group" as title
-        // and the confirm message
-        const confirmTitle = this.page.getByRole('heading', { name: 'Delete Group' });
-        await expect(confirmTitle).toBeVisible({ timeout: 5000 });
-
-        // Find the dialog container which is the parent of the title
-        const confirmDialog = confirmTitle.locator('..').locator('..');
-
-        if (confirm) {
-            // For hard delete, we need to enter the group name in the confirmation text field
-            if (groupName) {
-                // Find the confirmation text input field
-                const confirmationInput = confirmDialog.locator('input[type="text"]');
-                await expect(confirmationInput).toBeVisible();
-
-                // Clear any existing text and enter the group name
-                await this.fillPreactInput(confirmationInput, groupName);
-
-                // Verify the text was entered correctly
-                await expect(confirmationInput).toHaveValue(groupName);
-            }
-
-            // Find the Delete button in the confirmation dialog
-            const deleteButton = confirmDialog.getByRole('button', { name: 'Delete' });
-            await expect(deleteButton).toBeVisible();
-
-            // Wait for the button to be enabled (it's disabled until confirmation text matches group name)
-            await expect(deleteButton).toBeEnabled({ timeout: 5000 });
-
-            // Click the delete button
-            await deleteButton.click();
-
-            // Wait for the modal to disappear (indicates deletion is processing/complete)
-            await expect(confirmDialog).not.toBeVisible({ timeout: 10000 });
-        } else {
-            // Click the Cancel button
-            const cancelButton = confirmDialog.getByRole('button', { name: 'Cancel' });
-            await cancelButton.click();
-
-            // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 5000 });
-        }
-    }
 
     // ==============================
     // ADDITIONAL METHODS FOR TEST REFACTORING
@@ -1306,35 +1154,17 @@ export class GroupDetailPage extends BasePage {
     }
 
     // Member management actions
-    async clickLeaveGroup(): Promise<void> {
+    async clickLeaveGroup(): Promise<LeaveGroupModalPage> {
         const leaveButton = this.getLeaveGroupButton();
         await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
+
+        // Create and return the LeaveGroupModalPage instance
+        const leaveModal = new LeaveGroupModalPage(this.page);
+        await leaveModal.waitForDialogVisible();
+        
+        return leaveModal;
     }
 
-    async confirmLeaveGroup(): Promise<void> {
-        const dialog = this.page.getByTestId('leave-group-dialog');
-        const confirmButton = dialog.getByTestId('confirm-button');
-        await expect(confirmButton).toBeVisible({ timeout: 2000 });
-        await this.clickButton(confirmButton, { buttonName: 'Confirm Leave' });
-    }
-
-    async cancelLeaveGroup(): Promise<void> {
-        const dialog = this.page.getByTestId('leave-group-dialog');
-        const cancelButton = dialog.getByTestId('cancel-button');
-        await this.clickButton(cancelButton, { buttonName: 'Cancel Leave' });
-    }
-
-    async waitForOutstandingBalanceError(): Promise<void> {
-        // First try the specific test ID approach (more reliable)
-        try {
-            await this.verifyLeaveErrorMessage();
-            return;
-        } catch {
-            // Fallback to text-based approach
-            const errorMessage = this.page.getByText(/outstanding balance|settle up before leaving/i);
-            await expect(errorMessage).toBeVisible({ timeout: 5000 });
-        }
-    }
 
     async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
         await expect(async () => {
@@ -1362,7 +1192,7 @@ export class GroupDetailPage extends BasePage {
         }).toPass({ timeout: 10000, intervals: [1000] });
     }
 
-    async clickRemoveMember(memberName: string): Promise<void> {
+    async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {
         const memberItem = this.getMemberItem(memberName);
         try {
             await expect(memberItem).toBeVisible({ timeout: 5000 });
@@ -1378,30 +1208,20 @@ export class GroupDetailPage extends BasePage {
             );
             throw new Error(`Failed to find visible member "${memberName}". Visible members:\n${visibleMembers.map((m, i) => `  ${i + 1}. ${m}`).join('\n')}`);
         }
+
         const removeButton = this.getRemoveMemberButton(memberName);
         await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
-    }
 
-    async confirmRemoveMember(): Promise<void> {
-        const dialog = this.page.getByTestId('remove-member-dialog');
-        const confirmButton = dialog.getByTestId('confirm-button');
-        await expect(confirmButton).toBeVisible({ timeout: 2000 });
-        await this.clickButton(confirmButton, { buttonName: 'Confirm Remove' });
+        // Create and return the RemoveMemberModalPage instance
+        const removeModal = new RemoveMemberModalPage(this.page);
+        await removeModal.waitForDialogVisible();
+        return removeModal;
     }
 
     async verifyMemberNotVisible(memberName: string): Promise<void> {
         await expect(this.page.getByText(memberName)).not.toBeVisible();
     }
 
-    async verifyLeaveErrorMessage(): Promise<void> {
-        const dialog = this.page.getByTestId('leave-group-dialog');
-        const errorMessage = dialog.getByTestId('balance-error-message');
-        try {
-            await expect(errorMessage).toBeVisible({ timeout: 10000 });
-        } catch (e) {
-            throw new Error('The error message for leaving with an outstanding balance did not appear within 10 seconds');
-        }
-    }
 
     // ====== COMMENTS METHODS ======
 

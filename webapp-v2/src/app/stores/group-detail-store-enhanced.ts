@@ -31,6 +31,7 @@ export interface EnhancedGroupDetailStore {
     loadMoreExpenses(): Promise<void>;
     loadMoreSettlements(): Promise<void>;
     fetchSettlements(cursor?: string, userId?: string): Promise<void>;
+    setDeletingGroup(value: boolean): void;
 }
 
 class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
@@ -47,6 +48,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     readonly #errorSignal = signal<string | null>(null);
     readonly #hasMoreExpensesSignal = signal<boolean>(true);
     readonly #hasMoreSettlementsSignal = signal<boolean>(false);
+    readonly #isDeletingGroupSignal = signal<boolean>(false);
 
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
@@ -96,6 +98,11 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         return this.#hasMoreSettlementsSignal.value;
     }
 
+    setDeletingGroup(value: boolean): void {
+        this.#isDeletingGroupSignal.value = value;
+        logInfo('Group deletion flag changed', { isDeletingGroup: value, currentGroupId: this.currentGroupId });
+    }
+
     async loadGroup(groupId: string): Promise<void> {
         this.#loadingSignal.value = true;
         this.#errorSignal.value = null;
@@ -140,6 +147,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             },
             onGroupChange: (groupId) => {
                 if (groupId !== this.currentGroupId) return;
+                
+                // Skip refresh if we're in the process of deleting this group
+                if (this.#isDeletingGroupSignal.value) {
+                    logInfo('Group change detected but skipping refresh - group deletion in progress', { groupId });
+                    return;
+                }
+                
                 logInfo('Group change detected', { groupId });
                 this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
             },
@@ -161,6 +175,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                     this.#balancesSignal.value = null;
                     this.#settlementsSignal.value = [];
                     this.#loadingSignal.value = false;
+                    this.#isDeletingGroupSignal.value = false; // Clear deletion flag
                 });
             },
         });
@@ -320,6 +335,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             },
             onGroupChange: (changeGroupId) => {
                 if (changeGroupId !== groupId) return;
+                
+                // Skip refresh if we're in the process of deleting this group
+                if (this.#isDeletingGroupSignal.value) {
+                    logInfo('Group change detected but skipping refresh - group deletion in progress (reference-counted)', { groupId: changeGroupId });
+                    return;
+                }
+                
                 logInfo('Group change detected for reference-counted group', { groupId: changeGroupId });
                 this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
             },
@@ -355,6 +377,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             this.#loadingSettlementsSignal.value = false;
             this.#hasMoreExpensesSignal.value = true;
             this.#hasMoreSettlementsSignal.value = false;
+            this.#isDeletingGroupSignal.value = false; // Clear deletion flag
         });
     }
 }

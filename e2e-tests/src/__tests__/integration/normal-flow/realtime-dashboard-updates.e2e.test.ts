@@ -117,8 +117,8 @@ simpleTest.describe('Real-Time Dashboard Updates', () => {
         await member2DashboardPage.waitForGroupToAppear(groupName);
 
         // Owner removes Member1
-        await groupDetailPage.clickRemoveMember(member1DisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMemberModal = await groupDetailPage.clickRemoveMember(member1DisplayName);
+        await removeMemberModal.confirmRemoveMember();
 
         // CRITICAL TEST: Member1's dashboard should still show the group initially
         // Since there's no real-time notification, the group should remain visible but user loses access

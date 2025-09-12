@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { apiClient } from '@/app/apiClient.ts';
+import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { Input, Button, Form } from '../ui';
 import type { Group } from '@splitifyd/shared';
 
@@ -133,6 +134,9 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         setDeleteError(null);
 
         try {
+            // Signal to the store that deletion is starting to prevent race condition with notifications
+            enhancedGroupDetailStore.setDeletingGroup(true);
+            
             await apiClient.deleteGroup(group.id);
             setShowDeleteConfirm(false);
             if (onDelete) {
@@ -142,6 +146,9 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
             setDeleteError(errorMessage);
+            
+            // Clear deletion flag on error so notifications work normally again
+            enhancedGroupDetailStore.setDeletingGroup(false);
         } finally {
             setIsDeleting(false);
         }

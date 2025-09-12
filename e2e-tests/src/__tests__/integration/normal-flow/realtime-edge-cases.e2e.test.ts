@@ -47,10 +47,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // RACE CONDITION: LeavingUser leaves while Creator starts expense creation
 
         // LeavingUser initiates leaving
-        const leaveButton = leavingGroupDetailPage.getLeaveGroupButton();
-        await expect(leaveButton).toBeVisible();
-        await leaveButton.click();
-        await leavingGroupDetailPage.confirmLeaveGroup();
+        const leaveModal = await leavingGroupDetailPage.clickLeaveGroup();
+        await leaveModal.confirmLeaveGroup();
 
         // Wait for LeavingUser to be fully removed from group
         await creatorGroupDetailPage.waitForMemberCount(3);
@@ -163,8 +161,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
         
         // Now Owner can remove Target user (no outstanding balance)
-        await ownerGroupDetailPage.clickRemoveMember(targetDisplayName);
-        await ownerGroupDetailPage.confirmRemoveMember();
+        const removeMemberModal = await ownerGroupDetailPage.clickRemoveMember(targetDisplayName);
+        await removeMemberModal.confirmRemoveMember();
 
         // Wait for removal to propagate to other users
         await ownerGroupDetailPage.waitForMemberCount(3);

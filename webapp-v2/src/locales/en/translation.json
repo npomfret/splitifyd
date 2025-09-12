@@ -129,7 +129,8 @@
     "edit": "Edit",
     "settings": "Settings",
     "showHistory": "Show History",
-    "joinGroup": "Join Group"
+    "joinGroup": "Join Group",
+    "understood": "Understood"
   },
   "errors": {
     "displayNameEmpty": "Display name cannot be empty",

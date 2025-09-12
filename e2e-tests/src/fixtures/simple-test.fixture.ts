@@ -27,8 +27,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             const context = await browser.newContext();
             const page = await context.newPage();
 
-            // Set up console handling
-            const consoleHandler = attachConsoleHandler(page, { testInfo });
+            // Set up console handling with user index
+            const userIndex = browserInstances.length; // Use current length as index for this user
+            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
 
             // Get user from pool and log in
             const userPool = getUserPool();
@@ -36,6 +37,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
 
             const authWorkflow = new AuthenticationWorkflow(page);
             await authWorkflow.loginExistingUser(user);
+
+            // Update console handler with user email now that we have it
+            consoleHandler.updateUserInfo({ userEmail: user.email });
 
             // Create dashboard page
             const dashboardPage = new DashboardPage(page, user);
@@ -94,8 +98,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             const context = await browser.newContext();
             const page = await context.newPage();
 
-            // Set up console handling
-            const consoleHandler = attachConsoleHandler(page, { testInfo });
+            // Set up console handling with user index
+            const userIndex = browserInstances.length; // Use current length as index for this user
+            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
 
             // Navigate to login page
             const loginPage = new LoginPage(page);

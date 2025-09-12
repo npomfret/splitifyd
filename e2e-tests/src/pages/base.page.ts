@@ -2,6 +2,7 @@ import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { PooledTestUser } from '@splitifyd/shared';
+import {DashboardPage} from "./dashboard.page.ts";
 
 export abstract class BasePage {
     constructor(
@@ -601,14 +602,16 @@ export abstract class BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async navigateToDashboard(): Promise<any> {
+    async navigateToDashboard(): Promise<DashboardPage> {
         await this.openUserMenu();
         await this.getDashboardLink().click();
         await expect(this._page).toHaveURL(/\/dashboard/);
         
         // Import DashboardPage dynamically to avoid circular dependency
         const { DashboardPage } = await import('./dashboard.page');
-        return new DashboardPage(this._page, this.userInfo);
+        const dashboardPage = new DashboardPage(this._page, this.userInfo);
+        await dashboardPage.waitForDashboard();
+        return dashboardPage;
     }
 
     async navigateToShareLink(shareLink: string): Promise<void> {

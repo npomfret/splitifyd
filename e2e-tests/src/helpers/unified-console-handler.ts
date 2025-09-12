@@ -11,6 +11,10 @@ interface ConsoleError {
         columnNumber?: number;
     };
     timestamp: Date;
+    userInfo?: {
+        userIndex?: number;
+        userEmail?: string;
+    };
 }
 
 interface PageError {
@@ -18,6 +22,10 @@ interface PageError {
     message: string;
     stack?: string;
     timestamp: Date;
+    userInfo?: {
+        userIndex?: number;
+        userEmail?: string;
+    };
 }
 
 interface ConsoleHandlerOptions {
@@ -89,6 +97,10 @@ export class UnifiedConsoleHandler {
                           }
                         : undefined,
                     timestamp,
+                    userInfo: {
+                        userIndex: this.options.userIndex,
+                        userEmail: this.options.userEmail,
+                    },
                 });
             }
         });
@@ -109,40 +121,38 @@ export class UnifiedConsoleHandler {
                 message: error.message,
                 stack: error.stack,
                 timestamp,
+                userInfo: {
+                    userIndex: this.options.userIndex,
+                    userEmail: this.options.userEmail,
+                },
             });
         });
     }
 
     /**
-     * Get accumulated console and page errors
+     * Format user information for error reporting
      */
-    getErrors(): { consoleErrors: ConsoleError[]; pageErrors: PageError[] } {
-        return {
-            consoleErrors: [...this.consoleErrors],
-            pageErrors: [...this.pageErrors],
-        };
+    private formatUserInfo(userInfo?: { userIndex?: number; userEmail?: string }): string {
+        if (!userInfo || (userInfo.userIndex === undefined && !userInfo.userEmail)) {
+            return 'unknown user';
+        }
+        
+        const parts = [];
+        if (userInfo.userIndex !== undefined) {
+            parts.push(`User ${userInfo.userIndex + 1}`);
+        }
+        if (userInfo.userEmail) {
+            parts.push(`(${userInfo.userEmail})`);
+        }
+        
+        return parts.length > 0 ? parts.join(' ') : 'unknown user';
     }
 
     /**
-     * Check if there are any errors
+     * Update user information for better error reporting
      */
-    hasErrors(): boolean {
-        return this.consoleErrors.length > 0 || this.pageErrors.length > 0;
-    }
-
-    /**
-     * Clear accumulated errors
-     */
-    clearErrors(): void {
-        this.consoleErrors = [];
-        this.pageErrors = [];
-    }
-
-    /**
-     * Get the log file path
-     */
-    getLogFilePath(): string {
-        return this.logFile;
+    updateUserInfo(userInfo: { userIndex?: number; userEmail?: string }): void {
+        this.options = { ...this.options, ...userInfo };
     }
 
     /**
@@ -227,14 +237,64 @@ export class UnifiedConsoleHandler {
 
             // FAIL THE TEST if there are errors and test hasn't already failed
             if (testInfo.status !== 'failed') {
-                throw new Error(`Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s). Check console log file above for details.`);
+                // Create detailed error message with user information
+                let errorMessage = `Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s).`;
+                
+                if (this.consoleErrors.length > 0) {
+                    const consoleErrorUsers = this.consoleErrors
+                        .map(error => {
+                            const userInfo = this.formatUserInfo(error.userInfo);
+                            // Debug: log what user info we have for this error
+                            console.log(`Console error userInfo:`, error.userInfo, `formatted as:`, userInfo);
+                            return userInfo;
+                        })
+                        .filter((user, index, arr) => arr.indexOf(user) === index) // unique users
+                        .join(', ');
+                    errorMessage += ` Console errors from: ${consoleErrorUsers}.`;
+                }
+                
+                if (this.pageErrors.length > 0) {
+                    const pageErrorUsers = this.pageErrors
+                        .map(error => {
+                            const userInfo = this.formatUserInfo(error.userInfo);
+                            // Debug: log what user info we have for this error
+                            console.log(`Page error userInfo:`, error.userInfo, `formatted as:`, userInfo);
+                            return userInfo;
+                        })
+                        .filter((user, index, arr) => arr.indexOf(user) === index) // unique users
+                        .join(', ');
+                    errorMessage += ` Page errors from: ${pageErrorUsers}.`;
+                }
+                
+                errorMessage += ' Check console log file above for details.';
+                
+                throw new Error(errorMessage);
             }
         } else if ((hasConsoleErrors || hasPageErrors) && skipErrorChecking) {
             // Log that errors were detected but ignored due to annotation
             console.log('\n' + '='.repeat(80));
             console.log('⚠️  ERRORS DETECTED BUT IGNORED (skip-error-checking annotation)');
             console.log('='.repeat(80));
-            console.log(`Console errors: ${this.consoleErrors.length}, Page errors: ${this.pageErrors.length}`);
+            
+            let ignoredMessage = `Console errors: ${this.consoleErrors.length}, Page errors: ${this.pageErrors.length}`;
+            
+            if (this.consoleErrors.length > 0) {
+                const consoleErrorUsers = this.consoleErrors
+                    .map(error => this.formatUserInfo(error.userInfo))
+                    .filter((user, index, arr) => arr.indexOf(user) === index)
+                    .join(', ');
+                ignoredMessage += ` (Console errors from: ${consoleErrorUsers})`;
+            }
+            
+            if (this.pageErrors.length > 0) {
+                const pageErrorUsers = this.pageErrors
+                    .map(error => this.formatUserInfo(error.userInfo))
+                    .filter((user, index, arr) => arr.indexOf(user) === index)
+                    .join(', ');
+                ignoredMessage += ` (Page errors from: ${pageErrorUsers})`;
+            }
+            
+            console.log(ignoredMessage);
             console.log('These errors are expected for this test.');
             console.log('='.repeat(80) + '\n');
         }

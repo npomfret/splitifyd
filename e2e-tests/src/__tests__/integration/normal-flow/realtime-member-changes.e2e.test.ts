@@ -101,8 +101,8 @@ simpleTest.describe('Real-Time Member Changes', () => {
         await member3DashboardPage.waitForGroupToAppear(groupName);
 
         // Owner removes Member1
-        await groupDetailPage.clickRemoveMember(member1DisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
+        await removeMember1Modal.confirmRemoveMember();
 
         // CRITICAL TESTS:
 
@@ -177,14 +177,12 @@ simpleTest.describe('Real-Time Member Changes', () => {
         // All happening rapidly in sequence
 
         // Operation 1: Owner removes Member1
-        await groupDetailPage.clickRemoveMember(member1DisplayName);
-        await groupDetailPage.confirmRemoveMember();
+        const removeMemberModal = await groupDetailPage.clickRemoveMember(member1DisplayName);
+        await removeMemberModal.confirmRemoveMember();
 
         // Operation 2: Member2 leaves (almost simultaneously)
-        const leaveButton = member2GroupDetailPage.getLeaveGroupButton();
-        await expect(leaveButton).toBeVisible();
-        await leaveButton.click();
-        await member2GroupDetailPage.confirmLeaveGroup();
+        const leaveModal = await member2GroupDetailPage.clickLeaveGroup();
+        await leaveModal.confirmLeaveGroup();
 
         // Operation 3: NewMember joins
         const joinGroupPageNew = new JoinGroupPage(newMemberPage);

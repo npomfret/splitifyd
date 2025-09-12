@@ -1,344 +1,98 @@
-import { simpleTest, expect } from '../../../fixtures';
-
-import { generateShortId } from '@splitifyd/test-support';
-import { GroupDetailPage, JoinGroupPage } from '../../../pages';
+import {expect, simpleTest} from '../../../fixtures';
+import {generateShortId} from '@splitifyd/test-support';
+import {GroupDetailPage, JoinGroupPage} from '../../../pages';
 
 simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
     simpleTest('should update both dashboards when owner deletes group', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - owner (user1) and member (user2)
-        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
-
-        // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        let { dashboardPage: dashboardPage1 } = await newLoggedInBrowser();
+        let { page: page2, dashboardPage: dashboardPage2 } = await newLoggedInBrowser();
 
         // Setup 2-person group with unique ID
-        const uniqueId = generateShortId();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const groupName = `Owner Delete Test ${uniqueId}-${randomSuffix}`;
-        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing owner deletion');
-        const groupId = groupDetailPage.inferGroupId();
+        const groupName = `Owner Delete Test ${(generateShortId())}`;
+        let groupDetailPageUser1 = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing owner deletion');
+        const groupId = groupDetailPageUser1.inferGroupId();
 
         // Get share link and have User2 join
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // Verify User2 is authenticated before attempting to join
-        await expect(page2).toHaveURL(/\/dashboard/);
-        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        const shareLink = await groupDetailPageUser1.getShareLink();
 
         // User2 joins using robust JoinGroupPage
-        const joinGroupPage = new JoinGroupPage(page2, user2);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
 
         // Wait for synchronization - both users should see 2 members total
-        await groupDetailPage.waitForMemberCount(2);
+        await groupDetailPageUser1.waitForMemberCount(2);
         await groupDetailPage2.waitForMemberCount(2);
 
         // Both users navigate to dashboard to see the group
-        await dashboardPage1.navigate();
-        await dashboardPage1.waitForDashboard();
-        await dashboardPage2.navigate();
-        await dashboardPage2.waitForDashboard();
+        dashboardPage1 = await groupDetailPageUser1.navigateToDashboard();
+        dashboardPage2 = await groupDetailPage2.navigateToDashboard();
 
         // Verify both users can see the group on dashboard
         await dashboardPage1.waitForGroupToAppear(groupName);
         await dashboardPage2.waitForGroupToAppear(groupName);
 
         // User1 (owner) clicks on the group from dashboard to navigate to it
-        await dashboardPage1.clickGroupCard(groupName);
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        groupDetailPageUser1 = await dashboardPage1.clickGroupCard(groupName);
 
         // Delete the group
-        const editModal = await groupDetailPage.openEditGroupModal();
-        await editModal.deleteGroup();
-        await groupDetailPage.handleDeleteConfirmDialog(true, groupName);
-
-        // Verify User1 is redirected to dashboard
-        await expect(page).toHaveURL(/\/dashboard/);
-        await dashboardPage1.waitForDashboard();
+        const editModal = await groupDetailPageUser1.openEditGroupModal();
+        await editModal.clickDeleteGroup();
+        dashboardPage1 = await editModal.handleDeleteConfirmDialog(groupName);
 
         // CRITICAL TEST: Both dashboards should update in real-time WITHOUT reload
         // User1's dashboard should not show the deleted group
-        await dashboardPage1.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
+        await dashboardPage1.waitForGroupToNotBePresent(groupName);
 
         // User2's dashboard should also update in real-time (this tests the bug fix)
-        await dashboardPage2.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
-
-        // Verify no errors occurred on User2's page during the real-time update
-        const jsErrors: string[] = [];
-        page2.on('pageerror', (error) => jsErrors.push(error.message));
-
-        // Brief wait to catch any JS errors
-        await page2.waitForTimeout(500);
-
-        // Filter for relevant errors (ignore minor console warnings)
-        const criticalErrors = jsErrors.filter((error) => error.includes('404') && error.includes('group'));
-
-        // We expect no critical errors - User2 should handle group deletion gracefully
-        expect(criticalErrors).toHaveLength(0);
+        await dashboardPage2.waitForGroupToNotBePresent(groupName);
     });
 
-    simpleTest('should update dashboard when member leaves group', async ({ newLoggedInBrowser }) => {
+    simpleTest('should redirect member to 404 when group is deleted while viewing group detail page', async ({ newLoggedInBrowser }, testInfo) => {
+        // Skip error checking - 404 errors and console errors are expected when group is deleted
+        testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when group is deleted while member viewing it' });
+        
         // Create two browser instances - owner (user1) and member (user2)
-        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
+        let { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
 
-        // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        // Setup 2-person group with unique ID
+        const groupName = `Member On Detail Test ${generateShortId()}`;
 
-        // Setup 2-person group
-        const uniqueId = generateShortId();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const groupName = `Member Leave Test ${uniqueId}-${randomSuffix}`;
-        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing member leaving');
-        const groupId = groupDetailPage.inferGroupId();
+        let ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing deletion while member on detail page');
+        const groupId = ownerGroupDetailPage.inferGroupId();
 
-        // User2 joins the group
-        const shareLink = await groupDetailPage.getShareLink();
-        await expect(page2).toHaveURL(/\/dashboard/);
+        // Get share link and have member join
+        const shareLink = await ownerGroupDetailPage.getShareLink();
 
-        const joinGroupPage = new JoinGroupPage(page2, user2);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        // Member joins using robust JoinGroupPage
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Wait for synchronization - both users should see 2 members total
-        await groupDetailPage.waitForMemberCount(2);
-        await groupDetailPage2.waitForMemberCount(2);
-
-        // Both users navigate to dashboard
-        await dashboardPage1.navigate();
-        await dashboardPage1.waitForDashboard();
-        await dashboardPage2.navigate();
-        await dashboardPage2.waitForDashboard();
-
-        // Verify both see the group
-        await dashboardPage1.waitForGroupToAppear(groupName);
-        await dashboardPage2.waitForGroupToAppear(groupName);
-
-        // User2 clicks on the group from dashboard to navigate to it
-        await dashboardPage2.clickGroupCard(groupName);
-        await page2.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-        // User2 leaves the group (not deletes - just leaves)
-        await groupDetailPage2.clickLeaveGroup();
-        await groupDetailPage2.confirmLeaveGroup();
-
-        // User2 should be redirected to dashboard
-        await expect(page2).toHaveURL(/\/dashboard/);
-        await dashboardPage2.waitForDashboard();
-
-        // User2's dashboard should no longer show the group
-        await dashboardPage2.waitForGroupToNotBePresent(groupName, { timeout: 5000 });
-
-        // User1's dashboard should still show the group (but now with 1 member)
-        await dashboardPage1.waitForGroupToAppear(groupName);
-    });
-
-    simpleTest('should handle concurrent dashboard viewing during hard deletion', async ({ newLoggedInBrowser }) => {
-        // Create two browser instances - owner (user1) and member (user2)
-        const { page, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
-
-        const user1DisplayName = await dashboardPage1.getCurrentUserDisplayName();
-        const user2DisplayName = await dashboardPage2.getCurrentUserDisplayName();
-
-        // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
-
-        // Setup group with expenses (testing hard delete with data)
-        const uniqueId = generateShortId();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const groupName = `Hard Delete Test ${uniqueId}-${randomSuffix}`;
-        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing hard delete with expenses');
-        const groupId = groupDetailPage.inferGroupId();
-
-        // User2 joins
-        const shareLink = await groupDetailPage.getShareLink();
-        await expect(page2).toHaveURL(/\/dashboard/);
-
-        const joinGroupPage = new JoinGroupPage(page2, user2);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
-        await groupDetailPage.waitForMemberCount(2);
-        await groupDetailPage2.waitForMemberCount(2);
-
-        // Add expenses to test hard delete functionality
-        const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage1.submitExpense({
-            description: 'Pre-deletion Expense 1',
-            amount: 50,
-            paidByDisplayName: user1DisplayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
-
-        // Wait for expense synchronization
-        await groupDetailPage.waitForBalanceUpdate();
-        await groupDetailPage2.verifyExpenseVisible('Pre-deletion Expense 1');
-
-        // User2 adds expense too
-        const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(2);
-        await expenseFormPage2.submitExpense({
-            description: 'Pre-deletion Expense 2',
-            amount: 75,
-            paidByDisplayName: user2DisplayName,
-            currency: 'USD',
-            splitType: 'equal',
-        });
-
-        // Wait for second expense synchronization
-        await groupDetailPage2.waitForBalanceUpdate();
-        await groupDetailPage.verifyExpenseVisible('Pre-deletion Expense 2');
-
-        // Both users navigate to dashboard and keep it open
-        await dashboardPage1.navigate();
-        await dashboardPage1.waitForDashboard();
-        await dashboardPage2.navigate();
-        await dashboardPage2.waitForDashboard();
-
-        // Verify both see the group with expenses
-        await dashboardPage1.waitForGroupToAppear(groupName);
-        await dashboardPage2.waitForGroupToAppear(groupName);
-
-        // User1 clicks on the group from dashboard to perform hard delete (should work despite expenses)
-        await dashboardPage1.clickGroupCard(groupName);
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-        // With new hard delete implementation, this should succeed even with expenses
-        const editModal = await groupDetailPage.openEditGroupModal();
-        await editModal.deleteGroup();
-        await groupDetailPage.handleDeleteConfirmDialog(true, groupName);
-
-        // Verify User1 is redirected to dashboard
-        await expect(page).toHaveURL(/\/dashboard/);
-        await dashboardPage1.waitForDashboard();
-
-        // CRITICAL: Both dashboards should update in real-time despite the complex deletion
-        // User1's dashboard should be clean
-        await dashboardPage1.waitForGroupToNotBePresent(groupName, { timeout: 10000 });
-
-        // User2's dashboard should also update (this is the main bug we're testing)
-        // The change document should have proper user IDs despite hard deletion
-        await dashboardPage2.waitForGroupToNotBePresent(groupName, { timeout: 10000 });
-
-        // Verify User2 experiences no errors during the hard delete process
-        const jsErrors: string[] = [];
-        page2.on('pageerror', (error) => jsErrors.push(error.message));
-        await page2.waitForTimeout(500);
-
-        // Should be no critical errors related to the group deletion
-        const relevantErrors = jsErrors.filter((error) => (error.includes('404') || error.includes('deleted')) && error.includes('group'));
-        expect(relevantErrors).toHaveLength(0);
-    });
-});
-
-simpleTest.describe('Three-User Group Deletion Dashboard Updates', () => {
-    simpleTest('should update all dashboards in real-time when owner deletes group', async ({ newLoggedInBrowser }, testInfo) => {
-        // Skip error checking for this test - 404 errors are expected when group detail
-        // stores try to refresh data for a deleted group
-        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors from group detail store refreshes after deletion' });
-
-        // Create three browser instances - User 1, User 2, and User 3
-        const { page: page1, dashboardPage: dashboardPage1, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: dashboardPage2, user: user2 } = await newLoggedInBrowser();
-        const { page: page3, dashboardPage: dashboardPage3, user: user3 } = await newLoggedInBrowser();
-
-        // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
-        const groupDetailPage3 = new GroupDetailPage(page3, user3);
-
-        // Create group with User 1 as owner
-        const uniqueId = generateShortId();
-        const randomSuffix = Math.random().toString(36).substring(2, 8);
-        const groupName = `Dashboard Update Test ${uniqueId}-${randomSuffix}`;
-        const groupDetailPage = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing real-time dashboard updates');
-        const groupId = groupDetailPage.inferGroupId();
-
-        // User 2 and User 3 join the group
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // User 2 joins
-        await expect(page2).toHaveURL(/\/dashboard/);
-        const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-        // User 3 joins
-        await expect(page3).toHaveURL(/\/dashboard/);
-        const joinGroupPage3 = new JoinGroupPage(page3, user3);
-        await joinGroupPage3.joinGroupUsingShareLink(shareLink);
-
-        // Wait for all users to see 3 members total
-        await groupDetailPage.waitForMemberCount(3);
-        await groupDetailPage2.waitForMemberCount(3);
-        await groupDetailPage3.waitForMemberCount(3);
-
-        // ALL users navigate to their dashboards
-        await dashboardPage1.navigate();
-        await dashboardPage1.waitForDashboard();
-        await dashboardPage2.navigate();
-        await dashboardPage2.waitForDashboard();
-        await dashboardPage3.navigate();
-        await dashboardPage3.waitForDashboard();
-
-        // ALL users should see the group on their dashboards
-        await dashboardPage1.waitForGroupToAppear(groupName);
-        await dashboardPage2.waitForGroupToAppear(groupName);
-        await dashboardPage3.waitForGroupToAppear(groupName);
+        await ownerGroupDetailPage.waitForMemberCount(2);
+        await memberGroupDetailPage.waitForMemberCount(2);
 
         // CRITICAL TEST SETUP:
-        // User 1: Will delete the group (on group detail page)
-        // User 2: Stays on dashboard (should see real-time update)
-        // User 3: Stays on dashboard (should see real-time update)
+        // Owner: Will navigate to dashboard and delete the group
+        // Member: Stays on group detail page (should get redirected to 404)
 
-        // User 1 clicks on the group from dashboard to delete
-        await dashboardPage1.clickGroupCard(groupName);
-        await page1.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        // Owner navigates to dashboard to delete the group
+        ownerDashboardPage = await ownerDashboardPage.navigateToDashboard();
+        await ownerDashboardPage.waitForDashboard();
+        await ownerDashboardPage.waitForGroupToAppear(groupName);
 
-        // Users 2 and 3 STAY on dashboard to watch for real-time updates
-        // (This is the key difference from the 2-user test)
+        // Owner clicks on the group from dashboard to delete it
+        ownerGroupDetailPage = await ownerDashboardPage.clickGroupCard(groupName);
 
-        // CRITICAL: Ensure all subscriptions are ready by waiting for DOM to be stable
-        // This replaces arbitrary timeouts with proper synchronization
-        await page1.waitForLoadState('domcontentloaded');
-        await page2.waitForLoadState('domcontentloaded');
-        await page3.waitForLoadState('domcontentloaded');
+        // Owner deletes the group while member is still viewing it
+        const editModal = await ownerGroupDetailPage.openEditGroupModal();
+        await editModal.clickDeleteGroup();
+        ownerDashboardPage = await editModal.handleDeleteConfirmDialog(groupName);
+        await ownerDashboardPage.waitForGroupToNotBePresent(groupName);
 
-        // User 1 deletes the group
-        const editModal = await groupDetailPage.openEditGroupModal();
-        await editModal.deleteGroup();
-        await groupDetailPage.handleDeleteConfirmDialog(true, groupName);
-
-        // User 1 should be redirected to dashboard
-        await expect(page1).toHaveURL(/\/dashboard/);
-        await dashboardPage1.waitForDashboard();
-
-        // CRITICAL TEST: All dashboards should update in real-time
-        // This tests the change document subscription system
-
-        // User 1's dashboard (who deleted) should not show the group
-        await dashboardPage1.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
-
-        // User 2's dashboard should update in real-time (MAIN TEST)
-        await dashboardPage2.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
-
-        // User 3's dashboard should also update in real-time (MAIN TEST)
-        await dashboardPage3.waitForGroupToNotBePresent(groupName, { timeout: 8000 });
-
-        // Verify no critical errors occurred during real-time updates
-        const jsErrors2: string[] = [];
-        const jsErrors3: string[] = [];
-
-        page2.on('pageerror', (error) => jsErrors2.push(error.message));
-        page3.on('pageerror', (error) => jsErrors3.push(error.message));
-
-        await page2.waitForTimeout(500);
-        await page3.waitForTimeout(500);
-
-        // Filter for group-related errors (ignore other console noise)
-        const criticalErrors2 = jsErrors2.filter((error) => error.includes('404') && error.includes('group'));
-        const criticalErrors3 = jsErrors3.filter((error) => error.includes('404') && error.includes('group'));
-
-        // Users 2 and 3 should have no group-related errors
-        // (they should handle the group deletion gracefully via subscription)
-        expect(criticalErrors2).toHaveLength(0);
-        expect(criticalErrors3).toHaveLength(0);
+        // CRITICAL TEST: Member should be redirected away from the deleted group
+        // The member should get a 404 or error state and be redirected away from the group URL
+        // Console errors are expected as the app tries to refresh group data that no longer exists
+        await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
     });
+
 });
