@@ -1,10 +1,10 @@
 // Tests for optimistic locking implementation to prevent race conditions
 
-import { beforeEach, describe, expect, test } from 'vitest';
+import {beforeEach, describe, expect, test} from 'vitest';
 
-import { borrowTestUsers } from '@splitifyd/test-support';
-import { CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver } from '@splitifyd/test-support';
-import { UserToken } from '@splitifyd/shared';
+import {borrowTestUsers} from '@splitifyd/test-support';
+import {CreateExpenseRequestBuilder, CreateGroupRequestBuilder, SettlementBuilder, ApiDriver} from '@splitifyd/test-support';
+import {UserToken} from '@splitifyd/shared';
 
 describe('Optimistic Locking Integration Tests', () => {
     // vi.setTimeout(25000); // it takes about 18s
@@ -19,13 +19,21 @@ describe('Optimistic Locking Integration Tests', () => {
     describe('Group Optimistic Locking', () => {
         test('should detect concurrent updates when two users join group simultaneously', async () => {
             // User 1 creates a group
-            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Concurrent Join Test Group').withDescription('Testing concurrent joins').build(), users[0].token);
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder()
+                    .withName('Concurrent Join Test Group')
+                    .withDescription('Testing concurrent joins')
+                    .build(),
+                users[0].token
+            );
 
             // Generate share link
             const shareLink = await apiDriver.generateShareLink(group.id, users[0].token);
 
             // Both User 2 and User 3 try to join at the same time
-            const joinPromises = [apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token), apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token)];
+            const joinPromises = [
+                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
+                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token)
+            ];
 
             const results = await Promise.allSettled(joinPromises);
 
@@ -52,7 +60,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state - both users should be members
-            const { group: finalGroup, members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {group: finalGroup, members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
             const member0 = members.members.find((m) => m.uid === users[0].uid);
             const member1 = members.members.find((m) => m.uid === users[1].uid);
             const member2 = members.members.find((m) => m.uid === users[2].uid);
@@ -71,7 +79,7 @@ describe('Optimistic Locking Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // Same user tries to update the group simultaneously (testing optimistic locking)
-            const updatePromises = [apiDriver.updateGroup(group.id, { name: 'First Update' }, users[0].token), apiDriver.updateGroup(group.id, { name: 'Second Update' }, users[0].token)];
+            const updatePromises = [apiDriver.updateGroup(group.id, {name: 'First Update'}, users[0].token), apiDriver.updateGroup(group.id, {name: 'Second Update'}, users[0].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -94,7 +102,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state - should have one of the update names
-            const { group: finalGroup } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
             expect(['First Update', 'Second Update']).toContain(finalGroup.name);
         });
     });
@@ -124,7 +132,7 @@ describe('Optimistic Locking Integration Tests', () => {
             );
 
             // Same user tries to update the expense simultaneously (testing optimistic locking)
-            const updatePromises = [apiDriver.updateExpense(expense.id, { amount: 200 }, users[0].token), apiDriver.updateExpense(expense.id, { amount: 300 }, users[0].token)];
+            const updatePromises = [apiDriver.updateExpense(expense.id, {amount: 200}, users[0].token), apiDriver.updateExpense(expense.id, {amount: 300}, users[0].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -152,10 +160,13 @@ describe('Optimistic Locking Integration Tests', () => {
             expect([200, 300]).toContain(updatedExpense?.amount);
         });
 
-        test('should prevent concurrent expense deletion', async () => {
+        test('should handle concurrent expense deletion and modification', async () => {
             // Create group and add both users
             const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Expense Delete Locking Test').withDescription('Testing expense concurrent deletion').build(),
+                new CreateGroupRequestBuilder()
+                    .withName('Expense Delete Locking Test')
+                    .withDescription('Testing expense concurrent deletion')
+                    .build(),
                 users[0].token,
             );
 
@@ -163,31 +174,35 @@ describe('Optimistic Locking Integration Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
 
             // Create multiple expenses
-            const expense1 = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Test Expense for Deletion')
-                    .withAmount(50)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .withSplitType('equal')
-                    .build(),
-                users[0].token,
-            );
-            await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder()
-                    .withGroupId(group.id)
-                    .withDescription('Another expense')
-                    .withAmount(50)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
-                    .withSplitType('equal')
-                    .build(),
-                users[0].token,
-            );
+            const [expense1] = await Promise.all([
+                apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withDescription('Test Expense for Deletion')
+                        .withAmount(50)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid, users[1].uid])
+                        .withSplitType('equal')
+                        .build(),
+                    users[0].token,),
+
+                await apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(group.id)
+                        .withDescription('Another expense')
+                        .withAmount(50)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid, users[1].uid])
+                        .withSplitType('equal')
+                        .build(),
+                    users[0].token,
+                )])
 
             // Try to delete and update the same expense simultaneously
-            const promises = [apiDriver.deleteExpense(expense1.id, users[0].token), apiDriver.updateExpense(expense1.id, { amount: 75 }, users[0].token)];
+            const promises = [
+                apiDriver.deleteExpense(expense1.id, users[0].token),
+                apiDriver.updateExpense(expense1.id, {amount: 75}, users[0].token)
+            ];
 
             const results = await Promise.allSettled(promises);
 
@@ -237,7 +252,7 @@ describe('Optimistic Locking Integration Tests', () => {
             );
 
             // Try to update the settlement concurrently with same user
-            const updatePromises = [apiDriver.updateSettlement(settlement.id, { amount: 75 }, users[0].token), apiDriver.updateSettlement(settlement.id, { amount: 100 }, users[0].token)];
+            const updatePromises = [apiDriver.updateSettlement(settlement.id, {amount: 75}, users[0].token), apiDriver.updateSettlement(settlement.id, {amount: 100}, users[0].token)];
 
             const results = await Promise.allSettled(updatePromises);
 
@@ -294,7 +309,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state
-            const { members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {members} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
             const member1 = members.members.find((m) => m.uid === users[1].uid);
             expect(member1).toBeDefined();
 
@@ -312,9 +327,9 @@ describe('Optimistic Locking Integration Tests', () => {
 
             // Perform multiple concurrent updates with same user (proper optimistic locking test)
             const operations = [
-                apiDriver.updateGroup(group.id, { name: 'Update 1' }, users[0].token),
-                apiDriver.updateGroup(group.id, { name: 'Update 2' }, users[0].token),
-                apiDriver.updateGroup(group.id, { description: 'Updated description' }, users[0].token),
+                apiDriver.updateGroup(group.id, {name: 'Update 1'}, users[0].token),
+                apiDriver.updateGroup(group.id, {name: 'Update 2'}, users[0].token),
+                apiDriver.updateGroup(group.id, {description: 'Updated description'}, users[0].token),
             ];
 
             const results = await Promise.allSettled(operations);
@@ -337,7 +352,7 @@ describe('Optimistic Locking Integration Tests', () => {
             }
 
             // Verify final state integrity
-            const { group: finalGroup } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            const {group: finalGroup} = await apiDriver.getGroupFullDetails(group.id, users[0].token);
 
             // Group should have been updated by at least one operation
             expect(finalGroup.name === 'Update 1' || finalGroup.name === 'Update 2' || finalGroup.description === 'Updated description').toBeTruthy();

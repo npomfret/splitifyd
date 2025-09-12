@@ -8,6 +8,9 @@
 # MCP cache
 .lsmcp/
 
+# Test results
+integration-test-results.json
+
 # Logs
 logs
 *.log

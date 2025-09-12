@@ -33,7 +33,7 @@ function getTestCommand(scriptType, packageName) {
         functions: {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/unit/',
-            'test:integration': 'npm run build && vitest run src/__tests__/integration/',
+            'test:integration': 'npm run build && vitest run src/__tests__/integration/ --reporter=default --reporter=json --outputFile=integration-test-results.json && node ../../scripts/analyze-test-performance.js integration-test-results.json',
         },
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
