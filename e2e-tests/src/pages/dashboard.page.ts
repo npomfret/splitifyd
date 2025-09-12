@@ -3,6 +3,8 @@ import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import {CreateGroupModalPage} from "./create-group-modal.page.ts";
+import {GroupDetailPage, groupDetailUrlPattern} from "./group-detail.page.ts";
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -32,6 +34,35 @@ export class DashboardPage extends BasePage {
         } catch {
             return false;
         }
+    }
+
+    async createGroupAndNavigate(name: string, description?: string): Promise<GroupDetailPage> {
+        const currentUrl = this.page.url();
+        if (!currentUrl.includes('/dashboard')) {
+            await this.navigate();
+        }
+        await this.waitForDashboard();
+
+        // Open modal and create group
+        const createGroupModal = new CreateGroupModalPage(this.page);
+        await this.openCreateGroupModal();
+        await createGroupModal.createGroup(name, description);
+
+        // Wait for navigation and verify URL
+        await this.expectUrl(groupDetailUrlPattern());
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Verify we're on the correct group page by checking URL contains the pattern
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
+        await expect(this.page.getByText(name)).toBeVisible();
+
+        const groupDetailPage = new GroupDetailPage(this.page);
+        const groupId = groupDetailPage.inferGroupId();
+
+        await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
+        await groupDetailPage.ensureNewGroupPageReadyWithOneMember(groupId);
+
+        return groupDetailPage;
     }
 
     // Element accessors specific to Dashboard
