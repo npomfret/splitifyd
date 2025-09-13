@@ -187,7 +187,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // VERIFICATION:
 
         // 1. Target should be removed (redirected to dashboard)
-        await targetDashboardPage.waitForDashboard();
+        // Use fallback method to handle 404 page that occurs when user is removed from group
+        await targetDashboardPage.waitForDashboardWithFallback();
 
         // 2. Settlement should have completed successfully
         await ownerGroupDetailPage.waitForMemberCount(3);

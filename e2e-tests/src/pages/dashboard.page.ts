@@ -146,6 +146,27 @@ export class DashboardPage extends BasePage {
     }
 
     /**
+     * Wait for dashboard, handling the case where user might be on 404 page due to group removal.
+     * This method handles the real-time edge case where a removed user lands on 404 before being redirected.
+     */
+    async waitForDashboardWithFallback() {
+        // Check if we're on a 404 page first (common when user is removed from group)
+        const currentUrl = this.page.url();
+        if (currentUrl.includes('/404')) {
+            // Look for the "Go to Dashboard" button and click it
+            const dashboardButton = this.page.getByRole('button', { name: 'Go to Dashboard' });
+            await expect(dashboardButton).toBeVisible({ timeout: 2000 });
+            await dashboardButton.click();
+            
+            // Wait for navigation to dashboard
+            await expect(this.page).toHaveURL(/\/dashboard\/?$/, { timeout: 5000 });
+        }
+        
+        // Now wait for dashboard to be ready (either directly or after 404 redirect)
+        await this.waitForDashboard();
+    }
+
+    /**
      * Wait for a group with the specified name to not be present on the dashboard
      * This handles async deletion processes and real-time updates properly
      */

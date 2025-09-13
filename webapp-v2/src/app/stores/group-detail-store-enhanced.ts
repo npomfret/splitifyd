@@ -121,7 +121,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             });
 
             permissionsStore.updateGroupData(fullDetails.group, fullDetails.members.members);
-        } catch (error) {
+        } catch (error: any) {
             this.#errorSignal.value = error instanceof Error ? error.message : 'Failed to load group';
             this.#loadingSignal.value = false;
             throw error;
@@ -189,9 +189,31 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
             logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
         } catch (error: any) {
             const isGroupDeleted = error?.status === 404 || (error?.message && error.message.includes('404')) || error?.code === 'NOT_FOUND';
+            const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
                 logInfo('RefreshAll: Group has been deleted, clearing state', {
+                    groupId: this.currentGroupId,
+                    error: error?.message || String(error),
+                });
+
+                this.#errorSignal.value = 'GROUP_DELETED';
+                batch(() => {
+                    this.#groupSignal.value = null;
+                    this.#membersSignal.value = [];
+                    this.#expensesSignal.value = [];
+                    this.#balancesSignal.value = null;
+                    this.#settlementsSignal.value = [];
+                    this.#loadingSignal.value = false;
+                });
+
+                this.currentGroupId = null;
+                return;
+            }
+
+            if (isAccessDenied) {
+                // User has been removed from the group - handle gracefully without error
+                logInfo('RefreshAll: User no longer has access to group (removed/left), clearing state', {
                     groupId: this.currentGroupId,
                     error: error?.message || String(error),
                 });

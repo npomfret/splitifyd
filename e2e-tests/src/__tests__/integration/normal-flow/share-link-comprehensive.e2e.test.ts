@@ -185,12 +185,12 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             // Login as the second user
             await loginPage.login(secondUser.email, secondUser.password);
 
-            // After login, user should be redirected to the join group page
-            await expect(unauthPage).toHaveURL(new RegExp(`/join-group.*${groupId}`));
+            // After login, user should be redirected to the join page with linkId
+            await expect(unauthPage).toHaveURL(/\/join\?linkId=/);
 
-            // Complete the join process
+            // Complete the join process - we're already on the join page after login redirect
             const joinPage = new JoinGroupPage(unauthPage);
-            await joinPage.joinGroupUsingShareLink(shareLink);
+            await joinPage.clickJoinGroupAndWaitForJoin();
 
             // Should be redirected to the group detail page
             await expect(unauthPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -199,9 +199,9 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const secondUserGroupDetailPage = new GroupDetailPage(unauthPage);
             await secondUserGroupDetailPage.waitForMemberCount(2);
 
-            // Verify the second user is visible in the group
+            // Verify the second user is visible in the group members list
             const secondUserDisplayName = await secondUserGroupDetailPage.getCurrentUserDisplayName();
-            await expect(unauthPage.getByText(secondUserDisplayName)).toBeVisible();
+            await expect(unauthPage.getByText(secondUserDisplayName).first()).toBeVisible();
         });
     });
 

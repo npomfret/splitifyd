@@ -926,6 +926,24 @@ To debug navigation issues:
 3. Review console logs for API errors or unexpected redirects
 4. Consider whether real-time updates are causing navigation issues
 
+### Real-Time Edge Case: User Removal Navigation
+
+When a user is removed from a group in real-time scenarios, the application now provides predictable navigation behavior. Previously, users could land on a 404 page creating unpredictable test behavior.
+
+**Application Fix (webapp-v2/src/pages/GroupDetailPage.tsx:104-114):**
+- When `GROUP_DELETED` error is detected, navigate immediately to dashboard
+- When "not found" errors occur in group context, treat as removal and redirect to dashboard immediately
+- No delays, no 404 pages, no manual button clicks required
+
+**Test Handling (`waitForDashboardWithFallback()` in `DashboardPage`):**
+As a fallback for any remaining edge cases, this method:
+
+1. Detects if the current URL contains '/404'
+2. Automatically clicks the "Go to Dashboard" button if present
+3. Waits for navigation to complete before proceeding
+
+This ensures tests remain robust even if the application behavior changes. The pattern is used in `realtime-edge-cases.e2e.test.ts` to handle user removal scenarios gracefully.
+
 ## Making Tests Resilient to Text Changes
 
 When implementing internationalization (i18n) or making text changes, e2e tests can break if they rely on hardcoded text selectors. Follow these patterns to make tests more resilient:

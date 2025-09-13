@@ -102,26 +102,9 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     if (error.value) {
         // Check if the group was deleted while being viewed
         if (error.value === 'GROUP_DELETED') {
-            // Show a friendly message and redirect to dashboard after a delay
-            setTimeout(() => {
-                navigationService.goToDashboard();
-            }, 2000);
-
-            return (
-                <BaseLayout>
-                    <div className="container mx-auto px-4 py-8">
-                        <Card className="p-6 text-center">
-                            <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                            <h2 className="text-xl font-semibold mb-2">Group Deleted</h2>
-                            <p className="text-gray-600 mb-4">This group has been permanently deleted and is no longer available.</p>
-                            <p className="text-sm text-gray-500 mb-4">Redirecting to dashboard...</p>
-                            <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
-                                Go to Dashboard Now
-                            </Button>
-                        </Card>
-                    </div>
-                </BaseLayout>
-            );
+            // Navigate immediately to dashboard for predictable behavior
+            navigationService.goToDashboard();
+            return null;
         }
 
         // Check if it's a 404 error (group not found or no access)
