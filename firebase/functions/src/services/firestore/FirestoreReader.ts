@@ -564,13 +564,16 @@ export class FirestoreReader implements IFirestoreReader {
         });
     }
 
-    async getAllGroupMemberIds(groupId: string) {
-        const affectedUsers: string[] = [];
-        const members = await this.getAllGroupMembers(groupId);
-        members.forEach((member) => {
-            affectedUsers.push(member.userId);
+    async getAllGroupMemberIds(groupId: string): Promise<string[]> {
+        return measureDb('GET_MEMBER_IDS', async () => {
+            // Single optimized query with ID-only projection
+            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
+                .where('groupId', '==', groupId)
+                .select('userId');  // Only fetch userId field
+
+            const snapshot = await membersQuery.get();
+            return snapshot.docs.map(doc => doc.data().userId);
         });
-        return affectedUsers;
     }
 
     async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {

@@ -183,6 +183,7 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         };
         mockFirestoreWriter = {
             updateUserNotification: vi.fn(),
+            setUserNotifications: vi.fn(),
         };
 
         notificationService = new NotificationService(mockFirestoreReader, mockFirestoreWriter);
@@ -194,27 +195,29 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const groupId = 'test-group-123';
         const changeTypes: ChangeType[] = ['transaction', 'balance'];
 
-        // Mock: All users have the group
-        mockFirestoreReader.getUserNotification.mockResolvedValue({
-            groups: { [groupId]: {} }
-        });
-        mockFirestoreWriter.updateUserNotification.mockResolvedValue({ id: 'test', success: true });
+        // Mock: setUserNotifications returns success
+        mockFirestoreWriter.setUserNotifications.mockResolvedValue({ id: 'test', success: true });
 
         // Act
         const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
-        // Assert: Should call updateUserNotification for each user with atomic updates
-        expect(mockFirestoreWriter.updateUserNotification).toHaveBeenCalledTimes(3);
-        
-        // Check that each call contains both change types in atomic update
-        const updateCalls = mockFirestoreWriter.updateUserNotification.mock.calls;
-        updateCalls.forEach(([userId, updates]: [string, any]) => {
+        // Assert: Should call setUserNotifications for each user with merge:true (no defensive reads)
+        expect(mockFirestoreWriter.setUserNotifications).toHaveBeenCalledTimes(3);
+
+        // Check that each call contains both change types in atomic update with merge:true
+        const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
+        updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
+            expect(merge).toBe(true); // Should use merge:true for upsert behavior
             expect(updates).toEqual(expect.objectContaining({
                 changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
-                [`groups.${groupId}.lastTransactionChange`]: expect.any(Object),
-                [`groups.${groupId}.transactionChangeCount`]: expect.any(Object),
-                [`groups.${groupId}.lastBalanceChange`]: expect.any(Object),
-                [`groups.${groupId}.balanceChangeCount`]: expect.any(Object),
+                groups: {
+                    [groupId]: expect.objectContaining({
+                        lastTransactionChange: expect.any(Object),
+                        transactionChangeCount: expect.any(Object),
+                        lastBalanceChange: expect.any(Object),
+                        balanceChangeCount: expect.any(Object),
+                    })
+                }
             }));
         });
 
@@ -229,21 +232,19 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const groupId = 'test-group-456';
         const changeTypes: ChangeType[] = ['transaction', 'balance'];
 
-        // Mock: user1 succeeds, user2 fails (user not in group), user3 succeeds
-        mockFirestoreReader.getUserNotification
-            .mockResolvedValueOnce({ groups: { [groupId]: {} } }) // user1 has group
-            .mockResolvedValueOnce({ groups: {} }) // user2 doesn't have group
-            .mockResolvedValueOnce({ groups: { [groupId]: {} } }); // user3 has group
-        
-        mockFirestoreWriter.updateUserNotification.mockResolvedValue({ id: 'test', success: true });
+        // Mock: user1 and user3 succeed, user2 fails (simulated network error)
+        mockFirestoreWriter.setUserNotifications
+            .mockResolvedValueOnce({ id: 'user1', success: true })
+            .mockResolvedValueOnce({ id: 'user2', success: false }) // Simulated failure
+            .mockResolvedValueOnce({ id: 'user3', success: true });
 
         // Act
         const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
-        // Assert: Should process all users, with user2 skipped gracefully
-        expect(mockFirestoreWriter.updateUserNotification).toHaveBeenCalledTimes(2); // Only user1 and user3 get written
-        expect(result.successCount).toBe(3); // All count as success (user2 gracefully skipped)
-        expect(result.failureCount).toBe(0);
+        // Assert: Should process all users, with proper success/failure handling
+        expect(mockFirestoreWriter.setUserNotifications).toHaveBeenCalledTimes(3); // All users attempted
+        expect(result.successCount).toBe(2); // user1 and user3 succeeded
+        expect(result.failureCount).toBe(1); // user2 failed
     });
 
     test('should work with single change type', async () => {
@@ -252,24 +253,26 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const groupId = 'test-group-single';
         const changeTypes: ChangeType[] = ['group'];
 
-        mockFirestoreReader.getUserNotification.mockResolvedValue({
-            groups: { [groupId]: {} }
-        });
-        mockFirestoreWriter.updateUserNotification.mockResolvedValue({ id: 'user1', success: true });
+        mockFirestoreWriter.setUserNotifications.mockResolvedValue({ id: 'user1', success: true });
 
         // Act
         const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
         // Assert: Should process single change type correctly
-        expect(mockFirestoreWriter.updateUserNotification).toHaveBeenCalledTimes(1);
-        const [userId, updates] = mockFirestoreWriter.updateUserNotification.mock.calls[0];
-        
+        expect(mockFirestoreWriter.setUserNotifications).toHaveBeenCalledTimes(1);
+        const [userId, updates, merge] = mockFirestoreWriter.setUserNotifications.mock.calls[0];
+
+        expect(merge).toBe(true);
         expect(updates).toEqual(expect.objectContaining({
             changeVersion: expect.any(Object), // FieldValue.increment(1)
-            [`groups.${groupId}.lastGroupDetailsChange`]: expect.any(Object),
-            [`groups.${groupId}.groupDetailsChangeCount`]: expect.any(Object),
+            groups: {
+                [groupId]: expect.objectContaining({
+                    lastGroupDetailsChange: expect.any(Object),
+                    groupDetailsChangeCount: expect.any(Object),
+                })
+            }
         }));
-        
+
         expect(result.successCount).toBe(1);
         expect(result.failureCount).toBe(0);
     });
@@ -280,26 +283,28 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const groupId = 'expense-or-settlement-group';
         const changeTypes: ChangeType[] = ['transaction', 'balance']; // Previously two separate calls!
 
-        mockFirestoreReader.getUserNotification.mockResolvedValue({
-            groups: { [groupId]: {} }
-        });
-        mockFirestoreWriter.updateUserNotification.mockResolvedValue({ id: 'test', success: true });
+        mockFirestoreWriter.setUserNotifications.mockResolvedValue({ id: 'test', success: true });
 
         // Act: Single atomic call instead of two separate ones
         const result = await notificationService.batchUpdateNotificationsMultipleTypes(userIds, groupId, changeTypes);
 
         // Assert: Should make exactly ONE atomic update per user with BOTH change types
-        expect(mockFirestoreWriter.updateUserNotification).toHaveBeenCalledTimes(2);
-        
-        // Verify both calls contain atomic updates for both change types
-        const updateCalls = mockFirestoreWriter.updateUserNotification.mock.calls;
-        updateCalls.forEach(([userId, updates]: [string, any]) => {
+        expect(mockFirestoreWriter.setUserNotifications).toHaveBeenCalledTimes(2);
+
+        // Verify both calls contain atomic updates for both change types with merge:true
+        const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
+        updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
+            expect(merge).toBe(true); // Should use upsert behavior
             expect(updates).toEqual(expect.objectContaining({
                 changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
-                [`groups.${groupId}.lastTransactionChange`]: expect.any(Object),
-                [`groups.${groupId}.transactionChangeCount`]: expect.any(Object),
-                [`groups.${groupId}.lastBalanceChange`]: expect.any(Object),
-                [`groups.${groupId}.balanceChangeCount`]: expect.any(Object),
+                groups: {
+                    [groupId]: expect.objectContaining({
+                        lastTransactionChange: expect.any(Object),
+                        transactionChangeCount: expect.any(Object),
+                        lastBalanceChange: expect.any(Object),
+                        balanceChangeCount: expect.any(Object),
+                    })
+                }
             }));
         });
 
@@ -307,6 +312,6 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         expect(result.successCount).toBe(2);
         expect(result.failureCount).toBe(0);
 
-        console.log('✅ PHASE 5: Atomic notification update validated - single method handles all logic');
+        console.log('✅ OPTIMIZED: Atomic notification update with merge:true - no defensive reads needed');
     });
 });
