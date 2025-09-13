@@ -9,9 +9,11 @@ import {
     borrowTestUser,
     generateShortId
 } from '@splitifyd/test-support';
-import { SecurityPresets, PooledTestUser } from '@splitifyd/shared';
+import { SecurityPresets, PooledTestUser, FirestoreCollections } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { FirestoreReader } from '../../services/firestore';
+import { getTopLevelMembershipDocId } from '../../utils/groupMembershipHelpers';
 
 describe('Groups Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -1156,5 +1158,484 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify the group is actually deleted
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
         }, 15000);
+    });
+
+    describe('Group Lifecycle Edge Cases', () => {
+        let testGroup: any;
+        let groupUsers: PooledTestUser[];
+
+        beforeEach(async () => {
+            groupUsers = users.slice(0, 4);
+            testGroup = await apiDriver.createGroupWithMembers(`Lifecycle Test Group ${uuidv4()}`, groupUsers, groupUsers[0].token);
+        });
+
+        test('should handle viewing group with no expenses', async () => {
+            // Create a fresh group with no expenses using the builder
+            // Note: Only the creator will be a member initially
+            const groupData = new CreateGroupRequestBuilder().withName(`Empty Group ${uuidv4()}`).build();
+            const emptyGroup = await apiDriver.createGroup(groupData, users[0].token);
+
+            // Verify the group was created
+            const { group: createdGroup } = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
+            expect(createdGroup.id).toBe(emptyGroup.id);
+
+            // Should be able to get group details and verify no expenses
+            const { group: groupDetails } = await apiDriver.getGroupFullDetails(emptyGroup.id, users[0].token);
+            expect(groupDetails).toHaveProperty('id');
+
+            // Verify no expenses exist
+            const expenses = await apiDriver.getGroupExpenses(emptyGroup.id, users[0].token);
+            expect(expenses.expenses).toHaveLength(0);
+
+            // Verify empty group details include balance structure
+            expect(groupDetails).toHaveProperty('balance');
+            // For groups without expenses, balance should be empty or zero
+            if (groupDetails.balance?.balancesByCurrency?.['USD']) {
+                expect(groupDetails.balance.balancesByCurrency['USD'].netBalance).toBe(0);
+            }
+        });
+
+        test('should handle multiple expenses with same participants', async () => {
+            // Use the 4th user for this isolated test (we borrowed 4 users total)
+            const testUser = users[3];
+
+            const multiExpenseGroupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).build();
+            const multiExpenseGroup = await apiDriver.createGroup(multiExpenseGroupData, testUser.token);
+
+            // Create multiple expenses where the user pays themselves (testing expense tracking)
+            const expenses = [
+                { amount: 50, description: 'Expense 1' },
+                { amount: 30, description: 'Expense 2' },
+                { amount: 20, description: 'Expense 3' },
+            ];
+
+            const createdExpenseIds = [];
+            for (const expense of expenses) {
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(multiExpenseGroup.id)
+                    .withAmount(expense.amount)
+                    .withDescription(expense.description)
+                    .withPaidBy(testUser.uid)
+                    .withParticipants([testUser.uid])
+                    .withSplitType('equal')
+                    .build();
+                const createdExpense = await apiDriver.createExpense(expenseData, testUser.token);
+                createdExpenseIds.push(createdExpense.id);
+            }
+
+            // Verify expenses were created correctly
+            const loadedExpenses = await Promise.all(createdExpenseIds.map((id) => apiDriver.getExpense(id, testUser.token)));
+
+            expect(loadedExpenses).toHaveLength(3);
+            expect(loadedExpenses[0].amount).toBe(50);
+            expect(loadedExpenses[0].paidBy).toBe(testUser.uid);
+            expect(loadedExpenses[1].amount).toBe(30);
+            expect(loadedExpenses[1].paidBy).toBe(testUser.uid);
+            expect(loadedExpenses[2].amount).toBe(20);
+            expect(loadedExpenses[2].paidBy).toBe(testUser.uid);
+
+            // Verify all expenses are tracked
+            const groupExpenses = await apiDriver.getGroupExpenses(multiExpenseGroup.id, testUser.token);
+            expect(groupExpenses.expenses).toHaveLength(3);
+
+            // Get group directly to check balance
+            const groupInList = await apiDriver.getGroup(multiExpenseGroup.id, testUser.token);
+            expect(groupInList).toBeDefined();
+
+            // When a user pays for expenses only they participate in, net balance should be 0
+            if (groupInList?.balance?.balancesByCurrency) {
+                const usdBalance = groupInList.balance.balancesByCurrency['USD'];
+                if (usdBalance) {
+                    expect(usdBalance.netBalance).toBe(0);
+                }
+            }
+        });
+
+        test('should handle deleting expenses successfully', async () => {
+            // Focus on expense deletion functionality rather than balance recalculation
+
+            // Create an expense
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('To Be Deleted Test')
+                .withAmount(100) // Test expense deletion - this is what the test is about
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
+                .build();
+
+            const createdExpense = await apiDriver.createExpense(expenseData, users[0].token);
+            expect(createdExpense.id).toBeDefined();
+
+            // Verify the expense exists
+            const fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
+            expect(fetchedExpense).toBeDefined();
+            expect(fetchedExpense.description).toBe('To Be Deleted Test');
+
+            // Delete the expense
+            await apiDriver.deleteExpense(createdExpense.id, users[0].token);
+
+            // Verify the expense is gone
+            await expect(apiDriver.getExpense(createdExpense.id, users[0].token)).rejects.toThrow(/not found|deleted|404/i);
+        });
+
+        test('should handle complex split scenarios', async () => {
+            // Create a fresh group for this test to ensure clean state
+            const complexGroupData = new CreateGroupRequestBuilder().withName(`Complex Split Group ${uuidv4()}`).build();
+            const complexGroup = await apiDriver.createGroup(complexGroupData, users[0].token);
+
+            // Scenario: Mixed split types in one group - just verify structure
+            const expenseData1 = new CreateExpenseRequestBuilder()
+                .withGroupId(complexGroup.id)
+                .withAmount(90) // Complex split scenario - this is what the test is about
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
+
+            await apiDriver.createExpense(expenseData1, users[0].token);
+
+            // Verify expense was created
+            const expenses = await apiDriver.getGroupExpenses(complexGroup.id, users[0].token);
+            expect(expenses.expenses).toHaveLength(1);
+            expect(expenses.expenses[0].amount).toBe(90);
+
+            // Verify group details include balance info after expense creation
+            const { group: groupWithBalance } = await apiDriver.getGroupFullDetails(complexGroup.id, users[0].token);
+            expect(groupWithBalance).toHaveProperty('balance');
+
+            // When a single user pays for expenses they fully participate in, net balance is 0
+            if (groupWithBalance.balance?.balancesByCurrency?.['USD']) {
+                expect(groupWithBalance.balance.balancesByCurrency['USD'].netBalance).toBe(0);
+            }
+        });
+
+        test('should handle expense updates successfully', async () => {
+            // Focus on expense update functionality rather than balance recalculation
+
+            // Create initial expense
+            const initialExpenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Update Test Expense')
+                .withAmount(50) // Test expense updates - this is what the test is about
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid, users[1].uid])
+                .withSplitType('equal')
+                .build();
+
+            const createdExpense = await apiDriver.createExpense(initialExpenseData, users[0].token);
+            expect(createdExpense.id).toBeDefined();
+
+            // Verify initial expense data
+            let fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
+            expect(fetchedExpense.amount).toBe(50);
+            expect(fetchedExpense.description).toBe('Update Test Expense');
+
+            // Update the expense
+            await apiDriver.updateExpense(
+                createdExpense.id,
+                {
+                    amount: 80,
+                    description: 'Updated Test Expense',
+                },
+                users[0].token,
+            );
+
+            // Verify the update worked
+            fetchedExpense = await apiDriver.getExpense(createdExpense.id, users[0].token);
+            expect(fetchedExpense.amount).toBe(80);
+            expect(fetchedExpense.description).toBe('Updated Test Expense');
+
+            // Verify splits were recalculated
+            expect(fetchedExpense.splits).toHaveLength(2);
+            const totalSplits = fetchedExpense.splits.reduce((sum: number, split: any) => sum + split.amount, 0);
+            expect(totalSplits).toBeCloseTo(80, 1);
+        });
+    });
+
+    describe('Comprehensive Group Deletion Tests', () => {
+        test('should successfully delete group with soft-deleted expenses using hard delete', async () => {
+            const groupUsers = await borrowTestUsers(2);
+            const [user1, user2] = groupUsers;
+
+            // Create a group
+            const groupData = new CreateGroupRequestBuilder().withName(`Bug Reproduction Group ${uuidv4()}`).withDescription('Testing group deletion with soft-deleted expenses').build();
+
+            const testGroup = await apiDriver.createGroup(groupData, user1.token);
+
+            // Add second user to the group
+            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+
+            // Create an expense
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Expense to be deleted')
+                .withAmount(50)
+                .withPaidBy(user1.uid)
+                .withParticipants([user1.uid, user2.uid])
+                .withSplitType('equal')
+                .build();
+
+            const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
+
+            // Soft-delete the expense (this simulates the bug scenario)
+            await apiDriver.deleteExpense(createdExpense.id, user1.token);
+
+            // Verify the expense is soft-deleted but still exists in Firestore
+            // (It should have deletedAt field set but still be in the collection)
+
+            // Hard delete should succeed and clean up all data including soft-deleted expenses
+            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
+
+            expect(deleteResponse).toHaveProperty('message');
+            expect(deleteResponse.message).toContain('deleted permanently');
+
+            // Verify the group is actually deleted
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+
+            // Also verify that user2 can't access it
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+        });
+
+        test('should delete group with multiple soft-deleted expenses', async () => {
+            const groupUsers = await borrowTestUsers(3);
+            const [user1, user2, user3] = groupUsers;
+
+            // Create a group with multiple members
+            const groupData = new CreateGroupRequestBuilder().withName(`Multi Expense Group ${uuidv4()}`).withDescription('Testing group deletion with multiple soft-deleted expenses').build();
+
+            const testGroup = await apiDriver.createGroup(groupData, user1.token);
+
+            // Add other users to the group
+            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user3.token);
+
+            // Create multiple expenses and soft-delete them all
+            const expenseIds: string[] = [];
+
+            for (let i = 1; i <= 3; i++) {
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription(`Expense ${i}`)
+                    .withAmount(25 * i)
+                    .withPaidBy(groupUsers[i - 1].uid)
+                    .withParticipants([user1.uid, user2.uid, user3.uid])
+                    .withSplitType('equal')
+                    .build();
+
+                const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
+                expenseIds.push(createdExpense.id);
+
+                // Soft-delete the expense
+                await apiDriver.deleteExpense(createdExpense.id, user1.token);
+            }
+
+            // Try to delete the group - should work with the fix
+            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
+
+            expect(deleteResponse).toHaveProperty('message');
+            expect(deleteResponse.message).toContain('deleted permanently');
+
+            // Verify the group is deleted for all users
+            for (const user of groupUsers) {
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, user.token)).rejects.toThrow(/404|not found/i);
+            }
+        });
+
+        test('should clean up member subcollection when deleting group', async () => {
+            const groupUsers = await borrowTestUsers(4);
+            const [owner, ...members] = groupUsers;
+
+            // Create a group with multiple members
+            const groupData = new CreateGroupRequestBuilder().withName(`Member Cleanup Group ${uuidv4()}`).withDescription('Testing member subcollection cleanup').build();
+
+            const testGroup = await apiDriver.createGroup(groupData, owner.token);
+
+            // Add multiple members to create subcollection documents
+            const shareResponse = await apiDriver.generateShareLink(testGroup.id, owner.token);
+            for (const member of members) {
+                await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member.token);
+            }
+
+            // Verify all members are in the group
+            const { members: groupMembers } = await apiDriver.getGroupFullDetails(testGroup.id, owner.token);
+            expect(groupMembers.members).toHaveLength(4); // owner + 3 members
+
+            // Delete the group
+            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, owner.token);
+
+            expect(deleteResponse).toHaveProperty('message');
+            expect(deleteResponse.message).toContain('deleted permanently');
+
+            // Verify the group is completely gone
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, owner.token)).rejects.toThrow(/404|not found/i);
+
+            // Verify members can't access it either (confirms proper cleanup)
+            for (const member of members) {
+                await expect(apiDriver.getGroupFullDetails(testGroup.id, member.token)).rejects.toThrow(/404|not found/i);
+            }
+        });
+
+        test('should successfully delete group with active (non-deleted) expenses using hard delete', async () => {
+            const groupUsers = await borrowTestUsers(2);
+            const [user1, user2] = groupUsers;
+
+            // Create a group
+            const groupData = new CreateGroupRequestBuilder().withName(`Active Expense Group ${uuidv4()}`).withDescription('Testing hard delete with active expenses').build();
+
+            const testGroup = await apiDriver.createGroup(groupData, user1.token);
+
+            // Add second user
+            const shareResponse = await apiDriver.generateShareLink(testGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
+
+            // Create an active expense (don't delete it)
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription('Active expense')
+                .withAmount(75)
+                .withPaidBy(user1.uid)
+                .withParticipants([user1.uid, user2.uid])
+                .withSplitType('equal')
+                .build();
+
+            const createdExpense = await apiDriver.createExpense(expenseData, user1.token);
+
+            // Hard delete should succeed even with active expenses
+            const deleteResponse = await apiDriver.deleteGroup(testGroup.id, user1.token);
+
+            expect(deleteResponse).toHaveProperty('message');
+            expect(deleteResponse.message).toContain('deleted permanently');
+
+            // Verify the group is completely deleted
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, user1.token)).rejects.toThrow(/404|not found/i);
+
+            // Verify user2 also can't access it
+            await expect(apiDriver.getGroupFullDetails(testGroup.id, user2.token)).rejects.toThrow(/404|not found/i);
+
+            // Verify the expense is also deleted (hard delete removes everything)
+            await expect(apiDriver.getExpense(createdExpense.id, user1.token)).rejects.toThrow(/404|not found/i);
+        });
+
+        test('should completely delete group with ALL subcollections and related data', async () => {
+            const groupUsers = await borrowTestUsers(4);
+            const [owner, member1, member2, member3] = groupUsers;
+
+            // Create a comprehensive group with ALL possible related data
+            const groupData = new CreateGroupRequestBuilder().withName(`Comprehensive Deletion Test ${uuidv4()}`).withDescription('Testing complete deletion of all subcollections').build();
+
+            const testGroup = await apiDriver.createGroup(groupData, owner.token);
+            const groupId = testGroup.id;
+
+            // Add multiple members to create member documents
+            const shareResponse = await apiDriver.generateShareLink(groupId, owner.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member2.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, member3.token);
+
+            // Create multiple expenses (both active and soft-deleted) to populate various collections
+            const expenses = [];
+            for (let i = 1; i <= 4; i++) {
+                const expenseData = new CreateExpenseRequestBuilder()
+                    .withGroupId(groupId)
+                    .withAmount(25 * i)
+                    .withPaidBy(groupUsers[i - 1].uid)
+                    .withParticipants([owner.uid, member1.uid, member2.uid, member3.uid])
+                    .withSplitType('equal')
+                    .build();
+
+                const expense = await apiDriver.createExpense(expenseData, owner.token);
+                expenses.push(expense);
+            }
+
+            // Soft-delete some expenses (creates deletedAt field but keeps documents)
+            await apiDriver.deleteExpense(expenses[0].id, owner.token);
+            await apiDriver.deleteExpense(expenses[1].id, owner.token);
+
+            // Create settlements to populate settlements collection
+            const settlementData = new SettlementBuilder().withGroupId(groupId).withPayer(member1.uid).withPayee(owner.uid).withAmount(50.0).build();
+            await apiDriver.createSettlement(settlementData, member1.token);
+
+            // Create multiple share links to populate shareLinks subcollection
+            await apiDriver.generateShareLink(groupId, owner.token);
+            await apiDriver.generateShareLink(groupId, owner.token);
+
+            // Add comments on group to populate group comments subcollection
+            await apiDriver.createGroupComment(groupId, 'Group comment 1', owner.token);
+            await apiDriver.createGroupComment(groupId, 'Group comment 2', member1.token);
+
+            // Add comments on expenses to populate expense comments subcollections
+            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 1', owner.token);
+            await apiDriver.createExpenseComment(expenses[2].id, 'Expense comment 2', member1.token);
+            await apiDriver.createExpenseComment(expenses[3].id, 'Another expense comment', member2.token);
+
+            // Wait to ensure all data has been created and change documents generated
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Use FirestoreReader for proper verification
+            const firestore = getFirestore();
+            const firestoreReader = new FirestoreReader(firestore);
+
+            // VERIFICATION BEFORE DELETION: Use the group deletion data method that mirrors the actual deletion logic
+            const groupDeletionData = await firestoreReader.getGroupDeletionData(groupId);
+
+            expect(groupDeletionData.expenses.size).toBeGreaterThanOrEqual(4); // All 4 expenses
+            expect(groupDeletionData.settlements.size).toBeGreaterThanOrEqual(1); // At least our settlement
+            expect(groupDeletionData.shareLinks.size).toBeGreaterThanOrEqual(2); // 2 share links created
+            expect(groupDeletionData.groupComments.size).toBeGreaterThanOrEqual(2); // 2 group comments
+
+            // Count expense comments across all expenses
+            const totalExpenseComments = groupDeletionData.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
+            expect(totalExpenseComments).toBeGreaterThanOrEqual(3); // 3 expense comments total
+
+            console.log(
+                `Before deletion - Expenses: ${groupDeletionData.expenses.size}, Settlements: ${groupDeletionData.settlements.size}, Share links: ${groupDeletionData.shareLinks.size}, Group comments: ${groupDeletionData.groupComments.size}, Expense comments: ${totalExpenseComments},`,
+            );
+
+            // PERFORM HARD DELETE
+            const deleteResponse = await apiDriver.deleteGroup(groupId, owner.token);
+
+            expect(deleteResponse).toHaveProperty('message');
+            expect(deleteResponse.message).toContain('deleted permanently');
+
+            // COMPREHENSIVE VERIFICATION: ALL subcollections should be completely deleted
+
+            // 1. Main group document should be deleted - use FirestoreReader method
+            const groupExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUPS, groupId);
+            expect(groupExists).toBe(false);
+
+            // 2. Use group deletion data method to verify all subcollections are empty
+            const groupDeletionDataAfter = await firestoreReader.getGroupDeletionData(groupId);
+
+            expect(groupDeletionDataAfter.expenses.size).toBe(0);
+            expect(groupDeletionDataAfter.settlements.size).toBe(0);
+            expect(groupDeletionDataAfter.shareLinks.size).toBe(0);
+            expect(groupDeletionDataAfter.groupComments.size).toBe(0);
+
+            // Verify all expense comment subcollections are empty
+            const totalExpenseCommentsAfter = groupDeletionDataAfter.expenseComments.reduce((sum, snapshot) => sum + snapshot.size, 0);
+            expect(totalExpenseCommentsAfter).toBe(0);
+
+            // 5. All top-level GROUP_MEMBERSHIPS documents should be deleted - use FirestoreReader
+            for (const user of groupUsers) {
+                const topLevelDocId = getTopLevelMembershipDocId(user.uid, groupId);
+                const membershipExists = await firestoreReader.verifyDocumentExists(FirestoreCollections.GROUP_MEMBERSHIPS, topLevelDocId);
+                expect(membershipExists).toBe(false);
+            }
+
+            // 10. API calls should return 404 for all users
+            for (const user of groupUsers) {
+                await expect(apiDriver.getGroupFullDetails(groupId, user.token)).rejects.toThrow(/404|not found/i);
+            }
+
+            // 11. Individual expenses should return 404
+            for (const expense of expenses) {
+                await expect(apiDriver.getExpense(expense.id, owner.token)).rejects.toThrow(/404|not found/i);
+            }
+
+            console.log('✅ Comprehensive group deletion test passed - all subcollections verified as deleted');
+        }, 30000); // Extended timeout for comprehensive test
     });
 });
