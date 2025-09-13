@@ -1122,7 +1122,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Verify the group is actually deleted from the backend
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
-        }, 15000);
+        }, 5000);
 
         test('should handle single user group deletion', async () => {
             // Create a group with just the owner
@@ -1159,7 +1159,7 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // Verify the group is actually deleted
             await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
-        }, 15000);
+        }, 5000);
     });
 
     describe('Group Lifecycle Edge Cases', () => {
@@ -1192,8 +1192,8 @@ describe('Groups Management - Consolidated Tests', () => {
             // Verify empty group details include balance structure
             expect(groupDetails).toHaveProperty('balance');
             // For groups without expenses, balance should be empty or zero
-            if (groupDetails.balance?.balancesByCurrency?.['USD']) {
-                expect(groupDetails.balance.balancesByCurrency['USD'].netBalance).toBe(0);
+            if (groupDetails.balance?.balancesByCurrency?.['EUR']) {
+                expect(groupDetails.balance.balancesByCurrency['EUR'].netBalance).toBe(0);
             }
         });
 
@@ -1246,9 +1246,9 @@ describe('Groups Management - Consolidated Tests', () => {
 
             // When a user pays for expenses only they participate in, net balance should be 0
             if (groupInList?.balance?.balancesByCurrency) {
-                const usdBalance = groupInList.balance.balancesByCurrency['USD'];
-                if (usdBalance) {
-                    expect(usdBalance.netBalance).toBe(0);
+                const eurBalance = groupInList.balance.balancesByCurrency['EUR'];
+                if (eurBalance) {
+                    expect(eurBalance.netBalance).toBe(0);
                 }
             }
         });
@@ -1307,8 +1307,8 @@ describe('Groups Management - Consolidated Tests', () => {
             expect(groupWithBalance).toHaveProperty('balance');
 
             // When a single user pays for expenses they fully participate in, net balance is 0
-            if (groupWithBalance.balance?.balancesByCurrency?.['USD']) {
-                expect(groupWithBalance.balance.balancesByCurrency['USD'].netBalance).toBe(0);
+            if (groupWithBalance.balance?.balancesByCurrency?.['EUR']) {
+                expect(groupWithBalance.balance.balancesByCurrency['EUR'].netBalance).toBe(0);
             }
         });
 
@@ -1638,7 +1638,7 @@ describe('Groups Management - Consolidated Tests', () => {
             }
 
             console.log('✅ Comprehensive group deletion test passed - all subcollections verified as deleted');
-        }, 30000); // Extended timeout for comprehensive test
+        }, 5000); // Fast timeout for comprehensive test
     });
 
     describe('Member Management Operations', () => {

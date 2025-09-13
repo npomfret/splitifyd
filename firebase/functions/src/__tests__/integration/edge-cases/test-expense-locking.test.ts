@@ -30,7 +30,7 @@ describe('Expense Locking Debug Test', () => {
                 groupId: group.id,
                 description: 'Test Expense',
                 amount: 100,
-                currency: 'USD',
+                currency: 'EUR',
                 paidBy: user1.uid,
                 category: 'food',
                 date: new Date().toISOString(),

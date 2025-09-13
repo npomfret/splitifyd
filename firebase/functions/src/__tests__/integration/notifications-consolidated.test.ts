@@ -49,13 +49,17 @@ describe('Notifications Management - Consolidated Tests', () => {
             expect(notificationDoc!.groups[group.id].groupDetailsChangeCount).toBeGreaterThan(0);
             expect(notificationDoc!.groups[group.id].lastGroupDetailsChange).toBeTruthy();
 
-            // Create expense to test transaction notifications
+            // Add second user to group first
+            const shareResponse = await apiDriver.generateShareLink(group.id, users[0].token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[1].token);
+
+            // Create expense involving both users to ensure transaction notification triggers
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
                     .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
-                    .withAmount(25.0)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .withAmount(50.0)
                     .build(),
                 users[0].token
             );
@@ -612,13 +616,13 @@ describe('Notifications Management - Consolidated Tests', () => {
                     users[0].uid,
                     conflictGroup.id,
                     (doc) => doc.groups[conflictGroup.id]?.transactionChangeCount >= 5,
-                    { timeout: 10000, errorMsg: 'User 0 did not receive all concurrent notifications despite conflicts' }
+                    { timeout: 5000, errorMsg: 'User 0 did not receive all concurrent notifications despite conflicts' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
                     users[1].uid,
                     conflictGroup.id,
                     (doc) => doc.groups[conflictGroup.id]?.transactionChangeCount >= 5,
-                    { timeout: 10000, errorMsg: 'User 1 did not receive all concurrent notifications despite conflicts' }
+                    { timeout: 5000, errorMsg: 'User 1 did not receive all concurrent notifications despite conflicts' }
                 ),
             ]);
         });
@@ -650,7 +654,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 users[0].uid,
                 lockingGroup.id,
                 (doc) => doc.groups[lockingGroup.id]?.transactionChangeCount >= 7,
-                { timeout: 15000, errorMsg: 'Not all notifications received despite document locking scenarios' }
+                { timeout: 5000, errorMsg: 'Not all notifications received despite document locking scenarios' }
             );
 
             // Test that system continues to work after potential document contention
@@ -845,7 +849,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 users[0].uid,
                 loadTestGroup.id,
                 (doc) => doc.groups[loadTestGroup.id]?.transactionChangeCount >= initialTransactionCount + 8,
-                { timeout: 15000, errorMsg: 'Not all load test notifications were processed' }
+                { timeout: 5000, errorMsg: 'Not all load test notifications were processed' }
             );
         });
 
@@ -911,19 +915,19 @@ describe('Notifications Management - Consolidated Tests', () => {
                     users[0].uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
-                    { timeout: 10000, errorMsg: 'User 0 did not receive all scale notifications' }
+                    { timeout: 5000, errorMsg: 'User 0 did not receive all scale notifications' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
                     users[1].uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
-                    { timeout: 10000, errorMsg: 'User 1 did not receive all scale notifications' }
+                    { timeout: 5000, errorMsg: 'User 1 did not receive all scale notifications' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
                     users[2].uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
-                    { timeout: 10000, errorMsg: 'User 2 did not receive all scale notifications' }
+                    { timeout: 5000, errorMsg: 'User 2 did not receive all scale notifications' }
                 ),
             ]);
         });

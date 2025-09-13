@@ -1,5 +1,5 @@
 // Comprehensive input validation integration tests
-// Consolidates validation tests from amount-validation.test.ts, split-validation.test.ts, negative-value-validation.test.ts, and data-validation.test.ts
+// Consolidates validation tests from amount-validation.test.ts, split-validation.test.ts, negative-value-validation.test.ts, data-validation.test.ts, and policy-validation.test.ts
 
 import { beforeEach, describe, expect, test } from 'vitest';
 
@@ -509,6 +509,131 @@ describe('Input Validation', () => {
 
             const response = await apiDriver.createExpense(expenseData, users[0].token);
             expect(response.id).toBeDefined();
+        });
+    });
+
+    describe('Policy Validation', () => {
+        describe('Accept Single Policy Validation', () => {
+            test('should reject missing policyId', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept', 'POST', { versionHash: 'some-hash' }, users[0].token)).rejects.toThrow(/Policy ID is required/);
+            });
+
+            test('should reject missing versionHash', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept', 'POST', { policyId: 'terms-of-service' }, users[0].token)).rejects.toThrow(/Version hash is required/);
+            });
+
+            test('should reject empty policyId', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept', 'POST', { policyId: '', versionHash: 'some-hash' }, users[0].token)).rejects.toThrow(/Policy ID is required/);
+            });
+
+            test('should reject empty versionHash', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept', 'POST', { policyId: 'terms-of-service', versionHash: '' }, users[0].token)).rejects.toThrow(/Version hash is required/);
+            });
+
+            test('should strip unknown fields from policy acceptance', async () => {
+                await expect(
+                    apiDriver['apiRequest'](
+                        '/user/policies/accept',
+                        'POST',
+                        {
+                            policyId: 'non-existent-policy',
+                            versionHash: 'test-hash',
+                            extraField: 'should be stripped',
+                            anotherField: 123,
+                        },
+                        users[0].token,
+                    ),
+                ).rejects.toThrow(/POLICY_NOT_FOUND|Policy not found|INVALID_VERSION_HASH/);
+            });
+
+            test('should trim whitespace from policy inputs', async () => {
+                await expect(
+                    apiDriver['apiRequest'](
+                        '/user/policies/accept',
+                        'POST',
+                        {
+                            policyId: '  terms-of-service  ',
+                            versionHash: '  test-hash  ',
+                        },
+                        users[0].token,
+                    ),
+                ).rejects.toThrow(/POLICY_NOT_FOUND|Policy not found|INVALID_VERSION_HASH/);
+            });
+        });
+
+        describe('Accept Multiple Policies Validation', () => {
+            test('should reject missing acceptances array', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', {}, users[0].token)).rejects.toThrow(/Acceptances array is required/);
+            });
+
+            test('should reject empty acceptances array', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [] }, users[0].token)).rejects.toThrow(/At least one policy acceptance is required/);
+            });
+
+            test('should reject invalid acceptance items', async () => {
+                await expect(
+                    apiDriver['apiRequest'](
+                        '/user/policies/accept-multiple',
+                        'POST',
+                        {
+                            acceptances: [
+                                { policyId: 'terms' }, // missing versionHash
+                            ],
+                        },
+                        users[0].token,
+                    ),
+                ).rejects.toThrow(/required/);
+            });
+
+            test('should reject non-array acceptances', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: 'not-an-array' }, users[0].token)).rejects.toThrow(/must be an array/);
+            });
+
+            test('should validate each item in acceptances array', async () => {
+                await expect(
+                    apiDriver['apiRequest'](
+                        '/user/policies/accept-multiple',
+                        'POST',
+                        {
+                            acceptances: [
+                                { policyId: 'terms', versionHash: 'v1' },
+                                { policyId: '', versionHash: 'v2' }, // empty policyId
+                            ],
+                        },
+                        users[0].token,
+                    ),
+                ).rejects.toThrow(/empty/);
+            });
+
+            test('should strip unknown fields from policy acceptances', async () => {
+                await expect(
+                    apiDriver['apiRequest'](
+                        '/user/policies/accept-multiple',
+                        'POST',
+                        {
+                            acceptances: [
+                                {
+                                    policyId: 'non-existent',
+                                    versionHash: 'test',
+                                    extraField: 'ignored',
+                                },
+                            ],
+                            anotherExtra: 'also-ignored',
+                        },
+                        users[0].token,
+                    ),
+                ).rejects.toThrow(/POLICY_NOT_FOUND|Policy not found|INVALID_VERSION_HASH/);
+            });
+        });
+
+        describe('Policy Authorization', () => {
+            test('should reject unauthenticated requests for accept', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept', 'POST', { policyId: 'terms', versionHash: 'v1' }, null)).rejects.toThrow(/401|AUTH_REQUIRED/);
+            });
+
+            test('should reject unauthenticated requests for accept-multiple', async () => {
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [{ policyId: 'terms', versionHash: 'v1' }] }, null)).rejects.toThrow(/401|AUTH_REQUIRED/);
+            });
         });
     });
 });

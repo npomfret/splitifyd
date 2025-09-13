@@ -64,5 +64,5 @@ export const FIRESTORE = {
     /** Maximum deletion attempts before marking as permanently failed */
     MAX_DELETION_ATTEMPTS: 3,
     /** Timeout for individual transaction operations (milliseconds) */
-    TRANSACTION_TIMEOUT_MS: 10000,
+    TRANSACTION_TIMEOUT_MS: 5000,
 } as const;
