@@ -657,4 +657,504 @@ describe('Groups Management - Consolidated Tests', () => {
             await expect(groupService.deleteGroup(testGroup.id, users[1].uid)).rejects.toThrow();
         });
     });
+
+    describe('Group Member Management and Operations', () => {
+        // Helper function to create a group with multiple members
+        const createGroupWithMembers = async (driver: ApiDriver, users: any[]): Promise<string> => {
+            const groupData = new CreateGroupRequestBuilder().withName(`Member Test Group ${uuidv4()}`).withDescription('Test group for member operations').build();
+
+            const group = await driver.createGroup(groupData, users[0].token);
+
+            // Add additional members to the group via share link
+            if (users.length > 1) {
+                const shareResponse = await driver.generateShareLink(group.id, users[0].token);
+                for (let i = 1; i < users.length; i++) {
+                    await driver.joinGroupViaShareLink(shareResponse.linkId, users[i].token);
+                }
+            }
+
+            return group.id;
+        };
+
+        describe('Member Information and Retrieval', () => {
+            test('should return all group members via getGroupFullDetails', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+
+                const response = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+
+                expect(response.members).toMatchObject({
+                    members: expect.arrayContaining([
+                        expect.objectContaining({ uid: testUsers[0].uid }),
+                        expect.objectContaining({ uid: testUsers[1].uid }),
+                        expect.objectContaining({ uid: testUsers[2].uid })
+                    ]),
+                });
+                expect(response.members.members.length).toBe(3);
+            });
+
+            test('should return members sorted alphabetically', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+
+                const response = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+
+                const displayNames = response.members.members.map((m: any) => m.displayName);
+                const sortedNames = [...displayNames].sort((a, b) => a.localeCompare(b));
+                expect(displayNames).toEqual(sortedNames);
+            });
+
+            test('should enforce authentication for member access', async () => {
+                const testUsers = users.slice(0, 1);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+
+                await expect(apiDriver.getGroupFullDetails(groupId, 'invalid-token')).rejects.toThrow();
+            });
+
+            test('should enforce member access control', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, [testUsers[0]]);
+                const nonMember = testUsers[1];
+
+                await expect(apiDriver.getGroupFullDetails(groupId, nonMember.token)).rejects.toThrow();
+            });
+        });
+
+        describe('Member Leaving Operations', () => {
+            test('should allow a member to leave the group', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const memberToLeave = testUsers[1];
+
+                const response = await apiDriver.leaveGroup(groupId, memberToLeave.token);
+
+                expect(response).toEqual({
+                    success: true,
+                    message: 'Successfully left the group',
+                });
+
+                // Verify member was removed
+                const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+                expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).not.toContain(memberToLeave.uid);
+                expect(fullDetailsResponse.members.members.length).toBe(2);
+            });
+
+            test('should prevent the creator from leaving', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+
+                await expect(apiDriver.leaveGroup(groupId, testUsers[0].token)).rejects.toThrow(/Group creator cannot leave/);
+            });
+
+            test('should prevent leaving with outstanding balance', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const memberWithDebt = testUsers[1];
+
+                // Create an expense where member owes money
+                await apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription('Test expense')
+                        .withAmount(100)
+                        .withPaidBy(testUsers[0].uid)
+                        .withParticipants([testUsers[0].uid, memberWithDebt.uid])
+                        .withSplitType('equal')
+                        .build(),
+                    testUsers[0].token,
+                );
+
+                await expect(apiDriver.leaveGroup(groupId, memberWithDebt.token)).rejects.toThrow(/Cannot leave group with outstanding balance/);
+            });
+
+            test('should update timestamps when leaving', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const memberToLeave = testUsers[1];
+
+                // Get group info before leaving
+                const { group: groupBefore } = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+
+                await apiDriver.leaveGroup(groupId, memberToLeave.token);
+
+                // Verify timestamps were updated
+                const { group: groupAfter } = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+                expect(new Date(groupAfter.updatedAt).getTime()).toBeGreaterThan(new Date(groupBefore.updatedAt).getTime());
+            });
+        });
+
+        describe('Member Removal Operations', () => {
+            test('should allow creator to remove a member', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const creator = testUsers[0];
+                const memberToRemove = testUsers[1];
+
+                const response = await apiDriver.removeGroupMember(groupId, memberToRemove.uid, creator.token);
+
+                expect(response).toEqual({
+                    success: true,
+                    message: 'Member removed successfully',
+                });
+
+                // Verify member was removed
+                const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, creator.token);
+                expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).not.toContain(memberToRemove.uid);
+                expect(fullDetailsResponse.members.members.length).toBe(2);
+            });
+
+            test('should prevent non-creator from removing members', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const nonCreator = testUsers[1];
+                const memberToRemove = testUsers[2];
+
+                await expect(apiDriver.removeGroupMember(groupId, memberToRemove.uid, nonCreator.token)).rejects.toThrow(/FORBIDDEN/);
+            });
+
+            test('should prevent removing the creator', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const creator = testUsers[0];
+
+                await expect(apiDriver.removeGroupMember(groupId, creator.uid, creator.token)).rejects.toThrow(/Group creator cannot be removed/);
+            });
+
+            test('should prevent removing member with outstanding balance', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const creator = testUsers[0];
+                const memberWithDebt = testUsers[1];
+
+                // Create expense where member owes money
+                await apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(groupId)
+                        .withDescription('Test expense')
+                        .withAmount(100)
+                        .withPaidBy(creator.uid)
+                        .withParticipants([creator.uid, memberWithDebt.uid])
+                        .withSplitType('equal')
+                        .build(),
+                    creator.token,
+                );
+
+                await expect(apiDriver.removeGroupMember(groupId, memberWithDebt.uid, creator.token)).rejects.toThrow(/Cannot remove member with outstanding balance/);
+            });
+
+            test('should handle removing non-existent member', async () => {
+                const testUsers = users.slice(0, 1);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const creator = testUsers[0];
+                const nonExistentMember = 'non-existent-uid';
+
+                await expect(apiDriver.removeGroupMember(groupId, nonExistentMember, creator.token)).rejects.toThrow(/User is not a member of this group/);
+            });
+        });
+
+        describe('Complex Member Management Scenarios', () => {
+            test('should handle multiple members leaving sequentially', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const member1 = testUsers[1];
+                const member2 = testUsers[2];
+
+                // First member leaves
+                await apiDriver.leaveGroup(groupId, member1.token);
+
+                // Second member leaves
+                await apiDriver.leaveGroup(groupId, member2.token);
+
+                // Verify only creator remains
+                const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, testUsers[0].token);
+                expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).toEqual([testUsers[0].uid]);
+                expect(fullDetailsResponse.members.members.length).toBe(1);
+            });
+
+            test('should prevent access after leaving group', async () => {
+                const testUsers = users.slice(0, 2);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const memberToLeave = testUsers[1];
+
+                // Member leaves
+                await apiDriver.leaveGroup(groupId, memberToLeave.token);
+
+                // Try to access group details after leaving
+                await expect(apiDriver.getGroupFullDetails(groupId, memberToLeave.token)).rejects.toThrow();
+            });
+
+            test('should handle mixed leave and remove operations', async () => {
+                const testUsers = users.slice(0, 3);
+                const groupId = await createGroupWithMembers(apiDriver, testUsers);
+                const creator = testUsers[0];
+                const member1 = testUsers[1];
+                const member2 = testUsers[2];
+
+                // Creator removes member1
+                await apiDriver.removeGroupMember(groupId, member1.uid, creator.token);
+
+                // Member2 leaves voluntarily
+                await apiDriver.leaveGroup(groupId, member2.token);
+
+                // Verify only creator remains
+                const fullDetailsResponse = await apiDriver.getGroupFullDetails(groupId, creator.token);
+                expect(fullDetailsResponse.members.members.map((m: any) => m.uid)).toEqual([creator.uid]);
+                expect(fullDetailsResponse.members.members.length).toBe(1);
+            });
+        });
+    });
+
+    describe('Group Listing Operations', () => {
+        let multipleGroups: any[] = [];
+
+        beforeEach(async () => {
+            // Create multiple groups for listing tests
+            multipleGroups = [];
+            const groupPromises = [];
+            for (let i = 0; i < 5; i++) {
+                groupPromises.push(
+                    apiDriver.createGroup(
+                        new CreateGroupRequestBuilder().withName(`List Test Group ${i} ${uuidv4()}`).build(),
+                        users[0].token
+                    )
+                );
+            }
+            multipleGroups = await Promise.all(groupPromises);
+        });
+
+        test('should list all user groups', async () => {
+            const response = await apiDriver.listGroups(users[0].token);
+
+            expect(response.groups).toBeDefined();
+            expect(Array.isArray(response.groups)).toBe(true);
+            expect(response.groups.length).toBeGreaterThanOrEqual(5);
+            expect(response.count).toBe(response.groups.length);
+            expect(response.hasMore).toBeDefined();
+        });
+
+        test('should include group summaries with balance', async () => {
+            const response = await apiDriver.listGroups(users[0].token);
+
+            const firstGroup = response.groups[0];
+            expect(firstGroup).toHaveProperty('id');
+            expect(firstGroup).toHaveProperty('name');
+            expect(firstGroup).toHaveProperty('balance');
+            expect(firstGroup.balance).toHaveProperty('userBalance');
+            expect(firstGroup.balance).toHaveProperty('balancesByCurrency');
+            expect(firstGroup).toHaveProperty('lastActivity');
+        });
+
+        test('should support pagination', async () => {
+            // Get first page
+            const page1 = await apiDriver.listGroups(users[0].token, { limit: 2 });
+            expect(page1.groups).toHaveLength(2);
+            expect(page1.hasMore).toBe(true);
+            expect(page1.nextCursor).toBeDefined();
+
+            // Get second page
+            const page2 = await apiDriver.listGroups(users[0].token, {
+                limit: 2,
+                cursor: page1.nextCursor,
+            });
+            expect(page2.groups.length).toBeGreaterThanOrEqual(1);
+
+            // Ensure no duplicate IDs between pages
+            const page1Ids = page1.groups.map((g: any) => g.id);
+            const page2Ids = page2.groups.map((g: any) => g.id);
+            const intersection = page1Ids.filter((id: string) => page2Ids.includes(id));
+            expect(intersection).toHaveLength(0);
+        });
+
+        test('should support ordering', async () => {
+            // Create an additional group with a slight delay to ensure different timestamps
+            await new Promise((resolve) => setTimeout(resolve, 100));
+            const latestGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().withName(`Latest Group ${uuidv4()}`).build(),
+                users[0].token
+            );
+
+            const responseDesc = await apiDriver.listGroups(users[0].token, { order: 'desc' });
+            const responseAsc = await apiDriver.listGroups(users[0].token, { order: 'asc' });
+
+            // Ensure we have enough groups to test ordering
+            expect(responseDesc.groups.length).toBeGreaterThanOrEqual(2);
+            expect(responseAsc.groups.length).toBeGreaterThanOrEqual(2);
+
+            // The most recently created group should be first in desc order
+            expect(responseDesc.groups[0].id).toBe(latestGroup.id);
+
+            // The groups should be in different order for desc vs asc
+            expect(responseDesc.groups[0].id).not.toBe(responseAsc.groups[0].id);
+        });
+
+        test('should only show groups where user is member', async () => {
+            // Create a group with only user[1]
+            const otherGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder().withName(`Other User Group ${uuidv4()}`).build(),
+                users[1].token
+            );
+
+            // user[0] should not see this group
+            const response = await apiDriver.listGroups(users[0].token);
+            const groupIds = response.groups.map((g: any) => g.id);
+            expect(groupIds).not.toContain(otherGroup.id);
+        });
+
+        test('should require authentication', async () => {
+            await expect(apiDriver.listGroups('')).rejects.toThrow(/401|unauthorized/i);
+        });
+
+        test('should handle includeMetadata parameter correctly', async () => {
+            // Test without metadata
+            const responseWithoutMeta = await apiDriver.listGroups(users[0].token, {
+                includeMetadata: false,
+            });
+            expect(responseWithoutMeta.metadata).toBeUndefined();
+
+            // Test with metadata (note: may be undefined if no recent changes)
+            const responseWithMeta = await apiDriver.listGroups(users[0].token, {
+                includeMetadata: true,
+            });
+            // Metadata might not exist if no recent changes, but structure should be correct if present
+            if (responseWithMeta.metadata) {
+                expect(responseWithMeta.metadata).toHaveProperty('lastChangeTimestamp');
+                expect(responseWithMeta.metadata).toHaveProperty('changeCount');
+                expect(responseWithMeta.metadata).toHaveProperty('serverTime');
+                expect(responseWithMeta.metadata).toHaveProperty('hasRecentChanges');
+            }
+        });
+
+        test('should handle groups with expenses and settlements correctly', async () => {
+            // Use one of the groups created in beforeEach to ensure it shows up in listGroups
+            const response = await apiDriver.listGroups(users[0].token);
+            expect(response.groups).toBeDefined();
+            expect(response.groups.length).toBeGreaterThan(0);
+
+            // Use the first group from the list
+            const testGroup = response.groups[0];
+
+            // Add an expense
+            const expenseData = new CreateExpenseRequestBuilder()
+                .withGroupId(testGroup.id)
+                .withDescription(`Test expense for listGroups`)
+                .withAmount(100)
+                .withPaidBy(users[0].uid)
+                .withParticipants([users[0].uid])
+                .withSplitType('equal')
+                .build();
+            await apiDriver.createExpense(expenseData, users[0].token);
+
+            // List groups and verify the test group has balance data
+            const updatedResponse = await apiDriver.listGroups(users[0].token);
+            const groupInList = updatedResponse.groups.find((g: any) => g.id === testGroup.id);
+
+            expect(groupInList).toBeDefined();
+            if (groupInList) {
+                expect(groupInList.balance).toBeDefined();
+                const balance = groupInList.balance as any;
+                expect(balance.userBalance).toBeDefined();
+                expect(typeof balance.userBalance.netBalance).toBe('number');
+                expect(typeof balance.userBalance.totalOwed).toBe('number');
+                expect(typeof balance.userBalance.totalOwing).toBe('number');
+                expect(groupInList.lastActivity).toBeDefined();
+                expect(groupInList.lastActivityRaw).toBeDefined();
+            }
+        });
+    });
+
+    describe('Group Deletion Notifications and Cleanup', () => {
+        test('should notify users via user-notifications when group is deleted', async () => {
+            // Create a group with 2 members
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Notification Test ${uuidv4()}`)
+                .withDescription('Testing user notifications during group deletion')
+                .build();
+
+            const group = await apiDriver.createGroup(groupData, users[0].token);
+
+            // Add second user to the group
+            const shareLink = await apiDriver.generateShareLink(group.id, users[0].token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+
+            // Verify 2 members before deletion
+            const { members } = await apiDriver.getGroupFullDetails(group.id, users[0].token);
+            expect(members.members.length).toBe(2);
+
+            // Get initial change versions for both users
+            const firestore = getFirestore();
+            const user1NotificationsBefore = await firestore.doc(`user-notifications/${users[0].uid}`).get();
+            const user2NotificationsBefore = await firestore.doc(`user-notifications/${users[1].uid}`).get();
+
+            const initialUser1Version = user1NotificationsBefore.data()?.changeVersion || 0;
+            const initialUser2Version = user2NotificationsBefore.data()?.changeVersion || 0;
+
+            // Delete the group - this should trigger our notification system
+            await apiDriver.deleteGroup(group.id, users[0].token);
+
+            // Wait for triggers to execute
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Get user notification documents after deletion
+            const user1NotificationsAfter = await firestore.doc(`user-notifications/${users[0].uid}`).get();
+            const user2NotificationsAfter = await firestore.doc(`user-notifications/${users[1].uid}`).get();
+
+            // Both users should have notification documents
+            expect(user1NotificationsAfter.exists).toBe(true);
+            expect(user2NotificationsAfter.exists).toBe(true);
+
+            const user1AfterData = user1NotificationsAfter.data();
+            const user2AfterData = user2NotificationsAfter.data();
+
+            const finalUser1Version = user1AfterData?.changeVersion || 0;
+            const finalUser2Version = user2AfterData?.changeVersion || 0;
+
+            // Both users should have their change version incremented (indicating they were notified)
+            expect(finalUser1Version).toBeGreaterThan(initialUser1Version);
+            expect(finalUser2Version).toBeGreaterThan(initialUser2Version);
+
+            // The deleted group should NOT be in their notification documents anymore
+            expect(user1AfterData?.groups?.[group.id]).toBeUndefined();
+            expect(user2AfterData?.groups?.[group.id]).toBeUndefined();
+
+            // Verify the group is actually deleted from the backend
+            await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
+        }, 15000);
+
+        test('should handle single user group deletion', async () => {
+            // Create a group with just the owner
+            const groupData = new CreateGroupRequestBuilder()
+                .withName(`Single User Test ${uuidv4()}`)
+                .withDescription('Testing single user group deletion')
+                .build();
+
+            const group = await apiDriver.createGroup(groupData, users[0].token);
+
+            // Get initial change version
+            const firestore = getFirestore();
+            const userNotificationsBefore = await firestore.doc(`user-notifications/${users[0].uid}`).get();
+            const initialVersion = userNotificationsBefore.data()?.changeVersion || 0;
+
+            // Delete the group
+            await apiDriver.deleteGroup(group.id, users[0].token);
+
+            // Wait for triggers to execute
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Get user notification document after deletion
+            const userNotificationsAfter = await firestore.doc(`user-notifications/${users[0].uid}`).get();
+
+            expect(userNotificationsAfter.exists).toBe(true);
+
+            const finalVersion = userNotificationsAfter.data()?.changeVersion || 0;
+
+            // User should be notified about the group deletion
+            expect(finalVersion).toBeGreaterThan(initialVersion);
+
+            // Group should be removed from notifications
+            expect(userNotificationsAfter.data()?.groups?.[group.id]).toBeUndefined();
+
+            // Verify the group is actually deleted
+            await expect(apiDriver.getGroupFullDetails(group.id, users[0].token)).rejects.toThrow(/404|not found/i);
+        }, 15000);
+    });
 });
