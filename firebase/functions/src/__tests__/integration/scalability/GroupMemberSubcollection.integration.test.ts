@@ -7,7 +7,7 @@ import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
 
 // todo: use builders here !!
 
-describe('groupMemberService Subcollection Integration Tests', () => {
+describe('Group Member Subcollection Scalability Tests', () => {
     const firestore = getFirestore();
     const applicationBuilder = new ApplicationBuilder(firestore);
     const groupService = applicationBuilder.buildGroupService();
@@ -33,143 +33,7 @@ describe('groupMemberService Subcollection Integration Tests', () => {
         });
     });
 
-    describe('createMember', () => {
-        test('should create member document in subcollection', async () => {
-            const memberDoc: GroupMemberDocument = {
-                userId: testUser2.uid,
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Verify member was created
-            const retrievedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
-            expect(retrievedMember).toBeDefined();
-            expect(retrievedMember?.userId).toBe(testUser2.uid);
-            expect(retrievedMember?.groupId).toBe(testGroup.id);
-            expect(retrievedMember?.memberRole).toBe(MemberRoles.MEMBER);
-            expect(retrievedMember?.memberStatus).toBe(MemberStatuses.ACTIVE);
-            expect(retrievedMember?.invitedBy).toBe(testUser1.uid);
-        });
-    });
-
-    describe('getGroupMember', () => {
-        test('should return null for non-existent member', async () => {
-            const result = await groupMemberService.getGroupMember(testGroup.id, 'non-existent-user');
-            expect(result).toBeNull();
-        });
-
-        test('should return null for non-existent group', async () => {
-            const result = await groupMemberService.getGroupMember('non-existent-group', testUser1.uid);
-            expect(result).toBeNull();
-        });
-    });
-
-    describe('getAllGroupMembers', () => {
-        test('should return all members for a group', async () => {
-            // Add second member to subcollection
-            const memberDoc: GroupMemberDocument = {
-                userId: testUser2.uid,
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Get all members
-            const members = await groupMemberService.getAllGroupMembers(testGroup.id);
-
-            expect(members).toHaveLength(2); // testUser1 (creator) + testUser2
-
-            const userIds = members.map((m) => m.userId);
-            expect(userIds).toContain(testUser1.uid);
-            expect(userIds).toContain(testUser2.uid);
-
-            const creator = members.find((m) => m.userId === testUser1.uid);
-            expect(creator?.memberRole).toBe(MemberRoles.ADMIN);
-        });
-
-        test('should return empty array for group with no subcollection members', async () => {
-            const newGroup = await groupService.createGroup(testUser1.uid, {
-                name: 'Empty Subcollection Group',
-                description: 'No subcollection members yet',
-            });
-
-            // Delete the auto-created subcollection member for this test
-            await groupMemberService.deleteMember(newGroup.id, testUser1.uid);
-
-            const members = await groupMemberService.getAllGroupMembers(newGroup.id);
-            expect(members).toHaveLength(0);
-        });
-    });
-
-    describe('updateMember', () => {
-        test('should update member role and status', async () => {
-            // Add member first
-            const memberDoc: GroupMemberDocument = {
-                userId: testUser2.uid,
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Update the member
-            await groupMemberService.updateMember(testGroup.id, testUser2.uid, {
-                memberRole: MemberRoles.ADMIN,
-                memberStatus: MemberStatuses.PENDING,
-            });
-
-            // Verify update
-            const updatedMember = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
-            expect(updatedMember?.memberRole).toBe(MemberRoles.ADMIN);
-            expect(updatedMember?.memberStatus).toBe(MemberStatuses.PENDING);
-            expect(updatedMember?.userId).toBe(testUser2.uid); // Other fields unchanged
-        });
-    });
-
-    describe('deleteMember', () => {
-        test('should delete member from subcollection', async () => {
-            // Add member first
-            const memberDoc: GroupMemberDocument = {
-                userId: testUser2.uid,
-                groupId: testGroup.id,
-                memberRole: MemberRoles.MEMBER,
-                theme: groupShareService.getThemeColorForMember(1),
-                joinedAt: new Date().toISOString(),
-                memberStatus: MemberStatuses.ACTIVE,
-                invitedBy: testUser1.uid,
-            };
-            await groupMemberService.createMember(testGroup.id, memberDoc);
-
-            // Verify member exists
-            let member = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
-            expect(member).toBeDefined();
-
-            // Delete member
-            await groupMemberService.deleteMember(testGroup.id, testUser2.uid);
-
-            // Verify member is deleted
-            member = await groupMemberService.getGroupMember(testGroup.id, testUser2.uid);
-            expect(member).toBeNull();
-        });
-
-        test('should not throw error when deleting non-existent member', async () => {
-            // Should not throw - let it bubble up if there's an actual error
-            await groupMemberService.deleteMember(testGroup.id, 'non-existent-user');
-        });
-    });
+    // Basic CRUD operations moved to groups-management-consolidated.test.ts for better organization
 
     describe('getUserGroupsViaSubcollection - Scalable Query', () => {
         test('should return groups where user is a member via collectionGroup query', async () => {
