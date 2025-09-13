@@ -3,6 +3,7 @@ import { BasePage } from './base.page';
 import { SELECTORS, ARIA_ROLES, HEADINGS, BUTTON_TEXTS } from '../constants/selectors';
 import translation from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { PooledTestUser } from '@splitifyd/shared';
+import {RegisterPage} from "./register.page.ts";
 
 export class LoginPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -55,10 +56,14 @@ export class LoginPage extends BasePage {
     }
 
     async clickSignUp() {
-        const button = this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signUpLink }).first();
+        // Use data-testid to ensure we click the correct SignUp button
+        const button = this.page.locator('[data-testid="loginpage-signup-button"]');
         // Note: Buttons should be enabled before clicking
         await expect(button).toBeEnabled();
         await button.click();
+        // user should be sent to register page (may include returnUrl parameter)
+        await expect(this.page).toHaveURL(/\/register/);
+        return new RegisterPage(this.page);
     }
 
     async clickForgotPassword() {

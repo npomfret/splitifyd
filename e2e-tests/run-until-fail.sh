@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/normal-flow/leave-group.e2e.test.ts"
-TEST_FILTER=""
+TEST_FILE="src/__tests__/integration/normal-flow/share-link-comprehensive.e2e.test.ts"
+TEST_FILTER="should allow unregistered user to register and join group via share link"
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -31,7 +31,7 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
 fi
 
 # Parse command line arguments
-MAX_SUCCESSES=5
+MAX_SUCCESSES=1
 HEADED_FLAG=""
 WORKERS=1
 

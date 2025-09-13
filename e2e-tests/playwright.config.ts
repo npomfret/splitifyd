@@ -43,6 +43,20 @@ export default defineConfig({
 
         /* Take screenshot when test fails */
         screenshot: 'only-on-failure',
+
+        /* Force bypass browser cache */
+        bypassCSP: true,
+        ignoreHTTPSErrors: true,
+        
+        /* Browser context options to disable caching */
+        contextOptions: {
+            ignoreHTTPSErrors: true,
+        },
+
+        /* Use incognito mode to avoid caching issues */
+        launchOptions: {
+            args: ['--disable-web-security', '--disable-cache', '--disable-application-cache', '--disable-offline-load-stale-cache', '--disk-cache-size=0', '--media-cache-size=0']
+        },
     },
 
     /* Configure projects for major browsers */
