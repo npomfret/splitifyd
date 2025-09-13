@@ -356,8 +356,282 @@ describe('Groups Management - Consolidated Tests', () => {
         });
     });
 
+    describe('Concurrent Operations and Optimistic Locking', () => {
+        test('should handle concurrent group joins correctly', async () => {
+            const testGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Concurrent Join Test ${uuidv4()}`)
+                    .withDescription('Testing concurrent joins')
+                    .build(),
+                users[0].token
+            );
+
+            // Generate share link
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+
+            // Both users try to join simultaneously
+            const joinPromises = [
+                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
+                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token)
+            ];
+
+            const results = await Promise.allSettled(joinPromises);
+
+            // Both should succeed or handle conflicts gracefully
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
+
+            if (failures.length > 0) {
+                expect(successes.length).toBeGreaterThan(0);
+                for (const failure of failures) {
+                    if (failure.status === 'rejected') {
+                        const errorCode = failure.reason?.response?.data?.error?.code;
+                        expect(['CONCURRENT_UPDATE', 'ALREADY_MEMBER']).toContain(errorCode);
+                    }
+                }
+            } else {
+                expect(successes.length).toBe(2);
+            }
+
+            // Verify final state - both users should be members
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            expect(members.members.length).toBe(3);
+            expect(members.members.find(m => m.uid === users[1].uid)).toBeDefined();
+            expect(members.members.find(m => m.uid === users[2].uid)).toBeDefined();
+        });
+
+        test('should prevent concurrent group updates with proper conflict resolution', async () => {
+            const testGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Concurrent Update Test ${uuidv4()}`)
+                    .withDescription('Testing concurrent updates')
+                    .build(),
+                users[0].token
+            );
+
+            // Add second user as member
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+
+            // Same user tries multiple concurrent updates
+            const updatePromises = [
+                apiDriver.updateGroup(testGroup.id, { name: 'First Update' }, users[0].token),
+                apiDriver.updateGroup(testGroup.id, { name: 'Second Update' }, users[0].token),
+                apiDriver.updateGroup(testGroup.id, { description: 'Updated description' }, users[0].token),
+            ];
+
+            const results = await Promise.allSettled(updatePromises);
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
+
+            expect(successes.length).toBeGreaterThanOrEqual(1);
+
+            // Check failure reasons for optimistic locking conflicts
+            for (const failure of failures) {
+                if (failure.status === 'rejected') {
+                    const errorMessage = failure.reason?.message || '';
+                    const errorCode = failure.reason?.response?.data?.error?.code;
+                    const isValidConcurrencyError =
+                        errorMessage.match(/concurrent|conflict|version|timestamp|CONCURRENT_UPDATE/i) ||
+                        errorCode === 'CONCURRENT_UPDATE';
+                    expect(isValidConcurrencyError).toBeTruthy();
+                }
+            }
+
+            // Verify final state integrity
+            const { group: finalGroup } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            expect(
+                finalGroup.name === 'First Update' ||
+                finalGroup.name === 'Second Update' ||
+                finalGroup.description === 'Updated description'
+            ).toBeTruthy();
+        });
+
+        test('should handle concurrent expense operations', async () => {
+            const testGroup = await apiDriver.createGroupWithMembers(
+                `Expense Locking Test ${uuidv4()}`,
+                [users[0], users[1]],
+                users[0].token
+            );
+
+            // Create an expense first
+            const expense = await apiDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Test Expense')
+                    .withAmount(100)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .withSplitType('equal')
+                    .build(),
+                users[0].token
+            );
+
+            // Try concurrent expense updates
+            const updatePromises = [
+                apiDriver.updateExpense(expense.id, { amount: 200 }, users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 300 }, users[0].token)
+            ];
+
+            const results = await Promise.allSettled(updatePromises);
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
+            const conflicts = results.filter(
+                (r) =>
+                    r.status === 'rejected' &&
+                    (r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE' ||
+                     r.reason?.message?.includes('CONCURRENT_UPDATE') ||
+                     r.reason?.message?.includes('409'))
+            );
+
+            expect(successes.length).toBeGreaterThan(0);
+
+            if (failures.length > 0) {
+                expect(conflicts.length).toBeGreaterThan(0);
+            }
+
+            // Verify final state
+            const expenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
+            const updatedExpense = expenses.expenses.find((e: any) => e.id === expense.id);
+            expect([200, 300]).toContain(updatedExpense?.amount);
+        });
+
+        test('should handle concurrent expense deletion and modification', async () => {
+            const testGroup = await apiDriver.createGroupWithMembers(
+                `Expense Delete Test ${uuidv4()}`,
+                [users[0], users[1]],
+                users[0].token
+            );
+
+            const expense = await apiDriver.createExpense(
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withDescription('Test Expense for Deletion')
+                    .withAmount(50)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants([users[0].uid, users[1].uid])
+                    .withSplitType('equal')
+                    .build(),
+                users[0].token
+            );
+
+            // Try concurrent delete and update
+            const promises = [
+                apiDriver.deleteExpense(expense.id, users[0].token),
+                apiDriver.updateExpense(expense.id, { amount: 75 }, users[0].token)
+            ];
+
+            const results = await Promise.allSettled(promises);
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const failures = results.filter((r) => r.status === 'rejected');
+
+            expect(successes.length).toBeGreaterThanOrEqual(1);
+
+            if (failures.length > 0) {
+                for (const failure of failures) {
+                    if (failure.status === 'rejected') {
+                        const errorMessage = failure.reason?.message || '';
+                        expect(errorMessage).toMatch(/not found|concurrent|conflict|does not exist/i);
+                    }
+                }
+            }
+
+            // Verify final state - expense is either deleted or updated
+            try {
+                const remainingExpense = await apiDriver.getExpense(expense.id, users[0].token);
+                expect(remainingExpense.amount).toBe(75);
+            } catch (error: any) {
+                expect(error.message).toMatch(/not found|does not exist/i);
+            }
+        });
+
+        test('should handle concurrent settlement operations', async () => {
+            const testGroup = await apiDriver.createGroupWithMembers(
+                `Settlement Test ${uuidv4()}`,
+                [users[0], users[1]],
+                users[0].token
+            );
+
+            const settlement = await apiDriver.createSettlement(
+                new SettlementBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPayer(users[0].uid)
+                    .withPayee(users[1].uid)
+                    .withAmount(50)
+                    .withNote('Test settlement')
+                    .build(),
+                users[0].token
+            );
+
+            // Try concurrent settlement updates
+            const updatePromises = [
+                apiDriver.updateSettlement(settlement.id, { amount: 75 }, users[0].token),
+                apiDriver.updateSettlement(settlement.id, { amount: 100 }, users[0].token)
+            ];
+
+            const results = await Promise.allSettled(updatePromises);
+            const successes = results.filter((r) => r.status === 'fulfilled');
+            const conflicts = results.filter(
+                (r) => r.status === 'rejected' && r.reason?.response?.data?.error?.code === 'CONCURRENT_UPDATE'
+            );
+
+            expect(successes.length).toBeGreaterThan(0);
+
+            if (results.length - successes.length > 0) {
+                expect(conflicts.length).toBeGreaterThan(0);
+            }
+
+            // Verify final state
+            const updatedSettlement = await apiDriver.getSettlement(testGroup.id, settlement.id, users[0].token);
+            expect([75, 100]).toContain(updatedSettlement?.amount);
+        });
+
+        test('should handle cross-entity race conditions', async () => {
+            const testGroup = await apiDriver.createGroup(
+                new CreateGroupRequestBuilder()
+                    .withName(`Cross-Entity Race Test ${uuidv4()}`)
+                    .withDescription('Testing cross-entity race conditions')
+                    .build(),
+                users[0].token
+            );
+
+            const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
+
+            // User joins while expense is being created simultaneously
+            const promises = [
+                apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token),
+                apiDriver.createExpense(
+                    new CreateExpenseRequestBuilder()
+                        .withGroupId(testGroup.id)
+                        .withDescription('Race condition expense')
+                        .withAmount(100)
+                        .withPaidBy(users[0].uid)
+                        .withParticipants([users[0].uid])
+                        .withSplitType('equal')
+                        .build(),
+                    users[0].token
+                ),
+            ];
+
+            const results = await Promise.allSettled(promises);
+
+            // Both operations should succeed independently
+            for (const result of results) {
+                expect(result.status).toBe('fulfilled');
+            }
+
+            // Verify final state
+            const { members } = await apiDriver.getGroupFullDetails(testGroup.id, users[0].token);
+            const expenses = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
+
+            expect(members.members.find(m => m.uid === users[1].uid)).toBeDefined();
+            expect(expenses.expenses.length).toBe(1);
+            expect(expenses.expenses[0].description).toBe('Race condition expense');
+        });
+    });
+
     describe('Error Handling and Edge Cases', () => {
-        test('should handle malformed input and concurrent operations', async () => {
+        test('should handle malformed input gracefully', async () => {
             // Test malformed input handling
             const groupData = new CreateGroupRequestBuilder().withName('').build();
 
@@ -367,20 +641,6 @@ describe('Groups Management - Consolidated Tests', () => {
             } catch (error) {
                 expect(error).toBeInstanceOf(Error);
             }
-
-            // Test concurrent updates
-            const validGroup = await groupService.createGroup(users[0].uid, { name: 'Concurrent Test' });
-            const updates = [
-                { name: `Update ${generateShortId()}` },
-                { name: `Update ${generateShortId()}` }
-            ];
-
-            const results = await Promise.allSettled(
-                updates.map(update => groupService.updateGroup(validGroup.id, users[0].uid, update))
-            );
-
-            const successes = results.filter(r => r.status === 'fulfilled');
-            expect(successes.length).toBeGreaterThan(0);
         });
 
         test('should enforce security consistently', async () => {
