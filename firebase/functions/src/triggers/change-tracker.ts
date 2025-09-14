@@ -46,17 +46,19 @@ export const trackExpenseChanges = onDocumentWritten(
         const expenseId = event.params.expenseId;
         const {after} = extractDataChange(event);
 
-        const afterData = after?.data();
+        return measureTrigger('trackExpenseChanges', async () => {
+            const afterData = after?.data();
 
-        const groupId = afterData?.groupId;
-        if (!groupId) {
-            throw Error(`groupId missing from ${JSON.stringify(event)}`);
-        }
+            const groupId = afterData?.groupId;
+            if (!groupId) {
+                throw Error(`groupId missing from expense ${expenseId}`);
+            }
 
-        const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
-        await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId!, ['transaction', 'balance']);
+            const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
+            await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
 
-        logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
+            logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
+        });
     },
 );
 

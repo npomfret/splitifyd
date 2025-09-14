@@ -126,11 +126,14 @@ export class AppDriver {
                 attempts++;
 
                 if (!doc || !doc.groups[groupId]) {
+                    console.log(`[DEBUG] No doc/group yet for user ${userId} group ${groupId} (attempt ${attempts})`);
                     return false; // Keep waiting for document/group to exist
                 }
 
                 const group = doc.groups[groupId];
                 const currentCount = changeType === 'transaction' ? group.transactionChangeCount : changeType === 'balance' ? group.balanceChangeCount : group.groupDetailsChangeCount;
+
+                console.log(`[DEBUG] User ${userId} group ${groupId} ${changeType} count: ${currentCount} (attempt ${attempts})`);
 
                 // If expectedCount is provided, wait for that specific count
                 if (expectedCount !== undefined) {
