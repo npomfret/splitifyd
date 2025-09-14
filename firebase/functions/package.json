@@ -14,7 +14,7 @@
     "test:integration": "ORIGINAL_TEST_SCRIPT=test:integration node ../../scripts/test-wrapper.js",
     "test:watch": "vitest watch src/__tests__/unit/",
     "test:coverage": "vitest run --coverage",
-    "analyze-test-performance": "node ../../scripts/analyze-test-performance.js integration-test-results.json",
+    "analyze-integration-test-performance": "node ../../scripts/analyze-test-performance.js integration-test-results.json",
     "validate-cors": "node scripts/validate-cors.js",
     "seed:policies": "tsx src/scripts/seed-policies.ts"
   },

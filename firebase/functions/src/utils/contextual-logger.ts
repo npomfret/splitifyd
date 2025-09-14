@@ -5,6 +5,7 @@ import { LoggerContext, LogContext } from './logger-context';
  * Logger instance that can have its own additional context
  */
 export interface ContextualLogger {
+    debug(label: string, data?: Record<string, any>): void;
     info(label: string, data?: Record<string, any>): void;
     warn(label: string, data?: Record<string, any>): void;
     error(message: string, error: Error | any, context?: any): void;
@@ -26,13 +27,9 @@ class ContextualLoggerImpl implements ContextualLogger {
     }
 
     /**
-     * Log info message with automatic context inclusion
-     * Only logs when something actually changes (maintains existing pattern)
+     * Build log data with context fields and additional data
      */
-    info(label: string, data?: Record<string, any>): void {
-        const context = this.getFullContext();
-
-        // Build the log data
+    private buildLogData(context: LogContext, data?: Record<string, any>, includeRequestFields = false): Record<string, any> {
         const logData: Record<string, any> = {};
 
         // Add ID if provided (maintains existing pattern)
@@ -49,7 +46,13 @@ class ContextualLoggerImpl implements ContextualLogger {
         if (context.operation) logData.operation = context.operation;
         if (context.service) logData.service = context.service;
 
-        // Add any additional data fields (excluding 'id' which we already handled)
+        // Add request fields for errors
+        if (includeRequestFields) {
+            if (context.requestPath) logData.requestPath = context.requestPath;
+            if (context.requestMethod) logData.requestMethod = context.requestMethod;
+        }
+
+        // Add any additional data fields (excluding already handled ones)
         if (data) {
             Object.keys(data).forEach((key) => {
                 if (key !== 'id' && key !== 'userId' && key !== 'correlationId') {
@@ -58,6 +61,25 @@ class ContextualLoggerImpl implements ContextualLogger {
             });
         }
 
+        return logData;
+    }
+
+    /**
+     * Log debug message with automatic context inclusion
+     */
+    debug(label: string, data?: Record<string, any>): void {
+        const context = this.getFullContext();
+        const logData = this.buildLogData(context, data);
+        functions.logger.debug(label, logData);
+    }
+
+    /**
+     * Log info message with automatic context inclusion
+     * Only logs when something actually changes (maintains existing pattern)
+     */
+    info(label: string, data?: Record<string, any>): void {
+        const context = this.getFullContext();
+        const logData = this.buildLogData(context, data);
         functions.logger.info(label, logData);
     }
 
@@ -66,27 +88,7 @@ class ContextualLoggerImpl implements ContextualLogger {
      */
     warn(label: string, data?: Record<string, any>): void {
         const context = this.getFullContext();
-
-        const logData: Record<string, any> = {};
-
-        // Add context fields that have values
-        if (context.userId) logData.userId = context.userId;
-        if (context.correlationId) logData.correlationId = context.correlationId;
-        if (context.groupId) logData.groupId = context.groupId;
-        if (context.expenseId) logData.expenseId = context.expenseId;
-        if (context.settlementId) logData.settlementId = context.settlementId;
-        if (context.operation) logData.operation = context.operation;
-        if (context.service) logData.service = context.service;
-
-        // Add any additional data fields
-        if (data) {
-            Object.keys(data).forEach((key) => {
-                if (key !== 'id' && key !== 'userId' && key !== 'correlationId') {
-                    logData[key] = data[key];
-                }
-            });
-        }
-
+        const logData = this.buildLogData(context, data);
         functions.logger.warn(label, logData);
     }
 
@@ -106,20 +108,7 @@ class ContextualLoggerImpl implements ContextualLogger {
                   }
                 : error;
 
-        const logData: Record<string, any> = {
-            error: errorData,
-        };
-
-        // Add context fields
-        if (context.userId) logData.userId = context.userId;
-        if (context.correlationId) logData.correlationId = context.correlationId;
-        if (context.groupId) logData.groupId = context.groupId;
-        if (context.expenseId) logData.expenseId = context.expenseId;
-        if (context.settlementId) logData.settlementId = context.settlementId;
-        if (context.requestPath) logData.requestPath = context.requestPath;
-        if (context.requestMethod) logData.requestMethod = context.requestMethod;
-        if (context.operation) logData.operation = context.operation;
-        if (context.service) logData.service = context.service;
+        const logData = this.buildLogData(context, { error: errorData }, true);
 
         // Add any additional context provided
         if (additionalContext) {
