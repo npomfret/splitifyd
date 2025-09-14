@@ -19,13 +19,21 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     async fillGroupForm(name: string, description?: string) {
+        // First verify the modal is actually open - fail fast with clear error
+        const isModalOpen = await this.isOpen();
+        if (!isModalOpen) {
+            throw new Error(`Cannot fill group form - Create Group modal is not open. Make sure to call openCreateGroupModal() first.`);
+        }
+
         // Wait for modal to be fully visible - use heading to avoid ambiguity
         await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'visible' });
 
         // Fill name input - get fresh locator each time to avoid DOM detachment issues
         const nameInput = this.getGroupNameInput();
-        await nameInput.waitFor({ state: 'visible' });
-        await expect(nameInput).toBeEnabled();
+        await nameInput.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {
+            throw new Error(`Group name input field not found in modal. Modal may not have rendered properly.`);
+        });
+        await expect(nameInput).toBeEnabled({ timeout: 2000 });
         await this.fillPreactInput(nameInput, name);
 
         // Fill description input if provided - get fresh locator to avoid DOM detachment issues
@@ -152,25 +160,23 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     getGroupNameInput() {
-        // Scope to the modal to avoid conflicts with other elements containing "Group Name" text
+        // Our modal always has role="dialog" - if it doesn't, our app is broken
         return this.page
-            .locator('[role="dialog"], .fixed.inset-0')
-            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByRole('dialog')
             .getByLabel(translationEn.createGroupModal.groupNameLabel);
     }
 
     getDescriptionInput() {
-        // Scope to the modal to avoid conflicts with other elements
+        // Our modal always has role="dialog" - if it doesn't, our app is broken
         return this.page
-            .locator('[role="dialog"], .fixed.inset-0')
-            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByRole('dialog')
             .getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
     }
 
     getSubmitButton() {
+        // Our modal always has role="dialog" - if it doesn't, our app is broken
         return this.page
-            .locator(SELECTORS.MODAL_OVERLAY)
-            .filter({ has: this.page.getByText(translationEn.createGroupModal.title) })
+            .getByRole('dialog')
             .getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
     }
 

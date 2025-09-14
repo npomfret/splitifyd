@@ -105,20 +105,31 @@ export class DashboardPage extends BasePage {
             .getByRole('button')
             .filter({ hasText: /Create.*Group/i }) //there are several
             .first();
+
+        // First verify button is visible before clicking
+        await expect(createButton).toBeVisible({ timeout: 5000 });
         await this.clickButton(createButton, { buttonName: 'Create Group' });
 
         // Wait for the modal dialog container to appear first (more reliable)
-        await this.page.getByRole('dialog').waitFor({
-            state: 'visible',
-            timeout: 2000,
-        });
+        try {
+            await this.page.getByRole('dialog').waitFor({
+                state: 'visible',
+                timeout: 3000,
+            });
+        } catch (error) {
+            throw new Error(`Create Group modal did not open after clicking button. Dialog element not found. Original error: ${error.message}`);
+        }
 
         // Additional verification: wait for the modal heading to appear
         // This provides extra confidence that the modal content has fully loaded
-        await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor({
-            state: 'visible',
-            timeout: 2000, // Shorter timeout since dialog should already be visible
-        });
+        try {
+            await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor({
+                state: 'visible',
+                timeout: 3000,
+            });
+        } catch (error) {
+            throw new Error(`Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error.message}`);
+        }
     }
 
     async waitForDashboard() {
