@@ -10,6 +10,31 @@ interface FunctionExecution {
     lineNumber: number;
 }
 
+interface MetricsReportData {
+    timestamp: string;
+    samplingRate: number;
+    api: {
+        count: number;
+        successRate: number;
+        avgDuration: number;
+        p50: number;
+        p95: number;
+        p99: number;
+        operations: Record<string, {
+            count: number;
+            successRate: number;
+            avgDuration: number;
+            p95: number;
+        }>;
+    };
+    memoryStats: {
+        totalMetrics: number;
+        apiCount: number;
+        dbCount: number;
+        triggerCount: number;
+    };
+}
+
 interface FunctionStats {
     functionName: string;
     executions: FunctionExecution[];
@@ -25,11 +50,20 @@ interface FunctionStats {
     firstExecution: Date;
     lastExecution: Date;
     outliers: number[]; // durations that are statistical outliers
+    // New metrics data
+    metricsData?: {
+        sampledCount: number;
+        sampledSuccessRate: number;
+        sampledAvgDuration: number;
+        sampledP95: number;
+        lastSeen: Date;
+    };
 }
 
 class FunctionPerformanceAnalyzer {
     private executions: FunctionExecution[] = [];
     private functionMap: Map<string, FunctionExecution[]> = new Map();
+    private metricsReports: MetricsReportData[] = [];
 
     async parseLogFile(filePath: string): Promise<void> {
         const fileStream = fs.createReadStream(filePath);
@@ -52,11 +86,10 @@ class FunctionPerformanceAnalyzer {
 
             // Match the function completion pattern
             // Example: [1] i  functions: Finished "us-central1-trackGroupChanges" in 6.845084ms
-            const match = line.match(/Finished "([^"]+)" in ([\d.]+)ms/);
-
-            if (match) {
-                const functionName = match[1];
-                const duration = parseFloat(match[2]);
+            const functionMatch = line.match(/Finished "([^"]+)" in ([\d.]+)ms/);
+            if (functionMatch) {
+                const functionName = functionMatch[1];
+                const duration = parseFloat(functionMatch[2]);
 
                 const execution: FunctionExecution = {
                     functionName,
@@ -72,10 +105,24 @@ class FunctionPerformanceAnalyzer {
                 }
                 this.functionMap.get(functionName)!.push(execution);
             }
+
+            // Match metrics-report entries
+            // Example: [1] i  functions: metrics-report {"timestamp":"2024-...","api":{...}}
+            const metricsMatch = line.match(/metrics-report\s+({.+})/);
+            if (metricsMatch) {
+                try {
+                    const metricsData = JSON.parse(metricsMatch[1]) as MetricsReportData;
+                    this.metricsReports.push(metricsData);
+                } catch (error) {
+                    // Skip malformed metrics-report entries
+                    console.warn(`Warning: Could not parse metrics-report at line ${lineNumber}`);
+                }
+            }
         }
 
-        console.log(`Parsed ${this.executions.length} function executions from ${lineNumber} lines`);
-        console.log(`Found ${this.functionMap.size} unique functions`);
+        console.log(`📊 Parsed ${this.executions.length} function executions from ${lineNumber} lines`);
+        console.log(`🔍 Found ${this.functionMap.size} unique functions`);
+        console.log(`📈 Found ${this.metricsReports.length} metrics reports`);
     }
 
     analyzePerformance(): Map<string, FunctionStats> {
@@ -120,10 +167,47 @@ class FunctionPerformanceAnalyzer {
                 outliers,
             };
 
+            // Try to match with metrics data
+            this.enrichWithMetricsData(functionName, functionStats);
+
             stats.set(functionName, functionStats);
         }
 
         return stats;
+    }
+
+    private enrichWithMetricsData(functionName: string, functionStats: FunctionStats): void {
+        // Find metrics data for this function across all reports
+        let totalSampledCount = 0;
+        let totalSampledDuration = 0;
+        let totalSuccessful = 0;
+        let maxP95 = 0;
+        let latestSeen = new Date(0);
+
+        for (const report of this.metricsReports) {
+            const operationData = report.api.operations[functionName];
+            if (operationData) {
+                totalSampledCount += operationData.count;
+                totalSampledDuration += operationData.avgDuration * operationData.count;
+                totalSuccessful += Math.round(operationData.count * operationData.successRate);
+                maxP95 = Math.max(maxP95, operationData.p95);
+
+                const reportDate = new Date(report.timestamp);
+                if (reportDate > latestSeen) {
+                    latestSeen = reportDate;
+                }
+            }
+        }
+
+        if (totalSampledCount > 0) {
+            functionStats.metricsData = {
+                sampledCount: totalSampledCount,
+                sampledSuccessRate: totalSuccessful / totalSampledCount,
+                sampledAvgDuration: totalSampledDuration / totalSampledCount,
+                sampledP95: maxP95,
+                lastSeen: latestSeen,
+            };
+        }
     }
 
     private calculateMedian(sortedArray: number[]): number {
@@ -225,97 +309,156 @@ class FunctionPerformanceAnalyzer {
         return { trend, trendPercentage: percentageChange };
     }
 
+    private printMetricsSummary(): void {
+        if (this.metricsReports.length === 0) {
+            console.log('📊 LIGHTWEIGHT METRICS: Not available in this log\n');
+            return;
+        }
+
+        console.log('📊 LIGHTWEIGHT METRICS SUMMARY');
+        console.log('▔'.repeat(50));
+
+        const latestReport = this.metricsReports[this.metricsReports.length - 1];
+        const totalSampleCount = this.metricsReports.reduce((sum, r) => sum + r.api.count, 0);
+
+        console.log(`🔍 Sampling Rate: ${(latestReport.samplingRate * 100)}%`);
+        console.log(`📈 Total Samples: ${totalSampleCount.toLocaleString()}`);
+        console.log(`⏰ Reports Found: ${this.metricsReports.length}`);
+        console.log(`🎯 Overall Success Rate: ${(latestReport.api.successRate * 100).toFixed(1)}%`);
+
+        if (latestReport.api.count > 0) {
+            console.log(`⚡ Avg Response Time: ${latestReport.api.avgDuration.toFixed(1)}ms`);
+            console.log(`📊 P95 Response Time: ${latestReport.api.p95}ms`);
+        }
+        console.log('');
+    }
+
     printReport(stats: Map<string, FunctionStats>): void {
-        console.log('\n' + '='.repeat(100));
-        console.log('FUNCTION PERFORMANCE ANALYSIS REPORT');
-        console.log('='.repeat(100));
+        console.log('\n' + '🚀'.repeat(50));
+        console.log('🎯 FIREBASE FUNCTIONS PERFORMANCE DASHBOARD 🎯'.padStart(75));
+        console.log('🚀'.repeat(50) + '\n');
+
+        this.printMetricsSummary();
 
         // Sort by trend percentage (worst degradation first)
         const sortedStats = Array.from(stats.values()).sort((a, b) => b.trendPercentage - a.trendPercentage);
 
-        // Functions with increasing execution time (getting slower)
+        // Functions with issues (getting slower)
         const degrading = sortedStats.filter((s) => s.trend === 'increasing');
         if (degrading.length > 0) {
-            console.log('\n🔴 FUNCTIONS WITH DEGRADING PERFORMANCE (Statistically Significant Slowdown):');
-            console.log('-'.repeat(100));
+            console.log('🚨 PERFORMANCE ALERTS - Functions Getting SLOWER');
+            console.log('═'.repeat(60));
+
             for (const stat of degrading) {
-                console.log(`\n📊 ${stat.functionName}`);
-                const trendText = stat.trendPercentage > 0 ? 'slower' : 'faster';
-                console.log(`   📈 Performance Trend: ${Math.abs(stat.trendPercentage).toFixed(1)}% ${trendText} over time`);
-                console.log(`   📋 Sample Size: ${stat.totalExecutions} executions (${stat.totalExecutions >= 100 ? 'with random sampling' : 'full dataset'})`);
-                console.log(`   ⏱️  Duration Stats: avg=${stat.averageDuration.toFixed(2)}ms, median=${stat.medianDuration.toFixed(2)}ms`);
-                console.log(`   📏 Variability: std=${stat.standardDeviation.toFixed(2)}ms, cv=${(stat.coefficientOfVariation * 100).toFixed(1)}%`);
-                console.log(`   🎯 Range: ${stat.minDuration.toFixed(2)}ms - ${stat.maxDuration.toFixed(2)}ms`);
+                console.log(`\n┌─ 🔥 ${stat.functionName}`);
+                console.log(`├─ 📈 TREND: ${stat.trendPercentage.toFixed(1)}% SLOWER over time`);
+                console.log(`├─ ⏱️  AVG TIME: ${stat.averageDuration.toFixed(1)}ms`);
+                console.log(`├─ 📊 EXECUTIONS: ${stat.totalExecutions.toLocaleString()}`);
 
+                if (stat.metricsData) {
+                    const accuracy = ((stat.metricsData.sampledCount / stat.totalExecutions) * 100).toFixed(1);
+                    console.log(`├─ ✅ SUCCESS RATE: ${(stat.metricsData.sampledSuccessRate * 100).toFixed(1)}%`);
+                    console.log(`├─ 🎯 METRICS: ${stat.metricsData.sampledCount} samples (${accuracy}% coverage)`);
+                    console.log(`├─ 🚀 P95: ${stat.metricsData.sampledP95}ms`);
+                }
+
+                console.log(`├─ 📏 RANGE: ${stat.minDuration.toFixed(0)}ms - ${stat.maxDuration.toFixed(0)}ms`);
                 if (stat.outliers.length > 0) {
-                    console.log(
-                        `   ⚠️  Outliers: ${stat.outliers.length} detected (${stat.outliers
-                            .slice(0, 3)
-                            .map((o) => o.toFixed(1))
-                            .join(', ')}${stat.outliers.length > 3 ? '...' : ''}ms)`,
-                    );
-                }
-
-                // Show chronological timeline for trend visualization
-                const sortedByTime = [...stat.executions].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-                if (sortedByTime.length <= 15) {
-                    console.log(`   📊 Timeline: ${sortedByTime.map((e) => e.duration.toFixed(1)).join(' → ')}ms`);
+                    console.log(`└─ ⚠️  ${stat.outliers.length} outliers detected`);
                 } else {
-                    // Show representative samples from beginning, middle, end
-                    const samples = [...sortedByTime.slice(0, 5), ...sortedByTime.slice(Math.floor(sortedByTime.length / 2) - 2, Math.floor(sortedByTime.length / 2) + 3), ...sortedByTime.slice(-5)];
-                    const early = samples.slice(0, 5);
-                    const middle = samples.slice(5, 10);
-                    const recent = samples.slice(-5);
-                    console.log(`   📊 Timeline: Early[${early.map((e) => e.duration.toFixed(1)).join(',')}] → Recent[${recent.map((e) => e.duration.toFixed(1)).join(',')}]ms`);
+                    console.log(`└─ ✨ No outliers detected`);
                 }
             }
-        }
-
-        // Functions with stable performance
-        const stable = sortedStats.filter((s) => s.trend === 'stable');
-        if (stable.length > 0) {
-            console.log('\n🟡 FUNCTIONS WITH STABLE PERFORMANCE:');
-            console.log('-'.repeat(100));
-            for (const stat of stable.slice(0, 5)) {
-                // Show top 5 only
-                console.log(`${stat.functionName}: ${stat.averageDuration.toFixed(2)}ms avg (${stat.totalExecutions} executions)`);
-            }
-            if (stable.length > 5) {
-                console.log(`... and ${stable.length - 5} more`);
-            }
+            console.log('');
         }
 
         // Functions with improving performance
         const improving = sortedStats.filter((s) => s.trend === 'decreasing');
         if (improving.length > 0) {
-            console.log('\n🟢 FUNCTIONS WITH IMPROVING PERFORMANCE:');
-            console.log('-'.repeat(100));
+            console.log('🎉 PERFORMANCE WINS - Functions Getting FASTER');
+            console.log('═'.repeat(60));
+
             for (const stat of improving) {
-                console.log(`${stat.functionName}: ${stat.trendPercentage.toFixed(1)}% faster (${stat.averageDuration.toFixed(2)}ms avg)`);
+                console.log(`\n┌─ 🚀 ${stat.functionName}`);
+                console.log(`├─ 📈 TREND: ${Math.abs(stat.trendPercentage).toFixed(1)}% FASTER over time`);
+                console.log(`├─ ⏱️  AVG TIME: ${stat.averageDuration.toFixed(1)}ms`);
+
+                if (stat.metricsData) {
+                    console.log(`├─ ✅ SUCCESS RATE: ${(stat.metricsData.sampledSuccessRate * 100).toFixed(1)}%`);
+                    console.log(`└─ 🎯 P95: ${stat.metricsData.sampledP95}ms`);
+                } else {
+                    console.log(`└─ 📊 ${stat.totalExecutions.toLocaleString()} executions`);
+                }
             }
+            console.log('');
         }
 
-        // Summary statistics
-        console.log('\n' + '='.repeat(100));
-        console.log('SUMMARY STATISTICS');
-        console.log('='.repeat(100));
+        // Functions with stable performance
+        const stable = sortedStats.filter((s) => s.trend === 'stable');
+        if (stable.length > 0) {
+            console.log('✅ STABLE PERFORMANCE - All Good Here');
+            console.log('═'.repeat(60));
+
+            // Group stable functions by performance level
+            const fast = stable.filter(s => s.averageDuration < 100);
+            const medium = stable.filter(s => s.averageDuration >= 100 && s.averageDuration < 500);
+            const slow = stable.filter(s => s.averageDuration >= 500);
+
+            if (fast.length > 0) {
+                console.log(`🏎️  FAST (< 100ms): ${fast.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+            }
+            if (medium.length > 0) {
+                console.log(`🚗 MEDIUM (100-500ms): ${medium.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+            }
+            if (slow.length > 0) {
+                console.log(`🐌 SLOW (> 500ms): ${slow.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+            }
+            console.log('');
+        }
+
+        // Health Score & Summary
+        console.log('📋 SYSTEM HEALTH REPORT');
+        console.log('═'.repeat(60));
 
         const totalExecutions = Array.from(stats.values()).reduce((sum, s) => sum + s.totalExecutions, 0);
         const avgDegradation = degrading.length > 0 ? degrading.reduce((sum, s) => sum + s.trendPercentage, 0) / degrading.length : 0;
 
-        console.log(`Total function executions analyzed: ${totalExecutions}`);
-        console.log(`Unique functions: ${stats.size}`);
-        console.log(`Functions getting slower: ${degrading.length} (${((degrading.length / stats.size) * 100).toFixed(1)}%)`);
-        console.log(`Functions stable: ${stable.length} (${((stable.length / stats.size) * 100).toFixed(1)}%)`);
-        console.log(`Functions getting faster: ${improving.length} (${((improving.length / stats.size) * 100).toFixed(1)}%)`);
+        // Calculate health score
+        const slowCount = Array.from(stats.values()).filter(s => s.averageDuration >= 500).length;
+        const healthScore = Math.max(0, 100 - (degrading.length * 15) - (slowCount * 5) + (improving.length * 10));
+        const healthEmoji = healthScore >= 90 ? '🟢' : healthScore >= 70 ? '🟡' : '🔴';
+
+        console.log(`${healthEmoji} OVERALL HEALTH SCORE: ${healthScore.toFixed(0)}/100`);
+        console.log(`📊 Total Executions: ${totalExecutions.toLocaleString()}`);
+        console.log(`🔍 Functions Analyzed: ${stats.size}`);
+        console.log('');
+
+        console.log('📈 PERFORMANCE BREAKDOWN:');
+        console.log(`   🚨 Getting Slower: ${degrading.length} (${((degrading.length / stats.size) * 100).toFixed(1)}%)`);
+        console.log(`   ✅ Stable: ${stable.length} (${((stable.length / stats.size) * 100).toFixed(1)}%)`);
+        console.log(`   🚀 Getting Faster: ${improving.length} (${((improving.length / stats.size) * 100).toFixed(1)}%)`);
+
         if (degrading.length > 0) {
-            console.log(`Average degradation: +${avgDegradation.toFixed(1)}%`);
+            console.log(`   ⚠️  Avg Degradation: +${avgDegradation.toFixed(1)}%`);
         }
 
-        // Find outliers
-        console.log('\n' + '='.repeat(100));
-        console.log('NOTABLE OUTLIERS');
-        console.log('='.repeat(100));
+        // Recommendations
+        console.log('\n💡 RECOMMENDATIONS:');
+        if (degrading.length > 0) {
+            console.log('   🔧 Focus on optimizing the slower functions above');
+            console.log('   📊 Consider adding more monitoring to degrading functions');
+        }
+        if (improving.length > 0) {
+            console.log('   ✨ Great job on the performance improvements!');
+        }
+        if (stable.length === stats.size) {
+            console.log('   🎉 All functions are performing consistently!');
+        }
+        console.log('');
+
+        // Notable Records
+        console.log('🏆 NOTABLE RECORDS');
+        console.log('═'.repeat(60));
 
         const allStats = Array.from(stats.values());
 
@@ -324,14 +467,21 @@ class FunctionPerformanceAnalyzer {
             const mostExecuted = allStats.sort((a, b) => b.totalExecutions - a.totalExecutions)[0];
             const mostVariable = allStats.sort((a, b) => b.maxDuration / b.minDuration - a.maxDuration / a.minDuration)[0];
 
-            console.log(`\n🐌 Slowest execution: ${slowestFunction.functionName} at ${slowestFunction.maxDuration.toFixed(2)}ms`);
-            console.log(`📈 Most executed: ${mostExecuted.functionName} with ${mostExecuted.totalExecutions} executions`);
-            console.log(`🎢 Most variable: ${mostVariable.functionName} (${(mostVariable.maxDuration / mostVariable.minDuration).toFixed(1)}x variance)`);
+            console.log(`🐌 SLOWEST EXECUTION:`);
+            console.log(`   ${slowestFunction.functionName} → ${slowestFunction.maxDuration.toFixed(0)}ms`);
+            console.log(`📈 MOST POPULAR:`);
+            console.log(`   ${mostExecuted.functionName} → ${mostExecuted.totalExecutions.toLocaleString()} executions`);
+            console.log(`🎢 MOST VARIABLE:`);
+            console.log(`   ${mostVariable.functionName} → ${(mostVariable.maxDuration / mostVariable.minDuration).toFixed(1)}x variance`);
         } else {
-            console.log('\n💡 No function executions found in log file.');
-            console.log('   Expected log format: [timestamp] functions: Finished "function-name" in XXX.XXXms');
-            console.log("   Make sure you're analyzing a Firebase Functions debug log, not Firestore logs.");
+            console.log('❌ NO DATA FOUND');
+            console.log('Expected log format: [timestamp] functions: Finished "function-name" in XXX.XXXms');
+            console.log("Make sure you're analyzing Firebase Functions debug logs!");
         }
+
+        console.log('\n' + '🎯'.repeat(50));
+        console.log('END OF PERFORMANCE DASHBOARD'.padStart(75));
+        console.log('🎯'.repeat(50));
     }
 
     exportToCSV(stats: Map<string, FunctionStats>, outputPath: string): void {
