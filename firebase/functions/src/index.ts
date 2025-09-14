@@ -290,30 +290,37 @@ function setupRoutes(app: express.Application): void {
     });
 
     // Public policy endpoints (no auth required)
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get('/policies/current', asyncHandler(getCurrentPolicies));
     app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
     // Test pool endpoints (emulator only, no auth required)
+    // @deprecated - Endpoints not used by ApiClient, will be removed
     app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
     app.post('/test-pool/return', asyncHandler(returnTestUser));
     app.get('/test-pool/status', asyncHandler(getPoolStatus));
     app.post('/test-pool/reset', asyncHandler(resetPool));
 
     // Policy endpoints (no auth required)
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.post('/policies/:id/update', asyncHandler(testUpdatePolicy));
 
     // Test user endpoints (dev only, requires auth)
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
 
     // User policy endpoints (requires auth)
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
     app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
 
     // User profile endpoints (requires auth)
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get('/user/profile', authenticate, asyncHandler(getUserProfile));
     app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
     app.post('/user/change-password', authenticate, asyncHandler(changePassword));
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.delete('/user/account', authenticate, asyncHandler(deleteUserAccount));
 
     // Auth endpoints (no auth required)
@@ -321,10 +328,13 @@ function setupRoutes(app: express.Application): void {
 
     // Expense endpoints (requires auth)
     app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(getExpense));
     app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
     app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(listUserExpenses));
+    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
     app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
 
@@ -345,6 +355,7 @@ function setupRoutes(app: express.Application): void {
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
     // Permission management routes
+    // @deprecated - Endpoints not used by ApiClient, will be removed
     app.post(`/${FirestoreCollections.GROUPS}/:id/security/preset`, authenticate, asyncHandler(applySecurityPreset));
     app.put(`/${FirestoreCollections.GROUPS}/:id/permissions`, authenticate, asyncHandler(updateGroupPermissions));
     app.put(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(setMemberRole));
