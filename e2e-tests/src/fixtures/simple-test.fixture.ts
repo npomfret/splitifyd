@@ -5,6 +5,7 @@ import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
 import { attachConsoleHandler } from '../helpers';
+import {ApiDriver} from "@splitifyd/test-support";
 
 interface BrowserInstance {
     page: Page;
@@ -18,11 +19,20 @@ export interface SimpleTestFixtures {
     newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
 }
 
+const apiDriver = new ApiDriver()
+
 export const simpleTest = base.extend<SimpleTestFixtures>({
     newLoggedInBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
+        const userPool = getUserPool();
 
         const createLoggedInBrowser = async () => {
+            // Get user from pool and accept current policies before any browser setup
+            const user = await userPool.claimUser(browser);
+
+            // Accept any updated policies to prevent modal interference
+            await apiDriver.acceptCurrentPolicies(user.token);
+
             // Create new browser context and page
             const context = await browser.newContext();
             const page = await context.newPage();
@@ -30,10 +40,6 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             // Set up console handling with user index
             const userIndex = browserInstances.length; // Use current length as index for this user
             const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
-
-            // Get user from pool and log in
-            const userPool = getUserPool();
-            const user = await userPool.claimUser(browser);
 
             const authWorkflow = new AuthenticationWorkflow(page);
             await authWorkflow.loginExistingUser(user);
@@ -63,7 +69,6 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
         await use(createLoggedInBrowser);
 
         // Cleanup all browser instances
-        const userPool = getUserPool();
         await Promise.all(
             browserInstances.map(async (instance) => {
                 try {

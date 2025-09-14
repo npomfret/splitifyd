@@ -513,4 +513,19 @@ export class ApiDriver {
 
         return settlement;
     }
+
+    async acceptCurrentPolicies(token: string): Promise<void> {
+        // Get current policy versions
+        const currentPolicies = await this.apiRequest('/policies/current', 'GET', null, null);
+
+        // Transform to acceptances format
+        const acceptances = Object.entries(currentPolicies.policies).map(([policyId, policyData]: [string, any]) => ({
+            policyId,
+            versionHash: policyData.currentVersionHash
+        }));
+
+        if (acceptances.length > 0) {
+            await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+        }
+    }
 }
