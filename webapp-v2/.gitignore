@@ -1,1 +1,3 @@
-playwright/
+# Playwright test results and reports - keep the test files but ignore generated output
+playwright-report/
+test-results/

@@ -7,13 +7,13 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
     testDir: './src/__tests__/unit/playwright',
-    outputDir: './playwright/results',
+    outputDir: './test-results',
     timeout: 5000, // 5 seconds per test
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : 4,
-    reporter: [['html', { outputFolder: 'playwright/report', open: 'never' }], ['list']],
+    reporter: [['html', { outputFolder: 'playwright-report', open: 'never' }], ['list']],
 
     use: {
         actionTimeout: 500, // 0.5 seconds for actions

@@ -19,6 +19,8 @@
       <excludeFolder url="file://$MODULE_DIR$/.firebase/deploy" />
       <excludeFolder url="file://$MODULE_DIR$/firebase/.firebase" />
       <excludeFolder url="file://$MODULE_DIR$/webapp-v2/playwright" />
+      <excludeFolder url="file://$MODULE_DIR$/webapp-v2/playwright-report" />
+      <excludeFolder url="file://$MODULE_DIR$/webapp-v2/test-results" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
