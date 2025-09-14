@@ -45,7 +45,7 @@ function readPolicyFile(filename: string): string {
 }
 
 /**
- * Seed policy using internal functions (idempotent)
+ * Seed policy using API endpoints (dev) or internal functions (production)
  */
 async function seedPolicy(policyId: string, policyName: string, filename: string): Promise<void> {
     try {
@@ -62,16 +62,23 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
         // Read policy text
         const text = readPolicyFile(filename);
 
-        // Create policy using PolicyService with custom ID
-        const createResponse = await policyService.createPolicy(policyName, text, policyId);
+        // Use API endpoints now that they're production-ready
+        console.log(`📡 Using policy API endpoints for ${policyId}...`);
+        const apiDriver = new ApiDriver();
 
-        console.log(`✅ Created policy: ${createResponse.id}`);
-
-        // Publish the policy immediately using PolicyService
-        const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
-
-        console.log(`✅ Published policy: ${policyId} (hash: ${publishResponse.currentVersionHash})`);
+        try {
+            const createResponse = await apiDriver.createPolicy(policyName, text);
+            console.log(`✅ Created policy via API: ${createResponse.id}`);
+            console.log(`✅ Policy ${policyId} ready (hash: ${createResponse.versionHash})`);
+        } catch (apiError) {
+            console.warn(`⚠️  API approach failed for ${policyId}, falling back to direct service:`, apiError);
+            // Fallback to direct PolicyService only if API fails
+            const createResponse = await policyService.createPolicy(policyName, text, policyId);
+            const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
+            console.log(`✅ Created policy via service fallback: ${createResponse.id} (hash: ${publishResponse.currentVersionHash})`);
+        }
     } catch (error) {
+        console.error(`❌ Failed to seed policy ${policyId}:`, error);
         throw error;
     }
 }

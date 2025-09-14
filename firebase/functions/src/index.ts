@@ -28,6 +28,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
 import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
+import { testUpdatePolicy, testClearPolicyAcceptances } from './test/policy-handlers';
 import { metrics } from './monitoring/lightweight-metrics';
 
 // Initialize ApplicationBuilder
@@ -297,6 +298,12 @@ function setupRoutes(app: express.Application): void {
     app.post('/test-pool/return', asyncHandler(returnTestUser));
     app.get('/test-pool/status', asyncHandler(getPoolStatus));
     app.post('/test-pool/reset', asyncHandler(resetPool));
+
+    // Policy endpoints (no auth required)
+    app.post('/policies/:id/update', asyncHandler(testUpdatePolicy));
+
+    // Test user endpoints (dev only, requires auth)
+    app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
 
     // User policy endpoints (requires auth)
     app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));

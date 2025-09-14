@@ -117,7 +117,7 @@ export class DashboardPage extends BasePage {
                 timeout: 3000,
             });
         } catch (error) {
-            throw new Error(`Create Group modal did not open after clicking button. Dialog element not found. Original error: ${error.message}`);
+            throw new Error(`Create Group modal did not open after clicking button. Dialog element not found. Original error: ${error instanceof Error ? error.message : String(error)}`);
         }
 
         // Additional verification: wait for the modal heading to appear
@@ -128,7 +128,7 @@ export class DashboardPage extends BasePage {
                 timeout: 3000,
             });
         } catch (error) {
-            throw new Error(`Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error.message}`);
+            throw new Error(`Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 

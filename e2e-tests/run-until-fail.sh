@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/normal-flow/member-management.e2e.test.ts"
-TEST_FILTER="should prevent leaving group with outstanding balance"
+TEST_FILE="src/__tests__/integration/normal-flow/policy-update-acceptance.e2e.test.ts"
+TEST_FILTER=""
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

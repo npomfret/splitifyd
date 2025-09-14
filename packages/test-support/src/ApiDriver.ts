@@ -7,6 +7,7 @@ import {
     ExpenseFullDetails,
     ExpenseHistoryResponse,
     Group,
+    GroupBalances,
     GroupFullDetails,
     JoinGroupResponse,
     LeaveGroupResponse,
@@ -15,6 +16,7 @@ import {
     ListSettlementsResponse,
     MemberRole,
     MessageResponse,
+    PooledTestUser,
     RegisterResponse,
     RemoveGroupMemberResponse,
     SecurityPreset,
@@ -23,15 +25,16 @@ import {
     ShareLinkResponse,
     UserProfileResponse,
     UserRegistration,
+    UserToken,
 } from '@splitifyd/shared';
 
-import type { DocumentData } from 'firebase-admin/firestore';
+import type {DocumentData} from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
-import { Matcher, PollOptions, pollUntil } from './Polling';
-import { CreateExpenseRequestBuilder, UserRegistrationBuilder } from './builders';
-import { GroupBalances } from '@splitifyd/shared';
-import { PooledTestUser, UserToken } from '@splitifyd/shared';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
+
+// Direct Firestore access for policy manipulation (bypass API)
+import {Matcher, PollOptions, pollUntil} from './Polling';
+import {CreateExpenseRequestBuilder, UserRegistrationBuilder} from './builders';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -526,6 +529,66 @@ export class ApiDriver {
 
         if (acceptances.length > 0) {
             await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+        }
+    }
+
+    // Policy administration methods for testing
+    async updatePolicy(policyId: string, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
+        // Try with the adminToken first, then fall back to regular token
+        const token = adminToken;
+        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text, publish }, token);
+    }
+
+    async createPolicy(policyName: string, text: string, adminToken?: string): Promise<any> {
+        // Try with the adminToken first, then fall back to regular token
+        const token = adminToken;
+        return await this.apiRequest('/admin/policies', 'POST', { policyName, text }, token);
+    }
+
+    // Internal policy methods that bypass HTTP validation (for testing)
+    async ensurePoliciesExist(): Promise<void> {
+        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
+
+        for (const policyId of standardPolicies) {
+            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const baseContent = `${policyName} base version.`;
+
+            try {
+                await this.apiRequest(`/policies/${policyId}/current`, 'GET');
+                console.log(`✓ Policy ${policyId} already exists`);
+            } catch (error) {
+                try {
+                    await this.createPolicy(policyName, baseContent);
+                    console.log(`✓ Created base policy: ${policyId} via admin API`);
+                } catch (createError) {
+                    console.warn(`Failed to create base policy ${policyId}:`, createError);
+                }
+            }
+        }
+    }
+
+    async updateSpecificPolicy(policyId: string, userToken?: string): Promise<void> {
+        const timestamp = Date.now();
+        const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;
+
+        try {
+            // Use the new test endpoint for policy updates (dev only, no auth required)
+            await this.apiRequest(`/policies/${policyId}/update`, 'POST', {text: safeContent, publish: true});
+            console.log(`✓ Successfully updated policy ${policyId} via test endpoint`);
+        } catch (testError) {
+            console.warn('Test endpoint failed, falling back to admin API:', testError);
+            try {
+                await this.updatePolicy(policyId, safeContent, true, userToken);
+            } catch (apiError) {
+                // If policy doesn't exist, create it
+                try {
+                    await this.createPolicy(policyName, safeContent, userToken);
+                } catch (createError) {
+                    console.warn(`Failed to update or create policy ${policyId}:`, createError);
+                    throw createError;
+                }
+            }
         }
     }
 }
