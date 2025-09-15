@@ -353,8 +353,8 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}`, 'DELETE', null, token);
     }
 
-    async applySecurityPreset(groupId: string, token: string, preset: SecurityPreset): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/security/preset`, 'POST', { preset }, token);
+    async updateGroupPermissions(groupId: string, token: string, permissions: any): Promise<MessageResponse> {
+        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
     }
 
     async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {

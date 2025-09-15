@@ -16,7 +16,7 @@ import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './gr
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
-import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
+import { updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment } from './comments/handlers';
 import { getFirestore, getAuth } from './firebase';
@@ -341,9 +341,8 @@ function setupRoutes(app: express.Application): void {
     app.delete(`/${FirestoreCollections.GROUPS}/:id/members/:memberId`, authenticate, asyncHandler(removeGroupMember));
 
     // Permission management routes
-    // @deprecated - Endpoints not used by ApiClient, will be removed
-    app.post(`/${FirestoreCollections.GROUPS}/:id/security/preset`, authenticate, asyncHandler(applySecurityPreset));
     app.put(`/${FirestoreCollections.GROUPS}/:id/permissions`, authenticate, asyncHandler(updateGroupPermissions));
+    // @deprecated - Endpoints not used by ApiClient, will be removed
     app.put(`/${FirestoreCollections.GROUPS}/:id/members/:memberId/role`, authenticate, asyncHandler(setMemberRole));
     app.get(`/${FirestoreCollections.GROUPS}/:id/permissions/user`, authenticate, asyncHandler(getUserPermissions));
 

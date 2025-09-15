@@ -10,27 +10,6 @@ const applicationBuilder = new ApplicationBuilder(firestore);
 const groupPermissionService = applicationBuilder.buildGroupPermissionService();
 
 /**
- * Apply a security preset to a group
- */
-export const applySecurityPreset = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const groupId = req.params.id;
-    const { preset } = req.body;
-
-    try {
-        const result = await groupPermissionService.applySecurityPreset(userId, groupId, preset);
-        res.json(result);
-    } catch (error) {
-        logger.error('Error in applySecurityPreset', error, {
-            groupId,
-            userId,
-            preset,
-        });
-        throw error;
-    }
-};
-
-/**
  * Update individual group permissions
  */
 export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {

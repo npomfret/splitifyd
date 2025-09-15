@@ -209,16 +209,30 @@ describe('Security and Permissions - Consolidated Tests', () => {
             roleTestGroup = (await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token)).group;
         });
 
-        test('should enforce security preset permissions', async () => {
-            // Admin can apply security preset
-            await apiDriver.applySecurityPreset(roleTestGroup.id, adminUser.token, SecurityPresets.MANAGED);
+        test('should enforce permission updates and authorization', async () => {
+            // Admin can apply managed security permissions
+            const managedPermissions = {
+                expenseEditing: 'owner-and-admin',
+                expenseDeletion: 'owner-and-admin',
+                memberInvitation: 'admin-only',
+                memberApproval: 'admin-required',
+                settingsManagement: 'admin-only',
+            };
+            await apiDriver.updateGroupPermissions(roleTestGroup.id, adminUser.token, managedPermissions);
 
             const { group: updatedGroup } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
-            expect(updatedGroup.securityPreset).toBe(SecurityPresets.MANAGED);
+            expect(updatedGroup.securityPreset).toBe(SecurityPresets.CUSTOM);
             expect(updatedGroup.permissions.expenseEditing).toBe('owner-and-admin');
 
-            // Member cannot apply security preset
-            await expect(apiDriver.applySecurityPreset(roleTestGroup.id, memberUser.token, SecurityPresets.OPEN))
+            // Member cannot update group permissions
+            const openPermissions = {
+                expenseEditing: 'anyone',
+                expenseDeletion: 'anyone',
+                memberInvitation: 'anyone',
+                memberApproval: 'automatic',
+                settingsManagement: 'anyone',
+            };
+            await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions))
                 .rejects.toThrow('failed with status 403');
         });
 
@@ -294,7 +308,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             expect(listResponse.groups).toBeDefined();
         });
 
-        test('should successfully handle groups with valid security presets', async () => {
+        test('should successfully handle groups with permission updates', async () => {
             const testUser = await apiDriver.createUser(
                 new UserRegistrationBuilder()
                     .withEmail(`test-valid-${Date.now()}@test.com`)
@@ -312,20 +326,37 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 validGroups.push(group);
             }
 
-            // Apply different valid presets
-            await apiDriver.applySecurityPreset(validGroups[0].id, testUser.token, SecurityPresets.OPEN);
-            await apiDriver.applySecurityPreset(validGroups[1].id, testUser.token, SecurityPresets.MANAGED);
+            // Apply different permission configurations
+            const openPermissions = {
+                expenseEditing: 'anyone',
+                expenseDeletion: 'anyone',
+                memberInvitation: 'anyone',
+                memberApproval: 'automatic',
+                settingsManagement: 'anyone',
+            };
+            const managedPermissions = {
+                expenseEditing: 'owner-and-admin',
+                expenseDeletion: 'owner-and-admin',
+                memberInvitation: 'admin-only',
+                memberApproval: 'admin-required',
+                settingsManagement: 'admin-only',
+            };
+
+            await apiDriver.updateGroupPermissions(validGroups[0].id, testUser.token, openPermissions);
+            await apiDriver.updateGroupPermissions(validGroups[1].id, testUser.token, managedPermissions);
 
             // Fetch groups list should work without issues
             const listResponse = await apiDriver.listGroups(testUser.token);
             expect(listResponse.groups.length).toBeGreaterThanOrEqual(3);
 
-            // Verify presets are applied correctly
+            // Verify permissions are applied correctly
             const openGroup = listResponse.groups.find(g => g.id === validGroups[0].id);
             const managedGroup = listResponse.groups.find(g => g.id === validGroups[1].id);
 
-            expect(openGroup?.securityPreset).toBe(SecurityPresets.OPEN);
-            expect(managedGroup?.securityPreset).toBe(SecurityPresets.MANAGED);
+            expect(openGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);
+            expect(managedGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);
+            expect(openGroup?.permissions.expenseEditing).toBe('anyone');
+            expect(managedGroup?.permissions.expenseEditing).toBe('owner-and-admin');
         });
     });
 
