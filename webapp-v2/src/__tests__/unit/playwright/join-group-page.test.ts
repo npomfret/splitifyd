@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+import {
+    setupTestPage,
+    verifyNavigation
+} from './test-helpers';
 
 /**
  * TODO: Add comprehensive join group behavioral tests
@@ -23,46 +27,34 @@ import { test, expect } from '@playwright/test';
  */
 test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
-        // Clear auth state and storage before each test
-        await page.context().clearCookies();
-
-        // Clear storage safely
-        await page.evaluate(() => {
-            try {
-                localStorage.clear();
-                sessionStorage.clear();
-            } catch (e) {
-                // Ignore security errors in test setup
-            }
-        });
+        await setupTestPage(page, '/join');
     });
 
-    test('join page route exists and loads', async ({ page }) => {
+    test('should redirect to login when accessing protected route', async ({ page }) => {
         // Navigate to join page - will redirect to login due to ProtectedRoute
         await page.goto('/join');
 
         // Since this is a protected route, it should redirect to login
-        // This tests that the route exists and the protection works
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/, 10000); // Longer timeout for route protection redirect
     });
 
-    test('join page with linkId redirects to login when not authenticated', async ({ page }) => {
+    test('should redirect to login with linkId parameter when not authenticated', async ({ page }) => {
         // Navigate to join page with linkId parameter
         await page.goto('/join?linkId=test-link-123');
 
         // Should redirect to login due to ProtectedRoute
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/);
 
         // The returnUrl should be preserved for after login
         expect(page.url()).toContain('returnUrl');
     });
 
-    test('join page preserves linkId in returnUrl during login redirect', async ({ page }) => {
+    test('should preserve linkId in returnUrl during login redirect', async ({ page }) => {
         // Navigate with linkId
         await page.goto('/join?linkId=important-group-link');
 
         // Wait for redirect to login
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/);
 
         // Check that returnUrl parameter contains the join URL with linkId
         const url = new URL(page.url());
@@ -76,18 +68,18 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
         }
     });
 
-    test('empty linkId parameter redirects to login properly', async ({ page }) => {
+    test('should handle empty linkId parameter correctly', async ({ page }) => {
         // Test empty linkId parameter
         await page.goto('/join?linkId=');
 
         // Should still redirect to login (route protection works)
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/);
 
         // Should preserve the empty linkId in returnUrl
         expect(page.url()).toContain('returnUrl');
     });
 
-    test('join page route is properly configured in routing system', async ({ page }) => {
+    test('should have properly configured route in routing system', async ({ page }) => {
         // Test that the join route doesn't return 404
         const response = await page.goto('/join');
 
@@ -95,13 +87,13 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
         expect(response?.status()).not.toBe(404);
     });
 
-    test('join page handles URL encoding properly', async ({ page }) => {
+    test('should handle URL encoding properly', async ({ page }) => {
         // Test with encoded characters in linkId
         const encodedLinkId = encodeURIComponent('group-link-with-special-chars!@#');
         await page.goto(`/join?linkId=${encodedLinkId}`);
 
         // Should redirect to login
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/);
 
         // Should preserve encoded linkId in returnUrl
         const url = new URL(page.url());
@@ -109,12 +101,12 @@ test.describe('JoinGroupPage - Basic Behavioral Tests', () => {
         expect(returnUrl).toContain(encodedLinkId);
     });
 
-    test('join page maintains URL structure during navigation', async ({ page }) => {
+    test('should maintain complex URL structure during navigation', async ({ page }) => {
         // Test that multiple parameters are handled
         await page.goto('/join?linkId=test123&ref=email&campaign=invite');
 
         // Should redirect but preserve complex URL structure
-        await expect(page).toHaveURL(/\/login/);
+        await verifyNavigation(page, /\/login/);
 
         const url = new URL(page.url());
         const returnUrl = url.searchParams.get('returnUrl');

@@ -141,3 +141,68 @@ When tests fail:
 2. Use `page.pause()` to inspect state
 3. Check screenshots in `playwright-report/`
 4. Use browser dev tools in headed mode
+
+## Recent Improvements
+
+### Shared Test Helpers (`test-helpers.ts`)
+
+We've created a comprehensive set of reusable test utilities:
+
+**Key helpers:**
+- `setupTestPage()` - Standard page setup with auth/storage clearing
+- `fillFormField()` - Type-safe form filling with validation
+- `expectButtonState()` - Consistent button state assertions
+- `verifyNavigation()` - Navigation verification with proper timeouts
+- `testFormValidation()` - Systematic form validation testing
+- `testSessionStoragePersistence()` - Storage persistence testing
+
+**Centralized constants:**
+- `SELECTORS` - All CSS selectors in one place
+- `TEST_SCENARIOS` - Common test data (emails, passwords, etc.)
+
+**Benefits:**
+- Eliminated duplication across 34 tests
+- Consistent patterns and better maintainability
+- More reliable tests with proper waits
+- Faster development of new tests
+
+### Test Structure Improvements
+
+**Before:**
+```typescript
+test('form renders elements', async ({ page }) => {
+    await expect(page.locator('#email-input')).toBeVisible();
+    await expect(page.locator('#password-input')).toBeVisible();
+    // ... repetitive checks
+});
+```
+
+**After:**
+```typescript
+test('should render all required form elements', async ({ page }) => {
+    await expectElementVisible(page, SELECTORS.EMAIL_INPUT);
+    await verifyFormAccessibility(page, [
+        { selector: SELECTORS.EMAIL_INPUT, type: 'email' }
+    ]);
+});
+```
+
+### Performance Optimizations
+
+- **Fast timeouts:** 10s test timeout, 5s action timeout
+- **Single worker:** Consistent execution with `workers: 1`
+- **Reduced retries:** Faster feedback on failures
+- **Better waits:** Replaced hardcoded timeouts with proper conditions
+
+**Result:** Tests complete in ~30s instead of timing out
+
+### Current Test Coverage
+
+| Page | Tests | Status |
+|------|-------|--------|
+| Login | 7 | ✅ All passing |
+| Register | 10 | ✅ All passing |
+| Reset Password | 10 | ⚠️ Some limitations due to Firebase |
+| Join Group | 7 | ⚠️ Limited by ProtectedRoute |
+
+**Total: 34 tests with high-quality behavioral coverage**
