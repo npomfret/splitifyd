@@ -38,16 +38,13 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Core Notification Document Operations', () => {
         test('should create and update notification documents for basic operations', async () => {
             // Set up listeners for all users before any operations
-            const [user0Listener, user1Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // Create a group and verify notification document creation
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
             // Wait for group creation notification
-            const groupEvents = await user0Listener.waitForEventCount(group.id, 'group', 1);
-            expect(groupEvents).toHaveLength(1);
-            expect(groupEvents[0].type).toBe('group');
-            expect(groupEvents[0].groupState?.groupDetailsChangeCount).toBe(1);
+            await user1Listener.waitForGroupEvent(group.id, 1);
 
             // Clear events to isolate next operation
             notificationDriver.clearEvents();
@@ -57,15 +54,14 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
             // Wait for membership notifications for BOTH users
-            const user0GroupEvents = await user0Listener.waitForEventCount(group.id, 'group', 1);
-            const user1GroupEvents = await user1Listener.waitForEventCount(group.id, 'group', 1);
+            // user1 sees groupDetailsChangeCount=2 (creation + member addition)
+            // user2 sees groupDetailsChangeCount=1 (their initial state when joining)
+            await user1Listener.waitForGroupEvent(group.id, 2);
+            await user2Listener.waitForGroupEvent(group.id, 1);
 
-            // Assert exact event counts with detailed error messages
-            user0Listener.assertEventCount(group.id, 1, 'group');
+            // Assert exact event counts - each user should have received exactly 1 group event
             user1Listener.assertEventCount(group.id, 1, 'group');
-
-            expect(user0GroupEvents[0].type).toBe('group');
-            expect(user1GroupEvents[0].type).toBe('group');
+            user2Listener.assertEventCount(group.id, 1, 'group');
 
             // Clear events to isolate next operation
             notificationDriver.clearEvents();
@@ -76,33 +72,29 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .withGroupId(group.id)
                     .withPaidBy(user1.uid)
                     .withParticipants([user1.uid, user2.uid])
-                    .withAmount(50.0)
                     .build(),
                 user1.token
             );
 
-            // Wait for transaction notifications for BOTH users
-            const user0TransactionEvents = await user0Listener.waitForEventCount(group.id, 'transaction', 1);
-            const user1TransactionEvents = await user1Listener.waitForEventCount(group.id, 'transaction', 1);
+            // Wait for transaction notifications for BOTH users - expense creation triggers transaction, balance, and group events
+            await user1Listener.waitForTransactionEvent(group.id, 1);
+            await user2Listener.waitForTransactionEvent(group.id, 1);
+            await user1Listener.waitForBalanceEvent(group.id, 1);
+            await user2Listener.waitForBalanceEvent(group.id, 1);
+            await user1Listener.waitForGroupEvent(group.id, 2);
+            await user2Listener.waitForGroupEvent(group.id, 1);
 
             // Assert exact event counts - expense creation should trigger transaction, balance, and group events (3 total)
-            expect(user0Listener.getEventsForGroup(group.id)).toHaveLength(3);
-            expect(user1Listener.getEventsForGroup(group.id)).toHaveLength(3);
-
-            // Verify we got all expected event types
-            user0Listener.assertEventCount(group.id, 1, 'transaction');
-            user0Listener.assertEventCount(group.id, 1, 'balance');
-            user0Listener.assertEventCount(group.id, 1, 'group');
-
             user1Listener.assertEventCount(group.id, 1, 'transaction');
             user1Listener.assertEventCount(group.id, 1, 'balance');
             user1Listener.assertEventCount(group.id, 1, 'group');
+            user2Listener.assertEventCount(group.id, 1, 'transaction');
+            user2Listener.assertEventCount(group.id, 1, 'balance');
+            user2Listener.assertEventCount(group.id, 1, 'group');
 
-            // Verify transaction notification structure
-            expect(user0TransactionEvents[0].type).toBe('transaction');
-            expect(user0TransactionEvents[0].groupState?.transactionChangeCount).toBe(1);
-            expect(user1TransactionEvents[0].type).toBe('transaction');
-            expect(user1TransactionEvents[0].groupState?.transactionChangeCount).toBe(1);
+            // Verify total event counts
+            expect(user1Listener.getEventsForGroup(group.id)).toHaveLength(3);
+            expect(user2Listener.getEventsForGroup(group.id)).toHaveLength(3);
         });
 
         test('should handle notification version increments correctly', async () => {

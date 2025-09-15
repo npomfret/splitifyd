@@ -436,6 +436,54 @@ export class NotificationListener {
         }
     }
 
+    /**
+     * Wait for a group event and validate its structure
+     */
+    async waitForGroupEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 2000): Promise<NotificationEvent> {
+        const events = await this.waitForEventCount(groupId, 'group', 1, timeoutMs);
+        const event = events[0];
+
+        if (event.groupState?.groupDetailsChangeCount !== expectedChangeCount) {
+            throw new Error(
+                `Expected groupDetailsChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.groupDetailsChangeCount}`
+            );
+        }
+
+        return event;
+    }
+
+    /**
+     * Wait for a transaction event and validate its structure
+     */
+    async waitForTransactionEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 2000): Promise<NotificationEvent> {
+        const events = await this.waitForEventCount(groupId, 'transaction', 1, timeoutMs);
+        const event = events[0];
+
+        if (event.groupState?.transactionChangeCount !== expectedChangeCount) {
+            throw new Error(
+                `Expected transactionChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.transactionChangeCount}`
+            );
+        }
+
+        return event;
+    }
+
+    /**
+     * Wait for a balance event and validate its structure
+     */
+    async waitForBalanceEvent(groupId: string, expectedChangeCount: number = 1, timeoutMs: number = 2000): Promise<NotificationEvent> {
+        const events = await this.waitForEventCount(groupId, 'balance', 1, timeoutMs);
+        const event = events[0];
+
+        if (event.groupState?.balanceChangeCount !== expectedChangeCount) {
+            throw new Error(
+                `Expected balanceChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.balanceChangeCount}`
+            );
+        }
+
+        return event;
+    }
+
     getDebugInfo(): any {
         return {
             userId: this.userId,
