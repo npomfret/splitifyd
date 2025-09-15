@@ -38,8 +38,7 @@ describe('Notifications Management - Consolidated Tests', () => {
     describe('Core Notification Document Operations', () => {
         test('should create and update notification documents for basic operations', async () => {
             // Set up listeners for all users before any operations
-            const listeners = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
-            const [user0Listener, user1Listener] = listeners;
+            const [user0Listener, user1Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
             // Create a group and verify notification document creation
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
@@ -51,8 +50,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             expect(groupEvents[0].groupState?.groupDetailsChangeCount).toBe(1);
 
             // Clear events to isolate next operation
-            user0Listener.clearEvents();
-            user1Listener.clearEvents();
+            notificationDriver.clearEvents();
 
             // Add second user to group
             const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
@@ -70,8 +68,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             expect(user1GroupEvents[0].type).toBe('group');
 
             // Clear events to isolate next operation
-            user0Listener.clearEvents();
-            user1Listener.clearEvents();
+            notificationDriver.clearEvents();
 
             // Create expense involving both users to ensure transaction notification triggers
             await apiDriver.createExpense(

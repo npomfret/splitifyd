@@ -70,6 +70,15 @@ export class NotificationDriver {
     }
 
     /**
+     * Clear events for all active listeners
+     */
+    clearEvents(): void {
+        for (const [userId, listener] of this.activeListeners) {
+            listener.clearEvents();
+        }
+    }
+
+    /**
      * Set up listeners for multiple users BEFORE any test actions
      * This captures ALL events from the beginning
      */
