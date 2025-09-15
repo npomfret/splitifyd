@@ -34,7 +34,9 @@ When running the app, the code paths used MUST be identical to when it's running
 
 ## Keep It Working
 
-The app must run reliably across all supported environments.
+The app must run reliably in the firebase emulator AND in a deployed firebase environment with NO code changes.
+
+Run `npm run build` every time you are done making changes.
 
 **note** Always account for config differences between environments, especially CSP and CORS rules.
 

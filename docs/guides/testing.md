@@ -27,17 +27,20 @@ npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --out
 
 ## Guidelines for Writing Tests
 
+- **NEVER** use random sleeps (`await new Promise((resolve) => setTimeout(resolve, 5000))`) - always wait for a state change using notifications or polling (look for exising patterns)
+- When running tests, wait for them to finish, and report which have failed. 
+- Skipped tests are not permitted.
 - Test complexity must be lower than the code they exercise
 - Focus on behaviour, not implementation details
 - Avoid complex mocking setups; prefer builder patterns (see below) or in-browser testing
 - Remove pointless, outdated, redundant, duplicated, outdated, pedantic or low‑benefit tests
 - Never test features that don’t exist (yet)
-- Ignore theoretical edge cases that won’t occur - **don't be pedantic**
+- Ignore theoretical edge cases that won’t occur (**don't be pedantic**)
 - Avoid high maintenance tests with low benefit
 - Factor out complex setup in order to make tests easy to read
 - Fail fast!!: Test state regularly and early; fail quickly with great error messages
 - Use specific matchers: Test for the exact condition you need, not just "something changed"
-- Set reasonable timeouts: Start with 1-5 seconds, adjust based on actual operation timing
+- Set reasonable timeouts: Start with 1 second, then noadjust based on actual operation timing
 - Provide descriptive error messages: Include context about what condition was expected
 
 ## Builders
