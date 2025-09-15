@@ -45,18 +45,11 @@
  * and normal-flow/user-notification-system.test.ts
  */
 
-import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
-import {
-    ApiDriver,
-    CreateGroupRequestBuilder,
-    CreateExpenseRequestBuilder,
-    SettlementBuilder,
-    borrowTestUsers,
-    NotificationDriver
-} from '@splitifyd/test-support';
-import { getFirestore } from '../../firebase';
-import { UserToken, PooledTestUser } from '@splitifyd/shared';
+import {beforeEach, describe, expect, test} from 'vitest';
+import {v4 as uuidv4} from 'uuid';
+import {ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, CreateGroupRequestBuilder, NotificationDriver, SettlementBuilder} from '@splitifyd/test-support';
+import {getFirestore} from '../../firebase';
+import {PooledTestUser} from '@splitifyd/shared';
 
 describe('Notifications Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
@@ -147,7 +140,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
             // Wait for group creation notification - new group starts at count 1
-            await user1Listener.waitForGroupEvent(group.id, 1, 3000);
+            await user1Listener.waitForGroupEvent(group.id, 1);
 
             // Assert event count after group creation
             user1Listener.assertEventCount(group.id, 1, 'group');
@@ -215,7 +208,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Wait for group creation event to fully process - only creator should be notified
-            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
             user1Listener.assertEventCount(multiUserGroup.id, 1, 'group');
 
             // Other users should have no events yet
@@ -232,8 +225,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(linkId, user2.token);
 
             // Wait for member join events to fully process - both existing members should be notified
-            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
             user1Listener.assertEventCount(multiUserGroup.id, 1, 'group');
             user2Listener.assertEventCount(multiUserGroup.id, 1, 'group');
 
@@ -248,9 +241,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(linkId, user3.token);
 
             // Wait for member join events to fully process - all members should be notified
-            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
-            await user3Listener.waitForEventCount(multiUserGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
+            await user3Listener.waitForEventCount(multiUserGroup.id, 'group', 1);
             user1Listener.assertEventCount(multiUserGroup.id, 1, 'group');
             user2Listener.assertEventCount(multiUserGroup.id, 1, 'group');
             user3Listener.assertEventCount(multiUserGroup.id, 1, 'group');
@@ -281,11 +274,6 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('should handle member addition and removal notification patterns', async () => {
-            // Clean up notification documents from previous tests to ensure clean state
-            const firestore = getFirestore();
-            await firestore.collection('user-notifications').doc(user1.uid).delete();
-            await firestore.collection('user-notifications').doc(user2.uid).delete();
-
             // Set up listeners for user1 and user2 before any operations
             const [user1Listener, user2Listener] = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
 
@@ -294,6 +282,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Start with single-member group
             const dynamicGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            console.log(`groupId=${dynamicGroup.id}`);
 
             // Wait for group creation notification
             await user1Listener.waitForGroupEvent(dynamicGroup.id, 1);
@@ -307,8 +296,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // Both users should receive group update notifications for member addition
-            await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 1);
 
             user1Listener.assertEventCount(dynamicGroup.id, 1, 'group');
             user2Listener.assertEventCount(dynamicGroup.id, 1, 'group');
@@ -329,17 +318,20 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Both should receive transaction notifications
             await user1Listener.waitForTransactionEvent(dynamicGroup.id, 1);
+            await user1Listener.waitForBalanceEvent(dynamicGroup.id, 1);
             await user2Listener.waitForTransactionEvent(dynamicGroup.id, 1);
+            await user2Listener.waitForBalanceEvent(dynamicGroup.id, 1);
 
             user1Listener.assertEventCount(dynamicGroup.id, 1, 'transaction');
+            user1Listener.assertEventCount(dynamicGroup.id, 1, 'balance');
             user2Listener.assertEventCount(dynamicGroup.id, 1, 'transaction');
+            user2Listener.assertEventCount(dynamicGroup.id, 1, 'balance');
+            notificationDriver.clearEvents();
 
             // Settle all outstanding balances by currency before removing member
             const balances = await apiDriver.getGroupBalances(dynamicGroup.id, user1.token);
-            const dynamicBalancesByCurrency = balances.balancesByCurrency;
 
-            let settlementsCreated = 0;
-            for (const [currency, currencyBalances] of Object.entries(dynamicBalancesByCurrency)) {
+            for (const [currency, currencyBalances] of Object.entries(balances.balancesByCurrency)) {
                 const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || 0;
 
                 if (user1CurrencyBalance < 0) {
@@ -354,7 +346,12 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .build(),
                         user2.token
                     );
-                    settlementsCreated++;
+
+                    await user1Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
+                    await user1Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
+                    await user2Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
+                    await user2Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
+                    notificationDriver.clearEvents();
                 } else if (user1CurrencyBalance > 0) {
                     // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
@@ -367,49 +364,47 @@ describe('Notifications Management - Consolidated Tests', () => {
                             .build(),
                         user1.token
                     );
-                    settlementsCreated++;
+
+                    await user1Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
+                    await user1Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
+                    await user2Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
+                    await user2Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
+                    notificationDriver.clearEvents();
                 }
             }
 
-            // WAIT: Ensure all settlement notifications are processed before proceeding
-            // Each settlement triggers both transaction and balance notifications for both users
-            if (settlementsCreated > 0) {
-                // Wait for transaction and balance events from settlements
-                await user1Listener.waitForEventCount(dynamicGroup.id, 'transaction', settlementsCreated, 3000);
-                await user1Listener.waitForEventCount(dynamicGroup.id, 'balance', settlementsCreated, 3000);
-                await user2Listener.waitForEventCount(dynamicGroup.id, 'transaction', settlementsCreated, 3000);
-                await user2Listener.waitForEventCount(dynamicGroup.id, 'balance', settlementsCreated, 3000);
-            }
-
-            // Clear events before member removal - now that all settlements are processed
-            notificationDriver.clearEvents();
-
             // ACTION: Remove user2 from group (user1 remains as owner)
+            console.log(`final user 2 (${user2.uid}) events`)
+            for(let item of user2Listener.getGroupEvents(dynamicGroup.id)) {
+                console.log(`\t${JSON.stringify(item)}`);
+            }
             await apiDriver.removeGroupMember(dynamicGroup.id, user2.uid, user1.token);
 
-            // WAIT: Wait for expected events from member removal
-            // ARCHITECTURAL NOTE: Although leaveGroupAtomic() atomically cleans up the user's notification
-            // document, there may be a race condition where trackGroupChanges trigger notifies the removed
-            // user before the atomic cleanup takes effect. This is timing-dependent:
-            // - In isolation: user2 receives 0 events (atomic cleanup works perfectly)
-            // - In full suite: user2 may receive 1 event (due to race condition)
-            // Wait for member removal notifications to complete
-            await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1, 3000);
+            {//sanity check
+                // const {members} = await apiDriver.getGroupFullDetails(dynamicGroup.id, user1.token);
+                // expect(members.members.length).toBe(1);
+                // expect(members.members[0].uid).toBe(user1.uid);
+            }
 
-            // Check what events each user received
-            const user1GroupEvents = user1Listener.getGroupEvents(dynamicGroup.id, 'group');
-            const user2GroupEvents = user2Listener.getGroupEvents(dynamicGroup.id, 'group');
-            const user1GroupCount = user1GroupEvents.length;
-            const user2GroupCount = user2GroupEvents.length;
+            // try {
+            //     await apiDriver.getGroupFullDetails(dynamicGroup.id, user2.token);
+            //     throw Error("should not get here")
+            // } catch (error: any) {
+            //     if(error.status !== 404)
+            //         throw error;
+            // }
 
-            // user1 (remaining member) should receive group events for member removal (timing-dependent: 0-2 events)
-            expect(user1GroupCount).toBeLessThanOrEqual(3);
-
-            // user2 (removed user) should receive either 0 or 1 group events (depending on timing/race conditions)
-            expect(user2GroupCount).toBeLessThanOrEqual(1);
-
-            // CLEAR: Clear events to isolate subsequent operations
+            await user1Listener.waitForEventCount(dynamicGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(dynamicGroup.id, 'group', 0, 100);// removed user should see nothing
             notificationDriver.clearEvents();
+
+            user2Listener.assertEventCount(dynamicGroup.id, 0, 'transaction');
+
+            {//sanity check
+                // const {members} = await apiDriver.getGroupFullDetails(dynamicGroup.id, user1.token);
+                // expect(members.members.length).toBe(1);
+                // expect(members.members[0].uid).toBe(user1.uid);
+            }
 
             // Create another expense - only user1 (remaining member) should be notified
             await apiDriver.createExpense(
@@ -424,10 +419,12 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // WAIT: Wait for all transaction events from expense creation to complete
             // Expense creation after member removal can trigger multiple events (observed: 2)
-            await user1Listener.waitForEventCount(dynamicGroup.id, 'transaction', 2, 3000);
+            await user1Listener.waitForEventCount(dynamicGroup.id, 'transaction', 1);
+            await user1Listener.waitForEventCount(dynamicGroup.id, 'balance', 1);
 
             // ASSERT: Verify user1 received transaction events (system generates 2 for this scenario)
-            user1Listener.assertEventCount(dynamicGroup.id, 2, 'transaction');
+            user1Listener.assertEventCount(dynamicGroup.id, 1, 'transaction');
+            user1Listener.assertEventCount(dynamicGroup.id, 1, 'balance');
 
             // User2 should not receive any events for this group (they were removed)
             user2Listener.assertEventCount(dynamicGroup.id, 0, 'transaction');
@@ -478,8 +475,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user3.token);
 
             // WAIT: Wait for member addition notifications
-            await user2Listener.waitForEventCount(publicGroup.id, 'group', 1, 3000);
-            await user3Listener.waitForEventCount(publicGroup.id, 'group', 1, 3000);
+            await user2Listener.waitForEventCount(publicGroup.id, 'group', 1);
+            await user3Listener.waitForEventCount(publicGroup.id, 'group', 1);
 
             // ASSERT: Only users in public group should receive notifications
             user1Listener.assertEventCount(publicGroup.id, 0, 'group');
@@ -559,8 +556,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(permissionGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(permissionGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(permissionGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(permissionGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive notifications about member addition
             user1Listener.assertEventCount(permissionGroup.id, 1, 'group');
@@ -630,12 +627,12 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // WAIT: Ensure all settlement notifications are processed
             if (settlementsCreated > 0) {
-                await user1Listener.waitForEventCount(permissionGroup.id, 'transaction', settlementsCreated, 3000);
-                await user1Listener.waitForEventCount(permissionGroup.id, 'balance', settlementsCreated, 3000);
-                await user1Listener.waitForEventCount(permissionGroup.id, 'group', settlementsCreated, 3000);
-                await user2Listener.waitForEventCount(permissionGroup.id, 'transaction', settlementsCreated, 3000);
-                await user2Listener.waitForEventCount(permissionGroup.id, 'balance', settlementsCreated, 3000);
-                await user2Listener.waitForEventCount(permissionGroup.id, 'group', settlementsCreated, 3000);
+                await user1Listener.waitForEventCount(permissionGroup.id, 'transaction', settlementsCreated);
+                await user1Listener.waitForEventCount(permissionGroup.id, 'balance', settlementsCreated);
+                await user1Listener.waitForEventCount(permissionGroup.id, 'group', settlementsCreated);
+                await user2Listener.waitForEventCount(permissionGroup.id, 'transaction', settlementsCreated);
+                await user2Listener.waitForEventCount(permissionGroup.id, 'balance', settlementsCreated);
+                await user2Listener.waitForEventCount(permissionGroup.id, 'group', settlementsCreated);
             }
 
             // CLEAR: Clear events before member removal
@@ -645,7 +642,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.removeGroupMember(permissionGroup.id, user2.uid, user1.token);
 
             // WAIT: Wait for member removal notification
-            await user1Listener.waitForEventCount(permissionGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(permissionGroup.id, 'group', 1);
 
             // ASSERT: Only user1 should receive removal notification, user2 gets 0 events (removed from group)
             user1Listener.assertEventCount(permissionGroup.id, 1, 'group');
@@ -666,7 +663,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // WAIT: Wait for transaction notification
-            await user1Listener.waitForEventCount(permissionGroup.id, 'transaction', 1, 3000);
+            await user1Listener.waitForEventCount(permissionGroup.id, 'transaction', 1);
 
             // ASSERT: Only user1 should receive notification (user2 was removed)
             user1Listener.assertEventCount(permissionGroup.id, 1, 'transaction');
@@ -697,8 +694,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(eventGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(eventGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(eventGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(eventGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(eventGroup.id, 1, 'group');
@@ -733,8 +730,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.updateExpense(expense.id, { amount: 45.0 }, user1.token);
 
             // WAIT: Wait for expense update transaction notifications
-            await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1, 3000);
-            await user2Listener.waitForEventCount(eventGroup.id, 'transaction', 1, 3000);
+            await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
+            await user2Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
 
             // ASSERT: Both users should receive update notifications
             user1Listener.assertEventCount(eventGroup.id, 1, 'transaction');
@@ -755,8 +752,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // WAIT: Wait for settlement transaction notifications
-            await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1, 3000);
-            await user2Listener.waitForEventCount(eventGroup.id, 'transaction', 1, 3000);
+            await user1Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
+            await user2Listener.waitForEventCount(eventGroup.id, 'transaction', 1);
 
             // ASSERT: Both users should receive settlement notifications
             user1Listener.assertEventCount(eventGroup.id, 1, 'transaction');
@@ -796,8 +793,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(balanceGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(balanceGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(balanceGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(balanceGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(balanceGroup.id, 1, 'group');
@@ -877,7 +874,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 );
 
                 // WAIT: Wait for each transaction notification to be processed
-                await user1Listener.waitForEventCount(churnGroup.id, 'transaction', i + 1, 3000);
+                await user1Listener.waitForEventCount(churnGroup.id, 'transaction', i + 1);
             }
 
             // ASSERT: Verify all notifications were received despite potential listener churn
@@ -936,7 +933,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // WAIT: Verify system continues to work after simulated recovery
-            await user1Listener.waitForEventCount(recoveryGroup.id, 'transaction', 1, 3000);
+            await user1Listener.waitForEventCount(recoveryGroup.id, 'transaction', 1);
 
             // ASSERT: Verify system recovered and processed the second transaction
             user1Listener.assertEventCount(recoveryGroup.id, 1, 'transaction');
@@ -971,8 +968,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(conflictGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(conflictGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(conflictGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(conflictGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(conflictGroup.id, 1, 'group');
@@ -1070,7 +1067,7 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // WAIT: Verify system recovery
-            await user1Listener.waitForEventCount(lockingGroup.id, 'transaction', 1, 3000);
+            await user1Listener.waitForEventCount(lockingGroup.id, 'transaction', 1);
 
             // ASSERT: System should continue to work after document contention
             user1Listener.assertEventCount(lockingGroup.id, 1, 'transaction');
@@ -1107,8 +1104,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(balanceGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(balanceGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(balanceGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(balanceGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(balanceGroup.id, 1, 'group');
@@ -1200,8 +1197,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for member addition notifications
-            await user1Listener.waitForEventCount(policyGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(policyGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(policyGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(policyGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(policyGroup.id, 1, 'group');
@@ -1221,8 +1218,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // WAIT: Both users should receive group update notifications
-            await user1Listener.waitForEventCount(policyGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(policyGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(policyGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(policyGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group update notifications
             user1Listener.assertEventCount(policyGroup.id, 1, 'group');
@@ -1281,8 +1278,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Existing member should get notified of new member
-            await user1Listener.waitForEventCount(sharingGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(sharingGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(sharingGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(sharingGroup.id, 'group', 1);
 
             // ASSERT: Both users should receive group notifications
             user1Listener.assertEventCount(sharingGroup.id, 1, 'group');
@@ -1297,9 +1294,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink2.linkId, user3.token);
 
             // WAIT: All existing members should get notified
-            await user1Listener.waitForEventCount(sharingGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(sharingGroup.id, 'group', 1, 3000);
-            await user3Listener.waitForEventCount(sharingGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(sharingGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(sharingGroup.id, 'group', 1);
+            await user3Listener.waitForEventCount(sharingGroup.id, 'group', 1);
 
             // ASSERT: All users should receive group notifications
             user1Listener.assertEventCount(sharingGroup.id, 1, 'group');
@@ -1354,7 +1351,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 );
 
                 // WAIT: Wait for each transaction to process before creating the next
-                await user1Listener.waitForEventCount(loadTestGroup.id, 'transaction', i + 1, 3000);
+                await user1Listener.waitForEventCount(loadTestGroup.id, 'transaction', i + 1);
             }
 
             // ASSERT: Final assertion - should have 8 transaction events
@@ -1391,8 +1388,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // WAIT: Wait for user2 addition notifications
-            await user1Listener.waitForEventCount(scaleGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(scaleGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(scaleGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(scaleGroup.id, 'group', 1);
 
             // CLEAR: Clear events before adding user3
             notificationDriver.clearEvents();
@@ -1400,9 +1397,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user3.token);
 
             // WAIT: Wait for user3 addition notifications
-            await user1Listener.waitForEventCount(scaleGroup.id, 'group', 1, 3000);
-            await user2Listener.waitForEventCount(scaleGroup.id, 'group', 1, 3000);
-            await user3Listener.waitForEventCount(scaleGroup.id, 'group', 1, 3000);
+            await user1Listener.waitForEventCount(scaleGroup.id, 'group', 1);
+            await user2Listener.waitForEventCount(scaleGroup.id, 'group', 1);
+            await user3Listener.waitForEventCount(scaleGroup.id, 'group', 1);
 
             // CLEAR: Clear events to isolate expense operations
             notificationDriver.clearEvents();
