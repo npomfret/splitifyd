@@ -204,5 +204,25 @@ test('should render all required form elements', async ({ page }) => {
 | Register | 10 | ✅ All passing |
 | Reset Password | 10 | ⚠️ Some limitations due to Firebase |
 | Join Group | 7 | ⚠️ Limited by ProtectedRoute |
+| Settings | 2 | ✅ Protected route behavior |
+| Pricing | 6 | ✅ Full content and interaction tests |
+| Landing | 1 | ✅ Basic rendering |
+| Privacy Policy | 1 | ✅ Basic rendering |
 
-**Total: 34 tests with high-quality behavioral coverage**
+**Total: 44 tests with high-quality behavioral coverage**
+
+### Recent Additions
+
+**Settings Page Tests** - Focuses on protected route behavior and authentication flow:
+- Redirect to login when accessing protected route
+- Preservation of returnUrl for post-login navigation
+
+**Pricing Page Tests** - Comprehensive content and behavioral testing:
+- Core pricing sections and plan rendering
+- Feature display and humorous content verification
+- Call-to-action button functionality
+- Page metadata and SEO elements
+- Free pricing transparency messaging
+- User interaction patterns
+
+The Pricing Page represents an excellent example of comprehensive unit testing for static content, covering user-facing functionality, content verification, and interaction patterns without requiring external dependencies.
