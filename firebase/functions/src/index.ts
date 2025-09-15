@@ -22,7 +22,7 @@ import { createComment } from './comments/handlers';
 import { getFirestore, getAuth } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
-import { updateUserProfile, changePassword, deleteUserAccount } from './user/handlers';
+import { updateUserProfile, changePassword } from './user/handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -312,8 +312,6 @@ function setupRoutes(app: express.Application): void {
 
     app.put('/user/profile', authenticate, asyncHandler(updateUserProfile));
     app.post('/user/change-password', authenticate, asyncHandler(changePassword));
-    // @deprecated - Endpoint not used by ApiClient, will be removed
-    app.delete('/user/account', authenticate, asyncHandler(deleteUserAccount));
 
     // Auth endpoints (no auth required)
     app.post('/register', asyncHandler(register));

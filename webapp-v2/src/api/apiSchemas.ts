@@ -371,5 +371,4 @@ export const responseSchemas = {
     'PUT /user/profile': UserProfileResponseSchema,
     'POST /user/change-password': MessageResponseSchema,
     'POST /user/reset-password': MessageResponseSchema,
-    'DELETE /user/account': MessageResponseSchema,
 } as const;
