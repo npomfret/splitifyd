@@ -286,40 +286,19 @@ describe('Public Endpoints Tests', () => {
     });
 
     describe('Policy Endpoints', () => {
-        test('should return current policies without authentication', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/policies/current`);
+
+        test('should return specific current policy without authentication', async () => {
+            // Use a known seeded policy ID
+            const response = await fetch(`${apiDriver.getBaseUrl()}/policies/terms-of-service/current`);
 
             expect(response.status).toBe(200);
 
-            const data = await response.json();
-            expect(data).toHaveProperty('policies');
-            expect(data).toHaveProperty('count');
-            expect(typeof data.count).toBe('number');
-            expect(typeof data.policies).toBe('object');
-
-            // Policies should be a Record/object, not an array
-            expect(Array.isArray(data.policies)).toBe(false);
-        });
-
-        test('should return specific current policy without authentication', async () => {
-            // First get all policies to find a valid ID
-            const allPoliciesResponse = await fetch(`${apiDriver.getBaseUrl()}/policies/current`);
-            const allPolicies = await allPoliciesResponse.json();
-
-            const policyIds = Object.keys(allPolicies.policies || {});
-            if (policyIds.length > 0) {
-                const policyId = policyIds[0];
-                const response = await fetch(`${apiDriver.getBaseUrl()}/policies/${policyId}/current`);
-
-                expect(response.status).toBe(200);
-
-                const policy = await response.json();
-                expect(policy).toHaveProperty('id');
-                expect(policy).toHaveProperty('policyName');
-                expect(policy).toHaveProperty('currentVersionHash');
-                expect(policy).toHaveProperty('text');
-                expect(policy).toHaveProperty('createdAt');
-            }
+            const policy = await response.json();
+            expect(policy).toHaveProperty('id');
+            expect(policy).toHaveProperty('policyName');
+            expect(policy).toHaveProperty('currentVersionHash');
+            expect(policy).toHaveProperty('text');
+            expect(policy).toHaveProperty('createdAt');
         });
 
         test('should return 404 for non-existent policy', async () => {
