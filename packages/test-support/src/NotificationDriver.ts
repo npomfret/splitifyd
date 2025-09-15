@@ -241,12 +241,7 @@ export class NotificationListener {
 
         if (actualCount !== expectedCount) {
             const eventDetails = events.map((e, index) => {
-                const eventJson = {
-                    type: e.type,
-                    version: e.version,
-                    groupState: e.groupState
-                };
-                return `\t${index + 1}. ${JSON.stringify(eventJson)}`;
+                return `\t${index + 1}. ${JSON.stringify(e)}`;
             }).join('\n');
 
             const allEventsDetails = this.receivedEvents.map((doc, index) => {
