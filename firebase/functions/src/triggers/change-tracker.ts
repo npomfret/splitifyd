@@ -1,4 +1,4 @@
-import {Change, FirestoreEvent, onDocumentWritten, onDocumentDeleted} from 'firebase-functions/v2/firestore';
+import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
 import {logger} from '../logger';
 import {ChangeType} from '../utils/change-detection';
 import {FirestoreCollections} from '@splitifyd/shared';
@@ -20,7 +20,7 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const {changeType} = extractDataChange(event);
+        const {changeType, after} = extractDataChange(event);
 
         if (changeType === 'deleted') {
             logger.info('group-deleted', {groupId});
@@ -29,6 +29,7 @@ export const trackGroupChanges = onDocumentWritten(
 
         return measureTrigger('trackGroupChanges', async () => {
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
+
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
 
             logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
@@ -89,45 +90,6 @@ export const trackSettlementChanges = onDocumentWritten(
     },
 );
 
-export const trackMembershipDeletion = onDocumentDeleted(
-    {
-        document: `${FirestoreCollections.GROUP_MEMBERSHIPS}/{membershipId}`,
-        region: 'us-central1',
-    },
-    async (event) => {
-        const membershipId = event.params.membershipId;
-        const deletedData = event.data?.data();
-
-        if (!deletedData) {
-            throw Error(`No data found for deleted membership ${membershipId}`);
-        }
-
-        const userId = deletedData.userId;
-        const groupId = deletedData.groupId;
-
-        if (!userId || !groupId) {
-            throw Error(`Missing required fields in deleted membership ${membershipId}: userId=${userId}, groupId=${groupId}`);
-        }
-
-        return measureTrigger('trackMembershipDeletion', async () => {
-            // Get group details for the notification
-            const group = await firestoreReader.getGroup(groupId);
-            
-            // Send removal notification to the user using standard group change notification
-            await notificationService.batchUpdateNotifications([userId], groupId, 'group');
-            
-            // Clean up the user's notification document after sending the notification
-            await notificationService.removeUserFromGroup(userId, groupId);
-
-            logger.info('user-removal-notification-sent', {
-                userId,
-                groupId,
-                groupName: group?.name || 'Unknown Group',
-                membershipId
-            });
-        });
-    },
-);
 
 function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
     const before = event.data?.before;

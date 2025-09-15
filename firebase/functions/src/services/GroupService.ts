@@ -974,7 +974,6 @@ export class GroupService {
             });
 
             // PHASE 3: Delete collections in atomic batches
-            // Note: Notification cleanup now happens automatically via membership deletion triggers
             logger.info('Step 3: Deleting collections atomically', { groupId });
 
             // Delete expenses
@@ -1014,6 +1013,24 @@ export class GroupService {
             // PHASE 4: Finalize by deleting main group document (atomic)
             logger.info('Step 4: Finalizing group deletion', { groupId });
             await this.finalizeGroupDeletion(groupId);
+
+            // PHASE 5: Clean up user notification documents (AFTER all triggers have finished)
+            // Since we removed trackMembershipDeletion trigger, we need to manually clean up notifications
+            logger.info('Step 5: Cleaning up user notification documents', { groupId });
+            if (memberIds.length > 0) {
+                const results = [];
+                for (const memberId of memberIds) {
+                    const result = await this.notificationService.removeUserFromGroup(memberId, groupId);
+                    results.push(result);
+                }
+                const successfulCleanups = results.filter(r => r.success).length;
+                logger.info('Notification cleanup completed', {
+                    groupId,
+                    totalUsers: memberIds.length,
+                    successfulCleanups,
+                    failedCleanups: results.length - successfulCleanups
+                });
+            }
 
             // Set group context
             LoggerContext.setBusinessContext({ groupId });

@@ -2066,12 +2066,17 @@ export class FirestoreWriter implements IFirestoreWriter {
                     lastModified: FieldValue.serverTimestamp(),
                 });
 
-                // Note: User notification cleanup is handled by the membership deletion trigger
-                // This ensures proper notification delivery before cleanup
-
                 // Delete membership document
                 const membershipRef = this.db.doc(`${FirestoreCollections.GROUP_MEMBERSHIPS}/${membershipDocId}`);
                 batch.delete(membershipRef);
+
+                // Clean up user's notification document in the same transaction
+                const userNotificationRef = this.db.doc(`user-notifications/${userId}`);
+                batch.update(userNotificationRef, {
+                    [`groups.${groupId}`]: FieldValue.delete(),
+                    changeVersion: FieldValue.increment(1),
+                    lastModified: FieldValue.serverTimestamp(),
+                });
 
                 await batch.commit();
 
