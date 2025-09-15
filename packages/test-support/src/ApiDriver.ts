@@ -23,7 +23,6 @@ import {
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
-    UserProfileResponse,
     UserRegistration,
     UserToken,
 } from '@splitifyd/shared';
@@ -402,9 +401,6 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
-    async getUserProfile(token: string): Promise<UserProfileResponse> {
-        return await this.apiRequest('/user/profile', 'GET', null, token);
-    }
 
     // Comment API methods
     async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
