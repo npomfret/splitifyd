@@ -138,13 +138,83 @@ export async function expectErrorMessage(page: Page, expectedMessage?: string, t
  * Mock Firebase authentication state
  */
 export async function mockAuthState(page: Page, isAuthenticated: boolean, userId?: string): Promise<void> {
-    await page.evaluate(({ isAuthenticated, userId }) => {
-        if (isAuthenticated && userId) {
+    // First, mock the Firebase config API
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'test-api-key',
+                    authDomain: 'test-project.firebaseapp.com',
+                    projectId: 'test-project',
+                    storageBucket: 'test-project.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id'
+                }
+            })
+        });
+    });
+
+    if (isAuthenticated && userId) {
+        // Mock Firebase Auth state and token verification
+        await page.route('**/**', (route) => {
+            const url = route.request().url();
+
+            // Mock Firebase token verification
+            if (url.includes('identitytoolkit.googleapis.com') && url.includes('lookup')) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        users: [{
+                            localId: userId,
+                            email: 'test@example.com',
+                            displayName: 'Test User',
+                            emailVerified: true
+                        }]
+                    })
+                });
+                return;
+            }
+
+            // Continue with other requests
+            route.continue();
+        });
+
+        // Set up authenticated state in the browser
+        await page.evaluate(({ userId }) => {
+            // Mock localStorage
             localStorage.setItem('USER_ID', userId);
-        } else {
+
+            // Mock the auth store with a user
+            (window as any).__MOCK_AUTH_STATE__ = {
+                user: {
+                    uid: userId,
+                    email: 'test@example.com',
+                    displayName: 'Test User',
+                    emailVerified: true
+                },
+                isAuthenticated: true,
+                isUpdatingProfile: false,
+                refreshAuthToken: async () => Promise.resolve(),
+                updateUserProfile: async () => Promise.resolve(),
+                logout: async () => Promise.resolve()
+            };
+        }, { userId });
+    } else {
+        await page.evaluate(() => {
             localStorage.removeItem('USER_ID');
-        }
-    }, { isAuthenticated, userId });
+            (window as any).__MOCK_AUTH_STATE__ = {
+                user: null,
+                isAuthenticated: false,
+                isUpdatingProfile: false,
+                refreshAuthToken: async () => Promise.resolve(),
+                updateUserProfile: async () => Promise.resolve(),
+                logout: async () => Promise.resolve()
+            };
+        });
+    }
 }
 
 /**
