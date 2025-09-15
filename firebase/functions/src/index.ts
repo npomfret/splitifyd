@@ -11,7 +11,7 @@ import { APP_VERSION } from './utils/version';
 import { HTTP_STATUS, SYSTEM } from './constants';
 import { disableETags } from './middleware/cache-control';
 import { createOptimisticTimestamp, timestampToISO } from './utils/dateHelpers';
-import { createExpense, getExpense, updateExpense, deleteExpense, listUserExpenses, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
+import { createExpense, getExpense, updateExpense, deleteExpense, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
 import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
@@ -326,13 +326,9 @@ function setupRoutes(app: express.Application): void {
 
     // Expense endpoints (requires auth)
     app.post(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(createExpense));
-    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(getExpense));
     app.put(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(updateExpense));
     app.delete(`/${FirestoreCollections.EXPENSES}`, authenticate, asyncHandler(deleteExpense));
-    // @deprecated - Endpoint not used by ApiClient, will be removed
-    app.get(`/${FirestoreCollections.EXPENSES}/user`, authenticate, asyncHandler(listUserExpenses));
-    // @deprecated - Endpoint not used by ApiClient, will be removed
     app.get(`/${FirestoreCollections.EXPENSES}/history`, authenticate, asyncHandler(getExpenseHistory));
     app.get(`/${FirestoreCollections.EXPENSES}/:id/full-details`, authenticate, asyncHandler(getExpenseFullDetails));
 

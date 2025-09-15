@@ -250,22 +250,6 @@ export class ApiDriver {
         return response.data;
     }
 
-    async listUserExpenses(token: string, params?: Record<string, any>): Promise<ListExpensesResponse> {
-        let endpoint = '/expenses/user';
-        if (params) {
-            const queryParams = new URLSearchParams();
-            Object.entries(params).forEach(([key, value]) => {
-                if (value !== undefined && value !== null) {
-                    queryParams.append(key, value.toString());
-                }
-            });
-            if (queryParams.toString()) {
-                endpoint += '?' + queryParams.toString();
-            }
-        }
-        return await this.apiRequest(endpoint, 'GET', null, token);
-    }
-
     async getExpenseHistory(expenseId: string, token: string): Promise<ExpenseHistoryResponse> {
         return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
     }

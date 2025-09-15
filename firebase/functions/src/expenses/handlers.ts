@@ -87,52 +87,6 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
     res.json(result);
 };
 
-export const listUserExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-
-    // Validate and sanitize limit parameter
-    const limitParam = req.query.limit as string;
-    let limit = 50; // default
-    if (limitParam !== undefined) {
-        const parsedLimit = parseInt(limitParam);
-        if (isNaN(parsedLimit)) {
-            throw Errors.INVALID_INPUT('limit parameter must be a valid number');
-        }
-        if (parsedLimit < 1) {
-            throw Errors.INVALID_INPUT('limit parameter must be greater than 0');
-        }
-        if (parsedLimit > 100) {
-            throw Errors.INVALID_INPUT('limit parameter must not exceed 100');
-        }
-        limit = parsedLimit;
-    }
-
-    // Validate other parameters
-    const cursor = req.query.cursor as string;
-    const includeDeletedParam = req.query.includeDeleted as string;
-    const includeDeleted = includeDeletedParam === 'true';
-
-    // Validate includeDeleted parameter if provided
-    if (includeDeletedParam !== undefined && includeDeletedParam !== 'true' && includeDeletedParam !== 'false') {
-        throw Errors.INVALID_INPUT('includeDeleted parameter must be "true" or "false"');
-    }
-
-    // Check for unsupported parameters
-    const supportedParams = ['limit', 'cursor', 'includeDeleted'];
-    const providedParams = Object.keys(req.query);
-    const unsupportedParams = providedParams.filter((param) => !supportedParams.includes(param));
-    if (unsupportedParams.length > 0) {
-        throw Errors.INVALID_INPUT(`Unsupported parameters: ${unsupportedParams.join(', ')}. Supported parameters are: ${supportedParams.join(', ')}`);
-    }
-
-    const result = await expenseService.listUserExpenses(userId, {
-        limit,
-        cursor,
-        includeDeleted,
-    });
-
-    res.json(result);
-};
 
 export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
