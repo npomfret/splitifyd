@@ -129,32 +129,35 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('should handle rapid multiple updates without losing notifications', async () => {
+            // Set up listener for user1 before any operations
+            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
+
+            // Create group and wait for initial notification
             const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await appDriver.waitForUserNotificationUpdate(user1.uid, group.id, 'group');
 
-            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
-            const initialCount = initialDoc!.groups[group.id].groupDetailsChangeCount;
+            // Wait for group creation notification - new group starts at count 1
+            await user1Listener.waitForGroupEvent(group.id, 1);
 
-            // Perform multiple rapid updates - some may fail due to concurrency
-            const updatePromises = [
-                apiDriver.updateGroup(group.id, { name: 'Update 1' }, user1.token).catch(() => null),
-                apiDriver.updateGroup(group.id, { name: 'Update 2' }, user1.token).catch(() => null),
-                apiDriver.updateGroup(group.id, { name: 'Update 3' }, user1.token).catch(() => null),
-            ];
+            // Assert event count after group creation
+            user1Listener.assertEventCount(group.id, 1, 'group');
 
-            const results = await Promise.allSettled(updatePromises);
-            const successfulUpdates = results.filter(r => r.status === 'fulfilled').length;
+            // Clear events to isolate next operation
+            notificationDriver.clearEvents();
 
-            // Wait for notifications from successful updates (at least 1 should succeed)
-            expect(successfulUpdates).toBeGreaterThan(0);
+            // Perform multiple rapid parallel updates
+            // Due to transaction conflicts, not all updates may succeed when updating the same document concurrently
+            await Promise.all([
+                apiDriver.updateGroup(group.id, { name: 'Update 1' }, user1.token),
+                apiDriver.updateGroup(group.id, { name: 'Update 2', description: 'Updated desc' }, user1.token),
+                apiDriver.updateGroup(group.id, { name: 'Update 3' }, user1.token),
+            ]);
 
-            // Wait for at least one notification update with longer timeout
-            await appDriver.waitForNotificationWithMatcher(
-                user1.uid,
-                group.id,
-                (doc) => doc.groups[group.id]?.groupDetailsChangeCount > initialCount,
-                { timeout: 5000, errorMsg: 'No group update notifications received' }
-            );
+            // Wait for update notifications - allow more time for triggers to process
+            // With parallel updates, database triggers may take longer to process all changes
+            await user1Listener.waitForEventCount(group.id, 'group', 3, 10000);
+
+            // Verify we received all 3 update events
+            user1Listener.assertEventCount(group.id, 3, 'group');
         });
     });
 
