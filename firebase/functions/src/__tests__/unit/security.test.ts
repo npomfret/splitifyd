@@ -33,60 +33,60 @@ describe('Security Utils', () => {
 
     describe('checkForDangerousPatterns', () => {
         it('should detect basic XSS patterns', () => {
-            expect(checkForDangerousPatterns('<script>alert(1)</script>')).toBe(true);
-            expect(checkForDangerousPatterns('javascript:alert(1)')).toBe(true);
-            expect(checkForDangerousPatterns('<img onerror="alert(1)">')).toBe(true);
-            expect(checkForDangerousPatterns('vbscript:msgbox(1)')).toBe(true);
+            expect(checkForDangerousPatterns('<script>alert(1)</script>').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('javascript:alert(1)').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('<img onerror="alert(1)">').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('vbscript:msgbox(1)').isDangerous).toBe(true);
         });
 
         it('should detect prototype pollution attempts', () => {
-            expect(checkForDangerousPatterns('__proto__')).toBe(true);
-            expect(checkForDangerousPatterns('constructor')).toBe(true);
-            expect(checkForDangerousPatterns('prototype')).toBe(true);
+            expect(checkForDangerousPatterns('__proto__').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('constructor').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('prototype').isDangerous).toBe(true);
         });
 
         it('should detect DOM manipulation attempts', () => {
-            expect(checkForDangerousPatterns('document.cookie')).toBe(true);
-            expect(checkForDangerousPatterns('window.location')).toBe(true);
-            expect(checkForDangerousPatterns('innerHTML')).toBe(true);
-            expect(checkForDangerousPatterns('outerHTML')).toBe(true);
+            expect(checkForDangerousPatterns('document.cookie').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('window.location').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('innerHTML').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('outerHTML').isDangerous).toBe(true);
         });
 
         it('should detect function execution attempts', () => {
-            expect(checkForDangerousPatterns('eval("code")')).toBe(true);
-            expect(checkForDangerousPatterns('Function("code")')).toBe(true);
-            expect(checkForDangerousPatterns('setTimeout("code", 1000)')).toBe(true);
-            expect(checkForDangerousPatterns('setInterval("code", 1000)')).toBe(true);
+            expect(checkForDangerousPatterns('eval("code")').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('Function("code")').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('setTimeout("code", 1000)').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('setInterval("code", 1000)').isDangerous).toBe(true);
         });
 
         it('should detect dangerous HTML elements', () => {
-            expect(checkForDangerousPatterns('<iframe src="evil.com">')).toBe(true);
-            expect(checkForDangerousPatterns('<object data="evil.swf">')).toBe(true);
-            expect(checkForDangerousPatterns('<embed src="evil.swf">')).toBe(true);
-            expect(checkForDangerousPatterns('<svg onload="alert(1)">')).toBe(true);
+            expect(checkForDangerousPatterns('<iframe src="evil.com">').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('<object data="evil.swf">').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('<embed src="evil.swf">').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('<svg onload="alert(1)">').isDangerous).toBe(true);
         });
 
         it('should detect encoding attempts', () => {
-            expect(checkForDangerousPatterns('&#x3c;script&#x3e;')).toBe(true);
-            expect(checkForDangerousPatterns('&#60;script&#62;')).toBe(true);
-            expect(checkForDangerousPatterns('&lt;script&gt;')).toBe(true);
-            expect(checkForDangerousPatterns('\\u003cscript\\u003e')).toBe(true);
-            expect(checkForDangerousPatterns('\\x3cscript\\x3e')).toBe(true);
+            expect(checkForDangerousPatterns('&#x3c;script&#x3e;').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('&#60;script&#62;').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('&lt;script&gt;').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\\u003cscript\\u003e').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\\x3cscript\\x3e').isDangerous).toBe(true);
         });
 
         it('should detect control characters', () => {
-            expect(checkForDangerousPatterns('\u0000')).toBe(true);
-            expect(checkForDangerousPatterns('\u001f')).toBe(true);
-            expect(checkForDangerousPatterns('\u007f')).toBe(true);
-            expect(checkForDangerousPatterns('\u2028')).toBe(true);
-            expect(checkForDangerousPatterns('\ufeff')).toBe(true);
+            expect(checkForDangerousPatterns('\u0000').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\u001f').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\u007f').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\u2028').isDangerous).toBe(true);
+            expect(checkForDangerousPatterns('\ufeff').isDangerous).toBe(true);
         });
 
         it('should allow safe content', () => {
-            expect(checkForDangerousPatterns('Hello world')).toBe(false);
-            expect(checkForDangerousPatterns('user@example.com')).toBe(false);
-            expect(checkForDangerousPatterns('Price: $29.99')).toBe(false);
-            expect(checkForDangerousPatterns('{"name": "John", "age": 30}')).toBe(false);
+            expect(checkForDangerousPatterns('Hello world').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('user@example.com').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('Price: $29.99').isDangerous).toBe(false);
+            expect(checkForDangerousPatterns('{"name": "John", "age": 30}').isDangerous).toBe(false);
         });
     });
 
@@ -116,7 +116,7 @@ describe('Security Utils', () => {
                 __proto__: { polluted: true },
             });
 
-            expect(checkForDangerousPatterns(complexPayload)).toBe(true);
+            expect(checkForDangerousPatterns(complexPayload).isDangerous).toBe(true);
         });
 
         it('should sanitize document-like structures', () => {

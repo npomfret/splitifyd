@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import assert from 'node:assert';
-import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
+import { PolicyIds, FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
@@ -23,7 +23,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
-import { getFirestore } from '../functions/src/firebase';
+import { getFirestore, getAuth } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
 
 // Get Firebase instances
@@ -62,21 +62,14 @@ async function seedPolicy(policyId: string, policyName: string, filename: string
         // Read policy text
         const text = readPolicyFile(filename);
 
-        // Use API endpoints now that they're production-ready
-        console.log(`📡 Using policy API endpoints for ${policyId}...`);
-        const apiDriver = new ApiDriver();
+        // Use direct service for seeding (avoids complex authentication setup)
+        console.log(`🔒 Creating policy via direct service (bypassing API authentication)...`);
 
-        try {
-            const createResponse = await apiDriver.createPolicy(policyName, text);
-            console.log(`✅ Created policy via API: ${createResponse.id}`);
-            console.log(`✅ Policy ${policyId} ready (hash: ${createResponse.versionHash})`);
-        } catch (apiError) {
-            console.warn(`⚠️  API approach failed for ${policyId}, falling back to direct service:`, apiError);
-            // Fallback to direct PolicyService only if API fails
-            const createResponse = await policyService.createPolicy(policyName, text, policyId);
-            const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
-            console.log(`✅ Created policy via service fallback: ${createResponse.id} (hash: ${publishResponse.currentVersionHash})`);
-        }
+        // Use direct PolicyService instead of API for seeding
+        const createResponse = await policyService.createPolicy(policyName, text, policyId);
+        const publishResponse = await policyService.publishPolicy(createResponse.id, createResponse.currentVersionHash);
+        console.log(`✅ Created policy via service: ${createResponse.id}`);
+        console.log(`✅ Policy ${policyId} ready (hash: ${publishResponse.currentVersionHash})`);
     } catch (error) {
         console.error(`❌ Failed to seed policy ${policyId}:`, error);
         throw error;
@@ -171,17 +164,4 @@ export async function seedPolicies() {
         console.error(`❌ Failed to seed policies to ${env.environment}:`, error);
         throw error;
     }
-}
-
-// Run the seeding if this script is executed directly
-if (require.main === module) {
-    seedPolicies()
-        .then(() => {
-            console.log('\n✅ Policy seeding script completed successfully!');
-            process.exit(0);
-        })
-        .catch((error) => {
-            console.error('\n❌ Policy seeding script failed:', error);
-            process.exit(1);
-        });
 }

@@ -15,26 +15,17 @@ import { generateTestData } from './generate-test-data';
 import { getPorts, getProjectId } from '@splitifyd/test-support';
 
 async function runSeedPoliciesStep(): Promise<void> {
-    try {
-        logger.info('');
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info(`📊 STARTING POLICY SEEDING ...`);
-        logger.info('═══════════════════════════════════════════════════════');
-        logger.info('');
+    logger.info('');
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info(`📊 STARTING POLICY SEEDING ...`);
+    logger.info('═══════════════════════════════════════════════════════');
+    logger.info('');
 
-        await seedPolicies();
+    await seedPolicies();
 
-        logger.info('');
-        logger.info('✅ Policy seeding completed successfully!');
-        logger.info('📋 Privacy policy, terms, and cookie policy are now available');
-    } catch (error) {
-        logger.error('⚠️ Policy seeding failed (non-fatal)', { error });
-        logger.info('💡 You can manually seed policies later by running:');
-        logger.info('   cd firebase/functions && npx tsx src/scripts/seed-policies.ts');
-        logger.info('');
-        logger.info('🔧 Continuing with test data generation despite policy seeding failure...');
-        // Don't throw - continue with test data generation
-    }
+    logger.info('');
+    logger.info('✅ Policy seeding completed successfully!');
+    logger.info('📋 Privacy policy, terms, and cookie policy are now available');
 }
 
 async function runGenerateTestDataStep(): Promise<void> {

@@ -166,10 +166,12 @@ describe('Security Validation Unit Tests', () => {
 
     describe('Dangerous Pattern Detection', () => {
         test('should detect dangerous JavaScript patterns', () => {
-            const dangerousPatterns = ['__proto__', 'constructor', 'prototype', 'eval(', 'Function(', 'setTimeout(', 'setInterval(', 'document.', 'window.', 'XMLHttpRequest', 'fetch('];
+            const dangerousPatterns = ['__proto__', 'constructor', 'prototype', 'eval(', 'Function(', 'setTimeout(', 'setInterval(', 'document.', 'window.', 'new XMLHttpRequest(', 'fetch('];
 
             dangerousPatterns.forEach((pattern) => {
-                expect(checkForDangerousPatterns(pattern)).toBe(true);
+                const result = checkForDangerousPatterns(pattern);
+                expect(result.isDangerous).toBe(true);
+                expect(result.matchedPattern).toBeDefined();
             });
         });
 
@@ -177,7 +179,9 @@ describe('Security Validation Unit Tests', () => {
             const safeContent = ['Normal expense description', 'Meeting at the office', 'Lunch with team', 'Travel expenses', 'Coffee shop visit'];
 
             safeContent.forEach((content) => {
-                expect(checkForDangerousPatterns(content)).toBe(false);
+                const result = checkForDangerousPatterns(content);
+                expect(result.isDangerous).toBe(false);
+                expect(result.matchedPattern).toBeUndefined();
             });
         });
     });
@@ -265,7 +269,7 @@ describe('Security Validation Unit Tests', () => {
             const prototypePollutionAttempts = ['__proto__', 'constructor', 'prototype'];
 
             prototypePollutionAttempts.forEach((attempt) => {
-                expect(checkForDangerousPatterns(attempt)).toBe(true);
+                expect(checkForDangerousPatterns(attempt).isDangerous).toBe(true);
             });
         });
     });

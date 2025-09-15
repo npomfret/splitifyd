@@ -61,8 +61,10 @@ export const validateRequestStructure = (req: Request, res: Response, next: Next
         throw Errors.INVALID_INPUT('Circular reference detected in request');
     }
 
-    if (checkForDangerousPatterns(requestString)) {
-        throw Errors.INVALID_INPUT('Request contains potentially dangerous content');
+    const dangerCheck = checkForDangerousPatterns(requestString);
+    if (dangerCheck.isDangerous) {
+        console.warn('Request blocked due to dangerous pattern:', dangerCheck.matchedPattern);
+        throw Errors.INVALID_INPUT(`Request contains potentially dangerous content: ${dangerCheck.matchedPattern}`);
     }
 
     next();
