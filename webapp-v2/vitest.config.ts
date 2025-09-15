@@ -10,8 +10,7 @@ export default defineConfig({
         exclude: [
             '**/node_modules/**',
             '**/dist/**',
-            '**/*playwright*/**', // Exclude Playwright tests from Vitest
-            '**/*.playwright.test.ts', // Exclude Playwright test files
+            'playwright-tests/**', // Exclude Playwright tests from Vitest
         ],
         // Longer timeout for integration tests
         testTimeout: 5000,
