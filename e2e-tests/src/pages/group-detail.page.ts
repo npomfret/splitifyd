@@ -877,6 +877,20 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Wait for a specific member to become visible in the member list
+     * This ensures the member has been fully added to the group before proceeding
+     */
+    async waitForMemberVisible(memberName: string, timeout: number = 3000): Promise<void> {
+        // Find the visible Members container (either sidebar div or Card)
+        // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
+        const membersContainer = this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
+
+        // Look for visible member item with our name within the visible container
+        const memberElement = membersContainer.locator('[data-testid="member-item"]:visible').filter({ hasText: memberName }).first();
+        await expect(memberElement).toBeVisible({ timeout });
+    }
+
+    /**
      * Get settlement payment history entry by note
      */
     getSettlementHistoryEntry(note: string) {
