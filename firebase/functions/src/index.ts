@@ -14,7 +14,7 @@ import { createOptimisticTimestamp, timestampToISO } from './utils/dateHelpers';
 import { createExpense, getExpense, updateExpense, deleteExpense, getExpenseHistory, getExpenseFullDetails } from './expenses/handlers';
 import { generateShareableLink, previewGroupByLink, joinGroupByLink } from './groups/shareHandlers';
 import { leaveGroup, removeGroupMember } from './groups/memberHandlers';
-import { getCurrentPolicies, getCurrentPolicy } from './policies/public-handlers';
+import { getCurrentPolicy } from './policies/public-handlers';
 import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails } from './groups/handlers';
 import { applySecurityPreset, updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
@@ -289,9 +289,6 @@ function setupRoutes(app: express.Application): void {
         }
     });
 
-    // Public policy endpoints (no auth required)
-    // @deprecated - Endpoint not used by ApiClient, will be removed
-    app.get('/policies/current', asyncHandler(getCurrentPolicies));
     app.get('/policies/:id/current', asyncHandler(getCurrentPolicy));
 
     // Test pool endpoints (emulator only, no auth required)

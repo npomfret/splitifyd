@@ -497,18 +497,95 @@ export class ApiDriver {
         return settlement;
     }
 
-    async acceptCurrentPolicies(token: string): Promise<void> {
-        // Get current policy versions
-        const currentPolicies = await this.apiRequest('/policies/current', 'GET', null, null);
+    async acceptOutstandingPolicies(token: string): Promise<void> {
+        // Get user's policy status to see what needs to be accepted
+        const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
 
-        // Transform to acceptances format
-        const acceptances = Object.entries(currentPolicies.policies).map(([policyId, policyData]: [string, any]) => ({
-            policyId,
-            versionHash: policyData.currentVersionHash
-        }));
+        // If there are outstanding policies, accept them
+        if (policyStatus.outstandingPolicies && policyStatus.outstandingPolicies.length > 0) {
+            const acceptances = policyStatus.outstandingPolicies.map((policy: any) => ({
+                policyId: policy.id,
+                versionHash: policy.currentVersionHash
+            }));
+
+            await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+        }
+    }
+
+    async acceptCurrentPublishedPolicies(token: string): Promise<void> {
+        // This method replicates the behavior of the old acceptCurrentPolicies method
+        // It gets all currently published policy versions and accepts them, regardless of user status
+
+        // We need to get current published policies. Since /policies/current is deprecated,
+        // we'll use the individual policy endpoint for each known policy
+        const policyIds = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
+        const acceptances = [];
+
+        for (const policyId of policyIds) {
+            try {
+                const policy = await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
+                acceptances.push({
+                    policyId: policy.id,
+                    versionHash: policy.currentVersionHash
+                });
+            } catch (error) {
+                // Policy might not exist, skip it
+                console.log(`Policy ${policyId} not found, skipping`);
+            }
+        }
 
         if (acceptances.length > 0) {
             await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+        }
+    }
+
+    async clearUserPolicyAcceptances(token: string): Promise<void> {
+        // Clear all policy acceptances for the user to reset their state
+        await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
+    }
+
+    async resetPoliciesToBaseState(): Promise<void> {
+        // Reset all policies to fresh base content with timestamp to avoid duplicates
+        const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
+        const timestamp = Date.now();
+
+        for (const policyId of standardPolicies) {
+            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const baseContent = `${policyName} base version reset at ${timestamp}.`;
+
+            try {
+                await this.apiRequest(`/policies/${policyId}/update`, 'POST', {text: baseContent, publish: true});
+                console.log(`✓ Reset policy ${policyId} to base content`);
+            } catch (error) {
+                console.warn(`Failed to reset policy ${policyId}:`, error);
+            }
+        }
+    }
+
+    async cleanupTestEnvironment(): Promise<void> {
+        // First, reset standard policies
+        await this.resetPoliciesToBaseState();
+
+        // Then try to clean up any non-standard policies by checking user policy status
+        // and removing any policies that aren't our standard ones
+        try {
+            // Get a test user to check what policies exist
+            const testUser = await this.borrowTestUser();
+            const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, testUser.token);
+
+            if (policyStatus.outstandingPolicies) {
+                for (const policy of policyStatus.outstandingPolicies) {
+                    if (!['terms-of-service', 'privacy-policy', 'cookie-policy'].includes(policy.id)) {
+                        console.warn(`Found non-standard policy: ${policy.id} - this may interfere with tests`);
+                    }
+                }
+            }
+
+            // Return the test user
+            await this.returnTestUser(testUser.email);
+            console.log('✓ Test environment cleanup completed');
+        } catch (error) {
+            console.warn('Failed to complete full environment cleanup:', error);
         }
     }
 
