@@ -24,6 +24,9 @@ interface UserNotificationDocument {
     }>;
 }
 
+/**
+ * @deprecated use the NotificationDriver instead
+ */
 export class AppDriver {
     constructor(
         public apiDriver: ApiDriver,

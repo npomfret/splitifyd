@@ -12,7 +12,8 @@ import {
     AppDriver,
     borrowTestUsers,
     generateShortId,
-    TestGroupManager
+    TestGroupManager,
+    NotificationDriver
 } from '@splitifyd/test-support';
 import { getFirestore } from '../../firebase';
 import { UserToken, PooledTestUser } from '@splitifyd/shared';
@@ -20,82 +21,107 @@ import { UserToken, PooledTestUser } from '@splitifyd/shared';
 describe('Notifications Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
     const appDriver = new AppDriver(apiDriver, getFirestore());
-    let users: PooledTestUser[];
-    let testGroup: any;
+    const notificationDriver = new NotificationDriver(getFirestore());
+    let user1: PooledTestUser;
+    let user2: PooledTestUser;
+    let user3: PooledTestUser;
 
     beforeEach(async () => {
-        users = await borrowTestUsers(4);
-        // Create a fresh test group for notification tests
-        testGroup = await TestGroupManager.getOrCreateGroup(users, { memberCount: 3 });
+        [user1, user2, user3] = await borrowTestUsers(3);
+        console.log(`users:\n\t${[user1, user2, user3].map((user, index) => `${index} ${user.uid}`).join('\n\t')}`);
+    });
+
+    afterEach(() => {
+        notificationDriver.stopAllListeners();
     });
 
     describe('Core Notification Document Operations', () => {
         test('should create and update notification documents for basic operations', async () => {
+            // Set up listeners for all users before any operations
+            const listeners = await notificationDriver.setupListenersFirst([user1.uid, user2.uid]);
+            const [user0Listener, user1Listener] = listeners;
+
             // Create a group and verify notification document creation
-            const group = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder()
-                    .withName(`Core Test Group ${uuidv4()}`)
-                    .build(),
-                users[0].token
-            );
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
 
-            // Wait for notification document creation
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
+            // Wait for group creation notification
+            const groupEvents = await user0Listener.waitForEventCount(group.id, 'group', 1);
+            expect(groupEvents).toHaveLength(1);
+            expect(groupEvents[0].type).toBe('group');
+            expect(groupEvents[0].groupState?.groupDetailsChangeCount).toBe(1);
 
-            // Verify notification document structure
-            const notificationDoc = await appDriver.getUserNotificationDocument(users[0].uid);
-            expect(notificationDoc).toBeTruthy();
-            expect(notificationDoc!.groups[group.id]).toBeDefined();
-            expect(notificationDoc!.groups[group.id].groupDetailsChangeCount).toBeGreaterThan(0);
-            expect(notificationDoc!.groups[group.id].lastGroupDetailsChange).toBeTruthy();
+            // Clear events to isolate next operation
+            user0Listener.clearEvents();
+            user1Listener.clearEvents();
 
-            // Add second user to group first
-            const shareResponse = await apiDriver.generateShareLink(group.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, users[1].token);
+            // Add second user to group
+            const shareResponse = await apiDriver.generateShareLink(group.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareResponse.linkId, user2.token);
 
-            // Wait for the membership to be fully established and notifications sent to BOTH users
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, group.id, 'group')
-            ]);
+            // Wait for membership notifications for BOTH users
+            const user0GroupEvents = await user0Listener.waitForEventCount(group.id, 'group', 1);
+            const user1GroupEvents = await user1Listener.waitForEventCount(group.id, 'group', 1);
+
+            // Assert exact event counts with detailed error messages
+            user0Listener.assertEventCount(group.id, 1, 'group');
+            user1Listener.assertEventCount(group.id, 1, 'group');
+
+            expect(user0GroupEvents[0].type).toBe('group');
+            expect(user1GroupEvents[0].type).toBe('group');
+
+            // Clear events to isolate next operation
+            user0Listener.clearEvents();
+            user1Listener.clearEvents();
 
             // Create expense involving both users to ensure transaction notification triggers
-            const expense = await apiDriver.createExpense(
+            await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(group.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(50.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Wait for transaction notifications for BOTH users
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, group.id, 'transaction')
-            ]);
+            const user0TransactionEvents = await user0Listener.waitForEventCount(group.id, 'transaction', 1);
+            const user1TransactionEvents = await user1Listener.waitForEventCount(group.id, 'transaction', 1);
+
+            // Assert exact event counts - expense creation should trigger transaction, balance, and group events (3 total)
+            expect(user0Listener.getEventsForGroup(group.id)).toHaveLength(3);
+            expect(user1Listener.getEventsForGroup(group.id)).toHaveLength(3);
+
+            // Verify we got all expected event types
+            user0Listener.assertEventCount(group.id, 1, 'transaction');
+            user0Listener.assertEventCount(group.id, 1, 'balance');
+            user0Listener.assertEventCount(group.id, 1, 'group');
+
+            user1Listener.assertEventCount(group.id, 1, 'transaction');
+            user1Listener.assertEventCount(group.id, 1, 'balance');
+            user1Listener.assertEventCount(group.id, 1, 'group');
 
             // Verify transaction notification structure
-            const updatedDoc = await appDriver.getUserNotificationDocument(users[0].uid);
-            expect(updatedDoc!.groups[group.id].transactionChangeCount).toBeGreaterThan(0);
-            expect(updatedDoc!.groups[group.id].lastTransactionChange).toBeTruthy();
+            expect(user0TransactionEvents[0].type).toBe('transaction');
+            expect(user0TransactionEvents[0].groupState?.transactionChangeCount).toBe(1);
+            expect(user1TransactionEvents[0].type).toBe('transaction');
+            expect(user1TransactionEvents[0].groupState?.transactionChangeCount).toBe(1);
         });
 
         test('should handle notification version increments correctly', async () => {
             // Create group and get initial state
-            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, group.id, 'group');
 
-            const initialDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
             const initialGroupCount = initialDoc!.groups[group.id].groupDetailsChangeCount;
 
             // Update group to trigger version increment
-            await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, users[0].token);
+            await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
 
             // Wait for and verify count increment with longer timeout
             const finalDoc = await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
+                user1.uid,
                 group.id,
                 (doc) => doc.groups[group.id]?.groupDetailsChangeCount > initialGroupCount,
                 { timeout: 2000, errorMsg: 'Failed to detect group update notification' }
@@ -106,17 +132,17 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('should handle rapid multiple updates without losing notifications', async () => {
-            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, group.id, 'group');
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, group.id, 'group');
 
-            const initialDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
             const initialCount = initialDoc!.groups[group.id].groupDetailsChangeCount;
 
             // Perform multiple rapid updates - some may fail due to concurrency
             const updatePromises = [
-                apiDriver.updateGroup(group.id, { name: 'Update 1' }, users[0].token).catch(() => null),
-                apiDriver.updateGroup(group.id, { name: 'Update 2' }, users[0].token).catch(() => null),
-                apiDriver.updateGroup(group.id, { name: 'Update 3' }, users[0].token).catch(() => null),
+                apiDriver.updateGroup(group.id, { name: 'Update 1' }, user1.token).catch(() => null),
+                apiDriver.updateGroup(group.id, { name: 'Update 2' }, user1.token).catch(() => null),
+                apiDriver.updateGroup(group.id, { name: 'Update 3' }, user1.token).catch(() => null),
             ];
 
             const results = await Promise.allSettled(updatePromises);
@@ -127,7 +153,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Wait for at least one notification update with longer timeout
             await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
+                user1.uid,
                 group.id,
                 (doc) => doc.groups[group.id]?.groupDetailsChangeCount > initialCount,
                 { timeout: 5000, errorMsg: 'No group update notifications received' }
@@ -140,22 +166,22 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Create group with multiple members
             const multiUserGroup = await apiDriver.createGroupWithMembers(
                 `Multi-User Group ${uuidv4()}`,
-                [users[0], users[1], users[2]],
-                users[0].token
+                [user1, user2, user3],
+                user1.token
             );
 
             // Wait for all users to receive group creation notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, multiUserGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, multiUserGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, multiUserGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'group'),
             ]);
 
             // Verify all users have notification documents
             const docs = await Promise.all([
-                appDriver.getUserNotificationDocument(users[0].uid),
-                appDriver.getUserNotificationDocument(users[1].uid),
-                appDriver.getUserNotificationDocument(users[2].uid),
+                appDriver.getUserNotificationDocument(user1.uid),
+                appDriver.getUserNotificationDocument(user2.uid),
+                appDriver.getUserNotificationDocument(user3.uid),
             ]);
 
             docs.forEach((doc, index) => {
@@ -167,83 +193,83 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(multiUserGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid, user3.uid])
                     .withAmount(60.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Wait for all users to receive transaction notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, multiUserGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, multiUserGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, multiUserGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'transaction'),
             ]);
         });
 
         test('should handle member addition and removal notification patterns', async () => {
             // Start with single-member group
-            const dynamicGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, dynamicGroup.id, 'group');
+            const dynamicGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'group');
 
             // Add second member
-            const shareLink = await apiDriver.generateShareLink(dynamicGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(dynamicGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // Both users should receive group update notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, dynamicGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, dynamicGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'group'),
             ]);
 
             // Create expense involving both members
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(dynamicGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(40.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Both should receive transaction notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, dynamicGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, dynamicGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'transaction'),
             ]);
 
             // Settle all outstanding balances by currency before removing member
-            const balances = await apiDriver.getGroupBalances(dynamicGroup.id, users[0].token);
+            const balances = await apiDriver.getGroupBalances(dynamicGroup.id, user1.token);
             const dynamicBalancesByCurrency = balances.balancesByCurrency;
 
             for (const [currency, currencyBalances] of Object.entries(dynamicBalancesByCurrency)) {
-                const user1CurrencyBalance = currencyBalances[users[1].uid]?.netBalance || 0;
+                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || 0;
 
                 if (user1CurrencyBalance < 0) {
-                    // users[1] owes users[0] in this currency
+                    // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
                         new SettlementBuilder()
                             .withGroupId(dynamicGroup.id)
-                            .withPayer(users[1].uid)
-                            .withPayee(users[0].uid)
+                            .withPayer(user2.uid)
+                            .withPayee(user1.uid)
                             .withAmount(Math.abs(user1CurrencyBalance))
                             .withCurrency(currency)
                             .build(),
-                        users[1].token
+                        user2.token
                     );
                 } else if (user1CurrencyBalance > 0) {
-                    // users[0] owes users[1] in this currency
+                    // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
                         new SettlementBuilder()
                             .withGroupId(dynamicGroup.id)
-                            .withPayer(users[0].uid)
-                            .withPayee(users[1].uid)
+                            .withPayer(user1.uid)
+                            .withPayee(user2.uid)
                             .withAmount(Math.abs(user1CurrencyBalance))
                             .withCurrency(currency)
                             .build(),
-                        users[0].token
+                        user1.token
                     );
                 }
             }
@@ -251,21 +277,21 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Balance should now be settled, allowing member removal
 
             // Remove user 1 from group
-            await apiDriver.removeGroupMember(dynamicGroup.id, users[1].uid, users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, dynamicGroup.id, 'group');
+            await apiDriver.removeGroupMember(dynamicGroup.id, user2.uid, user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'group');
 
             // Create another expense - only user 0 should be notified
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(dynamicGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
                     .withAmount(30.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, dynamicGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'transaction');
         });
     });
 
@@ -274,21 +300,21 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Create private group for user 0
             const privateGroup = await apiDriver.createGroup(
                 new CreateGroupRequestBuilder().withName(`Private Group ${uuidv4()}`).build(),
-                users[0].token
+                user1.token
             );
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, privateGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, privateGroup.id, 'group');
 
             // Create public group with multiple members
             const publicGroup = await apiDriver.createGroupWithMembers(
                 `Public Group ${uuidv4()}`,
-                [users[1], users[2]],
-                users[1].token
+                [user2, user3],
+                user2.token
             );
 
             // Wait for public group notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[1].uid, publicGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, publicGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'group'),
             ]);
 
             // Create expenses in both groups
@@ -296,33 +322,33 @@ describe('Notifications Management - Consolidated Tests', () => {
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(privateGroup.id)
-                        .withPaidBy(users[0].uid)
-                        .withParticipants([users[0].uid])
+                        .withPaidBy(user1.uid)
+                        .withParticipants([user1.uid])
                         .withAmount(25.0)
                         .build(),
-                    users[0].token
+                    user1.token
                 ),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(publicGroup.id)
-                        .withPaidBy(users[1].uid)
-                        .withParticipants([users[1].uid, users[2].uid])
+                        .withPaidBy(user2.uid)
+                        .withParticipants([user2.uid, user3.uid])
                         .withAmount(35.0)
                         .build(),
-                    users[1].token
+                    user2.token
                 ),
             ]);
 
             // Wait for transaction notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, privateGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, publicGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, publicGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, privateGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'transaction'),
             ]);
 
             // Verify users only have notifications for groups they belong to
-            const user0Doc = await appDriver.getUserNotificationDocument(users[0].uid);
-            const user1Doc = await appDriver.getUserNotificationDocument(users[1].uid);
+            const user0Doc = await appDriver.getUserNotificationDocument(user1.uid);
+            const user1Doc = await appDriver.getUserNotificationDocument(user2.uid);
 
             expect(user0Doc!.groups[privateGroup.id]).toBeDefined();
             expect(user0Doc!.groups[publicGroup.id]).toBeUndefined();
@@ -333,65 +359,65 @@ describe('Notifications Management - Consolidated Tests', () => {
 
         test('should handle permission changes and notification access', async () => {
             // Create group with initial member
-            const permissionGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, permissionGroup.id, 'group');
+            const permissionGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'group');
 
             // Add second member
-            const shareLink = await apiDriver.generateShareLink(permissionGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(permissionGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, permissionGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, permissionGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'group'),
             ]);
 
             // Create expense involving both members
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(permissionGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(50.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Both should receive transaction notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, permissionGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, permissionGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'transaction'),
             ]);
 
             // Settle all outstanding balances by currency before removing member
-            const permissionBalances = await apiDriver.getGroupBalances(permissionGroup.id, users[0].token);
+            const permissionBalances = await apiDriver.getGroupBalances(permissionGroup.id, user1.token);
             const balancesByCurrency = permissionBalances.balancesByCurrency;
 
             for (const [currency, currencyBalances] of Object.entries(balancesByCurrency)) {
-                const user1CurrencyBalance = currencyBalances[users[1].uid]?.netBalance || 0;
+                const user1CurrencyBalance = currencyBalances[user2.uid]?.netBalance || 0;
 
                 if (user1CurrencyBalance < 0) {
-                    // users[1] owes users[0] in this currency
+                    // user2 owes user1 in this currency
                     await apiDriver.createSettlement(
                         new SettlementBuilder()
                             .withGroupId(permissionGroup.id)
-                            .withPayer(users[1].uid)
-                            .withPayee(users[0].uid)
+                            .withPayer(user2.uid)
+                            .withPayee(user1.uid)
                             .withAmount(Math.abs(user1CurrencyBalance))
                             .withCurrency(currency)
                             .build(),
-                        users[1].token
+                        user2.token
                     );
                 } else if (user1CurrencyBalance > 0) {
-                    // users[0] owes users[1] in this currency
+                    // user1 owes user2 in this currency
                     await apiDriver.createSettlement(
                         new SettlementBuilder()
                             .withGroupId(permissionGroup.id)
-                            .withPayer(users[0].uid)
-                            .withPayee(users[1].uid)
+                            .withPayer(user1.uid)
+                            .withPayee(user2.uid)
                             .withAmount(Math.abs(user1CurrencyBalance))
                             .withCurrency(currency)
                             .build(),
-                        users[0].token
+                        user1.token
                     );
                 }
             }
@@ -399,78 +425,78 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Balance should now be settled, allowing member removal
 
             // Remove user 1 (change permissions)
-            await apiDriver.removeGroupMember(permissionGroup.id, users[1].uid, users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, permissionGroup.id, 'group');
+            await apiDriver.removeGroupMember(permissionGroup.id, user2.uid, user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'group');
 
             // Create another expense - only user 0 should be notified
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(permissionGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
                     .withAmount(25.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Only user 0 should receive this notification
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, permissionGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'transaction');
 
             // Verify user 1 no longer receives notifications
-            const user1FinalDoc = await appDriver.getUserNotificationDocument(users[1].uid);
+            const user1FinalDoc = await appDriver.getUserNotificationDocument(user2.uid);
             // The group should still exist in user1's doc, but the transaction count shouldn't increase beyond the first expense
         });
     });
 
     describe('Different Event Types and Triggers', () => {
         test('should generate notifications for various operation types', async () => {
-            const eventGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, eventGroup.id, 'group');
+            const eventGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'group');
 
             // Add a second user to enable settlement testing
-            const shareLink = await apiDriver.generateShareLink(eventGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, eventGroup.id, 'group');
+            const shareLink = await apiDriver.generateShareLink(eventGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'group');
 
             // Test expense creation notification involving both users
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(eventGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(30.0)
                     .build(),
-                users[0].token
+                user1.token
             );
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
             ]);
 
             // Test expense update notification
-            await apiDriver.updateExpense(expense.id, { amount: 45.0 }, users[0].token);
+            await apiDriver.updateExpense(expense.id, { amount: 45.0 }, user1.token);
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
             ]);
 
-            // Test settlement creation notification (users[1] pays users[0])
+            // Test settlement creation notification (user2 pays user1)
             const settlement = await apiDriver.createSettlement(
                 new SettlementBuilder()
                     .withGroupId(eventGroup.id)
-                    .withPayer(users[1].uid)
-                    .withPayee(users[0].uid)
+                    .withPayer(user2.uid)
+                    .withPayee(user1.uid)
                     .withAmount(15.0)
                     .build(),
-                users[1].token
+                user2.token
             );
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
             ]);
 
             // Verify all notifications were received and processed
-            const finalDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const finalDoc = await appDriver.getUserNotificationDocument(user1.uid);
             expect(finalDoc!.groups[eventGroup.id].transactionChangeCount).toBeGreaterThan(0);
             expect(finalDoc!.groups[eventGroup.id].groupDetailsChangeCount).toBeGreaterThan(0);
         });
@@ -479,37 +505,37 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Create group with multiple users for balance changes
             const balanceGroup = await apiDriver.createGroupWithMembers(
                 `Balance Test ${uuidv4()}`,
-                [users[0], users[1]],
-                users[0].token
+                [user1, user2],
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, balanceGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, balanceGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, balanceGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, balanceGroup.id, 'group'),
             ]);
 
             // Create expense that affects balances
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(balanceGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(100.0)
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Wait for transaction notifications (balance changes may be included)
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, balanceGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, balanceGroup.id, 'transaction'),
             ]);
 
             // Verify balance-related notification data
             const docs = await Promise.all([
-                appDriver.getUserNotificationDocument(users[0].uid),
-                appDriver.getUserNotificationDocument(users[1].uid),
+                appDriver.getUserNotificationDocument(user1.uid),
+                appDriver.getUserNotificationDocument(user2.uid),
             ]);
 
             docs.forEach(doc => {
@@ -522,11 +548,11 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     describe('Listener Management and Connection Handling', () => {
         test('should handle listener subscription churn without missing events', async () => {
-            const churnGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, churnGroup.id, 'group');
+            const churnGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, churnGroup.id, 'group');
 
             // Get initial transaction count
-            const initialDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
             const initialCount = initialDoc!.groups[churnGroup.id].transactionChangeCount || 0;
 
             // Simulate subscription churn by creating expenses while toggling listeners
@@ -535,71 +561,71 @@ describe('Notifications Management - Consolidated Tests', () => {
                 await apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(churnGroup.id)
-                        .withPaidBy(users[0].uid)
-                        .withParticipants([users[0].uid])
+                        .withPaidBy(user1.uid)
+                        .withParticipants([user1.uid])
                         .withAmount(25 + i)
                         .build(),
-                    users[0].token
+                    user1.token
                 );
 
                 // Wait for notification to be processed
-                await appDriver.waitForUserNotificationUpdate(users[0].uid, churnGroup.id, 'transaction');
+                await appDriver.waitForUserNotificationUpdate(user1.uid, churnGroup.id, 'transaction');
             }
 
             // Verify notifications were processed (count increased from initial)
-            const finalDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const finalDoc = await appDriver.getUserNotificationDocument(user1.uid);
             expect(finalDoc!.groups[churnGroup.id].transactionChangeCount).toBeGreaterThan(initialCount);
         });
 
         test('should handle network interruption and recovery', async () => {
-            const recoveryGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, recoveryGroup.id, 'group');
+            const recoveryGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, recoveryGroup.id, 'group');
 
             // Get initial transaction count
-            const initialDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
             const initialCount = initialDoc!.groups[recoveryGroup.id].transactionChangeCount || 0;
 
             // Create first expense and verify notification
             const expense1 = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(recoveryGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
                     .withAmount(20.0)
                     .build(),
-                users[0].token
+                user1.token
             );
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, recoveryGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, recoveryGroup.id, 'transaction');
 
             // Simulate "network interruption recovery" by creating additional operations
             const expense2 = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(recoveryGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
                     .withAmount(35.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Verify system continues to work after simulated recovery
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, recoveryGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, recoveryGroup.id, 'transaction');
 
             // Verify at least one notification was processed (system recovered)
-            const finalDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const finalDoc = await appDriver.getUserNotificationDocument(user1.uid);
             expect(finalDoc!.groups[recoveryGroup.id].transactionChangeCount).toBeGreaterThan(initialCount);
         });
 
         test('should handle document version conflicts gracefully', async () => {
             const conflictGroup = await apiDriver.createGroupWithMembers(
                 `Conflict Test ${uuidv4()}`,
-                [users[0], users[1]],
-                users[0].token
+                [user1, user2],
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, conflictGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, conflictGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, conflictGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, conflictGroup.id, 'group'),
             ]);
 
             // Create rapid concurrent operations to potentially trigger version conflicts
@@ -609,11 +635,11 @@ describe('Notifications Management - Consolidated Tests', () => {
                     apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(conflictGroup.id)
-                            .withPaidBy(users[0].uid)
-                            .withParticipants([users[0].uid, users[1].uid])
+                            .withPaidBy(user1.uid)
+                            .withParticipants([user1.uid, user2.uid])
                             .withAmount(50 + i)
                             .build(),
-                        users[0].token
+                        user1.token
                     )
                 );
             }
@@ -623,13 +649,13 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Wait for all notifications to be processed despite potential conflicts
             await Promise.all([
                 appDriver.waitForNotificationWithMatcher(
-                    users[0].uid,
+                    user1.uid,
                     conflictGroup.id,
                     (doc) => doc.groups[conflictGroup.id]?.transactionChangeCount >= 5,
                     { timeout: 5000, errorMsg: 'User 0 did not receive all concurrent notifications despite conflicts' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
-                    users[1].uid,
+                    user2.uid,
                     conflictGroup.id,
                     (doc) => doc.groups[conflictGroup.id]?.transactionChangeCount >= 5,
                     { timeout: 5000, errorMsg: 'User 1 did not receive all concurrent notifications despite conflicts' }
@@ -638,8 +664,8 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('should handle document locking scenarios under load', async () => {
-            const lockingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, lockingGroup.id, 'group');
+            const lockingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, lockingGroup.id, 'group');
 
             // Test rapid concurrent operations that might cause document contention
             const concurrentPromises = [];
@@ -648,11 +674,11 @@ describe('Notifications Management - Consolidated Tests', () => {
                     apiDriver.createExpense(
                         new CreateExpenseRequestBuilder()
                             .withGroupId(lockingGroup.id)
-                            .withPaidBy(users[0].uid)
-                            .withParticipants([users[0].uid])
+                            .withPaidBy(user1.uid)
+                            .withParticipants([user1.uid])
                             .withAmount(50 + i)
                             .build(),
-                        users[0].token
+                        user1.token
                     )
                 );
             }
@@ -661,7 +687,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Verify all notifications were received despite potential locking
             await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
+                user1.uid,
                 lockingGroup.id,
                 (doc) => doc.groups[lockingGroup.id]?.transactionChangeCount >= 7,
                 { timeout: 5000, errorMsg: 'Not all notifications received despite document locking scenarios' }
@@ -671,14 +697,14 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(lockingGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid])
                     .withAmount(100.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, lockingGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user1.uid, lockingGroup.id, 'transaction');
         });
     });
 
@@ -686,19 +712,19 @@ describe('Notifications Management - Consolidated Tests', () => {
         test('should integrate with balance calculation changes', async () => {
             const balanceGroup = await apiDriver.createGroupWithMembers(
                 `Balance Integration Test ${uuidv4()}`,
-                [users[0], users[1]],
-                users[0].token
+                [user1, user2],
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, balanceGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, balanceGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, balanceGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, balanceGroup.id, 'group'),
             ]);
 
             // Get initial transaction counts
             const initialDocs = await Promise.all([
-                appDriver.getUserNotificationDocument(users[0].uid),
-                appDriver.getUserNotificationDocument(users[1].uid),
+                appDriver.getUserNotificationDocument(user1.uid),
+                appDriver.getUserNotificationDocument(user2.uid),
             ]);
             const initialCount1 = initialDocs[0]!.groups[balanceGroup.id].transactionChangeCount || 0;
             const initialCount2 = initialDocs[1]!.groups[balanceGroup.id].transactionChangeCount || 0;
@@ -707,40 +733,40 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(balanceGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(90.0)
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Wait for balance-related notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, balanceGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, balanceGroup.id, 'transaction'),
             ]);
 
             // Create settlement to change balances again
             const settlement = new SettlementBuilder()
                 .withGroupId(balanceGroup.id)
-                .withPayer(users[1].uid)
-                .withPayee(users[0].uid)
+                .withPayer(user2.uid)
+                .withPayee(user1.uid)
                 .withAmount(30.0)
                 .build();
 
-            await apiDriver.createSettlement(settlement, users[1].token);
+            await apiDriver.createSettlement(settlement, user2.token);
 
             // Verify both users receive balance change notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, balanceGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, balanceGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, balanceGroup.id, 'transaction'),
             ]);
 
             // Verify notification counts increased (integration working)
             const [finalDoc1, finalDoc2] = await Promise.all([
-                appDriver.getUserNotificationDocument(users[0].uid),
-                appDriver.getUserNotificationDocument(users[1].uid),
+                appDriver.getUserNotificationDocument(user1.uid),
+                appDriver.getUserNotificationDocument(user2.uid),
             ]);
 
             expect(finalDoc1!.groups[balanceGroup.id].transactionChangeCount).toBeGreaterThan(initialCount1);
@@ -750,13 +776,13 @@ describe('Notifications Management - Consolidated Tests', () => {
         test('should integrate with group policy and settings changes', async () => {
             const policyGroup = await apiDriver.createGroupWithMembers(
                 `Policy Test ${uuidv4()}`,
-                [users[0], users[1]],
-                users[0].token
+                [user1, user2],
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, policyGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, policyGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, policyGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, policyGroup.id, 'group'),
             ]);
 
             // Update group settings - should trigger group detail notifications
@@ -766,62 +792,62 @@ describe('Notifications Management - Consolidated Tests', () => {
                     name: 'Updated Policy Group',
                     description: 'Group with updated policies',
                 },
-                users[0].token
+                user1.token
             );
 
             // Both users should receive group update notifications
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, policyGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, policyGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, policyGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, policyGroup.id, 'group'),
             ]);
 
             // Verify policy changes don't break normal notification flow
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(policyGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid])
                     .withAmount(25.0)
                     .build(),
-                users[0].token
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, policyGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, policyGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, policyGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, policyGroup.id, 'transaction'),
             ]);
         });
 
         test('should handle group sharing and invitation workflows', async () => {
-            const sharingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, sharingGroup.id, 'group');
+            const sharingGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, sharingGroup.id, 'group');
 
             // Add second user (simulates invitation acceptance)
-            const shareLink = await apiDriver.generateShareLink(sharingGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
+            const shareLink = await apiDriver.generateShareLink(sharingGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // Existing member should get notified of new member
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, sharingGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, sharingGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, sharingGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, sharingGroup.id, 'group'),
             ]);
 
             // Add third user
-            const shareLink2 = await apiDriver.generateShareLink(sharingGroup.id, users[0].token);
-            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, users[2].token);
+            const shareLink2 = await apiDriver.generateShareLink(sharingGroup.id, user1.token);
+            await apiDriver.joinGroupViaShareLink(shareLink2.linkId, user3.token);
 
             // All existing members should get notified
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, sharingGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, sharingGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, sharingGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, sharingGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, sharingGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, sharingGroup.id, 'group'),
             ]);
 
             // Verify group membership changes trigger proper notifications
             const finalDocs = await Promise.all([
-                appDriver.getUserNotificationDocument(users[0].uid),
-                appDriver.getUserNotificationDocument(users[1].uid),
-                appDriver.getUserNotificationDocument(users[2].uid),
+                appDriver.getUserNotificationDocument(user1.uid),
+                appDriver.getUserNotificationDocument(user2.uid),
+                appDriver.getUserNotificationDocument(user3.uid),
             ]);
 
             finalDocs.forEach(doc => {
@@ -832,10 +858,10 @@ describe('Notifications Management - Consolidated Tests', () => {
 
     describe('Notification System Performance and Edge Cases', () => {
         test('should handle notification system under high load', async () => {
-            const loadTestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), users[0].token);
-            await appDriver.waitForUserNotificationUpdate(users[0].uid, loadTestGroup.id, 'group');
+            const loadTestGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, loadTestGroup.id, 'group');
 
-            const initialDoc = await appDriver.getUserNotificationDocument(users[0].uid);
+            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
             const initialTransactionCount = initialDoc!.groups[loadTestGroup.id].transactionChangeCount;
 
             // Create multiple operations rapidly
@@ -843,12 +869,12 @@ describe('Notifications Management - Consolidated Tests', () => {
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(loadTestGroup.id)
-                        .withPaidBy(users[0].uid)
-                        .withParticipants([users[0].uid])
+                        .withPaidBy(user1.uid)
+                        .withParticipants([user1.uid])
                         .withAmount(10 + i)
                         .withDescription(`Load Test Expense ${i}`)
                         .build(),
-                    users[0].token
+                    user1.token
                 )
             );
 
@@ -856,7 +882,7 @@ describe('Notifications Management - Consolidated Tests', () => {
 
             // Wait for all notifications to be processed
             await appDriver.waitForNotificationWithMatcher(
-                users[0].uid,
+                user1.uid,
                 loadTestGroup.id,
                 (doc) => doc.groups[loadTestGroup.id]?.transactionChangeCount >= initialTransactionCount + 8,
                 { timeout: 5000, errorMsg: 'Not all load test notifications were processed' }
@@ -866,33 +892,33 @@ describe('Notifications Management - Consolidated Tests', () => {
         test('should handle multi-user notifications efficiently at scale', async () => {
             const scaleGroup = await apiDriver.createGroupWithMembers(
                 `Scale Test ${uuidv4()}`,
-                [users[0], users[1], users[2]],
-                users[0].token
+                [user1, user2, user3],
+                user1.token
             );
 
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, scaleGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, scaleGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, scaleGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, scaleGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, scaleGroup.id, 'group'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, scaleGroup.id, 'group'),
             ]);
 
             // Create expense affecting all members efficiently
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(scaleGroup.id)
-                    .withPaidBy(users[0].uid)
-                    .withParticipants([users[0].uid, users[1].uid, users[2].uid])
+                    .withPaidBy(user1.uid)
+                    .withParticipants([user1.uid, user2.uid, user3.uid])
                     .withAmount(90.0)
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                user1.token
             );
 
             // Verify all users receive notifications efficiently
             await Promise.all([
-                appDriver.waitForUserNotificationUpdate(users[0].uid, scaleGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[1].uid, scaleGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(users[2].uid, scaleGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user1.uid, scaleGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user2.uid, scaleGroup.id, 'transaction'),
+                appDriver.waitForUserNotificationUpdate(user3.uid, scaleGroup.id, 'transaction'),
             ]);
 
             // Create multiple concurrent operations from different users
@@ -900,20 +926,20 @@ describe('Notifications Management - Consolidated Tests', () => {
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(scaleGroup.id)
-                        .withPaidBy(users[1].uid)
-                        .withParticipants([users[1].uid, users[2].uid])
+                        .withPaidBy(user2.uid)
+                        .withParticipants([user2.uid, user3.uid])
                         .withAmount(30.0)
                         .build(),
-                    users[1].token
+                    user2.token
                 ),
                 apiDriver.createExpense(
                     new CreateExpenseRequestBuilder()
                         .withGroupId(scaleGroup.id)
-                        .withPaidBy(users[2].uid)
-                        .withParticipants([users[0].uid, users[2].uid])
+                        .withPaidBy(user3.uid)
+                        .withParticipants([user1.uid, user3.uid])
                         .withAmount(40.0)
                         .build(),
-                    users[2].token
+                    user3.token
                 ),
             ];
 
@@ -922,19 +948,19 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Verify all users receive all notifications
             await Promise.all([
                 appDriver.waitForNotificationWithMatcher(
-                    users[0].uid,
+                    user1.uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
                     { timeout: 5000, errorMsg: 'User 0 did not receive all scale notifications' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
-                    users[1].uid,
+                    user2.uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
                     { timeout: 5000, errorMsg: 'User 1 did not receive all scale notifications' }
                 ),
                 appDriver.waitForNotificationWithMatcher(
-                    users[2].uid,
+                    user3.uid,
                     scaleGroup.id,
                     (doc) => doc.groups[scaleGroup.id]?.transactionChangeCount >= 3,
                     { timeout: 5000, errorMsg: 'User 2 did not receive all scale notifications' }

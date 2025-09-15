@@ -259,16 +259,8 @@ export class GroupShareService {
                     updatedAt: serverTimestamp,
                 });
 
-                const groupNotificationData: UserNotificationGroup = {
-                    lastTransactionChange: null,
-                    lastBalanceChange: null,
-                    lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is joining the group
-                    transactionChangeCount: 0,
-                    balanceChangeCount: 0,
-                    groupDetailsChangeCount: 1, // Set to 1 because the user is joining the group
-                };
-
-                this.firestoreWriter.setUserNotificationGroupInTransaction(transaction, userId, groupId, groupNotificationData);
+                // Note: Group notifications are handled by the trackGroupChanges trigger
+                // which fires when the group's updatedAt timestamp is modified above
 
                 return {
                     groupName: preCheckGroup.name,

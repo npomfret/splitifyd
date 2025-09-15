@@ -628,17 +628,7 @@ export class GroupService {
             updatedAt: memberServerTimestamp,
         };
 
-        // Pre-calculate notification group data outside transaction for speed
-        const notificationGroupData: UserNotificationGroup = {
-            lastTransactionChange: null,
-            lastBalanceChange: null,
-            lastGroupDetailsChange: FieldValue.serverTimestamp(), // User is creating the group
-            transactionChangeCount: 0,
-            balanceChangeCount: 0,
-            groupDetailsChangeCount: 1, // Set to 1 because the user is creating the group
-        };
-
-        // Atomic transaction: create group, member, and notification documents
+        // Atomic transaction: create group and member documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUPS, groupId, documentToWrite);
 
@@ -649,8 +639,8 @@ export class GroupService {
                 updatedAt: memberServerTimestamp,
             });
 
-            // Initialize group notifications for creator atomically
-            this.firestoreWriter.setUserNotificationGroupInTransaction(transaction, userId, groupId, notificationGroupData);
+            // Note: Group notifications are handled by the trackGroupChanges trigger
+            // which fires when the group document is created
         });
 
         // Add group context to logger

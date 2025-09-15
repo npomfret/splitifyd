@@ -111,9 +111,9 @@ export class NotificationDriver {
         afterTimestamp: number,
         timeoutMs: number = 2000,
     ): Promise<void> {
-        console.log(`⏳ Waiting for all listeners to receive ${eventType} event for group ${groupId.slice(-8)}...`);
+        console.log(`⏳ Waiting for all listeners to receive ${eventType} event for group ${groupId}...`);
         await Promise.all(listeners.map((listener) => listener.waitForNewEvent(groupId, eventType, afterTimestamp, timeoutMs)));
-        console.log(`✅ All listeners received ${eventType} event for group ${groupId.slice(-8)}`);
+        console.log(`✅ All listeners received ${eventType} event for group ${groupId}`);
     }
 
     getDebugInfo(): any {
@@ -176,37 +176,37 @@ export class NotificationListener {
     }
 
     private handleSnapshot(snapshot: admin.firestore.DocumentSnapshot): void {
-        console.log(`🔄 NotificationListener [${this.userId.slice(-8)}] received snapshot, exists: ${snapshot.exists}`);
+        console.log(`🔄 NotificationListener [${this.userId}] received snapshot, exists: ${snapshot.exists}`);
 
         if (!snapshot.exists) {
-            console.log(`📭 No notification document exists for user [${this.userId.slice(-8)}]`);
+            console.log(`📭 No notification document exists for user [${this.userId}]`);
             return;
         }
 
         const data = snapshot.data() as UserNotificationDocument;
-        console.log(`📄 NotificationListener [${this.userId.slice(-8)}] snapshot data:`, {
+        console.log(`📄 NotificationListener [${this.userId}] snapshot data:`, {
             version: data.changeVersion,
             lastVersion: this.lastVersion,
             groupCount: Object.keys(data.groups || {}).length,
-            groupIds: Object.keys(data.groups || {}).map((id) => id.slice(-8)),
+            groupIds: Object.keys(data.groups || {}).map((id) => id),
         });
 
         // Handle version reset/corruption - reset listener state if document version went backwards
         if (data.changeVersion < this.lastVersion) {
-            console.log(`🔧 Document version went backwards (${this.lastVersion} → ${data.changeVersion}), resetting listener state for user [${this.userId.slice(-8)}]`);
+            console.log(`🔧 Document version went backwards (${this.lastVersion} → ${data.changeVersion}), resetting listener state for user [${this.userId}]`);
             this.lastVersion = data.changeVersion - 1; // Set to one less so this update gets processed
             this.lastGroupStates.clear();
         }
 
         // Skip if no new changes
         if (data.changeVersion <= this.lastVersion) {
-            console.log(`⏭️ Skipping - no new changes for user [${this.userId.slice(-8)}]`);
+            console.log(`⏭️ Skipping - no new changes for user [${this.userId}]`);
             return;
         }
 
         this.processChanges(data);
         this.lastVersion = data.changeVersion;
-        console.log(`✅ Processed changes, new version: ${data.changeVersion} for user [${this.userId.slice(-8)}]`);
+        console.log(`✅ Processed changes, new version: ${data.changeVersion} for user [${this.userId}]`);
     }
 
     private processChanges(data: UserNotificationDocument): void {
@@ -215,95 +215,56 @@ export class NotificationListener {
         const timestamp = new Date();
 
         for (const [groupId, groupData] of Object.entries(data.groups)) {
-            const lastState = this.lastGroupStates.get(groupId);
+            // Always emit events when counters are present, without filtering based on increases
+            // This ensures we capture ALL notification updates for testing
 
-            // Check for different types of changes
-            if (this.hasTransactionChanged(groupData, lastState)) {
-                const event = {
-                    userId: this.userId,
-                    groupId,
-                    type: 'transaction' as const,
-                    version: data.changeVersion,
-                    timestamp,
-                    groupState: { ...groupData },
-                };
-                this.receivedEvents.push(event);
-                console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received TRANSACTION event:`, {
-                    groupId: groupId.slice(-8),
-                    version: data.changeVersion,
-                    transactionCount: groupData.transactionChangeCount,
-                });
-            }
+            const eventTypes: Array<{ type: 'transaction' | 'balance' | 'group'; counter: number | undefined; fieldName: string }> = [
+                { type: 'transaction', counter: groupData.transactionChangeCount, fieldName: 'transactionCount' },
+                { type: 'balance', counter: groupData.balanceChangeCount, fieldName: 'balanceCount' },
+                { type: 'group', counter: groupData.groupDetailsChangeCount, fieldName: 'groupCount' }
+            ];
 
-            if (this.hasBalanceChanged(groupData, lastState)) {
-                const event = {
-                    userId: this.userId,
-                    groupId,
-                    type: 'balance' as const,
-                    version: data.changeVersion,
-                    timestamp,
-                    groupState: { ...groupData },
-                };
-                this.receivedEvents.push(event);
-                console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received BALANCE event:`, {
-                    groupId: groupId.slice(-8),
-                    version: data.changeVersion,
-                    balanceCount: groupData.balanceChangeCount,
-                });
-            }
-
-            if (this.hasGroupDetailsChanged(groupData, lastState)) {
-                const event = {
-                    userId: this.userId,
-                    groupId,
-                    type: 'group' as const,
-                    version: data.changeVersion,
-                    timestamp,
-                    groupState: { ...groupData },
-                };
-                this.receivedEvents.push(event);
-                console.log(`📨 NotificationListener [${this.userId.slice(-8)}] received GROUP event:`, {
-                    groupId: groupId.slice(-8),
-                    version: data.changeVersion,
-                    groupCount: groupData.groupDetailsChangeCount,
-                });
+            for (const { type, counter, fieldName } of eventTypes) {
+                if (counter !== undefined) {
+                    this.addEvent(type, groupId, data.changeVersion, timestamp, groupData, fieldName, counter);
+                }
             }
 
             this.lastGroupStates.set(groupId, { ...groupData });
         }
 
         // Clean up states for groups that no longer exist in the document
-        // Note: We no longer synthetically generate group removal events here
-        // because real group notifications are now generated by Firebase triggers
         const currentGroupIds = new Set(Object.keys(data.groups));
         for (const groupId of Array.from(this.lastGroupStates.keys())) {
             if (!currentGroupIds.has(groupId)) {
-                console.log(`📨 NotificationListener [${this.userId.slice(-8)}] detected group removal (cleanup only):`, {
-                    groupId,
-                    version: data.changeVersion,
-                });
                 this.lastGroupStates.delete(groupId);
-                
-                // Real group notifications are generated by Firebase triggers when:
-                // 1. User is removed from a group (membership deletion trigger)
-                // 2. Group is deleted (group deletion cleanup)
             }
         }
     }
 
-    private hasTransactionChanged(current: GroupNotificationState, last?: GroupNotificationState): boolean {
-        if (!last) return current.transactionChangeCount > 0;
-        return current.transactionChangeCount > last.transactionChangeCount;
-    }
-
-    private hasBalanceChanged(current: GroupNotificationState, last?: GroupNotificationState): boolean {
-        if (!last) return current.balanceChangeCount > 0;
-        return current.balanceChangeCount > last.balanceChangeCount;
-    }
-
-    private hasGroupDetailsChanged(current: GroupNotificationState, last?: GroupNotificationState): boolean {
-        if (!last) return current.groupDetailsChangeCount > 0;
-        return current.groupDetailsChangeCount > last.groupDetailsChangeCount;
+    private addEvent(
+        type: 'transaction' | 'balance' | 'group',
+        groupId: string,
+        version: number,
+        timestamp: Date,
+        groupState: GroupNotificationState,
+        fieldName: string,
+        counter: number
+    ): void {
+        const event = {
+            userId: this.userId,
+            groupId,
+            type,
+            version,
+            timestamp,
+            groupState: { ...groupState },
+        };
+        this.receivedEvents.push(event);
+        console.log(`📨 NotificationListener [${this.userId}] received ${type.toUpperCase()} event:`, {
+            groupId,
+            version,
+            [fieldName]: counter,
+        });
     }
 
     stop(): void {
@@ -349,7 +310,7 @@ export class NotificationListener {
      */
     clearEvents(): void {
         this.receivedEvents = [];
-        console.log(`🗑️ Cleared all events for user [${this.userId.slice(-8)}]`);
+        console.log(`🗑️ Cleared all events for user [${this.userId}]`);
     }
 
     /**
@@ -384,7 +345,7 @@ export class NotificationListener {
             const event = this.receivedEvents.find((e) => e.groupId === groupId && e.type === eventType && e.timestamp.getTime() >= afterTimestamp);
 
             if (event) {
-                console.log(`✅ Found new ${eventType} event for group ${groupId.slice(-8)} after timestamp`);
+                console.log(`✅ Found new ${eventType} event for group ${groupId} after timestamp`);
                 return event;
             }
 
@@ -418,6 +379,51 @@ export class NotificationListener {
             }
 
             await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+    }
+
+    /**
+     * Assert exact number of events for a group with detailed error message
+     */
+    assertEventCount(groupId: string, expectedCount: number, eventType?: 'transaction' | 'balance' | 'group'): void {
+        const events = eventType
+            ? this.receivedEvents.filter(e => e.groupId === groupId && e.type === eventType)
+            : this.receivedEvents.filter(e => e.groupId === groupId);
+
+        const actualCount = events.length;
+        const typeStr = eventType ? ` ${eventType}` : '';
+
+        if (actualCount !== expectedCount) {
+            const eventDetails = events.map((e, index) => {
+                const eventJson = {
+                    type: e.type,
+                    timestamp: e.timestamp.toISOString(),
+                    version: e.version,
+                    groupState: e.groupState
+                };
+                return `\t${index + 1}. ${JSON.stringify(eventJson)}`;
+            }).join('\n');
+
+            const allEventsDetails = this.receivedEvents.map((e, index) => {
+                const eventJson = {
+                    groupId: e.groupId,
+                    type: e.type,
+                    timestamp: e.timestamp.toISOString(),
+                    version: e.version,
+                    groupState: e.groupState
+                };
+                return `\t${index + 1}. ${JSON.stringify(eventJson)}`;
+            }).join('\n');
+
+            const errorMessage = [
+                `User [${this.userId}] expected ${expectedCount}${typeStr} events for group [${groupId}] but got ${actualCount}:`,
+                eventDetails || '\t(no events)',
+                '',
+                `All events for this user (${this.receivedEvents.length}):`,
+                allEventsDetails || '\t(no events)'
+            ].join('\n');
+
+            throw new Error(errorMessage);
         }
     }
 

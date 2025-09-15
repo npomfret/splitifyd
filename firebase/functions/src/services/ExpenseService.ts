@@ -217,10 +217,10 @@ export class ExpenseService {
 
         // DEBUGGING: Log the participants before saving to Firestore
         logger.info('ExpenseService creating expense with participants', {
-            expenseId: expenseId.slice(-8),
-            groupId: expenseData.groupId.slice(-8),
-            paidBy: expenseData.paidBy.slice(-8),
-            participants: expenseData.participants.map((p) => p.slice(-8)),
+            expenseId: expenseId,
+            groupId: expenseData.groupId,
+            paidBy: expenseData.paidBy,
+            participants: expenseData.participants.map((p) => p),
             participantCount: expenseData.participants.length,
             description: expenseData.description,
         });
