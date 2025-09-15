@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, TestGroupManager, CreateExpenseRequestBuilder, SettlementBuilder } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, TestGroupManager, CreateExpenseRequestBuilder, SettlementBuilder, generateShortId } from '@splitifyd/test-support';
 import { Group } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
 
@@ -21,7 +21,7 @@ describe('Input Validation', () => {
     describe('Amount Validation', () => {
         describe('Decimal Precision Edge Cases', () => {
             test('should handle very small amounts with proper precision', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(0.01) // 1 cent
@@ -44,7 +44,7 @@ describe('Input Validation', () => {
             });
 
             test('should handle amounts with many decimal places', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(33.333333) // Many decimal places
@@ -67,7 +67,7 @@ describe('Input Validation', () => {
             });
 
             test('should handle very large amounts', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(999999.99) // Nearly one million
@@ -91,7 +91,7 @@ describe('Input Validation', () => {
 
         describe('Invalid Amount Validation', () => {
             test('should reject zero amounts', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(0)
@@ -104,7 +104,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject negative amounts', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withAmount(-50)
@@ -159,7 +159,7 @@ describe('Input Validation', () => {
             });
 
             test('should reject negative amounts when updating expense', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withPaidBy(users[0].uid)
@@ -199,7 +199,7 @@ describe('Input Validation', () => {
             });
 
             test('should accept splits with minor rounding differences (within 1 cent)', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Rounding test ${uniqueId}`)
@@ -331,7 +331,7 @@ describe('Input Validation', () => {
             });
 
             test('should accept percentages with minor rounding differences (within 0.01%)', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const expenseData = new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
                     .withDescription(`Percentage rounding test ${uniqueId}`)
@@ -401,7 +401,7 @@ describe('Input Validation', () => {
 
     describe('Settlement Validation', () => {
         test('should reject negative settlement amounts', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const settlementData = new SettlementBuilder()
                 .withGroupId(testGroup.id)
                 .withPayer(users[0].uid)
@@ -426,7 +426,7 @@ describe('Input Validation', () => {
         });
 
         test('should reject negative amounts when updating settlement', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const settlementData = new SettlementBuilder().withGroupId(testGroup.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(100).withNote(`Valid settlement ${uniqueId}`).build();
 
             const settlement = await apiDriver.createSettlement(settlementData, users[0].token);
@@ -477,7 +477,7 @@ describe('Input Validation', () => {
         });
 
         test('should accept valid dates', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const validDate = new Date();
             validDate.setMonth(validDate.getMonth() - 1);
 
@@ -497,7 +497,7 @@ describe('Input Validation', () => {
 
     describe('Category Validation', () => {
         test('should accept valid category', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
                 .withDescription(`Valid category test ${uniqueId}`)

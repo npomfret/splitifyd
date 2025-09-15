@@ -3,7 +3,7 @@
 
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager, generateShortId } from '@splitifyd/test-support';
 import { ApiError } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { PooledTestUser, SplitTypes, UserToken } from '@splitifyd/shared';
@@ -103,7 +103,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
         test('should list and paginate group expenses', async () => {
             // Create multiple expenses for listing
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
@@ -367,7 +367,7 @@ describe('Expenses Management - Consolidated Tests', () => {
 
     describe('Full Details API and Complex Data Handling', () => {
         test('should return consolidated expense data with group and members', async () => {
-            const uniqueId = Math.random().toString(36).slice(2, 10);
+            const uniqueId = generateShortId()
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)

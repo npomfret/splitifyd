@@ -46,6 +46,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             // Wait for group creation notification
             await user1Listener.waitForGroupEvent(group.id, 1);
 
+            // Assert event count after group creation
+            user1Listener.assertEventCount(group.id, 1, 'group');
+
             // Clear events to isolate next operation
             notificationDriver.clearEvents();
 
@@ -76,7 +79,7 @@ describe('Notifications Management - Consolidated Tests', () => {
                 user1.token
             );
 
-            // Wait for transaction notifications for BOTH users - expense creation triggers transaction, balance, and group events
+            // Wait for transaction, balance, and group notifications for BOTH users - expense creation triggers all three event types
             await user1Listener.waitForTransactionEvent(group.id, 1);
             await user2Listener.waitForTransactionEvent(group.id, 1);
             await user1Listener.waitForBalanceEvent(group.id, 1);
@@ -98,26 +101,31 @@ describe('Notifications Management - Consolidated Tests', () => {
         });
 
         test('should handle notification version increments correctly', async () => {
-            // Create group and get initial state
-            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
-            await appDriver.waitForUserNotificationUpdate(user1.uid, group.id, 'group');
+            // Set up listener for user1 before any operations
+            const [user1Listener] = await notificationDriver.setupListenersFirst([user1.uid]);
 
-            const initialDoc = await appDriver.getUserNotificationDocument(user1.uid);
-            const initialGroupCount = initialDoc!.groups[group.id].groupDetailsChangeCount;
+            // Create group and wait for initial notification
+            const group = await apiDriver.createGroup(new CreateGroupRequestBuilder().build(), user1.token);
+
+            // Wait for group creation notification - new group starts at count 1
+            await user1Listener.waitForGroupEvent(group.id, 1);
+
+            // Assert event count after group creation
+            user1Listener.assertEventCount(group.id, 1, 'group');
+            expect(user1Listener.getEventsForGroup(group.id)).toHaveLength(1);
+
+            // Clear events to isolate next operation
+            notificationDriver.clearEvents();
 
             // Update group to trigger version increment
             await apiDriver.updateGroup(group.id, { name: 'Updated Name' }, user1.token);
 
-            // Wait for and verify count increment with longer timeout
-            const finalDoc = await appDriver.waitForNotificationWithMatcher(
-                user1.uid,
-                group.id,
-                (doc) => doc.groups[group.id]?.groupDetailsChangeCount > initialGroupCount,
-                { timeout: 2000, errorMsg: 'Failed to detect group update notification' }
-            );
+            // Wait for group update notification - count should increment to 2
+            await user1Listener.waitForGroupEvent(group.id, 2);
 
-            // Use greater than or equal to handle potential multiple notifications
-            expect(finalDoc.groups[group.id].groupDetailsChangeCount).toBeGreaterThan(initialGroupCount);
+            // Assert exact event count after update - should have received 1 group event after clearing
+            user1Listener.assertEventCount(group.id, 1, 'group');
+            expect(user1Listener.getEventsForGroup(group.id)).toHaveLength(1);
         });
 
         test('should handle rapid multiple updates without losing notifications', async () => {

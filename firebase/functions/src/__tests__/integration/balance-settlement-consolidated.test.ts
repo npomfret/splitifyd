@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, CreateGroupRequestBuilder, CreateExpenseRequestBuilder, SettlementBuilder, TestGroupManager, generateShortId } from '@splitifyd/test-support';
 import { PooledTestUser, UserToken } from '@splitifyd/shared';
 
 describe('Balance & Settlement - Consolidated Tests', () => {
@@ -663,7 +663,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         describe('Settlement Listing', () => {
             test('should list settlements for a group', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 await Promise.all([
                     apiDriver.createSettlement(
                         new SettlementBuilder()
@@ -702,7 +702,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             });
 
             test('should support pagination', async () => {
-                const uniqueId = uuidv4().slice(0, 8);
+                const uniqueId = generateShortId();
                 const settlements = [];
                 for (let i = 0; i < 5; i++) {
                     settlements.push(

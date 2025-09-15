@@ -277,23 +277,8 @@ describe('GroupService - Unit Tests', () => {
             // Verify transaction was called exactly once
             expect(mockFirestoreWriter.runTransaction).toHaveBeenCalledTimes(1);
 
-            // Check that all three atomic operations were called
+            // Check that atomic operations were called (notifications now handled by triggers)
             expect(mockFirestoreWriter.createInTransaction).toHaveBeenCalledTimes(2); // Group + membership
-            expect(mockFirestoreWriter.setUserNotificationGroupInTransaction).toHaveBeenCalledTimes(1);
-
-            // Verify notification data structure
-            const notificationCall = mockFirestoreWriter.setUserNotificationGroupInTransaction.mock.calls[0];
-            expect(notificationCall[0]).toBeDefined();
-            expect(notificationCall[1]).toBe(userId);
-            expect(notificationCall[2]).toBe(groupId);
-            expect(notificationCall[3]).toEqual({
-                lastTransactionChange: null,
-                lastBalanceChange: null,
-                lastGroupDetailsChange: { _type: 'serverTimestamp' },
-                transactionChangeCount: 0,
-                balanceChangeCount: 0,
-                groupDetailsChangeCount: 1,
-            });
         });
 
         it('should rollback everything if transaction fails', async () => {

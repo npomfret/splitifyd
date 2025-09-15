@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, generateShortId } from '@splitifyd/test-support';
 import { ApiDriver, CreateExpenseRequestBuilder, TestGroupManager } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
 
@@ -18,7 +18,7 @@ describe('Custom Categories Feature Tests', () => {
 
     describe('Custom Category Acceptance', () => {
         test('should accept custom category names', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const customCategories = ['Books & Magazines', 'Home Improvement', 'Pet Care', 'Gym Membership', 'Professional Development'];
 
             for (const category of customCategories) {
@@ -40,7 +40,7 @@ describe('Custom Categories Feature Tests', () => {
         });
 
         test('should accept categories that were previously invalid', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const previouslyInvalidCategories = [
                 'invalid-category-name',
                 'FOOD', // uppercase
@@ -66,7 +66,7 @@ describe('Custom Categories Feature Tests', () => {
         });
 
         test('should still enforce length limits', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const tooLongCategory = 'A'.repeat(51); // 51 characters
 
             const expenseData = new CreateExpenseRequestBuilder()
@@ -82,7 +82,7 @@ describe('Custom Categories Feature Tests', () => {
         });
 
         test('should accept maximum length categories', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const maxLengthCategory = 'A'.repeat(50); // 50 characters
 
             const expenseData = new CreateExpenseRequestBuilder()
@@ -102,7 +102,7 @@ describe('Custom Categories Feature Tests', () => {
         });
 
         test('should allow updating to custom categories', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             // Create expense with predefined category
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)

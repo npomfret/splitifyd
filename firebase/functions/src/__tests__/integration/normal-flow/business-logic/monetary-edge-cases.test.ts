@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ApiDriver, borrowTestUsers, TestGroupManager } from '@splitifyd/test-support';
+import { ApiDriver, borrowTestUsers, generateShortId, TestGroupManager } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder } from '@splitifyd/test-support';
 import { UserToken } from '@splitifyd/shared';
 
@@ -16,7 +16,7 @@ describe('Additional Monetary Edge Cases', () => {
     });
 
     test('should handle currency-style formatting for display', async () => {
-        const uniqueId = uuidv4().slice(0, 8);
+        const uniqueId = generateShortId();
         const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withAmount(12.34) // Common currency format - this is what the test is about
@@ -38,7 +38,7 @@ describe('Additional Monetary Edge Cases', () => {
     });
 
     test('should handle odd number divisions with proper rounding', async () => {
-        const uniqueId = uuidv4().slice(0, 8);
+        const uniqueId = generateShortId();
         const expenseData = new CreateExpenseRequestBuilder()
             .withGroupId(testGroup.id)
             .withAmount(10.0) // $10 split 3 ways = $3.33, $3.33, $3.34 - this is what the test is about

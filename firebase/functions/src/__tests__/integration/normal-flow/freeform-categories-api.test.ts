@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { v4 as uuidv4 } from 'uuid';
-import { borrowTestUsers } from '@splitifyd/test-support';
+import { borrowTestUsers, generateShortId } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ApiDriver, TestGroupManager } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';
 import { UserToken } from '@splitifyd/shared';
@@ -19,7 +19,7 @@ describe('Freeform Categories API Integration', () => {
 
     describe('Expense Creation with Custom Categories', () => {
         test('should create expense with custom category name', async () => {
-            const uniqueId = uuidv4().slice(0, 8);
+            const uniqueId = generateShortId();
             const customCategory = `Custom Office Supplies ${uniqueId}`;
             const expenseData = new CreateExpenseRequestBuilder()
                 .withGroupId(testGroup.id)
