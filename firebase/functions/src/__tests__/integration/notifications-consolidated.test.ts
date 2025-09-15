@@ -171,11 +171,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Wait for all users to receive group creation notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'group'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'group');
 
             // Verify all users have notification documents
             const docs = await Promise.all([
@@ -201,11 +199,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Wait for all users to receive transaction notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, multiUserGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, multiUserGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user3.uid, multiUserGroup.id, 'transaction');
         });
 
         test('should handle member addition and removal notification patterns', async () => {
@@ -218,10 +214,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
             // Both users should receive group update notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'group'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'group');
 
             // Create expense involving both members
             await apiDriver.createExpense(
@@ -235,10 +229,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Both should receive transaction notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, dynamicGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, dynamicGroup.id, 'transaction');
 
             // Settle all outstanding balances by currency before removing member
             const balances = await apiDriver.getGroupBalances(dynamicGroup.id, user1.token);
@@ -312,10 +304,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Wait for public group notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'group'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'group');
 
             // Create expenses in both groups
             await Promise.all([
@@ -340,11 +330,9 @@ describe('Notifications Management - Consolidated Tests', () => {
             ]);
 
             // Wait for transaction notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, privateGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, privateGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, publicGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user3.uid, publicGroup.id, 'transaction');
 
             // Verify users only have notifications for groups they belong to
             const user0Doc = await appDriver.getUserNotificationDocument(user1.uid);
@@ -366,10 +354,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             const shareLink = await apiDriver.generateShareLink(permissionGroup.id, user1.token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, user2.token);
 
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'group'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'group'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'group');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'group');
 
             // Create expense involving both members
             await apiDriver.createExpense(
@@ -383,10 +369,8 @@ describe('Notifications Management - Consolidated Tests', () => {
             );
 
             // Both should receive transaction notifications
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, permissionGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, permissionGroup.id, 'transaction');
 
             // Settle all outstanding balances by currency before removing member
             const permissionBalances = await apiDriver.getGroupBalances(permissionGroup.id, user1.token);
@@ -468,17 +452,13 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .build(),
                 user1.token
             );
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction');
 
             // Test expense update notification
             await apiDriver.updateExpense(expense.id, { amount: 45.0 }, user1.token);
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction');
 
             // Test settlement creation notification (user2 pays user1)
             const settlement = await apiDriver.createSettlement(
@@ -490,10 +470,8 @@ describe('Notifications Management - Consolidated Tests', () => {
                     .build(),
                 user2.token
             );
-            await Promise.all([
-                appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction'),
-                appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction'),
-            ]);
+            await appDriver.waitForUserNotificationUpdate(user1.uid, eventGroup.id, 'transaction');
+            await appDriver.waitForUserNotificationUpdate(user2.uid, eventGroup.id, 'transaction');
 
             // Verify all notifications were received and processed
             const finalDoc = await appDriver.getUserNotificationDocument(user1.uid);
