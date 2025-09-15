@@ -59,43 +59,6 @@ export class UserPolicyService {
         }
     }
 
-    /**
-     * Accept a single policy version for a user
-     */
-    async acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
-        return measureDb('UserPolicyService.acceptPolicy', async () => this._acceptPolicy(userId, policyId, versionHash));
-    }
-
-    private async _acceptPolicy(userId: string, policyId: string, versionHash: string): Promise<{ policyId: string; versionHash: string; acceptedAt: string }> {
-        LoggerContext.update({ userId, policyId, operation: 'accept-policy', versionHash });
-
-        try {
-            // Validate that the policy exists and the version hash is current
-            await this.validatePolicyAndVersion(policyId, versionHash);
-
-            // Update user's acceptedPolicies
-            await this.firestoreWriter.updateUser(userId, {
-                [`acceptedPolicies.${policyId}`]: versionHash,
-                updatedAt: createOptimisticTimestamp(),
-            });
-
-            const acceptedAt = new Date().toISOString();
-
-            logger.info('policy-accepted', { id: policyId, userId });
-
-            return {
-                policyId,
-                versionHash,
-                acceptedAt,
-            };
-        } catch (error) {
-            if (error instanceof ApiError) {
-                throw error;
-            }
-            logger.error('Failed to accept policy', error as Error, { userId, policyId, versionHash });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_ACCEPT_FAILED', 'Failed to accept policy');
-        }
-    }
 
     /**
      * Accept multiple policy versions for a user

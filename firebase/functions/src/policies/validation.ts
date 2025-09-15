@@ -3,19 +3,6 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { sanitizeString } from '../utils/security';
 
-/**
- * Schema for accept single policy request
- */
-const acceptPolicySchema = Joi.object({
-    policyId: Joi.string().trim().min(1).required().messages({
-        'string.empty': 'Policy ID is required',
-        'any.required': 'Policy ID is required',
-    }),
-    versionHash: Joi.string().trim().min(1).required().messages({
-        'string.empty': 'Version hash is required',
-        'any.required': 'Version hash is required',
-    }),
-}).required();
 
 /**
  * Schema for policy acceptance in batch
@@ -50,34 +37,6 @@ export interface AcceptMultiplePoliciesRequest {
     acceptances: AcceptPolicyRequest[];
 }
 
-/**
- * Validate accept single policy request
- */
-export const validateAcceptPolicy = (body: unknown): AcceptPolicyRequest => {
-    const { error, value } = acceptPolicySchema.validate(body, {
-        abortEarly: false,
-        stripUnknown: true,
-    });
-
-    if (error) {
-        const firstError = error.details[0];
-        let errorCode = 'INVALID_REQUEST';
-        let errorMessage = firstError.message;
-
-        if (firstError.path.includes('policyId')) {
-            errorCode = 'INVALID_POLICY_ID';
-        } else if (firstError.path.includes('versionHash')) {
-            errorCode = 'INVALID_VERSION_HASH';
-        }
-
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, errorCode, errorMessage);
-    }
-
-    return {
-        policyId: value.policyId.trim(),
-        versionHash: value.versionHash.trim(),
-    };
-};
 
 /**
  * Validate accept multiple policies request

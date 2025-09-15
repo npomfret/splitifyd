@@ -21,7 +21,7 @@ import { createSettlement, updateSettlement, deleteSettlement, listSettlements }
 import { createComment } from './comments/handlers';
 import { getFirestore, getAuth } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
-import { acceptPolicy, acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
+import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { getUserProfile, updateUserProfile, changePassword, deleteUserAccount } from './user/handlers';
 import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
@@ -310,8 +310,6 @@ function setupRoutes(app: express.Application): void {
     app.post('/test/user/clear-policy-acceptances', asyncHandler(testClearPolicyAcceptances));
 
     // User policy endpoints (requires auth)
-    // @deprecated - Endpoint not used by ApiClient, will be removed
-    app.post('/user/policies/accept', authenticate, asyncHandler(acceptPolicy));
     app.post('/user/policies/accept-multiple', authenticate, asyncHandler(acceptMultiplePolicies));
     app.get('/user/policies/status', authenticate, asyncHandler(getUserPolicyStatus));
 
