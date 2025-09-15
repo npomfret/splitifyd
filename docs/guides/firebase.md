@@ -4,6 +4,7 @@ This guide covers the standards and workflow for developing with the Firebase Em
 
 ## Core Principles
 
+- **Do not start or stop the emulator** always stop and ask the user to do it
 - **Environment Parity**: The application MUST run identically in the local Firebase Emulator and in the deployed production Firebase environment. Avoid environment-specific code paths.
 - **Emulator First**: The Firebase Emulator is the primary development and testing environment. Do not use the Vite dev server directly.
 
