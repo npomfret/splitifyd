@@ -130,7 +130,8 @@
     "settings": "Settings",
     "showHistory": "Show History",
     "joinGroup": "Join Group",
-    "understood": "Understood"
+    "understood": "Understood",
+    "you": "You"
   },
   "errors": {
     "displayNameEmpty": "Display name cannot be empty",
