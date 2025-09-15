@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { logger } from '../logger';
-import { getFirestore, getAuth } from '../firebase';
+import { getFirestore } from '../firebase';
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getConfig } from '../client-config';
 import { FirestoreCollections } from '@splitifyd/shared';
@@ -8,6 +8,7 @@ import { FirestoreCollections } from '@splitifyd/shared';
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
 const policyService = applicationBuilder.buildPolicyService();
+const authService = applicationBuilder.buildAuthService();
 
 /**
  * API endpoint to update policies
@@ -86,8 +87,7 @@ export const testClearPolicyAcceptances = async (req: Request, res: Response): P
     let decodedToken;
 
     try {
-        const auth = getAuth();
-        decodedToken = await auth.verifyIdToken(token);
+        decodedToken = await authService.verifyIdToken(token);
     } catch (error) {
         res.status(401).json({
             error: {

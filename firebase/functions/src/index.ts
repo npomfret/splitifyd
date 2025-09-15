@@ -19,7 +19,7 @@ import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails 
 import { updateGroupPermissions, setMemberRole, getUserPermissions } from './groups/permissionHandlers';
 import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment } from './comments/handlers';
-import { getFirestore, getAuth } from './firebase';
+import { getFirestore } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { updateUserProfile, changePassword } from './user/handlers';
@@ -98,7 +98,9 @@ function setupRoutes(app: express.Application): void {
         };
 
         const authStart = Date.now();
-        await getAuth().listUsers(SYSTEM.AUTH_LIST_LIMIT);
+        const authService = appBuilder.buildAuthService();
+        // Simple auth health check - verify we can access the auth service
+        await authService.createCustomToken('health-check-uid');
         checks.auth = {
             status: 'healthy',
             responseTime: Date.now() - authStart,

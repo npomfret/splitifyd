@@ -1,6 +1,6 @@
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { getAuth } from '../firebase';
+import type { IAuthService } from './auth/IAuthService';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';
@@ -31,6 +31,7 @@ export class CommentService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly groupMemberService: GroupMemberService,
+        private readonly authService: IAuthService,
     ) {
         this.strategyFactory = new CommentStrategyFactory(firestoreReader, groupMemberService);
     }
@@ -148,7 +149,10 @@ export class CommentService {
         await this.verifyCommentAccess(targetType, targetId, userId);
 
         // Get user display name for the comment
-        const userRecord = await getAuth().getUser(userId);
+        const userRecord = await this.authService.getUser(userId);
+        if (!userRecord) {
+            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
+        }
         const authorName = userRecord.displayName || userRecord.email?.split('@')[0] || 'Anonymous';
 
         // Prepare comment data

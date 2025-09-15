@@ -1,6 +1,6 @@
-import { getAuth } from '../firebase';
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
+import type { IAuthService } from '../services/auth/IAuthService';
 
 export interface PoolUser {
     token: string;
@@ -25,11 +25,12 @@ export class TestUserPoolService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly userService: UserService,
+        private readonly authService: IAuthService,
     ) {}
 
-    static getInstance(firestoreReader: IFirestoreReader, firestoreWriter: IFirestoreWriter, userService: UserService): TestUserPoolService {
+    static getInstance(firestoreReader: IFirestoreReader, firestoreWriter: IFirestoreWriter, userService: UserService, authService: IAuthService): TestUserPoolService {
         if (!TestUserPoolService.instance) {
-            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, firestoreWriter, userService);
+            TestUserPoolService.instance = new TestUserPoolService(firestoreReader, firestoreWriter, userService, authService);
         }
         return TestUserPoolService.instance;
     }
@@ -114,7 +115,7 @@ export class TestUserPoolService {
             cookiePolicyAccepted: true,
         });
 
-        const token = await getAuth().createCustomToken(user.uid);
+        const token = await this.authService.createCustomToken(user.uid);
 
         return { email, password: POOL_PASSWORD, token };
     }

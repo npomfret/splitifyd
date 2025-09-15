@@ -1,24 +1,23 @@
-import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
-import { Timestamp } from 'firebase-admin/firestore';
-import { getAuth } from '../firebase';
-import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
-import { logger } from '../logger';
-import { LoggerContext } from '../utils/logger-context';
-import { ApiError, Errors } from '../utils/errors';
-import { HTTP_STATUS } from '../constants';
-import { createOptimisticTimestamp } from '../utils/dateHelpers';
-import { getCurrentPolicyVersions } from '../auth/policy-helpers';
-import { assignThemeColor } from '../user-management/assign-theme-color';
-import { validateRegisterRequest } from '../auth/validation';
-import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
-import { measureDb } from '../monitoring/measure';
-import { UserDataSchema } from '../schemas';
-import { FirestoreValidationService } from './FirestoreValidationService';
-import { NotificationService } from './notification-service';
-import { CreateRequest } from 'firebase-admin/lib/auth/auth-config';
-import type { IFirestoreReader } from './firestore';
-import type { IFirestoreWriter } from './firestore';
-import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
+import {UpdateRequest, UserRecord} from 'firebase-admin/auth';
+import {Timestamp} from 'firebase-admin/firestore';
+import {AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor} from '@splitifyd/shared';
+import {logger} from '../logger';
+import {LoggerContext} from '../utils/logger-context';
+import {ApiError, Errors} from '../utils/errors';
+import {HTTP_STATUS} from '../constants';
+import {createOptimisticTimestamp} from '../utils/dateHelpers';
+import {getCurrentPolicyVersions} from '../auth/policy-helpers';
+import {assignThemeColor} from '../user-management/assign-theme-color';
+import {validateRegisterRequest} from '../auth/validation';
+import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
+import {measureDb} from '../monitoring/measure';
+import {UserDataSchema} from '../schemas';
+import {FirestoreValidationService} from './FirestoreValidationService';
+import {NotificationService} from './notification-service';
+import {CreateRequest} from 'firebase-admin/lib/auth/auth-config';
+import type {IFirestoreReader, IFirestoreWriter} from './firestore';
+import type {IAuthService} from './auth/IAuthService';
+import {type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile} from '@splitifyd/shared/src';
 
 /**
  * User profile interface for consistent user data across the application
@@ -72,6 +71,7 @@ export class UserService {
         private readonly firestoreWriter: IFirestoreWriter,
         private readonly validationService: FirestoreValidationService,
         private readonly notificationService: NotificationService,
+        private readonly authService: IAuthService,
     ) {}
 
     /**
@@ -116,7 +116,13 @@ export class UserService {
 
         try {
             // Get user from Firebase Auth
-            const userRecord = await getAuth().getUser(userId);
+            const userRecord = await this.authService.getUser(userId);
+
+            // Check if user exists
+            if (!userRecord) {
+                logger.error('User not found in Firebase Auth', new Error(`User ${userId} not found`));
+                throw Errors.NOT_FOUND('User not found');
+            }
 
             // Ensure required fields are present
             this.validateUserRecord(userRecord);
@@ -169,7 +175,7 @@ export class UserService {
      * Fetch a batch of users and add to result map
      */
     private async fetchUserBatch(uids: string[], result: Map<string, UserProfile>): Promise<void> {
-        const getUsersResult = await getAuth().getUsers(uids.map((uid) => ({ uid })));
+        const getUsersResult = await this.authService.getUsers(uids.map((uid) => ({ uid })));
 
         // Process found users
         for (const userRecord of getUsersResult.users) {
@@ -218,7 +224,7 @@ export class UserService {
             }
 
             // Update Firebase Auth
-            await getAuth().updateUser(userId, authUpdateData);
+            await this.authService.updateUser(userId, authUpdateData);
 
             // Build update object for Firestore
             const firestoreUpdate: any = {
@@ -282,7 +288,10 @@ export class UserService {
 
         try {
             // Get user to ensure they exist
-            const userRecord = await getAuth().getUser(userId);
+            const userRecord = await this.authService.getUser(userId);
+            if (!userRecord) {
+                throw Errors.NOT_FOUND('User not found');
+            }
             if (!userRecord.email) {
                 throw Errors.INVALID_INPUT('User email not found');
             }
@@ -293,7 +302,7 @@ export class UserService {
             // Consider implementing a more secure password verification flow.
 
             // Update password in Firebase Auth
-            await getAuth().updateUser(userId, {
+            await this.authService.updateUser(userId, {
                 password: validatedData.newPassword,
             });
 
@@ -356,7 +365,7 @@ export class UserService {
             });
 
             // Delete user from Firebase Auth (must be outside transaction)
-            await getAuth().deleteUser(userId);
+            await this.authService.deleteUser(userId);
 
             logger.info('User account deleted successfully');
 
@@ -470,9 +479,12 @@ export class UserService {
         let userRecord: UserRecord | null = null;
 
         try {
-            // Create the user in Firebase Auth
-            const c: CreateRequest = userRegistration;
-            userRecord = await getAuth().createUser(c);
+            // Create the user in Firebase Auth - extract only Firebase Auth fields
+            userRecord = await this.authService.createUser({
+                email: userRegistration.email,
+                password: userRegistration.password,
+                displayName: userRegistration.displayName,
+            });
 
             // Add userId to context now that user is created
             LoggerContext.update({ userId: userRecord.uid });
@@ -534,7 +546,7 @@ export class UserService {
             // If user was created but firestore failed, clean up the orphaned auth record
             if (userRecord) {
                 try {
-                    await getAuth().deleteUser(userRecord.uid);
+                    await this.authService.deleteUser(userRecord.uid);
                 } catch (cleanupError) {
                     // Add cleanup failure context to the error
                     LoggerContext.update({ userId: userRecord.uid });

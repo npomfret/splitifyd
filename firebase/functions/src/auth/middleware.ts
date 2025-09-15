@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Errors, sendError } from '../utils/errors';
-import { getAuth, getFirestore } from '../firebase';
+import { getFirestore } from '../firebase';
 import { logger } from '../logger';
 import { AUTH } from '../constants';
 import { SystemUserRoles } from '@splitifyd/shared';
@@ -10,6 +10,7 @@ import { ApplicationBuilder } from '../services/ApplicationBuilder';
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
 const firestoreReader = applicationBuilder.buildFirestoreReader();
+const authService = applicationBuilder.buildAuthService();
 
 /**
  * Extended Express Request with user information
@@ -46,10 +47,14 @@ export const authenticate = async (req: AuthenticatedRequest, res: Response, nex
 
     try {
         // Verify ID token - no fallbacks or hacks
-        const decodedToken = await getAuth().verifyIdToken(token);
+        const decodedToken = await authService.verifyIdToken(token);
 
         // Fetch full user profile from Firebase Auth
-        const userRecord = await getAuth().getUser(decodedToken.uid);
+        const userRecord = await authService.getUser(decodedToken.uid);
+
+        if (!userRecord) {
+            throw new Error('User not found in Firebase Auth');
+        }
 
         if (!userRecord.email || !userRecord.displayName) {
             throw new Error('User missing required fields: email and displayName are mandatory');

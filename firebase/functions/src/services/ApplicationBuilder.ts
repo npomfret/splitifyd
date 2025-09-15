@@ -6,6 +6,7 @@
  */
 
 import type { Firestore } from 'firebase-admin/firestore';
+import type { Auth } from 'firebase-admin/auth';
 import { FirestoreReader } from './firestore';
 import { FirestoreWriter } from './firestore';
 import { UserService } from './UserService2';
@@ -21,6 +22,9 @@ import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
+import { IAuthService } from './auth/IAuthService';
+import { FirebaseAuthService } from './auth/FirebaseAuthService';
+import { getAuth } from '../firebase';
 
 export class ApplicationBuilder {
     private readonly firestore: Firestore;
@@ -29,6 +33,7 @@ export class ApplicationBuilder {
     private firestoreReader?: FirestoreReader;
     private firestoreWriter?: FirestoreWriter;
     private validationService?: FirestoreValidationService;
+    private authService?: IAuthService;
 
     // Services - created lazily but cached
     private userService?: UserService;
@@ -54,7 +59,13 @@ export class ApplicationBuilder {
 
     buildUserService(): UserService {
         if (!this.userService) {
-            this.userService = new UserService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildFirestoreValidationService(), this.buildNotificationService());
+            this.userService = new UserService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildFirestoreValidationService(),
+                this.buildNotificationService(),
+                this.buildAuthService()
+            );
         }
         return this.userService;
     }
@@ -92,7 +103,12 @@ export class ApplicationBuilder {
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
+            this.commentService = new CommentService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildAuthService()
+            );
         }
         return this.commentService;
     }
@@ -165,5 +181,16 @@ export class ApplicationBuilder {
             this.validationService = FirestoreValidationService.getInstance();
         }
         return this.validationService;
+    }
+
+    buildAuthService(): IAuthService {
+        if (!this.authService) {
+            this.authService = new FirebaseAuthService(
+                getAuth(),
+                true, // enableValidation
+                true  // enableMetrics
+            );
+        }
+        return this.authService;
     }
 }

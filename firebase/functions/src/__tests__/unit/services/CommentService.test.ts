@@ -8,16 +8,24 @@ import { FirestoreGroupBuilder, FirestoreExpenseBuilder } from '@splitifyd/test-
 import { CommentTargetTypes } from '@splitifyd/shared';
 import { Timestamp } from 'firebase-admin/firestore';
 
-// Mock getAuth at the module level
-vi.mock('../../../firebase', () => ({
-    getAuth: () => ({
-        getUser: vi.fn().mockResolvedValue({
-            displayName: 'Test User',
-            email: 'test@example.com',
-            photoURL: 'https://example.com/photo.jpg',
-        }),
+// Mock AuthService
+const createMockAuthService = () => ({
+    getUser: vi.fn().mockResolvedValue({
+        displayName: 'Test User',
+        email: 'test@example.com',
+        photoURL: 'https://example.com/photo.jpg',
     }),
-}));
+    verifyIdToken: vi.fn(),
+    createUser: vi.fn(),
+    updateUser: vi.fn(),
+    deleteUser: vi.fn(),
+    createCustomToken: vi.fn(),
+    getUsers: vi.fn(),
+    getUserByEmail: vi.fn(),
+    getUserByPhoneNumber: vi.fn(),
+    createUsers: vi.fn(),
+    deleteUsers: vi.fn(),
+});
 
 // Create a mock GroupMemberService with the methods CommentService needs
 const createMockGroupMemberService = () => ({
@@ -32,6 +40,7 @@ describe('CommentService', () => {
     let mockFirestoreReader: MockFirestoreReader;
     let mockFirestoreWriter: IFirestoreWriter;
     let mockGroupMemberService: ReturnType<typeof createMockGroupMemberService>;
+    let mockAuthService: ReturnType<typeof createMockAuthService>;
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -40,7 +49,8 @@ describe('CommentService', () => {
             addComment: vi.fn().mockResolvedValue({ id: 'mock-comment-id', success: true }),
         } as unknown as IFirestoreWriter;
         mockGroupMemberService = createMockGroupMemberService();
-        commentService = new CommentService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any);
+        mockAuthService = createMockAuthService();
+        commentService = new CommentService(mockFirestoreReader, mockFirestoreWriter, mockGroupMemberService as any, mockAuthService as any);
     });
 
     describe('verifyCommentAccess for GROUP comments', () => {
