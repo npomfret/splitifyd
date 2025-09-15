@@ -148,6 +148,91 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
 }
 
 /**
+ * Set up network-level Firebase Auth mocking for password reset
+ */
+export async function setupPasswordResetMocking(page: Page, scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email'): Promise<void> {
+    await page.route('**/**', (route) => {
+        const url = route.request().url();
+
+        // Mock Firebase config API that's needed for initialization
+        if (url.includes('/api/config')) {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    firebase: {
+                        apiKey: 'test-api-key',
+                        authDomain: 'test-project.firebaseapp.com',
+                        projectId: 'test-project',
+                        storageBucket: 'test-project.appspot.com',
+                        messagingSenderId: '123456789',
+                        appId: 'test-app-id'
+                    },
+                    // No emulator URLs - we want to use production Firebase URLs that we can mock
+                    firebaseAuthUrl: null,
+                    firebaseFirestoreUrl: null
+                })
+            });
+            return;
+        }
+
+        // Mock Firebase Auth REST API calls
+        if (url.includes('identitytoolkit.googleapis.com') && url.includes('sendOobCode')) {
+            switch (scenario) {
+                case 'success':
+                    route.fulfill({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify({ email: 'test@example.com' })
+                    });
+                    break;
+                case 'user-not-found':
+                    route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({
+                            error: {
+                                code: 400,
+                                message: 'EMAIL_NOT_FOUND',
+                                errors: [{
+                                    message: 'EMAIL_NOT_FOUND',
+                                    domain: 'global',
+                                    reason: 'invalid'
+                                }]
+                            }
+                        })
+                    });
+                    break;
+                case 'network-error':
+                    route.abort('failed');
+                    break;
+                case 'invalid-email':
+                    route.fulfill({
+                        status: 400,
+                        contentType: 'application/json',
+                        body: JSON.stringify({
+                            error: {
+                                code: 400,
+                                message: 'INVALID_EMAIL',
+                                errors: [{
+                                    message: 'INVALID_EMAIL',
+                                    domain: 'global',
+                                    reason: 'invalid'
+                                }]
+                            }
+                        })
+                    });
+                    break;
+                default:
+                    route.continue();
+            }
+        } else {
+            route.continue();
+        }
+    });
+}
+
+/**
  * Set up Firebase auth redirect simulation
  */
 export async function setupAuthRedirect(page: Page): Promise<void> {
@@ -190,6 +275,14 @@ export const SELECTORS = {
 
     // Join group specific
     JOIN_GROUP_ERROR: '[data-testid="join-group-error-message"]',
+
+    // Reset password success state
+    SUCCESS_ICON: 'svg',
+    SUCCESS_TITLE: 'text=Email Sent Successfully',
+    SUCCESS_EMAIL_DISPLAY: 'p.font-medium.text-gray-900',
+    NEXT_STEPS_SECTION: '.bg-blue-50',
+    SEND_TO_DIFFERENT_EMAIL_BUTTON: 'button:has-text("Send to Different Email")',
+    BACK_TO_LOGIN_FROM_SUCCESS: 'button:has-text("← Back to Sign In")',
 } as const;
 
 /**
