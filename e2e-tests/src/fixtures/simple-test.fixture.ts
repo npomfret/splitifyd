@@ -31,7 +31,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             const user = await userPool.claimUser(browser);
 
             // Accept any updated policies to prevent modal interference
-            await apiDriver.acceptOutstandingPolicies(user.token);
+            await apiDriver.acceptCurrentPublishedPolicies(user.token);
 
             // Create new browser context and page
             const context = await browser.newContext();
