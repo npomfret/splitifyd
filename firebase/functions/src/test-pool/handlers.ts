@@ -63,31 +63,3 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
 }
 
 
-export async function resetPool(_req: Request, res: Response): Promise<void> {
-    if (!isEmulator()) {
-        logger.info('not running in emulator!');
-        res.status(403).json({ error: 'Test pool only available in emulator' });
-        return;
-    }
-
-    logger.info('Test pool resetting');
-
-    try {
-        await pool.resetPool();
-
-        logger.info('Test pool reset');
-
-        const status = await pool.getPoolStatus();
-        res.json({
-            success: true,
-            message: 'Pool reset successfully',
-            status,
-        });
-    } catch (error: any) {
-        logger.error('Failed to reset pool', error);
-        res.status(500).json({
-            error: 'Failed to reset pool',
-            details: error.message,
-        });
-    }
-}
