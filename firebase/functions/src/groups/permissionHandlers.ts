@@ -53,21 +53,3 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
-/**
- * Get user's permissions for a group (for UI display)
- */
-export const getUserPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const groupId = req.params.id;
-
-    try {
-        const result = await groupPermissionService.getUserPermissions(userId, groupId);
-        res.json(result);
-    } catch (error) {
-        logger.error('Error in getUserPermissions', error, {
-            groupId,
-            userId,
-        });
-        throw error;
-    }
-};
