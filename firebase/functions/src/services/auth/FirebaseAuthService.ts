@@ -14,15 +14,7 @@
  */
 
 import type { Auth } from 'firebase-admin/auth';
-import type {
-    UserRecord,
-    UpdateRequest,
-    CreateRequest,
-    GetUsersResult,
-    DecodedIdToken,
-    ListUsersResult,
-    DeleteUsersResult
-} from 'firebase-admin/auth';
+import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 import { logger } from '../../logger';
@@ -30,13 +22,7 @@ import { LoggerContext } from '../../utils/logger-context';
 import { ApiError, Errors } from '../../utils/errors';
 import { HTTP_STATUS } from '../../constants';
 import { measureDb } from '../../monitoring/measure';
-import {
-    AuthErrorCode,
-    FIREBASE_AUTH_ERROR_MAP,
-    type AuthOperationContext,
-    type ValidatedCreateUserRequest,
-    type ValidatedUpdateUserRequest
-} from './auth-types';
+import { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP, type AuthOperationContext, type ValidatedCreateUserRequest, type ValidatedUpdateUserRequest } from './auth-types';
 import {
     validateCreateUser,
     validateUpdateUser,
@@ -46,14 +32,14 @@ import {
     validateIdToken,
     validateCustomClaims,
     validateListUsersOptions,
-    validateBatchUserIds
+    validateBatchUserIds,
 } from './auth-validation';
 
 export class FirebaseAuthService implements IAuthService {
     constructor(
         private readonly auth: Auth,
         private readonly enableValidation: boolean = true,
-        private readonly enableMetrics: boolean = true
+        private readonly enableMetrics: boolean = true,
     ) {}
 
     /**
@@ -107,11 +93,7 @@ export class FirebaseAuthService implements IAuthService {
     /**
      * Execute operation with error handling and metrics
      */
-    private async executeWithMetrics<T>(
-        operationName: string,
-        operation: () => Promise<T>,
-        context: AuthOperationContext
-    ): Promise<T> {
+    private async executeWithMetrics<T>(operationName: string, operation: () => Promise<T>, context: AuthOperationContext): Promise<T> {
         if (this.enableMetrics) {
             return measureDb(operationName, async () => {
                 try {
@@ -137,13 +119,11 @@ export class FirebaseAuthService implements IAuthService {
         const context = this.createContext('createUser');
 
         // Validate input if enabled
-        const validatedData: ValidatedCreateUserRequest = this.enableValidation
-            ? validateCreateUser(userData)
-            : userData as ValidatedCreateUserRequest;
+        const validatedData: ValidatedCreateUserRequest = this.enableValidation ? validateCreateUser(userData) : (userData as ValidatedCreateUserRequest);
 
         LoggerContext.update({
             operation: 'createUser',
-            email: validatedData.email
+            email: validatedData.email,
         });
 
         return this.executeWithMetrics(
@@ -152,7 +132,7 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('Creating user in Firebase Auth', {
                     ...context,
                     email: validatedData.email,
-                    displayName: validatedData.displayName
+                    displayName: validatedData.displayName,
                 });
 
                 const userRecord = await this.auth.createUser(validatedData);
@@ -161,12 +141,12 @@ export class FirebaseAuthService implements IAuthService {
                     ...context,
                     userId: userRecord.uid,
                     email: userRecord.email,
-                    displayName: userRecord.displayName
+                    displayName: userRecord.displayName,
                 });
 
                 return userRecord;
             },
-            context
+            context,
         );
     }
 
@@ -178,7 +158,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'getUser',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -195,7 +175,7 @@ export class FirebaseAuthService implements IAuthService {
                     throw error;
                 }
             },
-            context
+            context,
         );
     }
 
@@ -203,12 +183,12 @@ export class FirebaseAuthService implements IAuthService {
         const context = this.createContext('getUsers');
 
         // Extract UIDs and validate if enabled
-        const uidList = uids.map(u => u.uid);
+        const uidList = uids.map((u) => u.uid);
         const validatedUids = this.enableValidation ? validateBatchUserIds(uidList) : uidList;
 
         LoggerContext.update({
             operation: 'getUsers',
-            userCount: validatedUids.length
+            userCount: validatedUids.length,
         });
 
         return this.executeWithMetrics(
@@ -217,7 +197,7 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('Attempting to look up users', {
                     ...context,
                     originalUids: uids,
-                    validatedUids: validatedUids
+                    validatedUids: validatedUids,
                 });
 
                 const result = await this.auth.getUsers(uids);
@@ -227,17 +207,17 @@ export class FirebaseAuthService implements IAuthService {
                     requestedCount: validatedUids.length,
                     foundCount: result.users.length,
                     notFoundCount: result.notFound.length,
-                    notFoundIds: result.notFound.map(nf => {
+                    notFoundIds: result.notFound.map((nf) => {
                         if ('uid' in nf) return nf.uid;
                         if ('email' in nf) return nf.email;
                         if ('phoneNumber' in nf) return nf.phoneNumber;
                         return 'unknown';
-                    })
+                    }),
                 });
 
                 return result;
             },
-            context
+            context,
         );
     }
 
@@ -246,13 +226,11 @@ export class FirebaseAuthService implements IAuthService {
 
         // Validate input if enabled
         const validatedUid = this.enableValidation ? validateUserId(uid) : uid;
-        const validatedUpdates: ValidatedUpdateUserRequest = this.enableValidation
-            ? validateUpdateUser(updates)
-            : updates as ValidatedUpdateUserRequest;
+        const validatedUpdates: ValidatedUpdateUserRequest = this.enableValidation ? validateUpdateUser(updates) : (updates as ValidatedUpdateUserRequest);
 
         LoggerContext.update({
             operation: 'updateUser',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -263,12 +241,12 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('User updated successfully', {
                     ...context,
                     userId: userRecord.uid,
-                    updatedFields: Object.keys(validatedUpdates)
+                    updatedFields: Object.keys(validatedUpdates),
                 });
 
                 return userRecord;
             },
-            context
+            context,
         );
     }
 
@@ -280,7 +258,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'deleteUser',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -290,10 +268,10 @@ export class FirebaseAuthService implements IAuthService {
 
                 logger.info('User deleted successfully', {
                     ...context,
-                    userId: validatedUid
+                    userId: validatedUid,
                 });
             },
-            context
+            context,
         );
     }
 
@@ -308,7 +286,7 @@ export class FirebaseAuthService implements IAuthService {
         const validatedToken = this.enableValidation ? validateIdToken(idToken) : idToken;
 
         LoggerContext.update({
-            operation: 'verifyIdToken'
+            operation: 'verifyIdToken',
         });
 
         return this.executeWithMetrics(
@@ -320,12 +298,12 @@ export class FirebaseAuthService implements IAuthService {
                     ...context,
                     userId: decodedToken.uid,
                     iss: decodedToken.iss,
-                    aud: decodedToken.aud
+                    aud: decodedToken.aud,
                 });
 
                 return decodedToken;
             },
-            context
+            context,
         );
     }
 
@@ -334,13 +312,11 @@ export class FirebaseAuthService implements IAuthService {
 
         // Validate input if enabled
         const validatedUid = this.enableValidation ? validateUserId(uid) : uid;
-        const validatedClaims = this.enableValidation && additionalClaims
-            ? validateCustomClaims(additionalClaims)
-            : additionalClaims;
+        const validatedClaims = this.enableValidation && additionalClaims ? validateCustomClaims(additionalClaims) : additionalClaims;
 
         LoggerContext.update({
             operation: 'createCustomToken',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -351,12 +327,12 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('Custom token created successfully', {
                     ...context,
                     userId: validatedUid,
-                    hasClaims: !!validatedClaims
+                    hasClaims: !!validatedClaims,
                 });
 
                 return token;
             },
-            context
+            context,
         );
     }
 
@@ -372,7 +348,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'getUserByEmail',
-            email: validatedEmail
+            email: validatedEmail,
         });
 
         return this.executeWithMetrics(
@@ -389,7 +365,7 @@ export class FirebaseAuthService implements IAuthService {
                     throw error;
                 }
             },
-            context
+            context,
         );
     }
 
@@ -401,7 +377,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'getUserByPhoneNumber',
-            phoneNumber: validatedPhoneNumber
+            phoneNumber: validatedPhoneNumber,
         });
 
         return this.executeWithMetrics(
@@ -418,7 +394,7 @@ export class FirebaseAuthService implements IAuthService {
                     throw error;
                 }
             },
-            context
+            context,
         );
     }
 
@@ -430,13 +406,11 @@ export class FirebaseAuthService implements IAuthService {
         const context = this.createContext('listUsers');
 
         // Validate input if enabled
-        const validatedOptions = this.enableValidation
-            ? validateListUsersOptions({ maxResults, pageToken })
-            : { maxResults, pageToken };
+        const validatedOptions = this.enableValidation ? validateListUsersOptions({ maxResults, pageToken }) : { maxResults, pageToken };
 
         LoggerContext.update({
             operation: 'listUsers',
-            maxResults: validatedOptions.maxResults
+            maxResults: validatedOptions.maxResults,
         });
 
         return this.executeWithMetrics(
@@ -447,12 +421,12 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('Users listed successfully', {
                     ...context,
                     userCount: result.users.length,
-                    hasNextPage: !!result.pageToken
+                    hasNextPage: !!result.pageToken,
                 });
 
                 return result;
             },
-            context
+            context,
         );
     }
 
@@ -464,7 +438,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'deleteUsers',
-            userCount: validatedUids.length
+            userCount: validatedUids.length,
         });
 
         return this.executeWithMetrics(
@@ -476,12 +450,12 @@ export class FirebaseAuthService implements IAuthService {
                     ...context,
                     requestedCount: validatedUids.length,
                     successCount: result.successCount,
-                    failureCount: result.failureCount
+                    failureCount: result.failureCount,
                 });
 
                 return result;
             },
-            context
+            context,
         );
     }
 
@@ -497,7 +471,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'generatePasswordResetLink',
-            email: validatedEmail
+            email: validatedEmail,
         });
 
         return this.executeWithMetrics(
@@ -507,12 +481,12 @@ export class FirebaseAuthService implements IAuthService {
 
                 logger.info('Password reset link generated', {
                     ...context,
-                    email: validatedEmail
+                    email: validatedEmail,
                 });
 
                 return link;
             },
-            context
+            context,
         );
     }
 
@@ -524,7 +498,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'generateEmailVerificationLink',
-            email: validatedEmail
+            email: validatedEmail,
         });
 
         return this.executeWithMetrics(
@@ -534,12 +508,12 @@ export class FirebaseAuthService implements IAuthService {
 
                 logger.info('Email verification link generated', {
                     ...context,
-                    email: validatedEmail
+                    email: validatedEmail,
                 });
 
                 return link;
             },
-            context
+            context,
         );
     }
 
@@ -552,7 +526,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'setCustomUserClaims',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -563,10 +537,10 @@ export class FirebaseAuthService implements IAuthService {
                 logger.info('Custom user claims set successfully', {
                     ...context,
                     userId: validatedUid,
-                    claimKeys: Object.keys(validatedClaims)
+                    claimKeys: Object.keys(validatedClaims),
                 });
             },
-            context
+            context,
         );
     }
 
@@ -578,7 +552,7 @@ export class FirebaseAuthService implements IAuthService {
 
         LoggerContext.update({
             operation: 'revokeRefreshTokens',
-            userId: validatedUid
+            userId: validatedUid,
         });
 
         return this.executeWithMetrics(
@@ -588,10 +562,10 @@ export class FirebaseAuthService implements IAuthService {
 
                 logger.info('Refresh tokens revoked successfully', {
                     ...context,
-                    userId: validatedUid
+                    userId: validatedUid,
                 });
             },
-            context
+            context,
         );
     }
 }

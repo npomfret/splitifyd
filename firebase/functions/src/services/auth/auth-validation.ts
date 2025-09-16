@@ -21,46 +21,32 @@ const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
  */
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-
 /**
  * Create user request validation schema
  */
 export const createUserSchema = Joi.object({
-    email: Joi.string()
-        .pattern(EMAIL_REGEX)
-        .required()
-        .messages({
-            'string.pattern.base': 'Invalid email format',
-            'string.empty': 'Email is required',
-            'any.required': 'Email is required',
-        }),
-    password: Joi.string()
-        .pattern(PASSWORD_REGEX)
-        .required()
-        .messages({
-            'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
-            'string.empty': 'Password is required',
-            'any.required': 'Password is required',
-        }),
+    email: Joi.string().pattern(EMAIL_REGEX).required().messages({
+        'string.pattern.base': 'Invalid email format',
+        'string.empty': 'Email is required',
+        'any.required': 'Email is required',
+    }),
+    password: Joi.string().pattern(PASSWORD_REGEX).required().messages({
+        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+        'string.empty': 'Password is required',
+        'any.required': 'Password is required',
+    }),
     displayName: displayNameSchema,
-    emailVerified: Joi.boolean()
-        .optional()
-        .default(false),
+    emailVerified: Joi.boolean().optional().default(false),
     phoneNumber: Joi.string()
         .pattern(/^\+[1-9]\d{1,14}$/)
         .optional()
         .messages({
             'string.pattern.base': 'Phone number must be in E.164 format (e.g., +1234567890)',
         }),
-    photoURL: Joi.string()
-        .uri()
-        .optional()
-        .messages({
-            'string.uri': 'Photo URL must be a valid URI',
-        }),
-    disabled: Joi.boolean()
-        .optional()
-        .default(false),
+    photoURL: Joi.string().uri().optional().messages({
+        'string.uri': 'Photo URL must be a valid URI',
+    }),
+    disabled: Joi.boolean().optional().default(false),
 });
 
 /**
@@ -68,12 +54,9 @@ export const createUserSchema = Joi.object({
  */
 export const updateUserSchema = Joi.object({
     displayName: displayNameSchema.optional(),
-    email: Joi.string()
-        .pattern(EMAIL_REGEX)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Invalid email format',
-        }),
+    email: Joi.string().pattern(EMAIL_REGEX).optional().messages({
+        'string.pattern.base': 'Invalid email format',
+    }),
     phoneNumber: Joi.string()
         .pattern(/^\+[1-9]\d{1,14}$/)
         .allow(null)
@@ -81,23 +64,14 @@ export const updateUserSchema = Joi.object({
         .messages({
             'string.pattern.base': 'Phone number must be in E.164 format (e.g., +1234567890)',
         }),
-    photoURL: Joi.string()
-        .uri()
-        .allow(null)
-        .optional()
-        .messages({
-            'string.uri': 'Photo URL must be a valid URI',
-        }),
-    password: Joi.string()
-        .pattern(PASSWORD_REGEX)
-        .optional()
-        .messages({
-            'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
-        }),
-    emailVerified: Joi.boolean()
-        .optional(),
-    disabled: Joi.boolean()
-        .optional(),
+    photoURL: Joi.string().uri().allow(null).optional().messages({
+        'string.uri': 'Photo URL must be a valid URI',
+    }),
+    password: Joi.string().pattern(PASSWORD_REGEX).optional().messages({
+        'string.pattern.base': 'Password must contain at least 8 characters, one uppercase letter, one lowercase letter, one number, and one special character',
+    }),
+    emailVerified: Joi.boolean().optional(),
+    disabled: Joi.boolean().optional(),
 });
 
 /**
@@ -119,14 +93,11 @@ export const userIdSchema = Joi.string()
 /**
  * Email validation schema
  */
-export const emailSchema = Joi.string()
-    .pattern(EMAIL_REGEX)
-    .required()
-    .messages({
-        'string.pattern.base': 'Invalid email format',
-        'string.empty': 'Email is required',
-        'any.required': 'Email is required',
-    });
+export const emailSchema = Joi.string().pattern(EMAIL_REGEX).required().messages({
+    'string.pattern.base': 'Invalid email format',
+    'string.empty': 'Email is required',
+    'any.required': 'Email is required',
+});
 
 /**
  * Phone number validation schema
@@ -143,62 +114,43 @@ export const phoneNumberSchema = Joi.string()
 /**
  * ID token validation schema
  */
-export const idTokenSchema = Joi.string()
-    .min(1)
-    .required()
-    .messages({
-        'string.min': 'ID token must not be empty',
-        'string.empty': 'ID token is required',
-        'any.required': 'ID token is required',
-    });
+export const idTokenSchema = Joi.string().min(1).required().messages({
+    'string.min': 'ID token must not be empty',
+    'string.empty': 'ID token is required',
+    'any.required': 'ID token is required',
+});
 
 /**
  * Custom claims validation schema
  */
-export const customClaimsSchema = Joi.object()
-    .pattern(Joi.string(), Joi.any())
-    .optional()
-    .messages({
-        'object.base': 'Custom claims must be an object',
-    });
+export const customClaimsSchema = Joi.object().pattern(Joi.string(), Joi.any()).optional().messages({
+    'object.base': 'Custom claims must be an object',
+});
 
 /**
  * List users options validation schema
  */
 export const listUsersOptionsSchema = Joi.object({
-    maxResults: Joi.number()
-        .integer()
-        .min(1)
-        .max(1000)
-        .optional()
-        .default(1000)
-        .messages({
-            'number.base': 'Max results must be a number',
-            'number.integer': 'Max results must be an integer',
-            'number.min': 'Max results must be at least 1',
-            'number.max': 'Max results must be at most 1000',
-        }),
-    pageToken: Joi.string()
-        .optional()
-        .messages({
-            'string.base': 'Page token must be a string',
-        }),
+    maxResults: Joi.number().integer().min(1).max(1000).optional().default(1000).messages({
+        'number.base': 'Max results must be a number',
+        'number.integer': 'Max results must be an integer',
+        'number.min': 'Max results must be at least 1',
+        'number.max': 'Max results must be at most 1000',
+    }),
+    pageToken: Joi.string().optional().messages({
+        'string.base': 'Page token must be a string',
+    }),
 });
 
 /**
  * Batch user IDs validation schema
  */
-export const batchUserIdsSchema = Joi.array()
-    .items(userIdSchema)
-    .min(1)
-    .max(1000)
-    .required()
-    .messages({
-        'array.base': 'User IDs must be an array',
-        'array.min': 'At least one user ID is required',
-        'array.max': 'At most 1000 user IDs are allowed',
-        'any.required': 'User IDs are required',
-    });
+export const batchUserIdsSchema = Joi.array().items(userIdSchema).min(1).max(1000).required().messages({
+    'array.base': 'User IDs must be an array',
+    'array.min': 'At least one user ID is required',
+    'array.max': 'At most 1000 user IDs are allowed',
+    'any.required': 'User IDs are required',
+});
 
 /**
  * Validate create user request

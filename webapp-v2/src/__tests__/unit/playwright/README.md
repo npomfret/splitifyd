@@ -27,14 +27,17 @@ These are **unit tests** for webapp components that run in a real browser enviro
 ## Test Structure
 
 ### Network Mocking
+
 When external calls are unavoidable, mock at the network level:
+
 ```typescript
-await page.route('**/api/endpoint**', route => {
+await page.route('**/api/endpoint**', (route) => {
     route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
 });
 ```
 
 ### Focus on Behavior
+
 ```typescript
 // ✅ Good - tests user behavior
 test('form prevents submission when fields are empty', async ({ page }) => {
@@ -49,6 +52,7 @@ test('form has correct CSS classes', async ({ page }) => {
 ```
 
 ### Test Independence
+
 - Each test should be completely independent
 - Clear storage/state in beforeEach
 - Don't rely on test execution order
@@ -66,6 +70,7 @@ test('form has correct CSS classes', async ({ page }) => {
 ## Example Test Patterns
 
 ### Form Validation
+
 ```typescript
 test('submit button enabled only when required fields are filled', async ({ page }) => {
     const submitButton = page.locator('button[type="submit"]');
@@ -81,6 +86,7 @@ test('submit button enabled only when required fields are filled', async ({ page
 ```
 
 ### Navigation
+
 ```typescript
 test('clicking forgot password navigates to reset page', async ({ page }) => {
     await page.click('button:has-text("Forgot")');
@@ -89,6 +95,7 @@ test('clicking forgot password navigates to reset page', async ({ page }) => {
 ```
 
 ### State Persistence
+
 ```typescript
 test('form fields persist in sessionStorage', async ({ page }) => {
     await page.fill('#email-input', 'test@example.com');
@@ -117,18 +124,21 @@ npm run test:unit  # Runs both Vitest and Playwright tests
 ## When to Use vs Alternatives
 
 **Use these Playwright tests when:**
+
 - Testing browser-specific behavior (localStorage, navigation, DOM events)
 - Testing form interactions and validation
 - Testing client-side routing and URL handling
 - Testing component behavior that requires a real DOM
 
 **Use Vitest unit tests when:**
+
 - Testing pure functions and business logic
 - Testing component props and rendering
 - Testing utilities and helpers
 - Testing anything that doesn't require a browser
 
 **Use E2E tests when:**
+
 - Testing complete user workflows
 - Testing integration between frontend and backend
 - Testing with real authentication and data
@@ -137,6 +147,7 @@ npm run test:unit  # Runs both Vitest and Playwright tests
 ## Debugging
 
 When tests fail:
+
 1. Run with `--headed` flag to see the browser
 2. Use `page.pause()` to inspect state
 3. Check screenshots in `playwright-report/`
@@ -149,6 +160,7 @@ When tests fail:
 We've created a comprehensive set of reusable test utilities:
 
 **Key helpers:**
+
 - `setupTestPage()` - Standard page setup with auth/storage clearing
 - `fillFormField()` - Type-safe form filling with validation
 - `expectButtonState()` - Consistent button state assertions
@@ -157,10 +169,12 @@ We've created a comprehensive set of reusable test utilities:
 - `testSessionStoragePersistence()` - Storage persistence testing
 
 **Centralized constants:**
+
 - `SELECTORS` - All CSS selectors in one place
 - `TEST_SCENARIOS` - Common test data (emails, passwords, etc.)
 
 **Benefits:**
+
 - Eliminated duplication across 34 tests
 - Consistent patterns and better maintainability
 - More reliable tests with proper waits
@@ -169,6 +183,7 @@ We've created a comprehensive set of reusable test utilities:
 ### Test Structure Improvements
 
 **Before:**
+
 ```typescript
 test('form renders elements', async ({ page }) => {
     await expect(page.locator('#email-input')).toBeVisible();
@@ -178,12 +193,11 @@ test('form renders elements', async ({ page }) => {
 ```
 
 **After:**
+
 ```typescript
 test('should render all required form elements', async ({ page }) => {
     await expectElementVisible(page, SELECTORS.EMAIL_INPUT);
-    await verifyFormAccessibility(page, [
-        { selector: SELECTORS.EMAIL_INPUT, type: 'email' }
-    ]);
+    await verifyFormAccessibility(page, [{ selector: SELECTORS.EMAIL_INPUT, type: 'email' }]);
 });
 ```
 
@@ -198,26 +212,28 @@ test('should render all required form elements', async ({ page }) => {
 
 ### Current Test Coverage
 
-| Page | Tests | Status |
-|------|-------|--------|
-| Login | 7 | ✅ All passing |
-| Register | 10 | ✅ All passing |
-| Reset Password | 10 | ⚠️ Some limitations due to Firebase |
-| Join Group | 7 | ⚠️ Limited by ProtectedRoute |
-| Settings | 2 | ✅ Protected route behavior |
-| Pricing | 6 | ✅ Full content and interaction tests |
-| Landing | 1 | ✅ Basic rendering |
-| Privacy Policy | 1 | ✅ Basic rendering |
+| Page           | Tests | Status                                |
+| -------------- | ----- | ------------------------------------- |
+| Login          | 7     | ✅ All passing                        |
+| Register       | 10    | ✅ All passing                        |
+| Reset Password | 10    | ⚠️ Some limitations due to Firebase   |
+| Join Group     | 7     | ⚠️ Limited by ProtectedRoute          |
+| Settings       | 2     | ✅ Protected route behavior           |
+| Pricing        | 6     | ✅ Full content and interaction tests |
+| Landing        | 1     | ✅ Basic rendering                    |
+| Privacy Policy | 1     | ✅ Basic rendering                    |
 
 **Total: 44 tests with high-quality behavioral coverage**
 
 ### Recent Additions
 
 **Settings Page Tests** - Focuses on protected route behavior and authentication flow:
+
 - Redirect to login when accessing protected route
 - Preservation of returnUrl for post-login navigation
 
 **Pricing Page Tests** - Comprehensive content and behavioral testing:
+
 - Core pricing sections and plan rendering
 - Feature display and humorous content verification
 - Call-to-action button functionality

@@ -12,15 +12,7 @@
  * - State management for consistent test behavior
  */
 
-import type {
-    UserRecord,
-    UpdateRequest,
-    CreateRequest,
-    GetUsersResult,
-    DecodedIdToken,
-    ListUsersResult,
-    DeleteUsersResult
-} from 'firebase-admin/auth';
+import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 
 import { IAuthService } from './IAuthService';
 import { AuthErrorCode } from './auth-types';
@@ -103,14 +95,14 @@ export class MockAuthService implements IAuthService {
      * Get calls for a specific method
      */
     getCallsFor(method: string): MethodCall[] {
-        return this.calls.filter(call => call.method === method);
+        return this.calls.filter((call) => call.method === method);
     }
 
     /**
      * Check if a method was called
      */
     wasMethodCalled(method: string): boolean {
-        return this.calls.some(call => call.method === method);
+        return this.calls.some((call) => call.method === method);
     }
 
     /**
@@ -128,7 +120,7 @@ export class MockAuthService implements IAuthService {
         this.calls.push({
             method,
             args: JSON.parse(JSON.stringify(args)), // Deep clone to avoid mutations
-            timestamp: new Date()
+            timestamp: new Date(),
         });
     }
 
@@ -137,7 +129,7 @@ export class MockAuthService implements IAuthService {
      */
     private async simulateBehavior(): Promise<void> {
         if (this.config.simulateDelay) {
-            await new Promise(resolve => setTimeout(resolve, this.config.simulateDelay));
+            await new Promise((resolve) => setTimeout(resolve, this.config.simulateDelay));
         }
 
         if (this.config.shouldThrowError) {
@@ -197,7 +189,7 @@ export class MockAuthService implements IAuthService {
                         ...(this.lastSignInTime && { lastSignInTime: this.lastSignInTime }),
                         ...(this.lastRefreshTime && { lastRefreshTime: this.lastRefreshTime }),
                     };
-                }
+                },
             },
             customClaims: userData.customClaims,
             providerData: [],
@@ -217,7 +209,7 @@ export class MockAuthService implements IAuthService {
                     phoneNumber: this.phoneNumber,
                     tokensValidAfterTime: this.tokensValidAfterTime,
                 };
-            }
+            },
         } as UserRecord;
     }
 
@@ -273,7 +265,7 @@ export class MockAuthService implements IAuthService {
             photoURL: userData.photoURL ?? undefined,
             emailVerified: userData.emailVerified ?? false,
             disabled: userData.disabled ?? false,
-            phoneNumber: userData.phoneNumber ?? undefined
+            phoneNumber: userData.phoneNumber ?? undefined,
         });
 
         this.users.set(uid, mockUserData);
@@ -389,8 +381,8 @@ export class MockAuthService implements IAuthService {
             sub: 'mock-decoded-uid',
             firebase: {
                 identities: {},
-                sign_in_provider: 'custom'
-            }
+                sign_in_provider: 'custom',
+            },
         };
 
         return mockToken;
@@ -438,12 +430,12 @@ export class MockAuthService implements IAuthService {
         const endIndex = startIndex + limit;
 
         const userData = allUserData.slice(startIndex, endIndex);
-        const users = userData.map(data => this.toUserRecord(data));
+        const users = userData.map((data) => this.toUserRecord(data));
         const nextPageToken = endIndex < allUserData.length ? endIndex.toString() : undefined;
 
         return {
             users,
-            pageToken: nextPageToken
+            pageToken: nextPageToken,
         };
     }
 
@@ -469,8 +461,8 @@ export class MockAuthService implements IAuthService {
                         message: 'User not found',
                         toJSON(): object {
                             return { code: this.code, message: this.message };
-                        }
-                    }
+                        },
+                    },
                 });
             }
         }
@@ -478,7 +470,7 @@ export class MockAuthService implements IAuthService {
         return {
             successCount,
             failureCount,
-            errors
+            errors,
         };
     }
 

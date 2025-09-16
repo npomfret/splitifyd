@@ -33,7 +33,8 @@ function getTestCommand(scriptType, packageName) {
         functions: {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'vitest run src/__tests__/unit/',
-            'test:integration': 'npm run build && vitest run src/__tests__/integration/ --reporter=default --reporter=json --outputFile=integration-test-results.json && node ../../scripts/analyze-test-performance.js integration-test-results.json',
+            'test:integration':
+                'npm run build && vitest run src/__tests__/integration/ --reporter=default --reporter=json --outputFile=integration-test-results.json && node ../../scripts/analyze-test-performance.js integration-test-results.json',
         },
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
@@ -43,7 +44,8 @@ function getTestCommand(scriptType, packageName) {
         '@splitifyd/e2e-tests': {
             test: 'npm run test:unit && npm run test:integration',
             'test:unit': 'npm run build && jest src/__tests__/unit',
-            'test:integration': 'npm run build && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-report/integration PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
+            'test:integration':
+                'npm run build && JAVA_TOOL_OPTIONS="-Xmx4g" PLAYWRIGHT_HTML_REPORT=playwright-report/integration PLAYWRIGHT_HTML_OPEN=never npx playwright test --workers=1 --project=chromium --reporter=html src/__tests__/integration',
         },
         '@splitifyd/shared': {
             test: 'npm run test:unit && npm run test:integration',

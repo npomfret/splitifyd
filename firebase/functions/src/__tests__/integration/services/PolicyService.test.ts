@@ -25,7 +25,6 @@ describe('PolicyService - Integration Tests', () => {
         policyService = new PolicyService(firestoreReader, firestoreWriter);
     });
 
-
     describe('End-to-End Policy Management', () => {
         it('should create, read, update, and publish policies', async () => {
             // Step 1: Create a new policy

@@ -1,22 +1,22 @@
-import {UpdateRequest, UserRecord} from 'firebase-admin/auth';
-import {Timestamp} from 'firebase-admin/firestore';
-import {AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor} from '@splitifyd/shared';
-import {logger} from '../logger';
-import {LoggerContext} from '../utils/logger-context';
-import {ApiError, Errors} from '../utils/errors';
-import {HTTP_STATUS} from '../constants';
-import {createOptimisticTimestamp} from '../utils/dateHelpers';
-import {getCurrentPolicyVersions} from '../auth/policy-helpers';
-import {assignThemeColor} from '../user-management/assign-theme-color';
-import {validateRegisterRequest} from '../auth/validation';
-import {validateChangePassword, validateDeleteUser, validateUpdateUserProfile} from '../user/validation';
-import {measureDb} from '../monitoring/measure';
-import {UserDataSchema} from '../schemas';
-import {FirestoreValidationService} from './FirestoreValidationService';
-import {NotificationService} from './notification-service';
-import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import type {IAuthService} from './auth';
-import {type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile} from '@splitifyd/shared/src';
+import { UpdateRequest, UserRecord } from 'firebase-admin/auth';
+import { Timestamp } from 'firebase-admin/firestore';
+import { AuthErrors, RegisteredUser, SystemUserRoles, UserRegistration, UserThemeColor } from '@splitifyd/shared';
+import { logger } from '../logger';
+import { LoggerContext } from '../utils/logger-context';
+import { ApiError, Errors } from '../utils/errors';
+import { HTTP_STATUS } from '../constants';
+import { createOptimisticTimestamp } from '../utils/dateHelpers';
+import { getCurrentPolicyVersions } from '../auth/policy-helpers';
+import { assignThemeColor } from '../user-management/assign-theme-color';
+import { validateRegisterRequest } from '../auth/validation';
+import { validateChangePassword, validateDeleteUser, validateUpdateUserProfile } from '../user/validation';
+import { measureDb } from '../monitoring/measure';
+import { UserDataSchema } from '../schemas';
+import { FirestoreValidationService } from './FirestoreValidationService';
+import { NotificationService } from './notification-service';
+import type { IFirestoreReader, IFirestoreWriter } from './firestore';
+import type { IAuthService } from './auth';
+import { type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile } from '@splitifyd/shared/src';
 
 /**
  * User profile interface for consistent user data across the application
@@ -350,18 +350,21 @@ export class UserService {
             }
 
             // Delete Firestore documents atomically in a transaction
-            await this.firestoreWriter.runTransaction(async (transaction) => {
-                // Delete user document
-                this.firestoreWriter.deleteInTransaction(transaction, `users/${userId}`);
-                
-                // Delete user notification document
-                this.firestoreWriter.deleteInTransaction(transaction, `user-notifications/${userId}`);
-            }, {
-                context: {
-                    operation: 'delete-user-account',
-                    userId,
-                }
-            });
+            await this.firestoreWriter.runTransaction(
+                async (transaction) => {
+                    // Delete user document
+                    this.firestoreWriter.deleteInTransaction(transaction, `users/${userId}`);
+
+                    // Delete user notification document
+                    this.firestoreWriter.deleteInTransaction(transaction, `user-notifications/${userId}`);
+                },
+                {
+                    context: {
+                        operation: 'delete-user-account',
+                        userId,
+                    },
+                },
+            );
 
             // Delete user from Firebase Auth (must be outside transaction)
             await this.authService.deleteUser(userId);

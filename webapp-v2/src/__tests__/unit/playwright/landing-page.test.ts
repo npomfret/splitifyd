@@ -1,11 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    expectElementVisible,
-    verifyNavigation,
-    SELECTORS,
-    TEST_SCENARIOS
-} from '../infra/test-helpers';
+import { setupTestPage, expectElementVisible, verifyNavigation, SELECTORS, TEST_SCENARIOS } from '../infra/test-helpers';
 
 /**
  * High-value landing page tests that verify actual user behavior
@@ -55,12 +49,7 @@ test.describe('LandingPage - Behavioral Tests', () => {
         await page.evaluate(() => window.scrollBy(0, 500));
 
         // Look for specific headings we know exist from the page snapshot
-        const knownHeadings = [
-            'Smart Group Management',
-            '100% Free to Use',
-            'Zero Ads, Ever',
-            'Unlimited Use'
-        ];
+        const knownHeadings = ['Smart Group Management', '100% Free to Use', 'Zero Ads, Ever', 'Unlimited Use'];
 
         // Check that feature headings are visible
         for (const heading of knownHeadings) {
@@ -98,15 +87,11 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
     test('should handle CTA interactions without errors', async ({ page }) => {
         // Test button interactions (hover and click states)
-        const ctaButtons = [
-            'button:has-text("Sign Up for Free")',
-            'button:has-text("Login")',
-            'button:has-text("Sign Up")'
-        ];
+        const ctaButtons = ['button:has-text("Sign Up for Free")', 'button:has-text("Login")', 'button:has-text("Sign Up")'];
 
         for (const selector of ctaButtons) {
             const element = page.locator(selector);
-            if (await element.count() > 0) {
+            if ((await element.count()) > 0) {
                 // Just hover to test interactivity
                 await element.first().hover();
                 // Element should remain clickable
@@ -164,15 +149,11 @@ test.describe('LandingPage - Behavioral Tests', () => {
         expect(buttonCount).toBeGreaterThan(0);
 
         // Check that key buttons we know exist have accessible text
-        const keyButtons = [
-            'button:has-text("Login")',
-            'button:has-text("Sign Up")',
-            'button:has-text("Sign Up for Free")'
-        ];
+        const keyButtons = ['button:has-text("Login")', 'button:has-text("Sign Up")', 'button:has-text("Sign Up for Free")'];
 
         for (const selector of keyButtons) {
             const button = page.locator(selector);
-            if (await button.count() > 0) {
+            if ((await button.count()) > 0) {
                 const text = await button.first().textContent();
                 expect(text?.trim().length).toBeGreaterThan(0);
             }
@@ -191,7 +172,7 @@ test.describe('LandingPage - Behavioral Tests', () => {
 
         // Check canonical URL if present
         const canonical = page.locator('link[rel="canonical"]');
-        if (await canonical.count() > 0) {
+        if ((await canonical.count()) > 0) {
             const href = await canonical.getAttribute('href');
             expect(href).toBeTruthy();
         }
@@ -227,7 +208,7 @@ test.describe('LandingPage - Behavioral Tests', () => {
     test('should handle slow network conditions gracefully', async ({ page }) => {
         // Simulate slow network
         await page.route('**/*', async (route) => {
-            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+            await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms delay
             route.continue();
         });
 

@@ -424,9 +424,7 @@ export class FirestoreReader implements IFirestoreReader {
 
             // Build query with database-level ordering by groupUpdatedAt
             const orderDirection = options?.orderBy?.direction || 'desc';
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('userId', '==', userId)
-                .orderBy('groupUpdatedAt', orderDirection);
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('userId', '==', userId).orderBy('groupUpdatedAt', orderDirection);
 
             // Apply cursor pagination
             if (options?.cursor) {
@@ -488,8 +486,7 @@ export class FirestoreReader implements IFirestoreReader {
     async getGroupMembers(groupId: string, options?: GroupMemberQueryOptions): Promise<GroupMemberDocument[]> {
         try {
             // Use top-level collection instead of subcollection
-            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
+            let query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
 
             // Apply filters if specified
             if (options?.includeInactive === false) {
@@ -567,20 +564,17 @@ export class FirestoreReader implements IFirestoreReader {
     async getAllGroupMemberIds(groupId: string): Promise<string[]> {
         return measureDb('GET_MEMBER_IDS', async () => {
             // Single optimized query with ID-only projection
-            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId)
-                .select('userId');  // Only fetch userId field
+            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId).select('userId'); // Only fetch userId field
 
             const snapshot = await membersQuery.get();
-            return snapshot.docs.map(doc => doc.data().userId);
+            return snapshot.docs.map((doc) => doc.data().userId);
         });
     }
 
     async getAllGroupMembers(groupId: string): Promise<GroupMemberDocument[]> {
         return measureDb('GET_MEMBERS', async () => {
             // Use top-level collection instead of subcollection
-            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
+            const membersQuery = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
 
             const snapshot = await membersQuery.get();
             const parsedMembers: ParsedGroupMemberDocument[] = [];
@@ -1574,9 +1568,7 @@ export class FirestoreReader implements IFirestoreReader {
         try {
             // Check if user is a member using top-level collection lookup
             const topLevelDocId = getTopLevelMembershipDocId(userId, groupId);
-            const memberDoc = await this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .doc(topLevelDocId)
-                .get();
+            const memberDoc = await this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).doc(topLevelDocId).get();
 
             return memberDoc.exists;
         } catch (error) {
@@ -1825,8 +1817,7 @@ export class FirestoreReader implements IFirestoreReader {
 
     async getGroupMembershipsInTransaction(transaction: FirebaseFirestore.Transaction, groupId: string): Promise<FirebaseFirestore.QuerySnapshot> {
         try {
-            const query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS)
-                .where('groupId', '==', groupId);
+            const query = this.db.collection(FirestoreCollections.GROUP_MEMBERSHIPS).where('groupId', '==', groupId);
             return await transaction.get(query);
         } catch (error) {
             logger.error('Failed to get group memberships in transaction', error, { groupId });

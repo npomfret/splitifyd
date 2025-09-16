@@ -1,9 +1,9 @@
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 import { simpleTest, expect } from '../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../pages';
-import { generateTestGroupName, randomString } from "@splitifyd/test-support";
+import { generateTestGroupName, randomString } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
-import {SettlementData} from "../../pages/settlement-form.page.ts";
+import { SettlementData } from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Group Real-Time Updates E2E', () => {
     // This test has been enhanced to test true real-time updates WITHOUT page reloads
@@ -11,7 +11,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
     simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking - real-time tests may generate expected transient errors during synchronization
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
-        
+
         // Increase timeout for complex multi-user real-time test
         testInfo.setTimeout(60000); // 60 seconds
         // Create four browser instances - User 1, User 2, User 3, and User 4
@@ -268,7 +268,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // User 4 can leave the group since they have no expenses or settlements
         console.log('🚪 Attempting User 4 group leave...');
-        
+
         // Check if User 4 has any outstanding balances before leaving
         console.log('💰 Checking User 4 balance status...');
         await user4GroupDetailPage.waitForBalancesToLoad(groupId);

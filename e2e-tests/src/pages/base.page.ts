@@ -2,14 +2,13 @@ import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { PooledTestUser } from '@splitifyd/shared';
-import {DashboardPage} from "./dashboard.page.ts";
+import { DashboardPage } from './dashboard.page.ts';
 
 export abstract class BasePage {
     constructor(
         protected _page: Page,
         protected userInfo?: PooledTestUser,
     ) {
-
         // Apply automatic error handling proxy to all derived classes
         // This wraps all async methods to automatically capture context on errors
         const className = this.constructor.name;
@@ -320,7 +319,7 @@ export abstract class BasePage {
 
         // Ensure button is attached to DOM before proceeding
         await button.waitFor({ state: 'attached', timeout });
-        
+
         // Get button text for error messages if not provided
         const buttonText = buttonName || (await button.textContent()) || 'button';
 
@@ -606,7 +605,7 @@ export abstract class BasePage {
         await this.openUserMenu();
         await this.getDashboardLink().click();
         await expect(this._page).toHaveURL(/\/dashboard/);
-        
+
         // Import DashboardPage dynamically to avoid circular dependency
         const { DashboardPage } = await import('./dashboard.page');
         const dashboardPage = new DashboardPage(this._page, this.userInfo);

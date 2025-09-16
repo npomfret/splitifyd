@@ -1,10 +1,10 @@
-import {expect, simpleTest} from '../../fixtures/simple-test.fixture';
+import { expect, simpleTest } from '../../fixtures/simple-test.fixture';
 
-import {MultiUserWorkflow} from '../../workflows';
-import {generateShortId, generateTestGroupName} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
-import {DashboardPage, JoinGroupPage, GroupDetailPage} from '../../pages';
-import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
+import { MultiUserWorkflow } from '../../workflows';
+import { generateShortId, generateTestGroupName } from '@splitifyd/test-support';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { DashboardPage, JoinGroupPage, GroupDetailPage } from '../../pages';
+import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
@@ -49,7 +49,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Get the actual display name from the dashboard page
         const user2DashboardPage = new DashboardPage(user2Page, user2);
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        
+
         const sharedExpense = new ExpenseFormDataBuilder()
             .withDescription(`Shared Expense ${uniqueId}`)
             .withAmount(25.5)
@@ -96,15 +96,11 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Both users add expenses to create some activity
         const adminDisplayName = await adminDashboardPage.getCurrentUserDisplayName();
-        
+
         const adminExpenseForm = await groupDetailPage.clickAddExpenseButton(2);
-        await adminExpenseForm.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Admin Expense ${uniqueId}`)
-            .withAmount(50.0)
-            .withCurrency('USD')
-            .withPaidByDisplayName(adminDisplayName)
-            .withSplitType('equal')
-            .build());
+        await adminExpenseForm.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Admin Expense ${uniqueId}`).withAmount(50.0).withCurrency('USD').withPaidByDisplayName(adminDisplayName).withSplitType('equal').build(),
+        );
 
         await groupDetailPage.waitForBalancesToLoad(groupId);
 
@@ -113,13 +109,9 @@ simpleTest.describe('Multi-User Group Access', () => {
         const memberDisplayName = await memberDashboardPage.getCurrentUserDisplayName();
 
         const memberExpenseForm = await memberGroupDetailPage.clickAddExpenseButton(2);
-        await memberExpenseForm.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription(`Member Expense ${uniqueId}`)
-            .withAmount(30.0)
-            .withCurrency('USD')
-            .withPaidByDisplayName(memberDisplayName)
-            .withSplitType('equal')
-            .build());
+        await memberExpenseForm.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`Member Expense ${uniqueId}`).withAmount(30.0).withCurrency('USD').withPaidByDisplayName(memberDisplayName).withSplitType('equal').build(),
+        );
 
         // Verify both expenses are visible to both users
         await groupDetailPage.waitForBalancesToLoad(groupId);

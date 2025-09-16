@@ -108,10 +108,10 @@ simpleTest.describe('Group Management', () => {
         await editModal.cancel();
     });
 
-    simpleTest('should not show settings button for non-owner', async ({newLoggedInBrowser}) => {
+    simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
         // Create two browser sessions with pooled users
-        const {page: ownerPage, user: owner, dashboardPage} = await newLoggedInBrowser();
-        const {page: memberPage, user: member} = await newLoggedInBrowser();
+        const { page: ownerPage, user: owner, dashboardPage } = await newLoggedInBrowser();
+        const { page: memberPage, user: member } = await newLoggedInBrowser();
 
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
         const memberGroupDetailPage = new GroupDetailPage(memberPage, member);

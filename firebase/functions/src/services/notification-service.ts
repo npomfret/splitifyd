@@ -73,8 +73,8 @@ export class NotificationService {
                         changeVersion: FieldValue.increment(changeTypes.length),
                         // Initialize groups object to ensure proper nested structure
                         groups: {
-                            [groupId]: {}
-                        }
+                            [groupId]: {},
+                        },
                     };
 
                     // Add updates for each change type using nested object structure
@@ -188,5 +188,4 @@ export class NotificationService {
             return await this.firestoreWriter.removeUserNotificationGroup(userId, groupId);
         });
     }
-
 }

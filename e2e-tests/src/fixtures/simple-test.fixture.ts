@@ -5,7 +5,7 @@ import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
 import { attachConsoleHandler } from '../helpers';
-import {ApiDriver} from "@splitifyd/test-support";
+import { ApiDriver } from '@splitifyd/test-support';
 
 interface BrowserInstance {
     page: Page;
@@ -19,7 +19,7 @@ export interface SimpleTestFixtures {
     newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
 }
 
-const apiDriver = new ApiDriver()
+const apiDriver = new ApiDriver();
 
 export const simpleTest = base.extend<SimpleTestFixtures>({
     newLoggedInBrowser: async ({ browser }, use, testInfo) => {
@@ -59,7 +59,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             };
             browserInstances.push(browserInstance);
 
-            const displayName = await dashboardPage.getCurrentUserDisplayName()
+            const displayName = await dashboardPage.getCurrentUserDisplayName();
 
             console.log(`Using: "${displayName}" ${user.email} ${user.uid}`);
 

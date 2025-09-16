@@ -1,16 +1,16 @@
-import {randomBytes} from 'crypto';
-import {z} from 'zod';
-import {ApiError} from '../utils/errors';
-import {logger, LoggerContext} from '../logger';
-import {HTTP_STATUS} from '../constants';
-import {COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor} from '@splitifyd/shared';
-import {createTrueServerTimestamp, timestampToISO} from '../utils/dateHelpers';
-import {measureDb} from '../monitoring/measure';
-import {ShareLinkDataSchema} from '../schemas';
-import type {IFirestoreReader} from './firestore';
-import type {IFirestoreWriter} from './firestore';
-import type {GroupMemberService} from './GroupMemberService';
-import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
+import { randomBytes } from 'crypto';
+import { z } from 'zod';
+import { ApiError } from '../utils/errors';
+import { logger, LoggerContext } from '../logger';
+import { HTTP_STATUS } from '../constants';
+import { COLOR_PATTERNS, FirestoreCollections, GroupMemberDocument, MemberRoles, MemberStatuses, ShareLink, USER_COLORS, UserThemeColor } from '@splitifyd/shared';
+import { createTrueServerTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { measureDb } from '../monitoring/measure';
+import { ShareLinkDataSchema } from '../schemas';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
+import type { GroupMemberService } from './GroupMemberService';
+import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
 
 export class GroupShareService {
     constructor(
@@ -252,7 +252,7 @@ export class GroupShareService {
                 // Write to top-level collection for improved querying
                 const now = new Date();
                 this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                    ...createTopLevelMembershipDocument(memberDoc, timestampToISO(now))/* Use current timestamp since group was just updated */,
+                    ...createTopLevelMembershipDocument(memberDoc, timestampToISO(now)) /* Use current timestamp since group was just updated */,
                     createdAt: serverTimestamp,
                     updatedAt: serverTimestamp,
                 });

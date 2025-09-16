@@ -14,10 +14,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
     describe('Basic Balance Calculation', () => {
         test('should return correct response structure for empty and populated groups', async () => {
             // Test empty group balance structure
-            const emptyGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Empty Balance Test').build(),
-                users[0].token
-            );
+            const emptyGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Empty Balance Test').build(), users[0].token);
 
             const emptyBalances = await apiDriver.getGroupBalances(emptyGroup.id, users[0].token);
             expect(emptyBalances.groupId).toBe(emptyGroup.id);
@@ -26,10 +23,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(emptyBalances.simplifiedDebts).toHaveLength(0);
 
             // Test populated group
-            const testGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Populated Balance Test').build(),
-                users[0].token
-            );
+            const testGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Populated Balance Test').build(), users[0].token);
             const shareLink = await apiDriver.generateShareLink(testGroup.id, users[0].token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[1].token);
             await apiDriver.joinGroupViaShareLink(shareLink.linkId, users[2].token);
@@ -42,7 +36,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid, users[2].uid])
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                users[0].token,
             );
 
             const populatedBalances = await apiDriver.waitForBalanceUpdate(testGroup.id, users[0].token, 2000);
@@ -69,7 +63,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                users[0].token,
             );
 
             // Wait for first expense to be processed
@@ -85,7 +79,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
                     .build(),
-                users[1].token
+                users[1].token,
             );
 
             // Wait for final balance calculation after both expenses
@@ -107,10 +101,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
 
         test('should handle zero-sum scenarios correctly', async () => {
             // Test zero-sum scenario
-            const zeroSumGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Zero Sum Test').build(),
-                users[0].token
-            );
+            const zeroSumGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Zero Sum Test').build(), users[0].token);
             const zeroShareResponse = await apiDriver.generateShareLink(zeroSumGroup.id, users[0].token);
             await apiDriver.joinGroupViaShareLink(zeroShareResponse.linkId, users[1].token);
 
@@ -124,7 +115,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
                     .build(),
-                users[0].token
+                users[0].token,
             );
 
             // Wait for first expense to be processed
@@ -139,7 +130,7 @@ describe('Balance & Settlement - Consolidated Tests', () => {
                     .withParticipants([users[0].uid, users[1].uid])
                     .withSplitType('equal')
                     .build(),
-                users[1].token
+                users[1].token,
             );
 
             // Wait for final balance calculation after both expenses
@@ -161,18 +152,13 @@ describe('Balance & Settlement - Consolidated Tests', () => {
         });
 
         test('should handle authentication and authorization correctly', async () => {
-            const testGroup = await apiDriver.createGroup(
-                new CreateGroupRequestBuilder().withName('Auth Test Group').build(),
-                users[0].token
-            );
+            const testGroup = await apiDriver.createGroup(new CreateGroupRequestBuilder().withName('Auth Test Group').build(), users[0].token);
 
             // Test that non-member cannot access balances (returns 404 since they can't see the group exists)
-            await expect(apiDriver.getGroupBalances(testGroup.id, users[1].token))
-                .rejects.toThrow(/failed with status 404/);
+            await expect(apiDriver.getGroupBalances(testGroup.id, users[1].token)).rejects.toThrow(/failed with status 404/);
 
             // Test invalid group ID
-            await expect(apiDriver.getGroupBalances('invalid-group-id', users[0].token))
-                .rejects.toThrow(/failed with status 404/);
+            await expect(apiDriver.getGroupBalances('invalid-group-id', users[0].token)).rejects.toThrow(/failed with status 404/);
         });
     });
 
@@ -817,7 +803,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(balancesAfter2.userBalances[users[0].uid].netBalance).toBe(25);
 
             // Final settlement: Bob pays remaining €25
-            const finalSettlement = new SettlementBuilder().withGroupId(group.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(25).withCurrency('EUR').withNote('Final settlement payment').build();
+            const finalSettlement = new SettlementBuilder()
+                .withGroupId(group.id)
+                .withPayer(users[1].uid)
+                .withPayee(users[0].uid)
+                .withAmount(25)
+                .withCurrency('EUR')
+                .withNote('Final settlement payment')
+                .build();
             await apiDriver.createSettlement(finalSettlement, users[1].token);
 
             // Check final balance: should be fully settled
@@ -865,7 +858,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(initialBalances.simplifiedDebts[0].from.userId).toBe(users[1].uid);
 
             // Overpayment: Bob pays Alice €100 (exceeds €60 debt)
-            const overpayment = new SettlementBuilder().withGroupId(group.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(100).withCurrency('EUR').withNote('Overpayment settlement').build();
+            const overpayment = new SettlementBuilder()
+                .withGroupId(group.id)
+                .withPayer(users[1].uid)
+                .withPayee(users[0].uid)
+                .withAmount(100)
+                .withCurrency('EUR')
+                .withNote('Overpayment settlement')
+                .build();
             await apiDriver.createSettlement(overpayment, users[1].token);
 
             // Check result: Alice should now owe Bob $40 (overpayment of $40)
@@ -926,7 +926,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(eurDebt?.amount).toBe(75);
 
             // Partial settlement in USD: Bob pays Alice $60 USD
-            const usdSettlement = new SettlementBuilder().withGroupId(group.id).withPayer(users[1].uid).withPayee(users[0].uid).withAmount(60).withCurrency('USD').withNote('Partial USD settlement').build();
+            const usdSettlement = new SettlementBuilder()
+                .withGroupId(group.id)
+                .withPayer(users[1].uid)
+                .withPayee(users[0].uid)
+                .withAmount(60)
+                .withCurrency('USD')
+                .withNote('Partial USD settlement')
+                .build();
             await apiDriver.createSettlement(usdSettlement, users[1].token);
 
             // Check state: Bob should still owe Alice $40 USD, EUR debt unchanged
@@ -940,7 +947,14 @@ describe('Balance & Settlement - Consolidated Tests', () => {
             expect(midEurDebt?.amount).toBe(75); // Unchanged EUR debt
 
             // Partial settlement in EUR: Alice pays Bob €50 EUR
-            const eurSettlement = new SettlementBuilder().withGroupId(group.id).withPayer(users[0].uid).withPayee(users[1].uid).withAmount(50).withCurrency('EUR').withNote('Partial EUR settlement').build();
+            const eurSettlement = new SettlementBuilder()
+                .withGroupId(group.id)
+                .withPayer(users[0].uid)
+                .withPayee(users[1].uid)
+                .withAmount(50)
+                .withCurrency('EUR')
+                .withNote('Partial EUR settlement')
+                .build();
             await apiDriver.createSettlement(eurSettlement, users[0].token);
 
             // Final check: Bob owes Alice $40 USD, Alice owes Bob €25 EUR

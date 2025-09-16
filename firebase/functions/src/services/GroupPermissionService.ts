@@ -49,7 +49,6 @@ export class GroupPermissionService {
         });
     }
 
-
     async updateGroupPermissions(
         userId: string,
         groupId: string,

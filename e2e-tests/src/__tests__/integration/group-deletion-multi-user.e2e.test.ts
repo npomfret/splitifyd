@@ -1,6 +1,6 @@
-import {expect, simpleTest} from '../../fixtures';
-import {generateShortId} from '@splitifyd/test-support';
-import {GroupDetailPage, JoinGroupPage} from '../../pages';
+import { expect, simpleTest } from '../../fixtures';
+import { generateShortId } from '@splitifyd/test-support';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
 
 simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
     simpleTest('should update both dashboards when owner deletes group', async ({ newLoggedInBrowser }) => {
@@ -9,7 +9,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         let { page: page2, dashboardPage: dashboardPage2 } = await newLoggedInBrowser();
 
         // Setup 2-person group with unique ID
-        const groupName = `Owner Delete Test ${(generateShortId())}`;
+        const groupName = `Owner Delete Test ${generateShortId()}`;
         let groupDetailPageUser1 = await dashboardPage1.createGroupAndNavigate(groupName, 'Testing owner deletion');
         const groupId = groupDetailPageUser1.inferGroupId();
 
@@ -50,7 +50,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
     simpleTest('should redirect member to 404 when group is deleted while viewing group detail page', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking - 404 errors and console errors are expected when group is deleted
         testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when group is deleted while member viewing it' });
-        
+
         // Create two browser instances - owner (user1) and member (user2)
         let { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: member } = await newLoggedInBrowser();
@@ -94,5 +94,4 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // Console errors are expected as the app tries to refresh group data that no longer exists
         await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
     });
-
 });

@@ -27,13 +27,13 @@ import {
     UserToken,
 } from '@splitifyd/shared';
 
-import type {DocumentData} from 'firebase-admin/firestore';
+import type { DocumentData } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
-import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
+import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
 
 // Direct Firestore access for policy manipulation (bypass API)
-import {Matcher, PollOptions, pollUntil} from './Polling';
-import {CreateExpenseRequestBuilder, UserRegistrationBuilder} from './builders';
+import { Matcher, PollOptions, pollUntil } from './Polling';
+import { CreateExpenseRequestBuilder, UserRegistrationBuilder } from './builders';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -401,7 +401,6 @@ export class ApiDriver {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }
 
-
     // Comment API methods
     async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
         return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
@@ -504,7 +503,7 @@ export class ApiDriver {
         if (policyStatus.outstandingPolicies && policyStatus.outstandingPolicies.length > 0) {
             const acceptances = policyStatus.outstandingPolicies.map((policy: any) => ({
                 policyId: policy.id,
-                versionHash: policy.currentVersionHash
+                versionHash: policy.currentVersionHash,
             }));
 
             await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
@@ -528,7 +527,7 @@ export class ApiDriver {
             // This ensures test users accept everything regardless of current status
             const acceptances = policyStatus.policies.map((policy: any) => ({
                 policyId: policy.policyId,
-                versionHash: policy.currentVersionHash
+                versionHash: policy.currentVersionHash,
             }));
 
             console.log(`Accepting ${acceptances.length} policies for test user`);
@@ -550,11 +549,11 @@ export class ApiDriver {
         const timestamp = Date.now();
 
         for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/policies/${policyId}/update`, 'POST', {text: baseContent, publish: true});
+                await this.apiRequest(`/policies/${policyId}/update`, 'POST', { text: baseContent, publish: true });
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -607,7 +606,7 @@ export class ApiDriver {
         const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
 
         for (const policyId of standardPolicies) {
-            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
             const baseContent = `${policyName} base version.`;
 
             try {
@@ -626,12 +625,12 @@ export class ApiDriver {
 
     async updateSpecificPolicy(policyId: string, userToken?: string): Promise<void> {
         const timestamp = Date.now();
-        const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const policyName = policyId.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
         const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;
 
         try {
             // Use the new test endpoint for policy updates (dev only, no auth required)
-            await this.apiRequest(`/policies/${policyId}/update`, 'POST', {text: safeContent, publish: true});
+            await this.apiRequest(`/policies/${policyId}/update`, 'POST', { text: safeContent, publish: true });
             console.log(`✓ Successfully updated policy ${policyId} via test endpoint`);
         } catch (testError) {
             console.warn('Test endpoint failed, falling back to admin API:', testError);

@@ -51,5 +51,4 @@ export class TestGroupManager {
 
         return this.apiDriver.createGroupWithMembers(groupName, groupMembers, groupMembers[0].token);
     }
-
 }

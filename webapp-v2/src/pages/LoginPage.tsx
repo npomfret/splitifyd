@@ -38,7 +38,7 @@ export function LoginPage() {
             // Check for returnUrl in query parameters
             const urlParams = new URLSearchParams(window.location.search);
             const returnUrl = urlParams.get('returnUrl');
-            
+
             if (returnUrl) {
                 // Decode and navigate to the return URL
                 const decodedReturnUrl = decodeURIComponent(returnUrl);
@@ -106,24 +106,29 @@ export function LoginPage() {
                 <div class="text-center">
                     <p class="text-sm text-gray-600">
                         {t('loginPage.noAccount')}{' '}
-                        <button type="button" data-testid="loginpage-signup-button" onClick={() => {
-                            const buildTime = '__ULTRA_FRESH_BUILD_' + Date.now() + '_NEW_HASH__';
-                            console.log('🚀🚀🚀 COMPLETELY NEW LOGIN CODE EXECUTING!!! BUILD:', buildTime);
-                            console.log('🚀🚀🚀 BUTTON CLICKED - NEW MODULE HASH - TIMESTAMP:', Date.now());
-                            // Preserve returnUrl when navigating to register
-                            const urlParams = new URLSearchParams(window.location.search);
-                            const returnUrl = urlParams.get('returnUrl');
-                            console.log('🚀🚀🚀 LOGIN PAGE URL PARAMS:', window.location.search);
-                            console.log('🚀🚀🚀 LOGIN PAGE RETURN URL:', returnUrl);
-                            if (returnUrl) {
-                                const targetUrl = `/register?returnUrl=${encodeURIComponent(returnUrl)}`;
-                                console.log('🔥🔥🔥 NEW HASH - Navigating to:', targetUrl);
-                                navigationService.navigateTo(targetUrl);
-                            } else {
-                                console.log('🔥🔥🔥 NEW HASH - No returnUrl, going to register default');
-                                navigationService.goToRegister();
-                            }
-                        }} class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+                        <button
+                            type="button"
+                            data-testid="loginpage-signup-button"
+                            onClick={() => {
+                                const buildTime = '__ULTRA_FRESH_BUILD_' + Date.now() + '_NEW_HASH__';
+                                console.log('🚀🚀🚀 COMPLETELY NEW LOGIN CODE EXECUTING!!! BUILD:', buildTime);
+                                console.log('🚀🚀🚀 BUTTON CLICKED - NEW MODULE HASH - TIMESTAMP:', Date.now());
+                                // Preserve returnUrl when navigating to register
+                                const urlParams = new URLSearchParams(window.location.search);
+                                const returnUrl = urlParams.get('returnUrl');
+                                console.log('🚀🚀🚀 LOGIN PAGE URL PARAMS:', window.location.search);
+                                console.log('🚀🚀🚀 LOGIN PAGE RETURN URL:', returnUrl);
+                                if (returnUrl) {
+                                    const targetUrl = `/register?returnUrl=${encodeURIComponent(returnUrl)}`;
+                                    console.log('🔥🔥🔥 NEW HASH - Navigating to:', targetUrl);
+                                    navigationService.navigateTo(targetUrl);
+                                } else {
+                                    console.log('🔥🔥🔥 NEW HASH - No returnUrl, going to register default');
+                                    navigationService.goToRegister();
+                                }
+                            }}
+                            class="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        >
                             {t('loginPage.signUp')}
                         </button>
                     </p>

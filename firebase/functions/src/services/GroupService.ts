@@ -1,29 +1,29 @@
-import {Timestamp} from 'firebase-admin/firestore';
-import {Errors} from '../utils/errors';
-import {Group, UpdateGroupRequest} from '../types/group-types';
-import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
-import {BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument} from '../schemas';
-import {BalanceCalculationService} from './balance';
-import {DOCUMENT_CONFIG, FIRESTORE} from '../constants';
-import {logger, LoggerContext} from '../logger';
-import {assertTimestamp, assertTimestampAndConvert, createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO} from '../utils/dateHelpers';
-import {PermissionEngine} from '../permissions';
-import {measureDb} from '../monitoring/measure';
-import type {IFirestoreReader} from './firestore';
-import type {IFirestoreWriter} from './firestore';
-import type {BalanceCalculationResult} from './balance';
-import type {UserProfile} from './UserService2';
-import type {ExpenseDocument} from '../schemas';
-import type {SettlementDocument} from '../schemas';
-import {ExpenseMetadataService} from './expenseMetadataService';
-import {UserService} from './UserService2';
-import {ExpenseService} from './ExpenseService';
-import {SettlementService} from './SettlementService';
-import {GroupMemberService} from './GroupMemberService';
-import {NotificationService} from './notification-service';
-import {GroupShareService} from './GroupShareService';
-import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
-import {CreateGroupRequestBuilder} from "@splitifyd/test-support";
+import { Timestamp } from 'firebase-admin/firestore';
+import { Errors } from '../utils/errors';
+import { Group, UpdateGroupRequest } from '../types/group-types';
+import { CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets } from '@splitifyd/shared';
+import { BalanceCalculationResultSchema, BalanceDisplaySchema, CurrencyBalanceDisplaySchema, GroupDataSchema, GroupDocument } from '../schemas';
+import { BalanceCalculationService } from './balance';
+import { DOCUMENT_CONFIG, FIRESTORE } from '../constants';
+import { logger, LoggerContext } from '../logger';
+import { assertTimestamp, assertTimestampAndConvert, createOptimisticTimestamp, createTrueServerTimestamp, getRelativeTime, parseISOToTimestamp, timestampToISO } from '../utils/dateHelpers';
+import { PermissionEngine } from '../permissions';
+import { measureDb } from '../monitoring/measure';
+import type { IFirestoreReader } from './firestore';
+import type { IFirestoreWriter } from './firestore';
+import type { BalanceCalculationResult } from './balance';
+import type { UserProfile } from './UserService2';
+import type { ExpenseDocument } from '../schemas';
+import type { SettlementDocument } from '../schemas';
+import { ExpenseMetadataService } from './expenseMetadataService';
+import { UserService } from './UserService2';
+import { ExpenseService } from './ExpenseService';
+import { SettlementService } from './SettlementService';
+import { GroupMemberService } from './GroupMemberService';
+import { NotificationService } from './notification-service';
+import { GroupShareService } from './GroupShareService';
+import { createTopLevelMembershipDocument, getTopLevelMembershipDocId } from '../utils/groupMembershipHelpers';
+import { CreateGroupRequestBuilder } from '@splitifyd/test-support';
 
 /**
  * Enhanced types for group data fetching with groupId
@@ -633,7 +633,7 @@ export class GroupService {
 
             // Write to top-level collection for improved querying
             this.firestoreWriter.createInTransaction(transaction, FirestoreCollections.GROUP_MEMBERSHIPS, getTopLevelMembershipDocId(userId, groupId), {
-                ...(createTopLevelMembershipDocument(memberDoc, timestampToISO(now))),
+                ...createTopLevelMembershipDocument(memberDoc, timestampToISO(now)),
                 createdAt: memberServerTimestamp,
                 updatedAt: memberServerTimestamp,
             });
@@ -1022,12 +1022,12 @@ export class GroupService {
                     const result = await this.notificationService.removeUserFromGroup(memberId, groupId);
                     results.push(result);
                 }
-                const successfulCleanups = results.filter(r => r.success).length;
+                const successfulCleanups = results.filter((r) => r.success).length;
                 logger.info('Notification cleanup completed', {
                     groupId,
                     totalUsers: memberIds.length,
                     successfulCleanups,
-                    failedCleanups: results.length - successfulCleanups
+                    failedCleanups: results.length - successfulCleanups,
                 });
             }
 

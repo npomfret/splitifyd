@@ -50,14 +50,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.listGroups(null as any)).rejects.toThrow(/401|unauthorized|missing.*token/i);
 
             // Malformed tokens
-            const malformedTokens = [
-                'not-a-jwt-token',
-                'Bearer invalid',
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid',
-                'header.payload.invalid-signature',
-                '',
-                '   '
-            ];
+            const malformedTokens = ['not-a-jwt-token', 'Bearer invalid', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.invalid', 'header.payload.invalid-signature', '', '   '];
 
             for (const token of malformedTokens) {
                 await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid.*token/i);
@@ -66,34 +59,26 @@ describe('Security and Permissions - Consolidated Tests', () => {
 
         test('should reject expired and cross-project tokens', async () => {
             // Expired token (from 2020)
-            const expiredToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
+            const expiredToken =
+                'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vc3BsaXRpZnlkIiwiYXVkIjoic3BsaXRpZnlkIiwiYXV0aF90aW1lIjoxNjA5NDU5MjAwLCJ1c2VyX2lkIjoidGVzdC11c2VyIiwic3ViIjoidGVzdC11c2VyIiwiaWF0IjoxNjA5NDU5MjAwLCJleHAiOjE2MDk0NjI4MDB9.invalid-signature';
             await expect(apiDriver.listGroups(expiredToken)).rejects.toThrow(/401|unauthorized|expired|invalid/i);
 
             // Wrong project token
-            const wrongProjectToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
+            const wrongProjectToken =
+                'eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN2JmNDk2MmJkY2ZlODdlOGQ1ZWNhM2Y3N2JjOWZjYzA0OWMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vd3JvbmctcHJvamVjdCIsImF1ZCI6Indyb25nLXByb2plY3QiLCJhdXRoX3RpbWUiOjE2MDk0NTkyMDAsInVzZXJfaWQiOiJ0ZXN0LXVzZXIiLCJzdWIiOiJ0ZXN0LXVzZXIiLCJpYXQiOjE2MDk0NTkyMDAsImV4cCI6OTk5OTk5OTk5OX0.invalid-signature';
             await expect(apiDriver.listGroups(wrongProjectToken)).rejects.toThrow(/401|unauthorized|invalid|audience/i);
         });
 
         test('should reject injection attacks in Authorization header', async () => {
             // SQL injection attempts
-            const sqlInjectionTokens = [
-                "Bearer '; DROP TABLE users; --",
-                "Bearer ' OR '1'='1",
-                "Bearer admin'/*",
-                "Bearer 1' UNION SELECT * FROM secrets--"
-            ];
+            const sqlInjectionTokens = ["Bearer '; DROP TABLE users; --", "Bearer ' OR '1'='1", "Bearer admin'/*", "Bearer 1' UNION SELECT * FROM secrets--"];
 
             for (const token of sqlInjectionTokens) {
                 await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
             }
 
             // Script injection attempts
-            const scriptInjectionTokens = [
-                'Bearer <script>alert("xss")</script>',
-                'Bearer javascript:alert(1)',
-                'Bearer vbscript:msgbox(1)',
-                'Bearer data:text/html,<script>alert(1)</script>'
-            ];
+            const scriptInjectionTokens = ['Bearer <script>alert("xss")</script>', 'Bearer javascript:alert(1)', 'Bearer vbscript:msgbox(1)', 'Bearer data:text/html,<script>alert(1)</script>'];
 
             for (const token of scriptInjectionTokens) {
                 await expect(apiDriver.listGroups(token)).rejects.toThrow(/401|unauthorized|invalid/i);
@@ -113,19 +98,15 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const privateGroup = await apiDriver.createGroupWithMembers(`Private Group ${uuidv4()}`, [users[0]], users[0].token);
 
             // User 1 should not be able to access (returns 404 for security)
-            await expect(apiDriver.getGroupFullDetails(privateGroup.id, users[1].token))
-                .rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
+            await expect(apiDriver.getGroupFullDetails(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
-            await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token))
-                .rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
+            await expect(apiDriver.getGroupBalances(privateGroup.id, users[1].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied|not.*member/i);
 
             // Non-member should not be able to modify group
-            await expect(apiDriver.updateGroup(testGroup.id, { name: 'Hacked Name' }, users[2].token))
-                .rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
+            await expect(apiDriver.updateGroup(testGroup.id, { name: 'Hacked Name' }, users[2].token)).rejects.toThrow(/404|not.*found|403|forbidden|access.*denied/i);
 
             // Member (not owner) should not be able to delete group
-            await expect(apiDriver.deleteGroup(testGroup.id, users[1].token))
-                .rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);
+            await expect(apiDriver.deleteGroup(testGroup.id, users[1].token)).rejects.toThrow(/403|forbidden|unauthorized|access.*denied/i);
         });
 
         test('should prevent unauthorized access to expenses', async () => {
@@ -142,12 +123,10 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const expense = await apiDriver.createExpense(expenseData, users[0].token);
 
             // Group member but not expense participant should be denied
-            await expect(apiDriver.getExpense(expense.id, users[2].token))
-                .rejects.toThrow(/403|forbidden|not.*participant|access.*denied/i);
+            await expect(apiDriver.getExpense(expense.id, users[2].token)).rejects.toThrow(/403|forbidden|not.*participant|access.*denied/i);
 
             // Non-group member should be denied
-            await expect(apiDriver.getExpense(expense.id, users[3].token))
-                .rejects.toThrow(/403|forbidden|not.*participant|access.*denied/i);
+            await expect(apiDriver.getExpense(expense.id, users[3].token)).rejects.toThrow(/403|forbidden|not.*participant|access.*denied/i);
         });
     });
 
@@ -175,31 +154,33 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.getGroupExpenses(edgeTestGroup.id, users[3].token)).rejects.toThrow(/failed with status (403|404)/);
 
             // Non-member cannot change group settings
-            await expect(apiDriver.updateGroupPermissions(edgeTestGroup.id, users[3].token, {
-                canAddMembers: true,
-                canRemoveMembers: true,
-                canEditGroup: true,
-                canDeleteGroup: true,
-                canCreateExpenses: true,
-                canEditExpenses: true,
-                canDeleteExpenses: true,
-                canSettle: true,
-            }))
-                .rejects.toThrow(/failed with status (401|403)/);
+            await expect(
+                apiDriver.updateGroupPermissions(edgeTestGroup.id, users[3].token, {
+                    canAddMembers: true,
+                    canRemoveMembers: true,
+                    canEditGroup: true,
+                    canDeleteGroup: true,
+                    canCreateExpenses: true,
+                    canEditExpenses: true,
+                    canDeleteExpenses: true,
+                    canSettle: true,
+                }),
+            ).rejects.toThrow(/failed with status (401|403)/);
         });
 
         test('should reject invalid parameters and malformed requests', async () => {
             // Invalid permissions object (null should cause validation error)
-            await expect(apiDriver.updateGroupPermissions(edgeTestGroup.id, users[0].token, null as any))
-                .rejects.toThrow(/failed with status (400|401)/);
+            await expect(apiDriver.updateGroupPermissions(edgeTestGroup.id, users[0].token, null as any)).rejects.toThrow(/failed with status (400|401)/);
 
             // Invalid member role
-            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/${users[1].uid}/role`, 'PUT', { role: 'invalid-role' }, users[0].token))
-                .rejects.toThrow(/failed with status 400/);
+            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/${users[1].uid}/role`, 'PUT', { role: 'invalid-role' }, users[0].token)).rejects.toThrow(
+                /failed with status 400/,
+            );
 
             // Changing role of non-existent member
-            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/non-existent-user/role`, 'PUT', { role: MemberRoles.ADMIN }, users[0].token))
-                .rejects.toThrow(/failed with status/);
+            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/non-existent-user/role`, 'PUT', { role: MemberRoles.ADMIN }, users[0].token)).rejects.toThrow(
+                /failed with status/,
+            );
         });
     });
 
@@ -240,8 +221,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 memberApproval: 'automatic',
                 settingsManagement: 'anyone',
             };
-            await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions))
-                .rejects.toThrow('failed with status 403');
+            await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions)).rejects.toThrow('failed with status 403');
         });
 
         test('should enforce role management permissions', async () => {
@@ -256,59 +236,59 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const regularMember = users[2];
             await apiDriver.joinGroupViaShareLink((await apiDriver.generateShareLink(roleTestGroup.id, adminUser.token)).linkId, regularMember.token);
 
-            await expect(apiDriver.setMemberRole(roleTestGroup.id, regularMember.token, memberUser.uid, MemberRoles.MEMBER))
-                .rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.setMemberRole(roleTestGroup.id, regularMember.token, memberUser.uid, MemberRoles.MEMBER)).rejects.toThrow(/failed with status 403/);
         });
     });
 
     describe('Security Preset Validation and Data Integrity', () => {
         test('should handle groups with invalid security preset data gracefully', async () => {
             // Create test user
-            const testUser = await apiDriver.createUser(
-                new UserRegistrationBuilder()
-                    .withEmail(`test-invalid-${Date.now()}@test.com`)
-                    .withDisplayName('Test User Invalid')
-                    .build()
-            );
+            const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-invalid-${Date.now()}@test.com`).withDisplayName('Test User Invalid').build());
 
             // Create valid group first
-            const validGroup = await apiDriver.createGroup({
-                name: 'Valid Group Test ' + Date.now(),
-                description: 'Testing valid security preset',
-            }, testUser.token);
+            const validGroup = await apiDriver.createGroup(
+                {
+                    name: 'Valid Group Test ' + Date.now(),
+                    description: 'Testing valid security preset',
+                },
+                testUser.token,
+            );
 
             // Insert group with invalid securityPreset directly via Firestore
             const invalidGroupId = 'invalid-group-' + Date.now();
-            await firestore.collection('groups').doc(invalidGroupId).set({
-                id: invalidGroupId,
-                name: 'Invalid Security Preset Group',
-                description: 'Group with invalid security preset',
-                securityPreset: 'unknown', // Invalid value
-                createdBy: testUser.uid,
-                members: {
-                    [testUser.uid]: {
-                        role: 'admin',
-                        status: 'active',
-                        joinedAt: new Date().toISOString(),
-                        color: {
-                            light: '#FF6B6B',
-                            dark: '#FF6B6B',
-                            name: 'red',
-                            pattern: 'solid',
-                            colorIndex: 0,
+            await firestore
+                .collection('groups')
+                .doc(invalidGroupId)
+                .set({
+                    id: invalidGroupId,
+                    name: 'Invalid Security Preset Group',
+                    description: 'Group with invalid security preset',
+                    securityPreset: 'unknown', // Invalid value
+                    createdBy: testUser.uid,
+                    members: {
+                        [testUser.uid]: {
+                            role: 'admin',
+                            status: 'active',
+                            joinedAt: new Date().toISOString(),
+                            color: {
+                                light: '#FF6B6B',
+                                dark: '#FF6B6B',
+                                name: 'red',
+                                pattern: 'solid',
+                                colorIndex: 0,
+                            },
                         },
                     },
-                },
-                permissions: {
-                    expenseEditing: 'anyone',
-                    expenseDeletion: 'anyone',
-                    memberInvitation: 'anyone',
-                    memberApproval: 'automatic',
-                    settingsManagement: 'anyone',
-                },
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            });
+                    permissions: {
+                        expenseEditing: 'anyone',
+                        expenseDeletion: 'anyone',
+                        memberInvitation: 'anyone',
+                        memberApproval: 'automatic',
+                        settingsManagement: 'anyone',
+                    },
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                });
 
             // API should handle invalid data gracefully
             const listResponse = await apiDriver.listGroups(testUser.token);
@@ -317,20 +297,18 @@ describe('Security and Permissions - Consolidated Tests', () => {
         });
 
         test('should successfully handle groups with permission updates', async () => {
-            const testUser = await apiDriver.createUser(
-                new UserRegistrationBuilder()
-                    .withEmail(`test-valid-${Date.now()}@test.com`)
-                    .withDisplayName('Test User Valid')
-                    .build()
-            );
+            const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-valid-${Date.now()}@test.com`).withDisplayName('Test User Valid').build());
 
             // Create multiple valid groups
             const validGroups: Group[] = [];
             for (let i = 0; i < 3; i++) {
-                const group = await apiDriver.createGroup({
-                    name: `Valid Group ${i} - ${Date.now()}`,
-                    description: `Valid group ${i}`,
-                }, testUser.token);
+                const group = await apiDriver.createGroup(
+                    {
+                        name: `Valid Group ${i} - ${Date.now()}`,
+                        description: `Valid group ${i}`,
+                    },
+                    testUser.token,
+                );
                 validGroups.push(group);
             }
 
@@ -358,8 +336,8 @@ describe('Security and Permissions - Consolidated Tests', () => {
             expect(listResponse.groups.length).toBeGreaterThanOrEqual(3);
 
             // Verify permissions are applied correctly
-            const openGroup = listResponse.groups.find(g => g.id === validGroups[0].id);
-            const managedGroup = listResponse.groups.find(g => g.id === validGroups[1].id);
+            const openGroup = listResponse.groups.find((g) => g.id === validGroups[0].id);
+            const managedGroup = listResponse.groups.find((g) => g.id === validGroups[1].id);
 
             expect(openGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);
             expect(managedGroup?.securityPreset).toBe(SecurityPresets.CUSTOM);

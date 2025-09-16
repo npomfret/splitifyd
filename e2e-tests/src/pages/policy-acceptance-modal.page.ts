@@ -84,11 +84,11 @@ export class PolicyAcceptanceModalPage {
     }
 
     async getCurrentPolicyName(): Promise<string> {
-        return await this.policyTitle.textContent() || '';
+        return (await this.policyTitle.textContent()) || '';
     }
 
     async getCurrentPolicyProgress(): Promise<string> {
-        return await this.subtitle.textContent() || '';
+        return (await this.subtitle.textContent()) || '';
     }
 
     async acceptCurrentPolicy(): Promise<void> {
@@ -142,7 +142,7 @@ export class PolicyAcceptanceModalPage {
         if (match) {
             return {
                 accepted: parseInt(match[1], 10),
-                total: parseInt(match[2], 10)
+                total: parseInt(match[2], 10),
             };
         }
 

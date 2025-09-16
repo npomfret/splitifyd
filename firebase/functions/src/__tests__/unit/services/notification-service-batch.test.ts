@@ -34,13 +34,13 @@ describe('NotificationService.batchUpdateNotifications', () => {
         const changeType = 'transaction';
 
         // Mock successful updates
-        mockBatchUpdateNotificationsMultipleTypes.mockResolvedValue({ 
-            successCount: 2, 
+        mockBatchUpdateNotificationsMultipleTypes.mockResolvedValue({
+            successCount: 2,
             failureCount: 0,
             results: [
                 { id: 'user1', success: true },
-                { id: 'user2', success: true }
-            ]
+                { id: 'user2', success: true },
+            ],
         });
 
         // Act
@@ -68,8 +68,8 @@ describe('NotificationService.batchUpdateNotifications', () => {
             results: [
                 { id: 'user1', success: true },
                 { id: 'user2', success: false },
-                { id: 'user3', success: true }
-            ]
+                { id: 'user3', success: true },
+            ],
         });
 
         // Act
@@ -92,8 +92,8 @@ describe('NotificationService.batchUpdateNotifications', () => {
             failureCount: 0,
             results: [
                 { id: 'user1', success: true },
-                { id: 'user2', success: true }
-            ]
+                { id: 'user2', success: true },
+            ],
         });
 
         // Act: Call the old method
@@ -134,7 +134,7 @@ describe('NotificationService.updateUserNotification (legacy method)', () => {
         mockBatchUpdateNotificationsMultipleTypes.mockResolvedValue({
             successCount: 1,
             failureCount: 0,
-            results: [{ id: userId, success: true }]
+            results: [{ id: userId, success: true }],
         });
 
         // Act
@@ -158,7 +158,7 @@ describe('NotificationService.updateUserNotification (legacy method)', () => {
         mockBatchUpdateNotificationsMultipleTypes.mockResolvedValue({
             successCount: 1,
             failureCount: 0,
-            results: [{ id: userId, success: true }]
+            results: [{ id: userId, success: true }],
         });
 
         // Act: Call the old method
@@ -208,17 +208,19 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
         updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
             expect(merge).toBe(true); // Should use merge:true for upsert behavior
-            expect(updates).toEqual(expect.objectContaining({
-                changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
-                groups: {
-                    [groupId]: expect.objectContaining({
-                        lastTransactionChange: expect.any(Object),
-                        transactionChangeCount: expect.any(Object),
-                        lastBalanceChange: expect.any(Object),
-                        balanceChangeCount: expect.any(Object),
-                    })
-                }
-            }));
+            expect(updates).toEqual(
+                expect.objectContaining({
+                    changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
+                    groups: {
+                        [groupId]: expect.objectContaining({
+                            lastTransactionChange: expect.any(Object),
+                            transactionChangeCount: expect.any(Object),
+                            lastBalanceChange: expect.any(Object),
+                            balanceChangeCount: expect.any(Object),
+                        }),
+                    },
+                }),
+            );
         });
 
         // Should return success for all users
@@ -263,15 +265,17 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const [userId, updates, merge] = mockFirestoreWriter.setUserNotifications.mock.calls[0];
 
         expect(merge).toBe(true);
-        expect(updates).toEqual(expect.objectContaining({
-            changeVersion: expect.any(Object), // FieldValue.increment(1)
-            groups: {
-                [groupId]: expect.objectContaining({
-                    lastGroupDetailsChange: expect.any(Object),
-                    groupDetailsChangeCount: expect.any(Object),
-                })
-            }
-        }));
+        expect(updates).toEqual(
+            expect.objectContaining({
+                changeVersion: expect.any(Object), // FieldValue.increment(1)
+                groups: {
+                    [groupId]: expect.objectContaining({
+                        lastGroupDetailsChange: expect.any(Object),
+                        groupDetailsChangeCount: expect.any(Object),
+                    }),
+                },
+            }),
+        );
 
         expect(result.successCount).toBe(1);
         expect(result.failureCount).toBe(0);
@@ -295,17 +299,19 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
         const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
         updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
             expect(merge).toBe(true); // Should use upsert behavior
-            expect(updates).toEqual(expect.objectContaining({
-                changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
-                groups: {
-                    [groupId]: expect.objectContaining({
-                        lastTransactionChange: expect.any(Object),
-                        transactionChangeCount: expect.any(Object),
-                        lastBalanceChange: expect.any(Object),
-                        balanceChangeCount: expect.any(Object),
-                    })
-                }
-            }));
+            expect(updates).toEqual(
+                expect.objectContaining({
+                    changeVersion: expect.any(Object), // FieldValue.increment(2) for both types
+                    groups: {
+                        [groupId]: expect.objectContaining({
+                            lastTransactionChange: expect.any(Object),
+                            transactionChangeCount: expect.any(Object),
+                            lastBalanceChange: expect.any(Object),
+                            balanceChangeCount: expect.any(Object),
+                        }),
+                    },
+                }),
+            );
         });
 
         // Both users should be updated successfully

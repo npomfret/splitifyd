@@ -3,7 +3,6 @@ import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { sanitizeString } from '../utils/security';
 
-
 /**
  * Schema for policy acceptance in batch
  */
@@ -36,7 +35,6 @@ export interface AcceptPolicyRequest {
 export interface AcceptMultiplePoliciesRequest {
     acceptances: AcceptPolicyRequest[];
 }
-
 
 /**
  * Validate accept multiple policies request

@@ -52,4 +52,3 @@ export const setMemberRole = async (req: AuthenticatedRequest, res: Response): P
         throw error;
     }
 };
-

@@ -931,6 +931,7 @@ To debug navigation issues:
 When a user is removed from a group in real-time scenarios, the application now provides predictable navigation behavior. Previously, users could land on a 404 page creating unpredictable test behavior.
 
 **Application Fix (webapp-v2/src/pages/GroupDetailPage.tsx:104-114):**
+
 - When `GROUP_DELETED` error is detected, navigate immediately to dashboard
 - When "not found" errors occur in group context, treat as removal and redirect to dashboard immediately
 - No delays, no 404 pages, no manual button clicks required

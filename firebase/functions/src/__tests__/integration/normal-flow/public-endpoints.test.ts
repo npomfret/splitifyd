@@ -286,7 +286,6 @@ describe('Public Endpoints Tests', () => {
     });
 
     describe('Policy Endpoints', () => {
-
         test('should return specific current policy without authentication', async () => {
             // Use a known seeded policy ID
             const response = await fetch(`${apiDriver.getBaseUrl()}/policies/terms-of-service/current`);

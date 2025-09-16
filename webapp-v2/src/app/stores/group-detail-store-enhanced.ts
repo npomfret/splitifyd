@@ -127,7 +127,6 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
 

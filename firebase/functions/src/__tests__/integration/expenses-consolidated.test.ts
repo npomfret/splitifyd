@@ -265,12 +265,10 @@ describe('Expenses Management - Consolidated Tests', () => {
 
         test('should deny access to non-participants', async () => {
             // Group member who is not participant should be denied
-            await expect(apiDriver.getExpense(testExpenseId, users[2].token))
-                .rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.getExpense(testExpenseId, users[2].token)).rejects.toThrow(/failed with status 403/);
 
             // Non-group member should be denied
-            await expect(apiDriver.getExpense(testExpenseId, users[3].token))
-                .rejects.toThrow(/failed with status 403/);
+            await expect(apiDriver.getExpense(testExpenseId, users[3].token)).rejects.toThrow(/failed with status 403/);
         });
 
         test('should validate group membership for creation and participants', async () => {
@@ -295,8 +293,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                 .withParticipants([users[0].uid])
                 .withSplitType('equal')
                 .build();
-            await expect(apiDriver.createExpense(invalidPayerApiData, users[0].token))
-                .rejects.toThrow(/failed with status 40[0-9]/);
+            await expect(apiDriver.createExpense(invalidPayerApiData, users[0].token)).rejects.toThrow(/failed with status 40[0-9]/);
 
             // Cannot add non-member as participant
             const invalidParticipantApiData = new CreateExpenseRequestBuilder()
@@ -307,8 +304,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                 .withParticipants([users[0].uid, users[3].uid])
                 .withSplitType('equal')
                 .build();
-            await expect(apiDriver.createExpense(invalidParticipantApiData, users[0].token))
-                .rejects.toThrow(/failed with status 40[0-9]/);
+            await expect(apiDriver.createExpense(invalidParticipantApiData, users[0].token)).rejects.toThrow(/failed with status 40[0-9]/);
         });
 
         test('should handle non-existent expenses gracefully', async () => {
@@ -336,19 +332,18 @@ describe('Expenses Management - Consolidated Tests', () => {
 
             // Should prevent deletion by non-group member
             const anotherExpense = await apiDriver.createExpense(expenseData, users[0].token);
-            await expect(apiDriver.deleteExpense(anotherExpense.id, users[3].token))
-                .rejects.toThrow(/failed with status 40[0-9]/);
+            await expect(apiDriver.deleteExpense(anotherExpense.id, users[3].token)).rejects.toThrow(/failed with status 40[0-9]/);
         });
 
         test('should handle deleted expenses in listings', async () => {
             // Create multiple expenses
             const expense1 = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
-                users[0].token
+                users[0].token,
             );
             const expense2 = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
-                users[0].token
+                users[0].token,
             );
 
             // Delete one expense
@@ -356,18 +351,18 @@ describe('Expenses Management - Consolidated Tests', () => {
 
             // Should filter out deleted by default
             const normalResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-            expect(normalResult.expenses.find(e => e.id === expense1.id)).toBeUndefined();
+            expect(normalResult.expenses.find((e) => e.id === expense1.id)).toBeUndefined();
 
             // Should include deleted when requested - API doesn't support includeDeleted flag
             const deletedResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-            const deletedExpense = deletedResult.expenses.find(e => e.id === expense1.id);
+            const deletedExpense = deletedResult.expenses.find((e) => e.id === expense1.id);
             // Note: API layer may or may not include deleted expenses
         });
     });
 
     describe('Full Details API and Complex Data Handling', () => {
         test('should return consolidated expense data with group and members', async () => {
-            const uniqueId = generateShortId()
+            const uniqueId = generateShortId();
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder()
                     .withGroupId(testGroup.id)
@@ -425,7 +420,7 @@ describe('Expenses Management - Consolidated Tests', () => {
         test('should enforce access control for full details endpoint', async () => {
             const expense = await apiDriver.createExpense(
                 new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
-                users[0].token
+                users[0].token,
             );
 
             // Non-group member should be denied
@@ -440,8 +435,12 @@ describe('Expenses Management - Consolidated Tests', () => {
 
         test('should handle concurrent access correctly', async () => {
             const expense = await apiDriver.createExpense(
-                new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants(users.slice(0, 3).map(u => u.uid)).build(),
-                users[0].token
+                new CreateExpenseRequestBuilder()
+                    .withGroupId(testGroup.id)
+                    .withPaidBy(users[0].uid)
+                    .withParticipants(users.slice(0, 3).map((u) => u.uid))
+                    .build(),
+                users[0].token,
             );
 
             // Test parallel requests

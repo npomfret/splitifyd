@@ -3,8 +3,8 @@ import { BasePage } from './base.page';
 import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
-import {CreateGroupModalPage} from "./create-group-modal.page.ts";
-import {GroupDetailPage, groupDetailUrlPattern} from "./group-detail.page.ts";
+import { CreateGroupModalPage } from './create-group-modal.page.ts';
+import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -128,7 +128,9 @@ export class DashboardPage extends BasePage {
                 timeout: 3000,
             });
         } catch (error) {
-            throw new Error(`Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error instanceof Error ? error.message : String(error)}`);
+            throw new Error(
+                `Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error instanceof Error ? error.message : String(error)}`,
+            );
         }
     }
 
@@ -168,11 +170,11 @@ export class DashboardPage extends BasePage {
             const dashboardButton = this.page.getByRole('button', { name: 'Go to Dashboard' });
             await expect(dashboardButton).toBeVisible({ timeout: 2000 });
             await dashboardButton.click();
-            
+
             // Wait for navigation to dashboard
             await expect(this.page).toHaveURL(/\/dashboard\/?$/, { timeout: 5000 });
         }
-        
+
         // Now wait for dashboard to be ready (either directly or after 404 redirect)
         await this.waitForDashboard();
     }

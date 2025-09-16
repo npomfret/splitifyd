@@ -28,7 +28,7 @@ npx vitest run src/<...path...>.test.ts --reporter=verbose --reporter=json --out
 ## Guidelines for Writing Tests
 
 - **NEVER** use random sleeps (`await new Promise((resolve) => setTimeout(resolve, 5000))`) - always wait for a state change using notifications or polling (look for exising patterns)
-- When running tests, wait for them to finish, and report which have failed. 
+- When running tests, wait for them to finish, and report which have failed.
 - Skipped tests are not permitted.
 - Test complexity must be lower than the code they exercise
 - Focus on behaviour, not implementation details

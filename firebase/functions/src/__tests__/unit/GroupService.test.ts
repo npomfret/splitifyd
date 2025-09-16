@@ -92,11 +92,13 @@ const createMockNotificationService = () => ({
     initializeUserNotifications: vi.fn(),
     updateUserNotification: vi.fn(),
     getUserNotifications: vi.fn(),
-    removeUserFromGroup: vi.fn(() => Promise.resolve({
-        id: 'user-id',
-        success: true,
-        timestamp: new Date()
-    })),
+    removeUserFromGroup: vi.fn(() =>
+        Promise.resolve({
+            id: 'user-id',
+            success: true,
+            timestamp: new Date(),
+        }),
+    ),
     addUserToGroupNotificationTracking: vi.fn(),
 });
 
@@ -1080,7 +1082,7 @@ describe('GroupService - Unit Tests', () => {
                 mockNotificationService.removeUserFromGroup.mockResolvedValue({
                     id: 'user-1',
                     success: true,
-                    timestamp: new Date()
+                    timestamp: new Date(),
                 });
 
                 const result = await groupService.deleteGroup(groupId, userId);

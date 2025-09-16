@@ -59,7 +59,6 @@ export class UserPolicyService {
         }
     }
 
-
     /**
      * Accept multiple policy versions for a user
      */

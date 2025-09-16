@@ -136,7 +136,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         try {
             // Signal to the store that deletion is starting to prevent race condition with notifications
             enhancedGroupDetailStore.setDeletingGroup(true);
-            
+
             await apiClient.deleteGroup(group.id);
             setShowDeleteConfirm(false);
             if (onDelete) {
@@ -146,7 +146,7 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
             setDeleteError(errorMessage);
-            
+
             // Clear deletion flag on error so notifications work normally again
             enhancedGroupDetailStore.setDeletingGroup(false);
         } finally {

@@ -20,12 +20,15 @@ interface MetricsReportData {
         p50: number;
         p95: number;
         p99: number;
-        operations: Record<string, {
-            count: number;
-            successRate: number;
-            avgDuration: number;
-            p95: number;
-        }>;
+        operations: Record<
+            string,
+            {
+                count: number;
+                successRate: number;
+                avgDuration: number;
+                p95: number;
+            }
+        >;
     };
     memoryStats: {
         totalMetrics: number;
@@ -321,7 +324,7 @@ class FunctionPerformanceAnalyzer {
         const latestReport = this.metricsReports[this.metricsReports.length - 1];
         const totalSampleCount = this.metricsReports.reduce((sum, r) => sum + r.api.count, 0);
 
-        console.log(`🔍 Sampling Rate: ${(latestReport.samplingRate * 100)}%`);
+        console.log(`🔍 Sampling Rate: ${latestReport.samplingRate * 100}%`);
         console.log(`📈 Total Samples: ${totalSampleCount.toLocaleString()}`);
         console.log(`⏰ Reports Found: ${this.metricsReports.length}`);
         console.log(`🎯 Overall Success Rate: ${(latestReport.api.successRate * 100).toFixed(1)}%`);
@@ -400,18 +403,18 @@ class FunctionPerformanceAnalyzer {
             console.log('═'.repeat(60));
 
             // Group stable functions by performance level
-            const fast = stable.filter(s => s.averageDuration < 100);
-            const medium = stable.filter(s => s.averageDuration >= 100 && s.averageDuration < 500);
-            const slow = stable.filter(s => s.averageDuration >= 500);
+            const fast = stable.filter((s) => s.averageDuration < 100);
+            const medium = stable.filter((s) => s.averageDuration >= 100 && s.averageDuration < 500);
+            const slow = stable.filter((s) => s.averageDuration >= 500);
 
             if (fast.length > 0) {
-                console.log(`🏎️  FAST (< 100ms): ${fast.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+                console.log(`🏎️  FAST (< 100ms): ${fast.map((s) => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
             }
             if (medium.length > 0) {
-                console.log(`🚗 MEDIUM (100-500ms): ${medium.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+                console.log(`🚗 MEDIUM (100-500ms): ${medium.map((s) => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
             }
             if (slow.length > 0) {
-                console.log(`🐌 SLOW (> 500ms): ${slow.map(s => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
+                console.log(`🐌 SLOW (> 500ms): ${slow.map((s) => `${s.functionName} (${s.averageDuration.toFixed(0)}ms)`).join(', ')}`);
             }
             console.log('');
         }
@@ -424,8 +427,8 @@ class FunctionPerformanceAnalyzer {
         const avgDegradation = degrading.length > 0 ? degrading.reduce((sum, s) => sum + s.trendPercentage, 0) / degrading.length : 0;
 
         // Calculate health score
-        const slowCount = Array.from(stats.values()).filter(s => s.averageDuration >= 500).length;
-        const healthScore = Math.max(0, 100 - (degrading.length * 15) - (slowCount * 5) + (improving.length * 10));
+        const slowCount = Array.from(stats.values()).filter((s) => s.averageDuration >= 500).length;
+        const healthScore = Math.max(0, 100 - degrading.length * 15 - slowCount * 5 + improving.length * 10);
         const healthEmoji = healthScore >= 90 ? '🟢' : healthScore >= 70 ? '🟡' : '🔴';
 
         console.log(`${healthEmoji} OVERALL HEALTH SCORE: ${healthScore.toFixed(0)}/100`);

@@ -1,12 +1,12 @@
-import {Change, FirestoreEvent, onDocumentWritten} from 'firebase-functions/v2/firestore';
-import {logger} from '../logger';
-import {ChangeType} from '../utils/change-detection';
-import {FirestoreCollections} from '@splitifyd/shared';
-import {DocumentSnapshot} from 'firebase-admin/firestore';
-import {ParamsOf} from 'firebase-functions';
-import {measureTrigger} from '../monitoring/measure';
-import {getFirestore} from '../firebase';
-import {ApplicationBuilder} from '../services/ApplicationBuilder';
+import { Change, FirestoreEvent, onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { logger } from '../logger';
+import { ChangeType } from '../utils/change-detection';
+import { FirestoreCollections } from '@splitifyd/shared';
+import { DocumentSnapshot } from 'firebase-admin/firestore';
+import { ParamsOf } from 'firebase-functions';
+import { measureTrigger } from '../monitoring/measure';
+import { getFirestore } from '../firebase';
+import { ApplicationBuilder } from '../services/ApplicationBuilder';
 
 const firestore = getFirestore();
 const appBuilder = new ApplicationBuilder(firestore);
@@ -20,10 +20,10 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const {changeType, after} = extractDataChange(event);
+        const { changeType, after } = extractDataChange(event);
 
         if (changeType === 'deleted') {
-            logger.info('group-deleted', {groupId});
+            logger.info('group-deleted', { groupId });
             return;
         }
 
@@ -32,10 +32,9 @@ export const trackGroupChanges = onDocumentWritten(
 
             await notificationService.batchUpdateNotifications(affectedUsers, groupId, 'group');
 
-            logger.info('group-changed', {id: groupId, groupId, usersNotified: affectedUsers.length});
+            logger.info('group-changed', { id: groupId, groupId, usersNotified: affectedUsers.length });
         });
     },
-
 );
 
 export const trackExpenseChanges = onDocumentWritten(
@@ -45,7 +44,7 @@ export const trackExpenseChanges = onDocumentWritten(
     },
     async (event) => {
         const expenseId = event.params.expenseId;
-        const {after} = extractDataChange(event);
+        const { after } = extractDataChange(event);
 
         return measureTrigger('trackExpenseChanges', async () => {
             const afterData = after?.data();
@@ -58,7 +57,7 @@ export const trackExpenseChanges = onDocumentWritten(
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
             await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
 
-            logger.info('expense-changed', {id: expenseId, groupId, usersNotified: affectedUsers.length});
+            logger.info('expense-changed', { id: expenseId, groupId, usersNotified: affectedUsers.length });
         });
     },
 );
@@ -70,7 +69,7 @@ export const trackSettlementChanges = onDocumentWritten(
     },
     async (event) => {
         const settlementId = event.params.settlementId;
-        const {after} = extractDataChange(event);
+        const { after } = extractDataChange(event);
 
         return measureTrigger('trackSettlementChanges', async () => {
             const afterData = after?.data();
@@ -83,13 +82,12 @@ export const trackSettlementChanges = onDocumentWritten(
             const affectedUsers = await firestoreReader.getAllGroupMemberIds(groupId);
             await notificationService.batchUpdateNotificationsMultipleTypes(affectedUsers, groupId, ['transaction', 'balance']);
 
-            logger.info('settlement-changed', {id: settlementId, groupId, usersNotified: affectedUsers.length});
+            logger.info('settlement-changed', { id: settlementId, groupId, usersNotified: affectedUsers.length });
 
-            return {groupId, affectedUserCount: affectedUsers.length};
+            return { groupId, affectedUserCount: affectedUsers.length };
         });
     },
 );
-
 
 function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<string>>) {
     const before = event.data?.before;
@@ -104,5 +102,5 @@ function extractDataChange(event: FirestoreEvent<Change<DocumentSnapshot> | unde
         changeType = 'updated';
     }
 
-    return {before, after, changeType};
+    return { before, after, changeType };
 }

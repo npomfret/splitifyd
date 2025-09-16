@@ -10,7 +10,6 @@ const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
 const userPolicyService = applicationBuilder.buildUserPolicyService();
 
-
 /**
  * Accept multiple policy versions for the authenticated user
  */

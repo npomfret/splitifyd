@@ -73,7 +73,7 @@ export function RegisterPage() {
             const returnUrl = urlParams.get('returnUrl');
             console.log('🔥 REGISTER PAGE - Current URL search params:', window.location.search);
             console.log('🔥 REGISTER PAGE - Extracted returnUrl:', returnUrl);
-            
+
             if (returnUrl) {
                 // Decode and navigate to the return URL
                 const decodedReturnUrl = decodeURIComponent(returnUrl);

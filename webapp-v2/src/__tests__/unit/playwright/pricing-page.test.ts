@@ -1,9 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    expectElementVisible,
-    verifyNavigation,
-} from '../infra/test-helpers';
+import { setupTestPage, expectElementVisible, verifyNavigation } from '../infra/test-helpers';
 
 /**
  * PricingPage behavioral tests - Testing static content and user interactions
@@ -23,8 +19,8 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
     test('should render all core pricing sections and content', async ({ page }) => {
         // Verify main page structure
-        await expect(page.locator('h1')).toContainText("Pricing");
-        await expect(page.locator('h2')).toContainText("Choose Your Adventure");
+        await expect(page.locator('h1')).toContainText('Pricing');
+        await expect(page.locator('h2')).toContainText('Choose Your Adventure');
 
         // Verify pricing plan cards are present
         await expectElementVisible(page, 'text=The "Just Getting Started" Plan');
@@ -53,9 +49,9 @@ test.describe('PricingPage - Behavioral Tests', () => {
 
     test('should handle call-to-action buttons correctly', async ({ page }) => {
         // Look for the specific sign-up buttons from the component
-        await expect(page.locator('text=Sign Up (It\'s Still Free)')).toBeVisible();
+        await expect(page.locator("text=Sign Up (It's Still Free)")).toBeVisible();
         await expect(page.locator('text=Join Now (Seriously, No Catch)')).toBeVisible();
-        await expect(page.locator('text=Get Started (It\'s a Gift!)')).toBeVisible();
+        await expect(page.locator("text=Get Started (It's a Gift!)")).toBeVisible();
 
         // All buttons should be visible and clickable (there may be other buttons from header/footer)
         const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });

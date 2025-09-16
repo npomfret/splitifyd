@@ -16,7 +16,6 @@ simpleTest.describe('Three User Settlement Management', () => {
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
         const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
 
-
         // Verify all 3 users are distinct to prevent flaky test failures
 
         // Assert all users have different emails

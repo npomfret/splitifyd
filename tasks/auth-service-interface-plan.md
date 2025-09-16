@@ -225,21 +225,25 @@ export const UpdateUserRequestSchema = Joi.object({
 ### 4. Benefits
 
 #### 4.1 Improved Testability
+
 - Unit tests can use MockAuthService without Firebase emulator
 - Faster test execution
 - More reliable CI/CD pipeline
 
 #### 4.2 Better Abstraction
+
 - Hide Firebase-specific implementation details
 - Easier to switch auth providers if needed
 - Consistent interface across the application
 
 #### 4.3 Enhanced Error Handling
+
 - Standardized error responses
 - Better error context and logging
 - Consistent validation patterns
 
 #### 4.4 Maintainability
+
 - Centralized auth operations
 - Single point of change for auth logic
 - Follows established architectural patterns
@@ -247,16 +251,19 @@ export const UpdateUserRequestSchema = Joi.object({
 ### 5. Migration Strategy
 
 #### 5.1 Backward Compatibility
+
 - Keep existing `getAuth()` function during transition
 - Gradual migration of services one by one
 - No breaking changes to external APIs
 
 #### 5.2 Testing Strategy
+
 - Create comprehensive unit tests for new interface
 - Integration tests with Firebase emulator
 - Performance benchmarks to ensure no regression
 
 #### 5.3 Rollout Plan
+
 1. **Week 1**: Create interface and basic implementation
 2. **Week 2**: Migrate auth middleware and add tests
 3. **Week 3**: Migrate UserService2 and TestUserPoolService
@@ -265,11 +272,13 @@ export const UpdateUserRequestSchema = Joi.object({
 ### 6. Risk Assessment
 
 #### 6.1 Low Risk
+
 - No changes to external APIs
 - Follows established patterns
 - Gradual migration approach
 
 #### 6.2 Mitigation Strategies
+
 - Comprehensive testing before migration
 - Feature flags for gradual rollout
 - Rollback plan with git history
@@ -277,11 +286,13 @@ export const UpdateUserRequestSchema = Joi.object({
 ### 7. Success Metrics
 
 #### 7.1 Technical Metrics
+
 - **Unit test coverage**: >95% for auth operations
 - **Performance**: No degradation in auth operations
 - **Error rate**: Reduced auth-related errors
 
 #### 7.2 Developer Experience
+
 - **Reduced test setup complexity**: No emulator needed for unit tests
 - **Improved debugging**: Better error messages and context
 - **Consistent patterns**: Auth follows same patterns as Firestore
@@ -289,6 +300,7 @@ export const UpdateUserRequestSchema = Joi.object({
 ### 8. Implementation Checklist
 
 #### Phase 1: Foundation ✅ COMPLETED
+
 - [x] Create IAuthService interface with comprehensive method signatures
 - [x] Implement FirebaseAuthService with error handling and validation
 - [x] Create auth-specific validation schemas using Joi
@@ -297,6 +309,7 @@ export const UpdateUserRequestSchema = Joi.object({
 - [x] Fix MockAuthService TypeScript interface compatibility issues - COMPLETED
 
 #### Phase 2: Migration
+
 - [x] Update auth/middleware.ts to use IAuthService - COMPLETED
 - [x] Migrate UserService2.ts auth operations - COMPLETED
 - [x] Update CommentService.ts to use IAuthService - COMPLETED
@@ -306,6 +319,7 @@ export const UpdateUserRequestSchema = Joi.object({
 - [x] Update any other files using direct getAuth() - ALL COMPLETED
 
 #### Phase 3: Testing & Optimization
+
 - [x] Updated CommentService.test.ts to use MockAuthService - COMPLETED
 - [x] Fixed all TypeScript compilation errors - COMPLETED
 - [x] Verified full build success - COMPLETED
@@ -316,6 +330,7 @@ export const UpdateUserRequestSchema = Joi.object({
 - [ ] Documentation updates
 
 #### Phase 4: Cleanup
+
 - [ ] Remove deprecated getAuth() usage
 - [ ] Clean up imports and dependencies
 - [ ] Update code documentation
@@ -352,51 +367,52 @@ Based on comprehensive analysis, here are ALL the files that need to be refactor
 ### Production Code Files (21 occurrences across 7 files)
 
 1. **firebase/functions/src/firebase.ts**
-   - Line 109: Export of `getAuth()` function - Keep during transition, deprecate later
+    - Line 109: Export of `getAuth()` function - Keep during transition, deprecate later
 
 2. **firebase/functions/src/auth/middleware.ts** (2 occurrences)
-   - Line 49: `await getAuth().verifyIdToken(token)` - Token verification
-   - Line 52: `await getAuth().getUser(decodedToken.uid)` - User lookup
+    - Line 49: `await getAuth().verifyIdToken(token)` - Token verification
+    - Line 52: `await getAuth().getUser(decodedToken.uid)` - User lookup
 
 3. **firebase/functions/src/services/UserService2.ts** (11 occurrences)
-   - Line 119: `getAuth().getUser(userId)` - Get single user
-   - Line 172: `getAuth().getUsers(uids.map(...))` - Batch get users
-   - Line 221: `getAuth().updateUser(userId, authUpdateData)` - Update user profile
-   - Line 285: `getAuth().getUser(userId)` - Get user for password change
-   - Line 296: `getAuth().updateUser(userId, {...})` - Update password
-   - Line 359: `getAuth().deleteUser(userId)` - Delete user account
-   - Line 475: `getAuth().createUser(c)` - Create new user
-   - Line 537: `getAuth().deleteUser(userRecord.uid)` - Cleanup on failure
-   - Plus imports of `UpdateRequest`, `UserRecord`, `CreateRequest` types
+    - Line 119: `getAuth().getUser(userId)` - Get single user
+    - Line 172: `getAuth().getUsers(uids.map(...))` - Batch get users
+    - Line 221: `getAuth().updateUser(userId, authUpdateData)` - Update user profile
+    - Line 285: `getAuth().getUser(userId)` - Get user for password change
+    - Line 296: `getAuth().updateUser(userId, {...})` - Update password
+    - Line 359: `getAuth().deleteUser(userId)` - Delete user account
+    - Line 475: `getAuth().createUser(c)` - Create new user
+    - Line 537: `getAuth().deleteUser(userRecord.uid)` - Cleanup on failure
+    - Plus imports of `UpdateRequest`, `UserRecord`, `CreateRequest` types
 
 4. **firebase/functions/src/services/CommentService.ts** (1 occurrence)
-   - Line 151: `getAuth().getUser(userId)` - Get user for comment author
+    - Line 151: `getAuth().getUser(userId)` - Get user for comment author
 
 5. **firebase/functions/src/test-pool/TestUserPoolService.ts** (1 occurrence)
-   - Line 117: `getAuth().createCustomToken(user.uid)` - Create test token
+    - Line 117: `getAuth().createCustomToken(user.uid)` - Create test token
 
 6. **firebase/functions/src/test/policy-handlers.ts** (1 occurrence)
-   - Line 89: `const auth = getAuth()` - Admin endpoint for listing users
+    - Line 89: `const auth = getAuth()` - Admin endpoint for listing users
 
 7. **firebase/functions/src/index.ts** (1 occurrence)
-   - Line 101: `getAuth().listUsers(SYSTEM.AUTH_LIST_LIMIT)` - Health check
+    - Line 101: `getAuth().listUsers(SYSTEM.AUTH_LIST_LIMIT)` - Health check
 
 ### Test Files That Need Updates
 
-1. **firebase/functions/src/__tests__/integration/normal-flow/UserService.integration.test.ts** (6 occurrences)
-   - Lines 44, 123, 242, 273, 400, 472: Various `getAuth()` calls for verification
+1. **firebase/functions/src/**tests**/integration/normal-flow/UserService.integration.test.ts** (6 occurrences)
+    - Lines 44, 123, 242, 273, 400, 472: Various `getAuth()` calls for verification
 
-2. **firebase/functions/src/__tests__/unit/services/CommentService.test.ts**
-   - Currently mocks `getAuth()` via `vi.mock('../../../firebase')`
-   - Needs to use MockAuthService instead
+2. **firebase/functions/src/**tests**/unit/services/CommentService.test.ts**
+    - Currently mocks `getAuth()` via `vi.mock('../../../firebase')`
+    - Needs to use MockAuthService instead
 
 3. **Other unit tests that may need updates:**
-   - Any test that currently mocks Firebase auth will need to use MockAuthService
-   - Tests for UserService2, auth middleware, TestUserPoolService
+    - Any test that currently mocks Firebase auth will need to use MockAuthService
+    - Tests for UserService2, auth middleware, TestUserPoolService
 
 ## Detailed Migration Plan per File
 
 ### Phase 1: Create Core Infrastructure
+
 1. Create `IAuthService` interface
 2. Create `FirebaseAuthService` implementation
 3. Create `MockAuthService` for testing
@@ -405,6 +421,7 @@ Based on comprehensive analysis, here are ALL the files that need to be refactor
 ### Phase 2: Migrate Core Services
 
 #### 2.1 auth/middleware.ts
+
 ```typescript
 // Add dependency injection
 constructor(private authService: IAuthService) {}
@@ -419,6 +436,7 @@ const userRecord = await this.authService.getUser(decodedToken.uid);
 ```
 
 #### 2.2 UserService2.ts
+
 ```typescript
 // Add to constructor
 constructor(
@@ -433,12 +451,14 @@ constructor(
 ```
 
 #### 2.3 CommentService.ts
+
 ```typescript
 // Add IAuthService to constructor
 // Replace getAuth().getUser() with this.authService.getUser()
 ```
 
 #### 2.4 TestUserPoolService.ts
+
 ```typescript
 // Add IAuthService to constructor
 // Replace getAuth().createCustomToken() with this.authService.createCustomToken()
@@ -447,11 +467,13 @@ constructor(
 ### Phase 3: Update Test Files
 
 #### 3.1 Unit Tests
+
 - Replace all `vi.mock('../../../firebase')` with MockAuthService injection
 - Update test setup to create MockAuthService instances
 - Configure mock responses as needed
 
 #### 3.2 Integration Tests
+
 - Can continue using real Firebase Auth via FirebaseAuthService
 - Or use MockAuthService for faster execution
 
@@ -466,7 +488,7 @@ const userService = new UserService(
     firestoreWriter,
     validationService,
     notificationService,
-    authService // New dependency
+    authService, // New dependency
 );
 ```
 
@@ -498,6 +520,7 @@ This comprehensive refactoring will bring Firebase Auth in line with the excelle
 ## 🎯 **Current Implementation Status** (Updated: 2025-01-15)
 
 ### ✅ **COMPLETED**
+
 - **Core Infrastructure**: Full IAuthService interface abstraction implemented
 - **Production Migration**: All 21 getAuth() calls successfully migrated across 7 files
 - **Dependency Injection**: Complete ApplicationBuilder integration
@@ -506,6 +529,7 @@ This comprehensive refactoring will bring Firebase Auth in line with the excelle
 - **Build Verification**: Full build pipeline success confirmed
 
 ### 📊 **Migration Results**
+
 ```
 Files Updated: 7 production files
 Auth Calls Migrated: 21 → 0 (100% conversion rate)
@@ -516,6 +540,7 @@ Test Suite: ✅ ALL 514 UNIT TESTS PASSING
 ```
 
 ### 🏗️ **Architecture Achieved**
+
 - ✅ **Consistent Patterns**: Auth service follows IFirestoreReader/Writer patterns exactly
 - ✅ **Dependency Injection**: Clean constructor-based injection throughout
 - ✅ **Interface Abstraction**: Complete separation from Firebase implementation details
@@ -523,7 +548,9 @@ Test Suite: ✅ ALL 514 UNIT TESTS PASSING
 - ✅ **Type Safety**: Full compile-time verification of auth operations
 
 ### 🚀 **Ready for Production**
+
 The Firebase Auth interface abstraction is **production-ready** with:
+
 - Zero breaking changes to existing functionality
 - Complete backward compatibility maintained
 - Enhanced testability and maintainability

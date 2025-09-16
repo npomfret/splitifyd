@@ -87,7 +87,6 @@ export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response
     res.json(result);
 };
 
-
 export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);

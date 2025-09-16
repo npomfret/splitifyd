@@ -42,7 +42,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // Member joins the group
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Wait for both users to see each other in the member list
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -92,8 +92,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // Both members join the group
-        const member1GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member1Page, shareLink, groupId)
-        const member2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member2Page, shareLink, groupId)
+        const member1GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member1Page, shareLink, groupId);
+        const member2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member2Page, shareLink, groupId);
 
         // Wait for all users to see each other (3 members total)
         await groupDetailPage.waitForMemberCount(3);
@@ -149,7 +149,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Get share link and have member join
         const shareLink = await groupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -214,7 +214,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
@@ -256,12 +256,12 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Member joins
         const shareLink = await groupDetailPage.getShareLink();
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId)
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Wait for synchronization
         await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
         await groupDetailPage2.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
-        await groupDetailPage2.navigateToDashboard();// move away from the page to avoid 404 errors in console after the removal happens
+        await groupDetailPage2.navigateToDashboard(); // move away from the page to avoid 404 errors in console after the removal happens
 
         // Owner removes the only other member
         const removeMemberModal = await groupDetailPage.clickRemoveMember(memberDisplayName);

@@ -1,8 +1,8 @@
-import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
-import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
-import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {generateTestGroupName} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
+import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
+import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
+import { generateTestGroupName } from '@splitifyd/test-support';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 
 test.describe('Leave Group E2E', () => {
     test('user should be able to leave group and no longer access it', async ({ newLoggedInBrowser }, testInfo) => {
@@ -68,12 +68,12 @@ test.describe('Leave Group E2E', () => {
         // Console errors are expected here as the app tries to load group data that no longer exists for this user
         await memberGroupDetailPage.waitForRedirectAwayFromGroup(groupId);
 
-        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));// sanity check
+        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId)); // sanity check
         // Wait for member count to update (should now be 1 - just the owner)
         await ownerGroupDetailPage.waitForMemberCount(1);
 
         // Owner should still be able to access the group
-        await ownerGroupDetailPage.page.reload()
+        await ownerGroupDetailPage.page.reload();
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
     });
 
@@ -95,13 +95,14 @@ test.describe('Leave Group E2E', () => {
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(2);
-        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Test expense for balance validation')
-            .withAmount(60)
-            .withCurrency('USD')
-            .withPaidByDisplayName(ownerDisplayName)
-            .withSplitType('equal')
-            .build()
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder()
+                .withDescription('Test expense for balance validation')
+                .withAmount(60)
+                .withCurrency('USD')
+                .withPaidByDisplayName(ownerDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // Wait for balances to update
@@ -143,10 +144,14 @@ test.describe('Leave Group E2E', () => {
         const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.synchronizeMultiUserState([
-            { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
-            { page: memberPage, groupDetailPage: memberGroupDetailPage }
-        ], 2, groupId);
+        await ownerGroupDetailPage.synchronizeMultiUserState(
+            [
+                { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
+                { page: memberPage, groupDetailPage: memberGroupDetailPage },
+            ],
+            2,
+            groupId,
+        );
 
         // Member stays on group page while owner removes them
         // Owner removes the member using the remove member feature
@@ -181,10 +186,14 @@ test.describe('Leave Group E2E', () => {
         let memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.synchronizeMultiUserState([
-            { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
-            { page: memberPage, groupDetailPage: memberGroupDetailPage }
-        ], 2, groupId);
+        await ownerGroupDetailPage.synchronizeMultiUserState(
+            [
+                { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
+                { page: memberPage, groupDetailPage: memberGroupDetailPage },
+            ],
+            2,
+            groupId,
+        );
 
         // Member navigates to dashboard and verifies group is visible
         memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();
@@ -193,10 +202,10 @@ test.describe('Leave Group E2E', () => {
         // Owner removes member using the remove member feature
         const removeMemberModal = await ownerGroupDetailPage.clickRemoveMember(memberDisplayName);
         await removeMemberModal.confirmRemoveMember();
-        
+
         // Group should no longer be visible on member's dashboard - this should happen cleanly without errors
         await memberDashboardPage.waitForGroupToNotBePresent(groupName);
-        
+
         // Owner should see member count updated to 1
         await ownerGroupDetailPage.waitForMemberCount(1);
         await ownerGroupDetailPage.verifyMemberNotVisible(memberDisplayName);

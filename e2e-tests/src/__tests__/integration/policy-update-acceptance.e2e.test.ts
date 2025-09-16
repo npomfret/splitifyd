@@ -188,5 +188,4 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
         // Close the browser context
         await context.close();
     });
-
 });

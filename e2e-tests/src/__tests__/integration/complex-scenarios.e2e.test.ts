@@ -41,13 +41,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Alice adds beach house expense ($800)
         const memberCount = 2; // Alice and Bob
         const aliceExpenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(memberCount);
-        await aliceExpenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Beach House Rental')
-            .withAmount(800.0)
-            .withPaidByDisplayName(aliceDisplayName)
-            .withCurrency('USD')
-            .withSplitType('equal')
-            .build()
+        await aliceExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Beach House Rental').withAmount(800.0).withPaidByDisplayName(aliceDisplayName).withCurrency('USD').withSplitType('equal').build(),
         );
 
         // Wait for Alice's expense to be fully processed and synced
@@ -56,13 +51,8 @@ test.describe('Complex Unsettled Group Scenario', () => {
         // Bob adds restaurant expense ($120)
         const bobGroupDetailPage = new GroupDetailPage(bobPage);
         const bobExpenseFormPage = await bobGroupDetailPage.clickAddExpenseButton(memberCount);
-        await bobExpenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('Restaurant Dinner')
-            .withAmount(120.0)
-            .withPaidByDisplayName(bobDisplayName)
-            .withCurrency('USD')
-            .withSplitType('equal')
-            .build()
+        await bobExpenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Restaurant Dinner').withAmount(120.0).withPaidByDisplayName(bobDisplayName).withCurrency('USD').withSplitType('equal').build(),
         );
 
         // Wait for Bob's expense to be fully processed and synced

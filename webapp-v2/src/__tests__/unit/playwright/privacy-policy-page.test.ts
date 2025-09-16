@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    expectElementVisible,
-    SELECTORS,
-    TEST_SCENARIOS
-} from '../infra/test-helpers';
+import { setupTestPage, expectElementVisible, SELECTORS, TEST_SCENARIOS } from '../infra/test-helpers';
 
 /**
  * High-value privacy policy page tests that verify actual user behavior
@@ -23,8 +18,8 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                         id: 'privacy-policy',
                         type: 'PRIVACY_POLICY',
                         text: 'This is our privacy policy. We collect and use your data responsibly.',
-                        createdAt: '2025-01-22T00:00:00Z'
-                    })
+                        createdAt: '2025-01-22T00:00:00Z',
+                    }),
                 });
             } else {
                 route.continue();
@@ -64,8 +59,8 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                             id: 'privacy-policy',
                             type: 'PRIVACY_POLICY',
                             text: 'Delayed policy content.',
-                            createdAt: '2025-01-22T00:00:00Z'
-                        })
+                            createdAt: '2025-01-22T00:00:00Z',
+                        }),
                     });
                 }, 100);
             } else {
@@ -92,7 +87,7 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                 route.fulfill({
                     status: 500,
                     contentType: 'application/json',
-                    body: JSON.stringify({ error: 'Internal server error' })
+                    body: JSON.stringify({ error: 'Internal server error' }),
                 });
             } else {
                 route.continue();
@@ -171,8 +166,8 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                         id: 'privacy-policy',
                         type: 'PRIVACY_POLICY',
                         text: '',
-                        createdAt: '2025-01-22T00:00:00Z'
-                    })
+                        createdAt: '2025-01-22T00:00:00Z',
+                    }),
                 });
             } else {
                 route.continue();
@@ -198,8 +193,8 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                         id: 'privacy-policy',
                         type: 'PRIVACY_POLICY',
                         text: 'Policy content',
-                        createdAt: '2025-01-22T00:00:00Z'
-                    })
+                        createdAt: '2025-01-22T00:00:00Z',
+                    }),
                 });
             } else {
                 route.continue();
@@ -228,8 +223,8 @@ test.describe('PrivacyPolicyPage - Behavioral Tests', () => {
                         id: 'privacy-policy',
                         type: 'PRIVACY_POLICY',
                         text: 'This is a **bold** privacy policy with *emphasis* and proper formatting.',
-                        createdAt: '2025-01-22T00:00:00Z'
-                    })
+                        createdAt: '2025-01-22T00:00:00Z',
+                    }),
                 });
             } else {
                 route.continue();

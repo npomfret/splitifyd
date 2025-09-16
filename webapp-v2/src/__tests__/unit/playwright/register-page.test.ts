@@ -12,7 +12,7 @@ import {
     SELECTORS,
     TEST_SCENARIOS,
     testFormValidation,
-    testSessionStoragePersistence
+    testSessionStoragePersistence,
 } from '../infra/test-helpers';
 
 /**
@@ -39,7 +39,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             { selector: SELECTORS.FULLNAME_INPUT, type: 'text' },
             { selector: SELECTORS.EMAIL_INPUT, type: 'email' },
             { selector: SELECTORS.PASSWORD_INPUT, type: 'password' },
-            { selector: SELECTORS.CONFIRM_PASSWORD_INPUT, type: 'password' }
+            { selector: SELECTORS.CONFIRM_PASSWORD_INPUT, type: 'password' },
         ]);
 
         // Test required indicators are present (there are multiple, so check count)
@@ -53,13 +53,13 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
             [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
             [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
         });
 
         // Test checkbox interactions
         await expectCheckboxStates(page, {
             [SELECTORS.TERMS_CHECKBOX]: false,
-            [SELECTORS.COOKIES_CHECKBOX]: false
+            [SELECTORS.COOKIES_CHECKBOX]: false,
         });
 
         await page.check(SELECTORS.TERMS_CHECKBOX);
@@ -67,18 +67,13 @@ test.describe('RegisterPage - Behavioral Tests', () => {
 
         await expectCheckboxStates(page, {
             [SELECTORS.TERMS_CHECKBOX]: true,
-            [SELECTORS.COOKIES_CHECKBOX]: true
+            [SELECTORS.COOKIES_CHECKBOX]: true,
         });
     });
 
     test('should prevent submission with incomplete data', async ({ page }) => {
         // Test progressive form validation
-        const fields = [
-            SELECTORS.FULLNAME_INPUT,
-            SELECTORS.EMAIL_INPUT,
-            SELECTORS.PASSWORD_INPUT,
-            SELECTORS.CONFIRM_PASSWORD_INPUT
-        ];
+        const fields = [SELECTORS.FULLNAME_INPUT, SELECTORS.EMAIL_INPUT, SELECTORS.PASSWORD_INPUT, SELECTORS.CONFIRM_PASSWORD_INPUT];
 
         // Initially disabled - no fields filled
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'disabled');
@@ -103,7 +98,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         await fillMultipleFields(page, {
             [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
             [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
-            [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD
+            [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
         });
         await page.check(SELECTORS.TERMS_CHECKBOX);
         await page.check(SELECTORS.COOKIES_CHECKBOX);
@@ -129,7 +124,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             [SELECTORS.FULLNAME_INPUT]: 'Jane Smith',
             [SELECTORS.EMAIL_INPUT]: 'jane@example.com',
             [SELECTORS.PASSWORD_INPUT]: 'mypassword456',
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: 'mypassword456'
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: 'mypassword456',
         });
 
         await page.waitForTimeout(100);
@@ -139,7 +134,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             name: sessionStorage.getItem('register-form-name'),
             email: sessionStorage.getItem('register-form-email'),
             password: sessionStorage.getItem('register-form-password'),
-            confirmPassword: sessionStorage.getItem('register-form-confirmPassword')
+            confirmPassword: sessionStorage.getItem('register-form-confirmPassword'),
         }));
 
         expect(storedData.name).toBe('Jane Smith');
@@ -167,7 +162,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Fill form to test that functionality still works with URL params
         await fillMultipleFields(page, {
             [SELECTORS.FULLNAME_INPUT]: 'Test User',
-            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL
+            [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
         });
 
         // Still needs password and checkboxes
@@ -186,7 +181,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             [SELECTORS.FULLNAME_INPUT]: 'Test User',
             [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
             [SELECTORS.PASSWORD_INPUT]: strongPassword,
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: strongPassword
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: strongPassword,
         });
 
         await page.check(SELECTORS.TERMS_CHECKBOX);
@@ -223,7 +218,7 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
             [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
             [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
-            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD
+            [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
         });
 
         await page.check(SELECTORS.TERMS_CHECKBOX);

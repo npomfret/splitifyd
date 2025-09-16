@@ -1,4 +1,4 @@
-import { signal,  ReadonlySignal } from '@preact/signals';
+import { signal, ReadonlySignal } from '@preact/signals';
 import type { UserThemeColor } from '@splitifyd/shared';
 import type { User } from '@/types/auth.ts';
 

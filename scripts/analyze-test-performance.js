@@ -26,7 +26,7 @@ function analyzeTestResults(jsonFilePath) {
 
         const rawData = fs.readFileSync(jsonFilePath, 'utf8');
         const testResults = JSON.parse(rawData);
-        
+
         if (!testResults.testResults || testResults.testResults.length === 0) {
             console.log('⚠️  No test results found in JSON file.');
             return;
@@ -36,15 +36,15 @@ function analyzeTestResults(jsonFilePath) {
         const allTests = [];
         const fileStats = [];
 
-        testResults.testResults.forEach(testFile => {
+        testResults.testResults.forEach((testFile) => {
             const filePath = testFile.name || testFile.filepath || 'unknown';
             const relativePath = filePath.replace(process.cwd(), '').replace(/^\//, '');
-            
+
             let fileTotalTime = 0;
             let testCount = 0;
 
             if (testFile.assertionResults) {
-                testFile.assertionResults.forEach(test => {
+                testFile.assertionResults.forEach((test) => {
                     const duration = test.duration || 0;
                     fileTotalTime += duration;
                     testCount++;
@@ -52,7 +52,7 @@ function analyzeTestResults(jsonFilePath) {
                     allTests.push({
                         name: test.title || test.ancestorTitles?.join(' > ') + ' > ' + test.title || 'unknown test',
                         file: relativePath,
-                        duration: duration
+                        duration: duration,
                     });
                 });
             }
@@ -61,13 +61,13 @@ function analyzeTestResults(jsonFilePath) {
                 file: relativePath,
                 totalTime: fileTotalTime,
                 testCount: testCount,
-                avgTime: testCount > 0 ? fileTotalTime / testCount : 0
+                avgTime: testCount > 0 ? fileTotalTime / testCount : 0,
             });
         });
 
         // Sort tests by duration (slowest first)
         allTests.sort((a, b) => b.duration - a.duration);
-        
+
         // Sort files by total time (slowest first)
         fileStats.sort((a, b) => b.totalTime - a.totalTime);
 
@@ -75,8 +75,8 @@ function analyzeTestResults(jsonFilePath) {
         const totalTests = allTests.length;
         const totalTime = allTests.reduce((sum, test) => sum + test.duration, 0);
         const avgTime = totalTests > 0 ? totalTime / totalTests : 0;
-        const slowTests = allTests.filter(test => test.duration > 500);
-        const verySlowTests = allTests.filter(test => test.duration > 1000);
+        const slowTests = allTests.filter((test) => test.duration > 500);
+        const verySlowTests = allTests.filter((test) => test.duration > 1000);
 
         // Print the performance report
         console.log('\n' + '='.repeat(60));
@@ -100,13 +100,11 @@ function analyzeTestResults(jsonFilePath) {
                 const emoji = index < 3 ? '🚨' : index < 5 ? '⚠️ ' : '📝';
                 console.log(`${(index + 1).toString().padStart(2)}. ${emoji} ${formatDuration(file.totalTime).padStart(8)} - ${file.file}`);
                 console.log(`    ${file.testCount} tests, avg: ${formatDuration(file.avgTime)}`);
-                
+
                 // Find and show the slowest test in this file
-                const testsInFile = allTests.filter(test => test.file === file.file);
+                const testsInFile = allTests.filter((test) => test.file === file.file);
                 if (testsInFile.length > 0) {
-                    const slowestInFile = testsInFile.reduce((slowest, current) => 
-                        current.duration > slowest.duration ? current : slowest
-                    );
+                    const slowestInFile = testsInFile.reduce((slowest, current) => (current.duration > slowest.duration ? current : slowest));
                     console.log(`    🔸 Slowest test: ${formatDuration(slowestInFile.duration)} - ${slowestInFile.name}`);
                 }
             });
@@ -134,7 +132,6 @@ function analyzeTestResults(jsonFilePath) {
         }
 
         console.log('\n' + '='.repeat(60));
-
     } catch (error) {
         console.error('❌ Error analyzing test results:', error.message);
     }
@@ -149,8 +146,6 @@ if (!jsonFilePath) {
 }
 
 // Convert relative path to absolute path based on where the script is called from
-const absolutePath = path.isAbsolute(jsonFilePath) 
-    ? jsonFilePath 
-    : path.resolve(process.cwd(), jsonFilePath);
+const absolutePath = path.isAbsolute(jsonFilePath) ? jsonFilePath : path.resolve(process.cwd(), jsonFilePath);
 
 analyzeTestResults(absolutePath);

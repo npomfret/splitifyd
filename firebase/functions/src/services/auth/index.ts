@@ -25,13 +25,10 @@ export type {
     AuthOperationContext,
     AuthServiceMetrics,
     PasswordPolicy,
-    UserProfile
+    UserProfile,
 } from './auth-types';
 
-export {
-    AuthErrorCode,
-    FIREBASE_AUTH_ERROR_MAP
-} from './auth-types';
+export { AuthErrorCode, FIREBASE_AUTH_ERROR_MAP } from './auth-types';
 
 // Validation functions
 export {
@@ -43,18 +40,8 @@ export {
     validateIdToken,
     validateCustomClaims,
     validateListUsersOptions,
-    validateBatchUserIds
+    validateBatchUserIds,
 } from './auth-validation';
 
 // Validation schemas (for direct use if needed)
-export {
-    createUserSchema,
-    updateUserSchema,
-    userIdSchema,
-    emailSchema,
-    phoneNumberSchema,
-    idTokenSchema,
-    customClaimsSchema,
-    listUsersOptionsSchema,
-    batchUserIdsSchema
-} from './auth-validation';
+export { createUserSchema, updateUserSchema, userIdSchema, emailSchema, phoneNumberSchema, idTokenSchema, customClaimsSchema, listUsersOptionsSchema, batchUserIdsSchema } from './auth-validation';

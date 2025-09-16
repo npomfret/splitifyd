@@ -1,14 +1,5 @@
 import { test, expect } from '@playwright/test';
-import {
-    setupTestPage,
-    fillFormField,
-    expectButtonState,
-    expectElementVisible,
-    fillMultipleFields,
-    verifyNavigation,
-    SELECTORS,
-    TEST_SCENARIOS,
-} from '../infra/test-helpers';
+import { setupTestPage, fillFormField, expectButtonState, expectElementVisible, fillMultipleFields, verifyNavigation, SELECTORS, TEST_SCENARIOS } from '../infra/test-helpers';
 
 /**
  * SettingsPage behavioral tests - Testing routing and accessible behaviors

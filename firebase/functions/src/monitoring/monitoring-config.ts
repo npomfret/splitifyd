@@ -111,4 +111,3 @@ export const SUBCOLLECTION_MONITORING_CONFIG: {
     },
     sampling: SAMPLING_RATES,
 };
-

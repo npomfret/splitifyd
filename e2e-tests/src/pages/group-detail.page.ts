@@ -2,7 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
-import {SettlementData, SettlementFormPage} from './settlement-form.page';
+import { SettlementData, SettlementFormPage } from './settlement-form.page';
 import { EditGroupModalPage } from './edit-group-modal.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
@@ -830,10 +830,9 @@ export class GroupDetailPage extends BasePage {
         // Create and return the EditGroupModalPage instance
         const editModal = new EditGroupModalPage(this.page);
         await editModal.waitForModalVisible();
-        
+
         return editModal;
     }
-
 
     // ==============================
     // ADDITIONAL METHODS FOR TEST REFACTORING
@@ -1175,10 +1174,9 @@ export class GroupDetailPage extends BasePage {
         // Create and return the LeaveGroupModalPage instance
         const leaveModal = new LeaveGroupModalPage(this.page);
         await leaveModal.waitForDialogVisible();
-        
+
         return leaveModal;
     }
-
 
     async waitForRedirectAwayFromGroup(groupId: string): Promise<void> {
         await expect(async () => {
@@ -1235,7 +1233,6 @@ export class GroupDetailPage extends BasePage {
     async verifyMemberNotVisible(memberName: string): Promise<void> {
         await expect(this.page.getByText(memberName)).not.toBeVisible();
     }
-
 
     // ====== COMMENTS METHODS ======
 
@@ -1394,18 +1391,18 @@ export class GroupDetailPage extends BasePage {
         // Click confirm button with data-testid
         const confirmButton = this.page.getByTestId('confirm-button');
         await expect(confirmButton).toBeEnabled();
-        
+
         const clickTime = Date.now();
         console.log('🕒 Clicking leave group confirm button at:', new Date(clickTime).toISOString());
         await confirmButton.click();
 
-        // Wait for confirmation UI to close and navigation to occur with better error handling  
+        // Wait for confirmation UI to close and navigation to occur with better error handling
         try {
             await expect(leaveGroupHeading).not.toBeVisible({ timeout: 3000 });
             const closeTime = Date.now();
             const duration = closeTime - clickTime;
             console.log(`🕒 Modal closed after ${duration}ms`);
-            
+
             if (duration > 1000) {
                 console.warn(`⚠️ SLOW MODAL CLOSE: Took ${duration}ms (expected <1000ms)`);
             }
@@ -1416,13 +1413,13 @@ export class GroupDetailPage extends BasePage {
                 const errorText = await this.page.locator('[role="alert"], .text-red-500, .error').first().textContent();
                 throw new Error(`Leave group failed with error: ${errorText}`);
             }
-            
+
             // Check if the button is still enabled (might indicate a failed action)
             const stillEnabled = await confirmButton.isEnabled().catch(() => false);
             if (stillEnabled) {
                 throw new Error('Leave group confirmation button is still enabled - action may have failed');
             }
-            
+
             // Re-throw the timeout error with more context
             throw new Error(`Leave group modal did not close within 10 seconds. Modal still visible: ${await leaveGroupHeading.isVisible()}`);
         }

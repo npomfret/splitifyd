@@ -1,7 +1,7 @@
 import { simpleTest } from '../../fixtures';
 import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '@splitifyd/test-support';
-import {SettlementData} from "../../pages/settlement-form.page.ts";
+import { SettlementData } from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
@@ -18,7 +18,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -62,7 +62,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create settlement where creator is the payee (receives money)
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -104,7 +104,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create initial settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -168,7 +168,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -228,7 +228,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -271,7 +271,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId)
+            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);

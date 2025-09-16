@@ -13,15 +13,7 @@
  * - Follows the same patterns as IFirestoreReader/Writer
  */
 
-import type {
-    UserRecord,
-    UpdateRequest,
-    CreateRequest,
-    GetUsersResult,
-    DecodedIdToken,
-    ListUsersResult,
-    DeleteUsersResult
-} from 'firebase-admin/auth';
+import type { UserRecord, UpdateRequest, CreateRequest, GetUsersResult, DecodedIdToken, ListUsersResult, DeleteUsersResult } from 'firebase-admin/auth';
 
 export interface IAuthService {
     // ========================================================================

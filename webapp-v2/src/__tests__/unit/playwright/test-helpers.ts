@@ -73,7 +73,7 @@ export async function waitForStorageUpdate(page: Page, key: string, expectedValu
             return expectedValue ? value === expectedValue : value !== null;
         },
         { key, expectedValue },
-        { timeout: 2000 }
+        { timeout: 2000 },
     );
 }
 
@@ -150,9 +150,9 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
                     projectId: 'test-project',
                     storageBucket: 'test-project.appspot.com',
                     messagingSenderId: '123456789',
-                    appId: 'test-app-id'
-                }
-            })
+                    appId: 'test-app-id',
+                },
+            }),
         });
     });
 
@@ -167,13 +167,15 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
                     status: 200,
                     contentType: 'application/json',
                     body: JSON.stringify({
-                        users: [{
-                            localId: userId,
-                            email: 'test@example.com',
-                            displayName: 'Test User',
-                            emailVerified: true
-                        }]
-                    })
+                        users: [
+                            {
+                                localId: userId,
+                                email: 'test@example.com',
+                                displayName: 'Test User',
+                                emailVerified: true,
+                            },
+                        ],
+                    }),
                 });
                 return;
             }
@@ -183,25 +185,28 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
         });
 
         // Set up authenticated state in the browser
-        await page.evaluate(({ userId }) => {
-            // Mock localStorage
-            localStorage.setItem('USER_ID', userId);
+        await page.evaluate(
+            ({ userId }) => {
+                // Mock localStorage
+                localStorage.setItem('USER_ID', userId);
 
-            // Mock the auth store with a user
-            (window as any).__MOCK_AUTH_STATE__ = {
-                user: {
-                    uid: userId,
-                    email: 'test@example.com',
-                    displayName: 'Test User',
-                    emailVerified: true
-                },
-                isAuthenticated: true,
-                isUpdatingProfile: false,
-                refreshAuthToken: async () => Promise.resolve(),
-                updateUserProfile: async () => Promise.resolve(),
-                logout: async () => Promise.resolve()
-            };
-        }, { userId });
+                // Mock the auth store with a user
+                (window as any).__MOCK_AUTH_STATE__ = {
+                    user: {
+                        uid: userId,
+                        email: 'test@example.com',
+                        displayName: 'Test User',
+                        emailVerified: true,
+                    },
+                    isAuthenticated: true,
+                    isUpdatingProfile: false,
+                    refreshAuthToken: async () => Promise.resolve(),
+                    updateUserProfile: async () => Promise.resolve(),
+                    logout: async () => Promise.resolve(),
+                };
+            },
+            { userId },
+        );
     } else {
         await page.evaluate(() => {
             localStorage.removeItem('USER_ID');
@@ -211,7 +216,7 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
                 isUpdatingProfile: false,
                 refreshAuthToken: async () => Promise.resolve(),
                 updateUserProfile: async () => Promise.resolve(),
-                logout: async () => Promise.resolve()
+                logout: async () => Promise.resolve(),
             };
         });
     }
@@ -236,12 +241,12 @@ export async function setupPasswordResetMocking(page: Page, scenario: 'success' 
                         projectId: 'test-project',
                         storageBucket: 'test-project.appspot.com',
                         messagingSenderId: '123456789',
-                        appId: 'test-app-id'
+                        appId: 'test-app-id',
                     },
                     // No emulator URLs - we want to use production Firebase URLs that we can mock
                     firebaseAuthUrl: null,
-                    firebaseFirestoreUrl: null
-                })
+                    firebaseFirestoreUrl: null,
+                }),
             });
             return;
         }
@@ -253,7 +258,7 @@ export async function setupPasswordResetMocking(page: Page, scenario: 'success' 
                     route.fulfill({
                         status: 200,
                         contentType: 'application/json',
-                        body: JSON.stringify({ email: 'test@example.com' })
+                        body: JSON.stringify({ email: 'test@example.com' }),
                     });
                     break;
                 case 'user-not-found':
@@ -264,13 +269,15 @@ export async function setupPasswordResetMocking(page: Page, scenario: 'success' 
                             error: {
                                 code: 400,
                                 message: 'EMAIL_NOT_FOUND',
-                                errors: [{
-                                    message: 'EMAIL_NOT_FOUND',
-                                    domain: 'global',
-                                    reason: 'invalid'
-                                }]
-                            }
-                        })
+                                errors: [
+                                    {
+                                        message: 'EMAIL_NOT_FOUND',
+                                        domain: 'global',
+                                        reason: 'invalid',
+                                    },
+                                ],
+                            },
+                        }),
                     });
                     break;
                 case 'network-error':
@@ -284,13 +291,15 @@ export async function setupPasswordResetMocking(page: Page, scenario: 'success' 
                             error: {
                                 code: 400,
                                 message: 'INVALID_EMAIL',
-                                errors: [{
-                                    message: 'INVALID_EMAIL',
-                                    domain: 'global',
-                                    reason: 'invalid'
-                                }]
-                            }
-                        })
+                                errors: [
+                                    {
+                                        message: 'INVALID_EMAIL',
+                                        domain: 'global',
+                                        reason: 'invalid',
+                                    },
+                                ],
+                            },
+                        }),
                     });
                     break;
                 default:
@@ -373,11 +382,7 @@ export const TEST_SCENARIOS = {
 /**
  * Form validation helper for common patterns
  */
-export async function testFormValidation(
-    page: Page,
-    requiredFields: string[],
-    submitSelector = SELECTORS.SUBMIT_BUTTON
-): Promise<void> {
+export async function testFormValidation(page: Page, requiredFields: string[], submitSelector = SELECTORS.SUBMIT_BUTTON): Promise<void> {
     const submitButton = page.locator(submitSelector);
 
     // Initially button should be disabled
@@ -397,10 +402,7 @@ export async function testFormValidation(
 /**
  * Session storage persistence test helper
  */
-export async function testSessionStoragePersistence(
-    page: Page,
-    testData: Record<string, { selector: string; value: string; storageKey: string }>
-): Promise<void> {
+export async function testSessionStoragePersistence(page: Page, testData: Record<string, { selector: string; value: string; storageKey: string }>): Promise<void> {
     // Fill all fields
     for (const [field, data] of Object.entries(testData)) {
         await fillFormField(page, data.selector, data.value);
@@ -410,13 +412,16 @@ export async function testSessionStoragePersistence(
     await page.waitForTimeout(100); // TODO: Replace with proper wait condition
 
     // Verify storage values
-    const storedValues = await page.evaluate((keys) => {
-        const result: Record<string, string | null> = {};
-        keys.forEach(key => {
-            result[key] = sessionStorage.getItem(key);
-        });
-        return result;
-    }, Object.values(testData).map(d => d.storageKey));
+    const storedValues = await page.evaluate(
+        (keys) => {
+            const result: Record<string, string | null> = {};
+            keys.forEach((key) => {
+                result[key] = sessionStorage.getItem(key);
+            });
+            return result;
+        },
+        Object.values(testData).map((d) => d.storageKey),
+    );
 
     // Verify each stored value
     for (const [field, data] of Object.entries(testData)) {

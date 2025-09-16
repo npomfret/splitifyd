@@ -47,7 +47,6 @@ export class NotificationDriver {
 
     constructor(private firestore: admin.firestore.Firestore) {}
 
-
     /**
      * Stop all active listeners
      */
@@ -98,7 +97,10 @@ export class NotificationListener {
     private receivedEvents: UserNotificationDocument[] = [];
     private isStarted = false;
 
-    constructor(private firestore: admin.firestore.Firestore, private userId: string) {}
+    constructor(
+        private firestore: admin.firestore.Firestore,
+        private userId: string,
+    ) {}
 
     async start(): Promise<void> {
         if (this.isStarted) {
@@ -144,9 +146,7 @@ export class NotificationListener {
         const data = snapshot.data() as UserNotificationDocument;
 
         // Get the last version from our events, or 0 if no events yet
-        const lastVersion = this.receivedEvents.length > 0
-            ? this.receivedEvents[this.receivedEvents.length - 1].changeVersion
-            : 0;
+        const lastVersion = this.receivedEvents.length > 0 ? this.receivedEvents[this.receivedEvents.length - 1].changeVersion : 0;
 
         // Skip if no new changes
         if (data.changeVersion <= lastVersion) {
@@ -154,7 +154,7 @@ export class NotificationListener {
         }
 
         // Just store the raw notification document update!
-        this.receivedEvents.push({...data});
+        this.receivedEvents.push({ ...data });
     }
 
     stop(): void {
@@ -240,25 +240,29 @@ export class NotificationListener {
         const typeStr = eventType ? ` ${eventType}` : '';
 
         if (actualCount !== expectedCount) {
-            const eventDetails = events.map((e, index) => {
-                return `\t${index + 1}. ${JSON.stringify(e)}`;
-            }).join('\n');
+            const eventDetails = events
+                .map((e, index) => {
+                    return `\t${index + 1}. ${JSON.stringify(e)}`;
+                })
+                .join('\n');
 
-            const allEventsDetails = this.receivedEvents.map((doc, index) => {
-                const eventJson = {
-                    version: doc.changeVersion,
-                    groupCount: Object.keys(doc.groups || {}).length,
-                    groupIds: Object.keys(doc.groups || {})
-                };
-                return `\t${index + 1}. ${JSON.stringify(eventJson)}`;
-            }).join('\n');
+            const allEventsDetails = this.receivedEvents
+                .map((doc, index) => {
+                    const eventJson = {
+                        version: doc.changeVersion,
+                        groupCount: Object.keys(doc.groups || {}).length,
+                        groupIds: Object.keys(doc.groups || {}),
+                    };
+                    return `\t${index + 1}. ${JSON.stringify(eventJson)}`;
+                })
+                .join('\n');
 
             const errorMessage = [
                 `User [${this.userId}] expected ${expectedCount}${typeStr} events for group [${groupId}] but got ${actualCount}:`,
                 eventDetails || '\t(no events)',
                 '',
                 `All events for this user (${this.receivedEvents.length}):`,
-                allEventsDetails || '\t(no events)'
+                allEventsDetails || '\t(no events)',
             ].join('\n');
 
             throw new Error(errorMessage);
@@ -273,9 +277,7 @@ export class NotificationListener {
         const event = events[0];
 
         if (event.groupState?.groupDetailsChangeCount !== expectedChangeCount) {
-            throw new Error(
-                `Expected groupDetailsChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.groupDetailsChangeCount}`
-            );
+            throw new Error(`Expected groupDetailsChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.groupDetailsChangeCount}`);
         }
 
         return event;
@@ -289,9 +291,7 @@ export class NotificationListener {
         const event = events[0];
 
         if (event.groupState?.transactionChangeCount !== expectedChangeCount) {
-            throw new Error(
-                `Expected transactionChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.transactionChangeCount}`
-            );
+            throw new Error(`Expected transactionChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.transactionChangeCount}`);
         }
 
         return event;
@@ -305,12 +305,9 @@ export class NotificationListener {
         const event = events[0];
 
         if (event.groupState?.balanceChangeCount !== expectedChangeCount) {
-            throw new Error(
-                `Expected balanceChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.balanceChangeCount}`
-            );
+            throw new Error(`Expected balanceChangeCount to be ${expectedChangeCount}, but got ${event.groupState?.balanceChangeCount}`);
         }
 
         return event;
     }
-
 }

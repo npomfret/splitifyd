@@ -52,7 +52,6 @@ export const testUpdatePolicy = async (req: Request, res: Response): Promise<voi
     }
 };
 
-
 /**
  * Test endpoint to clear a user's policy acceptances in dev environment
  * POST /test/user/clear-policy-acceptances

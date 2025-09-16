@@ -1,7 +1,7 @@
-import {expect, Locator, Page} from '@playwright/test';
-import {BasePage} from './base.page';
-import {PooledTestUser} from '@splitifyd/shared';
-import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
+import { expect, Locator, Page } from '@playwright/test';
+import { BasePage } from './base.page';
+import { PooledTestUser } from '@splitifyd/shared';
+import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 
 /**
  * Page object for join group functionality via share links.
@@ -228,16 +228,16 @@ export class JoinGroupPage extends BasePage {
         await Promise.race([
             // Success: Welcome screen appears then navigates
             (async () => {
-                await expect(joinSuccessIndicator).toBeVisible({timeout: 5000});
-                await expect(this.page).toHaveURL(groupDetailUrlPattern(), {timeout: 2000});
+                await expect(joinSuccessIndicator).toBeVisible({ timeout: 5000 });
+                await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 2000 });
             })(),
 
             // Success: Direct navigation to group (fast join)
-            expect(this.page).toHaveURL(groupDetailUrlPattern(), {timeout: 5000}),
+            expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 }),
 
             // Failure: Error message appears
             (async () => {
-                await expect(errorMessage).toBeVisible({timeout: 5000});
+                await expect(errorMessage).toBeVisible({ timeout: 5000 });
                 const errorText = await errorMessage.textContent();
                 throw new Error(`Join failed: ${errorText}`);
             })(),
@@ -260,7 +260,7 @@ export class JoinGroupPage extends BasePage {
                         throw new Error('Join operation in unknown state - no completion indicators found');
                     }
                     // If we reach here, one of the expected outcomes occurred
-                }).toPass({timeout: 5000});
+                }).toPass({ timeout: 5000 });
 
                 // Final state check
                 const currentUrl = this.page.url();
@@ -278,7 +278,7 @@ export class JoinGroupPage extends BasePage {
         });
     }
 
-// Helper for debugging failed joins
+    // Helper for debugging failed joins
     async getPageState(): Promise<{
         url: string;
         title: string;

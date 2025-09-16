@@ -63,7 +63,7 @@ export class ApplicationBuilder {
                 this.buildFirestoreWriter(),
                 this.buildFirestoreValidationService(),
                 this.buildNotificationService(),
-                this.buildAuthService()
+                this.buildAuthService(),
             );
         }
         return this.userService;
@@ -102,12 +102,7 @@ export class ApplicationBuilder {
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(
-                this.buildFirestoreReader(),
-                this.buildFirestoreWriter(),
-                this.buildGroupMemberService(),
-                this.buildAuthService()
-            );
+            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildAuthService());
         }
         return this.commentService;
     }
@@ -187,7 +182,7 @@ export class ApplicationBuilder {
             this.authService = new FirebaseAuthService(
                 getAuth(),
                 true, // enableValidation
-                true  // enableMetrics
+                true, // enableMetrics
             );
         }
         return this.authService;

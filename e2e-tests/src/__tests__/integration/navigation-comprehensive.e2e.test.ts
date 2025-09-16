@@ -85,34 +85,34 @@ test.describe('Comprehensive Navigation E2E', () => {
         // Test keyboard navigation on homepage
         // First, ensure page is fully loaded before keyboard navigation
         await page.waitForLoadState('domcontentloaded');
-        
+
         // Press Tab to focus first focusable element
         await page.keyboard.press('Tab');
-        
+
         // Wait a bit for focus to be applied
         await page.waitForTimeout(100);
-        
+
         // Check for focusable elements and ensure they can receive focus
         const focusableElements = page.locator('button:visible, [href]:visible, input:visible, select:visible, textarea:visible, [tabindex]:not([tabindex="-1"]):visible');
         const focusableCount = await focusableElements.count();
-        
+
         if (focusableCount === 0) {
             console.log('No focusable elements found on homepage');
             // Skip the focus test if no focusable elements exist
         } else {
             console.log(`Found ${focusableCount} focusable elements`);
-            
+
             // Directly focus the first focusable element to test keyboard accessibility
             const firstFocusableElement = focusableElements.first();
             await firstFocusableElement.focus();
-            
+
             // Wait for focus to be applied and verify
             await page.waitForTimeout(200);
-            
+
             // Check if focus was successfully applied
             const focusedElement = page.locator(':focus').first();
             const focusedCount = await focusedElement.count();
-            
+
             if (focusedCount > 0) {
                 await expect(focusedElement).toBeVisible();
                 console.log('Focus test passed - element is focusable and visible');
@@ -141,7 +141,7 @@ test.describe('Comprehensive Navigation E2E', () => {
         await page.keyboard.press('Tab'); // Focus submit button
         const submitButton = page.locator(':focus');
         const buttonText = await submitButton.textContent();
-        
+
         // Check if we actually focused on a submit button - if not, find it explicitly
         if (!buttonText?.toLowerCase().includes('sign in')) {
             console.log(`Focused element text: "${buttonText}" - looking for sign in button explicitly`);

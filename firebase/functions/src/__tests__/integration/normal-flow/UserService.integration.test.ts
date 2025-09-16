@@ -57,7 +57,6 @@ describe('UserService - Integration Tests', () => {
             expect(userData_firestore!.cookiePolicyAcceptedAt).toBeDefined();
             expect(userData_firestore!.createdAt).toBeDefined();
             expect(userData_firestore!.updatedAt).toBeDefined();
-
         });
 
         test('should reject registration with existing email', async () => {

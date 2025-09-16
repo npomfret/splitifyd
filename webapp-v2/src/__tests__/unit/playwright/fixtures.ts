@@ -3,16 +3,7 @@
  * Using existing builders from @packages/test-support
  */
 
-import {
-    UserProfileBuilder,
-    MockGroupBuilder,
-    randomString,
-    randomEmail,
-    randomChoice,
-    randomDecimal,
-    generateShortId,
-    DEFAULT_PASSWORD
-} from '@splitifyd/test-support';
+import { UserProfileBuilder, MockGroupBuilder, randomString, randomEmail, randomChoice, randomDecimal, generateShortId, DEFAULT_PASSWORD } from '@splitifyd/test-support';
 
 // Simple credentials builder for login tests (no existing builder for this)
 class CredentialsBuilder {
@@ -102,16 +93,8 @@ export { UserProfileBuilder as UserBuilder, MockGroupBuilder, CredentialsBuilder
 
 // Pre-built common test data using existing builders
 export const mockUsers = {
-    john: new UserProfileBuilder()
-        .withUid('user-john-123')
-        .withEmail('john@example.com')
-        .withDisplayName('John Doe')
-        .build(),
-    jane: new UserProfileBuilder()
-        .withUid('user-jane-456')
-        .withEmail('jane@example.com')
-        .withDisplayName('Jane Smith')
-        .build(),
+    john: new UserProfileBuilder().withUid('user-john-123').withEmail('john@example.com').withDisplayName('John Doe').build(),
+    jane: new UserProfileBuilder().withUid('user-jane-456').withEmail('jane@example.com').withDisplayName('Jane Smith').build(),
 };
 
 export const mockGroups = [
@@ -120,7 +103,7 @@ export const mockGroups = [
         .withName('Apartment Expenses')
         .withDescription('Shared apartment costs')
         .withMemberCount(3)
-        .withTotalExpenses(1250.50)
+        .withTotalExpenses(1250.5)
         .withUserBalance(-45.25, 'owe')
         .build(),
     new SimpleGroupBuilder()
@@ -128,34 +111,18 @@ export const mockGroups = [
         .withName('Vacation Trip')
         .withDescription('Summer vacation to Greece')
         .withMemberCount(5)
-        .withTotalExpenses(3200.00)
+        .withTotalExpenses(3200.0)
         .withUserBalance(120.75, 'owed')
         .build(),
-    new SimpleGroupBuilder()
-        .withId('group-3')
-        .withName('Settled Group')
-        .withDescription('All expenses settled')
-        .withMemberCount(2)
-        .withTotalExpenses(800.00)
-        .withUserBalance(0, 'settled')
-        .build(),
+    new SimpleGroupBuilder().withId('group-3').withName('Settled Group').withDescription('All expenses settled').withMemberCount(2).withTotalExpenses(800.0).withUserBalance(0, 'settled').build(),
 ];
 
-export const validCredentials = CredentialsBuilder.create()
-    .withEmail('test@example.com')
-    .withPassword('password123')
-    .build();
+export const validCredentials = CredentialsBuilder.create().withEmail('test@example.com').withPassword('password123').build();
 
-export const invalidCredentials = CredentialsBuilder.create()
-    .withEmail('invalid@example.com')
-    .withPassword('wrongpassword')
-    .build();
+export const invalidCredentials = CredentialsBuilder.create().withEmail('invalid@example.com').withPassword('wrongpassword').build();
 
 // Test data for group creation
-export const validGroupData = new SimpleGroupBuilder()
-    .withName('New Test Group')
-    .withDescription('A group for testing purposes')
-    .build();
+export const validGroupData = new SimpleGroupBuilder().withName('New Test Group').withDescription('A group for testing purposes').build();
 
 export const invalidGroupData = {
     empty: { name: '', description: '' },

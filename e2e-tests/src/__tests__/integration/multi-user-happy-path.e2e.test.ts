@@ -1,17 +1,16 @@
-import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
-import {JoinGroupPage} from '../../pages';
-import {generateTestGroupName} from '@splitifyd/test-support';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
-import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
+import { expect, simpleTest as test } from '../../fixtures/simple-test.fixture';
+import { JoinGroupPage } from '../../pages';
+import { generateTestGroupName } from '@splitifyd/test-support';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 test.describe('Multi-User Collaboration E2E', () => {
-
-    test('should allow multiple users to add expenses to same group', async ({newLoggedInBrowser}) => {
+    test('should allow multiple users to add expenses to same group', async ({ newLoggedInBrowser }) => {
         // Create first user
-        const {page, dashboardPage: user1DashboardPage, user} = await newLoggedInBrowser();
+        const { page, dashboardPage: user1DashboardPage, user } = await newLoggedInBrowser();
 
         // Create second user
-        const {page: page2, dashboardPage: user2DashboardPage, user: user2} = await newLoggedInBrowser();
+        const { page: page2, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -25,7 +24,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         await page2.goto(shareLink);
 
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId)
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
 
         // Wait for synchronization of users
         await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
@@ -35,13 +34,8 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // SEQUENTIAL EXPENSE ADDITION: User 1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage1.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('User 1 Lunch')
-            .withAmount(25)
-            .withCurrency('USD')
-            .withPaidByDisplayName(user1DisplayName)
-            .withSplitType('equal')
-            .build(),
+        await expenseFormPage1.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('User 1 Lunch').withAmount(25).withCurrency('USD').withPaidByDisplayName(user1DisplayName).withSplitType('equal').build(),
         );
 
         // Wait for User 1's expense to be fully processed and synced
@@ -54,13 +48,8 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // SEQUENTIAL EXPENSE ADDITION: User 2 adds expense ONLY AFTER User 1's expense is synchronized
         const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
-        await expenseFormPage2.submitExpense(new ExpenseFormDataBuilder()
-            .withDescription('User 2 Dinner')
-            .withAmount(40)
-            .withCurrency('USD')
-            .withPaidByDisplayName(user2DisplayName)
-            .withSplitType('equal')
-            .build()
+        await expenseFormPage2.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('User 2 Dinner').withAmount(40).withCurrency('USD').withPaidByDisplayName(user2DisplayName).withSplitType('equal').build(),
         );
 
         // Wait for User 2's expense to be fully processed and synced
@@ -74,16 +63,16 @@ test.describe('Multi-User Collaboration E2E', () => {
         await expect(groupDetailPage2.getExpenseByDescription('User 2 Dinner')).toBeVisible();
     });
 
-    test('should show group creator as admin', async ({newLoggedInBrowser}) => {
-        const {page, user, dashboardPage} = await newLoggedInBrowser();
+    test('should show group creator as admin', async ({ newLoggedInBrowser }) => {
+        const { page, user, dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Admin'), 'Testing admin badge');
         await expect(groupDetailPage.getAdminBadge()).toBeVisible();
     });
 
-    test('single user can create group and add multiple expenses', async ({newLoggedInBrowser}) => {
+    test('single user can create group and add multiple expenses', async ({ newLoggedInBrowser }) => {
         const memberCount = 1;
-        const {page, user, dashboardPage} = await newLoggedInBrowser();
+        const { page, user, dashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await dashboardPage.getCurrentUserDisplayName();
 
@@ -92,20 +81,21 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Add multiple expenses
         const expenseData = [
-            {description: 'Hotel Booking', amount: 300},
-            {description: 'Car Rental', amount: 150},
-            {description: 'Groceries', amount: 80},
+            { description: 'Hotel Booking', amount: 300 },
+            { description: 'Car Rental', amount: 150 },
+            { description: 'Groceries', amount: 80 },
         ];
 
         for (const expenseInfo of expenseData) {
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-            await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-                .withDescription(expenseInfo.description)
-                .withAmount(expenseInfo.amount)
-                .withCurrency('USD')
-                .withPaidByDisplayName(user1DisplayName)
-                .withSplitType('equal')
-                .build(),
+            await expenseFormPage.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(expenseInfo.description)
+                    .withAmount(expenseInfo.amount)
+                    .withCurrency('USD')
+                    .withPaidByDisplayName(user1DisplayName)
+                    .withSplitType('equal')
+                    .build(),
             );
 
             // Wait for each expense to be processed
@@ -118,9 +108,9 @@ test.describe('Multi-User Collaboration E2E', () => {
         }
     });
 
-    test('balances update correctly with multiple users and expenses', async ({newLoggedInBrowser}) => {
-        const {page, user, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
-        const {page: page2, user: user2, dashboardPage: user2DashboardPage} = await newLoggedInBrowser();
+    test('balances update correctly with multiple users and expenses', async ({ newLoggedInBrowser }) => {
+        const { page, user, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
@@ -134,7 +124,7 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // Get share link (includes all validation)
         const shareLink = await groupDetailPage.getShareLink();
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId)
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
 
         // WAIT for user synchronization before adding expense
         await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
@@ -142,13 +132,8 @@ test.describe('Multi-User Collaboration E2E', () => {
 
         // User 1 pays for shared expense AFTER synchronization
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-        await expenseFormPage.submitExpense(new ExpenseFormDataBuilder()
-                .withDescription('Shared Meal')
-                .withAmount(100)
-                .withCurrency('USD')
-                .withPaidByDisplayName(user1DisplayName)
-                .withSplitType('equal')
-                .build(),
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription('Shared Meal').withAmount(100).withCurrency('USD').withPaidByDisplayName(user1DisplayName).withSplitType('equal').build(),
         );
 
         // Wait for expense to be fully processed

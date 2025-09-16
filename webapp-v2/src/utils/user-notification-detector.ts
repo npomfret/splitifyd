@@ -76,7 +76,7 @@ export class UserNotificationDetector {
     // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
     private baselineGroupStates = new Map<string, GroupNotificationState>();
 
-    constructor(name = "") {
+    constructor(name = '') {
         // Only log in debug mode - detector creation is routine
     }
 
@@ -142,7 +142,7 @@ export class UserNotificationDetector {
             logInfo('UserNotificationDetector: processing changes', {
                 changeVersion: data.changeVersion,
                 lastVersion: this.lastVersion,
-                groupCount: Object.keys(data.groups || {}).length
+                groupCount: Object.keys(data.groups || {}).length,
             });
 
             // Process changes
@@ -247,7 +247,7 @@ export class UserNotificationDetector {
                     groupDetailsChangeCount: current.groupDetailsChangeCount || 0,
                     lastTransactionChange: current.lastTransactionChange || null,
                     lastBalanceChange: current.lastBalanceChange || null,
-                    lastGroupDetailsChange: current.lastGroupDetailsChange || null
+                    lastGroupDetailsChange: current.lastGroupDetailsChange || null,
                 });
 
                 // Only trigger if this is not the first document and has transaction changes

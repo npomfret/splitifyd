@@ -523,11 +523,15 @@ describe('Input Validation', () => {
             });
 
             test('should reject empty policyId', async () => {
-                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [{ policyId: '', versionHash: 'some-hash' }] }, users[0].token)).rejects.toThrow(/not allowed to be empty/);
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [{ policyId: '', versionHash: 'some-hash' }] }, users[0].token)).rejects.toThrow(
+                    /not allowed to be empty/,
+                );
             });
 
             test('should reject empty versionHash', async () => {
-                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [{ policyId: 'terms-of-service', versionHash: '' }] }, users[0].token)).rejects.toThrow(/not allowed to be empty/);
+                await expect(apiDriver['apiRequest']('/user/policies/accept-multiple', 'POST', { acceptances: [{ policyId: 'terms-of-service', versionHash: '' }] }, users[0].token)).rejects.toThrow(
+                    /not allowed to be empty/,
+                );
             });
 
             test('should strip unknown fields from policy acceptance', async () => {
@@ -536,12 +540,14 @@ describe('Input Validation', () => {
                         '/user/policies/accept-multiple',
                         'POST',
                         {
-                            acceptances: [{
-                                policyId: 'non-existent-policy',
-                                versionHash: 'test-hash',
-                                extraField: 'should be stripped',
-                                anotherField: 123,
-                            }]
+                            acceptances: [
+                                {
+                                    policyId: 'non-existent-policy',
+                                    versionHash: 'test-hash',
+                                    extraField: 'should be stripped',
+                                    anotherField: 123,
+                                },
+                            ],
                         },
                         users[0].token,
                     ),
@@ -554,10 +560,12 @@ describe('Input Validation', () => {
                         '/user/policies/accept-multiple',
                         'POST',
                         {
-                            acceptances: [{
-                                policyId: '  terms-of-service  ',
-                                versionHash: '  test-hash  ',
-                            }]
+                            acceptances: [
+                                {
+                                    policyId: '  terms-of-service  ',
+                                    versionHash: '  test-hash  ',
+                                },
+                            ],
                         },
                         users[0].token,
                     ),

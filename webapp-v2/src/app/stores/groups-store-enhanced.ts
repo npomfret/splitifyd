@@ -49,7 +49,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private notificationDetector = new UserNotificationDetector("groups-store-enhanced.ts");
+    private notificationDetector = new UserNotificationDetector('groups-store-enhanced.ts');
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Reference counting for subscription management
@@ -340,10 +340,10 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
                     if (filteredGroups.length !== currentGroups.length) {
                         this.#groupsSignal.value = filteredGroups;
-                        
+
                         // Show user-friendly notification about removal
                         console.info(`📨 You've been removed from "${groupName}"`);
-                        
+
                         logInfo('Group removed from dashboard', {
                             groupId,
                             groupName,

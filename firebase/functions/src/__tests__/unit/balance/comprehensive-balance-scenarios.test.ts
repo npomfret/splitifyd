@@ -28,46 +28,54 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             id: groupId,
             name: 'Test Group',
             members: Object.fromEntries(
-                userIds.map(userId => [userId, {
+                userIds.map((userId) => [
                     userId,
-                    memberRole: userId === userIds[0] ? 'admin' : 'member',
-                    memberStatus: 'active',
-                    joinedAt: new Date().toISOString()
-                }])
-            )
+                    {
+                        userId,
+                        memberRole: userId === userIds[0] ? 'admin' : 'member',
+                        memberStatus: 'active',
+                        joinedAt: new Date().toISOString(),
+                    },
+                ]),
+            ),
         },
         memberProfiles: new Map(
-            userIds.map(userId => [userId, {
-                uid: userId,
-                displayName: `User ${userId}`,
-                email: `${userId}@test.com`,
-                initials: userId.slice(0, 2).toUpperCase(),
-                photoURL: null,
-                emailVerified: true
-            }])
-        )
+            userIds.map((userId) => [
+                userId,
+                {
+                    uid: userId,
+                    displayName: `User ${userId}`,
+                    email: `${userId}@test.com`,
+                    initials: userId.slice(0, 2).toUpperCase(),
+                    photoURL: null,
+                    emailVerified: true,
+                },
+            ]),
+        ),
     });
 
     describe('Single User Scenarios', () => {
         it('should handle single user paying for themselves', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Solo expense',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [{ userId: 'user-1', amount: 100 }],
-                    splitType: 'equal',
-                    participants: ['user-1'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: []
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Solo expense',
+                        amount: 100,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [{ userId: 'user-1', amount: 100 }],
+                        splitType: 'equal',
+                        participants: ['user-1'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
@@ -83,30 +91,32 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
         it('should handle one user paying for both (simple debt)', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Dinner for both',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [
-                        { userId: 'user-1', amount: 50 },
-                        { userId: 'user-2', amount: 50 }
-                    ],
-                    splitType: 'equal',
-                    participants: ['user-1', 'user-2'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: []
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Dinner for both',
+                        amount: 100,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [
+                            { userId: 'user-1', amount: 50 },
+                            { userId: 'user-2', amount: 50 },
+                        ],
+                        splitType: 'equal',
+                        participants: ['user-1', 'user-2'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(50);  // Paid 100, owes 50
+            expect(result.userBalances['user-1'].netBalance).toBe(50); // Paid 100, owes 50
             expect(result.userBalances['user-2'].netBalance).toBe(-50); // Paid 0, owes 50
 
             // Conservation of money
@@ -126,14 +136,14 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         paidBy: 'user-0',
                         splits: [
                             { userId: 'user-0', amount: 50 },
-                            { userId: 'user-1', amount: 50 }
+                            { userId: 'user-1', amount: 50 },
                         ],
                         splitType: 'equal',
                         participants: ['user-0', 'user-1'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
+                        deletedAt: undefined,
                     },
                     {
                         id: 'exp-2',
@@ -144,23 +154,23 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         paidBy: 'user-1',
                         splits: [
                             { userId: 'user-0', amount: 40 },
-                            { userId: 'user-1', amount: 40 }
+                            { userId: 'user-1', amount: 40 },
                         ],
                         splitType: 'equal',
                         participants: ['user-0', 'user-1'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
-                    }
+                        deletedAt: undefined,
+                    },
                 ],
-                settlements: []
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-0'].netBalance).toBe(10);   // +50 -40 = +10
-            expect(result.userBalances['user-1'].netBalance).toBe(-10);  // -50 +40 = -10
+            expect(result.userBalances['user-0'].netBalance).toBe(10); // +50 -40 = +10
+            expect(result.userBalances['user-1'].netBalance).toBe(-10); // -50 +40 = -10
 
             // Conservation of money
             expect(result.userBalances['user-0'].netBalance + result.userBalances['user-1'].netBalance).toBe(0);
@@ -169,30 +179,32 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
         it('should handle uneven splits', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Uneven split',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [
-                        { userId: 'user-1', amount: 30 },
-                        { userId: 'user-2', amount: 70 }
-                    ],
-                    splitType: 'exact',
-                    participants: ['user-1', 'user-2'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: []
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Uneven split',
+                        amount: 100,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [
+                            { userId: 'user-1', amount: 30 },
+                            { userId: 'user-2', amount: 70 },
+                        ],
+                        splitType: 'exact',
+                        participants: ['user-1', 'user-2'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(70);  // Paid 100, owes 30
+            expect(result.userBalances['user-1'].netBalance).toBe(70); // Paid 100, owes 30
             expect(result.userBalances['user-2'].netBalance).toBe(-70); // Paid 0, owes 70
 
             // Conservation of money
@@ -204,38 +216,38 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
         it('should handle one payer, three participants', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2', 'user-3']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Dinner for three',
-                    amount: 90,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [
-                        { userId: 'user-1', amount: 30 },
-                        { userId: 'user-2', amount: 30 },
-                        { userId: 'user-3', amount: 30 }
-                    ],
-                    splitType: 'equal',
-                    participants: ['user-1', 'user-2', 'user-3'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: []
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Dinner for three',
+                        amount: 90,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [
+                            { userId: 'user-1', amount: 30 },
+                            { userId: 'user-2', amount: 30 },
+                            { userId: 'user-3', amount: 30 },
+                        ],
+                        splitType: 'equal',
+                        participants: ['user-1', 'user-2', 'user-3'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(60);  // Paid 90, owes 30
+            expect(result.userBalances['user-1'].netBalance).toBe(60); // Paid 90, owes 30
             expect(result.userBalances['user-2'].netBalance).toBe(-30); // Paid 0, owes 30
             expect(result.userBalances['user-3'].netBalance).toBe(-30); // Paid 0, owes 30
 
             // Conservation of money
-            const total = result.userBalances['user-1'].netBalance +
-                         result.userBalances['user-2'].netBalance +
-                         result.userBalances['user-3'].netBalance;
+            const total = result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance + result.userBalances['user-3'].netBalance;
             expect(total).toBe(0);
         });
 
@@ -254,14 +266,14 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         splits: [
                             { userId: 'user-1', amount: 30 },
                             { userId: 'user-2', amount: 30 },
-                            { userId: 'user-3', amount: 30 }
+                            { userId: 'user-3', amount: 30 },
                         ],
                         splitType: 'equal',
                         participants: ['user-1', 'user-2', 'user-3'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
+                        deletedAt: undefined,
                     },
                     // User 2 pays 60, split equally
                     {
@@ -274,14 +286,14 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         splits: [
                             { userId: 'user-1', amount: 20 },
                             { userId: 'user-2', amount: 20 },
-                            { userId: 'user-3', amount: 20 }
+                            { userId: 'user-3', amount: 20 },
                         ],
                         splitType: 'equal',
                         participants: ['user-1', 'user-2', 'user-3'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
+                        deletedAt: undefined,
                     },
                     // User 3 pays 30, split equally
                     {
@@ -294,17 +306,17 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         splits: [
                             { userId: 'user-1', amount: 10 },
                             { userId: 'user-2', amount: 10 },
-                            { userId: 'user-3', amount: 10 }
+                            { userId: 'user-3', amount: 10 },
                         ],
                         splitType: 'equal',
                         participants: ['user-1', 'user-2', 'user-3'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
-                    }
+                        deletedAt: undefined,
+                    },
                 ],
-                settlements: []
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
@@ -317,9 +329,7 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             expect(result.userBalances['user-3'].netBalance).toBe(-30);
 
             // Conservation of money
-            const total = result.userBalances['user-1'].netBalance +
-                         result.userBalances['user-2'].netBalance +
-                         result.userBalances['user-3'].netBalance;
+            const total = result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance + result.userBalances['user-3'].netBalance;
             expect(total).toBe(0);
         });
     });
@@ -338,14 +348,14 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         paidBy: 'user-1',
                         splits: [
                             { userId: 'user-1', amount: 50 },
-                            { userId: 'user-2', amount: 50 }
+                            { userId: 'user-2', amount: 50 },
                         ],
                         splitType: 'equal',
                         participants: ['user-1', 'user-2'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
+                        deletedAt: undefined,
                     },
                     {
                         id: 'exp-2',
@@ -356,17 +366,17 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
                         paidBy: 'user-2',
                         splits: [
                             { userId: 'user-1', amount: 40 },
-                            { userId: 'user-2', amount: 40 }
+                            { userId: 'user-2', amount: 40 },
                         ],
                         splitType: 'equal',
                         participants: ['user-1', 'user-2'],
                         date: new Date().toISOString(),
                         category: 'Food',
                         createdAt: new Date().toISOString(),
-                        deletedAt: undefined
-                    }
+                        deletedAt: undefined,
+                    },
                 ],
-                settlements: []
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
@@ -393,34 +403,38 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
         it('should handle settlements reducing balances', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Dinner',
-                    amount: 100,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [
-                        { userId: 'user-1', amount: 50 },
-                        { userId: 'user-2', amount: 50 }
-                    ],
-                    splitType: 'equal',
-                    participants: ['user-1', 'user-2'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: [{
-                    id: 'settlement-1',
-                    groupId: 'group-1',
-                    payerId: 'user-2',
-                    payeeId: 'user-1',
-                    amount: 30,
-                    currency: 'USD',
-                    date: new Date().toISOString(),
-                    createdAt: new Date().toISOString()
-                }]
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Dinner',
+                        amount: 100,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [
+                            { userId: 'user-1', amount: 50 },
+                            { userId: 'user-2', amount: 50 },
+                        ],
+                        splitType: 'equal',
+                        participants: ['user-1', 'user-2'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [
+                    {
+                        id: 'settlement-1',
+                        groupId: 'group-1',
+                        payerId: 'user-2',
+                        payeeId: 'user-1',
+                        amount: 30,
+                        currency: 'USD',
+                        date: new Date().toISOString(),
+                        createdAt: new Date().toISOString(),
+                    },
+                ],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
@@ -439,25 +453,27 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
         it('should handle zero amount expenses', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2']),
-                expenses: [{
-                    id: 'exp-1',
-                    groupId: 'group-1',
-                    description: 'Zero expense',
-                    amount: 0,
-                    currency: 'USD',
-                    paidBy: 'user-1',
-                    splits: [
-                        { userId: 'user-1', amount: 0 },
-                        { userId: 'user-2', amount: 0 }
-                    ],
-                    splitType: 'equal',
-                    participants: ['user-1', 'user-2'],
-                    date: new Date().toISOString(),
-                    category: 'Food',
-                    createdAt: new Date().toISOString(),
-                    deletedAt: undefined
-                }],
-                settlements: []
+                expenses: [
+                    {
+                        id: 'exp-1',
+                        groupId: 'group-1',
+                        description: 'Zero expense',
+                        amount: 0,
+                        currency: 'USD',
+                        paidBy: 'user-1',
+                        splits: [
+                            { userId: 'user-1', amount: 0 },
+                            { userId: 'user-2', amount: 0 },
+                        ],
+                        splitType: 'equal',
+                        participants: ['user-1', 'user-2'],
+                        date: new Date().toISOString(),
+                        category: 'Food',
+                        createdAt: new Date().toISOString(),
+                        deletedAt: undefined,
+                    },
+                ],
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
@@ -470,7 +486,7 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             const input: BalanceCalculationInput = {
                 ...createBaseInput('group-1', ['user-1', 'user-2']),
                 expenses: [],
-                settlements: []
+                settlements: [],
             };
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);

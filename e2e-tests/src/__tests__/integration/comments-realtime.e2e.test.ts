@@ -1,6 +1,6 @@
 import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
 import { JoinGroupPage, ExpenseDetailPage, GroupDetailPage } from '../../pages';
-import { generateTestGroupName, randomString } from "@splitifyd/test-support";
+import { generateTestGroupName, randomString } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 import { v4 as uuidv4 } from 'uuid';
 

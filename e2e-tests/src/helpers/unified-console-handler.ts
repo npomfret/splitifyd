@@ -136,7 +136,7 @@ export class UnifiedConsoleHandler {
         if (!userInfo || (userInfo.userIndex === undefined && !userInfo.userEmail)) {
             return 'unknown user';
         }
-        
+
         const parts = [];
         if (userInfo.userIndex !== undefined) {
             parts.push(`User ${userInfo.userIndex + 1}`);
@@ -144,7 +144,7 @@ export class UnifiedConsoleHandler {
         if (userInfo.userEmail) {
             parts.push(`(${userInfo.userEmail})`);
         }
-        
+
         return parts.length > 0 ? parts.join(' ') : 'unknown user';
     }
 
@@ -239,10 +239,10 @@ export class UnifiedConsoleHandler {
             if (testInfo.status !== 'failed') {
                 // Create detailed error message with user information
                 let errorMessage = `Test had ${this.consoleErrors.length} console error(s) and ${this.pageErrors.length} page error(s).`;
-                
+
                 if (this.consoleErrors.length > 0) {
                     const consoleErrorUsers = this.consoleErrors
-                        .map(error => {
+                        .map((error) => {
                             const userInfo = this.formatUserInfo(error.userInfo);
                             // Debug: log what user info we have for this error
                             console.log(`Console error userInfo:`, error.userInfo, `formatted as:`, userInfo);
@@ -252,10 +252,10 @@ export class UnifiedConsoleHandler {
                         .join(', ');
                     errorMessage += ` Console errors from: ${consoleErrorUsers}.`;
                 }
-                
+
                 if (this.pageErrors.length > 0) {
                     const pageErrorUsers = this.pageErrors
-                        .map(error => {
+                        .map((error) => {
                             const userInfo = this.formatUserInfo(error.userInfo);
                             // Debug: log what user info we have for this error
                             console.log(`Page error userInfo:`, error.userInfo, `formatted as:`, userInfo);
@@ -265,9 +265,9 @@ export class UnifiedConsoleHandler {
                         .join(', ');
                     errorMessage += ` Page errors from: ${pageErrorUsers}.`;
                 }
-                
+
                 errorMessage += ' Check console log file above for details.';
-                
+
                 throw new Error(errorMessage);
             }
         } else if ((hasConsoleErrors || hasPageErrors) && skipErrorChecking) {
@@ -275,25 +275,25 @@ export class UnifiedConsoleHandler {
             console.log('\n' + '='.repeat(80));
             console.log('⚠️  ERRORS DETECTED BUT IGNORED (skip-error-checking annotation)');
             console.log('='.repeat(80));
-            
+
             let ignoredMessage = `Console errors: ${this.consoleErrors.length}, Page errors: ${this.pageErrors.length}`;
-            
+
             if (this.consoleErrors.length > 0) {
                 const consoleErrorUsers = this.consoleErrors
-                    .map(error => this.formatUserInfo(error.userInfo))
+                    .map((error) => this.formatUserInfo(error.userInfo))
                     .filter((user, index, arr) => arr.indexOf(user) === index)
                     .join(', ');
                 ignoredMessage += ` (Console errors from: ${consoleErrorUsers})`;
             }
-            
+
             if (this.pageErrors.length > 0) {
                 const pageErrorUsers = this.pageErrors
-                    .map(error => this.formatUserInfo(error.userInfo))
+                    .map((error) => this.formatUserInfo(error.userInfo))
                     .filter((user, index, arr) => arr.indexOf(user) === index)
                     .join(', ');
                 ignoredMessage += ` (Page errors from: ${pageErrorUsers})`;
             }
-            
+
             console.log(ignoredMessage);
             console.log('These errors are expected for this test.');
             console.log('='.repeat(80) + '\n');

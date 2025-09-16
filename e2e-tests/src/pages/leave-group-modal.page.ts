@@ -73,11 +73,11 @@ export class LeaveGroupModalPage extends BasePage {
     }
 
     async clickUnderstoodToCloseModal(): Promise<void> {
-        // When there's an outstanding balance, the button shows "Understood" 
+        // When there's an outstanding balance, the button shows "Understood"
         // However, clicking it may not close the modal, so we'll cancel instead
         await expect(this.cancelButton).toBeVisible({ timeout: 2000 });
         await this.clickButton(this.cancelButton, { buttonName: 'Cancel' });
-        
+
         // Wait for the modal to close
         await expect(this.dialog).not.toBeVisible({ timeout: 2000 });
     }

@@ -161,23 +161,17 @@ export class CreateGroupModalPage extends BasePage {
 
     getGroupNameInput() {
         // Our modal always has role="dialog" - if it doesn't, our app is broken
-        return this.page
-            .getByRole('dialog')
-            .getByLabel(translationEn.createGroupModal.groupNameLabel);
+        return this.page.getByRole('dialog').getByLabel(translationEn.createGroupModal.groupNameLabel);
     }
 
     getDescriptionInput() {
         // Our modal always has role="dialog" - if it doesn't, our app is broken
-        return this.page
-            .getByRole('dialog')
-            .getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
+        return this.page.getByRole('dialog').getByPlaceholder(translationEn.createGroupModal.groupDescriptionPlaceholder);
     }
 
     getSubmitButton() {
         // Our modal always has role="dialog" - if it doesn't, our app is broken
-        return this.page
-            .getByRole('dialog')
-            .getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
+        return this.page.getByRole('dialog').getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
     }
 
     getCreateGroupFormButton() {

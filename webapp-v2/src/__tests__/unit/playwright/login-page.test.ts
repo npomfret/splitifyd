@@ -12,7 +12,7 @@ import {
     setupAuthRedirect,
     SELECTORS,
     TEST_SCENARIOS,
-    testFormValidation
+    testFormValidation,
 } from '../infra/test-helpers';
 
 /**
@@ -36,7 +36,7 @@ test.describe('LoginPage - Behavioral Tests', () => {
         // Test form accessibility
         await verifyFormAccessibility(page, [
             { selector: SELECTORS.EMAIL_INPUT, type: 'email', ariaLabel: 'Email address' },
-            { selector: SELECTORS.PASSWORD_INPUT, type: 'password' }
+            { selector: SELECTORS.PASSWORD_INPUT, type: 'password' },
         ]);
     });
 
@@ -101,7 +101,6 @@ test.describe('LoginPage - Behavioral Tests', () => {
         // Should navigate to reset password page
         await verifyNavigation(page, '/reset-password');
     });
-
 
     test('should redirect authenticated user away from login', async ({ page }) => {
         // Set up authenticated state

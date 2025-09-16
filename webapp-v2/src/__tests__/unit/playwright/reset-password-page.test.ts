@@ -9,7 +9,7 @@ import {
     expectErrorMessage,
     setupPasswordResetMocking,
     SELECTORS,
-    TEST_SCENARIOS
+    TEST_SCENARIOS,
 } from '../infra/test-helpers';
 
 /**
@@ -28,9 +28,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectElementVisible(page, SELECTORS.BACK_TO_LOGIN_BUTTON);
 
         // Test form accessibility
-        await verifyFormAccessibility(page, [
-            { selector: 'input[type="email"]', type: 'email' }
-        ]);
+        await verifyFormAccessibility(page, [{ selector: 'input[type="email"]', type: 'email' }]);
 
         // Test form attributes
         await expect(page.locator('input[type="email"]')).toHaveAttribute('placeholder', 'Enter your email address');
@@ -136,15 +134,9 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectElementVisible(page, 'fieldset');
     });
 
-
     test('should accept various valid email formats', async ({ page }) => {
         const emailSelector = 'input[type="email"]';
-        const validEmails = [
-            'user@example.com',
-            'user.name@example.com',
-            'user+tag@example-domain.co.uk',
-            'test123@sub.domain.org'
-        ];
+        const validEmails = ['user@example.com', 'user.name@example.com', 'user+tag@example-domain.co.uk', 'test123@sub.domain.org'];
 
         // Test different email formats
         for (const email of validEmails) {
@@ -187,14 +179,14 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         // Verify success state elements
         await expectElementVisible(page, SELECTORS.SUCCESS_ICON);
         await expect(page.locator('text=Email Sent Successfully')).toBeVisible();
-        await expect(page.locator('text=We\'ve sent password reset instructions to:')).toBeVisible();
+        await expect(page.locator("text=We've sent password reset instructions to:")).toBeVisible();
 
         // Should display the email that was submitted
         await expect(page.locator(SELECTORS.SUCCESS_EMAIL_DISPLAY)).toContainText(testEmail);
 
         // Should show next steps section
         await expectElementVisible(page, SELECTORS.NEXT_STEPS_SECTION);
-        await expect(page.locator('text=What\'s next?')).toBeVisible();
+        await expect(page.locator("text=What's next?")).toBeVisible();
         await expect(page.locator('text=Check your email inbox')).toBeVisible();
 
         // Should show action buttons
@@ -268,7 +260,6 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await expectElementVisible(page, emailSelector);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
-
 
     test('should handle network errors gracefully', async ({ page }) => {
         // Set up network failure scenario

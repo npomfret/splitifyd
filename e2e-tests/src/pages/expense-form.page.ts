@@ -83,7 +83,7 @@ export class ExpenseFormDataBuilder {
         if (!this.expense.paidByDisplayName || this.expense.paidByDisplayName.trim() === '') {
             throw new Error('ExpenseFormDataBuilder.build(): paidByDisplayName is required but was not set. Use .withPaidByDisplayName(displayName) to specify who paid for this expense.');
         }
-        
+
         return {
             description: this.expense.description,
             amount: this.expense.amount,
