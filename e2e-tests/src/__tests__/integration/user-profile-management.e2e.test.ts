@@ -58,7 +58,8 @@ simpleTest.describe('User Profile Management', () => {
         await settingsPage.navigate();
 
         // Change password using POM method - use the fresh user's original password
-        await settingsPage.changePassword(password, 'newPassword123');
+        // Use a password that meets complexity requirements (uppercase, lowercase, numbers, symbols)
+        await settingsPage.changePassword(password, 'newPassword123!');
 
         // Verify success message
         await settingsPage.verifySuccessMessage('Password changed successfully');
