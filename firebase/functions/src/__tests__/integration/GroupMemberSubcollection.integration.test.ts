@@ -2,10 +2,8 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, MemberStatuses } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
-import { getFirestore } from '../../../firebase';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-
-// todo: use builders here !!
+import { getFirestore } from '../../firebase';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('Group Member Subcollection Scalability Tests', () => {
     const firestore = getFirestore();

@@ -1,6 +1,4 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-
-import { v4 as uuidv4 } from 'uuid';
 import { borrowTestUsers, generateShortId } from '@splitifyd/test-support';
 import { CreateExpenseRequestBuilder, ApiDriver, TestGroupManager } from '@splitifyd/test-support';
 import { PREDEFINED_EXPENSE_CATEGORIES } from '@splitifyd/shared';

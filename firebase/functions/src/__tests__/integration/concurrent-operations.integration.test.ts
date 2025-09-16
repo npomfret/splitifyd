@@ -2,8 +2,8 @@ import { describe, test, expect, beforeEach, beforeAll } from 'vitest';
 import { borrowTestUsers, GroupMemberDocumentBuilder } from '@splitifyd/test-support';
 import { GroupMemberDocument, MemberRoles, SplitTypes, Group } from '@splitifyd/shared';
 import { PooledTestUser } from '@splitifyd/shared';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
-import { getFirestore } from '../../../firebase';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
+import { getFirestore } from '../../firebase';
 
 describe('Concurrent Operations Integration Tests', () => {
     const applicationBuilder = new ApplicationBuilder(getFirestore());

@@ -1,7 +1,4 @@
-// Tests for public endpoints that don't require authentication
-
 import { describe, expect, test } from 'vitest';
-
 import { ApiDriver } from '@splitifyd/test-support';
 
 describe('Public Endpoints Tests', () => {

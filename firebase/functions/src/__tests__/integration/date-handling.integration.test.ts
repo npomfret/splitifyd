@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
-import { parseISOToTimestamp, timestampToISO, createOptimisticTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../../utils/dateHelpers';
+import { parseISOToTimestamp, timestampToISO, createOptimisticTimestamp, isDateInValidRange, getStartOfDay, getEndOfDay } from '../../utils/dateHelpers';
 
 describe('Firebase Date Handling Integration Tests', () => {
     describe('Date Utility Functions', () => {

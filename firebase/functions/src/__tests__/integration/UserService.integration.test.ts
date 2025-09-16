@@ -1,10 +1,9 @@
 import { beforeEach, describe, expect, test } from 'vitest';
-
 import { ApiDriver, borrowTestUser, borrowTestUsers, UserRegistrationBuilder, generateShortId } from '@splitifyd/test-support';
 import { AuthenticatedFirebaseUser, PooledTestUser, SystemUserRoles } from '@splitifyd/shared';
-import { ApiError } from '../../../utils/errors';
-import { getAuth, getFirestore } from '../../../firebase';
-import { ApplicationBuilder } from '../../../services/ApplicationBuilder';
+import { ApiError } from '../../utils/errors';
+import { getAuth, getFirestore } from '../../firebase';
+import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 
 describe('UserService - Integration Tests', () => {
     const firestore = getFirestore();

@@ -1,13 +1,8 @@
-// NOTE: This test suite runs against the live Firebase emulator.
-// You must have the emulator running for these tests to pass.
-//
-// Run the emulator with: `firebase emulators:start`
-
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { borrowTestUsers } from '@splitifyd/test-support';
 import { ApiDriver, TestExpenseManager } from '@splitifyd/test-support';
-import { getFirestore } from '../../../firebase';
+import { getFirestore } from '../../firebase';
 import { PooledTestUser } from '@splitifyd/shared';
 
 describe('Comments Integration Tests', () => {
