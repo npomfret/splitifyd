@@ -1,4 +1,4 @@
-import {FieldValue, Timestamp} from 'firebase-admin/firestore';
+import {Timestamp} from 'firebase-admin/firestore';
 import {Errors} from '../utils/errors';
 import {Group, UpdateGroupRequest} from '../types/group-types';
 import {CreateGroupRequest, DELETED_AT_FIELD, FirestoreCollections, GroupMemberDocument, ListGroupsResponse, MemberRoles, MemberStatuses, MessageResponse, SecurityPresets} from '@splitifyd/shared';
@@ -23,7 +23,6 @@ import {GroupMemberService} from './GroupMemberService';
 import {NotificationService} from './notification-service';
 import {GroupShareService} from './GroupShareService';
 import {createTopLevelMembershipDocument, getTopLevelMembershipDocId} from '../utils/groupMembershipHelpers';
-import type {UserNotificationGroup} from '../schemas/user-notifications';
 import {CreateGroupRequestBuilder} from "@splitifyd/test-support";
 
 /**

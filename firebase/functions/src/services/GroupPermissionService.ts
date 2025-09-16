@@ -7,7 +7,7 @@ import { FirestoreCollections, MemberRoles, PermissionChangeLog, SecurityPresets
 import { PermissionEngineAsync } from '../permissions/permission-engine-async';
 import { createOptimisticTimestamp } from '../utils/dateHelpers';
 
-import { getMemberDocFromArray, isAdminInDocArray } from '../utils/memberHelpers';
+import { getMemberDocFromArray } from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';

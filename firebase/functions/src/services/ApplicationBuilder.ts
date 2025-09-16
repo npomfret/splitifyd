@@ -6,7 +6,6 @@
  */
 
 import type { Firestore } from 'firebase-admin/firestore';
-import type { Auth } from 'firebase-admin/auth';
 import { FirestoreReader } from './firestore';
 import { FirestoreWriter } from './firestore';
 import { UserService } from './UserService2';
@@ -22,8 +21,8 @@ import { GroupShareService } from './GroupShareService';
 import { ExpenseMetadataService } from './expenseMetadataService';
 import { FirestoreValidationService } from './FirestoreValidationService';
 import { NotificationService } from './notification-service';
-import { IAuthService } from './auth/IAuthService';
-import { FirebaseAuthService } from './auth/FirebaseAuthService';
+import { IAuthService } from './auth';
+import { FirebaseAuthService } from './auth';
 import { getAuth } from '../firebase';
 
 export class ApplicationBuilder {

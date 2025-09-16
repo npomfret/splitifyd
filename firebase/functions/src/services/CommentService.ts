@@ -1,6 +1,6 @@
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import type { IAuthService } from './auth/IAuthService';
+import type { IAuthService } from './auth';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
 import { createOptimisticTimestamp, assertTimestampAndConvert } from '../utils/dateHelpers';

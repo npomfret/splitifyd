@@ -3,7 +3,7 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import assert from 'node:assert';
-import { PolicyIds, FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
+import { PolicyIds, FirestoreCollections } from '@splitifyd/shared';
 import { ApiDriver } from '@splitifyd/test-support';
 import { getEnvironment, initializeFirebase } from './firebase-init';
 
@@ -23,7 +23,7 @@ console.log(`🎯 Running policy seeding for ${env.environment}`);
 // Initialize Firebase using common pattern
 initializeFirebase(env);
 
-import { getFirestore, getAuth } from '../functions/src/firebase';
+import { getFirestore } from '../functions/src/firebase';
 import { ApplicationBuilder } from '../functions/src/services/ApplicationBuilder';
 
 // Get Firebase instances

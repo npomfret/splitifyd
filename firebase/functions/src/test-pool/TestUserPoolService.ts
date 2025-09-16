@@ -1,6 +1,6 @@
 import type { IFirestoreReader, IFirestoreWriter } from '../services/firestore';
 import { UserService } from '../services/UserService2';
-import type { IAuthService } from '../services/auth/IAuthService';
+import type { IAuthService } from '../services/auth';
 
 export interface PoolUser {
     token: string;

@@ -14,9 +14,8 @@ import {measureDb} from '../monitoring/measure';
 import {UserDataSchema} from '../schemas';
 import {FirestoreValidationService} from './FirestoreValidationService';
 import {NotificationService} from './notification-service';
-import {CreateRequest} from 'firebase-admin/lib/auth/auth-config';
 import type {IFirestoreReader, IFirestoreWriter} from './firestore';
-import type {IAuthService} from './auth/IAuthService';
+import type {IAuthService} from './auth';
 import {type GroupMemberDocument, GroupMembersResponse, GroupMemberWithProfile} from '@splitifyd/shared/src';
 
 /**
