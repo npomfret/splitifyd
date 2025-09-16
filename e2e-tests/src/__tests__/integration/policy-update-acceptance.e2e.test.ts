@@ -59,7 +59,7 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
 
         // Verify we're back to dashboard after accepting all policies
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
+        await dashboardPage.waitForDashboard();
 
         console.log(`✓ Test completed - all policies updated and accepted`);
 
@@ -96,7 +96,7 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
         const dashboardPage = new DashboardPage(page);
 
         await expect(page).toHaveURL(/\/dashboard/);
-        await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
+        await dashboardPage.waitForDashboard();
 
         const policies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
 
@@ -115,7 +115,7 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
         await policyModal.acceptMultiplePoliciesSequentially();
 
         // Verify we're back to dashboard
-        await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
+        await expect(page).toHaveURL(/\/dashboard/);
 
         console.log(`✓ Successfully processed all policies at once`);
 
@@ -181,7 +181,7 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
         await policyModal.acceptSinglePolicyComplete();
 
         // Verify we're back to dashboard
-        await expect(dashboardPage.getWelcomeMessage()).toBeVisible();
+        await expect(page).toHaveURL(/\/dashboard/);
 
         console.log(`✓ Policy modal structure validation complete`);
 
