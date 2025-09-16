@@ -30,6 +30,7 @@ import {
 import type { DocumentData } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import { FirestoreCollections } from '@splitifyd/shared';
 
 // Direct Firestore access for policy manipulation (bypass API)
 import { Matcher, PollOptions, pollUntil } from './Polling';
@@ -92,6 +93,32 @@ export class ApiDriver {
         this.baseUrl = API_BASE_URL;
         this.authPort = Number(new URL(FIREBASE_AUTH_URL).port);
         this.firebaseApiKey = FIREBASE_API_KEY;
+    }
+
+    /**
+     * Get a Firestore instance connected to the emulator for direct database operations
+     * Used for test-only operations that bypass the API
+     */
+    private getFirestore(): admin.firestore.Firestore {
+        const config = getFirebaseEmulatorConfig();
+
+        // Initialize app if it doesn't exist
+        let app: admin.app.App;
+        try {
+            app = admin.app();
+        } catch {
+            app = admin.initializeApp({
+                projectId: config.projectId,
+            });
+        }
+
+        const firestore = app.firestore();
+        firestore.settings({
+            host: `localhost:${config.firestorePort}`,
+            ssl: false,
+        });
+
+        return firestore;
     }
 
     getBaseUrl(): string {
@@ -537,7 +564,18 @@ export class ApiDriver {
 
     async clearUserPolicyAcceptances(token: string): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
-        await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
+        // Use direct Firestore access to avoid deprecated API endpoint
+
+        // First, decode the token to get the user ID
+        const auth = admin.auth();
+        const decodedToken = await auth.verifyIdToken(token);
+        const userId = decodedToken.uid;
+
+        // Clear the user's acceptedPolicies field directly in Firestore
+        const firestore = this.getFirestore();
+        await firestore.collection(FirestoreCollections.USERS).doc(userId).update({
+            acceptedPolicies: {},
+        });
     }
 
     async promoteUserToAdmin(token: string): Promise<void> {
