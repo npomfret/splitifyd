@@ -113,9 +113,8 @@ test.describe('Leave Group E2E', () => {
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
         const leaveModal = await memberGroupDetailPage.clickLeaveGroup();
 
-        // Click confirm button - but leave action should fail due to validation
-        await leaveModal.assertOutstandingBalanceMessage();
-        await leaveModal.clickUnderstoodToCloseModal();
+        // Expect leave to be blocked and modal to be cancelled
+        await leaveModal.expectLeaveBlockedAndCancel();
 
         // Verify member is still in the group (leave was blocked)
         await ownerGroupDetailPage.page.reload();

@@ -32,7 +32,17 @@ export class LeaveGroupModalPage extends BasePage {
 
     async confirmLeaveGroup(): Promise<DashboardPage> {
         await expect(this.confirmButton).toBeVisible({ timeout: 2000 });
-        await this.clickButton(this.confirmButton, { buttonName: 'Understood' });
+
+        // Get the actual button text to determine the state
+        const buttonText = await this.confirmButton.textContent();
+
+        if (buttonText?.includes('Understood')) {
+            // Button shows "Understood" - there's an outstanding balance
+            throw new Error('Cannot leave group with outstanding balance. Use expectLeaveBlockedAndCancel() instead.');
+        }
+
+        // Button text should be "Leave Group" - proceed with leaving
+        await this.clickButton(this.confirmButton, { buttonName: 'Leave Group' });
 
         const dashboardPage = new DashboardPage(this.page, this.userInfo);
         await dashboardPage.waitForDashboard();
@@ -66,10 +76,48 @@ export class LeaveGroupModalPage extends BasePage {
         }
     }
 
+    async hasOutstandingBalanceMessage(): Promise<boolean> {
+        try {
+            // Check for the balance error message test-id first
+            const errorMessage = this.dialog.getByTestId('balance-error-message');
+            await expect(errorMessage).toBeVisible({ timeout: 1000 });
+            return true;
+        } catch {
+            try {
+                // Fallback to text-based check
+                const balanceMessage = this.dialog.getByText(/You have an outstanding balance in this group\. Please settle up before leaving\./i);
+                await expect(balanceMessage).toBeVisible({ timeout: 1000 });
+                return true;
+            } catch {
+                return false;
+            }
+        }
+    }
+
     async assertOutstandingBalanceMessage(): Promise<void> {
         // Look for the specific outstanding balance message text
         const balanceMessage = this.dialog.getByText(/You have an outstanding balance in this group\. Please settle up before leaving\./i);
         await expect(balanceMessage).toBeVisible({ timeout: 1000 });
+    }
+
+
+    async expectLeaveBlockedAndCancel(): Promise<void> {
+        // Verify outstanding balance message is shown
+        await this.assertOutstandingBalanceMessage();
+
+        // Click "Understood" - this should do nothing (user cannot leave with outstanding balance)
+        await expect(this.confirmButton).toBeVisible({ timeout: 2000 });
+        await this.clickButton(this.confirmButton, { buttonName: 'Understood' });
+
+        // Verify we're still on the same page (not redirected to dashboard)
+        // Modal should still be visible
+        await expect(this.dialog).toBeVisible({ timeout: 2000 });
+
+        // Cancel to close the modal
+        await this.clickButton(this.cancelButton, { buttonName: 'Cancel' });
+
+        // Wait for the modal to close
+        await expect(this.dialog).not.toBeVisible({ timeout: 2000 });
     }
 
     async clickUnderstoodToCloseModal(): Promise<void> {
