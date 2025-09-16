@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { validCredentials, invalidCredentials } from './fixtures';
+import { validCredentials, invalidCredentials } from '../infra/fixtures';
 import {
     setupTestPage,
     fillFormField,
@@ -13,7 +13,7 @@ import {
     SELECTORS,
     TEST_SCENARIOS,
     testFormValidation
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * High-value login tests that verify actual user behavior

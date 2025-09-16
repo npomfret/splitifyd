@@ -10,7 +10,7 @@ import {
     setupPasswordResetMocking,
     SELECTORS,
     TEST_SCENARIOS
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * High-value reset password tests that verify actual user behavior

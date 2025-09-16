@@ -5,7 +5,7 @@ import {
     verifyNavigation,
     SELECTORS,
     TEST_SCENARIOS
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * High-value landing page tests that verify actual user behavior

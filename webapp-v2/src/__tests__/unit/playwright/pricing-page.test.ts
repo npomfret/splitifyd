@@ -3,7 +3,7 @@ import {
     setupTestPage,
     expectElementVisible,
     verifyNavigation,
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * PricingPage behavioral tests - Testing static content and user interactions

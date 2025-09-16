@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { validCredentials } from './fixtures';
+import { validCredentials } from '../infra/fixtures';
 import {
     setupTestPage,
     fillFormField,
@@ -13,7 +13,7 @@ import {
     TEST_SCENARIOS,
     testFormValidation,
     testSessionStoragePersistence
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * High-value register tests that verify actual user behavior

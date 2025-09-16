@@ -8,7 +8,7 @@ import {
     verifyNavigation,
     SELECTORS,
     TEST_SCENARIOS,
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * SettingsPage behavioral tests - Testing routing and accessible behaviors

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     verifyNavigation
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * TODO: Add comprehensive join group behavioral tests

@@ -4,7 +4,7 @@ import {
     expectElementVisible,
     SELECTORS,
     TEST_SCENARIOS
-} from './test-helpers';
+} from '../infra/test-helpers';
 
 /**
  * High-value privacy policy page tests that verify actual user behavior
