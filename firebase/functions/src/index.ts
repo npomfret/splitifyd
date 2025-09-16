@@ -27,7 +27,7 @@ import { BUILD_INFO } from './utils/build-info';
 import * as fs from 'fs';
 import * as path from 'path';
 import { FirestoreCollections } from '@splitifyd/shared';
-import { borrowTestUser, returnTestUser, getPoolStatus, resetPool } from './test-pool/handlers';
+import { borrowTestUser, returnTestUser, resetPool } from './test-pool/handlers';
 import { testUpdatePolicy, testClearPolicyAcceptances } from './test/policy-handlers';
 import { metrics } from './monitoring/lightweight-metrics';
 
@@ -297,7 +297,6 @@ function setupRoutes(app: express.Application): void {
     // @deprecated - Endpoints not used by ApiClient, will be removed
     app.post('/test-pool/borrow', asyncHandler(borrowTestUser));
     app.post('/test-pool/return', asyncHandler(returnTestUser));
-    app.get('/test-pool/status', asyncHandler(getPoolStatus));
     app.post('/test-pool/reset', asyncHandler(resetPool));
 
     // Policy endpoints (no auth required)

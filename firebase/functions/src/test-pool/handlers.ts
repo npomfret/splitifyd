@@ -62,23 +62,6 @@ export async function returnTestUser(req: Request, res: Response): Promise<void>
     }
 }
 
-export async function getPoolStatus(_req: Request, res: Response): Promise<void> {
-    if (!isEmulator()) {
-        res.status(403).json({ error: 'Test pool only available in emulator' });
-        return;
-    }
-
-    try {
-        const status = await pool.getPoolStatus();
-        res.json(status);
-    } catch (error: any) {
-        logger.error('Failed to get pool status', error);
-        res.status(500).json({
-            error: 'Failed to get pool status',
-            details: error.message,
-        });
-    }
-}
 
 export async function resetPool(_req: Request, res: Response): Promise<void> {
     if (!isEmulator()) {
