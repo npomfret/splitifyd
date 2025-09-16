@@ -325,6 +325,36 @@ export const UserProfileResponseSchema = z.object({
     displayName: z.string(),
 });
 
+// Group full details schema - combines multiple endpoint responses
+export const GroupFullDetailsSchema = z.object({
+    group: GroupSchema,
+    members: z.object({
+        members: z.array(
+            z.object({
+                uid: z.string().min(1),
+                email: z.string().email(),
+                displayName: z.string().min(1),
+                role: z.enum(['system-admin', 'system-user']).optional(),
+                termsAcceptedAt: z.any().optional(),
+                cookiePolicyAcceptedAt: z.any().optional(),
+                acceptedPolicies: z.record(z.string(), z.string()).optional(),
+                themeColor: UserThemeColorSchema.optional(),
+            }),
+        ),
+    }),
+    expenses: z.object({
+        expenses: z.array(ExpenseDataSchema),
+        hasMore: z.boolean(),
+        nextCursor: z.string().optional(),
+    }),
+    balances: GroupBalancesSchema,
+    settlements: z.object({
+        settlements: z.array(SettlementListItemSchema),
+        hasMore: z.boolean(),
+        nextCursor: z.string().optional(),
+    }),
+});
+
 export const responseSchemas = {
     '/config': AppConfigurationSchema,
     '/health': HealthCheckResponseSchema,
@@ -332,6 +362,7 @@ export const responseSchemas = {
     'POST /groups': GroupSchema,
     '/groups/:id': GroupSchema,
     '/groups/:id/members': GroupMembersResponseSchema,
+    '/groups/:id/full-details': GroupFullDetailsSchema,
     '/expenses': ExpenseDataSchema,
     'DELETE /expenses': MessageResponseSchema,
     '/expenses/group': ExpenseListResponseSchema,

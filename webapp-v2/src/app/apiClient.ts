@@ -423,7 +423,7 @@ export class ApiClient {
             let validatedData: T;
             if (!validator) {
                 // Only log validator warnings for unexpected endpoints to reduce test noise
-                const knownEndpoints = ['/user/policies/status', '/groups/preview', '/groups/:id/full-details'];
+                const knownEndpoints = ['/user/policies/status', '/groups/preview'];
                 if (!knownEndpoints.includes(endpoint)) {
                     logWarning('No validator found for endpoint', { endpoint });
                 }
