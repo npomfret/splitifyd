@@ -44,6 +44,19 @@ export class UnifiedConsoleHandler {
     private logFile: string = '';
     private disposed = false;
 
+    /**
+     * Patterns for Firebase connection errors that should be ignored.
+     * These are transient connection issues that Firebase handles with retries.
+     */
+    private readonly ignorableFirebaseErrors = [
+        /Could not reach Cloud Firestore backend/,
+        /Connection failed \d+ times/,
+        /FirebaseError: \[code=unavailable\]: The operation could not be completed/,
+        /device does not have a healthy Internet connection/,
+        /client will operate in offline mode/,
+        /@firebase\/firestore.*unavailable/i,
+    ];
+
     constructor(
         private page: Page,
         private options: ConsoleHandlerOptions = {},
@@ -70,6 +83,13 @@ export class UnifiedConsoleHandler {
         fs.writeFileSync(this.logFile, header, 'utf8');
     }
 
+    /**
+     * Check if a console error should be ignored (e.g., Firebase connection errors)
+     */
+    private shouldIgnoreError(errorMessage: string): boolean {
+        return this.ignorableFirebaseErrors.some(pattern => pattern.test(errorMessage));
+    }
+
     private attachListeners(): void {
         // Console message listener - handles both logging and error tracking
         this.page.on('console', (msg) => {
@@ -83,25 +103,31 @@ export class UnifiedConsoleHandler {
             const logEntry = `[${timestamp.toISOString()}] ${msgType.toUpperCase()}: ${msgText}\n`;
             fs.appendFileSync(this.logFile, logEntry, 'utf8');
 
-            // Track errors for test failure detection
+            // Track errors for test failure detection (but filter out ignorable Firebase errors)
             if (msgType === 'error') {
-                const location = msg.location();
-                this.consoleErrors.push({
-                    message: msgText,
-                    type: msgType,
-                    location: location
-                        ? {
-                              url: location.url,
-                              lineNumber: location.lineNumber,
-                              columnNumber: location.columnNumber,
-                          }
-                        : undefined,
-                    timestamp,
-                    userInfo: {
-                        userIndex: this.options.userIndex,
-                        userEmail: this.options.userEmail,
-                    },
-                });
+                if (this.shouldIgnoreError(msgText)) {
+                    // Log that we're ignoring this Firebase error for debugging
+                    const ignoredLogEntry = `[${timestamp.toISOString()}] IGNORED FIREBASE ERROR: ${msgText}\n`;
+                    fs.appendFileSync(this.logFile, ignoredLogEntry, 'utf8');
+                } else {
+                    const location = msg.location();
+                    this.consoleErrors.push({
+                        message: msgText,
+                        type: msgType,
+                        location: location
+                            ? {
+                                  url: location.url,
+                                  lineNumber: location.lineNumber,
+                                  columnNumber: location.columnNumber,
+                              }
+                            : undefined,
+                        timestamp,
+                        userInfo: {
+                            userIndex: this.options.userIndex,
+                            userEmail: this.options.userEmail,
+                        },
+                    });
+                }
             }
         });
 
