@@ -7,7 +7,7 @@ import {
     expectElementVisible,
     verifyFormAccessibility,
     expectErrorMessage,
-    setupPasswordResetMocking,
+    mockFirebasePasswordReset,
     SELECTORS,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
@@ -163,11 +163,11 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     // These tests cover the complete password reset journey with Firebase mocking
 
     test('should transition to success state after successful submission', async ({ page }) => {
-        // Set up Firebase mocking for success scenario
-        await setupPasswordResetMocking(page, 'success');
-
-        const emailSelector = 'input[type="email"]';
         const testEmail = 'success@example.com';
+        const emailSelector = 'input[type="email"]';
+
+        // Set up Firebase mocking for success scenario with specific email
+        await mockFirebasePasswordReset(page, testEmail, 'success');
 
         // Fill email and submit
         await fillFormField(page, emailSelector, testEmail);
@@ -195,11 +195,11 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     });
 
     test('should allow sending to different email from success state', async ({ page }) => {
-        // Set up Firebase mocking for success scenario
-        await setupPasswordResetMocking(page, 'success');
-
-        const emailSelector = 'input[type="email"]';
         const testEmail = 'first@example.com';
+        const emailSelector = 'input[type="email"]';
+
+        // Set up Firebase mocking for success scenario with specific email
+        await mockFirebasePasswordReset(page, testEmail, 'success');
 
         // Complete initial flow to success state
         await fillFormField(page, emailSelector, testEmail);
@@ -228,13 +228,14 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     });
 
     test('should navigate back to login from success state', async ({ page }) => {
-        // Set up Firebase mocking for success scenario
-        await setupPasswordResetMocking(page, 'success');
-
+        const testEmail = 'test@example.com';
         const emailSelector = 'input[type="email"]';
 
+        // Set up Firebase mocking for success scenario with specific email
+        await mockFirebasePasswordReset(page, testEmail, 'success');
+
         // Complete flow to success state
-        await fillFormField(page, emailSelector, 'test@example.com');
+        await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
         // Wait for success state
@@ -249,10 +250,11 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
     test('should handle different Firebase error scenarios', async ({ page }) => {
         const emailSelector = 'input[type="email"]';
+        const testEmail = 'notfound@example.com';
 
         // Test user not found error
-        await setupPasswordResetMocking(page, 'user-not-found');
-        await fillFormField(page, emailSelector, 'notfound@example.com');
+        await mockFirebasePasswordReset(page, testEmail, 'user-not-found');
+        await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
         // Should show error and stay in form state
@@ -262,13 +264,14 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     });
 
     test('should handle network errors gracefully', async ({ page }) => {
-        // Set up network failure scenario
-        await setupPasswordResetMocking(page, 'network-error');
-
+        const testEmail = 'test@example.com';
         const emailSelector = 'input[type="email"]';
 
+        // Set up network failure scenario
+        await mockFirebasePasswordReset(page, testEmail, 'network-error');
+
         // Fill email and submit
-        await fillFormField(page, emailSelector, 'test@example.com');
+        await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
         // Should show error message due to network failure
@@ -276,27 +279,90 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
         // Should remain in form state with email preserved
         await expectElementVisible(page, emailSelector);
-        await expect(page.locator(emailSelector)).toHaveValue('test@example.com');
+        await expect(page.locator(emailSelector)).toHaveValue(testEmail);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
 
     test('should clear errors when retrying after failure', async ({ page }) => {
         const emailSelector = 'input[type="email"]';
+        const firstEmail = 'test@example.com';
+        const differentEmail = 'different@example.com';
 
         // First attempt - cause failure
-        await setupPasswordResetMocking(page, 'user-not-found');
-        await fillFormField(page, emailSelector, 'test@example.com');
+        await mockFirebasePasswordReset(page, firstEmail, 'user-not-found');
+        await fillFormField(page, emailSelector, firstEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
         // Should show error
         await expectErrorMessage(page, undefined, 10000);
 
         // Change email (should clear error)
-        await fillFormField(page, emailSelector, 'different@example.com');
+        await fillFormField(page, emailSelector, differentEmail);
 
         // Error should be cleared when user starts typing/changing input
         // Note: This may require component-level implementation to work
         // For now, we just verify the form is still functional
+        await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
+    });
+
+    test('should validate Firebase Auth API integration with exact payload structure', async ({ page }) => {
+        const testEmail = 'api-test@example.com';
+        const emailSelector = 'input[type="email"]';
+
+        // Set up Firebase auth mocking for success scenario
+        await mockFirebasePasswordReset(page, testEmail, 'success');
+
+        // Fill and submit form
+        await fillFormField(page, emailSelector, testEmail);
+        await page.click(SELECTORS.SUBMIT_BUTTON);
+
+        // Should succeed if the API call matches the expected structure:
+        // - requestType: "PASSWORD_RESET"
+        // - email: matching test email
+        // - clientType: "CLIENT_TYPE_WEB"
+        await expect(page.locator(SELECTORS.SUCCESS_TITLE)).toBeVisible({ timeout: 10000 });
+
+        // Verify we get the success state with the correct email displayed
+        await expect(page.locator(SELECTORS.SUCCESS_EMAIL_DISPLAY)).toContainText(testEmail);
+    });
+
+    test('should handle Firebase Auth API validation errors', async ({ page }) => {
+        const testEmail = 'validation-test@example.com';
+        const emailSelector = 'input[type="email"]';
+
+        // Set up Firebase auth mocking for success but with different email
+        // This will cause a validation error since the payload email won't match
+        await mockFirebasePasswordReset(page, 'different@example.com', 'success');
+
+        // Fill form with email that doesn't match the mocked email
+        await fillFormField(page, emailSelector, testEmail);
+        await page.click(SELECTORS.SUBMIT_BUTTON);
+
+        // Should show error due to payload validation failure
+        await expectErrorMessage(page, undefined, 10000);
+
+        // Should remain in form state
+        await expectElementVisible(page, emailSelector);
+        await expect(page.locator(emailSelector)).toHaveValue(testEmail);
+        await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
+    });
+
+    test('should handle invalid email format errors from Firebase', async ({ page }) => {
+        const testEmail = 'invalid-format@example.com';
+        const emailSelector = 'input[type="email"]';
+
+        // Set up Firebase auth mocking for invalid email scenario
+        await mockFirebasePasswordReset(page, testEmail, 'invalid-email');
+
+        // Fill and submit form
+        await fillFormField(page, emailSelector, testEmail);
+        await page.click(SELECTORS.SUBMIT_BUTTON);
+
+        // Should show error for invalid email format
+        await expectErrorMessage(page, undefined, 10000);
+
+        // Should remain in form state for retry
+        await expectElementVisible(page, emailSelector);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
     });
 });

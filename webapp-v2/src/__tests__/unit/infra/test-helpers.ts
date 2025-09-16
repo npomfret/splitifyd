@@ -516,92 +516,131 @@ export async function setupAuthenticatedUser(page: Page, email = 'test@example.c
 }
 
 /**
- * Set up network-level Firebase Auth mocking for password reset
+ * Mock Firebase Auth password reset flow with network-level API mocking
+ * This mimics the actual Firebase Auth REST API calls during password reset
+ * Based on the exact curl command pattern provided
  */
-export async function setupPasswordResetMocking(page: Page, scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email'): Promise<void> {
+export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.com', scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email' = 'success'): Promise<void> {
+    // Mock Firebase config API
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+                    authDomain: 'splitifyd.firebaseapp.com',
+                    projectId: 'splitifyd',
+                    storageBucket: 'splitifyd.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id',
+                },
+                firebaseAuthUrl: 'http://127.0.0.1:6002',
+                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+            }),
+        });
+    });
+
+    // Mock Firebase Auth REST API endpoints
     await page.route('**/**', (route) => {
         const url = route.request().url();
+        const requestBody = route.request().postDataJSON();
 
-        // Mock Firebase config API that's needed for initialization
-        if (url.includes('/api/config')) {
-            route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify({
-                    firebase: {
-                        apiKey: 'test-api-key',
-                        authDomain: 'test-project.firebaseapp.com',
-                        projectId: 'test-project',
-                        storageBucket: 'test-project.appspot.com',
-                        messagingSenderId: '123456789',
-                        appId: 'test-app-id',
-                    },
-                    // No emulator URLs - we want to use production Firebase URLs that we can mock
-                    firebaseAuthUrl: null,
-                    firebaseFirestoreUrl: null,
-                }),
-            });
-            return;
-        }
+        // Mock Firebase Auth sendOobCode endpoint (exact match to curl command)
+        if (url.includes('identitytoolkit.googleapis.com/v1/accounts:sendOobCode') && url.includes('key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg')) {
+            // Validate the request payload matches the curl command structure
+            if (requestBody?.requestType === 'PASSWORD_RESET' &&
+                requestBody?.email === email &&
+                requestBody?.clientType === 'CLIENT_TYPE_WEB') {
 
-        // Mock Firebase Auth REST API calls
-        if (url.includes('identitytoolkit.googleapis.com') && url.includes('sendOobCode')) {
-            switch (scenario) {
-                case 'success':
-                    route.fulfill({
-                        status: 200,
-                        contentType: 'application/json',
-                        body: JSON.stringify({ email: 'test@example.com' }),
-                    });
-                    break;
-                case 'user-not-found':
-                    route.fulfill({
-                        status: 400,
-                        contentType: 'application/json',
-                        body: JSON.stringify({
-                            error: {
-                                code: 400,
-                                message: 'EMAIL_NOT_FOUND',
-                                errors: [
-                                    {
-                                        message: 'EMAIL_NOT_FOUND',
-                                        domain: 'global',
-                                        reason: 'invalid',
-                                    },
-                                ],
-                            },
-                        }),
-                    });
-                    break;
-                case 'network-error':
-                    route.abort('failed');
-                    break;
-                case 'invalid-email':
-                    route.fulfill({
-                        status: 400,
-                        contentType: 'application/json',
-                        body: JSON.stringify({
-                            error: {
-                                code: 400,
-                                message: 'INVALID_EMAIL',
-                                errors: [
-                                    {
-                                        message: 'INVALID_EMAIL',
-                                        domain: 'global',
-                                        reason: 'invalid',
-                                    },
-                                ],
-                            },
-                        }),
-                    });
-                    break;
-                default:
-                    route.continue();
+                switch (scenario) {
+                    case 'success':
+                        route.fulfill({
+                            status: 200,
+                            contentType: 'application/json',
+                            body: JSON.stringify({
+                                email: email,
+                                kind: 'identitytoolkit#GetOobConfirmationCodeResponse'
+                            }),
+                        });
+                        break;
+                    case 'user-not-found':
+                        route.fulfill({
+                            status: 400,
+                            contentType: 'application/json',
+                            body: JSON.stringify({
+                                error: {
+                                    code: 400,
+                                    message: 'EMAIL_NOT_FOUND',
+                                    errors: [
+                                        {
+                                            message: 'EMAIL_NOT_FOUND',
+                                            domain: 'global',
+                                            reason: 'invalid',
+                                        },
+                                    ],
+                                },
+                            }),
+                        });
+                        break;
+                    case 'network-error':
+                        route.abort('failed');
+                        break;
+                    case 'invalid-email':
+                        route.fulfill({
+                            status: 400,
+                            contentType: 'application/json',
+                            body: JSON.stringify({
+                                error: {
+                                    code: 400,
+                                    message: 'INVALID_EMAIL',
+                                    errors: [
+                                        {
+                                            message: 'INVALID_EMAIL',
+                                            domain: 'global',
+                                            reason: 'invalid',
+                                        },
+                                    ],
+                                },
+                            }),
+                        });
+                        break;
+                    default:
+                        route.continue();
+                }
+                return;
+            } else {
+                // Mock validation error for incorrect payload structure
+                route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: {
+                            code: 400,
+                            message: 'INVALID_REQUEST_PAYLOAD',
+                            errors: [{
+                                message: 'Request payload validation failed',
+                                domain: 'global',
+                                reason: 'invalid'
+                            }]
+                        }
+                    }),
+                });
+                return;
             }
-        } else {
-            route.continue();
         }
+
+        // Continue with other requests
+        route.continue();
     });
+}
+
+/**
+ * Set up network-level Firebase Auth mocking for password reset
+ * @deprecated Use mockFirebasePasswordReset instead for better API matching
+ */
+export async function setupPasswordResetMocking(page: Page, scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email'): Promise<void> {
+    await mockFirebasePasswordReset(page, 'test@example.com', scenario);
 }
 
 /**
