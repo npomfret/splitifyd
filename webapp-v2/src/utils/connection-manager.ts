@@ -209,7 +209,8 @@ export class ConnectionManager {
             } catch (error) {
                 // Failure - increment attempts and retry
                 this.reconnectAttempts.value++;
-                logInfo(`Reconnect attempt failed for ${key}`, {
+                logInfo('Reconnect attempt failed', {
+                    key,
                     attempt: this.reconnectAttempts.value,
                     error: error instanceof Error ? error.message : String(error),
                 });

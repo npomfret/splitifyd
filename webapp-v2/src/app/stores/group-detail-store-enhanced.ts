@@ -22,7 +22,6 @@ export interface EnhancedGroupDetailStore {
 
     // Methods
     loadGroup(id: string): Promise<void>;
-    subscribeToChanges(userId: string): void;
     dispose(): void;
     reset(): void;
     refreshAll(): Promise<void>;
@@ -52,13 +51,13 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     // Reference counting infrastructure for multi-group support
     readonly #subscriberCounts = new Map<string, number>();
-    readonly #activeSubscriptions = new Map<string, () => void>();
-    readonly #notificationDetectors = new Map<string, UserNotificationDetector>();
 
-    // Legacy state for backward compatibility
+    // Single detector per user, not per group
+    private notificationDetector: UserNotificationDetector | null = null;
+    private notificationUnsubscribe: (() => void) | null = null;
+
+    // Current group tracking for core functionality
     private currentGroupId: string | null = null;
-    private notificationDetector = new UserNotificationDetector();
-    private unsubscribeNotifications: (() => void) | null = null;
 
     // State getters
     get group() {
@@ -100,7 +99,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     setDeletingGroup(value: boolean): void {
         this.#isDeletingGroupSignal.value = value;
-        logInfo('Group deletion flag changed', { isDeletingGroup: value, currentGroupId: this.currentGroupId });
+        // Group deletion flag changed (routine)
     }
 
     async loadGroup(groupId: string): Promise<void> {
@@ -128,74 +127,19 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         }
     }
 
-    subscribeToChanges(userId: string): void {
-        if (!this.currentGroupId) {
-            logWarning('Cannot subscribe to changes - no currentGroupId', { userId });
-            return;
-        }
-
-        logInfo('Setting up notification subscriptions', {
-            groupId: this.currentGroupId,
-            userId,
-        });
-
-        this.unsubscribeNotifications = this.notificationDetector.subscribe(userId, {
-            onTransactionChange: (groupId) => {
-                if (groupId !== this.currentGroupId) return;
-                logInfo('Transaction change detected', { groupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
-            },
-            onGroupChange: (groupId) => {
-                if (groupId !== this.currentGroupId) return;
-                
-                // Skip refresh if we're in the process of deleting this group
-                if (this.#isDeletingGroupSignal.value) {
-                    logInfo('Group change detected but skipping refresh - group deletion in progress', { groupId });
-                    return;
-                }
-                
-                logInfo('Group change detected', { groupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
-            },
-            onBalanceChange: (groupId) => {
-                if (groupId !== this.currentGroupId) return;
-                logInfo('Balance change detected', { groupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
-            },
-            onGroupRemoved: (groupId) => {
-                if (groupId !== this.currentGroupId) return;
-                logInfo('Group removed - clearing state without refresh', { groupId });
-
-                // Clear state immediately without trying to fetch the deleted group
-                this.#errorSignal.value = 'GROUP_DELETED';
-                batch(() => {
-                    this.#groupSignal.value = null;
-                    this.#membersSignal.value = [];
-                    this.#expensesSignal.value = [];
-                    this.#balancesSignal.value = null;
-                    this.#settlementsSignal.value = [];
-                    this.#loadingSignal.value = false;
-                    this.#isDeletingGroupSignal.value = false; // Clear deletion flag
-                });
-            },
-        });
-    }
 
     async refreshAll(): Promise<void> {
         if (!this.currentGroupId) return;
 
         try {
             await this.loadGroup(this.currentGroupId);
-            logInfo('RefreshAll: Complete data refresh successful', { groupId: this.currentGroupId });
+            // Data refresh successful (routine operation)
         } catch (error: any) {
             const isGroupDeleted = error?.status === 404 || (error?.message && error.message.includes('404')) || error?.code === 'NOT_FOUND';
             const isAccessDenied = error?.status === 403 || error?.code === 'FORBIDDEN';
 
             if (isGroupDeleted) {
-                logInfo('RefreshAll: Group has been deleted, clearing state', {
-                    groupId: this.currentGroupId,
-                    error: error?.message || String(error),
-                });
+                logInfo('Group deleted, clearing state', { groupId: this.currentGroupId });
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -213,10 +157,7 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
             if (isAccessDenied) {
                 // User has been removed from the group - handle gracefully without error
-                logInfo('RefreshAll: User no longer has access to group (removed/left), clearing state', {
-                    groupId: this.currentGroupId,
-                    error: error?.message || String(error),
-                });
+                logInfo('User removed from group, clearing state', { groupId: this.currentGroupId });
 
                 this.#errorSignal.value = 'GROUP_DELETED';
                 batch(() => {
@@ -238,12 +179,17 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     dispose(): void {
-        // Legacy API - only clean up legacy subscriptions, not reference-counted ones
-        if (this.unsubscribeNotifications) {
-            this.unsubscribeNotifications();
-            this.unsubscribeNotifications = null;
+        // Clean up notification detector
+        if (this.notificationUnsubscribe) {
+            this.notificationUnsubscribe();
+            this.notificationUnsubscribe = null;
         }
-        
+
+        if (this.notificationDetector) {
+            this.notificationDetector.dispose();
+            this.notificationDetector = null;
+        }
+
         // Note: We do NOT clear #subscriberCounts or call permissionsStore.dispose()
         // to avoid breaking other components that might be using the reference-counted API
     }
@@ -264,23 +210,44 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
         this.currentGroupId = null;
     }
 
-    // Reference-counted registration - proper implementation
+    // Reference-counted registration - single detector approach
     async registerComponent(groupId: string, userId: string): Promise<void> {
-        logInfo(`Registering component for group: ${groupId}`);
+        // Registering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
         this.#subscriberCounts.set(groupId, currentCount + 1);
 
-        if (currentCount === 0) {
-            // First subscriber for this group - create subscription
-            logInfo(`First component for ${groupId}, loading group and creating subscription`);
-            await this.loadGroup(groupId);
-            this.#subscribeToGroupChanges(groupId, userId);
-        } else {
-            // Additional subscriber - just ensure we have the data
-            if (this.currentGroupId !== groupId) {
-                // Switch to this group if it's different from the currently loaded one
-                await this.loadGroup(groupId);
-            }
+        // Load the group data
+        await this.loadGroup(groupId);
+
+        // Set up notification detector if not already running
+        if (!this.notificationDetector) {
+            this.notificationDetector = new UserNotificationDetector();
+            this.notificationUnsubscribe = this.notificationDetector.subscribe(userId, {
+                onTransactionChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Transaction change detected', { groupId: changeGroupId });
+                        this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
+                    }
+                },
+                onGroupChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Group change detected', { groupId: changeGroupId });
+                        this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
+                    }
+                },
+                onBalanceChange: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Balance change detected', { groupId: changeGroupId });
+                        this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
+                    }
+                },
+                onGroupRemoved: (changeGroupId) => {
+                    if (changeGroupId === this.currentGroupId) {
+                        logInfo('Group removed - clearing state', { groupId: changeGroupId });
+                        this.#clearGroupData();
+                    }
+                },
+            });
         }
 
         // Update permissions store
@@ -288,31 +255,30 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
     }
 
     deregisterComponent(groupId: string): void {
-        logInfo(`Deregistering component for group: ${groupId}`);
+        // Deregistering component for group (routine)
         const currentCount = this.#subscriberCounts.get(groupId) || 0;
 
         if (currentCount <= 1) {
-            logInfo(`Last component for ${groupId}, disposing subscription`);
+            // Last component for group - cleanup required
             this.#subscriberCounts.delete(groupId);
-            
-            // Clean up subscription for this specific group
-            const unsubscribe = this.#activeSubscriptions.get(groupId);
-            if (unsubscribe) {
-                unsubscribe();
-                this.#activeSubscriptions.delete(groupId);
-            }
-
-            // Clean up notification detector
-            const detector = this.#notificationDetectors.get(groupId);
-            if (detector) {
-                detector.dispose();
-                this.#notificationDetectors.delete(groupId);
-            }
 
             // If this was the current group, clear the state
             if (this.currentGroupId === groupId) {
                 this.#clearGroupData();
                 this.currentGroupId = null;
+            }
+
+            // If no more groups being tracked, dispose detector
+            if (this.#subscriberCounts.size === 0) {
+                // No more groups being tracked, disposing detector
+                if (this.notificationUnsubscribe) {
+                    this.notificationUnsubscribe();
+                    this.notificationUnsubscribe = null;
+                }
+                if (this.notificationDetector) {
+                    this.notificationDetector.dispose();
+                    this.notificationDetector = null;
+                }
             }
         } else {
             this.#subscriberCounts.set(groupId, currentCount - 1);
@@ -324,62 +290,15 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
 
     // Pagination methods (simplified - just stubs for now)
     async loadMoreExpenses(): Promise<void> {
-        logInfo('loadMoreExpenses: Not implemented in minimal version');
+        // Not implemented in minimal version
     }
 
     async loadMoreSettlements(): Promise<void> {
-        logInfo('loadMoreSettlements: Not implemented in minimal version');
+        // Not implemented in minimal version
     }
 
     async fetchSettlements(cursor?: string, userId?: string): Promise<void> {
-        logInfo('fetchSettlements: Not implemented in minimal version');
-    }
-
-    // Private helper methods for reference counting
-
-    /**
-     * Create subscription for a specific group with reference counting
-     */
-    #subscribeToGroupChanges(groupId: string, userId: string): void {
-        logInfo('Setting up notification subscriptions for reference-counted group', {
-            groupId,
-            userId,
-        });
-
-        const detector = new UserNotificationDetector();
-        this.#notificationDetectors.set(groupId, detector);
-
-        const unsubscribe = detector.subscribe(userId, {
-            onTransactionChange: (changeGroupId) => {
-                if (changeGroupId !== groupId) return;
-                logInfo('Transaction change detected for reference-counted group', { groupId: changeGroupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after transaction change', error));
-            },
-            onGroupChange: (changeGroupId) => {
-                if (changeGroupId !== groupId) return;
-                
-                // Skip refresh if we're in the process of deleting this group
-                if (this.#isDeletingGroupSignal.value) {
-                    logInfo('Group change detected but skipping refresh - group deletion in progress (reference-counted)', { groupId: changeGroupId });
-                    return;
-                }
-                
-                logInfo('Group change detected for reference-counted group', { groupId: changeGroupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after group change', error));
-            },
-            onBalanceChange: (changeGroupId) => {
-                if (changeGroupId !== groupId) return;
-                logInfo('Balance change detected for reference-counted group', { groupId: changeGroupId });
-                this.refreshAll().catch((error) => logError('Failed to refresh after balance change', error));
-            },
-            onGroupRemoved: (changeGroupId) => {
-                if (changeGroupId !== groupId) return;
-                logInfo('Group removed - clearing state for reference-counted group', { groupId: changeGroupId });
-                this.#clearGroupData();
-            },
-        });
-
-        this.#activeSubscriptions.set(groupId, unsubscribe);
+        // Not implemented in minimal version
     }
 
     /**

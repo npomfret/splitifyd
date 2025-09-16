@@ -90,22 +90,22 @@ class CommentsStoreImpl implements CommentsStore {
     }
 
     registerComponent(targetType: CommentTargetType, targetId: string): void {
-        logInfo(`Registering component for comments target: ${targetId}`);
+        // Registering component for comments target (routine)
         const currentCount = this.#subscriberCounts.get(targetId) || 0;
         this.#subscriberCounts.set(targetId, currentCount + 1);
 
         if (currentCount === 0) {
-            logInfo(`First component for ${targetId}, creating subscription.`);
+            // First component for target, creating subscription
             this.#subscribeToComments(targetType, targetId);
         }
     }
 
     deregisterComponent(targetId: string): void {
-        logInfo(`Deregistering component for comments target: ${targetId}`);
+        // Deregistering component for comments target (routine)
         const currentCount = this.#subscriberCounts.get(targetId) || 0;
 
         if (currentCount <= 1) {
-            logInfo(`Last component for ${targetId}, disposing subscription.`);
+            // Last component for target, disposing subscription
             this.#subscriberCounts.delete(targetId);
             this.#dispose();
         } else {
@@ -120,13 +120,13 @@ class CommentsStoreImpl implements CommentsStore {
     #subscribeToComments(targetType: CommentTargetType, targetId: string) {
         // If we are already subscribed to the same target, do nothing.
         if (this.#subscriptionState === 'subscribed' && this.#targetTypeSignal.value === targetType && this.#targetIdSignal.value === targetId) {
-            logInfo(`Already subscribed to ${targetType}:${targetId}`);
+            logInfo('Already subscribed to target', { targetType, targetId });
             return;
         }
 
         // Prevent multiple simultaneous subscription attempts
         if (this.#subscriptionState === 'subscribing') {
-            logInfo(`Already subscribing to comments, ignoring duplicate request`);
+            logInfo('Already subscribing to comments, ignoring duplicate request');
             return;
         }
 

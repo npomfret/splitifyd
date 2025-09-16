@@ -49,7 +49,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private notificationDetector = new UserNotificationDetector();
+    private notificationDetector = new UserNotificationDetector("groups-store-enhanced.ts");
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Reference counting for subscription management
@@ -259,11 +259,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             this.setupSubscription(userId);
         }
 
-        logInfo(`Groups store: Component registered`, {
-            componentId,
-            userId,
-            subscriberCount: this.subscriberCount,
-        });
+        // Component registered (routine)
     }
 
     /**
@@ -278,10 +274,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         this.subscriberIds.delete(componentId);
         this.subscriberCount--;
 
-        logInfo(`Groups store: Component deregistered`, {
-            componentId,
-            subscriberCount: this.subscriberCount,
-        });
+        // Component deregistered (routine)
 
         // Only dispose if this was the last subscriber
         if (this.subscriberCount === 0) {

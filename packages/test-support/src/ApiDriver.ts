@@ -513,29 +513,30 @@ export class ApiDriver {
     }
 
     async acceptCurrentPublishedPolicies(token: string): Promise<void> {
-        // This method replicates the behavior of the old acceptCurrentPolicies method
-        // It gets all currently published policy versions and accepts them, regardless of user status
+        // This method accepts ALL currently published policies, including test policies
+        // Uses the /user/policies/status endpoint to get all policies that need acceptance
 
-        // We need to get current published policies. Since /policies/current is deprecated,
-        // we'll use the individual policy endpoint for each known policy
-        const policyIds = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
-        const acceptances = [];
+        try {
+            // Get user's policy status which includes all existing policies
+            const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
 
-        for (const policyId of policyIds) {
-            try {
-                const policy = await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
-                acceptances.push({
-                    policyId: policy.id,
-                    versionHash: policy.currentVersionHash
-                });
-            } catch (error) {
-                // Policy might not exist, skip it
-                console.log(`Policy ${policyId} not found, skipping`);
+            if (!policyStatus.policies || policyStatus.policies.length === 0) {
+                console.log('No policies found to accept');
+                return;
             }
-        }
 
-        if (acceptances.length > 0) {
+            // Build acceptances for all policies (both accepted and unaccepted)
+            // This ensures test users accept everything regardless of current status
+            const acceptances = policyStatus.policies.map((policy: any) => ({
+                policyId: policy.policyId,
+                versionHash: policy.currentVersionHash
+            }));
+
+            console.log(`Accepting ${acceptances.length} policies for test user`);
             await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
+        } catch (error) {
+            console.warn('Failed to accept current policies:', error);
+            // Don't throw to avoid breaking test setup if policies endpoint fails
         }
     }
 

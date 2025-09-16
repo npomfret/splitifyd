@@ -62,6 +62,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const uniqueId = generateShortId();
         const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
         const groupId = groupDetailPage.inferGroupId();
+        console.log(`groupId=${groupId}`);
+
         const memberCount = 2;
 
         // Get share link
@@ -81,9 +83,9 @@ test.describe('Balance Visualization - Comprehensive', () => {
         await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
         await expect(page2.getByText(`Equal Payment Test ${uniqueId}`)).toBeVisible();
 
-        // Wait for group member list to synchronize before adding expenses
-        await page.waitForTimeout(2000);
-        await page2.waitForTimeout(2000);
+        // Wait for both users to see each other in the member list to ensure membership is fully established
+        await groupDetailPage.waitForMemberVisible(user2DisplayName);
+        await groupDetailPage2.waitForMemberVisible(user1DisplayName);
 
         // SEQUENTIAL EXPENSES: User1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);

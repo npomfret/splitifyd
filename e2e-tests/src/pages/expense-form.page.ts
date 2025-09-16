@@ -288,7 +288,7 @@ export class ExpenseFormPage extends BasePage {
     }
 
     /**
-     * Clicks the save expense button and waits for any spinner to disappear.
+     * Clicks the save expense button and waits for navigation back to the group page.
      * This properly handles the async save operation.
      */
     async clickSaveExpenseButton(): Promise<void> {
@@ -300,8 +300,8 @@ export class ExpenseFormPage extends BasePage {
         // Click the button
         await this.clickButton(saveButton, { buttonName: 'Save Expense' });
 
-        // Note: We don't wait for loading states here because operations can be instantaneous.
-        // The caller (submitExpense method) will handle waiting for the appropriate outcome.
+        // Wait for navigation away from the add-expense page (indicates save completed)
+        await expect(this.page).not.toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/, { timeout: 10000 });
     }
 
     /**

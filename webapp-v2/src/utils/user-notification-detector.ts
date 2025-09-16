@@ -72,9 +72,12 @@ export class UserNotificationDetector {
     private retryTimer: NodeJS.Timeout | null = null;
     private isDisposed = false;
     private userId: string | null = null;
+    private isFirstDocument = true;
+    // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
+    private baselineGroupStates = new Map<string, GroupNotificationState>();
 
-    constructor() {
-        logInfo('UserNotificationDetector: created');
+    constructor(name = "") {
+        // Only log in debug mode - detector creation is routine
     }
 
     /**
@@ -86,7 +89,7 @@ export class UserNotificationDetector {
             throw new Error('UserNotificationDetector has been disposed');
         }
 
-        logInfo('UserNotificationDetector: subscribe', { userId });
+        // Subscription is routine - only log if debug mode needed
 
         this.userId = userId;
         this.callbacks = callbacks;
@@ -107,7 +110,7 @@ export class UserNotificationDetector {
             return;
         }
 
-        logInfo('UserNotificationDetector: starting listener', { userId: this.userId });
+        // Starting listener is routine
 
         const docRef = doc(getDb(), 'user-notifications', this.userId);
 
@@ -124,30 +127,30 @@ export class UserNotificationDetector {
     private handleSnapshot(snapshot: any): void {
         try {
             if (!snapshot.exists()) {
-                logInfo('UserNotificationDetector: no notification document yet', { userId: this.userId });
+                // No notification document yet - this is normal for new users
                 return;
             }
 
             const data = snapshot.data() as UserNotificationDocument;
 
-            logInfo('UserNotificationDetector: received update', {
-                userId: this.userId,
-                changeVersion: data.changeVersion,
-                lastVersion: this.lastVersion,
-                groupCount: Object.keys(data.groups || {}).length,
-            });
-
-            // Skip if no new changes (first load or duplicate)
-            if (data.changeVersion <= this.lastVersion) {
-                logInfo('UserNotificationDetector: skipping - no new changes');
+            // Only log when we actually have new changes to process
+            const hasNewChanges = data.changeVersion > this.lastVersion;
+            if (!hasNewChanges) {
                 return;
             }
+
+            logInfo('UserNotificationDetector: processing changes', {
+                changeVersion: data.changeVersion,
+                lastVersion: this.lastVersion,
+                groupCount: Object.keys(data.groups || {}).length
+            });
 
             // Process changes
             this.processChanges(data);
 
-            // Update version
+            // Update version and mark that we've processed at least one document
             this.lastVersion = data.changeVersion;
+            this.isFirstDocument = false;
 
             // Reset retry count on successful update
             this.retryCount = 0;
@@ -210,7 +213,18 @@ export class UserNotificationDetector {
      */
     private hasGroupDetailsChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
-            // First time seeing this group - trigger change if there have been any updates
+            // First time seeing this group in our tracking map
+            // Never trigger on first document if there are existing changes (prevents spurious callbacks)
+            // But allow subsequent documents to trigger normally
+            if (this.isFirstDocument && current.groupDetailsChangeCount > 0) {
+                // logInfo('UserNotificationDetector: Skipping group details callback for first document with existing changes', {
+                //     groupId,
+                //     groupDetailsChangeCount: current.groupDetailsChangeCount
+                // });
+                return false;
+            }
+
+            // For non-first documents, trigger based on change count
             return current.groupDetailsChangeCount > 0;
         }
 
@@ -222,11 +236,33 @@ export class UserNotificationDetector {
      */
     private hasTransactionChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
-            // First time seeing this group - trigger change if there have been any updates
-            return current.transactionChangeCount > 0;
+            // First time seeing this group in our tracking map
+            // Set baseline for comparison and check if this is a new change
+            const baseline = this.baselineGroupStates.get(groupId);
+            if (!baseline) {
+                // First time ever seeing this group - store as baseline
+                this.baselineGroupStates.set(groupId, {
+                    transactionChangeCount: current.transactionChangeCount || 0,
+                    balanceChangeCount: current.balanceChangeCount || 0,
+                    groupDetailsChangeCount: current.groupDetailsChangeCount || 0,
+                    lastTransactionChange: current.lastTransactionChange || null,
+                    lastBalanceChange: current.lastBalanceChange || null,
+                    lastGroupDetailsChange: current.lastGroupDetailsChange || null
+                });
+
+                // Only trigger if this is not the first document and has transaction changes
+                return !this.isFirstDocument && (current.transactionChangeCount || 0) > 0;
+            }
+
+            // We have a baseline - check if transaction count increased since baseline
+            const currentCount = current.transactionChangeCount || 0;
+            const baselineCount = baseline.transactionChangeCount || 0;
+            const shouldTrigger = currentCount > baselineCount;
+
+            return shouldTrigger;
         }
 
-        return current.transactionChangeCount > last.transactionChangeCount;
+        return (current.transactionChangeCount || 0) > (last.transactionChangeCount || 0);
     }
 
     /**
@@ -234,11 +270,24 @@ export class UserNotificationDetector {
      */
     private hasBalanceChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
-            // First time seeing this group - trigger change if there have been any updates
-            return current.balanceChangeCount > 0;
+            // First time seeing this group in our tracking map
+            // Set baseline for comparison and check if this is a new change
+            const baseline = this.baselineGroupStates.get(groupId);
+            if (!baseline) {
+                // Baseline already set in hasTransactionChanged - no need to set again
+                // Only trigger if this is not the first document and has balance changes
+                return !this.isFirstDocument && (current.balanceChangeCount || 0) > 0;
+            }
+
+            // We have a baseline - check if balance count increased since baseline
+            const currentCount = current.balanceChangeCount || 0;
+            const baselineCount = baseline.balanceChangeCount || 0;
+            const shouldTrigger = currentCount > baselineCount;
+
+            return shouldTrigger;
         }
 
-        return current.balanceChangeCount > last.balanceChangeCount;
+        return (current.balanceChangeCount || 0) > (last.balanceChangeCount || 0);
     }
 
     /**
@@ -262,11 +311,7 @@ export class UserNotificationDetector {
         if (this.retryCount < maxRetries && !this.isDisposed) {
             this.retryCount++;
 
-            logInfo('UserNotificationDetector: retrying subscription', {
-                retryCount: this.retryCount,
-                maxRetries,
-                retryDelay,
-            });
+            // Retry subscription with exponential backoff
 
             // Stop current listener
             if (this.listener) {
@@ -293,7 +338,7 @@ export class UserNotificationDetector {
      * Allows detector to be reused for new subscriptions
      */
     unsubscribe(): void {
-        logInfo('UserNotificationDetector: unsubscribing', { userId: this.userId });
+        // Unsubscribing - routine cleanup
 
         // Clear retry timer
         if (this.retryTimer) {
@@ -314,6 +359,7 @@ export class UserNotificationDetector {
         this.config = {};
         this.retryCount = 0;
         this.userId = null;
+        this.isFirstDocument = true;
     }
 
     /**
@@ -325,12 +371,15 @@ export class UserNotificationDetector {
             return;
         }
 
-        logInfo('UserNotificationDetector: disposing', { userId: this.userId });
+        // Disposing detector - routine cleanup
 
         this.isDisposed = true;
 
         // Unsubscribe first
         this.unsubscribe();
+
+        // Clear baseline states
+        this.baselineGroupStates.clear();
     }
 
     /**
