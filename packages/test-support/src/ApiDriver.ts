@@ -236,7 +236,8 @@ export class ApiDriver {
     }
 
     async getExpense(expenseId: string, token: string): Promise<ExpenseData> {
-        return await this.apiRequest(`/expenses?id=${expenseId}`, 'GET', null, token);
+        const response = await this.apiRequest(`/expenses/${expenseId}/full-details`, 'GET', null, token);
+        return response.expense;
     }
 
     async createSettlement(settlementData: any, token: string): Promise<Settlement> {

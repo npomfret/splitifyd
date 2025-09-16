@@ -28,15 +28,6 @@ export const createExpense = async (req: AuthenticatedRequest, res: Response): P
     }
 };
 
-export const getExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const expenseId = validateExpenseId(req.query.id);
-
-    const expense = await expenseService.getExpense(expenseId, userId);
-
-    res.json(expense);
-};
-
 export const updateExpense = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
