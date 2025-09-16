@@ -17,7 +17,7 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/member-management.e2e.test.ts"
+TEST_FILE="src/__tests__/integration/policy-update-acceptance.e2e.test.ts"
 TEST_FILTER=""
 
 # Detect script location and set working directory
@@ -31,7 +31,7 @@ if [ "$(pwd)" != "$PROJECT_ROOT" ]; then
 fi
 
 # Parse command line arguments
-MAX_SUCCESSES=5
+MAX_SUCCESSES=3
 HEADED_FLAG=""
 WORKERS=1
 

@@ -8,15 +8,19 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
     simpleTest('should update each policy and accept them sequentially', async ({ browser }) => {
         const apiDriver = new ApiDriver();
 
+        // Borrow a test user from the pool and promote to admin
+        const user = await apiDriver.borrowTestUser();
+        console.log(`Borrowed test user: ${user.email}`);
+
+        // Promote user to admin for policy management operations
+        await apiDriver.promoteUserToAdmin(user.token);
+        console.log(`Promoted user to admin: ${user.email}`);
+
         // Clean up test environment to remove any non-standard policies
-        await apiDriver.cleanupTestEnvironment();
+        await apiDriver.cleanupTestEnvironment(user.token);
 
         // Ensure base policies exist before testing
         await apiDriver.ensurePoliciesExist();
-
-        // Borrow a test user from the pool
-        const user = await apiDriver.borrowTestUser();
-        console.log(`Borrowed test user: ${user.email}`);
 
         // Clear any existing policy acceptances to ensure clean state
         await apiDriver.clearUserPolicyAcceptances(user.token);
@@ -73,14 +77,18 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
     simpleTest('should handle multiple policy updates and accept all at once', async ({ browser }) => {
         const apiDriver = new ApiDriver();
 
+        // Get a test user and promote to admin for policy management
+        const user = await apiDriver.borrowTestUser();
+        await apiDriver.promoteUserToAdmin(user.token);
+        console.log(`Promoted user to admin: ${user.email}`);
+
         // Clean up test environment to remove any non-standard policies
-        await apiDriver.cleanupTestEnvironment();
+        await apiDriver.cleanupTestEnvironment(user.token);
 
         // Ensure base policies exist before testing
         await apiDriver.ensurePoliciesExist();
 
-        // Get a test user and clear their policy acceptances BEFORE login
-        const user = await apiDriver.borrowTestUser();
+        // Clear their policy acceptances BEFORE login
         await apiDriver.clearUserPolicyAcceptances(user.token);
 
         // Manually log in the user (not using fixture that auto-accepts policies)
@@ -126,14 +134,18 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
     simpleTest('should validate policy modal structure and content', async ({ browser }) => {
         const apiDriver = new ApiDriver();
 
+        // Get a test user and promote to admin for policy management
+        const user = await apiDriver.borrowTestUser();
+        await apiDriver.promoteUserToAdmin(user.token);
+        console.log(`Promoted user to admin: ${user.email}`);
+
         // Clean up test environment to remove any non-standard policies
-        await apiDriver.cleanupTestEnvironment();
+        await apiDriver.cleanupTestEnvironment(user.token);
 
         // Ensure base policies exist before testing
         await apiDriver.ensurePoliciesExist();
 
-        // Get a test user and accept base policies first
-        const user = await apiDriver.borrowTestUser();
+        // Clear and accept base policies first
         await apiDriver.clearUserPolicyAcceptances(user.token);
         await apiDriver.acceptCurrentPublishedPolicies(user.token);
 

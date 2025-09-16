@@ -540,7 +540,12 @@ export class ApiDriver {
         await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
-    async resetPoliciesToBaseState(): Promise<void> {
+    async promoteUserToAdmin(token: string): Promise<void> {
+        // Promote the user to admin role for testing admin endpoints
+        await this.apiRequest('/test/user/promote-to-admin', 'POST', {}, token);
+    }
+
+    async resetPoliciesToBaseState(adminToken?: string): Promise<void> {
         // Reset all policies to fresh base content with timestamp to avoid duplicates
         const standardPolicies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
         const timestamp = Date.now();
@@ -550,7 +555,7 @@ export class ApiDriver {
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true });
+                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -558,9 +563,9 @@ export class ApiDriver {
         }
     }
 
-    async cleanupTestEnvironment(): Promise<void> {
+    async cleanupTestEnvironment(adminToken?: string): Promise<void> {
         // First, reset standard policies
-        await this.resetPoliciesToBaseState();
+        await this.resetPoliciesToBaseState(adminToken);
 
         // Then try to clean up any non-standard policies by checking user policy status
         // and removing any policies that aren't our standard ones
