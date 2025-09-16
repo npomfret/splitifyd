@@ -57,27 +57,6 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
     });
 };
 
-export const listGroupExpenses = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-
-    const groupId = req.query.groupId as string;
-    if (!groupId) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'MISSING_GROUP_ID', 'Group ID is required');
-    }
-
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const cursor = req.query.cursor as string;
-    const includeDeleted = req.query.includeDeleted === 'true';
-
-    const result = await expenseService.listGroupExpenses(groupId, userId, {
-        limit,
-        cursor,
-        includeDeleted,
-    });
-
-    res.json(result);
-};
-
 export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
