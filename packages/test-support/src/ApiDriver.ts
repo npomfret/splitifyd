@@ -411,8 +411,7 @@ export class ApiDriver {
         return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
     }
 
-    // todo: this should be private
-    async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
+    private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
         const url = `${this.baseUrl}${endpoint}`;
         const options: RequestInit = {
             method,

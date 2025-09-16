@@ -194,11 +194,11 @@ describe('Security and Permissions - Consolidated Tests', () => {
                 .rejects.toThrow(/failed with status (400|401)/);
 
             // Invalid member role
-            await expect(apiDriver.apiRequest(`/groups/${edgeTestGroup.id}/members/${users[1].uid}/role`, 'PUT', { role: 'invalid-role' }, users[0].token))
+            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/${users[1].uid}/role`, 'PUT', { role: 'invalid-role' }, users[0].token))
                 .rejects.toThrow(/failed with status 400/);
 
             // Changing role of non-existent member
-            await expect(apiDriver.apiRequest(`/groups/${edgeTestGroup.id}/members/non-existent-user/role`, 'PUT', { role: MemberRoles.ADMIN }, users[0].token))
+            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/non-existent-user/role`, 'PUT', { role: MemberRoles.ADMIN }, users[0].token))
                 .rejects.toThrow(/failed with status/);
         });
     });
