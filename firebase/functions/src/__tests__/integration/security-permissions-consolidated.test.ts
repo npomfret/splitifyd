@@ -192,10 +192,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
         beforeEach(async () => {
             [adminUser, memberUser] = users;
             roleTestGroup = await apiDriver.createGroupWithMembers('Role Test Group', [adminUser, memberUser], adminUser.token);
-
-            // Set up admin role
-            await apiDriver.setMemberRole(roleTestGroup.id, adminUser.token, adminUser.uid, MemberRoles.ADMIN);
-            roleTestGroup = (await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token)).group;
         });
 
         test('should enforce permission updates and authorization', async () => {
@@ -224,20 +220,6 @@ describe('Security and Permissions - Consolidated Tests', () => {
             await expect(apiDriver.updateGroupPermissions(roleTestGroup.id, memberUser.token, openPermissions)).rejects.toThrow('failed with status 403');
         });
 
-        test('should enforce role management permissions', async () => {
-            // Admin can change member roles
-            await apiDriver.setMemberRole(roleTestGroup.id, adminUser.token, memberUser.uid, MemberRoles.ADMIN);
-
-            const { members } = await apiDriver.getGroupFullDetails(roleTestGroup.id, adminUser.token);
-            const member = members.members.find((m) => m.uid === memberUser.uid);
-            expect(member!.memberRole).toBe(MemberRoles.ADMIN);
-
-            // Member cannot change roles (before becoming admin)
-            const regularMember = users[2];
-            await apiDriver.joinGroupViaShareLink((await apiDriver.generateShareLink(roleTestGroup.id, adminUser.token)).linkId, regularMember.token);
-
-            await expect(apiDriver.setMemberRole(roleTestGroup.id, regularMember.token, memberUser.uid, MemberRoles.MEMBER)).rejects.toThrow(/failed with status 403/);
-        });
     });
 
     describe('Security Preset Validation and Data Integrity', () => {

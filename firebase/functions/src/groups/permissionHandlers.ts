@@ -30,25 +30,3 @@ export const updateGroupPermissions = async (req: AuthenticatedRequest, res: Res
     }
 };
 
-/**
- * Change a member's role
- */
-export const setMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-    const groupId = req.params.id;
-    const targetUserId = req.params.memberId;
-    const { role } = req.body;
-
-    try {
-        const result = await groupPermissionService.setMemberRole(userId, groupId, targetUserId, role);
-        res.json(result);
-    } catch (error) {
-        logger.error('Error in setMemberRole', error, {
-            groupId,
-            userId,
-            targetUserId,
-            role,
-        });
-        throw error;
-    }
-};

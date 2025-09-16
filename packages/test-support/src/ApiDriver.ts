@@ -357,9 +357,6 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
     }
 
-    async setMemberRole(groupId: string, token: string, targetUserId: string, role: MemberRole): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/members/${targetUserId}/role`, 'PUT', { role }, token);
-    }
 
     async listGroups(token: string, params?: { limit?: number; cursor?: string; order?: 'asc' | 'desc'; includeMetadata?: boolean }): Promise<ListGroupsResponse> {
         const queryParams = new URLSearchParams();
