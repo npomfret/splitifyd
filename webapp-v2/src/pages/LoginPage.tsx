@@ -11,10 +11,8 @@ import { useAuthRequired } from '../app/hooks/useAuthRequired';
 import { logError } from '../utils/browser-logger';
 
 export function LoginPage() {
-    console.log('🎯 LOGINPAGE COMPONENT: Function declared - TIMESTAMP:', Date.now());
     const { t } = useTranslation();
     const authStore = useAuthRequired();
-    console.log('🎯 LOGINPAGE COMPONENT: Hooks initialized - TIMESTAMP:', Date.now());
 
     // Component state with sessionStorage persistence
     const [email, setEmail] = useState(() => sessionStorage.getItem('login-email') || '');
