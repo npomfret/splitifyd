@@ -137,19 +137,25 @@ export function EditGroupModal({ isOpen, group, onClose, onSuccess, onDelete }: 
             // Signal to the store that deletion is starting to prevent race condition with notifications
             enhancedGroupDetailStore.setDeletingGroup(true);
 
-            await apiClient.deleteGroup(group.id);
+            // Redirect user IMMEDIATELY after confirmation to avoid 404s from lingering subscriptions
             setShowDeleteConfirm(false);
             if (onDelete) {
                 onDelete();
             }
             onClose();
+
+            // Fire the delete API call in the background - user is already redirected
+            apiClient.deleteGroup(group.id).catch((error) => {
+                console.error('Group deletion failed (user already redirected):', error);
+                // Don't show error to user since they're already on dashboard
+                // The group will remain in the list until successful deletion or manual refresh
+            });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : t('editGroupModal.deleteConfirmDialog.deleteFailed');
             setDeleteError(errorMessage);
 
             // Clear deletion flag on error so notifications work normally again
             enhancedGroupDetailStore.setDeletingGroup(false);
-        } finally {
             setIsDeleting(false);
         }
     };

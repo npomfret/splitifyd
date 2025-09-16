@@ -107,6 +107,13 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             return null;
         }
 
+        // Check if user was removed from the group while viewing it
+        if (error.value === 'USER_REMOVED_FROM_GROUP') {
+            // Redirect immediately to dashboard - no need to show message
+            navigationService.goToDashboard();
+            return null;
+        }
+
         // Check if it's a 404 error (group not found or no access)
         if (error.value.includes('not found') || error.value.includes('Not Found')) {
             // Navigate to 404 page for consistent experience

@@ -344,6 +344,18 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                         // Show user-friendly notification about removal
                         console.info(`📨 You've been removed from "${groupName}"`);
 
+                        // DEBUG: Log signal value change for UI reactivity debugging
+                        console.info('🔄 Signal value updated after group removal', {
+                            groupId,
+                            groupName,
+                            oldCount: currentGroups.length,
+                            newCount: filteredGroups.length,
+                            oldGroupIds: currentGroups.map(g => g.id),
+                            newGroupIds: filteredGroups.map(g => g.id),
+                            signalValueLength: this.#groupsSignal.value.length,
+                            signalPeek: this.#groupsSignal.peek().length,
+                        });
+
                         logInfo('Group removed from dashboard', {
                             groupId,
                             groupName,

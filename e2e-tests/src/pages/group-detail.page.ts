@@ -1182,26 +1182,26 @@ export class GroupDetailPage extends BasePage {
         await expect(async () => {
             const currentUrl = this.page.url();
 
-            // Check if we're already on the 404 page
-            if (currentUrl.includes('/404')) {
+            // Check if we're already on the dashboard (expected behavior)
+            if (currentUrl.includes('/dashboard')) {
                 return;
             }
 
-            // Check if we're on an error page or redirected away from the group
+            // Check if we're on any other page away from the group
             if (!currentUrl.includes(`/groups/${groupId}`)) {
                 return;
             }
 
-            // If still on group page, wait a moment for error handling to kick in
+            // If still on group page, wait a moment for redirect to kick in
             await this.page.waitForTimeout(1000);
             const newUrl = this.page.url();
 
-            if (newUrl.includes('/404') || !newUrl.includes(`/groups/${groupId}`)) {
+            if (newUrl.includes('/dashboard') || !newUrl.includes(`/groups/${groupId}`)) {
                 return;
             }
 
-            throw new Error(`Expected 404 or redirect away from group, but still on: ${newUrl}`);
-        }).toPass({ timeout: 10000, intervals: [1000] });
+            throw new Error(`Expected redirect to dashboard or away from group, but still on: ${newUrl}`);
+        }).toPass({ timeout: 2000, intervals: [100, 200] });
     }
 
     async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {

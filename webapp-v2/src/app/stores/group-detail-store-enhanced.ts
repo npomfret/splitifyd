@@ -242,8 +242,10 @@ class EnhancedGroupDetailStoreImpl implements EnhancedGroupDetailStore {
                 },
                 onGroupRemoved: (changeGroupId) => {
                     if (changeGroupId === this.currentGroupId) {
-                        logInfo('Group removed - clearing state', { groupId: changeGroupId });
+                        logInfo('Group removed - clearing state and setting removal flag', { groupId: changeGroupId });
                         this.#clearGroupData();
+                        // Set specific error after clearing data to trigger better UX
+                        this.#errorSignal.value = 'USER_REMOVED_FROM_GROUP';
                     }
                 },
             });
