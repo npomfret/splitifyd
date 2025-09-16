@@ -110,6 +110,9 @@ npx vitest run src/__tests__/unit/vitest/your-vitest-file.test.ts
 # Running a single Playwright test file
 npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.ts
 
+# Running a single Playwright test case
+npx playwright test src/__tests__/unit/playwright/your-playwright-file.playwright.test.t --grep "should..."
+
 # Running all Playwright tests
 npx playwright test
 ```
