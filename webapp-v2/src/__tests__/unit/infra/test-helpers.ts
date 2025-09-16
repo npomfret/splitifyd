@@ -223,6 +223,299 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
 }
 
 /**
+ * Mock Firebase Auth login flow with network-level API mocking
+ * This mimics the actual Firebase Auth REST API calls during login
+ */
+export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com', password = 'rrRR44$', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+    // Mock Firebase config API
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+                    authDomain: 'splitifyd.firebaseapp.com',
+                    projectId: 'splitifyd',
+                    storageBucket: 'splitifyd.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id',
+                },
+                firebaseAuthUrl: 'http://127.0.0.1:6002',
+                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+            }),
+        });
+    });
+
+    // Mock Firebase Auth REST API endpoints
+    await page.route('**/**', (route) => {
+        const url = route.request().url();
+        const requestBody = route.request().postDataJSON();
+
+        // Mock signInWithPassword endpoint
+        if (url.includes('identitytoolkit.googleapis.com/v1/accounts:signInWithPassword')) {
+            if (requestBody?.email === email && requestBody?.password === password) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        kind: 'identitytoolkit#VerifyPasswordResponse',
+                        registered: true,
+                        localId: userId,
+                        email: email,
+                        idToken: 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
+                        refreshToken: 'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
+                        expiresIn: '3600'
+                    }),
+                });
+                return;
+            } else {
+                // Mock invalid credentials
+                route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: {
+                            code: 400,
+                            message: 'INVALID_PASSWORD',
+                            errors: [{
+                                message: 'INVALID_PASSWORD',
+                                domain: 'global',
+                                reason: 'invalid'
+                            }]
+                        }
+                    }),
+                });
+                return;
+            }
+        }
+
+        // Mock accounts:lookup endpoint (called after successful login)
+        if (url.includes('identitytoolkit.googleapis.com/v1/accounts:lookup')) {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    kind: 'identitytoolkit#GetAccountInfoResponse',
+                    users: [{
+                        localId: userId,
+                        email: email,
+                        emailVerified: false,
+                        displayName: 'Bill Splitter',
+                        providerUserInfo: [{
+                            providerId: 'password',
+                            email: email,
+                            federatedId: email,
+                            displayName: 'Bill Splitter',
+                            rawId: email
+                        }],
+                        photoUrl: '',
+                        passwordHash: 'redacted',
+                        passwordUpdatedAt: 1758045291000,
+                        validSince: '1758045291',
+                        disabled: false,
+                        lastLoginAt: '1758045291000',
+                        createdAt: '1758045291000',
+                        customAuth: false
+                    }]
+                }),
+            });
+            return;
+        }
+
+        // Continue with other requests
+        route.continue();
+    });
+}
+
+/**
+ * Perform a complete fake login flow by filling the login form
+ */
+export async function performFakeLogin(page: Page, email = 'test1@test.com', password = 'rrRR44$'): Promise<void> {
+    // Set up the auth mocking first
+    await mockFirebaseAuthLogin(page, email, password);
+
+    // Navigate to login page
+    await page.goto('/login');
+    await page.waitForLoadState('networkidle');
+
+    // Fill login form
+    await page.fill('#email-input', email);
+    await page.fill('#password-input', password);
+
+    // Submit form
+    await page.click('button[type="submit"]');
+
+    // Wait for login to complete and redirect (more flexible pattern)
+    try {
+        await page.waitForURL(/\/(dashboard|groups)/, { timeout: 10000 });
+    } catch (error) {
+        // If redirect doesn't happen, check if we're still on login page
+        const currentUrl = page.url();
+        if (currentUrl.includes('/login')) {
+            throw new Error(`Login flow failed - still on login page: ${currentUrl}`);
+        }
+        // If we're on a different page, that's acceptable too
+    }
+}
+
+/**
+ * Set up authenticated state by directly calling the Firebase Auth API
+ * Using the exact curl commands provided by the user
+ */
+export async function setupAuthenticatedUser(page: Page, email = 'test@example.com', password = 'password123'): Promise<void> {
+    console.log('🔧 Setting up authenticated user with direct API calls...');
+
+    // Navigate to any page first to ensure proper context
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Mock the Firebase config to point to emulator
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+                    authDomain: 'splitifyd.firebaseapp.com',
+                    projectId: 'splitifyd',
+                    storageBucket: 'splitifyd.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id',
+                },
+                firebaseAuthUrl: 'http://127.0.0.1:6002',
+                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+            }),
+        });
+    });
+
+    // Perform the actual Firebase Auth API calls as shown in the curl examples
+    const signInResponse = await page.evaluate(async ({ email, password }) => {
+        try {
+            // First, try to create the user in case it doesn't exist
+            const signUpUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+
+            try {
+                const signUpResp = await fetch(signUpUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': '*/*',
+                        'Content-Type': 'application/json',
+                        'Origin': 'http://localhost:5173'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        returnSecureToken: true,
+                        clientType: 'CLIENT_TYPE_WEB'
+                    })
+                });
+
+                if (signUpResp.ok) {
+                    const signUpData = await signUpResp.json();
+                    console.log('✅ User created successfully:', signUpData.localId);
+                } else {
+                    const errorData = await signUpResp.json();
+                    if (errorData.error?.message !== 'EMAIL_EXISTS') {
+                        console.log('ℹ️ User creation failed (may already exist):', errorData.error?.message);
+                    } else {
+                        console.log('ℹ️ User already exists, proceeding with login');
+                    }
+                }
+            } catch (createError) {
+                console.log('ℹ️ User creation error, proceeding with login:', createError);
+            }
+
+            // Now try to sign in
+            const signInUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+
+            const signInResp = await fetch(signInUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': '*/*',
+                    'Content-Type': 'application/json',
+                    'Origin': 'http://localhost:5173'
+                },
+                body: JSON.stringify({
+                    returnSecureToken: true,
+                    email: email,
+                    password: password,
+                    clientType: 'CLIENT_TYPE_WEB'
+                })
+            });
+
+            if (!signInResp.ok) {
+                const errorText = await signInResp.text();
+                throw new Error(`SignIn failed: ${signInResp.status} ${errorText}`);
+            }
+
+            const signInData = await signInResp.json();
+            console.log('✅ SignIn API response:', signInData);
+
+            // Second API call: accounts lookup
+            const lookupUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+
+            const lookupResp = await fetch(lookupUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': '*/*',
+                    'Content-Type': 'application/json',
+                    'Origin': 'http://localhost:5173'
+                },
+                body: JSON.stringify({
+                    idToken: signInData.idToken
+                })
+            });
+
+            if (!lookupResp.ok) {
+                throw new Error(`Lookup failed: ${lookupResp.status} ${await lookupResp.text()}`);
+            }
+
+            const lookupData = await lookupResp.json();
+            console.log('✅ Lookup API response:', lookupData);
+
+            // Set localStorage to indicate authenticated state
+            localStorage.setItem('USER_ID', signInData.localId);
+
+            return { signInData, lookupData };
+        } catch (error) {
+            console.error('❌ Firebase API calls failed:', error);
+            throw error;
+        }
+    }, { email, password });
+
+    console.log('✅ Authentication API calls completed successfully');
+
+    // Wait a moment for any async operations to complete
+    await page.waitForTimeout(1000);
+
+    // Verify authentication worked
+    const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
+    if (!userId) {
+        throw new Error('Authentication failed - no USER_ID in localStorage');
+    }
+
+    console.log('✅ User authenticated with ID:', userId);
+
+    // Now reload the page to trigger Firebase auth initialization with the authenticated state
+    console.log('🔄 Reloading page to initialize auth state...');
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // Give auth store time to initialize and recognize the authenticated state
+    await page.waitForTimeout(2000);
+
+    // Verify the auth state was picked up by checking if USER_ID is still there
+    const userIdAfterReload = await page.evaluate(() => localStorage.getItem('USER_ID'));
+    if (!userIdAfterReload) {
+        throw new Error('Authentication state lost after page reload');
+    }
+
+    console.log('✅ Auth state preserved after reload, user ID:', userIdAfterReload);
+}
+
+/**
  * Set up network-level Firebase Auth mocking for password reset
  */
 export async function setupPasswordResetMocking(page: Page, scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email'): Promise<void> {

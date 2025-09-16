@@ -18,7 +18,7 @@ export default defineConfig({
 
     use: {
         actionTimeout: 5000, // 5 seconds for actions - reasonable for form interactions
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://localhost:5173', // Will be overridden by webServer
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
@@ -33,7 +33,6 @@ export default defineConfig({
 
     webServer: {
         command: 'npm run dev',
-        port: 5173,
         reuseExistingServer: true,
         timeout: 120 * 1000,
     },
