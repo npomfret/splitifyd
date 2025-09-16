@@ -617,6 +617,122 @@ export async function setupAuthRedirect(page: Page): Promise<void> {
 }
 
 /**
+ * Mock Firebase Auth registration flow with network-level API mocking
+ * This mimics the actual registration API call based on the curl command provided
+ */
+export async function mockFirebaseAuthRegister(page: Page, email = 'email@email.com', password = 'rrRR44$', displayName = 'name', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+    // Mock Firebase config API
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+                    authDomain: 'splitifyd.firebaseapp.com',
+                    projectId: 'splitifyd',
+                    storageBucket: 'splitifyd.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id',
+                },
+                firebaseAuthUrl: 'http://127.0.0.1:6002',
+                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+            }),
+        });
+    });
+
+    // Mock the registration API endpoint that matches the curl command
+    await page.route('**/api/register', (route) => {
+        const requestBody = route.request().postDataJSON();
+
+        // Check if the request matches expected registration data
+        if (requestBody?.email === email &&
+            requestBody?.password === password &&
+            requestBody?.displayName === displayName &&
+            requestBody?.termsAccepted === true &&
+            requestBody?.cookiePolicyAccepted === true) {
+
+            // Mock successful registration response
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    success: true,
+                    user: {
+                        uid: userId,
+                        email: email,
+                        displayName: displayName,
+                        emailVerified: false,
+                    },
+                    idToken: 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJuYW1lIjoiQmlsbCBTcGxpdHRlciIsImVtYWlsIjoidGVzdDFAdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImF1dGhfdGltZSI6MTc1ODA0NTI5MSwidXNlcl9pZCI6IkZjcmlvZHgyNXU1ZFBvZUIxa3JKMXVYUVJtRHEiLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxQHRlc3QuY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifSwiaWF0IjoxNzU4MDQ1MjkxLCJleHAiOjE3NTgwNDg4OTEsImF1ZCI6InNwbGl0aWZ5ZCIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9zcGxpdGlmeWQiLCJzdWIiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIn0.',
+                    refreshToken: 'eyJfQXV0aEVtdWxhdG9yUmVmcmVzaFRva2VuIjoiRE8gTk9UIE1PRElGWSIsImxvY2FsSWQiOiJGY3Jpb2R4MjV1NWRQb2VCMWtySjF1WFFSbURxIiwicHJvdmlkZXIiOiJwYXNzd29yZCIsImV4dHJhQ2xhaW1zIjp7fSwicHJvamVjdElkIjoic3BsaXRpZnlkIn0=',
+                }),
+            });
+            return;
+        } else {
+            // Mock validation error for incorrect data
+            route.fulfill({
+                status: 400,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    error: {
+                        code: 400,
+                        message: 'INVALID_REGISTRATION_DATA',
+                        errors: [{
+                            message: 'Registration data validation failed',
+                            domain: 'global',
+                            reason: 'invalid'
+                        }]
+                    }
+                }),
+            });
+            return;
+        }
+    });
+
+    // Continue mocking other auth-related endpoints if needed
+    await page.route('**/**', (route) => {
+        const url = route.request().url();
+
+        // Mock Firebase Auth lookup endpoint that might be called after registration
+        if (url.includes('identitytoolkit.googleapis.com/v1/accounts:lookup')) {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    kind: 'identitytoolkit#GetAccountInfoResponse',
+                    users: [{
+                        localId: userId,
+                        email: email,
+                        emailVerified: false,
+                        displayName: displayName,
+                        providerUserInfo: [{
+                            providerId: 'password',
+                            email: email,
+                            federatedId: email,
+                            displayName: displayName,
+                            rawId: email
+                        }],
+                        photoUrl: '',
+                        passwordHash: 'redacted',
+                        passwordUpdatedAt: 1758045291000,
+                        validSince: '1758045291',
+                        disabled: false,
+                        lastLoginAt: '1758045291000',
+                        createdAt: '1758045291000',
+                        customAuth: false
+                    }]
+                }),
+            });
+            return;
+        }
+
+        // Continue with other requests
+        route.continue();
+    });
+}
+
+/**
  * Common selectors used across tests
  */
 export const SELECTORS = {
