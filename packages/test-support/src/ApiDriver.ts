@@ -550,7 +550,7 @@ export class ApiDriver {
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/policies/${policyId}/update`, 'POST', { text: baseContent, publish: true });
+                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true });
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -626,21 +626,17 @@ export class ApiDriver {
         const safeContent = `${policyName} version ${timestamp}. Updated policy content for testing.`;
 
         try {
-            // Use the new test endpoint for policy updates (dev only, no auth required)
-            await this.apiRequest(`/policies/${policyId}/update`, 'POST', { text: safeContent, publish: true });
-            console.log(`✓ Successfully updated policy ${policyId} via test endpoint`);
-        } catch (testError) {
-            console.warn('Test endpoint failed, falling back to admin API:', testError);
+            // Use the admin API for policy updates
+            await this.updatePolicy(policyId, safeContent, true, userToken);
+            console.log(`✓ Successfully updated policy ${policyId} via admin API`);
+        } catch (apiError) {
+            // If policy doesn't exist, create it
             try {
-                await this.updatePolicy(policyId, safeContent, true, userToken);
-            } catch (apiError) {
-                // If policy doesn't exist, create it
-                try {
-                    await this.createPolicy(policyName, safeContent, userToken);
-                } catch (createError) {
-                    console.warn(`Failed to update or create policy ${policyId}:`, createError);
-                    throw createError;
-                }
+                await this.createPolicy(policyName, safeContent, userToken);
+                console.log(`✓ Created new policy ${policyId} via admin API`);
+            } catch (createError) {
+                console.warn(`Failed to update or create policy ${policyId}:`, createError);
+                throw createError;
             }
         }
     }
