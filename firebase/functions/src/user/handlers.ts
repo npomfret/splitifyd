@@ -6,20 +6,6 @@ import { Errors } from '../utils/errors';
 import { getAppBuilder } from '../index';
 
 /**
- * Get current user's profile
- */
-export const getUserProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = req.user?.uid;
-    if (!userId) {
-        throw Errors.UNAUTHORIZED();
-    }
-
-    const userService = getAppBuilder().buildUserService();
-    const userProfile = await userService.getUser(userId);
-    res.status(HTTP_STATUS.OK).json(userProfile);
-};
-
-/**
  * Update current user's profile
  */
 export const updateUserProfile = async (req: AuthenticatedRequest & LocalizedRequest, res: Response): Promise<void> => {
@@ -45,20 +31,5 @@ export const changePassword = async (req: AuthenticatedRequest, res: Response): 
 
     const userService = getAppBuilder().buildUserService();
     const result = await userService.changePassword(userId, req.body);
-    res.status(HTTP_STATUS.OK).json(result);
-};
-
-/**
- * Delete user account
- * This is a destructive operation that requires re-authentication
- */
-export const deleteUserAccount = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = req.user?.uid;
-    if (!userId) {
-        throw Errors.UNAUTHORIZED();
-    }
-
-    const userService = getAppBuilder().buildUserService();
-    const result = await userService.deleteAccount(userId, req.body);
     res.status(HTTP_STATUS.OK).json(result);
 };

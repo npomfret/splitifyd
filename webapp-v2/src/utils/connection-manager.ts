@@ -18,13 +18,6 @@ interface NavigatorWithConnection extends Navigator {
 
 export type ConnectionQuality = 'good' | 'poor' | 'offline' | 'server-unavailable';
 
-export interface ConnectionState {
-    isOnline: boolean;
-    quality: ConnectionQuality;
-    reconnectAttempts: number;
-    lastServerCheck?: number;
-}
-
 interface ReconnectOptions {
     maxAttempts?: number;
     baseDelay?: number;
@@ -247,15 +240,6 @@ export class ConnectionManager {
                 logError('Error in connection state listener', { error });
             }
         });
-    }
-
-    getState(): ConnectionState {
-        return {
-            isOnline: this.isOnline.value,
-            quality: this.connectionQuality.value,
-            reconnectAttempts: this.reconnectAttempts.value,
-            lastServerCheck: this.lastServerCheck,
-        };
     }
 
     dispose(): void {

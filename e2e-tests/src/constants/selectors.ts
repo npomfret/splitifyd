@@ -180,27 +180,3 @@ export const SETTINGS_TEXTS = {
     SUCCESS_PROFILE_UPDATED: translation.settingsPage.successMessages.profileUpdated,
     SUCCESS_PASSWORD_CHANGED: translation.settingsPage.successMessages.passwordChanged,
 } as const;
-
-// Error Handling Text Constants
-export const ERROR_HANDLING_TEXTS = {
-    // Error State
-    ERROR_DEFAULT_TITLE: translation.errorState.defaultTitle,
-    ERROR_UNEXPECTED: translation.errorState.unexpectedError,
-    ERROR_TRY_AGAIN: translation.errorState.tryAgainButton,
-
-    // Error Boundary
-    ERROR_BOUNDARY_TITLE: translation.errorBoundary.title,
-    ERROR_BOUNDARY_UNEXPECTED: translation.errorBoundary.unexpectedError,
-
-    // Not Found Page
-    NOT_FOUND_TITLE: translation.notFoundPage.title,
-    NOT_FOUND_PAGE: translation.notFoundPage.pageNotFound,
-    NOT_FOUND_PAGE_DESC: translation.notFoundPage.pageNotFoundDescription,
-    NOT_FOUND_GROUP: translation.notFoundPage.groupNotFound,
-    NOT_FOUND_GROUP_DESC: translation.notFoundPage.groupNotFoundDescription,
-    GO_TO_DASHBOARD: translation.notFoundPage.goToDashboard,
-    GO_HOME: translation.notFoundPage.goHome,
-
-    // Loading State
-    LOADING_DEFAULT: translation.loadingState.defaultMessage,
-} as const;

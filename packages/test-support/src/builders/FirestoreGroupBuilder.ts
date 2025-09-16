@@ -72,39 +72,8 @@ export class FirestoreGroupBuilder {
         return this;
     }
 
-    withMember(userId: string, role: 'admin' | 'member' = 'member', status: 'active' | 'pending' = 'active'): this {
-        this.group.members[userId] = {
-            role: role as any,
-            status: status as any,
-            joinedAt: new Date().toISOString(),
-            color: this.createThemeColorForUser(userId),
-        };
-        return this;
-    }
-
-    withMembers(members: Record<string, { role?: 'admin' | 'member'; status?: 'active' | 'pending' }>): this {
-        // Clear existing members except creator
-        this.group.members = {
-            [this.group.createdBy]: this.group.members[this.group.createdBy],
-        };
-
-        // Add new members
-        Object.entries(members).forEach(([userId, config]) => {
-            this.withMember(userId, config.role, config.status);
-        });
-        return this;
-    }
-
     withSecurityPreset(preset: 'open' | 'restricted' | 'private'): this {
         this.group.securityPreset = preset as any;
-        return this;
-    }
-
-    withPermissions(permissions: Partial<typeof this.group.permissions>): this {
-        this.group.permissions = {
-            ...this.group.permissions,
-            ...permissions,
-        };
         return this;
     }
 

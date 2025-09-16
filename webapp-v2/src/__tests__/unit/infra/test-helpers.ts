@@ -4,7 +4,7 @@
  * These utilities provide consistent, reliable test patterns across all page tests.
  */
 
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 /**
  * Standard page setup with authentication and storage clearing

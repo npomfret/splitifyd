@@ -2,11 +2,8 @@
 // Combines tests from expenses-api.test.ts, ExpenseService.integration.test.ts, and expenses-full-details.test.ts
 
 import { beforeEach, describe, expect, test } from 'vitest';
-import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, CreateExpenseRequestBuilder, borrowTestUsers, TestGroupManager, generateShortId } from '@splitifyd/test-support';
-import { ApiError } from '../../utils/errors';
-import { HTTP_STATUS } from '../../constants';
-import { PooledTestUser, SplitTypes, UserToken } from '@splitifyd/shared';
+import { PooledTestUser } from '@splitifyd/shared';
 describe('Expenses Management - Consolidated Tests', () => {
     const apiDriver = new ApiDriver();
     let testGroup: any;

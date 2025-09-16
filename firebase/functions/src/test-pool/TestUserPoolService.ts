@@ -120,22 +120,4 @@ export class TestUserPoolService {
         return { email, password: POOL_PASSWORD, token };
     }
 
-    async getPoolStatus() {
-        return this.firestoreReader.getTestUserPoolStatus();
-    }
-
-    // Force cleanup all borrows (for testing/admin use)
-    async resetPool(): Promise<void> {
-        const borrowedDocs = await this.firestoreReader.getBorrowedTestUsers();
-
-        // Use bulk update for resetting all borrowed users to available
-        if (borrowedDocs.length > 0) {
-            const updateMap = new Map<string, any>();
-            borrowedDocs.forEach((doc: FirebaseFirestore.QueryDocumentSnapshot) => {
-                updateMap.set(doc.ref.path, { status: 'available' });
-            });
-
-            await this.firestoreWriter.bulkUpdate(updateMap);
-        }
-    }
 }

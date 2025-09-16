@@ -176,23 +176,7 @@ export class EnhancedValidationError extends Error {
         return field ? `${field}: ${message}` : message;
     }
 
-    /**
-     * Get all validation errors as a structured object
-     */
-    getFieldErrors(): Record<string, string[]> {
-        const fieldErrors: Record<string, string[]> = {};
-
-        for (const error of this.zodError.issues) {
-            const field = error.path.join('.') || 'root';
-            if (!fieldErrors[field]) {
-                fieldErrors[field] = [];
-            }
-            fieldErrors[field].push(error.message);
-        }
-
-        return fieldErrors;
-    }
-}
+ }
 
 /**
  * Format ZodError into readable string

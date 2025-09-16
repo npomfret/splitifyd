@@ -173,10 +173,6 @@ export class GroupDetailPage extends BasePage {
         return expenseFormPage;
     }
 
-    getNoExpensesMessage() {
-        return this.page.getByText(/no expenses yet/i);
-    }
-
     // Share functionality accessors
     getShareButton() {
         return this.page.getByRole('button', { name: /invite others/i }).first();
@@ -218,20 +214,6 @@ export class GroupDetailPage extends BasePage {
             timeout,
             intervals: [100, 200, 300, 400, 500, 1000],
         });
-    }
-
-    /**
-     * Checks if debt amount exists in the DOM (regardless of visibility)
-     * Use this when checking for amounts that might be in hidden sections
-     */
-    async hasDebtAmount(amount: string): Promise<boolean> {
-        // Look for the amount in red text (debt indicator) or as general text
-        const redTextCount = await this.page.locator('.text-red-600').filter({ hasText: amount }).count();
-        if (redTextCount > 0) return true;
-
-        // Also check if the amount exists as regular text (in case styling changed)
-        const textCount = await this.page.getByText(amount).count();
-        return textCount > 0;
     }
 
     /**
@@ -592,35 +574,6 @@ export class GroupDetailPage extends BasePage {
     // Utility method for currency amounts
     getCurrencyAmount(amount: string) {
         return this.page.getByText(`$${amount}`);
-    }
-
-    /**
-     * Shares the group and waits for another user to join.
-     * This encapsulates the entire share/join flow to avoid code duplication.
-     * Optimized for fast timeouts and reliable share link extraction.
-     *
-     * @param joinerPage - The Page object for the user who will join the group
-     * @returns The share link URL
-     */
-    async shareGroupAndWaitForJoin(joinerPage: any): Promise<string> {
-        // Get the share link from the modal
-        const shareLink = await this.getShareLink();
-
-        // Have the second user navigate to share link and join with fast timeout
-        await this.navigatePageToShareLink(joinerPage, shareLink);
-
-        // Click join button with fast timeout
-        const joinButton = joinerPage.getByRole('button', { name: /join group/i });
-        await joinButton.waitFor({ state: 'visible', timeout: 1000 });
-        await this.clickButton(joinButton, { buttonName: 'Join Group' });
-
-        // Wait for navigation with reasonable timeout
-        await expect(joinerPage).toHaveURL(groupDetailUrlPattern());
-
-        // Wait for real-time updates to propagate the new member (expecting 2 members now)
-        await this.waitForMemberCount(2);
-
-        return shareLink;
     }
 
     /**
@@ -1357,15 +1310,6 @@ export class GroupDetailPage extends BasePage {
         for (const commentText of commentTexts) {
             await expect(commentsSection.getByText(commentText)).toBeVisible();
         }
-    }
-
-    /**
-     * Remove a group member (owner only)
-     */
-    async removeGroupMember(userId: string): Promise<void> {
-        // This method would need UI implementation
-        // For now, throw a descriptive error
-        throw new Error('removeGroupMember method not yet implemented - requires member management UI');
     }
 
     /**

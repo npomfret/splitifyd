@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { validCredentials, invalidCredentials } from '../infra/fixtures';
 import {
     setupTestPage,
     fillFormField,

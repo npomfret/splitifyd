@@ -11,7 +11,6 @@ import {
     CreateSettlementResponse,
     UpdateSettlementResponse,
     DeleteSettlementResponse,
-    GetSettlementResponse,
     ListSettlementsApiResponse,
 } from '@splitifyd/shared';
 import { getFirestore } from '../firebase';
@@ -86,23 +85,6 @@ export const deleteSettlement = async (req: AuthenticatedRequest, res: Response)
     const response: DeleteSettlementResponse = {
         success: true,
         message: 'Settlement deleted successfully',
-    };
-    res.status(HTTP_STATUS.OK).json(response);
-};
-
-export const getSettlement = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
-
-    const { error, value: settlementId } = settlementIdSchema.validate(req.params.settlementId);
-    if (error) {
-        throw new ApiError(HTTP_STATUS.BAD_REQUEST, 'INVALID_SETTLEMENT_ID', error.details[0].message);
-    }
-
-    const responseData = await settlementService.getSettlement(settlementId, userId);
-
-    const response: GetSettlementResponse = {
-        success: true,
-        data: responseData,
     };
     res.status(HTTP_STATUS.OK).json(response);
 };

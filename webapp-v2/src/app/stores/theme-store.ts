@@ -1,4 +1,4 @@
-import { signal, ReadonlySignal } from '@preact/signals';
+import { signal } from '@preact/signals';
 import type { UserThemeColor } from '@splitifyd/shared';
 import type { User } from '@/types/auth.ts';
 
@@ -32,17 +32,6 @@ class ThemeStoreImpl implements ThemeStore {
     }
     get currentUserTheme() {
         return this.#currentUserThemeSignal.value;
-    }
-
-    // Signal accessors for reactive components - return readonly signals
-    get userThemesSignal(): ReadonlySignal<Map<string, UserThemeColor>> {
-        return this.#userThemesSignal;
-    }
-    get isDarkModeSignal(): ReadonlySignal<boolean> {
-        return this.#isDarkModeSignal;
-    }
-    get currentUserThemeSignal(): ReadonlySignal<UserThemeColor | null> {
-        return this.#currentUserThemeSignal;
     }
 
     private constructor() {

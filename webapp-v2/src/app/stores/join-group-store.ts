@@ -41,27 +41,8 @@ class JoinGroupStore {
         return this.#linkIdSignal.value;
     }
 
-    // Signal accessors for reactive components - return readonly signals
-    get groupSignal(): ReadonlySignal<Group | null> {
-        return this.#groupSignal;
-    }
-    get memberCountSignal(): ReadonlySignal<number> {
-        return this.#memberCountSignal;
-    }
-    get loadingPreviewSignal(): ReadonlySignal<boolean> {
-        return this.#loadingPreviewSignal;
-    }
-    get joiningSignal(): ReadonlySignal<boolean> {
-        return this.#joiningSignal;
-    }
-    get joinSuccessSignal(): ReadonlySignal<boolean> {
-        return this.#joinSuccessSignal;
-    }
     get errorSignal(): ReadonlySignal<string | null> {
         return this.#errorSignal;
-    }
-    get linkIdSignal(): ReadonlySignal<string | null> {
-        return this.#linkIdSignal;
     }
 
     async loadGroupPreview(linkId: string) {

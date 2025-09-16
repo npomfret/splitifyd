@@ -63,11 +63,3 @@ export function getUserPool(): UserPool {
     }
     return globalUserPool;
 }
-
-/**
- * Reset the global pool (mainly for testing).
- */
-export function resetUserPool(): void {
-    globalUserPool = undefined;
-    UserPool.resetInstance(); // Clear singleton tracking
-}

@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
-import { SecurityPresets, MemberRoles, Group, PooledTestUser, UserToken, PermissionLevels } from '@splitifyd/shared';
+import { SecurityPresets, MemberRoles, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {
@@ -172,14 +172,20 @@ describe('Security and Permissions - Consolidated Tests', () => {
             // Invalid permissions object (null should cause validation error)
             await expect(apiDriver.updateGroupPermissions(edgeTestGroup.id, users[0].token, null as any)).rejects.toThrow(/failed with status (400|401)/);
 
-            // Invalid member role
-            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/${users[1].uid}/role`, 'PUT', { role: 'invalid-role' }, users[0].token)).rejects.toThrow(
+            // Invalid expense data (missing required fields)
+            await expect(apiDriver.makeInvalidApiCall(`/expenses`, 'POST', { groupId: edgeTestGroup.id }, users[0].token)).rejects.toThrow(
                 /failed with status 400/,
             );
 
-            // Changing role of non-existent member
-            await expect(apiDriver.makeInvalidApiCall(`/groups/${edgeTestGroup.id}/members/non-existent-user/role`, 'PUT', { role: MemberRoles.ADMIN }, users[0].token)).rejects.toThrow(
-                /failed with status/,
+            // Invalid expense amount (negative value)
+            await expect(apiDriver.makeInvalidApiCall(`/expenses`, 'POST', {
+                groupId: edgeTestGroup.id,
+                amount: -100,
+                description: 'Test',
+                paidBy: users[0].uid,
+                participants: [users[0].uid]
+            }, users[0].token)).rejects.toThrow(
+                /failed with status 400/,
             );
         });
     });

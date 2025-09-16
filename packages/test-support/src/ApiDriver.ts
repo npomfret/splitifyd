@@ -5,21 +5,17 @@ import {
     CurrentPolicyResponse,
     ExpenseData,
     ExpenseFullDetails,
-    ExpenseHistoryResponse,
     Group,
     GroupBalances,
     GroupFullDetails,
     JoinGroupResponse,
     LeaveGroupResponse,
-    ListExpensesResponse,
     ListGroupsResponse,
     ListSettlementsResponse,
-    MemberRole,
     MessageResponse,
     PooledTestUser,
     RegisterResponse,
     RemoveGroupMemberResponse,
-    SecurityPreset,
     type Settlement,
     SettlementListItem,
     ShareLinkResponse,
@@ -27,58 +23,17 @@ import {
     UserToken,
 } from '@splitifyd/shared';
 
-import type { DocumentData } from 'firebase-admin/firestore';
-import * as admin from 'firebase-admin';
 import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
-import { FirestoreCollections } from '@splitifyd/shared';
 
 // Direct Firestore access for policy manipulation (bypass API)
 import { Matcher, PollOptions, pollUntil } from './Polling';
-import { CreateExpenseRequestBuilder, UserRegistrationBuilder } from './builders';
+import { UserRegistrationBuilder } from './builders';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
 const FIREBASE_AUTH_URL = `http://localhost:${config.authPort}`;
 const API_BASE_URL = config.baseUrl;
 
-/**
- * Helper functions for querying change collections in tests
- */
-
-// New minimal change document structure
-export interface MinimalChangeDocument extends DocumentData {
-    id: string;
-    type: 'group' | 'expense' | 'settlement';
-    action: 'created' | 'updated' | 'deleted';
-    timestamp: admin.firestore.Timestamp;
-    users: string[];
-    groupId?: string; // Only for expense/settlement
-}
-
-export interface MinimalBalanceChangeDocument extends DocumentData {
-    groupId: string;
-    type: 'balance';
-    action: 'recalculated';
-    timestamp: admin.firestore.Timestamp;
-    users: string[];
-}
-
-// Type aliases for test compatibility
-export interface GroupChangeDocument extends MinimalChangeDocument {
-    type: 'group';
-}
-
-export interface ExpenseChangeDocument extends MinimalChangeDocument {
-    type: 'expense';
-    groupId: string;
-}
-
-export interface SettlementChangeDocument extends MinimalChangeDocument {
-    type: 'settlement';
-    groupId: string;
-}
-
-export interface BalanceChangeDocument extends MinimalBalanceChangeDocument {}
 
 export class ApiDriver {
     private readonly baseUrl: string;
@@ -95,31 +50,7 @@ export class ApiDriver {
         this.firebaseApiKey = FIREBASE_API_KEY;
     }
 
-    /**
-     * Get a Firestore instance connected to the emulator for direct database operations
-     * Used for test-only operations that bypass the API
-     */
-    private getFirestore(): admin.firestore.Firestore {
-        const config = getFirebaseEmulatorConfig();
 
-        // Initialize app if it doesn't exist
-        let app: admin.app.App;
-        try {
-            app = admin.app();
-        } catch {
-            app = admin.initializeApp({
-                projectId: config.projectId,
-            });
-        }
-
-        const firestore = app.firestore();
-        firestore.settings({
-            host: `localhost:${config.firestorePort}`,
-            ssl: false,
-        });
-
-        return firestore;
-    }
 
     getBaseUrl(): string {
         return this.baseUrl;
@@ -212,16 +143,6 @@ export class ApiDriver {
         await this.apiRequest('/test-pool/return', 'POST', { email });
     }
 
-    createBasicExpense(groupId: string, paidByUid: string, token: string, amount: number = 10.0) {
-        return this.createMultiUserExpense(groupId, paidByUid, token, [paidByUid], amount);
-    }
-
-    createMultiUserExpense(groupId: string, paidByUid: string, token: string, participantUids: string[], amount: number = 10.0) {
-        const expense = new CreateExpenseRequestBuilder().withGroupId(groupId).withAmount(amount).withPaidBy(paidByUid).withParticipants(participantUids).build();
-
-        return this.createExpense(expense, token);
-    }
-
     async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
         const response = await this.apiRequest('/expenses', 'POST', expenseData, token);
         return response as ExpenseData;
@@ -277,10 +198,6 @@ export class ApiDriver {
         return response.data;
     }
 
-    async getExpenseHistory(expenseId: string, token: string): Promise<ExpenseHistoryResponse> {
-        return await this.apiRequest(`/expenses/history?id=${expenseId}`, 'GET', null, token);
-    }
-
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
         return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
     }
@@ -328,12 +245,6 @@ export class ApiDriver {
     async getGroup(groupId: string, token: string): Promise<Group> {
         const res = await this.getGroupFullDetails(groupId, token);
         return res.group;
-    }
-
-    async assertExpense(groupId: string, expenseId: string, token: string) {
-        const { expenses } = await this.getGroupFullDetails(groupId, token);
-        const found = expenses.expenses.find((item) => item.id === expenseId);
-        if (!found) throw Error(`expect with id ${expenseId} not found in group ${groupId}`);
     }
 
     async getGroupFullDetails(
@@ -520,21 +431,6 @@ export class ApiDriver {
         return settlement;
     }
 
-    async acceptOutstandingPolicies(token: string): Promise<void> {
-        // Get user's policy status to see what needs to be accepted
-        const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
-
-        // If there are outstanding policies, accept them
-        if (policyStatus.outstandingPolicies && policyStatus.outstandingPolicies.length > 0) {
-            const acceptances = policyStatus.outstandingPolicies.map((policy: any) => ({
-                policyId: policy.id,
-                versionHash: policy.currentVersionHash,
-            }));
-
-            await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
-        }
-    }
-
     async acceptCurrentPublishedPolicies(token: string): Promise<void> {
         // This method accepts ALL currently published policies, including test policies
         // Uses the /user/policies/status endpoint to get all policies that need acceptance
@@ -565,18 +461,8 @@ export class ApiDriver {
 
     async clearUserPolicyAcceptances(token: string): Promise<void> {
         // Clear all policy acceptances for the user to reset their state
-        // Use direct Firestore access to avoid deprecated API endpoint
-
-        // First, decode the token to get the user ID
-        const auth = admin.auth();
-        const decodedToken = await auth.verifyIdToken(token);
-        const userId = decodedToken.uid;
-
-        // Clear the user's acceptedPolicies field directly in Firestore
-        const firestore = this.getFirestore();
-        await firestore.collection(FirestoreCollections.USERS).doc(userId).update({
-            acceptedPolicies: {},
-        });
+        // Use test endpoint which handles token verification server-side
+        await this.apiRequest('/test/user/clear-policy-acceptances', 'POST', {}, token);
     }
 
     async promoteUserToAdmin(token: string): Promise<void> {

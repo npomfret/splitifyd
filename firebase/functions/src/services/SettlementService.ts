@@ -86,42 +86,6 @@ export class SettlementService {
     }
 
     /**
-     * Get a single settlement with user data
-     */
-    async getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
-        return measureDb('SettlementService.getSettlement', async () => this._getSettlement(userId, settlementId));
-    }
-
-    private async _getSettlement(settlementId: string, userId: string): Promise<SettlementListItem> {
-        LoggerContext.update({ settlementId, userId });
-
-        const settlementData = await this.firestoreReader.getSettlement(settlementId);
-
-        if (!settlementData) {
-            throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
-        }
-
-        // Settlement data is already validated by FirestoreReader
-        const settlement = settlementData;
-
-        await this.firestoreReader.verifyGroupMembership(settlement.groupId, userId);
-
-        const [payerData, payeeData] = await Promise.all([this.fetchUserData(settlement.payerId), this.fetchUserData(settlement.payeeId)]);
-
-        return {
-            id: settlement.id,
-            groupId: settlement.groupId,
-            payer: payerData,
-            payee: payeeData,
-            amount: settlement.amount,
-            currency: settlement.currency,
-            date: timestampToISO(settlement.date),
-            note: settlement.note,
-            createdAt: timestampToISO(settlement.createdAt),
-        };
-    }
-
-    /**
      * List settlements for a group with pagination and filtering
      */
     async listSettlements(

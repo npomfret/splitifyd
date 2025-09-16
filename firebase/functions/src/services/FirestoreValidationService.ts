@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import * as admin from 'firebase-admin';
-import { validateFirestoreDocument, validateBeforeWrite } from '../schemas';
-import { getValidationMetrics } from '../schemas';
+import { validateBeforeWrite } from '../schemas';
 import { ContextualLogger } from '../utils/contextual-logger';
 import { LoggerContext } from '../utils/logger-context';
 import { logger } from '../logger';
@@ -34,38 +32,6 @@ export class FirestoreValidationService {
             FirestoreValidationService.instance = new FirestoreValidationService();
         }
         return FirestoreValidationService.instance;
-    }
-
-    /**
-     * Validate a single Firestore document after reading with performance monitoring
-     *
-     * @param schema - Zod schema to validate against
-     * @param doc - Firestore document snapshot
-     * @param schemaName - Name of schema for monitoring
-     * @param context - Additional context for logging and monitoring
-     */
-    validateDocument<T extends z.ZodSchema>(
-        schema: T,
-        doc: admin.firestore.DocumentSnapshot,
-        schemaName: string,
-        context: {
-            userId?: string;
-            operation?: string;
-            additionalContext?: Record<string, any>;
-        } = {},
-    ): z.infer<T> {
-        // Set business context for logging
-        LoggerContext.update({
-            documentId: doc.id,
-            collection: doc.ref.parent.id,
-            operation: context.operation || 'read',
-        });
-
-        if (context.userId) {
-            LoggerContext.update({ userId: context.userId });
-        }
-
-        return validateFirestoreDocument(schema, doc, schemaName, this.logger);
     }
 
     /**
@@ -106,24 +72,4 @@ export class FirestoreValidationService {
             logger: this.logger,
         });
     }
-
-    /**
-     * Get current validation metrics for monitoring and debugging
-     */
-    getValidationMetrics() {
-        return getValidationMetrics();
-    }
-}
-
-/**
- * Get singleton instance of FirestoreValidationService
- *
- * Usage:
- * ```typescript
- * const validationService = getFirestoreValidationService();
- * const userData = validationService.validateDocument(UserDocumentSchema, userDoc, 'UserDocument', { userId });
- * ```
- */
-export function getFirestoreValidationService(): FirestoreValidationService {
-    return FirestoreValidationService.getInstance();
 }

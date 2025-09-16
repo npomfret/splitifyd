@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestPage, expectElementVisible, verifyNavigation } from '../infra/test-helpers';
+import { setupTestPage, expectElementVisible } from '../infra/test-helpers';
 
 /**
  * PricingPage behavioral tests - Testing static content and user interactions

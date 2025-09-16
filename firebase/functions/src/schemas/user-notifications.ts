@@ -60,15 +60,9 @@ export const UserNotificationDocumentSchema = z.object({
  * Type definitions derived from schemas
  */
 export type UserNotificationGroup = z.infer<typeof UserNotificationGroupSchema>;
-export type RecentChange = z.infer<typeof RecentChangeSchema>;
 export type UserNotificationDocument = z.infer<typeof UserNotificationDocumentSchema>;
 
 /**
  * Helper type for creating new notification documents
  */
 export type CreateUserNotificationDocument = Omit<UserNotificationDocument, 'changeVersion' | 'lastModified'>;
-
-/**
- * Helper type for updating notification documents
- */
-export type UpdateUserNotificationDocument = Partial<Pick<UserNotificationDocument, 'groups' | 'recentChanges'>>;

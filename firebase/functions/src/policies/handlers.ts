@@ -117,13 +117,6 @@ export const updatePolicy = async (req: AuthenticatedRequest, res: Response): Pr
 };
 
 /**
- * Internal function to publish a policy version (bypasses HTTP layer)
- */
-export const publishPolicyInternal = async (id: string, versionHash: string): Promise<{ currentVersionHash: string }> => {
-    return policyService.publishPolicyInternal(id, versionHash);
-};
-
-/**
  * POST /admin/policies/:id/publish - Publish draft as current version
  */
 export const publishPolicy = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
@@ -154,13 +147,6 @@ export const publishPolicy = async (req: AuthenticatedRequest, res: Response): P
         });
         throw error;
     }
-};
-
-/**
- * Internal function to create a policy (bypasses HTTP layer)
- */
-export const createPolicyInternal = async (policyName: string, text: string, customId?: string): Promise<{ id: string; currentVersionHash: string }> => {
-    return policyService.createPolicyInternal(policyName, text, customId);
 };
 
 /**

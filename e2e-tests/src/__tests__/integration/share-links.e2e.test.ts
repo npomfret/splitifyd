@@ -1,6 +1,6 @@
 import { MultiUserWorkflow } from '../../workflows';
 import { simpleTest, expect } from '../../fixtures';
-import { GroupDetailPage, JoinGroupPage, RegisterPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import { generateNewUserDetails, generateShortId, generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 

@@ -76,11 +76,4 @@ export class TestExpenseManager {
         return { group, expense };
     }
 
-    public static clearCache(): void {
-        this.expenseCache.clear();
-    }
-
-    public static getCacheSize(): number {
-        return this.expenseCache.size;
-    }
 }

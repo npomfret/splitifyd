@@ -117,25 +117,6 @@ class StreamingMetricsCollector {
         this.refreshLatencies = [];
     }
 
-    /**
-     * Get metrics for logging/debugging
-     */
-    getDebugInfo(): Record<string, any> {
-        const snapshot = this.getSnapshot();
-        return {
-            metrics: snapshot,
-            performance: {
-                avgLatency: `${snapshot.averageRefreshLatency.toFixed(2)}ms`,
-                refreshRate: this.calculateRefreshRate(),
-                errorRate: this.calculateErrorRate(),
-            },
-            cost: {
-                estimatedReadsPerHour: this.estimateReadsPerHour(),
-                estimatedDailyCost: snapshot.estimatedMonthlyCost / 30,
-            },
-        };
-    }
-
     private estimateFirestoreReads(): number {
         // Rough estimate:
         // - Each notification: 1 read

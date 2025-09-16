@@ -28,9 +28,3 @@ export const COLOR_PATTERNS = ['solid', 'dots', 'stripes', 'diagonal'] as const;
 
 export type ColorPattern = (typeof COLOR_PATTERNS)[number];
 
-export interface UserColor {
-    light: string;
-    dark: string;
-    name: string;
-    contrastRatio: number;
-}

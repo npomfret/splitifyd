@@ -135,20 +135,6 @@ export class PolicyAcceptanceModalPage {
         await this.closeButton.click();
     }
 
-    async getAcceptanceProgress(): Promise<{ accepted: number; total: number }> {
-        const progressText = await this.progressText.textContent();
-        const match = progressText?.match(/(\d+) of (\d+) accepted/);
-
-        if (match) {
-            return {
-                accepted: parseInt(match[1], 10),
-                total: parseInt(match[2], 10),
-            };
-        }
-
-        return { accepted: 0, total: 0 };
-    }
-
     async acceptSinglePolicyComplete(): Promise<void> {
         // Wait for modal to appear
         await this.waitForModalToAppear();

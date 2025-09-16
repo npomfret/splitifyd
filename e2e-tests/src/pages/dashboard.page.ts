@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { MESSAGES, BUTTON_TEXTS, HEADINGS, ARIA_ROLES } from '../constants/selectors';
+import { MESSAGES, HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
@@ -16,24 +16,6 @@ export class DashboardPage extends BasePage {
     async navigate() {
         await this.page.goto(this.url);
         await this.waitForDomContentLoaded();
-    }
-
-    async isLoggedIn(): Promise<boolean> {
-        try {
-            // Check for "Your Groups" heading - always present when logged in
-            const groupsHeading = await this.getGroupsHeading()
-                .isVisible({ timeout: 2000 })
-                .catch(() => false);
-            if (groupsHeading) return true;
-
-            // Fallback: welcome message for users with no groups
-            const welcomeMessage = await this.getWelcomeMessage()
-                .isVisible({ timeout: 1000 })
-                .catch(() => false);
-            return welcomeMessage;
-        } catch {
-            return false;
-        }
     }
 
     async createGroupAndNavigate(name: string, description?: string): Promise<GroupDetailPage> {
@@ -78,10 +60,6 @@ export class DashboardPage extends BasePage {
 
     getCreateGroupButton() {
         return this.page.getByRole('button', { name: /Create.*Group/i }).first();
-    }
-
-    getSignInButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SIGN_IN });
     }
 
     /**

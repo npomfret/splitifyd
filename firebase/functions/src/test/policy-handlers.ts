@@ -11,48 +11,6 @@ const policyService = applicationBuilder.buildPolicyService();
 const authService = applicationBuilder.buildAuthService();
 
 /**
- * API endpoint to update policies
- * POST /test/policies/:id/update
- */
-export const testUpdatePolicy = async (req: Request, res: Response): Promise<void> => {
-    const { id } = req.params;
-    const { text, publish = true } = req.body;
-
-    if (!id || !text) {
-        res.status(400).json({
-            error: {
-                code: 'MISSING_FIELDS',
-                message: 'Both id and text are required',
-            },
-        });
-        return;
-    }
-
-    try {
-        const result = await policyService.updatePolicy(id, text, publish);
-
-        logger.info('Policy updated', {
-            policyId: id,
-            versionHash: result.versionHash,
-            published: publish,
-        });
-
-        res.json({
-            success: true,
-            versionHash: result.versionHash,
-            published: publish,
-            currentVersionHash: result.currentVersionHash,
-            message: publish ? 'Policy updated and published' : 'Draft version saved',
-        });
-    } catch (error) {
-        logger.error('Failed to update policy', error as Error, {
-            policyId: id,
-        });
-        throw error;
-    }
-};
-
-/**
  * Test endpoint to clear a user's policy acceptances in dev environment
  * POST /test/user/clear-policy-acceptances
  */

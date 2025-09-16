@@ -35,22 +35,3 @@ export const measureDb = <T>(operation: string, fn: () => Promise<T>): Promise<T
  * Convenience function for trigger operations
  */
 export const measureTrigger = <T>(operation: string, fn: () => Promise<T>): Promise<T> => measure('trigger', operation, fn);
-
-/**
- * Synchronous measurement wrapper (for non-async operations)
- */
-export function measureSync<T>(type: MetricType, operation: string, fn: () => T): T {
-    const start = Date.now();
-    let success = true;
-
-    try {
-        const result = fn();
-        return result;
-    } catch (error) {
-        success = false;
-        throw error;
-    } finally {
-        const duration = Date.now() - start;
-        metrics.record(type, operation, duration, success);
-    }
-}

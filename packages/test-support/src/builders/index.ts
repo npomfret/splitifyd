@@ -13,7 +13,6 @@ export { FirestoreGroupBuilder } from './FirestoreGroupBuilder';
 export { CommentBuilder } from './CommentBuilder';
 export { CommentRequestBuilder } from './CommentRequestBuilder';
 export { CommentQueryBuilder } from './CommentQueryBuilder';
-export { MockFirestoreBuilder } from './MockFirestoreBuilder';
 export { FirestoreExpenseBuilder } from './FirestoreExpenseBuilder';
 export { FirestoreSettlementBuilder } from './FirestoreSettlementBuilder';
 export { UserProfileBuilder } from './UserProfileBuilder';

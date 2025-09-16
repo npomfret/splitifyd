@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { setupTestPage, expectElementVisible, verifyNavigation, SELECTORS, TEST_SCENARIOS } from '../infra/test-helpers';
+import { setupTestPage, expectElementVisible } from '../infra/test-helpers';
 
 /**
  * High-value landing page tests that verify actual user behavior

@@ -2,7 +2,7 @@ import { simpleTest, expect } from '../../fixtures';
 import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { PLACEHOLDERS } from '../../constants/selectors';
-import { JoinGroupPage, GroupDetailPage } from '../../pages';
+import { JoinGroupPage } from '../../pages';
 import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';

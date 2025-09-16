@@ -550,39 +550,6 @@ export class ExpenseService {
     }
 
     /**
-     * List all expenses for a user across all groups with pagination
-     */
-    async listUserExpenses(
-        userId: string,
-        options: {
-            limit?: number;
-            cursor?: string;
-            includeDeleted?: boolean;
-        } = {},
-    ): Promise<{
-        expenses: any[];
-        count: number;
-        hasMore: boolean;
-        nextCursor?: string;
-    }> {
-        // Use the centralized FirestoreReader method
-        const result = await this.firestoreReader.getUserExpenses(userId, options);
-
-        // Transform the validated expense documents to response format
-        const expenses = result.expenses.map((validatedExpense) => ({
-            id: validatedExpense.id,
-            ...this.transformExpenseToResponse(this.normalizeValidatedExpense(validatedExpense)),
-        }));
-
-        return {
-            expenses,
-            count: expenses.length,
-            hasMore: result.hasMore,
-            nextCursor: result.nextCursor,
-        };
-    }
-
-    /**
      * Get expense history/audit log
      */
     async getExpenseHistory(expenseId: string): Promise<{ history: any[]; count: number }> {
@@ -614,13 +581,9 @@ export class ExpenseService {
             throw new ApiError(HTTP_STATUS.NOT_FOUND, 'GROUP_NOT_FOUND', 'Group not found');
         }
 
-        // Check if user is a participant in this expense or a group member (access control for viewing)
+        // Check if user is a participant in this expense (only participants can view expense details)
         if (!expense.participants || !expense.participants.includes(userId)) {
-            // Additional check: allow group members to view expenses they're not participants in
-            const member = await this.groupMemberService.getGroupMember(expense.groupId, userId);
-            if (!member) {
-                throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
-            }
+            throw new ApiError(HTTP_STATUS.FORBIDDEN, 'NOT_AUTHORIZED', 'You are not authorized to view this expense');
         }
 
         if (!groupData?.name) {

@@ -34,13 +34,6 @@ class PermissionCache {
         }
     }
 
-    generateKey(groupId: string, userId: string, action: string, resourceId?: string): string {
-        const parts = ['group', groupId, 'user', userId, 'action', action];
-        if (resourceId) {
-            parts.push('resource', resourceId);
-        }
-        return parts.join(':');
-    }
 }
 
 /**

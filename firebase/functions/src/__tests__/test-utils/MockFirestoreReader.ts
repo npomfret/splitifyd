@@ -16,7 +16,7 @@ import type { IFirestoreReader } from '../../services/firestore';
 import type { PaginatedResult } from '../../types/firestore-reader-types';
 
 // Import types for proper typing
-import type { UserDocument, GroupDocument, ExpenseDocument, SettlementDocument } from '../../schemas';
+import type { UserDocument, GroupDocument } from '../../schemas';
 import type { PolicyDocument } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 
@@ -93,13 +93,6 @@ export class MockFirestoreReader implements IFirestoreReader {
         vi.clearAllMocks();
     }
 
-    /**
-     * Restore all mocks to their original non-mocked implementations
-     */
-    public restoreAllMocks(): void {
-        vi.restoreAllMocks();
-    }
-
     // ========================================================================
     // Helper Methods for Common Test Scenarios
     // ========================================================================
@@ -121,42 +114,6 @@ export class MockFirestoreReader implements IFirestoreReader {
                 } as UserDocument;
             }
             return null;
-        });
-    }
-
-    /**
-     * Mock multiple users to exist
-     */
-    public mockUsersExist(users: Array<{ id: string; data?: any }>): void {
-        this.getUser.mockImplementation(async (id: string) => {
-            const user = users.find((u) => u.id === id);
-            if (user) {
-                return {
-                    id,
-                    email: `${id}@test.com`,
-                    displayName: `Test User ${id}`,
-                    emailVerified: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    ...user.data,
-                };
-            }
-            return null;
-        });
-
-        this.getUsersById.mockImplementation(async (ids: string[]) => {
-            return ids
-                .map((id: string) => users.find((user: any) => user.id === id))
-                .filter(Boolean)
-                .map((user: any) => ({
-                    id: user.id,
-                    email: `${user.id}@test.com`,
-                    displayName: `Test User ${user.id}`,
-                    emailVerified: true,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    ...user.data,
-                }));
         });
     }
 
@@ -195,27 +152,6 @@ export class MockFirestoreReader implements IFirestoreReader {
         };
 
         this.getGroupsForUser.mockResolvedValue(paginatedResult);
-
-        // Also mock individual group gets
-        groups.forEach((group) => {
-            if (!this.getGroup.getMockImplementation()) {
-                this.mockGroupExists(group.id, group);
-            }
-        });
-    }
-
-    /**
-     * Mock multiple groups for a user with V2 implementation (same behavior as V1 for testing)
-     */
-    public mockGroupsForUserV2(userId: string, groups: GroupDocument[], hasMore: boolean = false, nextCursor?: string): void {
-        const paginatedResult: PaginatedResult<GroupDocument[]> = {
-            data: groups,
-            hasMore,
-            nextCursor,
-            totalEstimate: groups.length + (hasMore ? 10 : 0),
-        };
-
-        this.getGroupsForUserV2.mockResolvedValue(paginatedResult);
 
         // Also mock individual group gets
         groups.forEach((group) => {
@@ -318,92 +254,6 @@ export class MockFirestoreReader implements IFirestoreReader {
         });
     }
 
-    /**
-     * Mock expenses for a group
-     */
-    public mockExpensesForGroup(groupId: string, expenses: ExpenseDocument[]): void {
-        this.getExpensesForGroup.mockImplementation(async (id) => {
-            if (id === groupId) {
-                return expenses;
-            }
-            return [];
-        });
-
-        // Also mock individual expense gets
-        expenses.forEach((expense) => {
-            this.mockExpenseExists(expense.id, expense);
-        });
-    }
-
-    /**
-     * Mock an expense to exist
-     */
-    public mockExpenseExists(expenseId: string, expenseData: Partial<ExpenseDocument> = {}): void {
-        this.getExpense.mockImplementation(async (id) => {
-            if (id === expenseId) {
-                return {
-                    id: expenseId,
-                    groupId: 'test-group',
-                    description: 'Test expense',
-                    amount: 10.0,
-                    currency: 'USD',
-                    paidBy: 'test-user',
-                    createdBy: 'test-user',
-                    date: new Date(),
-                    splits: [],
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    ...expenseData,
-                } as ExpenseDocument;
-            }
-            return null;
-        });
-    }
-
-    /**
-     * Mock settlements for a group
-     */
-    public mockSettlementsForGroup(groupId: string, settlements: SettlementDocument[]): void {
-        this.getSettlementsForGroup.mockImplementation(async (id) => {
-            if (id === groupId) {
-                return settlements;
-            }
-            return [];
-        });
-    }
-
-    /**
-     * Mock a settlement to exist
-     */
-    public mockSettlementExists(settlementId: string, settlementData: Partial<SettlementDocument> = {}): void {
-        this.getSettlement.mockImplementation(async (id) => {
-            if (id === settlementId) {
-                return {
-                    id: settlementId,
-                    groupId: 'test-group',
-                    payer: 'test-payer',
-                    payee: 'test-payee',
-                    amount: 25.0,
-                    currency: 'USD',
-                    settlementDate: new Date(),
-                    createdBy: 'test-user',
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    ...settlementData,
-                } as SettlementDocument;
-            }
-            return null;
-        });
-    }
-
-    /**
-     * Mock document existence checks
-     */
-    public mockDocumentExists(collection: string, documentId: string, exists: boolean = true): void {
-        this.documentExists.mockImplementation(async (col, id) => {
-            return col === collection && id === documentId ? exists : false;
-        });
-    }
 
     // ========================================================================
     // Data Builder Helpers
@@ -474,29 +324,6 @@ export class MockFirestoreReader implements IFirestoreReader {
     }
 
     /**
-     * Create a minimal test settlement
-     */
-    public static createTestSettlement(id: string, overrides: any = {}): any {
-        return {
-            id,
-            groupId: 'test-group',
-            payerId: 'test-payer',
-            payeeId: 'test-payee',
-            payer: 'test-payer',
-            payee: 'test-payee',
-            amount: 25.0,
-            currency: 'USD',
-            date: new Date(),
-            settlementDate: new Date(),
-            createdBy: 'test-user',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            deletedAt: null,
-            ...overrides,
-        };
-    }
-
-    /**
      * Mock group members data
      */
     public mockGroupMembersSubcollection(groupId: string, members: GroupMemberDocument[]): void {
@@ -552,45 +379,6 @@ export class MockFirestoreReader implements IFirestoreReader {
     // ========================================================================
     // Policy Mock Helpers
     // ========================================================================
-
-    /**
-     * Mock a policy to exist
-     */
-    public mockPolicyExists(policyId: string, policyData: Partial<PolicyDocument> = {}): void {
-        this.getPolicy.mockImplementation(async (id) => {
-            if (id === policyId) {
-                return {
-                    id: policyId,
-                    policyName: 'Test Policy',
-                    currentVersionHash: 'test-hash',
-                    versions: {
-                        'test-hash': {
-                            text: 'Test policy content',
-                            createdAt: new Date().toISOString(),
-                        },
-                    },
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    ...policyData,
-                } as PolicyDocument;
-            }
-            return null;
-        });
-    }
-
-    /**
-     * Mock all policies to return a list
-     */
-    public mockAllPolicies(policies: PolicyDocument[]): void {
-        this.getAllPolicies.mockResolvedValue(policies);
-    }
-
-    /**
-     * Mock empty policies list
-     */
-    public mockNoPolicies(): void {
-        this.getAllPolicies.mockResolvedValue([]);
-    }
 
     /**
      * Create a test PolicyDocument with default values

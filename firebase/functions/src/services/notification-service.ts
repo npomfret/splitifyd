@@ -151,35 +151,6 @@ export class NotificationService {
     }
 
     /**
-     * Add a user to a group's notification tracking
-     * Creates the group entry in their notification document only if it doesn't exist
-     * If the user notification document doesn't exist, it will be created
-     */
-    async addUserToGroupNotificationTracking(userId: string, groupId: string): Promise<WriteResult> {
-        return measureDb('NotificationService.addUserToGroup', async () => {
-            const existingNotification = await this.firestoreReader.getUserNotification(userId);
-
-            if (existingNotification?.groups?.[groupId]) {
-                return {
-                    id: userId,
-                    success: true,
-                };
-            }
-
-            const groupData = {
-                lastTransactionChange: null,
-                lastBalanceChange: null,
-                lastGroupDetailsChange: null,
-                transactionChangeCount: 0,
-                balanceChangeCount: 0,
-                groupDetailsChangeCount: 0,
-            };
-
-            return await this.firestoreWriter.setUserNotificationGroup(userId, groupId, groupData);
-        });
-    }
-
-    /**
      * Remove a user from a group's notification tracking
      * Deletes the group entry from their notification document
      */

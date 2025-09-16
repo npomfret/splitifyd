@@ -25,8 +25,6 @@ import type {
     JoinGroupResponse,
     LeaveGroupResponse,
     ListGroupsResponse,
-    ListSettlementsApiResponse,
-    ListSettlementsResponse,
     MessageResponse,
     PolicyAcceptanceStatus,
     PreviewGroupResponse,
@@ -186,18 +184,6 @@ export class ApiClient {
 
         // Set up 401 response interceptor
         this.setup401Interceptor();
-    }
-
-    // Add request interceptor
-    addRequestInterceptor(interceptor: RequestInterceptor): () => void {
-        this.requestInterceptors.push(interceptor);
-        // Return function to remove the interceptor
-        return () => {
-            const index = this.requestInterceptors.indexOf(interceptor);
-            if (index > -1) {
-                this.requestInterceptors.splice(index, 1);
-            }
-        };
     }
 
     // Add response interceptor
@@ -649,22 +635,6 @@ export class ApiClient {
             endpoint: '/settlements',
             method: 'POST',
             body: data,
-        });
-        return response.data;
-    }
-
-    async listSettlements(groupId: string, limit?: number, cursor?: string, userId?: string, startDate?: string, endDate?: string): Promise<ListSettlementsResponse> {
-        const query: Record<string, string> = { groupId };
-        if (limit !== undefined) query.limit = limit.toString();
-        if (cursor !== undefined) query.cursor = cursor;
-        if (userId !== undefined) query.userId = userId;
-        if (startDate !== undefined) query.startDate = startDate;
-        if (endDate !== undefined) query.endDate = endDate;
-
-        const response = await this.request<ListSettlementsApiResponse>({
-            endpoint: '/settlements',
-            method: 'GET',
-            query,
         });
         return response.data;
     }

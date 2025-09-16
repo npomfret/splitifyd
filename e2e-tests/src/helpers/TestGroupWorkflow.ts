@@ -25,26 +25,6 @@ export class TestGroupWorkflow {
     }
 
     /**
-     * Get or create a group for E2E testing, with caching to improve performance
-     */
-    public static async getOrCreateGroup(page: Page, userEmail: string, options: GroupOptions = {}): Promise<string> {
-        const { fresh = false, description, memberCount = 1 } = options;
-
-        if (fresh) {
-            return this.createFreshGroup(page, description);
-        }
-
-        const cacheKey = this.createCacheKey(userEmail, memberCount);
-
-        if (!this.groupCache.has(cacheKey)) {
-            const groupPromise = this.createFreshGroup(page, description);
-            this.groupCache.set(cacheKey, groupPromise);
-        }
-
-        return this.groupCache.get(cacheKey)!;
-    }
-
-    /**
      * Try to reuse an existing group from the dashboard, or create a new one
      */
     public static async getOrCreateGroupSmarter(page: Page, userEmail: string, options: GroupOptions = {}): Promise<string> {

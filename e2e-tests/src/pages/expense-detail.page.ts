@@ -47,13 +47,6 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get expense amount text
-     */
-    getExpenseAmount(amount: string): Locator {
-        return this.page.getByText(amount);
-    }
-
-    /**
      * Get the expense heading that contains both description and amount
      */
     getExpenseHeading(pattern: RegExp): Locator {

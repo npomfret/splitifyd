@@ -298,21 +298,6 @@ export interface Policy {
 
 export interface PolicyDocument extends Policy, BaseDocument {}
 
-// Admin Policy Management Types
-export interface CreatePolicyRequest {
-    policyName: string;
-    text: string;
-}
-
-export interface UpdatePolicyRequest {
-    text: string;
-    publish?: boolean; // If true, immediately set as current version
-}
-
-export interface PublishPolicyRequest {
-    versionHash: string;
-}
-
 // ========================================================================
 // Balance Types
 // ========================================================================
@@ -443,43 +428,10 @@ export interface CreateGroupRequest {
     description?: string;
 }
 
-// Permission-related request/response types
-export interface ApplySecurityPresetRequest {
-    preset: SecurityPreset;
-}
-
-export interface UpdateGroupPermissionsRequest {
-    permissions: Partial<GroupPermissions>;
-}
-
-export interface SetMemberRoleRequest {
-    targetUserId: string;
-    role: MemberRole;
-}
-
-export interface CreateInviteLinkRequest {
-    expiresAt?: string; // ISO string
-    maxUses?: number;
-}
-
 export interface PermissionCheckResult {
     allowed: boolean;
     reason?: string;
     userRole?: MemberRole;
-}
-
-export interface PendingMembersResponse {
-    pendingMembers: Array<{
-        user: RegisteredUser;
-        requestedAt: string;
-        invitedBy?: string;
-    }>;
-    count: number;
-}
-
-export interface PermissionHistoryResponse {
-    history: PermissionChangeLog[];
-    count: number;
 }
 
 // Metadata for real-time change tracking
@@ -643,11 +595,6 @@ export interface MessageResponse {
     resetLink?: string;
 }
 
-export interface SuccessResponse {
-    success: boolean;
-    message: string;
-}
-
 export interface LeaveGroupResponse {
     success: boolean;
     message: string;
@@ -687,24 +634,6 @@ export interface RegisterResponse {
     };
 }
 
-export interface HealthCheckResponse {
-    checks: {
-        firestore: {
-            status: 'healthy' | 'unhealthy';
-            responseTime?: number;
-        };
-        auth: {
-            status: 'healthy' | 'unhealthy';
-            responseTime?: number;
-        };
-    };
-}
-
-export interface UserPoliciesResponse {
-    policies: Record<string, { policyName: string; currentVersionHash: string }>;
-    count: number;
-}
-
 export interface CurrentPolicyResponse {
     id: string;
     policyName: string;
@@ -722,16 +651,6 @@ export interface UserProfileResponse {
     photoURL?: string | null;
     themeColor?: UserThemeColor;
     preferredLanguage?: string;
-}
-
-export interface AcceptPolicyResponse {
-    success: boolean;
-    message: string;
-    acceptedPolicy: {
-        policyId: string;
-        versionHash: string;
-        acceptedAt: string;
-    };
 }
 
 export interface AcceptMultiplePoliciesResponse {
@@ -868,9 +787,4 @@ export interface ListCommentsResponse {
 export interface CreateCommentResponse {
     success: boolean;
     data: CommentApiResponse;
-}
-
-export interface ListCommentsApiResponse {
-    success: boolean;
-    data: ListCommentsResponse;
 }

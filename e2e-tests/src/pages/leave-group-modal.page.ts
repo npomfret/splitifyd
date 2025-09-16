@@ -55,42 +55,12 @@ export class LeaveGroupModalPage extends BasePage {
         await this.clickButton(this.cancelButton, { buttonName: 'Cancel Leave' });
     }
 
-    async waitForOutstandingBalanceError(): Promise<void> {
-        // First try the specific test ID approach (more reliable)
-        try {
-            await this.verifyLeaveErrorMessage();
-            return;
-        } catch {
-            // Fallback to text-based approach
-            const errorMessage = this.page.getByText(/outstanding balance|settle up before leaving/i);
-            await expect(errorMessage).toBeVisible({ timeout: 5000 });
-        }
-    }
-
     async verifyLeaveErrorMessage(): Promise<void> {
         const errorMessage = this.dialog.getByTestId('balance-error-message');
         try {
             await expect(errorMessage).toBeVisible({ timeout: 10000 });
         } catch (e) {
             throw new Error('The error message for leaving with an outstanding balance did not appear within 10 seconds');
-        }
-    }
-
-    async hasOutstandingBalanceMessage(): Promise<boolean> {
-        try {
-            // Check for the balance error message test-id first
-            const errorMessage = this.dialog.getByTestId('balance-error-message');
-            await expect(errorMessage).toBeVisible({ timeout: 1000 });
-            return true;
-        } catch {
-            try {
-                // Fallback to text-based check
-                const balanceMessage = this.dialog.getByText(/You have an outstanding balance in this group\. Please settle up before leaving\./i);
-                await expect(balanceMessage).toBeVisible({ timeout: 1000 });
-                return true;
-            } catch {
-                return false;
-            }
         }
     }
 
@@ -120,13 +90,4 @@ export class LeaveGroupModalPage extends BasePage {
         await expect(this.dialog).not.toBeVisible({ timeout: 2000 });
     }
 
-    async clickUnderstoodToCloseModal(): Promise<void> {
-        // When there's an outstanding balance, the button shows "Understood"
-        // However, clicking it may not close the modal, so we'll cancel instead
-        await expect(this.cancelButton).toBeVisible({ timeout: 2000 });
-        await this.clickButton(this.cancelButton, { buttonName: 'Cancel' });
-
-        // Wait for the modal to close
-        await expect(this.dialog).not.toBeVisible({ timeout: 2000 });
-    }
 }
