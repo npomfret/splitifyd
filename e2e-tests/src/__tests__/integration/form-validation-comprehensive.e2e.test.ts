@@ -1,7 +1,6 @@
 import { expect, simpleTest } from '../../fixtures/simple-test.fixture';
 import { CreateGroupModalPage } from '../../pages';
-import { LoginPage, RegisterPage } from '../../pages';
-import { generateTestEmail, generateTestGroupName, generateTestUserName } from '@splitifyd/test-support';
+import { generateTestGroupName } from '@splitifyd/test-support';
 /**
  * Comprehensive Form Validation Test Suite
  * Consolidates validation testing from:
@@ -10,84 +9,7 @@ import { generateTestEmail, generateTestGroupName, generateTestUserName } from '
  * - negative-value-validation.e2e.test.ts (partial)
  */
 simpleTest.describe('Comprehensive Form Validation E2E', () => {
-    simpleTest.describe('Authentication Forms', () => {
-        simpleTest('Login form validation', async ({ newEmptyBrowser }) => {
-            const { page } = await newEmptyBrowser();
-            const loginPage = new LoginPage(page);
-            await loginPage.navigate();
-
-            // Wait for form to be ready
-            await loginPage.waitForFormReady();
-
-            // Clear any pre-filled data using page object method
-            await loginPage.clearFormField('email');
-            await loginPage.clearFormField('password');
-
-            // Test 1: Empty form - submit disabled
-            await loginPage.verifyFormSubmissionState(false);
-
-            // Test 2: Invalid email format
-            await loginPage.fillFormField('email', 'notanemail');
-            await loginPage.fillFormField('password', 'ValidPassword123');
-            await loginPage.submitForm();
-            // Should stay on login page due to validation
-            await expect(page).toHaveURL(/\/login/);
-
-            // Test 3: Only email filled - submit disabled
-            await loginPage.clearFormField('email');
-            await loginPage.clearFormField('password');
-            await loginPage.fillFormField('email', generateTestEmail());
-            await loginPage.verifyFormSubmissionState(false);
-
-            // Test 4: Only password filled - submit disabled
-            await loginPage.clearFormField('email');
-            await loginPage.fillFormField('password', 'Password123');
-            await loginPage.verifyFormSubmissionState(false);
-
-            // Test 5: Both fields filled - submit enabled
-            await loginPage.fillFormField('email', generateTestEmail());
-            await loginPage.verifyFormSubmissionState(true);
-        });
-
-        simpleTest('Register form validation', async ({ newEmptyBrowser }) => {
-            const { page } = await newEmptyBrowser();
-            const registerPage = new RegisterPage(page);
-            await registerPage.navigate();
-
-            // Wait for form to be ready
-            await registerPage.waitForFormReady();
-
-            // Test 1: Empty form - submit disabled
-            await registerPage.verifyFormSubmissionState(false);
-
-            // Test 2: All fields visible
-            await expect(registerPage.getFullNameLabel()).toBeVisible();
-            await expect(registerPage.getEmailLabel()).toBeVisible();
-            await expect(registerPage.getPasswordLabel()).toBeVisible();
-            await expect(registerPage.getConfirmPasswordLabel()).toBeVisible();
-
-            // Test 3: Password mismatch using page object methods
-            await registerPage.fillFormField('name', generateTestUserName());
-            await registerPage.fillFormField('email', generateTestEmail());
-            await registerPage.fillFormField('password', 'Password123');
-            await registerPage.fillFormField('confirmPassword', 'DifferentPassword123');
-
-            // Submit should be disabled with mismatched passwords
-            await registerPage.verifyFormSubmissionState(false);
-
-            // Test 4: Fix password match and check required checkboxes
-            await registerPage.fillFormField('confirmPassword', 'Password123');
-            await registerPage.checkTermsCheckbox();
-            await registerPage.checkCookieCheckbox();
-
-            // Now button should be enabled
-            await registerPage.verifyFormSubmissionState(true);
-
-            // Test 5: Uncheck a required checkbox - submit disabled
-            await registerPage.toggleTermsCheckbox();
-            await registerPage.verifyFormSubmissionState(false);
-        });
-    });
+    // Note: Basic authentication form validation (login/register) is tested in auth-and-registration.e2e.test.ts
 
     simpleTest.describe('Expense Form Validation', () => {
         simpleTest('Expense form required fields and negative values', async ({ newLoggedInBrowser }) => {

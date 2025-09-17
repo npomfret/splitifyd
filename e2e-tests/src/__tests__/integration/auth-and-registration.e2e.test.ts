@@ -5,6 +5,19 @@ import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { DEFAULT_PASSWORD, generateTestEmail, generateTestUserName } from '@splitifyd/test-support';
 import { CreateGroupModalPage, DashboardPage, RegisterPage } from '../../pages';
 
+/**
+ * Authentication and Registration E2E Tests
+ *
+ * Note: Basic form validation (login/register form field validation, submit button states,
+ * password matching) is tested in form-validation-comprehensive.e2e.test.ts
+ *
+ * This file focuses on:
+ * - Authentication security and redirects
+ * - Duplicate registration prevention
+ * - Registration loading states
+ * - Terms and policy acceptance
+ */
+
 simpleTest.describe('Authentication Security', () => {
     simpleTest('should redirect unauthenticated users to login', async ({ newEmptyBrowser }) => {
         const { page, loginPage } = await newEmptyBrowser();
