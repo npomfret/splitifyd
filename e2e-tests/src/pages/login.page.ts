@@ -64,15 +64,6 @@ export class LoginPage extends BasePage {
         return new RegisterPage(this.page);
     }
 
-    // Element accessors for direct interaction in tests
-    getEmailInput() {
-        return this.page.locator(SELECTORS.EMAIL_INPUT);
-    }
-
-    getPasswordInput() {
-        return this.page.locator(SELECTORS.PASSWORD_INPUT);
-    }
-
     getSubmitButton() {
         return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
     }

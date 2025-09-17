@@ -568,17 +568,6 @@ export interface ExpenseFullDetails {
     members: { members: GroupMemberWithProfile[] };
 }
 
-// ========================================================================
-// List Response Types
-// ========================================================================
-
-export interface ListExpensesResponse {
-    expenses: ExpenseData[];
-    hasMore: boolean;
-    nextCursor?: string;
-    count?: number;
-}
-
 export interface ListSettlementsResponse {
     settlements: SettlementListItem[];
     count: number;
@@ -692,11 +681,6 @@ export interface UpdateSettlementResponse {
     data: SettlementListItem;
 }
 
-export interface GetSettlementResponse {
-    success: boolean;
-    data: SettlementListItem;
-}
-
 export interface DeleteSettlementResponse {
     success: boolean;
     message: string;
@@ -718,11 +702,6 @@ export interface ExpenseHistoryItem {
     previousCategory?: string;
     previousDate?: string;
     previousParticipants?: string[];
-}
-
-export interface ExpenseHistoryResponse {
-    history: ExpenseHistoryItem[];
-    count: number;
 }
 
 // ========================================================================

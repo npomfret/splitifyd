@@ -59,51 +59,6 @@ export class CreateGroupModalPage extends BasePage {
         // The caller (createGroup method) will handle waiting for the appropriate outcome.
     }
 
-    async trySubmitForm(): Promise<void> {
-        // Attempt to submit form - throws descriptive errors if submission fails
-        const submitButton = this.page.locator(SELECTORS.FORM).getByRole(ARIA_ROLES.BUTTON, { name: translationEn.createGroupModal.submitButton });
-
-        // Check if button is enabled before attempting to click
-        const isEnabled = await submitButton.isEnabled();
-        if (!isEnabled) {
-            throw new Error('Submit button is disabled - form validation errors likely present');
-        }
-
-        // Button is enabled, attempt to click it
-        await this.clickButton(submitButton, { buttonName: translationEn.createGroupModal.submitButton });
-
-        // Give a brief moment for either modal closure or validation errors to appear
-        await expect(async () => {
-            const modalStillOpen = await this.isOpen();
-            const hasValidationErrors = (await this.getErrorMessage().count()) > 0;
-
-            // Either modal should close OR validation errors should appear OR operation is still in progress
-            if (modalStillOpen && !hasValidationErrors) {
-                // Check if button is in loading state (indicates operation in progress)
-                const isLoading = (await submitButton.isDisabled()) || (await submitButton.locator('.animate-spin').count()) > 0 || (await submitButton.getAttribute('aria-busy')) === 'true';
-
-                if (!isLoading) {
-                    throw new Error('No completion indicators detected yet');
-                }
-            }
-        }).toPass({ timeout: 500, intervals: [50, 100] });
-
-        // Check final state - if modal is still open, form validation prevented submission
-        const modalStillOpen = await this.isOpen();
-        if (modalStillOpen) {
-            // Check if there are validation errors to provide better error message
-            const errorCount = await this.getErrorMessage().count();
-            if (errorCount > 0) {
-                const errorText = await this.getErrorMessage().first().textContent();
-                throw new Error(`Form submission failed due to validation errors: ${errorText}`);
-            } else {
-                throw new Error('Form submission failed - modal still open but no validation errors detected');
-            }
-        }
-
-        // If we reach here, modal closed successfully (form submitted)
-    }
-
     async cancel() {
         // Modal MUST have a cancel/close button - this is basic UX
         // Wait for modal to be fully rendered including buttons

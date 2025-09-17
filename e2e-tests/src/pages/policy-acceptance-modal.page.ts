@@ -164,8 +164,4 @@ export class PolicyAcceptanceModalPage {
         // Wait for modal to disappear
         await this.waitForModalToDisappear();
     }
-
-    async hasError(): Promise<boolean> {
-        return await this.errorState.isVisible();
-    }
 }

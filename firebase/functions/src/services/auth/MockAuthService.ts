@@ -78,13 +78,6 @@ export class MockAuthService implements IAuthService {
     }
 
     /**
-     * Get calls for a specific method
-     */
-    getCallsFor(method: string): MethodCall[] {
-        return this.calls.filter((call) => call.method === method);
-    }
-
-    /**
      * Record a method call
      */
     private recordCall(method: string, args: any[]): void {
