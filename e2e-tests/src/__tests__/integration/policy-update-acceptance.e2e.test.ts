@@ -1,8 +1,8 @@
 import { simpleTest, expect } from '../../fixtures';
 import { ApiDriver } from '@splitifyd/test-support';
 import { PolicyAcceptanceModalPage } from '../../pages/policy-acceptance-modal.page';
-import { LoginPage } from '../../pages/login.page';
-import { DashboardPage } from '../../pages/dashboard.page';
+import { LoginPage } from '../../pages';
+import { DashboardPage } from '../../pages';
 
 simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
     simpleTest('should update each policy and accept them sequentially', async ({ browser }) => {
