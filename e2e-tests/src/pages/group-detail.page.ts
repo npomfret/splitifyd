@@ -973,23 +973,8 @@ export class GroupDetailPage extends BasePage {
             .first();
     }
 
-    /**
-     * Verify debt relationship and amount in balances section
-     */
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         const balancesSection = this.getBalancesSectionByContext();
-
-        // First check if we have a "settled up" state - if so, there should be no debts
-        const settledUpMessage = balancesSection.getByText('All settled up!');
-        const isSettledUp = await settledUpMessage.isVisible();
-
-        if (isSettledUp) {
-            throw new Error(`Expected debt relationship ${debtorName} → ${creditorName} (${amount}), but found "All settled up!" state`);
-        }
-
-        // Target the most specific container using the data-testid from BalanceSummary component
-        // This should be the exact debt relationship span
-        const debtRelationshipSpan = balancesSection.locator(`[data-testid*="${debtorName}"][data-testid*="${creditorName}"]`);
 
         // If testid approach doesn't work, fall back to a more precise text-based approach
         const debtContainerFallback = balancesSection
@@ -998,13 +983,10 @@ export class GroupDetailPage extends BasePage {
             .filter({ hasText: amount })
             .last(); // Get the most specific (deepest) match
 
-        // Try testid approach first, then fallback
-        const debtContainer = await debtRelationshipSpan.count() > 0 ? debtRelationshipSpan : debtContainerFallback;
-
-        await expect(debtContainer).toBeVisible({ timeout: 3000 });
+        await expect(debtContainerFallback).toBeVisible({ timeout: 3000 });
 
         // Verify the debt amount is present within this container
-        const debtAmount = debtContainer.locator('[data-financial-amount="debt"]').filter({ hasText: amount });
+        const debtAmount = debtContainerFallback.locator('[data-financial-amount="debt"]').filter({ hasText: amount });
         await expect(debtAmount).toBeVisible({ timeout: 2000 });
     }
 
