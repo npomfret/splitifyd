@@ -8,6 +8,12 @@ import { SettlementData } from '../../pages/settlement-form.page.ts';
 simpleTest.describe('Group Real-Time Updates E2E', () => {
     // This test has been enhanced to test true real-time updates WITHOUT page reloads
     // Previous temporary page.reload() calls have been removed to test actual real-time functionality
+    //
+    // NOTE: This comprehensive test covers ALL real-time scenarios including:
+    // - Group page real-time updates (group edits, expenses, comments, settlements, member changes)
+    // - Dashboard real-time updates (User 2 monitors from dashboard throughout)
+    // - Member removal scenarios and edge cases
+    // This replaces the need for separate dashboard-specific test files.
     simpleTest('should handle real-time group updates across 4 users without page refresh', async ({ newLoggedInBrowser }, testInfo) => {
         // Skip error checking - real-time tests may generate expected transient errors during synchronization
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
