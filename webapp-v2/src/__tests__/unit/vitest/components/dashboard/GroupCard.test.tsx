@@ -25,23 +25,6 @@ vi.mock('react-i18next', () => ({
     }),
 }));
 
-// Helper to create a test group member
-function createTestGroupMember(role: 'admin' | 'member' | 'viewer' = 'member', colorIndex = 0) {
-    return {
-        joinedAt: new Date().toISOString(),
-        role,
-        status: 'active' as const,
-        theme: {
-            light: '#ff0000',
-            dark: '#cc0000',
-            name: 'red',
-            pattern: 'solid' as const,
-            assignedAt: new Date().toISOString(),
-            colorIndex,
-        },
-    };
-}
-
 // Helper to create test groups
 function createTestGroup(overrides: Partial<Group> = {}): Group {
     return {
@@ -164,18 +147,6 @@ describe('GroupCard', () => {
         render(<GroupCard group={group} onClick={mockOnClick} />);
 
         expect(screen.getByText('2 hours ago')).toBeInTheDocument();
-    });
-
-    it('shows member avatars when members are provided', () => {
-        const users: RegisteredUser[] = [createTestUser({ displayName: 'Alice Anderson' }), createTestUser({ displayName: 'Bob Brown' }), createTestUser({ displayName: 'Charlie Chen' })];
-
-        const group = createTestGroup({
-            name: 'Large Group',
-        });
-
-        render(<GroupCard group={group} onClick={mockOnClick} />);
-
-        // The component no longer shows member count
     });
 
     it('limits member avatars to 5 and shows count for rest', () => {

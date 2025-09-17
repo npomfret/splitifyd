@@ -128,13 +128,7 @@ export class CreateGroupModalPage extends BasePage {
      * Updated to target the specific error message element in CreateGroupModal
      */
     getErrorMessage(pattern?: string | RegExp): Locator {
-        // First try the specific testid for create group errors
-        const specificError = this.page.locator('[data-testid="create-group-error-message"]');
 
-        // Then try generic error selectors
-        const genericErrors = this.page.locator('[role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
-
-        // Combine both selectors
         const allErrors = this.page.locator('[data-testid="create-group-error-message"], [role="alert"], [data-testid*="error"], .error-message, [role="dialog"] [role="alert"]');
 
         if (pattern) {

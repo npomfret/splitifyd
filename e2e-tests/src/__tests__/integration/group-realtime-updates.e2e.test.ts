@@ -317,7 +317,6 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const { page: bobPage, user: bob, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
         // Create page objects
         const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
@@ -422,7 +421,6 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Get display names
         const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
         const editor2DisplayName = await editor2DashboardPage.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         // Editor1 creates group
         const groupName = generateTestGroupName('ConcurrentEdit');
@@ -507,7 +505,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Create three users - Deleter, GroupWatcher, DashboardWatcher
         const { page: deleterPage, dashboardPage: deleterDashboardPage, user: deleter } = await newLoggedInBrowser();
         const { page: groupWatcherPage, dashboardPage: groupWatcherDashboardPage, user: groupWatcher } = await newLoggedInBrowser();
-        const { page: dashWatcherPage, dashboardPage: dashWatcherDashboardPage, user: dashWatcher } = await newLoggedInBrowser();
+        const { page: dashWatcherPage, dashboardPage: dashWatcherDashboardPage } = await newLoggedInBrowser();
 
         // Create page objects
         const deleterGroupDetailPage = new GroupDetailPage(deleterPage, deleter);
@@ -515,8 +513,6 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // Get display names
         const deleterDisplayName = await deleterDashboardPage.getCurrentUserDisplayName();
-        const groupWatcherDisplayName = await groupWatcherDashboardPage.getCurrentUserDisplayName();
-        const dashWatcherDisplayName = await dashWatcherDashboardPage.getCurrentUserDisplayName();
 
         // Deleter creates group
         const groupName = generateTestGroupName('DeleteRT');
@@ -586,7 +582,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
 
         // Create three users - Owner (adding), ExistingMember (watching), NewMember (being added via invite)
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
+        const { dashboardPage: ownerDashboardPage, } = await newLoggedInBrowser();
         const { page: existingPage, dashboardPage: existingDashboardPage, user: existing } = await newLoggedInBrowser();
         const { page: newPage, dashboardPage: newDashboardPage, user: newUser } = await newLoggedInBrowser();
 

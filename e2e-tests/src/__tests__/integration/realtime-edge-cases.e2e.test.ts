@@ -10,7 +10,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Edge case testing may generate expected transient errors and 404s' });
 
         // Create four users - ExpenseCreator, LeavingUser, StayingUser, Watcher
-        const { page: creatorPage, dashboardPage: creatorDashboardPage, user: creator } = await newLoggedInBrowser();
+        const { dashboardPage: creatorDashboardPage, user: creator } = await newLoggedInBrowser();
         const { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving } = await newLoggedInBrowser();
         const { page: stayingPage, dashboardPage: stayingDashboardPage, user: staying } = await newLoggedInBrowser();
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
@@ -22,8 +22,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // Get display names and log user UIDs
         const creatorDisplayName = await creatorDashboardPage.getCurrentUserDisplayName();
         const leavingDisplayName = await leavingDashboardPage.getCurrentUserDisplayName();
-        const stayingDisplayName = await stayingDashboardPage.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         console.log(`👥 Test 1 User UIDs - Creator: ${creator.uid}, Leaving: ${leaving.uid}, Staying: ${staying.uid}, Watcher: ${watcher.uid}`);
 
@@ -88,7 +86,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Edge case testing may generate expected transient errors and 404s' });
 
         // Create four users - Owner, SettlingUser, RemovalTarget, Watcher
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
+        const { dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: settlingPage, dashboardPage: settlingDashboardPage, user: settling } = await newLoggedInBrowser();
         const { page: targetPage, dashboardPage: targetDashboardPage, user: target } = await newLoggedInBrowser();
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
@@ -101,7 +99,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
         const settlingDisplayName = await settlingDashboardPage.getCurrentUserDisplayName();
         const targetDisplayName = await targetDashboardPage.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         console.log(`👥 Test 2 User UIDs - Owner: ${owner.uid}, Settling: ${settling.uid}, Target: ${target.uid}, Watcher: ${watcher.uid}`);
 
@@ -195,20 +192,18 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Stress testing may generate expected transient sync errors' });
 
         // Create four users for stress testing
-        const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { dashboardPage: user1DashboardPage, } = await newLoggedInBrowser();
         const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
         const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
         const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
 
         // Create page objects
         const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
-        const user3GroupDetailPage = new GroupDetailPage(user3Page, user3);
         const user4GroupDetailPage = new GroupDetailPage(user4Page, user4);
 
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
         const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
 
         // User1 creates group
@@ -302,7 +297,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Network simulation may generate expected connection errors' });
 
         // Create three users - ActiveUser, WatcherOnline, WatcherOffline
-        const { page: activePage, dashboardPage: activeDashboardPage, user: active } = await newLoggedInBrowser();
+        const { dashboardPage: activeDashboardPage } = await newLoggedInBrowser();
         const { page: onlinePage, dashboardPage: onlineDashboardPage, user: online } = await newLoggedInBrowser();
         const { page: offlinePage, dashboardPage: offlineDashboardPage, user: offline } = await newLoggedInBrowser();
 
@@ -312,8 +307,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Get display names
         const activeDisplayName = await activeDashboardPage.getCurrentUserDisplayName();
-        const onlineDisplayName = await onlineDashboardPage.getCurrentUserDisplayName();
-        const offlineDisplayName = await offlineDashboardPage.getCurrentUserDisplayName();
 
         // ActiveUser creates group
         const groupName = generateTestGroupName('NetworkRT');
@@ -390,8 +383,6 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Get display names
         const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
-        const editor2DisplayName = await editor2DashboardPage.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
 
         // Editor1 creates group
         const groupName = generateTestGroupName('ConflictRT');

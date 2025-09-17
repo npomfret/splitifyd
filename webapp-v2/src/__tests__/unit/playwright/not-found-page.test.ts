@@ -90,9 +90,6 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         // Wait for NotFoundPage to render
         await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
-        // Should show "Go Home" button for unauthenticated users
-        const homeButton = page.locator('[data-testid="go-home-link"]');
-
         // Either the home button should be visible, or if auth isn't properly mocked,
         // at least one navigation button should be present
         const navigationButtons = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"]');

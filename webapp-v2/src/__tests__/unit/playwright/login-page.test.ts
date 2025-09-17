@@ -166,7 +166,6 @@ test.describe('LoginPage - Behavioral Tests', () => {
         await page.waitForLoadState('domcontentloaded');
 
         // Since we're authenticated, check if we're redirected away from login
-        const currentUrl = page.url();
         const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
 
         expect(userId).toBeTruthy();

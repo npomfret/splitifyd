@@ -13,9 +13,7 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 describe('FirestoreReader', () => {
     const firestore = getFirestore();
     const applicationBuilder = new ApplicationBuilder(firestore);
-    const groupService = applicationBuilder.buildGroupService();
     const firestoreReader = applicationBuilder.buildFirestoreReader();
-    const userService = applicationBuilder.buildUserService();
 
     test('should be instantiable', () => {
         const reader = new FirestoreReader(firestore);

@@ -157,8 +157,6 @@ simpleTest.describe('Policy Update Acceptance Modal E2E', () => {
         await loginPage.navigate();
         await loginPage.login(user.email, user.password);
 
-        const dashboardPage = new DashboardPage(page);
-
         // Update a policy to trigger modal (user has already accepted base policies)
         await apiDriver.updateSpecificPolicy('terms-of-service', user.token);
 

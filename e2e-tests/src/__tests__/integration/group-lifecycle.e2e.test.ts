@@ -5,7 +5,7 @@ import { generateShortId, generateTestGroupName } from '@splitifyd/test-support'
 
 simpleTest.describe('Group Management', () => {
     simpleTest('should allow group owner to edit group name', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
@@ -41,7 +41,7 @@ simpleTest.describe('Group Management', () => {
     });
 
     simpleTest('should validate group name when editing', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Create a group
         const groupDetailPage = await dashboardPage.createGroupAndNavigate('Test Group', 'Test description');
@@ -79,7 +79,7 @@ simpleTest.describe('Group Management', () => {
     });
 
     simpleTest('should disable save button when no changes made', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Create a group
         const groupName = 'No Changes Group';
@@ -199,7 +199,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
 
         // Create two browser instances - owner (user1) and member (user2)
         let { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, user: member } = await newLoggedInBrowser();
+        const { page: memberPage } = await newLoggedInBrowser();
 
         // Setup 2-person group with unique ID
         const groupName = `Member On Detail Test ${generateShortId()}`;
@@ -247,8 +247,8 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
     simpleTest('should handle multiple users joining group in parallel', async ({ newLoggedInBrowser }) => {
         // Create three browser instances - User 1, User 2, and User 3
         const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-        const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-        const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
+        const { page: user2Page, user: user2 } = await newLoggedInBrowser();
+        const { page: user3Page, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
         const groupDetailPage2 = new GroupDetailPage(user2Page, user2);

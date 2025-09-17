@@ -7,8 +7,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
         simpleTest('should create settlement and display in history with proper formatting', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 
@@ -18,7 +18,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -51,8 +51,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
         simpleTest('should handle settlements where creator is payee', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 
@@ -62,7 +62,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create settlement where creator is the payee (receives money)
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -93,8 +93,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Editing', () => {
         simpleTest('should edit settlement successfully', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 
@@ -104,7 +104,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create initial settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
@@ -157,8 +157,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
         simpleTest('should validate form inputs during edit', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 
@@ -168,7 +168,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -217,8 +217,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Deletion', () => {
         simpleTest('should delete settlement successfully', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 
@@ -228,7 +228,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -260,8 +260,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
         simpleTest('should cancel settlement deletion when user clicks cancel', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const memberCount = 2;
 

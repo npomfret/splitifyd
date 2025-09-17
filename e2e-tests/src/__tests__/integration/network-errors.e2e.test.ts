@@ -142,7 +142,7 @@ test.describe('Error Handling', () => {
     });
 
     test('handles malformed API responses', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const context = page.context();
         // NOTE: This test intentionally triggers JSON parse errors
         test.info().annotations.push({
@@ -196,7 +196,6 @@ test.describe('Error Handling', () => {
         // Intercept API calls to simulate timeout - be very specific to avoid blocking dashboard loads
         await context.route('**/groups', async (route) => {
             const method = route.request().method();
-            const url = route.request().url();
             if (method === 'POST') {
                 // Wait for configured timeout delay then respond with timeout
                 await new Promise((resolve) => setTimeout(resolve, TIMEOUT_CONTEXTS.SIMULATED_TIMEOUT_DELAY));

@@ -12,11 +12,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
 
     simpleTest.describe('Expense Form Validation', () => {
         simpleTest('Expense form required fields and negative values', async ({ newLoggedInBrowser }) => {
-            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const { page, dashboardPage } = await newLoggedInBrowser();
 
             // Create group and navigate to it
             const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Validation'), 'Testing form validation');
-            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting
@@ -59,11 +58,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
         });
 
         simpleTest('Exact split validation', async ({ newLoggedInBrowser }) => {
-            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const { dashboardPage } = await newLoggedInBrowser();
 
             // Create group and navigate to it
             const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
-            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting
@@ -84,11 +82,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
         });
 
         simpleTest('Percentage split validation', async ({ newLoggedInBrowser }) => {
-            const { page, dashboardPage, user } = await newLoggedInBrowser();
+            const { dashboardPage } = await newLoggedInBrowser();
 
             // Create group and navigate to it
             const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
-            const groupId = groupDetailPage.inferGroupId();
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting

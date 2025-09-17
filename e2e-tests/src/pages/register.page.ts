@@ -183,7 +183,7 @@ export class RegisterPage extends BasePage {
         }
     }
 
-    async waitForFormReady(userInfo?: { displayName?: string; email?: string }): Promise<void> {
+    async waitForFormReady(): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/register/;
 

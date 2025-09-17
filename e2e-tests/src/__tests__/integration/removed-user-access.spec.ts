@@ -9,7 +9,7 @@ import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - User 1 and User 2
-        const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+        const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: user2Page, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
@@ -72,7 +72,7 @@ simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('should redirect removed user to dashboard when viewing group page', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Owner and Member (to be removed)
         // Using only 2 users to avoid complications and focus on the core removal behavior
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: ownerUser } = await newLoggedInBrowser();
+        const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
 
         // Create page objects
@@ -118,7 +118,7 @@ simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('should remove group from removed user dashboard in real-time', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Owner and Member (to be removed)
         // Simplified to focus on core dashboard behavior without complications
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: ownerUser } = await newLoggedInBrowser();
+        const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
 
         // Create page objects
@@ -128,7 +128,6 @@ simpleTest.describe('Multi-User Group Access', () => {
         const uniqueId = generateShortId();
         const groupName = generateTestGroupName(`DashboardRemoval-${uniqueId}`);
         const createdGroupPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from dashboard perspective');
-        const groupId = createdGroupPage.inferGroupId();
 
         // Add member to group
         const multiUserWorkflow = new MultiUserWorkflow();

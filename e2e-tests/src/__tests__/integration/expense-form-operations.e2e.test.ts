@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 test.describe('Expense Form Operations E2E', () => {
     test('should allow user to select predefined category from suggestions', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const memberCount = 1;
 
         // Create group and navigate to it
@@ -48,7 +48,7 @@ test.describe('Expense Form Operations E2E', () => {
     });
 
     test('should allow user to enter custom category text', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const memberCount = 1;
 
         // Create group and navigate to it
@@ -81,12 +81,11 @@ test.describe('Expense Form Operations E2E', () => {
     });
 
     test('should filter suggestions as user types', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const memberCount = 1;
 
         // Create group and navigate to it
         const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('FilterCat'), 'Testing category filtering');
-        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage3 = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -120,12 +119,11 @@ test.describe('Expense Form Operations E2E', () => {
     });
 
     test('should support keyboard navigation in suggestions', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const memberCount = 1;
 
         // Create group and navigate to it
         const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('KeyboardCat'), 'Testing keyboard navigation');
-        const groupId = groupDetailPage.inferGroupId();
 
         // Navigate to expense form with proper waiting
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -160,7 +158,7 @@ test.describe('Expense Form Operations E2E', () => {
     test('should handle category with special characters and emojis', async ({ newLoggedInBrowser }, testInfo) => {
         // @skip-error-checking - May have API validation issues with special characters
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'May have API validation issues with special characters' });
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Create group and navigate to it
         const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('SpecialCat'), 'Testing special characters');
@@ -194,7 +192,7 @@ test.describe('Expense Form Operations E2E', () => {
 
     test('should perform basic expense CRUD operations', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const groupDetailPage = new GroupDetailPage(page, user);
+
         const expenseDetailPage = new ExpenseDetailPage(page, user);
         const uniqueId = uuidv4().slice(0, 8);
 

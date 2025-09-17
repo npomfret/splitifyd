@@ -45,7 +45,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
         await expect(groupDetailPage.getExpenseByDescription('Single User Expense')).toBeVisible();
     });
     test('should show settled up when both users pay equal amounts', async ({ newLoggedInBrowser }) => {
-        const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -128,7 +128,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
     });
 
     test('should show specific debt when only one person pays', async ({ newLoggedInBrowser }) => {
-        const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -178,7 +178,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
     });
 
     test('should calculate complex debts correctly', async ({ newLoggedInBrowser }) => {
-        const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -189,7 +189,6 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         const uniqueId = generateShortId();
         const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
-        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -247,7 +246,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
     });
 
     test('should transition from settled to debt to settled predictably', async ({ newLoggedInBrowser }) => {
-        const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -258,7 +257,6 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         const uniqueId = generateShortId();
         const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
-        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();
@@ -321,7 +319,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
     });
 
     test('should handle currency formatting in debt amounts', async ({ newLoggedInBrowser }) => {
-        const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -332,7 +330,6 @@ test.describe('Balance Visualization - Comprehensive', () => {
 
         const uniqueId = generateShortId();
         const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
-        const groupId = groupDetailPage.inferGroupId();
 
         // Get share link
         const shareLink = await groupDetailPage.getShareLink();

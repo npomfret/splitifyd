@@ -137,61 +137,6 @@ async function verifyDashboardStructure(page: any): Promise<void> {
     await expectElementVisible(page, DASHBOARD_SELECTORS.GROUPS_CONTAINER);
 }
 
-/**
- * Helper to verify responsive layout behavior
- */
-async function verifyResponsiveLayout(page: any, viewport: 'mobile' | 'tablet' | 'desktop'): Promise<void> {
-    const viewportSizes = {
-        mobile: { width: 375, height: 667 },
-        tablet: { width: 768, height: 1024 },
-        desktop: { width: 1024, height: 768 },
-    };
-
-    await page.setViewportSize(viewportSizes[viewport]);
-    await page.waitForLoadState('networkidle');
-
-    // Verify basic structure remains intact
-    await verifyDashboardStructure(page);
-
-    // Check responsive-specific behavior
-    if (viewport === 'mobile') {
-        // Mobile should show quick actions at top
-        const mobileQuickActions = page.locator(DASHBOARD_SELECTORS.QUICK_ACTIONS_MOBILE);
-        await expect(mobileQuickActions.first()).toBeVisible();
-    } else if (viewport === 'desktop') {
-        // Desktop should show sidebar content
-        const desktopSidebar = page.locator(DASHBOARD_SELECTORS.QUICK_ACTIONS_DESKTOP);
-        await expect(desktopSidebar.first()).toBeVisible();
-    }
-}
-
-/**
- * Helper to test modal interactions with comprehensive verification
- */
-async function testCreateGroupModalInteraction(page: any): Promise<void> {
-    // Open modal
-    const createButton = page.locator(DASHBOARD_SELECTORS.CREATE_GROUP_BUTTON);
-    await expect(createButton).toBeVisible();
-    await expectButtonState(page, DASHBOARD_SELECTORS.CREATE_GROUP_BUTTON, 'enabled');
-    await createButton.click();
-
-    // Verify modal opens
-    await expectElementVisible(page, DASHBOARD_SELECTORS.CREATE_GROUP_MODAL);
-
-    // Close modal
-    const closeButton = page.locator(DASHBOARD_SELECTORS.MODAL_CLOSE_BUTTON);
-    if (await closeButton.count() > 0) {
-        await closeButton.first().click();
-    } else {
-        await page.keyboard.press('Escape');
-    }
-
-    // Wait for modal to close completely
-    const modal = page.locator(DASHBOARD_SELECTORS.CREATE_GROUP_MODAL);
-    await expect(modal).not.toBeVisible();
-    expect(await modal.count()).toBe(0);
-}
-
 test.describe('DashboardPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/dashboard');

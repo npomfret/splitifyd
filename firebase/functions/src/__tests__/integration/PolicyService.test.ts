@@ -147,7 +147,7 @@ describe('PolicyService - Integration Tests', () => {
         it('should prevent duplicate policy creation', async () => {
             // Create initial policy
             const duplicateName = uniquePolicyName('Duplicate Test');
-            const result1 = await policyService.createPolicy(duplicateName, 'Content 1');
+            await policyService.createPolicy(duplicateName, 'Content 1');
 
             // Attempt to create policy with same name (should generate same ID)
             await expect(policyService.createPolicy(duplicateName, 'Content 2')).rejects.toThrow(

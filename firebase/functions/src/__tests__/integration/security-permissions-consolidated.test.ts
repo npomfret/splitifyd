@@ -234,13 +234,7 @@ describe('Security and Permissions - Consolidated Tests', () => {
             const testUser = await apiDriver.createUser(new UserRegistrationBuilder().withEmail(`test-invalid-${Date.now()}@test.com`).withDisplayName('Test User Invalid').build());
 
             // Create valid group first
-            const validGroup = await apiDriver.createGroup(
-                {
-                    name: 'Valid Group Test ' + Date.now(),
-                    description: 'Testing valid security preset',
-                },
-                testUser.token,
-            );
+            await apiDriver.createGroup({name: 'Valid Group Test ' + Date.now(), description: 'Testing valid security preset',}, testUser.token);
 
             // Insert group with invalid securityPreset directly via Firestore
             const invalidGroupId = 'invalid-group-' + Date.now();

@@ -169,7 +169,7 @@ export class GroupDetailPage extends BasePage {
         const expenseFormPage = new ExpenseFormPage(this.page);
 
         // Wait for form to be ready
-        await expenseFormPage.waitForFormReady(expectedMemberCount, userInfo);
+        await expenseFormPage.waitForFormReady(expectedMemberCount);
         return expenseFormPage;
     }
 
@@ -574,15 +574,6 @@ export class GroupDetailPage extends BasePage {
     // Utility method for currency amounts
     getCurrencyAmount(amount: string) {
         return this.page.getByText(`$${amount}`);
-    }
-
-    /**
-     * Helper method to navigate an external page object to a share link
-     * Encapsulates direct page.goto() usage for multi-user scenarios
-     */
-    private async navigatePageToShareLink(page: any, shareLink: string): Promise<void> {
-        await page.goto(shareLink);
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
     }
 
     /**
@@ -1047,12 +1038,6 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         const balancesSection = this.getBalancesSectionByContext();
-
-        // Get actual content for better error reporting
-        const actualContent = await balancesSection.textContent().catch(() => 'Unable to get content');
-
-        // Get current page URL and user identifier from the page object
-        const currentUrl = this.page.url();
 
         // Look for debt relationship span that contains both user names
         // This handles the case where text is split across multiple text nodes

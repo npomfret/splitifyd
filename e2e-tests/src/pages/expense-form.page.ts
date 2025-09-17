@@ -107,9 +107,8 @@ export class ExpenseFormPage extends BasePage {
      * This is called automatically by clickAddExpenseButton() so forms are always ready.
      * Note: Loading spinner check is handled in clickAddExpenseButton() before this method is called.
      * @param expectedMemberCount - The expected number of members in the group
-     * @param userInfo - Optional user info for debugging
      */
-    async waitForFormReady(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<void> {
+    async waitForFormReady(expectedMemberCount: number): Promise<void> {
         const currentUrl = this.page.url();
         const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
 

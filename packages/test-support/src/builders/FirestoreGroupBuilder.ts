@@ -106,25 +106,6 @@ export class FirestoreGroupBuilder {
         };
     }
 
-    private createThemeColorForUser(userId: string): UserThemeColor {
-        // Create deterministic colors based on userId for consistent testing
-        const colorIndex = Math.abs(userId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 5;
-        const colors = [
-            { light: '#FF6B6B', dark: '#FF6B6B', name: 'Coral Red' },
-            { light: '#4ECDC4', dark: '#4ECDC4', name: 'Teal' },
-            { light: '#45B7D1', dark: '#45B7D1', name: 'Sky Blue' },
-            { light: '#96CEB4', dark: '#96CEB4', name: 'Mint Green' },
-            { light: '#FFEAA7', dark: '#FFEAA7', name: 'Sunny Yellow' },
-        ];
-
-        return {
-            ...colors[colorIndex],
-            pattern: 'solid',
-            assignedAt: new Date().toISOString(),
-            colorIndex,
-        };
-    }
-
     build(): any {
         return { ...this.group };
     }

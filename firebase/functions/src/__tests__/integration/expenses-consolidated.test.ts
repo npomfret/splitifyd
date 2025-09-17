@@ -33,17 +33,6 @@ describe('Expenses Management - Consolidated Tests', () => {
             expect(fetchedExpense.amount).toBe(apiExpenseData.amount);
             expect(fetchedExpense.paidBy).toBe(users[0].uid);
 
-            // Test split calculations with builder
-            const splitTestData = new CreateExpenseRequestBuilder()
-                .withGroupId(testGroup.id)
-                .withAmount(120)
-                .withDescription('Service test expense')
-                .withCategory('Food')
-                .withPaidBy(users[0].uid)
-                .withParticipants([users[0].uid, users[1].uid, users[2].uid])
-                .withSplitType('equal')
-                .build();
-
             const serviceResult = await apiDriver.createExpense(apiExpenseData, users[0].token);
             expect(serviceResult.id).toBeDefined();
             expect(serviceResult.splits).toHaveLength(3);
@@ -342,6 +331,7 @@ describe('Expenses Management - Consolidated Tests', () => {
                 new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
                 users[0].token,
             );
+            //todo: assert both are visible
 
             // Delete one expense
             await apiDriver.deleteExpense(expense1.id, users[0].token);
@@ -354,6 +344,7 @@ describe('Expenses Management - Consolidated Tests', () => {
             const deletedResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             const deletedExpense = deletedResult.expenses.find((e) => e.id === expense1.id);
             // Note: API layer may or may not include deleted expenses
+            // todo: assert something about deletedExpense !!
         });
     });
 

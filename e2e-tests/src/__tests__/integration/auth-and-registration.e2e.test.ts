@@ -22,7 +22,7 @@ import { CreateGroupModalPage, DashboardPage, RegisterPage } from '../../pages';
 
 simpleTest.describe('Authentication Security', () => {
     simpleTest('should redirect unauthenticated users to login', async ({ newEmptyBrowser }) => {
-        const { page, loginPage } = await newEmptyBrowser();
+        const { page } = await newEmptyBrowser();
         // Clear authentication by going to login and not logging in
         await page.goto('/login');
 
@@ -68,7 +68,7 @@ simpleTest.describe('Multi-User Security', () => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when unauthorized user tries to access private group' });
         // Create two browser instances - User 1 and User 2
         const { page: page1, dashboardPage, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, user: user2 } = await newLoggedInBrowser();
+        const { page: page2, } = await newLoggedInBrowser();
 
         // Create page objects
         const createGroupModalPage = new CreateGroupModalPage(page1, user1);

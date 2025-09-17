@@ -3,7 +3,7 @@ import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 
 simpleTest.describe('Expense Date and Time Selection', () => {
     simpleTest('should handle all date convenience buttons and time input scenarios', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
         const memberCount = 1;
 
         // Create group and navigate to it
@@ -38,8 +38,6 @@ simpleTest.describe('Expense Date and Time Selection', () => {
         const thisMorningInputValue = await dateInput.inputValue();
         // Validate it's a proper date format and not empty
         expect(thisMorningInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-        // Store this for later comparison with Last Night button
-        const todayDateFromApp = thisMorningInputValue;
 
         // Test Last Night button (sets yesterday's date + evening time)
         await expenseFormPage.clickLastNightButton();
