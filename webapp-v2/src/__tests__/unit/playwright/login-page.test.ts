@@ -8,7 +8,6 @@ import {
     expectElementVisible,
     verifyFormAccessibility,
     mockFirebaseAuthLogin,
-    expectErrorMessage,
     setupAuthenticatedUser,
     SELECTORS,
     TEST_SCENARIOS,

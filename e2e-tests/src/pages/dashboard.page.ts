@@ -1,6 +1,6 @@
 import { expect, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { MESSAGES, HEADINGS, ARIA_ROLES } from '../constants/selectors';
+import { HEADINGS, ARIA_ROLES } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { CreateGroupModalPage } from './create-group-modal.page.ts';

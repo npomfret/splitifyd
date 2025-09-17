@@ -2,7 +2,6 @@ import {
     AuthenticatedFirebaseUser,
     CreateCommentResponse,
     type CreateExpenseRequest,
-    CurrentPolicyResponse,
     ExpenseData,
     ExpenseFullDetails,
     Group,

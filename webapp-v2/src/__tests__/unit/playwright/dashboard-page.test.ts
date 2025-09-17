@@ -5,8 +5,6 @@ import {
     expectElementVisible,
     setupAuthenticatedUser,
     expectButtonState,
-    waitForStorageUpdate,
-    SELECTORS,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
 

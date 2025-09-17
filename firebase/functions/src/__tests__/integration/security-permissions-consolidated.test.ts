@@ -4,7 +4,7 @@
 import { beforeEach, describe, expect, test } from 'vitest';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiDriver, borrowTestUsers, CreateExpenseRequestBuilder, UserRegistrationBuilder } from '@splitifyd/test-support';
-import { SecurityPresets, MemberRoles, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
+import { SecurityPresets, Group, PooledTestUser, UserToken } from '@splitifyd/shared';
 import { getFirestore } from '../../firebase';
 
 describe('Security and Permissions - Consolidated Tests', () => {

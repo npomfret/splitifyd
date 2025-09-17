@@ -9,7 +9,6 @@ import {
     verifyFormAccessibility,
     expectErrorMessage,
     mockFirebaseAuthRegister,
-    verifyNavigation,
     SELECTORS,
     TEST_SCENARIOS,
 
