@@ -2,6 +2,7 @@ import {
     AuthenticatedFirebaseUser,
     CreateCommentResponse,
     type CreateExpenseRequest,
+    CurrentPolicyResponse,
     ExpenseData,
     ExpenseFullDetails,
     Group,
@@ -326,6 +327,10 @@ export class ApiDriver {
 
     async removeGroupMember(groupId: string, memberId: string, token: string): Promise<RemoveGroupMemberResponse> {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
+    }
+
+    async getPolicy(policyId: string): Promise<CurrentPolicyResponse> {
+        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
     }
 
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
