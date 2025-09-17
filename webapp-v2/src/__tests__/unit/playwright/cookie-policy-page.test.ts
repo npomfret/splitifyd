@@ -74,7 +74,7 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
         await page.waitForLoadState('networkidle');
 
         // Policy content should eventually be visible
-        await expect(page.locator('body')).toContainText('Mock cookie policy content', { timeout: 5000 });
+        await expect(page.locator('body')).toContainText('Mock cookie policy content', );
     });
 
     test('should render policy content when successfully loaded', async ({ page }) => {
@@ -249,7 +249,7 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
         await page.reload();
 
         // Page should still load (just slower)
-        await expect(page.locator('h1')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('h1')).toBeVisible();
         await expect(page.locator('main').first()).toBeVisible();
         await expectElementVisible(page, 'text=Last updated:');
     });
@@ -296,7 +296,9 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
         });
 
         await page.reload();
-        await page.waitForLoadState('networkidle');
+
+        // Wait for the date element to be visible before getting its text
+        await expect(page.locator('div.text-gray-500').first()).toBeVisible();
 
         // Should format the date properly
         const lastUpdatedText = await page.locator('div.text-gray-500').first().textContent();

@@ -186,9 +186,9 @@ async function testCreateGroupModalInteraction(page: any): Promise<void> {
         await page.keyboard.press('Escape');
     }
 
-    // Verify modal closes
-    await page.waitForTimeout(500);
+    // Wait for modal to close completely
     const modal = page.locator(DASHBOARD_SELECTORS.CREATE_GROUP_MODAL);
+    await expect(modal).not.toBeVisible();
     expect(await modal.count()).toBe(0);
 }
 

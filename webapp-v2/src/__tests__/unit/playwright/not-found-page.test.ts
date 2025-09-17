@@ -14,7 +14,6 @@ import {
 test.describe('NotFoundPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/');
-        await page.waitForLoadState('networkidle');
     });
 
     // === CORE 404 PAGE RENDERING ===
@@ -22,13 +21,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
     test('should render 404 page for invalid routes', async ({ page }) => {
         // Navigate to an invalid path - SPA will render NotFoundPage
         await page.goto('/some-completely-invalid-path-12345');
-        await page.waitForLoadState('networkidle');
 
         // Wait for lazy-loaded NotFoundPage component to render
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Verify the main 404 elements are displayed
         await expectElementVisible(page, '[data-testid="not-found-title"]');
@@ -41,13 +36,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
     test('should show generic "Page not found" for regular invalid paths', async ({ page }) => {
         // Navigate to a generic invalid path (not group-related)
         await page.goto('/some-random-invalid-page');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage to render
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Should show generic page not found message
         const subtitle = page.locator('[data-testid="not-found-subtitle"]');
@@ -66,13 +57,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
     test('should handle various invalid path types', async ({ page }) => {
         // Test a single invalid path to verify NotFoundPage rendering
         await page.goto('/some-invalid-path-test');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage component
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Verify 404 content is present
         await expectElementVisible(page, '[data-testid="not-found-title"]');
@@ -99,13 +86,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         // Navigate to 404 page
         await page.goto('/invalid-unauthenticated-test-path');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage to render
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Should show "Go Home" button for unauthenticated users
         const homeButton = page.locator('[data-testid="go-home-link"]');
@@ -136,13 +119,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
         // Navigate to 404 page
         await page.goto('/invalid-authenticated-test-path');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage to render
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Should show navigation button (either dashboard or home depending on auth state)
         const navigationButtons = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"]');
@@ -159,13 +138,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
     test('should handle navigation button clicks correctly', async ({ page }) => {
         // Navigate to 404 page
         await page.goto('/test-button-navigation-path');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Find and click navigation button
         const navigationButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"]');
@@ -176,7 +151,7 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         await navigationButton.first().click();
 
         // Should navigate away from 404 page (either to / or /dashboard)
-        await page.waitForURL(/(\/$|\/dashboard)/, { timeout: 5000 });
+        await page.waitForURL(/(\/$|\/dashboard)/, );
 
         // Verify we're no longer on the 404 page
         const notFoundTitle = page.locator('[data-testid="not-found-title"]');
@@ -188,13 +163,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
     test('should render correctly when navigating to explicit /404 route', async ({ page }) => {
         // Navigate to explicit 404 route
         await page.goto('/404');
-        await page.waitForLoadState('networkidle');
 
         // Should render same NotFoundPage component
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Verify all expected elements
         await expectElementVisible(page, '[data-testid="not-found-title"]');
@@ -212,13 +183,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
     test('should display proper layout and styling', async ({ page }) => {
         await page.goto('/test-styling-path');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Verify main container has proper styling (from NotFoundPage component)
         const container = page.locator('.min-h-screen');
@@ -244,13 +211,9 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
 
     test('should have proper accessibility attributes', async ({ page }) => {
         await page.goto('/test-accessibility-path');
-        await page.waitForLoadState('networkidle');
 
         // Wait for NotFoundPage
-        await page.waitForSelector('[data-testid="not-found-title"]', {
-            state: 'visible',
-            timeout: 5000
-        });
+        await expect(page.locator('[data-testid="not-found-title"]')).toBeVisible();
 
         // Verify all elements have proper data-testid for testing
         await expectElementVisible(page, '[data-testid="not-found-title"]');

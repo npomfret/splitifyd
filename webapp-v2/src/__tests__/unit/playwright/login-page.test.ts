@@ -21,6 +21,10 @@ import {
 test.describe('LoginPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/login');
+        // Wait for essential form elements to be visible
+        await expectElementVisible(page, SELECTORS.EMAIL_INPUT);
+        await expectElementVisible(page, SELECTORS.PASSWORD_INPUT);
+        await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
     });
 
     test('should render all required form elements', async ({ page }) => {
@@ -132,9 +136,8 @@ test.describe('LoginPage - Behavioral Tests', () => {
         // Submit form
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // After submission, form should still be functional
-        // (since without proper Firebase SDK integration, it won't redirect)
-        await page.waitForTimeout(1000);
+        // Wait for form processing to complete by checking submit button state
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Form elements should still be accessible
         await expect(page.locator(SELECTORS.EMAIL_INPUT)).toBeEnabled();

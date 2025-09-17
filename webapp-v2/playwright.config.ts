@@ -17,7 +17,7 @@ export default defineConfig({
     reporter: [['html', { outputFolder: 'playwright-report/reports', open: 'never' }], ['list']],
 
     use: {
-        actionTimeout: 5000, // 5 seconds for actions - reasonable for form interactions
+        actionTimeout: 1000, // 1 second for actions - fast and forces good selectors
         baseURL: 'http://localhost:5173', // Will be overridden by webServer
         trace: 'retain-on-failure',
         screenshot: 'only-on-failure',

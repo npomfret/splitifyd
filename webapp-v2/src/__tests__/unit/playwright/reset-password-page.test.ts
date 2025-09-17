@@ -19,6 +19,9 @@ import {
 test.describe('ResetPasswordPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/reset-password');
+        // Wait for essential form elements to be visible
+        await expectElementVisible(page, 'input[type="email"]');
+        await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
     });
 
     test('should render all required form elements', async ({ page }) => {
@@ -79,6 +82,9 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
     test('should accept various email formats', async ({ page }) => {
         const emailSelector = 'input[type="email"]';
         const testEmails = ['invalid-email', 'user@domain', TEST_SCENARIOS.VALID_EMAIL];
+
+        // Wait for the email input to be visible before testing
+        await expectElementVisible(page, emailSelector);
 
         // Test various email formats (button enabled based on presence, not validation)
         for (const email of testEmails) {
@@ -173,8 +179,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for form processing
-        await page.waitForTimeout(2000);
+        // Wait for form processing to complete (check for success or error feedback)
+        await expect(page.locator('[role="alert"], [data-testid*="success"], [data-testid*="error"], ' + SELECTORS.SUBMIT_BUTTON)).toBeVisible();
 
         // Verify the form submission was attempted (the Firebase API mocking infrastructure works)
         // Note: Full success state transition requires Firebase SDK integration which isn't fully supported in unit tests
@@ -201,8 +207,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for form processing
-        await page.waitForTimeout(2000);
+        // Wait for form processing to complete
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Form should remain functional for additional submissions
         await expectElementVisible(page, emailSelector);
@@ -219,7 +225,7 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
 
         // Should be able to submit with new email
         await page.click(SELECTORS.SUBMIT_BUTTON);
-        await page.waitForTimeout(1000);
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Form should remain functional
         await expectElementVisible(page, emailSelector);
@@ -237,8 +243,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for form processing
-        await page.waitForTimeout(2000);
+        // Wait for form processing to complete
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Test navigation back to login using the main back button (always available)
         await page.click(SELECTORS.BACK_TO_LOGIN_BUTTON);
@@ -315,8 +321,8 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for form processing
-        await page.waitForTimeout(2000);
+        // Wait for form processing to complete
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Verify the API integration works by checking form remains functional
         // This validates that our Firebase mocking infrastructure is correctly set up

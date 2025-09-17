@@ -22,6 +22,11 @@ import {
 test.describe('RegisterPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/register');
+        // Wait for essential form elements to be visible
+        await expectElementVisible(page, SELECTORS.FULLNAME_INPUT);
+        await expectElementVisible(page, SELECTORS.EMAIL_INPUT);
+        await expectElementVisible(page, SELECTORS.PASSWORD_INPUT);
+        await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
     });
 
     test('should render all required registration elements', async ({ page }) => {
@@ -127,7 +132,10 @@ test.describe('RegisterPage - Behavioral Tests', () => {
             [SELECTORS.CONFIRM_PASSWORD_INPUT]: 'mypassword456',
         });
 
-        await page.waitForTimeout(100);
+        // Wait for sessionStorage to be updated
+        await page.waitForFunction(
+            () => sessionStorage.getItem('register-form-name') !== null
+        );
 
         // Verify storage values
         const storedData = await page.evaluate(() => ({
@@ -155,6 +163,9 @@ test.describe('RegisterPage - Behavioral Tests', () => {
     test('should preserve returnUrl when navigating from login page', async ({ page }) => {
         // Navigate to register with returnUrl (simulating navigation from login)
         await page.goto('/register?returnUrl=%2Fgroups%2F123');
+
+        // Wait for form elements to be visible after navigation
+        await expectElementVisible(page, SELECTORS.FULLNAME_INPUT);
 
         // Verify the URL parameter is preserved
         expect(page.url()).toContain('returnUrl=%2Fgroups%2F123');
@@ -291,9 +302,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Submit form
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // After submission, form should still be functional
-        // (since without proper Firebase SDK integration, it won't redirect)
-        await page.waitForTimeout(1000);
+        // Wait for form processing to complete (check for enabled state)
+        await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
 
         // Form elements should still be accessible
         await expect(page.locator(SELECTORS.FULLNAME_INPUT)).toBeEnabled();
@@ -328,8 +338,8 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         // Submit form with invalid data
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Should show error message for invalid registration data
-        await page.waitForTimeout(1000);
+        // Wait for error message or form to remain accessible for retry
+        await expect(page.locator('[role="alert"], [data-testid*="error"], ' + SELECTORS.SUBMIT_BUTTON)).toBeVisible();
 
         // The mocked API will return a 400 error for mismatched credentials
         // Form should still be accessible for retry

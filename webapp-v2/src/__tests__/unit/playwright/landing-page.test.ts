@@ -188,12 +188,12 @@ test.describe('LandingPage - Behavioral Tests', () => {
         await page.evaluate(() => {
             window.scrollTo(0, document.body.scrollHeight / 2);
         });
-        await page.waitForTimeout(100);
+        await page.waitForLoadState('networkidle');
 
         await page.evaluate(() => {
             window.scrollTo(0, document.body.scrollHeight);
         });
-        await page.waitForTimeout(100);
+        await page.waitForLoadState('networkidle');
 
         // Check that all main sections loaded
         const sections = page.locator('section, .hero, .features, .cta');

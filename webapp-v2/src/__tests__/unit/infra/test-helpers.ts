@@ -4,7 +4,7 @@
  * These utilities provide consistent, reliable test patterns across all page tests.
  */
 
-import { Page, expect } from '@playwright/test';
+import {Page, expect, Locator} from '@playwright/test';
 
 /**
  * Standard page setup with authentication and storage clearing
@@ -22,7 +22,9 @@ export async function setupTestPage(page: Page, url: string): Promise<void> {
             localStorage.clear();
             sessionStorage.clear();
         } catch (e) {
-            // Ignore security errors in test setup
+            const error = e instanceof Error ? e : new Error(String(e));
+            console.warn('Storage clear error (expected in some test environments):', error.message);
+            throw error;
         }
     });
 }
@@ -31,8 +33,8 @@ export async function setupTestPage(page: Page, url: string): Promise<void> {
  * Type-safe form field filling with validation
  * Note: For whitespace-only values, the browser may trim them to empty string
  */
-export async function fillFormField(page: Page, selector: string, value: string): Promise<void> {
-    const field = page.locator(selector);
+export async function fillFormField(page: Page, selector: string | Locator, value: string): Promise<void> {
+    const field = typeof selector === 'string' ? page.locator(selector) : selector;
     await field.fill(value);
 
     // For whitespace-only strings, browsers typically trim to empty
@@ -57,9 +59,9 @@ export async function expectButtonState(page: Page, selector: string, state: 'en
  */
 export async function verifyNavigation(page: Page, expectedUrl: string | RegExp, timeout = 5000): Promise<void> {
     if (typeof expectedUrl === 'string') {
-        await expect(page).toHaveURL(expectedUrl, { timeout });
+        await expect(page).toHaveURL(expectedUrl, {timeout});
     } else {
-        await expect(page).toHaveURL(expectedUrl, { timeout });
+        await expect(page).toHaveURL(expectedUrl, {timeout});
     }
 }
 
@@ -68,12 +70,12 @@ export async function verifyNavigation(page: Page, expectedUrl: string | RegExp,
  */
 export async function waitForStorageUpdate(page: Page, key: string, expectedValue?: string): Promise<void> {
     await page.waitForFunction(
-        ({ key, expectedValue }) => {
+        ({key, expectedValue}) => {
             const value = sessionStorage.getItem(key);
             return expectedValue ? value === expectedValue : value !== null;
         },
-        { key, expectedValue },
-        { timeout: 2000 },
+        {key, expectedValue},
+        {timeout: 2000},
     );
 }
 
@@ -127,7 +129,7 @@ export async function verifyFormAccessibility(page: Page, fields: { selector: st
  */
 export async function expectErrorMessage(page: Page, expectedMessage?: string, timeout = 5000): Promise<void> {
     const errorElement = page.locator('[data-testid="error-message"]');
-    await expect(errorElement).toBeVisible({ timeout });
+    await expect(errorElement).toBeVisible({timeout});
 
     if (expectedMessage) {
         await expect(errorElement).toContainText(expectedMessage);
@@ -135,91 +137,15 @@ export async function expectErrorMessage(page: Page, expectedMessage?: string, t
 }
 
 /**
- * Mock Firebase authentication state
+ * Get mock Firebase URLs that point back to Playwright's web server for proper interception
  */
-export async function mockAuthState(page: Page, isAuthenticated: boolean, userId?: string): Promise<void> {
-    // First, mock the Firebase config API
-    await page.route('**/api/config', (route) => {
-        route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({
-                firebase: {
-                    apiKey: 'test-api-key',
-                    authDomain: 'test-project.firebaseapp.com',
-                    projectId: 'test-project',
-                    storageBucket: 'test-project.appspot.com',
-                    messagingSenderId: '123456789',
-                    appId: 'test-app-id',
-                },
-            }),
-        });
-    });
-
-    if (isAuthenticated && userId) {
-        // Mock Firebase Auth state and token verification
-        await page.route('**/**', (route) => {
-            const url = route.request().url();
-
-            // Mock Firebase token verification
-            if (url.includes('identitytoolkit.googleapis.com') && url.includes('lookup')) {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify({
-                        users: [
-                            {
-                                localId: userId,
-                                email: 'test@example.com',
-                                displayName: 'Test User',
-                                emailVerified: true,
-                            },
-                        ],
-                    }),
-                });
-                return;
-            }
-
-            // Continue with other requests
-            route.continue();
-        });
-
-        // Set up authenticated state in the browser
-        await page.evaluate(
-            ({ userId }) => {
-                // Mock localStorage
-                localStorage.setItem('USER_ID', userId);
-
-                // Mock the auth store with a user
-                (window as any).__MOCK_AUTH_STATE__ = {
-                    user: {
-                        uid: userId,
-                        email: 'test@example.com',
-                        displayName: 'Test User',
-                        emailVerified: true,
-                    },
-                    isAuthenticated: true,
-                    isUpdatingProfile: false,
-                    refreshAuthToken: async () => Promise.resolve(),
-                    updateUserProfile: async () => Promise.resolve(),
-                    logout: async () => Promise.resolve(),
-                };
-            },
-            { userId },
-        );
-    } else {
-        await page.evaluate(() => {
-            localStorage.removeItem('USER_ID');
-            (window as any).__MOCK_AUTH_STATE__ = {
-                user: null,
-                isAuthenticated: false,
-                isUpdatingProfile: false,
-                refreshAuthToken: async () => Promise.resolve(),
-                updateUserProfile: async () => Promise.resolve(),
-                logout: async () => Promise.resolve(),
-            };
-        });
-    }
+function getMockFirebaseUrls(page: Page) {
+    // Get the base URL from the page context - never hardcode ports
+    const baseUrl = new URL(page.url()).origin;
+    return {
+        firebaseAuthUrl: `${baseUrl}/_mock/firebase-auth`,
+        firebaseFirestoreUrl: `${baseUrl}/_mock/firebase-firestore`,
+    };
 }
 
 /**
@@ -227,6 +153,8 @@ export async function mockAuthState(page: Page, isAuthenticated: boolean, userId
  * This mimics the actual Firebase Auth REST API calls during login
  */
 export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com', password = 'rrRR44$', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+    const mockUrls = getMockFirebaseUrls(page);
+
     // Mock Firebase config API
     await page.route('**/api/config', (route) => {
         route.fulfill({
@@ -241,14 +169,13 @@ export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com'
                     messagingSenderId: '123456789',
                     appId: 'test-app-id',
                 },
-                firebaseAuthUrl: 'http://127.0.0.1:6002',
-                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+                ...mockUrls,
             }),
         });
     });
 
     // Mock Firebase Auth REST API endpoints
-    await page.route('**/**', (route) => {
+    await page.route('**/_mock/firebase-auth/**', (route) => {
         const url = route.request().url();
         const requestBody = route.request().postDataJSON();
 
@@ -329,48 +256,13 @@ export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com'
 }
 
 /**
- * Perform a complete fake login flow by filling the login form
+ * Set up authenticated state using a pre-obtained auth token
+ * This function properly mocks the entire Firebase auth flow to ensure tests can access protected routes
  */
-export async function performFakeLogin(page: Page, email = 'test1@test.com', password = 'rrRR44$'): Promise<void> {
-    // Set up the auth mocking first
-    await mockFirebaseAuthLogin(page, email, password);
+export async function setupAuthenticatedUserWithToken(page: Page, authToken: { idToken: string; localId: string; refreshToken: string }, email = 'test@example.com', displayName = 'Test User'): Promise<void> {
+    const mockUrls = getMockFirebaseUrls(page);
 
-    // Navigate to login page
-    await page.goto('/login');
-    await page.waitForLoadState('networkidle');
-
-    // Fill login form
-    await page.fill('#email-input', email);
-    await page.fill('#password-input', password);
-
-    // Submit form
-    await page.click('button[type="submit"]');
-
-    // Wait for login to complete and redirect (more flexible pattern)
-    try {
-        await page.waitForURL(/\/(dashboard|groups)/, { timeout: 10000 });
-    } catch (error) {
-        // If redirect doesn't happen, check if we're still on login page
-        const currentUrl = page.url();
-        if (currentUrl.includes('/login')) {
-            throw new Error(`Login flow failed - still on login page: ${currentUrl}`);
-        }
-        // If we're on a different page, that's acceptable too
-    }
-}
-
-/**
- * Set up authenticated state by directly calling the Firebase Auth API
- * Using the exact curl commands provided by the user
- */
-export async function setupAuthenticatedUser(page: Page, email = 'test@example.com', password = 'password123'): Promise<void> {
-    console.log('🔧 Setting up authenticated user with direct API calls...');
-
-    // Navigate to any page first to ensure proper context
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    // Mock the Firebase config to point to emulator
+    // Mock Firebase config
     await page.route('**/api/config', (route) => {
         route.fulfill({
             status: 200,
@@ -384,111 +276,336 @@ export async function setupAuthenticatedUser(page: Page, email = 'test@example.c
                     messagingSenderId: '123456789',
                     appId: 'test-app-id',
                 },
-                firebaseAuthUrl: 'http://127.0.0.1:6002',
-                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+                ...mockUrls,
+            }),
+        });
+    });
+
+    // Mock Firebase Auth API endpoints
+    await page.route('**/_mock/firebase-auth/**', (route) => {
+        const url = route.request().url();
+
+        if (url.includes('accounts:lookup')) {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    kind: 'identitytoolkit#GetAccountInfoResponse',
+                    users: [{
+                        localId: authToken.localId,
+                        email: email,
+                        emailVerified: true,
+                        displayName: displayName
+                    }]
+                }),
+            });
+            return;
+        }
+
+        route.continue();
+    });
+
+    // Set up comprehensive authentication state in the browser
+    await page.evaluate(
+        ({authToken, email, displayName}) => {
+            // Set localStorage for auth state persistence
+            localStorage.setItem('USER_ID', authToken.localId);
+            localStorage.setItem('AUTH_TOKEN', authToken.idToken);
+            localStorage.setItem('REFRESH_TOKEN', authToken.refreshToken);
+
+            // Mock Firebase SDK with a complete user object
+            const mockFirebaseUser = {
+                uid: authToken.localId,
+                email: email,
+                displayName: displayName,
+                emailVerified: true,
+                getIdToken: async () => authToken.idToken,
+                refreshToken: authToken.refreshToken,
+                metadata: {
+                    creationTime: new Date().toISOString(),
+                    lastSignInTime: new Date().toISOString()
+                },
+                providerData: [{
+                    providerId: 'password',
+                    uid: email,
+                    displayName: displayName,
+                    email: email,
+                    phoneNumber: null,
+                    photoURL: null
+                }]
+            };
+
+            // Mock the Firebase Auth object with proper initialization
+            (window as any).__FIREBASE_MOCK__ = {
+                auth: {
+                    currentUser: mockFirebaseUser,
+                    onAuthStateChanged: (callback: any) => {
+                        // Immediately call with the authenticated user
+                        setTimeout(() => callback(mockFirebaseUser), 0);
+                        return () => {}; // Unsubscribe function
+                    }
+                },
+                initialized: true
+            };
+
+            // Mock Firebase service initialization
+            (window as any).__FIREBASE_SERVICE_MOCK__ = {
+                initialize: async () => Promise.resolve(),
+                onAuthStateChanged: (callback: any) => {
+                    // Immediately trigger with authenticated user
+                    setTimeout(() => callback(mockFirebaseUser), 0);
+                    return () => {}; // Unsubscribe function
+                }
+            };
+
+            // Mock the auth store state for immediate availability
+            (window as any).__AUTH_STORE_MOCK__ = {
+                user: {
+                    uid: authToken.localId,
+                    email: email,
+                    displayName: displayName,
+                    emailVerified: true,
+                },
+                initialized: true,
+                loading: false,
+                error: null,
+                isUpdatingProfile: false,
+                refreshAuthToken: async () => Promise.resolve(),
+                updateUserProfile: async () => Promise.resolve(),
+                logout: async () => Promise.resolve(),
+            };
+        },
+        {authToken, email, displayName}
+    );
+
+    // Add init script to ensure mocking is active for any page navigations
+    await page.addInitScript(
+        ({authToken, email, displayName}) => {
+            // Ensure localStorage is set on every page load
+            localStorage.setItem('USER_ID', authToken.localId);
+
+            // Mock Firebase for any subsequent page loads
+            const mockFirebaseUser = {
+                uid: authToken.localId,
+                email: email,
+                displayName: displayName,
+                emailVerified: true,
+                getIdToken: async () => authToken.idToken,
+                refreshToken: authToken.refreshToken
+            };
+
+            (window as any).__FIREBASE_MOCK__ = {
+                auth: {
+                    currentUser: mockFirebaseUser,
+                    onAuthStateChanged: (callback: any) => {
+                        setTimeout(() => callback(mockFirebaseUser), 0);
+                        return () => {};
+                    }
+                },
+                initialized: true
+            };
+
+            (window as any).__FIREBASE_SERVICE_MOCK__ = {
+                initialize: async () => Promise.resolve(),
+                onAuthStateChanged: (callback: any) => {
+                    setTimeout(() => callback(mockFirebaseUser), 0);
+                    return () => {};
+                }
+            };
+        },
+        {authToken, email, displayName}
+    );
+}
+
+/**
+ * Set up authenticated state by directly calling the Firebase Auth API
+ * Using the exact curl commands provided by the user
+ */
+export async function setupAuthenticatedUser(page: Page, email = 'test@example.com', password = 'password123'): Promise<void> {
+    // Navigate to any page first to ensure proper context
+    await page.goto('/');
+
+    const mockUrls = getMockFirebaseUrls(page);
+
+    // Mock Firebase Auth API endpoints that will be called
+    await page.route('**/_mock/firebase-auth/**', (route) => {
+        const url = route.request().url();
+        const requestBody = route.request().postDataJSON();
+
+        if (url.includes('accounts:signUp')) {
+            if (requestBody?.email === email) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        kind: 'identitytoolkit#SignupNewUserResponse',
+                        localId: 'test-user-id',
+                        email: email,
+                        idToken: 'mock-id-token',
+                        refreshToken: 'mock-refresh-token',
+                        expiresIn: '3600'
+                    }),
+                });
+            } else {
+                route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: {message: 'EMAIL_EXISTS'}
+                    }),
+                });
+            }
+            return;
+        }
+
+        if (url.includes('accounts:signInWithPassword')) {
+            if (requestBody?.email === email && requestBody?.password === password) {
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        kind: 'identitytoolkit#VerifyPasswordResponse',
+                        localId: 'test-user-id',
+                        email: email,
+                        idToken: 'mock-id-token',
+                        refreshToken: 'mock-refresh-token',
+                        expiresIn: '3600'
+                    }),
+                });
+            } else {
+                route.fulfill({
+                    status: 400,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        error: {message: 'INVALID_PASSWORD'}
+                    }),
+                });
+            }
+            return;
+        }
+
+        if (url.includes('accounts:lookup')) {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    kind: 'identitytoolkit#GetAccountInfoResponse',
+                    users: [{
+                        localId: 'test-user-id',
+                        email: email,
+                        emailVerified: true,
+                        displayName: 'Test User'
+                    }]
+                }),
+            });
+            return;
+        }
+
+        route.continue();
+    });
+
+    // Mock the Firebase config to point to our mock endpoints
+    await page.route('**/api/config', (route) => {
+        route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                firebase: {
+                    apiKey: 'AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg',
+                    authDomain: 'splitifyd.firebaseapp.com',
+                    projectId: 'splitifyd',
+                    storageBucket: 'splitifyd.appspot.com',
+                    messagingSenderId: '123456789',
+                    appId: 'test-app-id',
+                },
+                ...mockUrls,
             }),
         });
     });
 
     // Perform the actual Firebase Auth API calls as shown in the curl examples
-    const signInResponse = await page.evaluate(async ({ email, password }) => {
-        try {
-            // First, try to create the user in case it doesn't exist
-            const signUpUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
+    await page.evaluate(async ({email, password}) => {
+        // First, try to create the user in case it doesn't exist
+        const mockAuthUrl = window.location.origin + '/_mock/firebase-auth';
+        const signUpUrl = `${mockAuthUrl}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg`;
 
-            try {
-                const signUpResp = await fetch(signUpUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': '*/*',
-                        'Content-Type': 'application/json',
-                        'Origin': 'http://localhost:5173'
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        returnSecureToken: true,
-                        clientType: 'CLIENT_TYPE_WEB'
-                    })
-                });
+        const signUpResp = await fetch(signUpUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                returnSecureToken: true,
+                clientType: 'CLIENT_TYPE_WEB'
+            })
+        });
 
-                if (signUpResp.ok) {
-                    const signUpData = await signUpResp.json();
-                    console.log('✅ User created successfully:', signUpData.localId);
-                } else {
-                    const errorData = await signUpResp.json();
-                    if (errorData.error?.message !== 'EMAIL_EXISTS') {
-                        console.log('ℹ️ User creation failed (may already exist):', errorData.error?.message);
-                    } else {
-                        console.log('ℹ️ User already exists, proceeding with login');
-                    }
-                }
-            } catch (createError) {
-                console.log('ℹ️ User creation error, proceeding with login:', createError);
-            }
-
-            // Now try to sign in
-            const signInUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
-
-            const signInResp = await fetch(signInUrl, {
-                method: 'POST',
-                headers: {
-                    'Accept': '*/*',
-                    'Content-Type': 'application/json',
-                    'Origin': 'http://localhost:5173'
-                },
-                body: JSON.stringify({
-                    returnSecureToken: true,
-                    email: email,
-                    password: password,
-                    clientType: 'CLIENT_TYPE_WEB'
-                })
-            });
-
-            if (!signInResp.ok) {
-                const errorText = await signInResp.text();
-                throw new Error(`SignIn failed: ${signInResp.status} ${errorText}`);
-            }
-
-            const signInData = await signInResp.json();
-            console.log('✅ SignIn API response:', signInData);
-
-            // Second API call: accounts lookup
-            const lookupUrl = 'http://127.0.0.1:6002/identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg';
-
-            const lookupResp = await fetch(lookupUrl, {
-                method: 'POST',
-                headers: {
-                    'Accept': '*/*',
-                    'Content-Type': 'application/json',
-                    'Origin': 'http://localhost:5173'
-                },
-                body: JSON.stringify({
-                    idToken: signInData.idToken
-                })
-            });
-
-            if (!lookupResp.ok) {
-                throw new Error(`Lookup failed: ${lookupResp.status} ${await lookupResp.text()}`);
-            }
-
-            const lookupData = await lookupResp.json();
-            console.log('✅ Lookup API response:', lookupData);
-
-            // Set localStorage to indicate authenticated state
-            localStorage.setItem('USER_ID', signInData.localId);
-
-            return { signInData, lookupData };
-        } catch (error) {
-            console.error('❌ Firebase API calls failed:', error);
-            throw error;
+        if (signUpResp.ok) {
+            const signUpData = await signUpResp.json();
+            console.log('✅ User created successfully:', signUpData.localId);
+        } else {
+            const errorData = await signUpResp.json();
+            throw new Error(`User creation failed: ${errorData.error?.message}`);
         }
-    }, { email, password });
 
-    console.log('✅ Authentication API calls completed successfully');
+        // Now try to sign in
+        const signInUrl = `${mockAuthUrl}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg`;
 
-    // Wait a moment for any async operations to complete
-    await page.waitForTimeout(1000);
+        const signInResp = await fetch(signInUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            body: JSON.stringify({
+                returnSecureToken: true,
+                email: email,
+                password: password,
+                clientType: 'CLIENT_TYPE_WEB'
+            })
+        });
+
+        if (!signInResp.ok) {
+            const errorText = await signInResp.text();
+            throw new Error(`SignIn failed: ${signInResp.status} ${errorText}`);
+        }
+
+        const signInData = await signInResp.json();
+
+        // Second API call: accounts lookup
+        const lookupUrl = `${mockAuthUrl}/identitytoolkit.googleapis.com/v1/accounts:lookup?key=AIzaSyB3bUiVfOWkuJ8X0LAlFpT5xJitunVP6xg`;
+
+        const lookupResp = await fetch(lookupUrl, {
+            method: 'POST',
+            headers: {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+                'Origin': window.location.origin
+            },
+            body: JSON.stringify({
+                idToken: signInData.idToken
+            })
+        });
+
+        if (!lookupResp.ok) {
+            throw new Error(`Lookup failed: ${lookupResp.status} ${await lookupResp.text()}`);
+        }
+
+        const lookupData = await lookupResp.json();
+
+        // Set localStorage to indicate authenticated state
+        localStorage.setItem('USER_ID', signInData.localId);
+
+        return {signInData, lookupData};
+    }, {email, password});
+
+    // Wait for authentication state to be established
+    await expect(page.evaluate(() => localStorage.getItem('USER_ID'))).resolves.toBeTruthy();
 
     // Verify authentication worked
     const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
@@ -496,23 +613,18 @@ export async function setupAuthenticatedUser(page: Page, email = 'test@example.c
         throw new Error('Authentication failed - no USER_ID in localStorage');
     }
 
-    console.log('✅ User authenticated with ID:', userId);
-
     // Now reload the page to trigger Firebase auth initialization with the authenticated state
-    console.log('🔄 Reloading page to initialize auth state...');
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    // Give auth store time to initialize and recognize the authenticated state
-    await page.waitForTimeout(2000);
+    // Wait for auth store to initialize and recognize the authenticated state
+    await expect(page.evaluate(() => localStorage.getItem('USER_ID'))).resolves.toBeTruthy();
 
     // Verify the auth state was picked up by checking if USER_ID is still there
     const userIdAfterReload = await page.evaluate(() => localStorage.getItem('USER_ID'));
     if (!userIdAfterReload) {
         throw new Error('Authentication state lost after page reload');
     }
-
-    console.log('✅ Auth state preserved after reload, user ID:', userIdAfterReload);
 }
 
 /**
@@ -521,6 +633,8 @@ export async function setupAuthenticatedUser(page: Page, email = 'test@example.c
  * Based on the exact curl command pattern provided
  */
 export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.com', scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email' = 'success'): Promise<void> {
+    const mockUrls = getMockFirebaseUrls(page);
+
     // Mock Firebase config API
     await page.route('**/api/config', (route) => {
         route.fulfill({
@@ -535,8 +649,7 @@ export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.
                     messagingSenderId: '123456789',
                     appId: 'test-app-id',
                 },
-                firebaseAuthUrl: 'http://127.0.0.1:6002',
-                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+                ...mockUrls,
             }),
         });
     });
@@ -636,30 +749,12 @@ export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.
 }
 
 /**
- * Set up network-level Firebase Auth mocking for password reset
- * @deprecated Use mockFirebasePasswordReset instead for better API matching
- */
-export async function setupPasswordResetMocking(page: Page, scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email'): Promise<void> {
-    await mockFirebasePasswordReset(page, 'test@example.com', scenario);
-}
-
-/**
- * Set up Firebase auth redirect simulation
- */
-export async function setupAuthRedirect(page: Page): Promise<void> {
-    await page.addInitScript(() => {
-        // Simulate redirect behavior for authenticated users
-        if (window.location.pathname === '/login' && localStorage.getItem('USER_ID')) {
-            window.location.href = '/dashboard';
-        }
-    });
-}
-
-/**
  * Mock Firebase Auth registration flow with network-level API mocking
  * This mimics the actual registration API call based on the curl command provided
  */
 export async function mockFirebaseAuthRegister(page: Page, email = 'email@email.com', password = 'rrRR44$', displayName = 'name', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+    const mockUrls = getMockFirebaseUrls(page);
+
     // Mock Firebase config API
     await page.route('**/api/config', (route) => {
         route.fulfill({
@@ -674,8 +769,7 @@ export async function mockFirebaseAuthRegister(page: Page, email = 'email@email.
                     messagingSenderId: '123456789',
                     appId: 'test-app-id',
                 },
-                firebaseAuthUrl: 'http://127.0.0.1:6002',
-                firebaseFirestoreUrl: 'http://127.0.0.1:6003',
+                ...mockUrls,
             }),
         });
     });
@@ -852,12 +946,18 @@ export async function testFormValidation(page: Page, requiredFields: string[], s
  */
 export async function testSessionStoragePersistence(page: Page, testData: Record<string, { selector: string; value: string; storageKey: string }>): Promise<void> {
     // Fill all fields
-    for (const [field, data] of Object.entries(testData)) {
+    for (const [, data] of Object.entries(testData)) {
         await fillFormField(page, data.selector, data.value);
     }
 
-    // Wait for storage update
-    await page.waitForTimeout(100); // TODO: Replace with proper wait condition
+    // Wait for storage to be updated using proper state-based waiting
+    await page.waitForFunction(
+        (storageKeys) => {
+            return storageKeys.some(key => sessionStorage.getItem(key) !== null);
+        },
+        Object.values(testData).map((d) => d.storageKey),
+        {timeout: 2000}
+    );
 
     // Verify storage values
     const storedValues = await page.evaluate(
@@ -872,14 +972,14 @@ export async function testSessionStoragePersistence(page: Page, testData: Record
     );
 
     // Verify each stored value
-    for (const [field, data] of Object.entries(testData)) {
+    for (const [, data] of Object.entries(testData)) {
         expect(storedValues[data.storageKey]).toBe(data.value);
     }
 
     // Refresh and verify restoration
     await page.reload();
 
-    for (const [field, data] of Object.entries(testData)) {
+    for (const [, data] of Object.entries(testData)) {
         await expect(page.locator(data.selector)).toHaveValue(data.value);
     }
 }

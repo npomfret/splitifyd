@@ -74,7 +74,7 @@ test.describe('TermsOfServicePage - Behavioral Tests', () => {
         await page.waitForLoadState('networkidle');
 
         // Policy content should eventually be visible
-        await expect(page.locator('body')).toContainText('Mock terms content', { timeout: 5000 });
+        await expect(page.locator('body')).toContainText('Mock terms content', );
     });
 
     test('should render policy content when successfully loaded', async ({ page }) => {
@@ -249,7 +249,7 @@ test.describe('TermsOfServicePage - Behavioral Tests', () => {
         await page.reload();
 
         // Page should still load (just slower)
-        await expect(page.locator('h1')).toBeVisible({ timeout: 5000 });
+        await expect(page.locator('h1')).toBeVisible();
         await expect(page.locator('main').first()).toBeVisible();
         await expectElementVisible(page, 'text=Last updated:');
     });
