@@ -10,7 +10,7 @@ import { createOptimisticTimestamp } from '../utils/dateHelpers';
 import { getMemberDocFromArray } from '../utils/memberHelpers';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
-import type { Group, GroupPermissions, SecurityPreset } from '@splitifyd/shared';
+import type { Group, GroupPermissions } from '@splitifyd/shared';
 import type { GroupMemberDocument } from '@splitifyd/shared';
 import { MemberStatuses } from '@splitifyd/shared';
 import type { GroupDocument } from '../schemas';

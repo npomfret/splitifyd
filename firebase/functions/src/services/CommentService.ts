@@ -1,5 +1,3 @@
-import { DocumentSnapshot } from 'firebase-admin/firestore';
-import { z } from 'zod';
 import type { IAuthService } from './auth';
 import { ApiError } from '../utils/errors';
 import { HTTP_STATUS } from '../constants';
@@ -8,7 +6,7 @@ import { logger } from '../logger';
 import { LoggerContext } from '../utils/logger-context';
 import { Comment, CommentApiResponse, CommentTargetType, CreateCommentRequest, ListCommentsResponse } from '@splitifyd/shared';
 import { measureDb } from '../monitoring/measure';
-import { CommentDataSchema, CommentDocumentSchema } from '../schemas';
+import { CommentDataSchema } from '../schemas';
 import type { IFirestoreReader } from './firestore';
 import type { IFirestoreWriter } from './firestore';
 import { GroupMemberService } from './GroupMemberService';

@@ -2,7 +2,6 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     verifyNavigation,
-    setupAuthenticatedUser,
     setupAuthenticatedUserWithToken,
     expectElementVisible,
     expectButtonState,

@@ -6,8 +6,6 @@ import {
     expectElementVisible,
     expectButtonState,
     fillFormField,
-    expectErrorMessage,
-    SELECTORS,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
 
