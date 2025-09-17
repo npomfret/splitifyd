@@ -66,13 +66,6 @@ export class LoginPage extends BasePage {
         return new RegisterPage(this.page);
     }
 
-    async clickForgotPassword() {
-        const button = this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.forgotPasswordLink });
-        // Note: Buttons should be enabled before clicking
-        await expect(button).toBeEnabled();
-        await button.click();
-    }
-
     // Element accessors for direct interaction in tests
     getEmailInput() {
         return this.page.locator(SELECTORS.EMAIL_INPUT);
@@ -82,69 +75,12 @@ export class LoginPage extends BasePage {
         return this.page.locator(SELECTORS.PASSWORD_INPUT);
     }
 
-    getRememberMeCheckbox() {
-        return this.page.locator(SELECTORS.CHECKBOX);
-    }
-
     getSubmitButton() {
         return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signInButton });
     }
 
-    getSignUpLink() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.signUpLink });
-    }
-
-    getForgotPasswordLink() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.forgotPasswordLink });
-    }
-
-    // Form element labels and headings
     getSignInHeading() {
         return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.SIGN_IN });
-    }
-
-    getEmailLabel() {
-        return this.page.getByLabel('Email address');
-    }
-
-    getPasswordLabel() {
-        // Use a more specific selector that targets only the input, not the button
-        return this.page.getByLabel('Password', { exact: false }).and(this.page.locator('input'));
-    }
-
-    // Security testing methods
-    getLoginForm() {
-        return this.page.locator('[data-testid="login-form"]');
-    }
-
-    getDashboardElement() {
-        return this.page.locator('[data-testid="dashboard"]');
-    }
-
-    getEmailInputTestId() {
-        return this.page.locator('[data-testid="email-input"]');
-    }
-
-    getPasswordInputTestId() {
-        return this.page.locator('[data-testid="password-input"]');
-    }
-
-    getLoginSubmitTestId() {
-        return this.page.locator('[data-testid="login-submit"]');
-    }
-
-    getErrorMessage() {
-        return this.page.locator('[data-testid="error-message"]');
-    }
-
-    // Enhanced methods for form validation testing
-
-    /**
-     * Fill individual form fields using page object methods
-     */
-    async fillFormField(fieldType: 'email' | 'password', value: string): Promise<void> {
-        const input = this.getFormField(fieldType);
-        await this.fillPreactInput(input, value);
     }
 
     /**
@@ -159,51 +95,10 @@ export class LoginPage extends BasePage {
         }
     }
 
-    /**
-     * Clear form fields using page object methods
-     */
-    async clearFormField(fieldType: 'email' | 'password'): Promise<void> {
-        const input = this.getFormField(fieldType);
-        await this.fillPreactInput(input, '');
-    }
-
-    /**
-     * Verify form submission state (enabled/disabled)
-     */
-    async verifyFormSubmissionState(expectedEnabled: boolean): Promise<void> {
-        const submitButton = this.getSubmitButton();
-        if (expectedEnabled) {
-            await expect(submitButton).toBeEnabled();
-        } else {
-            await expect(submitButton).toBeDisabled();
-        }
-    }
-
-    /**
-     * Wait for page to be ready for form interaction
-     */
-    async waitForFormReady(): Promise<void> {
-        await this.waitForDomContentLoaded();
-        await expect(this.getSubmitButton()).toBeVisible();
-        await expect(this.getEmailInput()).toBeVisible();
-        await expect(this.getPasswordInput()).toBeVisible();
-    }
-
-    /**
-     * Enhanced error message detection for various error types
-     */
     getFormErrorMessage(pattern?: string | RegExp): Locator {
         if (pattern) {
             return this.page.locator('[role="alert"], [data-testid*="error"], .error-message').filter({ hasText: pattern });
         }
         return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
-    }
-
-    /**
-     * Check if form has validation errors
-     */
-    async hasValidationErrors(): Promise<boolean> {
-        const errorElements = this.getFormErrorMessage();
-        return (await errorElements.count()) > 0;
     }
 }

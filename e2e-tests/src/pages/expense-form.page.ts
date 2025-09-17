@@ -560,12 +560,6 @@ export class ExpenseFormPage extends BasePage {
         await this.clickButton(selectAllButton, { buttonName: 'Select all' });
     }
 
-    getExpenseByDescription(description: string) {
-        // Use more specific selector to avoid strict mode violations
-        // Look for the description in expense list context, not headings
-        return this.page.getByText(description).first();
-    }
-
     getCategoryInput() {
         // Category input is an actual input element with aria-haspopup
         // (not the currency selector which is a div with role=combobox)
@@ -590,60 +584,8 @@ export class ExpenseFormPage extends BasePage {
         await this.fillPreactInput(categoryInput, text);
     }
 
-    /**
-     * Override the base expectSubmitButtonEnabled to provide expense-specific behavior
-     * @returns Promise that resolves if button is enabled, throws error if disabled
-     */
-    async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
-        const button = submitButton || this.page.getByRole('button', { name: /save expense/i });
-        await this.expectButtonEnabled(button, 'Save Expense');
-    }
-
-    // Split type accessors
-    getSplitSection() {
-        return this.page.getByText('Split between').locator('..');
-    }
-
-    getEqualRadio() {
-        return this.page.getByRole('radio', { name: 'Equal' });
-    }
-
-    getSplitBetweenText() {
-        return this.page.getByText('Split between');
-    }
-
-    getExactAmountsRadio() {
-        return this.page.getByRole('radio', { name: 'Exact amounts' });
-    }
-
-    getPercentageRadio() {
-        return this.page.getByRole('radio', { name: 'Percentage' });
-    }
-
     getPercentageText() {
         return this.page.getByText('Percentage', { exact: true });
-    }
-
-    getEqualText() {
-        return this.page.getByText('Equal');
-    }
-
-    getExactAmountsInstructions() {
-        return this.page.getByText('Enter exact amounts for each person:');
-    }
-
-    getPercentageInstructions() {
-        return this.page.getByText('Enter percentage for each person:');
-    }
-
-    getExactAmountInput() {
-        // Match text inputs with class w-24 for exact amounts (appears in split section)
-        return this.page.locator('input.w-24[type="text"]').first();
-    }
-
-    getPercentageInput() {
-        // Match text inputs with class w-20 for percentages (appears in split section)
-        return this.page.locator('input.w-20[type="text"]').first();
     }
 
     /**

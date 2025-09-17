@@ -54,15 +54,6 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Verify expense heading with description and amount pattern
-     */
-    async verifyExpenseHeading(pattern: RegExp): Promise<void> {
-        await expect(this.getExpenseHeading(pattern)).toBeVisible();
-    }
-
-    // ====== COMMENTS METHODS ======
-
-    /**
      * Get the discussion section (contains comments)
      */
     getDiscussionSection() {

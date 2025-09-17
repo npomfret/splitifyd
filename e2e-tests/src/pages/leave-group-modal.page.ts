@@ -14,18 +14,6 @@ export class LeaveGroupModalPage extends BasePage {
         this.cancelButton = this.dialog.getByTestId('cancel-button');
     }
 
-    getDialog(): Locator {
-        return this.dialog;
-    }
-
-    getConfirmButton(): Locator {
-        return this.confirmButton;
-    }
-
-    getCancelButton(): Locator {
-        return this.cancelButton;
-    }
-
     async waitForDialogVisible(): Promise<void> {
         await expect(this.dialog).toBeVisible();
     }

@@ -141,20 +141,6 @@ export class CurrencyService {
     }
 
     /**
-     * Get all loaded currencies (synchronous)
-     */
-    getCurrencies(): Currency[] {
-        return this.currencies;
-    }
-
-    /**
-     * Check if currencies are currently loading
-     */
-    isLoading(): boolean {
-        return this.loadingPromise !== null;
-    }
-
-    /**
      * Get currency by code
      */
     getCurrencyByCode(code: string): Currency | undefined {

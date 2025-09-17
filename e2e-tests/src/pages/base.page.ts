@@ -357,10 +357,6 @@ export abstract class BasePage {
         return this._page.locator('[data-testid="user-menu-dashboard-link"]');
     }
 
-    getSettingsLink() {
-        return this._page.locator('[data-testid="user-menu-settings-link"]');
-    }
-
     /**
      * Wait for the user menu to be available on the page.
      * This indicates the user is authenticated and the page has loaded.

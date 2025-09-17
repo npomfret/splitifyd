@@ -49,11 +49,6 @@ export class DashboardPage extends BasePage {
         return groupDetailPage;
     }
 
-    // Element accessors specific to Dashboard
-    getWelcomeMessage() {
-        return this.page.getByText(MESSAGES.WELCOME_BACK);
-    }
-
     getGroupsHeading() {
         return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.YOUR_GROUPS });
     }

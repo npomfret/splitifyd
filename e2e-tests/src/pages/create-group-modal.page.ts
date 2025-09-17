@@ -153,12 +153,6 @@ export class CreateGroupModalPage extends BasePage {
         }).toPass({ timeout: 5000, intervals: [100, 250] });
     }
 
-    // Element accessors
-    getModalTitle() {
-        // Specifically target the modal heading, not buttons with the same text
-        return this.page.getByRole('heading', { name: /Create.*New.*Group|New Group/i });
-    }
-
     getGroupNameInput() {
         // Our modal always has role="dialog" - if it doesn't, our app is broken
         return this.page.getByRole('dialog').getByLabel(translationEn.createGroupModal.groupNameLabel);

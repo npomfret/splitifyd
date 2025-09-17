@@ -1260,59 +1260,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Wait for the comment count to reach a specific number
-     */
-    async waitForCommentCount(expectedCount: number, timeout: number = 5000): Promise<void> {
-        await expect(async () => {
-            const count = await this.getCommentItems().count();
-            expect(count).toBe(expectedCount);
-        }).toPass({ timeout });
-    }
-
-    /**
-     * Verify that comments section is present and functional
-     */
-    async verifyCommentsSection(): Promise<void> {
-        // Check that comments section exists
-        await expect(this.getCommentsSection()).toBeVisible();
-
-        // Check that input exists and has correct placeholder
-        const input = this.getCommentInput();
-        await expect(input).toBeVisible();
-        await expect(input).toHaveAttribute('placeholder', /add a comment to this group/i);
-
-        // Check that send button exists
-        const sendButton = this.getSendCommentButton();
-        await expect(sendButton).toBeVisible();
-
-        // Send button should be disabled when input is empty
-        await expect(sendButton).toBeDisabled();
-    }
-
-    /**
-     * Verify that comment authors are visible in the comments section
-     */
-    async verifyCommentAuthorsVisible(authorNames: string[]): Promise<void> {
-        const commentsSection = this.getCommentsSection();
-
-        for (const authorName of authorNames) {
-            const authorElement = commentsSection.locator('span.font-medium', { hasText: authorName }).first();
-            await expect(authorElement).toBeVisible();
-        }
-    }
-
-    /**
-     * Verify that all specified comments are visible
-     */
-    async verifyCommentsVisible(commentTexts: string[]): Promise<void> {
-        const commentsSection = this.getCommentsSection();
-
-        for (const commentText of commentTexts) {
-            await expect(commentsSection.getByText(commentText)).toBeVisible();
-        }
-    }
-
-    /**
      * Leave the group (non-owner members)
      */
     async leaveGroup(): Promise<void> {
