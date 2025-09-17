@@ -2,7 +2,7 @@ import { simpleTest, expect } from '../../fixtures';
 import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { PLACEHOLDERS } from '../../constants/selectors';
-import { JoinGroupPage } from '../../pages';
+import { JoinGroupPage, GroupDetailPage } from '../../pages';
 import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
@@ -279,6 +279,77 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Group title should still be visible
         await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
+    });
+
+    simpleTest('should show member removal in real-time to all viewers', async ({ newLoggedInBrowser }, testInfo) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when removed members lose access to group' });
+
+        // Create four users - Owner (removing), Member1 (being removed), Member2 (group watching), Member3 (dashboard watching)
+        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: member1Page, dashboardPage: member1DashboardPage, user: member1 } = await newLoggedInBrowser();
+        const { page: member2Page, dashboardPage: member2DashboardPage, user: member2 } = await newLoggedInBrowser();
+        const { page: member3Page, dashboardPage: member3DashboardPage, user: member3 } = await newLoggedInBrowser();
+
+        // Create page objects
+        const member2GroupDetailPage = new GroupDetailPage(member2Page, member2);
+
+        // Get display names
+        const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
+        const member1DisplayName = await member1DashboardPage.getCurrentUserDisplayName();
+        const member2DisplayName = await member2DashboardPage.getCurrentUserDisplayName();
+        const member3DisplayName = await member3DashboardPage.getCurrentUserDisplayName();
+
+        // Owner creates group
+        const groupName = generateTestGroupName('MemberRemoveRT');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time member removal');
+        const groupId = groupDetailPage.inferGroupId();
+
+        // All members join
+        const shareLink = await groupDetailPage.getShareLink();
+
+        const joinGroupPage1 = new JoinGroupPage(member1Page);
+        await joinGroupPage1.joinGroupUsingShareLink(shareLink);
+        const joinGroupPage2 = new JoinGroupPage(member2Page);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+        const joinGroupPage3 = new JoinGroupPage(member3Page);
+        await joinGroupPage3.joinGroupUsingShareLink(shareLink);
+
+        // Wait for all 4 members to be present
+        await groupDetailPage.waitForMemberCount(4);
+        await member2GroupDetailPage.waitForMemberCount(4);
+
+        // Position viewers: Member2 stays on group page, Member3 goes to dashboard
+        await member3DashboardPage.navigate();
+        await member3DashboardPage.waitForGroupToAppear(groupName);
+
+        // Owner removes Member1
+        const removeMember1Modal = await groupDetailPage.clickRemoveMember(member1DisplayName);
+        await removeMember1Modal.confirmRemoveMember();
+
+        // CRITICAL TESTS:
+
+        // 1. Member1 (being removed) should get 404 when accessing group
+        await expect(async () => {
+            const currentUrl = member1Page.url();
+            if (currentUrl.includes('/404')) return;
+            await member1Page.reload({ waitUntil: 'domcontentloaded', timeout: 5000 });
+            const newUrl = member1Page.url();
+            if (newUrl.includes('/404')) return;
+            throw new Error(`Expected 404 after removal, got: ${currentUrl}`);
+        }).toPass({ timeout: 10000, intervals: [1000] });
+
+        // 2. Member2 (watching group) should see member count decrease to 3 WITHOUT refresh
+        await member2GroupDetailPage.waitForMemberCount(3);
+        await member2GroupDetailPage.verifyMemberNotVisible(member1DisplayName);
+
+        // 3. Owner should see updated member count
+        await groupDetailPage.waitForMemberCount(3);
+        await groupDetailPage.verifyMemberNotVisible(member1DisplayName);
+
+        // 4. Member3 (on dashboard) should still see the group but removed member can't access
+        await member3DashboardPage.waitForGroupToAppear(groupName);
+
+        console.log('✅ Real-time member removal updates working correctly');
     });
 });
 
