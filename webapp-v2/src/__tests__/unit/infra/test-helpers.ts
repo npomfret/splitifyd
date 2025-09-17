@@ -5,6 +5,7 @@
  */
 
 import {Page, expect, Locator} from '@playwright/test';
+import {generateShortId} from "@splitifyd/test-support";
 
 /**
  * Standard page setup with authentication and storage clearing
@@ -152,7 +153,7 @@ function getMockFirebaseUrls(page: Page) {
  * Mock Firebase Auth login flow with network-level API mocking
  * This mimics the actual Firebase Auth REST API calls during login
  */
-export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com', password = 'rrRR44$', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+export async function mockFirebaseAuthLogin(page: Page, email = someValidEmail(), password = 'rrRR44$', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
     const mockUrls = getMockFirebaseUrls(page);
 
     // Mock Firebase config API
@@ -259,7 +260,7 @@ export async function mockFirebaseAuthLogin(page: Page, email = 'test1@test.com'
  * Set up authenticated state using a pre-obtained auth token
  * This function properly mocks the entire Firebase auth flow to ensure tests can access protected routes
  */
-export async function setupAuthenticatedUserWithToken(page: Page, authToken: { idToken: string; localId: string; refreshToken: string }, email = 'test@example.com', displayName = 'Test User'): Promise<void> {
+export async function setupAuthenticatedUserWithToken(page: Page, authToken: { idToken: string; localId: string; refreshToken: string }, email = someValidEmail(), displayName = 'Test User'): Promise<void> {
     const mockUrls = getMockFirebaseUrls(page);
 
     // Mock Firebase config
@@ -421,7 +422,7 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
  * Set up authenticated state by following the working pattern from dashboard tests
  * This approach acknowledges that redirect behavior is expected and tests navigation flow
  */
-export async function setupAuthenticatedUser(page: Page, email = 'test@example.com'): Promise<void> {
+export async function setupAuthenticatedUser(page: Page, email = someValidEmail()): Promise<void> {
     const userId = 'test-user-id';
     const idToken = 'mock-id-token-' + Date.now();
 
@@ -460,7 +461,7 @@ export async function setupAuthenticatedUser(page: Page, email = 'test@example.c
  * This mimics the actual Firebase Auth REST API calls during password reset
  * Based on the exact curl command pattern provided
  */
-export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.com', scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email' = 'success'): Promise<void> {
+export async function mockFirebasePasswordReset(page: Page, email = someValidEmail(), scenario: 'success' | 'user-not-found' | 'network-error' | 'invalid-email' = 'success'): Promise<void> {
     const mockUrls = getMockFirebaseUrls(page);
 
     // Mock Firebase config API
@@ -580,7 +581,7 @@ export async function mockFirebasePasswordReset(page: Page, email = 'test1@test.
  * Mock Firebase Auth registration flow with network-level API mocking
  * This mimics the actual registration API call based on the curl command provided
  */
-export async function mockFirebaseAuthRegister(page: Page, email = 'email@email.com', password = 'rrRR44$', displayName = 'name', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
+export async function mockFirebaseAuthRegister(page: Page, email = someValidEmail(), password = 'rrRR44$', displayName = 'name', userId = 'Fcriodx25u5dPoeB1krJ1uXQRmDq'): Promise<void> {
     const mockUrls = getMockFirebaseUrls(page);
 
     // Mock Firebase config API
@@ -734,11 +735,13 @@ export const SELECTORS = {
     BACK_TO_LOGIN_FROM_SUCCESS: 'button:has-text("← Back to Sign In")',
 } as const;
 
+const someValidEmail = () => `${generateShortId()}@bar.com`;
+
 /**
  * Common test scenarios for reuse
  */
 export const TEST_SCENARIOS = {
-    VALID_EMAIL: 'test@example.com',
+    VALID_EMAIL: someValidEmail(),
     VALID_PASSWORD: 'password123',
     VALID_NAME: 'John Doe',
 
