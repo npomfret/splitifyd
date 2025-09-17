@@ -2,8 +2,11 @@ import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { GroupDetailPage, ExpenseDetailPage } from '../../pages';
+import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
+import { v4 as uuidv4 } from 'uuid';
 
-test.describe('Freeform Categories E2E', () => {
+test.describe('Expense Form Operations E2E', () => {
     test('should allow user to select predefined category from suggestions', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
         const memberCount = 1;
@@ -187,5 +190,54 @@ test.describe('Freeform Categories E2E', () => {
         // Verify expense was created with special character category
         await expect(groupDetailPage.getExpenseByDescription('Special characters test')).toBeVisible();
         await expect(groupDetailPage.getExpenseAmount('$33.33')).toBeVisible();
+    });
+
+    test('should perform basic expense CRUD operations', async ({ newLoggedInBrowser }) => {
+        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const groupDetailPage = new GroupDetailPage(page, user);
+        const expenseDetailPage = new ExpenseDetailPage(page, user);
+        const uniqueId = uuidv4().slice(0, 8);
+
+        // Get the current user's display name
+        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+
+        // Create group and navigate to it
+        const groupName = generateTestGroupName('CRUD Test');
+        const groupDetailPageNav = await dashboardPage.createGroupAndNavigate(groupName, 'Testing basic expense CRUD operations');
+        const groupId = groupDetailPageNav.inferGroupId();
+        const memberCount = 1;
+
+        // CREATE: Create expense using page object
+        const expenseFormPage = await groupDetailPageNav.clickAddExpenseButton(memberCount);
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(`CRUD Test ${uniqueId}`).withAmount(50).withCurrency('USD').withPaidByDisplayName(userDisplayName).withSplitType('equal').build(),
+        );
+
+        // Verify expense appears in list
+        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).toBeVisible();
+
+        // READ: Navigate to expense detail to view it
+        await groupDetailPageNav.clickExpenseToView(`CRUD Test ${uniqueId}`);
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
+        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).toBeVisible();
+        await expect(groupDetailPageNav.getCurrencyAmount('50.00').first()).toBeVisible();
+
+        // UPDATE: Simple edit operation
+        const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
+        await editFormPage.fillAmount('75');
+        await editFormPage.getUpdateExpenseButton().click();
+
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
+        await expenseDetailPage.waitForPageReady();
+        await expect(groupDetailPageNav.getCurrencyAmount('75.00').first()).toBeVisible();
+
+        // DELETE: Delete the expense
+        await groupDetailPageNav.deleteExpense();
+
+        // Should redirect back to group
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+
+        // Expense should no longer be visible
+        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).not.toBeVisible();
     });
 });
