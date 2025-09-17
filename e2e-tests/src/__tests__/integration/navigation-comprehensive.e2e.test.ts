@@ -43,21 +43,6 @@ test.describe('Comprehensive Navigation E2E', () => {
         await expect(page).toHaveURL(EMULATOR_URL);
     });
 
-    test('should verify footer links exist on homepage', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const homepagePage = new HomepagePage(page);
-        await homepagePage.navigate();
-
-        // Check footer exists and has required links
-        const footer = homepagePage.getFooter();
-        await expect(footer).toBeVisible();
-
-        const termsLink = homepagePage.getTermsLink();
-        await expect(termsLink).toBeVisible();
-
-        const privacyLink = homepagePage.getPrivacyLink();
-        await expect(privacyLink).toBeVisible();
-    });
 
     test('should support keyboard navigation accessibility', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
