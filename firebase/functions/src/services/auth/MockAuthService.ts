@@ -66,13 +66,6 @@ export class MockAuthService implements IAuthService {
     private nextUid = 1;
 
     /**
-     * Configure mock behavior
-     */
-    configure(config: MockAuthConfig): void {
-        this.config = { ...config };
-    }
-
-    /**
      * Reset mock state
      */
     reset(): void {
@@ -85,32 +78,10 @@ export class MockAuthService implements IAuthService {
     }
 
     /**
-     * Get all method calls for verification
-     */
-    getCalls(): MethodCall[] {
-        return [...this.calls];
-    }
-
-    /**
      * Get calls for a specific method
      */
     getCallsFor(method: string): MethodCall[] {
         return this.calls.filter((call) => call.method === method);
-    }
-
-    /**
-     * Check if a method was called
-     */
-    wasMethodCalled(method: string): boolean {
-        return this.calls.some((call) => call.method === method);
-    }
-
-    /**
-     * Get the last call for a method
-     */
-    getLastCallFor(method: string): MethodCall | undefined {
-        const methodCalls = this.getCallsFor(method);
-        return methodCalls[methodCalls.length - 1];
     }
 
     /**
@@ -211,21 +182,6 @@ export class MockAuthService implements IAuthService {
                 };
             },
         } as UserRecord;
-    }
-
-    /**
-     * Set a user in the mock store
-     */
-    setUser(uid: string, user: Partial<MockUserData>): void {
-        const userData = this.createMockUserData({ uid, ...user });
-        this.users.set(uid, userData);
-
-        if (userData.email) {
-            this.emailToUid.set(userData.email, uid);
-        }
-        if (userData.phoneNumber) {
-            this.phoneToUid.set(userData.phoneNumber, uid);
-        }
     }
 
     /**

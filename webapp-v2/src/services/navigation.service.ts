@@ -128,13 +128,6 @@ class NavigationService {
     }
 
     /**
-     * Navigate to join group page
-     */
-    goToJoinGroup(): void {
-        this.navigateTo(ROUTES.JOIN_GROUP);
-    }
-
-    /**
      * Navigate to static pages
      */
     goToPricing(): void {
@@ -158,54 +151,6 @@ class NavigationService {
      */
     goToNotFound(): void {
         this.navigateTo(ROUTES.NOT_FOUND);
-    }
-
-    /**
-     * Navigate back in browser history
-     */
-    goBack(): void {
-        this.logNavigation('Browser Back', {
-            from: window.location.pathname,
-            to: 'previous',
-            method: 'back',
-        });
-        window.history.back();
-    }
-
-    /**
-     * Navigate forward in browser history
-     */
-    goForward(): void {
-        this.logNavigation('Browser Forward', {
-            from: window.location.pathname,
-            to: 'next',
-            method: 'forward',
-        });
-        window.history.forward();
-    }
-
-    /**
-     * Get current path
-     */
-    getCurrentPath(): string {
-        return window.location.pathname;
-    }
-
-    /**
-     * Check if currently on a specific route
-     */
-    isCurrentRoute(path: string): boolean {
-        return window.location.pathname === path;
-    }
-
-    /**
-     * Check if current route matches a pattern (for dynamic routes)
-     */
-    matchesRoute(pattern: string): boolean {
-        const currentPath = window.location.pathname;
-        // Simple pattern matching - replace :param with regex
-        const regex = new RegExp('^' + pattern.replace(/:\w+/g, '[^/]+') + '$');
-        return regex.test(currentPath);
     }
 
     /**

@@ -28,19 +28,6 @@ export async function setupTestPage(page: Page, url: string): Promise<void> {
 }
 
 /**
- * Type-safe form field filling with validation
- * Note: For whitespace-only values, the browser may trim them to empty string
- */
-export async function fillFormField(page: Page, selector: string, value: string): Promise<void> {
-    const field = page.locator(selector);
-    await field.fill(value);
-
-    // For whitespace-only strings, browsers typically trim to empty
-    const expectedValue = value.trim() === '' ? '' : value;
-    await expect(field).toHaveValue(expectedValue);
-}
-
-/**
  * Check if an element is visible and accessible
  */
 export async function expectElementVisible(page: Page, selector: string): Promise<void> {

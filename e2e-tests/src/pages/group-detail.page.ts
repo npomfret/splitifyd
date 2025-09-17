@@ -1211,13 +1211,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Get all comment items in the comments list
-     */
-    getCommentItems() {
-        return this.getCommentsSection().locator('[data-testid="comment-item"]');
-    }
-
-    /**
      * Get a specific comment by its text content
      */
     getCommentByText(text: string) {

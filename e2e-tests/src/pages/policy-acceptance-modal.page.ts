@@ -87,10 +87,6 @@ export class PolicyAcceptanceModalPage {
         return (await this.policyTitle.textContent()) || '';
     }
 
-    async getCurrentPolicyProgress(): Promise<string> {
-        return (await this.subtitle.textContent()) || '';
-    }
-
     async acceptCurrentPolicy(): Promise<void> {
         // Wait for policy content to load
         await expect(this.acceptanceCheckbox).toBeVisible();
@@ -108,19 +104,10 @@ export class PolicyAcceptanceModalPage {
         await this.nextButton.click();
     }
 
-    async navigateToPreviousPolicy(): Promise<void> {
-        await expect(this.previousButton).toBeEnabled();
-        await this.previousButton.click();
-    }
-
     async acceptAllPolicies(): Promise<void> {
         // Wait for the button to become enabled after all individual policies are accepted
         await expect(this.acceptAllButton).toBeEnabled({ timeout: 5000 });
         await this.acceptAllButton.click();
-    }
-
-    async getCurrentPolicyIsAccepted(): Promise<boolean> {
-        return await this.acceptedBadge.isVisible();
     }
 
     async waitForPolicyContentToLoad(): Promise<void> {
@@ -129,10 +116,6 @@ export class PolicyAcceptanceModalPage {
         await expect(this.policyContent).toBeVisible();
         // Also wait for acceptance section to be ready
         await expect(this.acceptanceSection).toBeVisible();
-    }
-
-    async closeModal(): Promise<void> {
-        await this.closeButton.click();
     }
 
     async acceptSinglePolicyComplete(): Promise<void> {
@@ -184,10 +167,5 @@ export class PolicyAcceptanceModalPage {
 
     async hasError(): Promise<boolean> {
         return await this.errorState.isVisible();
-    }
-
-    async getErrorMessage(): Promise<string | null> {
-        const hasError = await this.hasError();
-        return hasError ? await this.errorState.textContent() : null;
     }
 }

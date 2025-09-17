@@ -47,13 +47,6 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get the expense heading that contains both description and amount
-     */
-    getExpenseHeading(pattern: RegExp): Locator {
-        return this.page.getByRole('heading', { name: pattern });
-    }
-
-    /**
      * Get the discussion section (contains comments)
      */
     getDiscussionSection() {

@@ -35,13 +35,6 @@ class StreamingMetricsCollector {
     private readonly MAX_LATENCY_SAMPLES = 100;
 
     /**
-     * Track a notification received
-     */
-    trackNotification(): void {
-        this.metrics.notificationCount++;
-    }
-
-    /**
      * Track a REST API refresh with latency
      */
     trackRestRefresh(latencyMs: number): void {
@@ -55,49 +48,6 @@ class StreamingMetricsCollector {
         }
 
         this.metrics.averageRefreshLatency = this.refreshLatencies.reduce((sum, lat) => sum + lat, 0) / this.refreshLatencies.length;
-    }
-
-    /**
-     * Track subscription errors
-     */
-    trackSubscriptionError(): void {
-        this.metrics.subscriptionErrorCount++;
-    }
-
-    /**
-     * Track subscription retries
-     */
-    trackSubscriptionRetry(): void {
-        this.metrics.subscriptionRetryCount++;
-    }
-
-    /**
-     * Track connection errors
-     */
-    trackConnectionError(): void {
-        this.metrics.connectionErrors++;
-    }
-
-    /**
-     * Track fallback to polling
-     */
-    trackPollingFallback(): void {
-        this.metrics.fallbackToPolling++;
-    }
-
-    /**
-     * Get current metrics snapshot
-     */
-    getSnapshot(): MetricsSnapshot {
-        const estimatedFirestoreReads = this.estimateFirestoreReads();
-        const estimatedMonthlyCost = this.estimateMonthlyCost(estimatedFirestoreReads);
-
-        return {
-            ...this.metrics,
-            timestamp: Date.now(),
-            estimatedFirestoreReads,
-            estimatedMonthlyCost,
-        };
     }
 
     /**

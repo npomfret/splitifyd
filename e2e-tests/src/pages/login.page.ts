@@ -12,8 +12,6 @@ export class LoginPage extends BasePage {
     // Selectors
     readonly url = '/login';
     readonly signInButton = BUTTON_TEXTS.SIGN_IN;
-    readonly signUpLink = translation.loginPage.signUp;
-    readonly forgotPasswordLink = translation.loginPage.forgotPassword;
 
     async navigate() {
         await this.navigateToLogin();
@@ -81,24 +79,5 @@ export class LoginPage extends BasePage {
 
     getSignInHeading() {
         return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.SIGN_IN });
-    }
-
-    /**
-     * Get form field by type
-     */
-    getFormField(fieldType: 'email' | 'password'): Locator {
-        switch (fieldType) {
-            case 'email':
-                return this.getEmailInput();
-            case 'password':
-                return this.getPasswordInput();
-        }
-    }
-
-    getFormErrorMessage(pattern?: string | RegExp): Locator {
-        if (pattern) {
-            return this.page.locator('[role="alert"], [data-testid*="error"], .error-message').filter({ hasText: pattern });
-        }
-        return this.page.locator('[role="alert"], [data-testid*="error"], .error-message');
     }
 }

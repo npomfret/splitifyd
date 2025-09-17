@@ -79,13 +79,6 @@ export class SettingsPage extends BasePage {
         return this.page.locator('.text-green-600, .bg-green-50, [role="alert"]').filter({ hasText: /successfully|updated|changed/i });
     }
 
-    getErrorMessage(text?: string): Locator {
-        if (text) {
-            return this.page.getByText(text);
-        }
-        return this.page.locator('[role="alert"], [data-testid*="error"]').filter({ hasText: /error|failed|invalid/i });
-    }
-
     // Profile Information Actions
     async updateDisplayName(newDisplayName: string): Promise<void> {
         const displayNameInput = this.getDisplayNameInput();
