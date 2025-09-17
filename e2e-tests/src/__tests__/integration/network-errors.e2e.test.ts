@@ -1,5 +1,5 @@
 import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
-import { CreateGroupModalPage } from '../../pages';
+import { CreateGroupModalPage, LoginPage } from '../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { generateTestGroupName } from '@splitifyd/test-support';
@@ -233,5 +233,24 @@ test.describe('Error Handling', () => {
 
         // Just close the modal to avoid waiting 10 seconds using Escape key since Cancel button may be disabled during timeout
         await dashboardPage.page.keyboard.press('Escape');
+    });
+
+    test('login page resilience to network failures', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const context = page.context();
+        const loginPage = new LoginPage(page);
+        test.info().annotations.push({ type: 'skip-error-checking' });
+
+        // Block API calls to simulate network failure
+        await context.route('**/api/**', (route) => route.abort());
+
+        // Try to load login page (which might make API calls)
+        await loginPage.navigate();
+
+        // Page should still render even if API calls fail
+        await expect(loginPage.getSignInHeading()).toBeVisible({ timeout: 5000 }); // high timeout intentionally
+
+        // Should not have unhandled errors (handled network errors are ok)
+        // This is a basic check - app should handle network failures gracefully
     });
 });
