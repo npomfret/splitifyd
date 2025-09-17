@@ -84,7 +84,7 @@ const DASHBOARD_TEST_DATA = {
 /**
  * Helper function to mock groups API with comprehensive response
  */
-async function mockGroupsAPI(page: any, groups: any[] = DASHBOARD_TEST_DATA.EMPTY_GROUPS, scenario: 'success' | 'error' | 'slow' = 'success'): Promise<void> {
+async function mockGroupsAPI(page: any, groups: readonly any[] = DASHBOARD_TEST_DATA.EMPTY_GROUPS, scenario: 'success' | 'error' | 'slow' = 'success'): Promise<void> {
     await page.route('**/api/groups**', async (route: any) => {
         switch (scenario) {
             case 'slow':
@@ -291,10 +291,12 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
     // === AUTHENTICATED DASHBOARD TESTS ===
 
-    test.describe('Authenticated Dashboard - Core Structure', () => {
+    test.describe.serial('Authenticated Dashboard Tests', () => {
         test.beforeEach(async ({ page }) => {
             await setupAuthenticatedUser(page);
         });
+
+        // === CORE STRUCTURE TESTS ===
 
         test('should validate authentication state is set up correctly', async ({ page }) => {
             // Verify that the authentication API calls worked
@@ -351,12 +353,7 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             }
         });
 
-    });
-
-    test.describe('Authenticated Dashboard - API Integration', () => {
-        test.beforeEach(async ({ page }) => {
-            await setupAuthenticatedUser(page);
-        });
+        // === API INTEGRATION TESTS ===
 
         test('should validate Firebase Auth integration is working', async ({ page }) => {
             // This test verifies that our Firebase Auth API integration is working
@@ -443,12 +440,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
         });
-    });
 
-    test.describe('Authenticated Dashboard - User Interactions', () => {
-        test.beforeEach(async ({ page }) => {
-            await setupAuthenticatedUser(page);
-        });
+        // === USER INTERACTION TESTS ===
 
         test('should validate viewport handling for responsive design testing', async ({ page }) => {
             // Test that our testing infrastructure handles different viewport sizes correctly
@@ -486,12 +479,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
                 expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
             }
         });
-    });
 
-    test.describe('Authenticated Dashboard - API Integration Testing', () => {
-        test.beforeEach(async ({ page }) => {
-            await setupAuthenticatedUser(page);
-        });
+        // === API INTEGRATION TESTING ===
 
         test('should validate API route mocking infrastructure', async ({ page }) => {
             // Test that our API mocking infrastructure works correctly
@@ -537,32 +526,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             const userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
         });
-    });
-
-    // === AUTHENTICATION EDGE CASES ===
-
-    test.describe('Authentication Edge Cases', () => {
-        test('should handle partial authentication state gracefully', async ({ page }) => {
-            // Mock incomplete auth state
-            await page.evaluate(() => {
-                localStorage.setItem('USER_ID', 'incomplete-user');
-                // Don't set complete auth state
-            });
-
-            await page.goto('/dashboard');
-            await page.waitForLoadState('networkidle');
-
-            // Should either redirect to login or handle gracefully
-            const currentUrl = page.url();
-            const isOnLogin = currentUrl.includes('/login');
-            const isOnDashboard = currentUrl.includes('/dashboard');
-
-            expect(isOnLogin || isOnDashboard).toBe(true);
-        });
 
         test('should handle authentication state transitions', async ({ page }) => {
-            await setupAuthenticatedUser(page);
-
             // Verify initial auth state
             let userId = await page.evaluate(() => localStorage.getItem('USER_ID'));
             expect(userId).toBeTruthy();
@@ -584,14 +549,8 @@ test.describe('DashboardPage - Behavioral Tests', () => {
             const currentUrl = page.url();
             expect(currentUrl.includes('/login') || currentUrl.includes('/dashboard')).toBe(true);
         });
-    });
 
-    // === INFRASTRUCTURE VALIDATION ===
-
-    test.describe('Test Infrastructure Validation', () => {
-        test.beforeEach(async ({ page }) => {
-            await setupAuthenticatedUser(page);
-        });
+        // === INFRASTRUCTURE VALIDATION ===
 
         test('should validate test data integrity', async ({ page }) => {
             // Verify test data structure
@@ -636,6 +595,28 @@ test.describe('DashboardPage - Behavioral Tests', () => {
 
             // Verify route interception infrastructure works (may or may not trigger depending on app behavior)
             expect(typeof routeIntercepted).toBe('boolean');
+        });
+    });
+
+    // === AUTHENTICATION EDGE CASES ===
+
+    test.describe('Authentication Edge Cases', () => {
+        test('should handle partial authentication state gracefully', async ({ page }) => {
+            // Mock incomplete auth state
+            await page.evaluate(() => {
+                localStorage.setItem('USER_ID', 'incomplete-user');
+                // Don't set complete auth state
+            });
+
+            await page.goto('/dashboard');
+            await page.waitForLoadState('networkidle');
+
+            // Should either redirect to login or handle gracefully
+            const currentUrl = page.url();
+            const isOnLogin = currentUrl.includes('/login');
+            const isOnDashboard = currentUrl.includes('/dashboard');
+
+            expect(isOnLogin || isOnDashboard).toBe(true);
         });
     });
 });
