@@ -38,7 +38,7 @@ function getTestCommand(scriptType, packageName) {
         },
         'webapp-v2': {
             test: 'npm run test:unit && npm run test:integration',
-            'test:unit': 'vitest run src/__tests__/unit/vitest && playwright test --workers=1',
+            'test:unit': 'vitest run src/__tests__/unit/vitest && playwright test --workers=4',
             'test:integration': "echo 'no integration tests' && exit 0",
         },
         '@splitifyd/e2e-tests': {
