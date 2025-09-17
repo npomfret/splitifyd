@@ -49,7 +49,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     readonly #updatingGroupIdsSignal = signal<Set<string>>(new Set());
     readonly #isCreatingGroupSignal = signal<boolean>(false);
 
-    private notificationDetector = new UserNotificationDetector('groups-store-enhanced.ts');
+    private notificationDetector = new UserNotificationDetector();
     private notificationUnsubscribe: (() => void) | null = null;
 
     // Reference counting for subscription management

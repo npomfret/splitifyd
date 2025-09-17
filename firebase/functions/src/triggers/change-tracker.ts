@@ -20,7 +20,7 @@ export const trackGroupChanges = onDocumentWritten(
     },
     async (event) => {
         const groupId = event.params.groupId;
-        const { changeType, after } = extractDataChange(event);
+        const { changeType } = extractDataChange(event);
 
         if (changeType === 'deleted') {
             logger.info('group-deleted', { groupId });

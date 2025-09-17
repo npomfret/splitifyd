@@ -106,11 +106,4 @@ export class LoggerContext {
             });
         }
     }
-
-    /**
-     * Check if we're running within a context
-     */
-    static hasContext(): boolean {
-        return asyncLocalStorage.getStore() !== undefined;
-    }
 }

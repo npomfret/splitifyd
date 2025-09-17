@@ -42,7 +42,7 @@ class ValidationMetrics {
         return ValidationMetrics.instance;
     }
 
-    recordSuccess(schemaName: string): void {
+    recordSuccess(): void {
         this.metrics.totalValidations++;
         this.metrics.successfulValidations++;
     }
@@ -98,7 +98,7 @@ export function validateWithMonitoring<T extends z.ZodSchema>(
         const result = schema.parse(data);
 
         // Record success metrics
-        metrics.recordSuccess(context.schemaName);
+        metrics.recordSuccess();
 
         // Log performance for slow validations
         const duration = Date.now() - startTime;

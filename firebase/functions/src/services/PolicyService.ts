@@ -55,36 +55,6 @@ export class PolicyService {
     }
 
     /**
-     * Validate policy document has required fields
-     */
-    private validatePolicyDocument(data: any, docId: string): void {
-        if (!data.policyName || !data.currentVersionHash || !data.versions) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'CORRUPT_POLICY_DATA', `Policy document ${docId} is missing required fields`);
-        }
-    }
-
-    /**
-     * Transform Firestore document to PolicyDocument interface
-     */
-    private transformPolicyDocument(doc: FirebaseFirestore.DocumentSnapshot): PolicyDocument {
-        const data = doc.data();
-        if (!data) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'POLICY_DATA_NULL', 'Policy document data is null');
-        }
-
-        this.validatePolicyDocument(data, doc.id);
-
-        return {
-            id: doc.id,
-            policyName: data.policyName,
-            currentVersionHash: data.currentVersionHash,
-            versions: data.versions,
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-        };
-    }
-
-    /**
      * List all policies
      */
     async listPolicies(): Promise<{ policies: PolicyDocument[]; count: number }> {

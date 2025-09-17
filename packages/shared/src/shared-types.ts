@@ -691,19 +691,6 @@ export interface ListSettlementsApiResponse {
     data: ListSettlementsResponse;
 }
 
-export interface ExpenseHistoryItem {
-    id: string;
-    modifiedAt: string;
-    modifiedBy: string;
-    changeType: string;
-    changes: string[];
-    previousAmount?: number;
-    previousDescription?: string;
-    previousCategory?: string;
-    previousDate?: string;
-    previousParticipants?: string[];
-}
-
 // ========================================================================
 // Balance calculation types
 // ========================================================================

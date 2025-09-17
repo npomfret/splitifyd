@@ -228,11 +228,6 @@ export class GroupShareService {
         };
 
         const serverTimestamp = createTrueServerTimestamp();
-        const memberDocWithTimestamps = {
-            ...memberDoc,
-            createdAt: serverTimestamp,
-            updatedAt: serverTimestamp,
-        };
 
         // Atomic transaction: check group exists and create member subcollection
         const result = await this.firestoreWriter.runTransaction(

@@ -18,7 +18,6 @@ export class GroupMemberService {
         private readonly firestoreReader: IFirestoreReader,
         private readonly firestoreWriter: IFirestoreWriter,
         userService: UserService,
-        private readonly notificationService: NotificationService,
     ) {
         this.balanceService = new BalanceCalculationService(firestoreReader, userService);
     }

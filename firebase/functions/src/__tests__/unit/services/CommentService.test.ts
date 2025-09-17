@@ -211,12 +211,7 @@ describe('CommentService', () => {
             });
             mockFirestoreReader.getComment.mockResolvedValue(createdComment);
 
-            const result = await commentService.createComment(
-                CommentTargetTypes.GROUP,
-                'test-group',
-                { text: 'New test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' },
-                'user-id',
-            );
+            const result = await commentService.createComment(CommentTargetTypes.GROUP, 'test-group', {text: 'New test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group'}, 'user-id');
 
             expect(result.id).toBe('new-comment-id');
             expect(result.text).toBe('New test comment');
@@ -246,7 +241,7 @@ describe('CommentService', () => {
             mockFirestoreReader.getComment.mockResolvedValue(null); // Simulate creation failure
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'test-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group' }, 'user-id'),
+                commentService.createComment(CommentTargetTypes.GROUP, 'test-group', {text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'test-group'}, 'user-id'),
             ).rejects.toThrow(ApiError);
         });
 
@@ -254,7 +249,7 @@ describe('CommentService', () => {
             mockFirestoreReader.getGroup.mockResolvedValue(null);
 
             await expect(
-                commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', { text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group' }, 'user-id'),
+                commentService.createComment(CommentTargetTypes.GROUP, 'nonexistent-group', {text: 'Test comment', targetType: CommentTargetTypes.GROUP, targetId: 'nonexistent-group'}, 'user-id'),
             ).rejects.toThrow(ApiError);
         });
     });

@@ -7,7 +7,6 @@ import { FirestoreCollections, SystemUserRoles } from '@splitifyd/shared';
 
 const firestore = getFirestore();
 const applicationBuilder = new ApplicationBuilder(firestore);
-const policyService = applicationBuilder.buildPolicyService();
 const authService = applicationBuilder.buildAuthService();
 
 /**

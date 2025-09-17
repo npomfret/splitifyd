@@ -76,8 +76,7 @@ export class UserNotificationDetector {
     // Track baseline states when groups are first seen to distinguish new changes from pre-existing ones
     private baselineGroupStates = new Map<string, GroupNotificationState>();
 
-    constructor(name = '') {
-        // Only log in debug mode - detector creation is routine
+    constructor() {
     }
 
     /**
@@ -172,7 +171,7 @@ export class UserNotificationDetector {
             const lastState = this.lastGroupStates.get(groupId);
 
             // Check for group details changes
-            if (this.callbacks.onGroupChange && this.hasGroupDetailsChanged(groupId, groupData, lastState)) {
+            if (this.callbacks.onGroupChange && this.hasGroupDetailsChanged(groupData, lastState)) {
                 logInfo('UserNotificationDetector: group change detected', { groupId });
                 this.callbacks.onGroupChange(groupId);
             }
@@ -211,7 +210,7 @@ export class UserNotificationDetector {
     /**
      * Check if group details have changed
      */
-    private hasGroupDetailsChanged(groupId: string, current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
+    private hasGroupDetailsChanged(current: GroupNotificationState, last: GroupNotificationState | undefined): boolean {
         if (!last) {
             // First time seeing this group in our tracking map
             // Never trigger on first document if there are existing changes (prevents spurious callbacks)

@@ -57,7 +57,7 @@ export const deleteExpense = async (req: AuthenticatedRequest, res: Response): P
 };
 
 export const getExpenseHistory = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const userId = validateUserAuth(req);
+    validateUserAuth(req);
     const expenseId = validateExpenseId(req.query.id);
 
     const result = await expenseService.getExpenseHistory(expenseId);

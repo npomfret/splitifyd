@@ -38,7 +38,3 @@ export const routes = {
     copyExpense: (groupId: string, sourceId: string) => `/groups/${groupId}/add-expense?copy=true&sourceId=${sourceId}`,
     loginWithReturnUrl: (returnUrl: string) => `/login?returnUrl=${encodeURIComponent(returnUrl)}`,
 } as const;
-
-// Type for all route values
-export type RouteKey = keyof typeof ROUTES;
-export type RouteValue = (typeof ROUTES)[RouteKey];

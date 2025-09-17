@@ -44,36 +44,6 @@ export class CommentService {
         await strategy.verifyAccess(targetId, userId);
     }
 
-    /**
-     * Transform Firestore comment document to Comment interface
-     */
-    private transformCommentDocument(doc: DocumentSnapshot): Comment {
-        const rawData = doc.data();
-        if (!rawData) {
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'COMMENT_DATA_NULL', 'Comment document data is null');
-        }
-
-        // Validate and parse comment data structure with Zod
-        const dataWithId = { ...rawData, id: doc.id };
-        try {
-            const validatedComment = CommentDocumentSchema.parse(dataWithId);
-            return {
-                id: validatedComment.id,
-                authorId: validatedComment.authorId,
-                authorName: validatedComment.authorName,
-                authorAvatar: validatedComment.authorAvatar || undefined,
-                text: validatedComment.text,
-                createdAt: validatedComment.createdAt,
-                updatedAt: validatedComment.updatedAt,
-            };
-        } catch (error) {
-            logger.error('Comment document validation failed', error as Error, {
-                commentId: doc.id,
-                validationErrors: error instanceof z.ZodError ? error.issues : undefined,
-            });
-            throw new ApiError(HTTP_STATUS.INTERNAL_ERROR, 'INVALID_COMMENT_DATA', 'Comment document structure is invalid');
-        }
-    }
 
     /**
      * List comments for a target with pagination
@@ -104,7 +74,7 @@ export class CommentService {
         LoggerContext.update({ targetType, targetId, userId, operation: 'list-comments', limit: options.limit || 50 });
 
         const limit = options.limit || 50;
-        const { cursor, groupId } = options;
+        const { cursor } = options;
 
         // Verify user has access to view comments on this target
         await this.verifyCommentAccess(targetType, targetId, userId);
@@ -138,11 +108,11 @@ export class CommentService {
     /**
      * Create a new comment
      */
-    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string, groupId?: string): Promise<CommentApiResponse> {
-        return measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId, groupId));
+    async createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentApiResponse> {
+        return measureDb('CommentService.createComment', async () => this._createComment(targetType, targetId, commentData, userId));
     }
 
-    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string, groupId?: string): Promise<CommentApiResponse> {
+    private async _createComment(targetType: CommentTargetType, targetId: string, commentData: CreateCommentRequest, userId: string): Promise<CommentApiResponse> {
         LoggerContext.update({ targetType, targetId, userId, operation: 'create-comment' });
 
         // Verify user has access to comment on this target

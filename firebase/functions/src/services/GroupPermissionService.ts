@@ -197,36 +197,6 @@ export class GroupPermissionService {
     }
 
     /**
-     * Get default permissions for a security preset
-     */
-    private getDefaultPermissions(preset: SecurityPreset): GroupPermissions {
-        switch (preset) {
-            case SecurityPresets.OPEN:
-                return {
-                    expenseEditing: PermissionLevels.ANYONE,
-                    expenseDeletion: PermissionLevels.ANYONE,
-                    memberInvitation: PermissionLevels.ANYONE,
-                    memberApproval: 'automatic',
-                    settingsManagement: PermissionLevels.ANYONE,
-                };
-
-            case SecurityPresets.MANAGED:
-                return {
-                    expenseEditing: PermissionLevels.OWNER_AND_ADMIN,
-                    expenseDeletion: PermissionLevels.OWNER_AND_ADMIN,
-                    memberInvitation: PermissionLevels.ADMIN_ONLY,
-                    memberApproval: 'admin-required',
-                    settingsManagement: PermissionLevels.ADMIN_ONLY,
-                };
-
-            case SecurityPresets.CUSTOM:
-            default:
-                // Return open permissions as default fallback
-                return this.getDefaultPermissions(SecurityPresets.OPEN);
-        }
-    }
-
-    /**
      * Calculate user permissions directly without service dependencies
      * Replicates PermissionEngineAsync logic but uses provided member data
      */

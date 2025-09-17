@@ -13,7 +13,6 @@ import { parseEnvironment, initializeFirebase } from './firebase-init';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const targetEnvironment = args[0];
 const pageSize = parseInt(args[1]) || 10;
 const maxPages = parseInt(args[2]) || 5;
 
@@ -135,8 +134,7 @@ async function paginateUsers(): Promise<void> {
                 break;
             }
 
-            snapshot.docs.forEach((doc, index) => {
-                const globalIndex = (pageNumber - 1) * pageSize + index + 1;
+            snapshot.docs.forEach((doc) => {
                 console.log(`${formatUserData(doc)}`);
             });
 

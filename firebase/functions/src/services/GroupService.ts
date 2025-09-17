@@ -309,7 +309,6 @@ export class GroupService {
         const limit = Math.min(options.limit || DOCUMENT_CONFIG.LIST_LIMIT, DOCUMENT_CONFIG.LIST_LIMIT);
         const cursor = options.cursor;
         const order = options.order ?? 'desc';
-        const includeMetadata = options.includeMetadata === true;
 
         // Step 1: Query groups and metadata using FirestoreReader
         const { paginatedGroups } = await (async () => {
@@ -621,11 +620,6 @@ export class GroupService {
         };
 
         const memberServerTimestamp = createTrueServerTimestamp();
-        const memberDocWithTimestamps = {
-            ...memberDoc,
-            createdAt: memberServerTimestamp,
-            updatedAt: memberServerTimestamp,
-        };
 
         // Atomic transaction: create group and member documents
         await this.firestoreWriter.runTransaction(async (transaction) => {
@@ -933,7 +927,7 @@ export class GroupService {
 
     async deleteGroup(groupId: string, userId: string): Promise<MessageResponse> {
         // Fetch group with write access check
-        const { group } = await this.fetchGroupWithAccess(groupId, userId, true);
+        await this.fetchGroupWithAccess(groupId, userId, true);
 
         // Get member list BEFORE deletion for change tracking
         const memberDocs = await this.firestoreReader.getAllGroupMembers(groupId);
@@ -1288,9 +1282,6 @@ export class GroupService {
         if (!groupData) {
             throw Errors.NOT_FOUND('Group');
         }
-
-        // The reader already returns validated data
-        const validatedGroup = groupData;
 
         // Validate user access using scalable membership check
         const membersData = await this.userService.getUsers([userId]);

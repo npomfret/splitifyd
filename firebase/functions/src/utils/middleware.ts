@@ -9,10 +9,6 @@ import { detectLanguageFromHeader, getTranslationFunction, initializeI18n, Local
 import { ApplicationBuilder } from '../services/ApplicationBuilder';
 import { getFirestore } from '../firebase';
 
-export interface MiddlewareOptions {
-    functionName?: string;
-}
-
 // Initialize services
 const applicationBuilder = new ApplicationBuilder(getFirestore());
 const firestoreReader = applicationBuilder.buildFirestoreReader();
@@ -20,7 +16,7 @@ const firestoreReader = applicationBuilder.buildFirestoreReader();
 /**
  * Apply standard middleware stack to Express app
  */
-export const applyStandardMiddleware = (app: express.Application, options: MiddlewareOptions = {}) => {
+export const applyStandardMiddleware = (app: express.Application) => {
     // Apply security headers first
     app.use(applySecurityHeaders);
 

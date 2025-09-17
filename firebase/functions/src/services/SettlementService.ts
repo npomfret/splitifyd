@@ -245,7 +245,6 @@ export class SettlementService {
                     throw new ApiError(HTTP_STATUS.NOT_FOUND, 'SETTLEMENT_NOT_FOUND', 'Settlement not found');
                 }
 
-                const originalUpdatedAt = getUpdatedAtTimestamp(freshDoc.data());
                 const documentPath = `${FirestoreCollections.SETTLEMENTS}/${settlementId}`;
                 this.firestoreWriter.updateInTransaction(transaction, documentPath, {
                     ...updates,
