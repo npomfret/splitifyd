@@ -2,6 +2,7 @@ import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 import { simpleTest, expect } from '../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../pages';
 import { generateTestGroupName, randomString } from '@splitifyd/test-support';
+import { v4 as uuidv4 } from 'uuid';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 import { SettlementData } from '../../pages/settlement-form.page.ts';
 
@@ -308,5 +309,100 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Verify group still has the updated name and description
         await expect(groupDetailPage.getGroupTitle()).toHaveText(newGroupName);
         await expect(groupDetailPage.getGroupDescription()).toHaveText(newDescription);
+    });
+
+    simpleTest('should support real-time expense comments across multiple users', async ({ newLoggedInBrowser }) => {
+        // Create two browser instances - Alice and Bob
+        const { page: alicePage, user: alice, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+        const { page: bobPage, user: bob, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+
+        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+
+        // Create page objects
+        const bobGroupDetailPage = new GroupDetailPage(bobPage, bob);
+
+        // Alice creates a group and adds an expense
+        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('ExpenseComments'), 'Testing expense comments');
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Bob joins the group
+        const shareLink = await groupDetailPage.getShareLink();
+        const joinGroupPage = new JoinGroupPage(bobPage);
+        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+
+        // Synchronize both users
+        const allPages = [
+            { page: alicePage, groupDetailPage },
+            { page: bobPage, groupDetailPage: bobGroupDetailPage },
+        ];
+        await groupDetailPage.synchronizeMultiUserState(allPages, 2, groupId);
+
+        // Alice creates an expense
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        await expenseFormPage.submitExpense({
+            description: 'Test Expense for Comments',
+            amount: 50.0,
+            currency: 'USD',
+            paidByDisplayName: user1DisplayName,
+            splitType: 'equal',
+        });
+
+        // After submission, we should be back on the group page
+        await alicePage.waitForURL(new RegExp(`/groups/${groupId}$`), { timeout: 3000 });
+
+        // Click on the newly created expense to navigate to expense detail page
+        await groupDetailPage.clickExpenseToView('Test Expense for Comments');
+
+        // Wait for navigation to expense detail page
+        await alicePage.waitForURL(new RegExp(`/groups/${groupId}/expenses/[a-zA-Z0-9]+$`), { timeout: 3000 });
+
+        // Create the expense detail page object
+        const expenseDetailPage = new ExpenseDetailPage(alicePage, alice);
+
+        // Verify we're on the expense detail page
+        await expenseDetailPage.waitForPageReady();
+
+        // Get the expense URL to navigate Bob there
+        const expenseUrl = alicePage.url();
+        const expenseId = expenseUrl.match(/\/expenses\/([a-zA-Z0-9]+)$/)?.[1];
+        if (!expenseId) {
+            throw new Error(`Could not extract expense ID from URL: ${expenseUrl}`);
+        }
+
+        // Navigate Bob to the expense detail page
+        await bobPage.goto(expenseUrl);
+        const bobExpenseDetailPage = new ExpenseDetailPage(bobPage, bob);
+        await bobExpenseDetailPage.waitForPageReady();
+
+        // Verify comments section is available on both pages
+        await expenseDetailPage.verifyCommentsSection();
+        await bobExpenseDetailPage.verifyCommentsSection();
+
+        // Test real-time expense comments
+        const aliceExpenseComment = `comment ${uuidv4()}`;
+
+        // Alice adds comment to expense
+        await expenseDetailPage.addComment(aliceExpenseComment);
+
+        // Bob should see it in real-time
+        await bobExpenseDetailPage.waitForCommentToAppear(aliceExpenseComment);
+
+        // Bob adds a comment
+        const bobExpenseComment = `comment ${uuidv4()}`;
+        await bobExpenseDetailPage.addComment(bobExpenseComment);
+
+        // Alice should see Bob's comment
+        await expenseDetailPage.waitForCommentToAppear(bobExpenseComment);
+
+        // Both should see 2 comments
+        await expenseDetailPage.waitForCommentCount(2);
+        await bobExpenseDetailPage.waitForCommentCount(2);
+
+        // Verify comments are visible
+        await expect(expenseDetailPage.getCommentByText(aliceExpenseComment)).toBeVisible();
+        await expect(expenseDetailPage.getCommentByText(bobExpenseComment)).toBeVisible();
+        await expect(bobExpenseDetailPage.getCommentByText(aliceExpenseComment)).toBeVisible();
+        await expect(bobExpenseDetailPage.getCommentByText(bobExpenseComment)).toBeVisible();
     });
 });
