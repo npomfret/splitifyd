@@ -194,7 +194,8 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Verify User 1 sees the expense
         await expect(groupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
 
-        // Verify User 3 sees the expense in real-time
+        // Verify User 3 sees the expense in real-time - wait for it to appear
+        await user3GroupDetailPage.waitForExpense(expenseDescription);
         await expect(user3GroupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
         await user3GroupDetailPage.waitForBalancesToLoad(groupId);
 

@@ -391,10 +391,21 @@ export class GroupDetailPage extends BasePage {
         await this.waitForDomContentLoaded();
     }
 
+    async waitForPage(groupId:string, expectedMemberCount: number) {
+        const targetGroupUrl = `/groups/${groupId}`;
+        await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
+        await this.waitForMemberCount(expectedMemberCount);
+        await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
+        await this.waitForBalancesToLoad(groupId);
+        await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
+    }
+
+    async waitForExpense(expenseDescription: string) {
+        await this.page.waitForSelector(`text=${expenseDescription}`);
+    }
     /**
-     * Synchronize group state across multiple users by refreshing pages and waiting for updates.
-     * This replaces manual reload() calls scattered throughout multi-user tests.
-     * Auto-navigates users to the group page if they're not already there.
+     * @deprecated this is bullshit
+     * use waitForPage
      */
     async synchronizeMultiUserState(pages: Array<{ page: Page; groupDetailPage: any }>, expectedMemberCount: number, groupId: string): Promise<void> {
         const targetGroupUrl = `/groups/${groupId}`;
