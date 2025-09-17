@@ -22,15 +22,6 @@ export abstract class BasePage {
         return this._page;
     }
 
-    // Common element accessors
-    getHeading(name: string | RegExp) {
-        return this._page.getByRole('heading', { name });
-    }
-
-    getHeadingByLevel(level: number) {
-        return this._page.getByRole('heading', { level });
-    }
-
     /**
      * Wait for focus on an input element
      */
@@ -177,22 +168,6 @@ export abstract class BasePage {
 
         // Click the button
         await button.click();
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
-     * Expect URL to match pattern
-     */
-    async expectUrl(pattern: RegExp | string, timeout = 5000): Promise<void> {
-        await expect(this._page).toHaveURL(pattern, { timeout });
-    }
-
-    /**
-     * Navigation helpers with base URL handling
-     */
-    async navigateToPath(path: string, baseUrl = 'http://localhost:8005'): Promise<void> {
-        const url = path.startsWith('/') ? `${baseUrl}${path}` : `${baseUrl}/${path}`;
-        await this._page.goto(url);
         await this.waitForDomContentLoaded();
     }
 }

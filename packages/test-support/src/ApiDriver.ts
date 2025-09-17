@@ -329,10 +329,6 @@ export class ApiDriver {
         return await this.apiRequest(`/groups/${groupId}/members/${memberId}`, 'DELETE', null, token);
     }
 
-    async getPolicy(policyId: string): Promise<CurrentPolicyResponse> {
-        return await this.apiRequest(`/policies/${policyId}/current`, 'GET', null, null);
-    }
-
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
         return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
     }

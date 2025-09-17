@@ -45,26 +45,6 @@ export abstract class BasePage {
         return this._page.getByRole('heading', { level });
     }
 
-    getLink(name: string | RegExp) {
-        return this._page.getByRole('link', { name });
-    }
-
-    getButton(name: string | RegExp) {
-        return this._page.getByRole('button', { name });
-    }
-
-    getDialog() {
-        return this._page.getByRole('dialog');
-    }
-
-    getTextbox() {
-        return this._page.getByRole('textbox');
-    }
-
-    /**
-     * Waits for and validates that an element has focus.
-     * Useful for ensuring proper focus state before input operations.
-     */
     private async waitForFocus(input: Locator, timeout = 2000): Promise<void> {
         await expect(input).toBeFocused({ timeout });
     }
@@ -243,37 +223,6 @@ export abstract class BasePage {
     }
 
     /**
-     * Returns detailed information about the currently focused element.
-     * Useful for debugging focus behavior and keyboard navigation.
-     */
-    async getFocusedElement(): Promise<string> {
-        return await this._page.evaluate(() => {
-            const focused = document.activeElement;
-            if (!focused) return 'no element focused';
-            const el = focused as HTMLElement;
-            const placeholder = (focused as HTMLInputElement).placeholder || '';
-            return `${focused.tagName}${focused.id ? '#' + focused.id : ''}${focused.className ? '.' + focused.className.split(' ').join('.') : ''} - "${focused.textContent?.trim() || placeholder || el.getAttribute('aria-label') || ''}"`;
-        });
-    }
-
-    /**
-     * Clears browser storage (localStorage, sessionStorage, and cookies).
-     * Useful for ensuring clean test state and preventing interference between tests.
-     */
-    async clearStorage(): Promise<void> {
-        await this._page.evaluate(() => {
-            // Clear localStorage
-            localStorage.clear();
-            // Clear sessionStorage
-            sessionStorage.clear();
-        });
-
-        // Clear cookies
-        const context = this._page.context();
-        await context.clearCookies();
-    }
-
-    /**
      * Expects a button to be enabled before clicking.
      * Provides detailed error messages if the button is disabled.
      */
@@ -352,15 +301,6 @@ export abstract class BasePage {
     }
 
     /**
-     * Helper specifically for submit buttons with detailed validation error reporting.
-     * Use this before clicking submit buttons in forms.
-     */
-    async expectSubmitButtonEnabled(submitButton?: Locator): Promise<void> {
-        const button = submitButton || this._page.getByRole('button', { name: /submit|create|save|sign in|register/i });
-        await this.expectButtonEnabled(button, 'Submit');
-    }
-
-    /**
      * Click a dropdown button and ensure it opens properly.
      * Uses ARIA attributes to verify dropdown state instead of arbitrary timeouts.
      * @param dropdownButton - The dropdown trigger button
@@ -413,10 +353,6 @@ export abstract class BasePage {
         return this._page.locator('[data-testid="user-dropdown-menu"]');
     }
 
-    getSignOutButton() {
-        return this._page.locator('[data-testid="sign-out-button"]');
-    }
-
     getDashboardLink() {
         return this._page.locator('[data-testid="user-menu-dashboard-link"]');
     }
@@ -445,40 +381,6 @@ export abstract class BasePage {
             buttonName: 'User Menu',
             dropdownContent: dropdownMenu,
         });
-    }
-
-    /**
-     * Close the user menu dropdown if it's open.
-     */
-    async closeUserMenu(): Promise<void> {
-        const userMenuButton = this.getUserMenuButton();
-        const ariaExpanded = await userMenuButton.getAttribute('aria-expanded');
-
-        if (ariaExpanded === 'true') {
-            // Click outside to close the menu
-            await this._page.locator('body').click({ position: { x: 0, y: 0 } });
-
-            // Wait for menu to close
-            await expect(this.getUserDropdownMenu()).not.toBeVisible({ timeout: 1000 });
-        }
-    }
-
-    /**
-     * Navigate to dashboard using the user menu.
-     */
-    async navigateToDashboardViaMenu(): Promise<void> {
-        await this.openUserMenu();
-        await this.getDashboardLink().click();
-        await expect(this._page).toHaveURL(/\/dashboard/);
-    }
-
-    /**
-     * Navigate to settings using the user menu.
-     */
-    async navigateToSettingsViaMenu(): Promise<void> {
-        await this.openUserMenu();
-        await this.getSettingsLink().click();
-        await expect(this._page).toHaveURL(/\/settings/);
     }
 
     /**
@@ -577,11 +479,6 @@ export abstract class BasePage {
      * Navigation helper methods to replace direct page.goto() calls
      */
     async navigateToHomepage(): Promise<void> {
-        await this._page.goto(EMULATOR_URL);
-        await this.waitForDomContentLoaded();
-    }
-
-    async navigateToRoot(): Promise<void> {
         await this._page.goto(EMULATOR_URL);
         await this.waitForDomContentLoaded();
     }
