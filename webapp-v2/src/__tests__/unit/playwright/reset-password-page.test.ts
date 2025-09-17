@@ -179,11 +179,30 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         await fillFormField(page, emailSelector, testEmail);
         await page.click(SELECTORS.SUBMIT_BUTTON);
 
-        // Wait for form processing to complete (check for success or error feedback)
-        await expect(page.locator('[role="alert"], [data-testid*="success"], [data-testid*="error"], ' + SELECTORS.SUBMIT_BUTTON)).toBeVisible();
+        // Wait for form processing to complete by checking for feedback
+        // The Firebase mocking should have returned a success response
+        const feedbackElements = [
+            '[role="alert"]',
+            '[data-testid*="success"]',
+            '[data-testid*="error"]'
+        ];
+
+        let feedbackFound = false;
+        for (const selector of feedbackElements) {
+            const element = page.locator(selector);
+            if (await element.count() > 0) {
+                await expect(element.first()).toBeVisible();
+                feedbackFound = true;
+                break;
+            }
+        }
 
         // Verify the form submission was attempted (the Firebase API mocking infrastructure works)
         // Note: Full success state transition requires Firebase SDK integration which isn't fully supported in unit tests
+        if (!feedbackFound) {
+            // If no feedback elements are found, verify the submit button is still present
+            await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
+        }
 
         // Form should remain functional after submission attempt
         await expectElementVisible(page, emailSelector);

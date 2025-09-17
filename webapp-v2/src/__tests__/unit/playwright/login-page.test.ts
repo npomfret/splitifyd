@@ -87,8 +87,34 @@ test.describe('LoginPage - Behavioral Tests', () => {
     });
 
     test('should preserve returnUrl when navigating to register page', async ({ page }) => {
+        // Set up config mocking for this specific test
+        await page.route('**/api/config', (route) => {
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    firebase: {
+                        apiKey: 'test-api-key',
+                        authDomain: 'test-domain.com',
+                        projectId: 'test-project',
+                        storageBucket: 'test-bucket',
+                        messagingSenderId: '123456789',
+                        appId: 'test-app-id',
+                    },
+                }),
+            });
+        });
+
         // Navigate to login with returnUrl (override beforeEach)
         await page.goto('/login?returnUrl=%2Fexpenses%2F789');
+        await page.waitForLoadState('networkidle');
+
+        // Wait for essential form elements to be visible
+        await expectElementVisible(page, SELECTORS.EMAIL_INPUT);
+        await expectElementVisible(page, SELECTORS.SUBMIT_BUTTON);
+
+        // Wait for signup button to be visible with a longer timeout
+        await page.waitForSelector(SELECTORS.SIGNUP_BUTTON, { timeout: 10000 });
 
         // Click sign up button
         await page.click(SELECTORS.SIGNUP_BUTTON);
