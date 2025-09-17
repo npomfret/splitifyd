@@ -8,8 +8,10 @@ import { CreateGroupModalPage, DashboardPage, RegisterPage } from '../../pages';
 /**
  * Authentication and Registration E2E Tests
  *
- * Note: Basic form validation (login/register form field validation, submit button states,
- * password matching) is tested in form-validation-comprehensive.e2e.test.ts
+ * IMPORTANT: This file covers different scenarios than other policy/validation tests:
+ * - Basic form validation (login/register fields) → form-validation-comprehensive.e2e.test.ts
+ * - Policy update modal (existing users) → policy-update-acceptance.e2e.test.ts
+ * - Registration policy checkboxes → THIS FILE (lines 367-500) - tests initial registration flow
  *
  * This file focuses on:
  * - Authentication security and redirects

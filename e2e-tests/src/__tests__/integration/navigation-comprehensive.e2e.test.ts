@@ -43,24 +43,6 @@ test.describe('Comprehensive Navigation E2E', () => {
         await expect(page).toHaveURL(EMULATOR_URL);
     });
 
-    test('should navigate to static pages from footer', async ({ newEmptyBrowser }) => {
-        const { page } = await newEmptyBrowser();
-        const loginPage = new LoginPage(page);
-        const homepagePage = new HomepagePage(page);
-        await loginPage.navigate();
-
-        // Navigate to Terms
-        await homepagePage.getTermsLink().click();
-        await expect(page).toHaveURL(/\/terms/);
-
-        // Navigate back to login
-        await loginPage.navigate();
-
-        // Navigate to Privacy
-        await homepagePage.getPrivacyLink().click();
-        await expect(page).toHaveURL(/\/privacy/);
-    });
-
     test('should verify footer links exist on homepage', async ({ newEmptyBrowser }) => {
         const { page } = await newEmptyBrowser();
         const homepagePage = new HomepagePage(page);

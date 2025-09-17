@@ -1,4 +1,4 @@
-import { simpleTest } from '../../fixtures';
+import { simpleTest, expect } from '../../fixtures';
 import { HomepagePage } from '../../pages';
 import { waitForApp } from '../../helpers';
 
@@ -111,4 +111,25 @@ simpleTest.describe('Policy Pages E2E', () => {
                 .waitFor();
         },
     );
+
+    simpleTest('should navigate to policy pages from footer links', async ({ newEmptyBrowser }) => {
+        const { page } = await newEmptyBrowser();
+        const homepagePage = new HomepagePage(page);
+
+        // Start from login page to access footer
+        await page.goto('/login');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Navigate to Terms
+        await homepagePage.getTermsLink().click();
+        await expect(page).toHaveURL(/\/terms/);
+
+        // Navigate back to login
+        await page.goto('/login');
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Navigate to Privacy
+        await homepagePage.getPrivacyLink().click();
+        await expect(page).toHaveURL(/\/privacy/);
+    });
 });

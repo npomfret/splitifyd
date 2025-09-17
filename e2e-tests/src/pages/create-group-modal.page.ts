@@ -1,9 +1,9 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { SELECTORS, ARIA_ROLES } from '../constants/selectors';
-import { TIMEOUTS } from '../config/timeouts';
-import { PooledTestUser } from '@splitifyd/shared';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ARIA_ROLES, SELECTORS} from '../constants/selectors';
+import {TIMEOUTS} from '../config/timeouts';
+import {PooledTestUser} from '@splitifyd/shared';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with {type: 'json'};
 
 export class CreateGroupModalPage extends BasePage {
     readonly modalTitle = translationEn.createGroupModal.title;
@@ -29,12 +29,7 @@ export class CreateGroupModalPage extends BasePage {
         await this.page.getByRole('heading', { name: this.modalTitle }).waitFor({ state: 'visible' });
 
         // Fill name input - get fresh locator each time to avoid DOM detachment issues
-        const nameInput = this.getGroupNameInput();
-        await nameInput.waitFor({ state: 'visible', timeout: 2000 }).catch(() => {
-            throw new Error(`Group name input field not found in modal. Modal may not have rendered properly.`);
-        });
-        await expect(nameInput).toBeEnabled({ timeout: 2000 });
-        await this.fillPreactInput(nameInput, name);
+        await this.fillPreactInput(this.getGroupNameInput(), name);
 
         // Fill description input if provided - get fresh locator to avoid DOM detachment issues
         if (description) {
