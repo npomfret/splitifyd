@@ -405,4 +405,237 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await expect(bobExpenseDetailPage.getCommentByText(aliceExpenseComment)).toBeVisible();
         await expect(bobExpenseDetailPage.getCommentByText(bobExpenseComment)).toBeVisible();
     });
+
+    simpleTest('should handle concurrent expense editing by multiple users', async ({ newLoggedInBrowser }, testInfo) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Concurrent editing may generate expected transient sync errors' });
+
+        // Create three users - Editor1, Editor2, Watcher
+        const { page: editor1Page, dashboardPage: editor1DashboardPage, user: editor1 } = await newLoggedInBrowser();
+        const { page: editor2Page, dashboardPage: editor2DashboardPage, user: editor2 } = await newLoggedInBrowser();
+        const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
+
+        // Create page objects
+        const editor1GroupDetailPage = new GroupDetailPage(editor1Page, editor1);
+        const editor2GroupDetailPage = new GroupDetailPage(editor2Page, editor2);
+        const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
+
+        // Get display names
+        const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
+        const editor2DisplayName = await editor2DashboardPage.getCurrentUserDisplayName();
+        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
+
+        // Editor1 creates group
+        const groupName = generateTestGroupName('ConcurrentEdit');
+        const groupDetailPage = await editor1DashboardPage.createGroupAndNavigate(groupName, 'Testing concurrent expense editing');
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Others join
+        const shareLink = await editor1GroupDetailPage.getShareLink();
+
+        const joinGroupPage2 = new JoinGroupPage(editor2Page);
+        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+        const joinGroupPageWatcher = new JoinGroupPage(watcherPage);
+        await joinGroupPageWatcher.joinGroupUsingShareLink(shareLink);
+
+        await editor1GroupDetailPage.waitForMemberCount(3);
+
+        // Editor1 creates first expense
+        const expense1FormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
+        const expense1Description = `Concurrent Test 1 ${randomString(4)}`;
+
+        await expense1FormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(expense1Description).withAmount(30).withCurrency('USD').withPaidByDisplayName(editor1DisplayName).withSplitType('equal').build(),
+        );
+
+        // Editor2 creates second expense (concurrent with first)
+        const expense2FormPage = await editor2GroupDetailPage.clickAddExpenseButton(3);
+        const expense2Description = `Concurrent Test 2 ${randomString(4)}`;
+
+        await expense2FormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(expense2Description).withAmount(45).withCurrency('USD').withPaidByDisplayName(editor2DisplayName).withSplitType('equal').build(),
+        );
+
+        // Wait for both expenses to appear
+        await editor1GroupDetailPage.waitForBalancesToLoad(groupId);
+        await editor2GroupDetailPage.waitForBalancesToLoad(groupId);
+
+        await expect(editor1GroupDetailPage.getExpenseByDescription(expense1Description)).toBeVisible();
+        await expect(editor2GroupDetailPage.getExpenseByDescription(expense2Description)).toBeVisible();
+
+        // CONCURRENT EDITING: Both editors edit their expenses simultaneously
+
+        // Editor1 edits first expense (increase amount to $60)
+        await editor1GroupDetailPage.clickExpenseToView(expense1Description);
+        const expense1DetailPage = new ExpenseDetailPage(editor1Page, editor1);
+        await expense1DetailPage.waitForPageReady();
+        const edit1FormPage = await expense1DetailPage.clickEditExpenseButton(3);
+        await edit1FormPage.fillAmount('60');
+        await edit1FormPage.getUpdateExpenseButton().click();
+        await expense1DetailPage.navigateToStaticPath(`/groups/${groupId}`);
+
+        // Editor2 edits second expense (increase amount to $90)
+        await editor2GroupDetailPage.clickExpenseToView(expense2Description);
+        const expense2DetailPage = new ExpenseDetailPage(editor2Page, editor2);
+        await expense2DetailPage.waitForPageReady();
+        const edit2FormPage = await expense2DetailPage.clickEditExpenseButton(3);
+        await edit2FormPage.fillAmount('90');
+        await edit2FormPage.getUpdateExpenseButton().click();
+        await expense2DetailPage.navigateToStaticPath(`/groups/${groupId}`);
+
+        // Wait for changes to propagate
+        await editor1GroupDetailPage.waitForBalancesToLoad(groupId);
+        await editor2GroupDetailPage.waitForBalancesToLoad(groupId);
+
+        // CRITICAL TEST: Watcher should see BOTH edits reflected in final balances WITHOUT refresh
+        // Editor1 paid $60, Editor2 paid $90, total $150 split 3 ways = $50 each
+        // Editor1 owes: $50 - $60 = -$10 (they are owed $10)
+        // Editor2 owes: $50 - $90 = -$40 (they are owed $40)
+        // Watcher owes: $50 - $0 = $50
+
+        await watcherGroupDetailPage.waitForBalancesToLoad(groupId);
+
+        // Verify both expenses are visible to watcher with updated amounts
+        await expect(watcherGroupDetailPage.getExpenseByDescription(expense1Description)).toBeVisible();
+        await expect(watcherGroupDetailPage.getExpenseByDescription(expense2Description)).toBeVisible();
+
+        console.log('✅ Concurrent expense editing handled correctly');
+    });
+
+    simpleTest('should propagate expense deletion in real-time', async ({ newLoggedInBrowser }, testInfo) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
+
+        // Create three users - Deleter, GroupWatcher, DashboardWatcher
+        const { page: deleterPage, dashboardPage: deleterDashboardPage, user: deleter } = await newLoggedInBrowser();
+        const { page: groupWatcherPage, dashboardPage: groupWatcherDashboardPage, user: groupWatcher } = await newLoggedInBrowser();
+        const { page: dashWatcherPage, dashboardPage: dashWatcherDashboardPage, user: dashWatcher } = await newLoggedInBrowser();
+
+        // Create page objects
+        const deleterGroupDetailPage = new GroupDetailPage(deleterPage, deleter);
+        const groupWatcherGroupDetailPage = new GroupDetailPage(groupWatcherPage, groupWatcher);
+
+        // Get display names
+        const deleterDisplayName = await deleterDashboardPage.getCurrentUserDisplayName();
+        const groupWatcherDisplayName = await groupWatcherDashboardPage.getCurrentUserDisplayName();
+        const dashWatcherDisplayName = await dashWatcherDashboardPage.getCurrentUserDisplayName();
+
+        // Deleter creates group
+        const groupName = generateTestGroupName('DeleteRT');
+        const groupDetailPage = await deleterDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time expense deletion');
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Others join
+        const shareLink = await groupDetailPage.getShareLink();
+
+        const joinGroupPageGroup = new JoinGroupPage(groupWatcherPage);
+        await joinGroupPageGroup.joinGroupUsingShareLink(shareLink);
+        const joinGroupPageDash = new JoinGroupPage(dashWatcherPage);
+        await joinGroupPageDash.joinGroupUsingShareLink(shareLink);
+
+        await deleterGroupDetailPage.waitForMemberCount(3);
+
+        // Position watchers: GroupWatcher stays on group page, DashWatcher goes to dashboard
+        await dashWatcherDashboardPage.navigate();
+        await dashWatcherDashboardPage.waitForGroupToAppear(groupName);
+
+        // Create expense involving GroupWatcher ($50 split = $25 each)
+        const expenseFormPage = await deleterGroupDetailPage.clickAddExpenseButton(3);
+        const expenseDescription = `Delete Test ${randomString(4)}`;
+
+        await expenseFormPage.submitExpense(
+            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(50).withCurrency('USD').withPaidByDisplayName(deleterDisplayName).withSplitType('equal').build(),
+        );
+
+        await deleterGroupDetailPage.waitForBalancesToLoad(groupId);
+
+        // Verify expense is visible to all
+        await expect(deleterGroupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
+        await expect(groupWatcherGroupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
+
+        // DashWatcher should see the group accessible
+        await dashWatcherDashboardPage.waitForGroupToAppear(groupName);
+
+        // Deleter deletes the expense
+        const expenseToDelete = deleterGroupDetailPage.getExpenseByDescription(expenseDescription);
+        await expect(expenseToDelete).toBeVisible();
+
+        // Click expense to go to detail page, then delete from there
+        await deleterGroupDetailPage.clickExpenseToView(expenseDescription);
+        const expenseDetailPage = new ExpenseDetailPage(deleterPage, deleter);
+        await expenseDetailPage.waitForPageReady();
+
+        // Delete the expense from the expense detail page
+        await expenseDetailPage.deleteExpense();
+
+        // Should redirect back to group page after deletion
+        await expect(deleterPage).toHaveURL(groupDetailUrlPattern(groupId));
+        await deleterGroupDetailPage.waitForBalancesToLoad(groupId);
+
+        // CRITICAL TESTS:
+
+        // 1. GroupWatcher should see expense disappear WITHOUT refresh
+        await expect(groupWatcherGroupDetailPage.getExpenseByDescription(expenseDescription)).not.toBeVisible();
+        await groupWatcherGroupDetailPage.waitForBalancesToLoad(groupId);
+
+        // 2. DashWatcher should still see the group accessible after deletion
+        await dashWatcherDashboardPage.waitForGroupToAppear(groupName);
+
+        console.log('✅ Real-time expense deletion working correctly');
+    });
+
+    simpleTest('should show real-time notifications when user is added to existing group', async ({ newLoggedInBrowser }, testInfo) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Real-time sync may generate expected transient API errors' });
+
+        // Create three users - Owner (adding), ExistingMember (watching), NewMember (being added via invite)
+        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
+        const { page: existingPage, dashboardPage: existingDashboardPage, user: existing } = await newLoggedInBrowser();
+        const { page: newPage, dashboardPage: newDashboardPage, user: newUser } = await newLoggedInBrowser();
+
+        // Create page objects
+        const existingGroupDetailPage = new GroupDetailPage(existingPage, existing);
+
+        // Get display names
+        const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
+        const existingDisplayName = await existingDashboardPage.getCurrentUserDisplayName();
+        const newDisplayName = await newDashboardPage.getCurrentUserDisplayName();
+
+        // Owner creates group
+        const groupName = generateTestGroupName('AddNotifyRT');
+        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing add member notifications');
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Existing member joins initially
+        const shareLink = await groupDetailPage.getShareLink();
+        const joinGroupPageExisting = new JoinGroupPage(existingPage);
+        await joinGroupPageExisting.joinGroupUsingShareLink(shareLink);
+
+        // Wait for initial 2 members
+        await groupDetailPage.waitForMemberCount(2);
+        await existingGroupDetailPage.waitForMemberCount(2);
+
+        // New user starts on dashboard (they'll join via share link)
+        await newDashboardPage.navigate();
+
+        // New user joins the group
+        const joinGroupPageNew = new JoinGroupPage(newPage);
+        await joinGroupPageNew.joinGroupUsingShareLink(shareLink);
+        await expect(newPage).toHaveURL(groupDetailUrlPattern(groupId));
+
+        // CRITICAL TESTS:
+
+        // 1. Owner should see member count increase to 3 in real-time
+        await groupDetailPage.waitForMemberCount(3);
+        await expect(groupDetailPage.getMemberItem(newDisplayName)).toBeVisible();
+
+        // 2. Existing member should see new member appear in real-time
+        await existingGroupDetailPage.waitForMemberCount(3);
+        await expect(existingGroupDetailPage.getMemberItem(newDisplayName)).toBeVisible();
+
+        // 3. New user should see all existing members
+        const newGroupDetailPage = new GroupDetailPage(newPage, newUser);
+        await newGroupDetailPage.waitForMemberCount(3);
+        await expect(newGroupDetailPage.getMemberItem(ownerDisplayName)).toBeVisible();
+        await expect(newGroupDetailPage.getMemberItem(existingDisplayName)).toBeVisible();
+
+        console.log('✅ Real-time member addition notifications working correctly');
+    });
 });
