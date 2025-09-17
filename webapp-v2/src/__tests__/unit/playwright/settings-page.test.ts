@@ -24,20 +24,6 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
         ]
     };
 
-    async function mockGroupAPI(page: any) {
-        // Mock groups list API
-        await page.route('**/api/groups', (route: any) => {
-            if (route.request().method() === 'GET') {
-                route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify([mockGroupData]),
-                });
-            } else {
-                route.continue();
-            }
-        });
-    }
     test.describe('Unauthenticated Access', () => {
         test.beforeEach(async ({ page }) => {
             await setupTestPage(page, '/settings');

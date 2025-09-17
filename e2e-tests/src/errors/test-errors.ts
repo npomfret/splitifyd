@@ -66,7 +66,7 @@ export class ProxiedMethodError extends E2ETestError {
         let detailedMessage = `${operation} failed: ${message}`;
 
         if (context.pageState) {
-            const { visibleErrors, dialogOpen, loadingIndicators, url } = context.pageState;
+            const { visibleErrors, dialogOpen, loadingIndicators } = context.pageState;
 
             if (visibleErrors?.length > 0) {
                 detailedMessage += `\nPage errors: ${visibleErrors.join(', ')}`;

@@ -67,9 +67,6 @@ test.describe('TermsOfServicePage - Behavioral Tests', () => {
 
         await page.reload();
 
-        // Should show loading spinner initially (but only check briefly since it disappears quickly)
-        const loadingSpinner = page.locator('.animate-spin');
-
         // Just verify the spinner appears and content eventually loads
         await page.waitForLoadState('networkidle');
 

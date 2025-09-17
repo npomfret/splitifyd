@@ -12,12 +12,6 @@ interface ExpenseOptions {
     fresh?: boolean;
 }
 
-interface ExpenseCacheKey {
-    groupId: string;
-    payerId: string;
-    participantCount: number;
-}
-
 export class TestExpenseManager {
     private static expenseCache: Map<string, Promise<any>> = new Map();
     private static apiDriver = new ApiDriver();
@@ -27,7 +21,7 @@ export class TestExpenseManager {
     }
 
     public static async getOrCreateExpense(group: Group, users: UserToken[], payer: UserToken, options: ExpenseOptions = {}): Promise<any> {
-        const { amount = 50.0, description, category = 'food', fresh = false } = options;
+        const { fresh = false } = options;
 
         if (fresh) {
             return this.createFreshExpense(group, users, payer, options);

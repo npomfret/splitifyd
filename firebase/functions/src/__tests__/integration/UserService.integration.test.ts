@@ -8,7 +8,6 @@ import { ApplicationBuilder } from '../../services/ApplicationBuilder';
 describe('UserService - Integration Tests', () => {
     const firestore = getFirestore();
     const applicationBuilder = new ApplicationBuilder(firestore);
-    const groupService = applicationBuilder.buildGroupService();
     const firestoreReader = applicationBuilder.buildFirestoreReader();
     const userService = applicationBuilder.buildUserService();
 
@@ -412,7 +411,7 @@ describe('UserService - Integration Tests', () => {
             const otherUser = await borrowTestUser();
 
             // Create a group with the user
-            const group = await apiDriver.createGroupWithMembers('Test Group for Deletion', [userInGroup, otherUser], userInGroup.token);
+            await apiDriver.createGroupWithMembers('Test Group for Deletion', [userInGroup, otherUser], userInGroup.token);
 
             // Try to delete user who is in a group
             await expect(

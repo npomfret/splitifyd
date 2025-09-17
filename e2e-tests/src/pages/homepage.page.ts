@@ -51,11 +51,4 @@ export class HomepagePage extends BasePage {
         // Use the test ID added to the logo button
         return this.page.getByTestId('header-logo-link');
     }
-
-    // Footer element
-    getFooter() {
-        return this.page.locator('footer');
-    }
-
-    // Additional element accessors for test refactoring
 }

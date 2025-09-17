@@ -10,7 +10,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
 
         // Use cached group for better performance
-        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
         const groupDetailPage = new GroupDetailPage(page, user);
 
         // Balance section should show "All settled up!" for empty group

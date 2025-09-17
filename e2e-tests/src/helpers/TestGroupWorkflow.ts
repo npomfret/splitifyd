@@ -8,11 +8,6 @@ interface GroupOptions {
     memberCount?: number;
 }
 
-interface GroupCacheKey {
-    userEmail: string;
-    memberCount: number;
-}
-
 /**
  * E2E Test group manager that provides cached group access for improved test performance.
  * Similar to Firebase TestGroupManager but designed for E2E browser automation.

@@ -127,16 +127,6 @@ async function mockGroupsAPI(page: any, groups: readonly any[] = DASHBOARD_TEST_
     });
 }
 
-/**
- * Helper to verify dashboard page structure is properly loaded
- */
-async function verifyDashboardStructure(page: any): Promise<void> {
-    // Use .first() to avoid strict mode violations when multiple main elements exist
-    await expect(page.locator(DASHBOARD_SELECTORS.MAIN_CONTENT).first()).toBeVisible();
-    await expectElementVisible(page, DASHBOARD_SELECTORS.GROUPS_SECTION_TITLE);
-    await expectElementVisible(page, DASHBOARD_SELECTORS.GROUPS_CONTAINER);
-}
-
 test.describe('DashboardPage - Behavioral Tests', () => {
     test.beforeEach(async ({ page }) => {
         await setupTestPage(page, '/dashboard');

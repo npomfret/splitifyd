@@ -10,9 +10,4 @@ export class PricingPage extends BasePage {
     async navigate() {
         await this.navigateToPricing();
     }
-
-    // Get heading with specific level
-    getHeadingWithLevel(text: string, level: number) {
-        return this.page.getByRole('heading', { name: text, level });
-    }
 }
