@@ -43,7 +43,6 @@ describe('GroupMemberService', () => {
             mockFirestoreReader,
             {} as any, // mockFirestoreWriter
             mockUserService as any,
-            mockNotificationService as any,
         );
     });
 

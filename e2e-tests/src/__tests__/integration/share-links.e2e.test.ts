@@ -30,7 +30,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
             // Verify user2 is now in the group
             await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
-            const groupDetailPage2 = new GroupDetailPage(page2, user2);
+            const groupDetailPage2 = new GroupDetailPage(page2);
             await groupDetailPage2.waitForMemberCount(2);
 
             // Both users should be visible

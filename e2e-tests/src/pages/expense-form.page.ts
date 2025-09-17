@@ -221,6 +221,10 @@ export class ExpenseFormPage extends BasePage {
         return this.page.getByRole('button', { name: /update expense/i });
     }
 
+    async clickUpdateExpenseButton() {
+        await this.getUpdateExpenseButton().click()
+    }
+
     // Split type controls
     getExactAmountsText(): Locator {
         return this.page.getByText('Exact amounts');
@@ -241,6 +245,48 @@ export class ExpenseFormPage extends BasePage {
 
     async selectAllParticipants(): Promise<void> {
         await this.getSelectAllButton().click();
+    }
+
+    async selectSpecificParticipants(participants: string[]): Promise<void> {
+        // Wait for participant selector and get all labels
+        const allLabels = this.page.locator('[data-testid="participant-selector-grid"]').locator('label');
+        await allLabels.first().waitFor();
+
+        // Collect all available participant labels for better error messages
+        const count = await allLabels.count();
+        const availableParticipants: string[] = [];
+        const foundParticipants: string[] = [];
+
+        for (let i = 0; i < count; i++) {
+            const label = allLabels.nth(i);
+            const checkbox = label.locator('input[type="checkbox"]');
+            const text = await label.textContent();
+
+            if (text) {
+                availableParticipants.push(text.trim());
+            }
+
+            const shouldBeChecked = participants.some(p => text?.includes(p));
+            if (shouldBeChecked && text) {
+                foundParticipants.push(text.trim());
+            }
+
+            const isChecked = await checkbox.isChecked();
+
+            if (shouldBeChecked !== isChecked) {
+                await label.click();
+                await expect(checkbox).toBeChecked({ checked: shouldBeChecked });
+            }
+        }
+
+        // Verify all requested participants were found
+        const unfoundParticipants = participants.filter(p =>
+            !availableParticipants.some(available => available.includes(p))
+        );
+
+        if (unfoundParticipants.length > 0) {
+            throw new Error(`Could not find participants: ${unfoundParticipants.join(', ')}. Available participants: ${availableParticipants.join(', ')}`);
+        }
     }
 
     /**
@@ -377,10 +423,15 @@ export class ExpenseFormPage extends BasePage {
         // Select who paid - handle both UID and display name
         await this.selectPayer(expense.paidByDisplayName);
 
-        // Handle split type
+        // Handle split type and participants
         if (expense.splitType === 'equal') {
-            // For equal split, click "Select all" to ensure all members are selected
-            await this.selectAllParticipants();
+            if (expense.participants && expense.participants.length > 0) {
+                // If specific participants are provided, select only those
+                await this.selectSpecificParticipants(expense.participants);
+            } else {
+                // For equal split, click "Select all" to ensure all members are selected
+                await this.selectAllParticipants();
+            }
         } else if (expense.splitType === 'exact') {
             // Switch to exact amounts
             await this.switchToExactAmounts();

@@ -147,6 +147,20 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
+     * Click the back button to navigate to the group detail page
+     */
+    async clickBackButton(): Promise<void> {
+        // Find the back button with "← Back" text
+        const backButton = this.page.getByRole('button', { name: /← Back/i });
+        await expect(backButton).toBeVisible();
+        await this.clickButton(backButton, { buttonName: 'Back' });
+
+        // Wait for navigation back to group detail page
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+$/);
+        await this.waitForDomContentLoaded();
+    }
+
+    /**
      * Delete the expense via the ExpenseActions component
      */
     async deleteExpense(): Promise<void> {
@@ -172,5 +186,20 @@ export class ExpenseDetailPage extends BasePage {
 
         // The ExpenseDetailPage should redirect back to the group page after successful deletion
         // We'll let the test verify the URL change rather than asserting it here
+    }
+
+    /**
+     * Get expense by description text (targets the main heading)
+     */
+    getExpenseByDescription(description: string): Locator {
+        return this.page.getByRole('heading', { name: new RegExp(description, 'i') });
+    }
+
+    /**
+     * Get currency amount element (targets the main amount heading)
+     */
+    getCurrencyAmount(amount: string): Locator {
+        // Target the h2 heading that contains just the amount
+        return this.page.getByRole('heading', { name: `$${amount}`, exact: true });
     }
 }

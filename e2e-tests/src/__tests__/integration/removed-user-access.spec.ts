@@ -13,7 +13,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         const { page: user2Page, user: user2 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
+        const groupDetailPage2 = new GroupDetailPage(user2Page);
 
         // Verify both users start on dashboard
         await expect(user1Page).toHaveURL(/\/dashboard/);
@@ -76,7 +76,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
 
         // Create page objects
-        const memberGroupDetailPage = new GroupDetailPage(memberPage, memberUser);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage);
         const memberDashboardPage = new DashboardPage(memberPage, memberUser);
 
         // Create group with unique identifier
@@ -139,7 +139,7 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Both users navigate to their dashboards to see the group
         const ownerDashboard = await createdGroupPage.navigateToDashboard();
-        const memberDashboard = await new GroupDetailPage(memberPage, memberUser).navigateToDashboard();
+        const memberDashboard = await new GroupDetailPage(memberPage).navigateToDashboard();
 
         // Verify both users can see the group on their dashboards
         await ownerDashboard.waitForGroupToAppear(groupName);

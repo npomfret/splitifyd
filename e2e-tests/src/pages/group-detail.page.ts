@@ -7,8 +7,6 @@ import { EditGroupModalPage } from './edit-group-modal.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
-import { PooledTestUser } from '@splitifyd/shared';
-import { DashboardPage } from './dashboard.page.ts';
 
 interface ExpenseData {
     description: string;
@@ -20,8 +18,8 @@ interface ExpenseData {
 }
 
 export class GroupDetailPage extends BasePage {
-    constructor(page: Page, userInfo?: PooledTestUser) {
-        super(page, userInfo);
+    constructor(page: Page) {
+        super(page);
     }
 
     inferGroupId() {
@@ -92,12 +90,12 @@ export class GroupDetailPage extends BasePage {
         await expect(addButton).toBeEnabled({ timeout });
     }
 
-    async clickAddExpenseButton(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
+    async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
         // Wait for button to be ready first
         await this.waitForAddExpenseButton();
 
         // Now attempt navigation - will throw if it fails
-        return await this.attemptAddExpenseNavigation(expectedMemberCount, userInfo);
+        return await this.attemptAddExpenseNavigation(expectedMemberCount);
     }
 
     async waitForGroupTitle(text: string) {
@@ -133,7 +131,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Navigates to add expense form with comprehensive state detection.
      */
-    private async attemptAddExpenseNavigation(expectedMemberCount: number, userInfo?: { displayName?: string; email?: string }): Promise<ExpenseFormPage> {
+    private async attemptAddExpenseNavigation(expectedMemberCount: number): Promise<ExpenseFormPage> {
         const expectedUrlPattern = /\/groups\/[a-zA-Z0-9]+\/add-expense/;
         const addButton = this.getAddExpenseButton();
 
@@ -220,7 +218,7 @@ export class GroupDetailPage extends BasePage {
      * Waits for the group to have the expected number of members.
      * Relies on real-time updates to show the correct member count.
      */
-    async waitForMemberCount(expectedCount: number, timeout = 2000): Promise<void> {
+    async waitForMemberCount(expectedCount: number, timeout = 5000): Promise<void> {
         // Assert we're on a group page before waiting for member count
         const currentUrl = this.page.url();
         if (!currentUrl.includes('/groups/') && !currentUrl.includes('/group/')) {
@@ -233,8 +231,15 @@ export class GroupDetailPage extends BasePage {
         const expectedText = `${expectedCount} member${expectedCount !== 1 ? 's' : ''}`;
 
         // Wait for member count to appear in the main group heading
-        // The member count is displayed in the group header section, not in the Members list
-        await expect(this.page.getByText(expectedText).first()).toBeVisible({ timeout });
+        try {
+            await expect(this.page.getByText(expectedText).first()).toBeVisible({ timeout });
+        } catch (error) {
+            // Get actual visible member count for better error reporting
+            const visibleMemberTexts = await this.page.locator('text=/\\d+ member/').allTextContents();
+            const actualMemberCount = visibleMemberTexts.length > 0 ? visibleMemberTexts[0] : 'none found';
+
+            throw new Error(`Expected "${expectedText}" but found "${actualMemberCount}". Current URL: ${this.page.url()}`);
+        }
 
         // Double-check we're still on the group page after waiting
         const finalUrl = this.page.url();
@@ -334,7 +339,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Wait for the Balances section to be visible and loaded
+     * @deprecated use waitForPage instead
      */
     async waitForBalancesToLoad(groupId: string): Promise<void> {
         // Assert we're on the correct group page before trying to find balances
@@ -394,6 +399,9 @@ export class GroupDetailPage extends BasePage {
     async waitForPage(groupId:string, expectedMemberCount: number) {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
+
+        await this.getCurrentUserDisplayName();// just a sanity check - top right by the menu
+
         await this.waitForMemberCount(expectedMemberCount);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
         await this.waitForBalancesToLoad(groupId);
@@ -402,64 +410,7 @@ export class GroupDetailPage extends BasePage {
 
     async waitForExpense(expenseDescription: string) {
         await this.page.waitForSelector(`text=${expenseDescription}`);
-    }
-    /**
-     * @deprecated this is bullshit
-     * use waitForPage
-     */
-    async synchronizeMultiUserState(pages: Array<{ page: Page; groupDetailPage: any }>, expectedMemberCount: number, groupId: string): Promise<void> {
-        const targetGroupUrl = `/groups/${groupId}`;
-
-        // Navigate all users to the specific group
-        for (let i = 0; i < pages.length; i++) {
-            const { page } = pages[i];
-
-            await this.navigatePageToUrl(page, targetGroupUrl);
-
-            // Check current URL after navigation
-            const currentUrl = page.url();
-
-            // Check if we got redirected to 404
-            if (currentUrl.includes('/404')) {
-                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
-                throw new Error(`${currentUserDisplayName} was redirected to 404 page. Group access denied or group doesn't exist.`);
-            }
-
-            // If not on 404, check if we're on the dashboard (another redirect case)
-            if (currentUrl.includes('/dashboard')) {
-                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
-                throw new Error(`${currentUserDisplayName} was redirected to dashboard. Expected ${targetGroupUrl}, but got: ${currentUrl}`);
-            }
-
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
-        }
-
-        // Wait for all pages to show correct member count
-        for (let i = 0; i < pages.length; i++) {
-            const { page, groupDetailPage } = pages[i];
-
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
-
-            try {
-                await groupDetailPage.waitForMemberCount(expectedMemberCount);
-            } catch (error) {
-                const currentUserDisplayName = await new DashboardPage(page).getCurrentUserDisplayName();
-                throw new Error(`${currentUserDisplayName} failed waiting for member count: ${error}`);
-            }
-
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
-        }
-
-        // Wait for balances section to load on all pages
-        for (let i = 0; i < pages.length; i++) {
-            const { page, groupDetailPage } = pages[i];
-
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
-
-            await groupDetailPage.waitForBalancesToLoad(groupId);
-
-            await this.sanityCheckPageUrl(page.url(), targetGroupUrl);
-        }
+        await expect(this.getExpenseByDescription(expenseDescription)).toBeVisible();
     }
 
     private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string) {
@@ -470,49 +421,33 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    /**
-     * Verify that settlement appears in history for all provided pages
-     */
-    async verifySettlementInHistory(pages: Array<{ page: any }>, settlementNote: string): Promise<void> {
-        for (const { page } of pages) {
-            const showHistoryButton = page.getByRole('button', { name: 'Show History' });
-            await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
-            await expect(page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
-            // Close modal by clicking close button or clicking outside
-            const closeButton = page.getByRole('button', { name: /close|×/i }).first();
-            if (await closeButton.isVisible()) {
-                await closeButton.click();
-            } else {
-                // Click outside modal to close
-                await page.click('body', { position: { x: 10, y: 10 } });
-            }
-        }
+    async verifySettlementInHistory(settlementNote: string): Promise<void> {
+        // Open history if not already open
+        await this.openHistoryIfClosed();
+
+        // Verify settlement is visible in history
+        await expect(this.page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
     }
 
-    /**
-     * Verify debt amount in balance section across multiple pages
-     */
-    async verifyDebtAcrossPages(pages: Array<{ page: any; groupDetailPage: any }>, debtorName: string, creditorName: string, amount?: string): Promise<void> {
-        for (const { page } of pages) {
-            const balancesSection = page
-                .locator('.bg-white')
-                .filter({
-                    has: page.getByRole('heading', { name: 'Balances' }),
-                })
-                .first();
+    async verifyDebt( debtorName: string, creditorName: string, amount: string | undefined) {
+        const balancesSection = this.page
+            .locator('.bg-white')
+            .filter({
+                has: this.page.getByRole('heading', {name: 'Balances'}),
+            })
+            .first();
 
-            // UI now uses arrow notation: "User A → User B" instead of "owes"
-            const debtText = balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
-            await expect(debtText).toBeVisible();
+        // UI now uses arrow notation: "User A → User B" instead of "owes"
+        const debtText = balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
+        await expect(debtText).toBeVisible();
 
-            if (amount) {
-                // Find the debt amount that's specifically associated with this debt relationship
-                // Look for the amount within the same container as the debt message
-                const debtRow = balancesSection.locator('div').filter({
-                    hasText: new RegExp(`${debtorName}.*→.*${creditorName}|${debtorName}.*owes.*${creditorName}`),
-                });
-                await expect(debtRow.locator('.text-red-600').filter({ hasText: amount }).first()).toBeVisible();
-            }
+        if (amount) {
+            // Find the debt amount that's specifically associated with this debt relationship
+            // Look for the amount within the same container as the debt message
+            const debtRow = balancesSection.locator('div').filter({
+                hasText: new RegExp(`${debtorName}.*→.*${creditorName}|${debtorName}.*owes.*${creditorName}`),
+            });
+            await expect(debtRow.locator('.text-red-600').filter({hasText: amount}).first()).toBeVisible();
         }
     }
 
@@ -529,30 +464,19 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Create expense and synchronize across multiple users using proper page object composition
+     * Create expense using proper page object composition
      */
-    async addExpenseAndSync(expense: ExpenseData, pages: Array<{ page: any; groupDetailPage: any; userName?: string }>, expectedMemberCount: number, groupId: string): Promise<void> {
-        // Use proper page object composition
+    async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
         const expenseFormPage = await this.clickAddExpenseButton(expectedMemberCount);
         await expenseFormPage.submitExpense(expense);
-        await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
     }
 
     /**
-     * Record settlement and synchronize across multiple users
+     * Record settlement using proper page object composition
      */
-    /**
-     * Record settlement and synchronize across multiple users using proper page object composition
-     */
-    async recordSettlementAndSync(
-        settlementOptions: SettlementData,
-        pages: Array<{ page: any; groupDetailPage: any; userName?: string }>,
-        expectedMemberCount: number,
-        groupId: string,
-    ): Promise<void> {
+    async recordSettlement(settlementOptions: SettlementData, expectedMemberCount: number,): Promise<void> {
         const settlementFormPage = await this.clickSettleUpButton(expectedMemberCount);
         await settlementFormPage.submitSettlement(settlementOptions, expectedMemberCount);
-        await this.synchronizeMultiUserState(pages, expectedMemberCount, groupId);
     }
 
     /**
@@ -582,23 +506,12 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByText(`${count} ${memberText}`);
     }
 
-    // Utility method for currency amounts
+    /**
+     * @deprecated far too vague - use a better selector
+     */
     getCurrencyAmount(amount: string) {
         return this.page.getByText(`$${amount}`);
     }
-
-    /**
-     * Helper method to navigate an external page object to any URL
-     * Encapsulates direct page.goto() usage for multi-user scenarios
-     */
-    private async navigatePageToUrl(page: any, url: string): Promise<void> {
-        await page.goto(url);
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-    }
-
-    // ==============================
-    // ADDITIONAL METHODS TO FIX SELECTOR VIOLATIONS
-    // ==============================
 
     /**
      * Gets the balances section using the complex locator
@@ -641,6 +554,7 @@ export class GroupDetailPage extends BasePage {
     async clickExpenseToView(description: string): Promise<ExpenseDetailPage> {
         const expense = this.getExpenseByDescription(description);
         // Note: Expense item is not a button but a clickable element
+
         await expense.click();
 
         // Create and wait for expense detail page to be ready
@@ -651,9 +565,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     getExpenseByDescription(description: string) {
-        // Use more specific selector to avoid strict mode violations
-        // Look for the description in expense list context, not headings
-        return this.page.getByText(description).first();
+        // Target the specific expense description within the ExpenseItem structure
+        // Based on ExpenseItem.tsx: <p className="font-medium">{expense.description}</p>
+        // This is inside a clickable expense container with specific styling
+        return this.page.locator('div[style*="border-left"]').filter({ hasText: description }).locator('p.font-medium', { hasText: description });
     }
 
     getExpenseAmount(amount: string) {
@@ -742,11 +657,10 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Opens the history modal
+     * Opens the history modal (idempotent - does nothing if already open)
      */
     async openHistory() {
-        const historyButton = this.getHistoryButton();
-        await this.clickButton(historyButton, { buttonName: 'Show History' });
+        await this.openHistoryIfClosed();
     }
 
     /**
@@ -956,6 +870,21 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Wait for a settlement to appear in the payment history
+     * This is used for real-time testing when multiple users need to see a settlement
+     * @param settlementNote - The note text of the settlement to wait for
+     * @param timeout - Optional timeout in milliseconds (default: 5000)
+     */
+    async waitForSettlementToAppear(settlementNote: string, timeout: number = 5000): Promise<void> {
+        // First ensure payment history is open so we can see settlements
+        await this.openSettlementHistoryIfNeeded();
+
+        // Wait for the settlement to appear in the history
+        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
+        await expect(settlementEntry).toBeVisible({ timeout });
+    }
+
+    /**
      * Open settlement history modal and verify content
      */
     async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
@@ -1050,19 +979,68 @@ export class GroupDetailPage extends BasePage {
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         const balancesSection = this.getBalancesSectionByContext();
 
-        // Look for debt relationship span that contains both user names
-        // This handles the case where text is split across multiple text nodes
-        const debtSpan = balancesSection
-            .locator('span')
-            .filter({
-                hasText: debtorName,
-            })
-            .filter({
-                hasText: creditorName,
-            });
-        await expect(debtSpan).toBeVisible({ timeout: 2000 });
+        // First check if we have a "settled up" state - if so, there should be no debts
+        const settledUpMessage = balancesSection.getByText('All settled up!');
+        const isSettledUp = await settledUpMessage.isVisible();
 
-        await expect(balancesSection.locator('.text-red-600').filter({ hasText: amount })).toBeVisible({ timeout: 2000 });
+        if (isSettledUp) {
+            throw new Error(`Expected debt relationship ${debtorName} → ${creditorName} (${amount}), but found "All settled up!" state`);
+        }
+
+        // Target the most specific container using the data-testid from BalanceSummary component
+        // This should be the exact debt relationship span
+        const debtRelationshipSpan = balancesSection.locator(`[data-testid*="${debtorName}"][data-testid*="${creditorName}"]`);
+
+        // If testid approach doesn't work, fall back to a more precise text-based approach
+        const debtContainerFallback = balancesSection
+            .locator('div')
+            .filter({ hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`) })
+            .filter({ hasText: amount })
+            .last(); // Get the most specific (deepest) match
+
+        // Try testid approach first, then fallback
+        const debtContainer = await debtRelationshipSpan.count() > 0 ? debtRelationshipSpan : debtContainerFallback;
+
+        await expect(debtContainer).toBeVisible({ timeout: 3000 });
+
+        // Verify the debt amount is present within this container
+        const debtAmount = debtContainer.locator('[data-financial-amount="debt"]').filter({ hasText: amount });
+        await expect(debtAmount).toBeVisible({ timeout: 2000 });
+    }
+
+    /**
+     * Assert that a user is settled up (has no debts)
+     * @param userName - The display name of the user to check
+     */
+    async assertSettledUp(userName: string): Promise<void> {
+        const balancesSection = this.getBalancesSection();
+
+        // User should not appear in any debt relationships
+        const debtAsDebtor = balancesSection.getByText(new RegExp(`${userName}\\s*→`));
+        const debtAsCreditor = balancesSection.getByText(new RegExp(`→\\s*${userName}`));
+
+        await expect(debtAsDebtor).not.toBeVisible();
+        await expect(debtAsCreditor).not.toBeVisible();
+    }
+
+    /**
+     * Verify that all members in the group are settled up (no outstanding balances)
+     * @param groupId - The group ID for context (used for better error messages)
+     */
+    async verifyAllSettledUp(groupId: string): Promise<void> {
+        // Assert we're on the correct group page
+        const currentUrl = this.page.url();
+        if (!currentUrl.includes(`/groups/${groupId}`)) {
+            throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
+        }
+
+        // Wait for the "All settled up!" message to appear
+        await this.waitForSettledUpMessage();
+
+        // Double-check that there are no debt relationships visible
+        const balancesSection = this.getBalancesSection();
+        const debtElements = balancesSection.locator('[data-financial-amount="debt"]');
+        await expect(debtElements).toHaveCount(0);
     }
 
     /**

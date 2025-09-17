@@ -88,21 +88,35 @@ export class ApplicationBuilder {
 
     buildExpenseService(): ExpenseService {
         if (!this.expenseService) {
-            this.expenseService = new ExpenseService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildUserService());
+            this.expenseService = new ExpenseService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildUserService()
+            );
         }
         return this.expenseService;
     }
 
     buildSettlementService(): SettlementService {
         if (!this.settlementService) {
-            this.settlementService = new SettlementService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
+            this.settlementService = new SettlementService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService()
+            );
         }
         return this.settlementService;
     }
 
     buildCommentService(): CommentService {
         if (!this.commentService) {
-            this.commentService = new CommentService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService(), this.buildAuthService());
+            this.commentService = new CommentService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService(),
+                this.buildAuthService()
+            );
         }
         return this.commentService;
     }
@@ -123,7 +137,11 @@ export class ApplicationBuilder {
 
     buildGroupMemberService(): GroupMemberService {
         if (!this.groupMemberService) {
-            this.groupMemberService = new GroupMemberService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildUserService(), this.buildNotificationService());
+            this.groupMemberService = new GroupMemberService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildUserService(),
+            );
         }
         return this.groupMemberService;
     }
@@ -137,7 +155,11 @@ export class ApplicationBuilder {
 
     buildGroupShareService(): GroupShareService {
         if (!this.groupShareService) {
-            this.groupShareService = new GroupShareService(this.buildFirestoreReader(), this.buildFirestoreWriter(), this.buildGroupMemberService());
+            this.groupShareService = new GroupShareService(
+                this.buildFirestoreReader(),
+                this.buildFirestoreWriter(),
+                this.buildGroupMemberService()
+            );
         }
         return this.groupShareService;
     }

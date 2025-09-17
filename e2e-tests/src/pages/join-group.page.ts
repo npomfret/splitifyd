@@ -16,7 +16,7 @@ export class JoinGroupPage extends BasePage {
         const joinGroupPage = new JoinGroupPage(page);
         await joinGroupPage.joinGroupUsingShareLink(shareLink);
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-        return new GroupDetailPage(page, joinGroupPage.userInfo);
+        return new GroupDetailPage(page);
     }
 
     getJoinGroupHeading(): Locator {

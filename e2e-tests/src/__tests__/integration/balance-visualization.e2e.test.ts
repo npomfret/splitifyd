@@ -1,17 +1,17 @@
-import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
-import { generateShortId } from '@splitifyd/test-support';
-import { GroupDetailPage, JoinGroupPage } from '../../pages';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
-import { TestGroupWorkflow } from '../../helpers';
+import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
+import {generateShortId} from '@splitifyd/test-support';
+import {GroupDetailPage, JoinGroupPage} from '../../pages';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
+import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
+import {TestGroupWorkflow} from '../../helpers';
 
 test.describe('Balance Visualization - Comprehensive', () => {
     test('should display settled state for single-user group', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
 
         // Use cached group for better performance
-        await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        const groupDetailPage = new GroupDetailPage(page, user);
+        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
+        const groupDetailPage = new GroupDetailPage(page);
 
         // Balance section should show "All settled up!" for empty group
         const balancesHeading = groupDetailPage.getBalancesHeading();
@@ -37,7 +37,13 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Single User Expense').withAmount(50).withCurrency('USD').withPaidByDisplayName(userDisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription('Single User Expense')
+                .withAmount(50)
+                .withCurrency('USD')
+                .withPaidByDisplayName(userDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // Single user should still be settled up (paid for themselves)
@@ -51,7 +57,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
 
         // Setup 2-person group with unique ID
         const uniqueId = generateShortId();
@@ -85,7 +91,13 @@ test.describe('Balance Visualization - Comprehensive', () => {
         // SEQUENTIAL EXPENSES: User1 adds expense first
         const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
         await expenseFormPage1.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('User1 Equal Payment').withAmount(100.0).withPaidByDisplayName(user1DisplayName).withCurrency('USD').withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription('User1 Equal Payment')
+                .withAmount(100.0)
+                .withPaidByDisplayName(user1DisplayName)
+                .withCurrency('USD')
+                .withSplitType('equal')
+                .build(),
         );
 
         // Wait for first expense to be synced via real-time updates
@@ -98,7 +110,13 @@ test.describe('Balance Visualization - Comprehensive', () => {
         // User2 adds expense AFTER User1's is synchronized
         const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
         await expenseFormPage2.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('User2 Equal Payment').withAmount(100.0).withPaidByDisplayName(user2DisplayName).withCurrency('USD').withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription('User2 Equal Payment')
+                .withAmount(100.0)
+                .withPaidByDisplayName(user2DisplayName)
+                .withCurrency('USD')
+                .withSplitType('equal')
+                .build(),
         );
 
         // Wait for second expense to be processed
@@ -134,7 +152,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
@@ -159,7 +177,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         // Wait for expense to be processed via real-time updates
@@ -184,7 +202,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
@@ -209,7 +227,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         // Wait for first expense to be synced via real-time updates
@@ -227,7 +245,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
             paidByDisplayName: user2DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         // Wait for second expense to be processed
@@ -252,70 +270,76 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        console.log({user1DisplayName, user2DisplayName});
+
         const memberCount = 2;
 
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`State Transition Test ${uniqueId}`, 'Testing state transitions');
+        const groupDetailPage1 = await user1DashboardPage.createGroupAndNavigate(`State Transition Test ${(generateShortId())}`, 'Testing state transitions');
+        const groupId = groupDetailPage1.inferGroupId();
 
         // Get share link
-        const shareLink = await groupDetailPage.getShareLink();
+        const shareLink = await groupDetailPage1.getShareLink();
 
         // User2 joins
-        const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink);
 
         // Wait for synchronization - no reloads needed
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
+        await groupDetailPage1.waitForUserSynchronization(user1DisplayName, user2DisplayName);
         await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // State 1: Empty group → ALWAYS settled up
-        await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
+        await expect(groupDetailPage1.getBalancesSection().getByText('All settled up!')).toBeVisible();
         await expect(groupDetailPage2.getBalancesSection().getByText('All settled up!')).toBeVisible();
 
         // State 2: User1 pays $100 → User2 MUST owe $50
-        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+        const expenseFormPage = await groupDetailPage1.clickAddExpenseButton(memberCount);
+        const expense1Description = generateShortId();
         await expenseFormPage.submitExpense({
-            description: 'Create Debt',
+            description: expense1Description,
             amount: 100,
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
-        await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
+        await groupDetailPage1.waitForExpense(expense1Description);
+        await groupDetailPage2.waitForExpense(expense1Description);
+
+        // Wait for expense to be processed via real-time updates
+        await groupDetailPage1.waitForPage(groupId, 2);
+        await groupDetailPage2.waitForPage(groupId, 2);
 
         // Verify debt exists with amount $50.00 on User 1's screen
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
-
-        // IMPORTANT: Also verify User 2's screen shows the debt
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
 
         // State 3: User2 pays $100 → MUST be settled up
         const expenseFormPage2c = await groupDetailPage2.clickAddExpenseButton(memberCount);
+        const expense2Description = generateShortId();
         await expenseFormPage2c.submitExpense({
-            description: 'Balance Debt',
+            description: expense2Description,
             amount: 100,
             paidByDisplayName: user2DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
+
+        await groupDetailPage1.waitForExpense(expense2Description);
+        await groupDetailPage2.waitForExpense(expense2Description);
 
         // Wait for balance calculations to be updated via real-time updates
         await groupDetailPage2.waitForBalanceUpdate();
 
         // Guaranteed settled up: both paid $100
-        await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
+        await expect(groupDetailPage1.getBalancesSection().getByText('All settled up!')).toBeVisible();
         await expect(groupDetailPage2.getBalancesSection().getByText('All settled up!')).toBeVisible();
 
         // Verify NO debt messages remain on either screen
-        await expect(groupDetailPage.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).not.toBeVisible();
+        await expect(groupDetailPage1.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).not.toBeVisible();
         await expect(groupDetailPage2.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`)).not.toBeVisible();
 
-        await groupDetailPage.verifyExpenseVisible('Create Debt');
-        await groupDetailPage.verifyExpenseVisible('Balance Debt');
     });
 
     test('should handle currency formatting in debt amounts', async ({ newLoggedInBrowser }) => {
@@ -325,7 +349,9 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        console.log({user1DisplayName, user2DisplayName});
+
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
 
         const uniqueId = generateShortId();
@@ -350,7 +376,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
@@ -375,7 +401,7 @@ test.describe('Balance with Settlement Calculations', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
 
         // Create group and verify
@@ -406,7 +432,7 @@ test.describe('Balance with Settlement Calculations', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         // Verify expense appears for User 1
@@ -476,7 +502,7 @@ test.describe('Balance with Settlement Calculations', () => {
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2, user2);
+        const groupDetailPage2 = new GroupDetailPage(page2);
 
         const uniqueId = generateShortId();
         const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
@@ -502,7 +528,7 @@ test.describe('Balance with Settlement Calculations', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-            participants: [user1.uid, user2.uid],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         // Wait for expense to be processed via real-time updates

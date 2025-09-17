@@ -1,10 +1,8 @@
-import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
-import { GroupDetailPage, ExpenseDetailPage } from '../../pages';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
-import { v4 as uuidv4 } from 'uuid';
+import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {generateShortId, generateTestGroupName} from '@splitifyd/test-support';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
+import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 test.describe('Expense Form Operations E2E', () => {
     test('should allow user to select predefined category from suggestions', async ({ newLoggedInBrowser }) => {
@@ -193,9 +191,6 @@ test.describe('Expense Form Operations E2E', () => {
     test('should perform basic expense CRUD operations', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
 
-        const expenseDetailPage = new ExpenseDetailPage(page, user);
-        const uniqueId = uuidv4().slice(0, 8);
-
         // Get the current user's display name
         const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
 
@@ -207,18 +202,23 @@ test.describe('Expense Form Operations E2E', () => {
 
         // CREATE: Create expense using page object
         const expenseFormPage = await groupDetailPageNav.clickAddExpenseButton(memberCount);
+        const expenseDescription = `CRUD Test ${(generateShortId())}`;
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(`CRUD Test ${uniqueId}`).withAmount(50).withCurrency('USD').withPaidByDisplayName(userDisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(50)
+                .withCurrency('USD')
+                .withPaidByDisplayName(userDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
-        // Verify expense appears in list
-        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).toBeVisible();
+        await groupDetailPageNav.waitForExpense(expenseDescription);
 
         // READ: Navigate to expense detail to view it
-        await groupDetailPageNav.clickExpenseToView(`CRUD Test ${uniqueId}`);
-        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).toBeVisible();
-        await expect(groupDetailPageNav.getCurrencyAmount('50.00').first()).toBeVisible();
+        const expenseDetailPage = await groupDetailPageNav.clickExpenseToView(expenseDescription);
+        await expect(expenseDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
+        await expect(expenseDetailPage.getCurrencyAmount('50.00')).toBeVisible();
 
         // UPDATE: Simple edit operation
         const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
@@ -227,7 +227,7 @@ test.describe('Expense Form Operations E2E', () => {
 
         await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
         await expenseDetailPage.waitForPageReady();
-        await expect(groupDetailPageNav.getCurrencyAmount('75.00').first()).toBeVisible();
+        await expect(expenseDetailPage.getCurrencyAmount('75.00')).toBeVisible();
 
         // DELETE: Delete the expense
         await groupDetailPageNav.deleteExpense();
@@ -236,6 +236,6 @@ test.describe('Expense Form Operations E2E', () => {
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Expense should no longer be visible
-        await expect(groupDetailPageNav.getExpenseByDescription(`CRUD Test ${uniqueId}`)).not.toBeVisible();
+        await expect(groupDetailPageNav.getExpenseByDescription(expenseDescription)).not.toBeVisible();
     });
 });

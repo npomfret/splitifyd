@@ -50,6 +50,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             // Create dashboard page
             const dashboardPage = new DashboardPage(page, user);
 
+            // Wait for dashboard to be fully loaded (including "Loading your groups" spinner)
+            await dashboardPage.waitForDashboard();
+
             // Track this browser instance for cleanup
             const browserInstance: BrowserInstance = {
                 page,

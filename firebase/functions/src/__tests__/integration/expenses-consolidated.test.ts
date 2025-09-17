@@ -331,7 +331,12 @@ describe('Expenses Management - Consolidated Tests', () => {
                 new CreateExpenseRequestBuilder().withGroupId(testGroup.id).withPaidBy(users[0].uid).withParticipants([users[0].uid]).build(),
                 users[0].token,
             );
-            //todo: assert both are visible
+
+            // Verify both expenses are visible before deletion
+            const beforeDeletionResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
+            expect(beforeDeletionResult.expenses.find((e) => e.id === expense1.id)).toBeDefined();
+            expect(beforeDeletionResult.expenses.find((e) => e.id === expense2.id)).toBeDefined();
+            expect(beforeDeletionResult.expenses.length).toBeGreaterThanOrEqual(2);
 
             // Delete one expense
             await apiDriver.deleteExpense(expense1.id, users[0].token);
@@ -340,11 +345,16 @@ describe('Expenses Management - Consolidated Tests', () => {
             const normalResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
             expect(normalResult.expenses.find((e) => e.id === expense1.id)).toBeUndefined();
 
-            // Should include deleted when requested - API doesn't support includeDeleted flag
-            const deletedResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
-            const deletedExpense = deletedResult.expenses.find((e) => e.id === expense1.id);
-            // Note: API layer may or may not include deleted expenses
-            // todo: assert something about deletedExpense !!
+            // Verify the non-deleted expense is still visible
+            expect(normalResult.expenses.find((e) => e.id === expense2.id)).toBeDefined();
+
+            // Verify total count decreased by one after deletion
+            expect(normalResult.expenses.length).toBe(beforeDeletionResult.expenses.length - 1);
+
+            // Since API doesn't support includeDeleted flag, deleted expenses should remain filtered out
+            const laterResult = await apiDriver.getGroupExpenses(testGroup.id, users[0].token);
+            const deletedExpense = laterResult.expenses.find((e) => e.id === expense1.id);
+            expect(deletedExpense).toBeUndefined();
         });
     });
 

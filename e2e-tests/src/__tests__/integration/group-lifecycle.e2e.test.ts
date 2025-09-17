@@ -114,8 +114,8 @@ simpleTest.describe('Group Management', () => {
         const { page: ownerPage, user: owner, dashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: member } = await newLoggedInBrowser();
 
-        const ownerGroupDetailPage = new GroupDetailPage(ownerPage, owner);
-        const memberGroupDetailPage = new GroupDetailPage(memberPage, member);
+        const ownerGroupDetailPage = new GroupDetailPage(ownerPage);
+        const memberGroupDetailPage = new GroupDetailPage(memberPage);
 
         // Owner creates a group
         const groupName = 'Owner Only Settings';
@@ -251,8 +251,8 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         const { page: user3Page, user: user3 } = await newLoggedInBrowser();
 
         // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
-        const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
+        const groupDetailPage2 = new GroupDetailPage(user2Page);
+        const groupDetailPage3 = new GroupDetailPage(user3Page);
 
         // Verify all 3 users are distinct
         expect(user1.email).not.toBe(user2.email);
@@ -295,16 +295,9 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         ];
 
         // Ensure all pages are on the correct group page
-        await expect(user1Page).toHaveURL(new RegExp(`/groups/${groupId}$`));
-        await expect(user2Page).toHaveURL(new RegExp(`/groups/${groupId}$`));
-        await expect(user3Page).toHaveURL(new RegExp(`/groups/${groupId}$`));
-
-        await groupDetailPage.synchronizeMultiUserState(allPages, 3, groupId);
-
-        // Wait for the member counts to be correct on all pages
-        await groupDetailPage.waitForMemberCount(3);
-        await groupDetailPage2.waitForMemberCount(3);
-        await groupDetailPage3.waitForMemberCount(3);
+        await groupDetailPage.waitForPage(groupId, 3);
+        await groupDetailPage2.waitForPage(groupId, 3);
+        await groupDetailPage3.waitForPage(groupId, 3);
 
         // Use the display names from the user fixtures instead of extracting from UI
         const user1Name = await groupDetailPage.getCurrentUserDisplayName();

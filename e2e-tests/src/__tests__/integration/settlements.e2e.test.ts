@@ -304,8 +304,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 
             // Create page objects
-            const groupDetailPage2 = new GroupDetailPage(user2Page, user2);
-            const groupDetailPage3 = new GroupDetailPage(user3Page, user3);
+            const groupDetailPage2 = new GroupDetailPage(user2Page);
+            const groupDetailPage3 = new GroupDetailPage(user3Page);
 
             // Verify all 3 users are distinct to prevent flaky test failures
             expect(user1.email).not.toBe(user2.email);
@@ -322,11 +322,11 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             expect(user2DisplayName).not.toBe(user3DisplayName);
 
             // 1. Create a group with 3 users
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
-            const groupId = groupDetailPage.inferGroupId();
+            const groupDetailPage1 = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
+            const groupId = groupDetailPage1.inferGroupId();
 
             // Get share link and have users join SEQUENTIALLY (not concurrently)
-            const shareLink = await groupDetailPage.getShareLink();
+            const shareLink = await groupDetailPage1.getShareLink();
 
             // SEQUENTIAL JOIN 1: Second user joins first
             const joinGroupPage2 = new JoinGroupPage(user2Page);
@@ -339,14 +339,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             }
 
             // WAIT for second user to be fully synchronized before third user joins
-            await groupDetailPage.synchronizeMultiUserState(
-                [
-                    { page: user1Page, groupDetailPage },
-                    { page: user2Page, groupDetailPage: groupDetailPage2 },
-                ],
-                2,
-                groupId,
-            );
+            await groupDetailPage1.waitForPage(groupId, 2);
+            await groupDetailPage2.waitForPage(groupId, 2);
 
             // SEQUENTIAL JOIN 2: Third user joins ONLY AFTER second user is fully synchronized
             const joinGroupPage3 = new JoinGroupPage(user3Page);
@@ -359,15 +353,9 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             }
 
             // Synchronize all pages to see all 3 members
-            await groupDetailPage.synchronizeMultiUserState(
-                [
-                    { page: user1Page, groupDetailPage },
-                    { page: user2Page, groupDetailPage: groupDetailPage2 },
-                    { page: user3Page, groupDetailPage: groupDetailPage3 },
-                ],
-                3,
-                groupId,
-            );
+            await groupDetailPage1.waitForPage(groupId, 3);
+            await groupDetailPage2.waitForPage(groupId, 3);
+            await groupDetailPage3.waitForPage(groupId, 3);
 
             // 2. User 1 makes a expense for 120, split equally
             // DEBT CALCULATION:
@@ -377,13 +365,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - User1 is owed: $120 - $40 = $80 total
             // - User2 owes: $40 to User1
             // - User3 owes: $40 to User1
-            const allPages = [
-                { page: user1Page, groupDetailPage },
-                { page: user2Page, groupDetailPage: groupDetailPage2 },
-                { page: user3Page, groupDetailPage: groupDetailPage3 },
-            ];
 
-            await groupDetailPage.addExpenseAndSync(
+            await groupDetailPage1.addExpense(
                 {
                     description: 'Group dinner expense',
                     amount: 120,
@@ -391,13 +374,18 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
                     currency: 'USD',
                     splitType: 'equal',
                 },
-                allPages,
                 3,
-                groupId,
             );
 
+            // Synchronize all pages to see the expense
+            await groupDetailPage1.waitForPage(groupId, 3);
+            await groupDetailPage2.waitForPage(groupId, 3);
+            await groupDetailPage3.waitForPage(groupId, 3);
+
             // Verify expense appears across all pages
-            await groupDetailPage.verifyExpenseAcrossPages(allPages, 'Group dinner expense', '$120.00');
+            await groupDetailPage1.waitForExpense('Group dinner expense');
+            await groupDetailPage2.waitForExpense('Group dinner expense');
+            await groupDetailPage3.waitForExpense('Group dinner expense');
 
             // 3. Assert initial balances after first expense
             // EXPECTED STATE:
@@ -407,8 +395,9 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // This represents the initial debt distribution after the group dinner
 
             // Verify both debts exist across all pages
-            await groupDetailPage.verifyDebtAcrossPages(allPages, user2DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage1.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage2.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage3.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
 
             // 4. User 2 makes partial settlement of 30
             // SETTLEMENT CALCULATION:
@@ -416,20 +405,25 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - Payment amount: $30
             // - Remaining debt after payment: $40 - $30 = $10
 
-            await groupDetailPage.recordSettlementAndSync(
+            await groupDetailPage1.recordSettlement(
                 {
                     payerName: user2DisplayName,
                     payeeName: user1DisplayName,
                     amount: '30',
                     note: 'Partial payment from user2',
                 },
-                allPages,
                 3,
-                groupId,
             );
 
+            // Synchronize all pages to see the settlement
+            await groupDetailPage1.waitForPage(groupId, 3);
+            await groupDetailPage2.waitForPage(groupId, 3);
+            await groupDetailPage3.waitForPage(groupId, 3);
+
             // Verify settlement appears in history across all pages
-            await groupDetailPage.verifySettlementInHistory(allPages, 'Partial payment from user2');
+            await groupDetailPage1.verifySettlementInHistory('Partial payment from user2');
+            await groupDetailPage2.verifySettlementInHistory('Partial payment from user2');
+            await groupDetailPage3.verifySettlementInHistory('Partial payment from user2');
 
             // 5. Assert updated balances after partial settlement
             // EXPECTED STATE AFTER $30 PAYMENT:
@@ -439,8 +433,13 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // The partial payment reduces User2's debt but doesn't fully settle
 
             // Verify updated debts across all pages
-            await groupDetailPage.verifyDebtAcrossPages(allPages, user2DisplayName, user1DisplayName, '$10.00');
-            await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage1.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
+            await groupDetailPage2.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
+            await groupDetailPage3.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
+
+            await groupDetailPage1.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage2.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage3.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
 
             // 6. User 2 makes final settlement of remaining $10
             // FINAL SETTLEMENT CALCULATION:
@@ -448,17 +447,20 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - Payment amount: $10
             // - User2 will be fully settled after this payment
 
-            await groupDetailPage.recordSettlementAndSync(
+            await groupDetailPage1.recordSettlement(
                 {
                     payerName: user2DisplayName,
                     payeeName: user1DisplayName,
                     amount: '10',
                     note: 'Final payment from user2 - all settled!',
                 },
-                allPages,
                 3,
-                groupId,
             );
+
+            // Synchronize all pages to see the final settlement
+            await groupDetailPage1.waitForPage(groupId, 3);
+            await groupDetailPage2.waitForPage(groupId, 3);
+            await groupDetailPage3.waitForPage(groupId, 3);
 
             // 7. Assert final state after all settlements
             // EXPECTED FINAL STATE:
@@ -468,17 +470,23 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // This verifies that partial settlements work correctly in 3-user groups
 
             // User2 should no longer appear in debt list (settled up)
-            const balancesSection1 = groupDetailPage.getBalancesSection();
-
-            await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
+            await expect(groupDetailPage1.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
 
             // User3 should still owe $40
-            await groupDetailPage.verifyDebtAcrossPages(allPages, user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage1.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage2.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            await groupDetailPage3.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
 
             // Verify both settlements appear in history
-            await groupDetailPage.openHistory();
-            await expect(groupDetailPage.getTextElement(/Partial payment from user2/i)).toBeVisible();
-            await expect(groupDetailPage.getTextElement(/Final payment from user2 - all settled!/i)).toBeVisible();
+            await groupDetailPage1.verifySettlementInHistory("Partial payment from user2");
+            await groupDetailPage1.verifySettlementInHistory("Final payment from user2 - all settled!");
+
+            await groupDetailPage2.verifySettlementInHistory("Partial payment from user2");
+            await groupDetailPage2.verifySettlementInHistory("Final payment from user2 - all settled!");
+
+            await groupDetailPage3.verifySettlementInHistory("Partial payment from user2");
+            await groupDetailPage3.verifySettlementInHistory("Final payment from user2 - all settled!");
+
         });
     });
 });

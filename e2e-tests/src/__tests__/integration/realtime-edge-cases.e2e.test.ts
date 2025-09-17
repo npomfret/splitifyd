@@ -16,8 +16,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const leavingGroupDetailPage = new GroupDetailPage(leavingPage, leaving);
-        const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
+        const leavingGroupDetailPage = new GroupDetailPage(leavingPage);
+        const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names and log user UIDs
         const creatorDisplayName = await creatorDashboardPage.getCurrentUserDisplayName();
@@ -57,7 +57,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create expense with remaining members only
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(creatorDisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(60)
+                .withCurrency('USD')
+                .withPaidByDisplayName(creatorDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // Wait for system to process the expense
@@ -92,8 +98,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const settlingGroupDetailPage = new GroupDetailPage(settlingPage, settling);
-        const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
+        const settlingGroupDetailPage = new GroupDetailPage(settlingPage);
+        const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names and log user UIDs
         const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
@@ -122,7 +128,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // Create expense creating debt (Owner paid $80, others owe $20 each)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(4);
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription('Settlement Edge Test').withAmount(80).withCurrency('USD').withPaidByDisplayName(ownerDisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription('Settlement Edge Test')
+                .withAmount(80)
+                .withCurrency('USD')
+                .withPaidByDisplayName(ownerDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -131,7 +143,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // SEQUENCE: Target settles their debt first, then Owner removes Target, then SettlingUser creates settlement (testing real-time sync)
 
         // Target settles their debt first (they owe $20 to owner)
-        const targetGroupDetailPage = new GroupDetailPage(targetPage, target);
+        const targetGroupDetailPage = new GroupDetailPage(targetPage);
         const targetSettlementFormPage = await targetGroupDetailPage.clickSettleUpButton(4);
         await targetSettlementFormPage.submitSettlement(
             {
@@ -198,8 +210,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
 
         // Create page objects
-        const user2GroupDetailPage = new GroupDetailPage(user2Page, user2);
-        const user4GroupDetailPage = new GroupDetailPage(user4Page, user4);
+        const user2GroupDetailPage = new GroupDetailPage(user2Page);
+        const user4GroupDetailPage = new GroupDetailPage(user4Page);
 
         // Get display names
         const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
@@ -237,13 +249,25 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // 1. User1 adds expense
         const expense1FormPage = await user1GroupDetailPage.clickAddExpenseButton(4);
         await expense1FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense1Description).withAmount(40).withCurrency('USD').withPaidByDisplayName(user1DisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expense1Description)
+                .withAmount(40)
+                .withCurrency('USD')
+                .withPaidByDisplayName(user1DisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // 2. User2 adds expense immediately
         const expense2FormPage = await user2GroupDetailPage.clickAddExpenseButton(4);
         await expense2FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense2Description).withAmount(30).withCurrency('USD').withPaidByDisplayName(user2DisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expense2Description)
+                .withAmount(30)
+                .withCurrency('USD')
+                .withPaidByDisplayName(user2DisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // 3. User1 adds comment
@@ -252,7 +276,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // 4. User4 adds expense
         const expense4FormPage = await user4GroupDetailPage.clickAddExpenseButton(4);
         await expense4FormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expense3Description).withAmount(50).withCurrency('USD').withPaidByDisplayName(user4DisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expense3Description)
+                .withAmount(50)
+                .withCurrency('USD')
+                .withPaidByDisplayName(user4DisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         // 5. User2 settles immediately
@@ -302,8 +332,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: offlinePage, dashboardPage: offlineDashboardPage, user: offline } = await newLoggedInBrowser();
 
         // Create page objects
-        const onlineGroupDetailPage = new GroupDetailPage(onlinePage, online);
-        const offlineGroupDetailPage = new GroupDetailPage(offlinePage, offline);
+        const onlineGroupDetailPage = new GroupDetailPage(onlinePage);
+        const offlineGroupDetailPage = new GroupDetailPage(offlinePage);
 
         // Get display names
         const activeDisplayName = await activeDashboardPage.getCurrentUserDisplayName();
@@ -331,7 +361,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseDescription = `Network Test ${randomString(4)}`;
 
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(activeDisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(60)
+                .withCurrency('USD')
+                .withPaidByDisplayName(activeDisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         await activeGroupDetailPage.waitForBalancesToLoad(groupId);
@@ -378,8 +414,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
-        const editor2GroupDetailPage = new GroupDetailPage(editor2Page, editor2);
-        const watcherGroupDetailPage = new GroupDetailPage(watcherPage, watcher);
+        const editor2GroupDetailPage = new GroupDetailPage(editor2Page);
+        const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names
         const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
@@ -404,7 +440,13 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const expenseDescription = `Conflict Test ${randomString(4)}`;
 
         await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder().withDescription(expenseDescription).withAmount(60).withCurrency('USD').withPaidByDisplayName(editor1DisplayName).withSplitType('equal').build(),
+            new ExpenseFormDataBuilder()
+                .withDescription(expenseDescription)
+                .withAmount(60)
+                .withCurrency('USD')
+                .withPaidByDisplayName(editor1DisplayName)
+                .withSplitType('equal')
+                .build(),
         );
 
         await editor1GroupDetailPage.waitForBalancesToLoad(groupId);

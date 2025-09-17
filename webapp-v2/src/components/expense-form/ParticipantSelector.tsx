@@ -36,7 +36,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                         </Button>
                     </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" data-testid="participant-selector-grid">
                     {members.map((member) => {
                         const isSelected = participants.includes(member.uid);
                         const isPayer = paidBy === member.uid;

@@ -160,8 +160,9 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
+        const expenseDescription = 'Test expense for balance';
         await expenseFormPage.submitExpense({
-            description: 'Test expense for balance',
+            description: expenseDescription,
             amount: 100,
             currency: 'USD',
             paidByDisplayName: ownerDisplayName,
@@ -169,8 +170,11 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         });
 
         // Wait for expense to be processed and balances to update
-        await groupDetailPage.waitForBalancesToLoad(groupId);
-        await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+        await groupDetailPage.waitForExpense(expenseDescription);
+        await groupDetailPage.verifyDebt(memberDisplayName, ownerDisplayName, "$50");
+
+        await memberGroupDetailPage.waitForExpense(expenseDescription);
+        await memberGroupDetailPage.verifyDebt(memberDisplayName, ownerDisplayName, "$50");
 
         // Member tries to leave group
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
@@ -189,8 +193,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await settlementFormPage.fillAndSubmitSettlement('50', ownerDisplayName);
 
         // Wait for settlement to process and balances to update
-        await groupDetailPage.waitForBalancesToLoad(groupId);
-        await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+        await groupDetailPage.verifyAllSettledUp(groupId);
+        await memberGroupDetailPage.verifyAllSettledUp(groupId);
 
         // Now member should be able to leave
         const leaveModalAfterSettlement = await memberGroupDetailPage.clickLeaveGroup();
@@ -290,7 +294,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const { page: member3Page, dashboardPage: member3DashboardPage, } = await newLoggedInBrowser();
 
         // Create page objects
-        const member2GroupDetailPage = new GroupDetailPage(member2Page, member2);
+        const member2GroupDetailPage = new GroupDetailPage(member2Page);
 
         // Get display names
         const member1DisplayName = await member1DashboardPage.getCurrentUserDisplayName();
@@ -488,14 +492,8 @@ test.describe('Leave Group E2E', () => {
         let memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Verify both users can see the group
-        await ownerGroupDetailPage.synchronizeMultiUserState(
-            [
-                { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
-                { page: memberPage, groupDetailPage: memberGroupDetailPage },
-            ],
-            2,
-            groupId,
-        );
+        await ownerGroupDetailPage.waitForPage(groupId, 2);
+        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member navigates to dashboard to verify group is visible
         memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();
@@ -594,14 +592,8 @@ test.describe('Leave Group E2E', () => {
         const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.synchronizeMultiUserState(
-            [
-                { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
-                { page: memberPage, groupDetailPage: memberGroupDetailPage },
-            ],
-            2,
-            groupId,
-        );
+        await ownerGroupDetailPage.waitForPage(groupId, 2);
+        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member stays on group page while owner removes them
         // Owner removes the member using the remove member feature
@@ -635,14 +627,8 @@ test.describe('Leave Group E2E', () => {
         let memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
 
         // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.synchronizeMultiUserState(
-            [
-                { page: ownerPage, groupDetailPage: ownerGroupDetailPage },
-                { page: memberPage, groupDetailPage: memberGroupDetailPage },
-            ],
-            2,
-            groupId,
-        );
+        await ownerGroupDetailPage.waitForPage(groupId, 2);
+        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member navigates to dashboard and verifies group is visible
         memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();

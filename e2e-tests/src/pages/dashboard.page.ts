@@ -209,6 +209,6 @@ export class DashboardPage extends BasePage {
         await this.waitForDomContentLoaded();
         await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
 
-        return new GroupDetailPage(this.page, this.userInfo);
+        return new GroupDetailPage(this.page);
     }
 }
