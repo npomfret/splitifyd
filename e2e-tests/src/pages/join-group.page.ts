@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { PooledTestUser } from '@splitifyd/shared';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 /**
  * Page object for join group functionality via share links.
@@ -20,15 +21,15 @@ export class JoinGroupPage extends BasePage {
     }
 
     getJoinGroupHeading(): Locator {
-        return this.page.getByRole('heading', { name: /join group/i });
+        return this.page.getByRole('heading', { name: translationEn.joinGroupPage.title });
     }
 
     getJoinGroupButton(): Locator {
-        return this.page.getByRole('button', { name: /join group/i });
+        return this.page.getByRole('button', { name: translationEn.joinGroupPage.joinGroup });
     }
 
     getAlreadyMemberMessage(): Locator {
-        return this.page.getByText(/already.*member|you.*already.*part/i);
+        return this.page.getByText(translationEn.joinGroupPage.alreadyMember);
     }
 
     getLoginButton(): Locator {
@@ -204,13 +205,26 @@ export class JoinGroupPage extends BasePage {
             throw new Error('Share link is invalid or expired');
         }
 
-        if (await this.isUserAlreadyMember()) {
-            // User is already a member - should redirect to group page
-            await expect(this.page).toHaveURL(groupDetailUrlPattern(), { timeout: 5000 });
-            return; // Success - already a member
-        }
-
         await this.clickJoinGroupAndWaitForJoin();
+    }
+
+    async assertJoinGroupButtonIsMissing() {
+        const joinButton = this.getJoinGroupButton();
+        await expect(joinButton).not.toBeVisible();
+    }
+
+    async assertAlreadyMemberTextIsVisible() {
+        const alreadyMemberMessage = this.getAlreadyMemberMessage();
+        await expect(alreadyMemberMessage).toBeVisible();
+    }
+
+    getOkButton(): Locator {
+        return this.page.getByRole('button', { name: translationEn.joinGroupPage.goToGroup });
+    }
+
+    async clickOkButton(): Promise<void> {
+        const okButton = this.getOkButton();
+        await this.clickButton(okButton, { buttonName: 'OK/Go to Group' });
     }
 
     async clickJoinGroupAndWaitForJoin() {

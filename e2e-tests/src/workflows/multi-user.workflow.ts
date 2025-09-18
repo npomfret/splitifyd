@@ -3,8 +3,7 @@ import { GroupDetailPage, JoinGroupPage } from '../pages';
 import { groupDetailUrlPattern } from '../pages/group-detail.page.ts';
 
 /**
- * Multi-user workflow class that handles complex multi-user test scenarios.
- * Encapsulates the creation of multiple users, groups, and collaborative operations.
+ * @deprecated i don't like this pattern
  */
 export class MultiUserWorkflow {
     constructor() {}
@@ -16,26 +15,6 @@ export class MultiUserWorkflow {
     async getShareLink(page: Page): Promise<string> {
         const groupDetailPage = new GroupDetailPage(page);
         return await groupDetailPage.getShareLink();
-    }
-
-    /**
-     * Tests share link with user who is already a member.
-     * Verifies user is redirected to the group page.
-     */
-    async testShareLinkAlreadyMember(page: Page, shareLink: string): Promise<void> {
-        const joinGroupPage = new JoinGroupPage(page);
-
-        // Navigate to share link
-        await joinGroupPage.navigateToShareLink(shareLink);
-
-        // Should redirect to group page since user is already a member
-        await expect(page).toHaveURL(groupDetailUrlPattern());
-
-        // Verify we're on the group page (not the join page)
-        const isOnGroupPage = page.url().includes('/groups/') && !page.url().includes('/join');
-        if (!isOnGroupPage) {
-            throw new Error(`Expected redirect to group page for already-member, but stayed on: ${page.url()}`);
-        }
     }
 
     /**

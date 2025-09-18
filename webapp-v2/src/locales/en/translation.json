@@ -381,5 +381,24 @@
   },
   "loadingState": {
     "defaultMessage": "Loading..."
+  },
+  "joinGroupPage": {
+    "title": "Join Group",
+    "loadingGroup": "Loading group information...",
+    "alreadyMember": "You're already a member of this group",
+    "alreadyMemberDescription": "You can go directly to the group to view expenses and balances.",
+    "joinGroup": "Join Group",
+    "goToGroup": "Go to Group",
+    "joining": "Joining...",
+    "cancel": "Cancel",
+    "welcome": "Welcome to {{groupName}}!",
+    "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
+    "errors": {
+      "invalidLink": "This invitation link is invalid or has expired",
+      "groupNotFound": "This group no longer exists",
+      "alreadyMember": "You are already a member of this group",
+      "joinFailed": "Failed to join group",
+      "loadFailed": "Failed to load group information"
+    }
   }
 }

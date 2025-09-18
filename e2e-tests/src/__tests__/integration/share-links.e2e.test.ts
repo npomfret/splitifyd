@@ -40,25 +40,32 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
         simpleTest('should show appropriate message when logged-in user is already a member', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: page1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
             const { page: page2 } = await newLoggedInBrowser();
 
-            // Create page objects
-
-            // Create group and add user2
-            const uniqueId = generateShortId();
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('ShareLink'), 'Test group for share links');
+            const groupName = generateTestGroupName(`ShareLink`);
+            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(
+                groupName,
+                'Testing already member scenario'
+            );
             const groupId = groupDetailPage.inferGroupId();
-            await user1DashboardPage.createGroupAndNavigate(`Already Member Test ${uniqueId}`, 'Testing already member scenario');
-
-            const multiUserWorkflow = new MultiUserWorkflow();
-            const shareLink = await multiUserWorkflow.getShareLink(page1);
+            const shareLink = await groupDetailPage.getShareLink();
 
             // User2 joins first time
-            await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
+            const user2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
+            await user2GroupDetailPage.waitForPage(groupId, 2);
+            const user2Dashboard = await user2GroupDetailPage.navigateToDashboard();
+            await user2Dashboard.waitForDashboard();
+            await user2Dashboard.waitForGroupToAppear(groupName)
 
-            // User2 tries to join again - should show already member message
-            await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);
+            // User2 tries to join again - join group button should be missing and OK button should be present
+            const joinGroupPage = new JoinGroupPage(page2);
+            await joinGroupPage.navigateToShareLink(shareLink);
+            await joinGroupPage.assertJoinGroupButtonIsMissing();
+            await joinGroupPage.assertAlreadyMemberTextIsVisible();
+            await joinGroupPage.clickOkButton();
+            await expect(page2).toHaveURL(groupDetailUrlPattern(groupId));
         });
     });
 

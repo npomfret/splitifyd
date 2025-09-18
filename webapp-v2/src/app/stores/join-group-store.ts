@@ -17,6 +17,7 @@ class JoinGroupStore {
     readonly #joinSuccessSignal = signal<boolean>(false);
     readonly #errorSignal = signal<string | null>(null);
     readonly #linkIdSignal = signal<string | null>(null);
+    readonly #isAlreadyMemberSignal = signal<boolean>(false);
 
     // State getters - readonly values for external consumers
     get group() {
@@ -39,6 +40,9 @@ class JoinGroupStore {
     }
     get linkId() {
         return this.#linkIdSignal.value;
+    }
+    get isAlreadyMember() {
+        return this.#isAlreadyMemberSignal.value;
     }
 
     get errorSignal(): ReadonlySignal<string | null> {
@@ -79,12 +83,10 @@ class JoinGroupStore {
 
             this.#groupSignal.value = group;
             this.#memberCountSignal.value = preview.memberCount;
+            this.#isAlreadyMemberSignal.value = preview.isAlreadyMember;
             this.#loadingPreviewSignal.value = false;
 
-            // If user is already a member, redirect them to the group
-            if (preview.isAlreadyMember) {
-                this.#joinSuccessSignal.value = true;
-            }
+            // Don't auto-redirect if user is already a member - let them see the UI and click "Go to Group"
         } catch (error: any) {
             this.#loadingPreviewSignal.value = false;
 
@@ -137,6 +139,7 @@ class JoinGroupStore {
         this.#joinSuccessSignal.value = false;
         this.#errorSignal.value = null;
         this.#linkIdSignal.value = null;
+        this.#isAlreadyMemberSignal.value = false;
     }
 
     clearError() {
