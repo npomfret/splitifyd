@@ -25,7 +25,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         const shareLink = await groupDetailPage.getShareLink();
 
         // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, groupId);
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink);
 
         // Verify user 2 is in the group
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
