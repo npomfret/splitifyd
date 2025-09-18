@@ -464,10 +464,13 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
                     // Focus should be on or near main content
                     const focusedElement = page.locator(':focus');
                     if (await focusedElement.count() > 0) {
-                        const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
-                            return focused === main || main.contains(focused);
-                        }, await mainContent.elementHandle());
-                        expect(isFocusedOnMain).toBeTruthy();
+                        const mainHandle = await mainContent.elementHandle();
+                        if (mainHandle) {
+                            const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
+                                return focused === main || main.contains(focused);
+                            }, mainHandle);
+                            expect(isFocusedOnMain).toBeTruthy();
+                        }
                     }
                 }
             }

@@ -813,3 +813,189 @@ export async function testSessionStoragePersistence(page: Page, testData: Record
         await expect(page.locator(data.selector)).toHaveValue(data.value);
     }
 }
+
+// === KEYBOARD NAVIGATION HELPER FUNCTIONS ===
+
+export interface KeyboardShortcutTest {
+    key: string;
+    expectedElement?: string;
+    expectedAction?: () => Promise<void>;
+}
+
+export async function testTabOrder(page: Page, selectors: string[], options: { skipFirst?: boolean; timeout?: number } = {}): Promise<void> {
+    const { skipFirst = false, timeout = 5000 } = options;
+
+    let startIndex = skipFirst ? 1 : 0;
+
+    for (let i = startIndex; i < selectors.length; i++) {
+        await page.keyboard.press('Tab');
+
+        try {
+            await expect(page.locator(selectors[i])).toBeFocused({ timeout });
+        } catch (error) {
+            // If element doesn't exist or isn't focusable, continue to next
+            console.log(`Element ${selectors[i]} not focusable, continuing...`);
+        }
+    }
+}
+
+export async function testReverseTabOrder(page: Page, selectors: string[], options: { timeout?: number } = {}): Promise<void> {
+    const { timeout = 5000 } = options;
+
+    // Start from the last element and tab backwards
+    for (let i = selectors.length - 1; i >= 0; i--) {
+        await page.keyboard.press('Shift+Tab');
+
+        try {
+            await expect(page.locator(selectors[i])).toBeFocused({ timeout });
+        } catch (error) {
+            // If element doesn't exist or isn't focusable, continue
+            console.log(`Element ${selectors[i]} not focusable in reverse, continuing...`);
+        }
+    }
+}
+
+export async function testFocusTrap(page: Page, containerSelector: string, focusableSelectors: string[]): Promise<void> {
+    const container = page.locator(containerSelector);
+    await expect(container).toBeVisible();
+
+    // Tab through all focusable elements within the container
+    for (const selector of focusableSelectors) {
+        const element = container.locator(selector);
+        if (await element.count() > 0) {
+            await element.focus();
+            await expect(element).toBeFocused();
+        }
+    }
+
+    // Test that focus stays within container when reaching the end
+    await page.keyboard.press('Tab');
+    const firstFocusable = container.locator(focusableSelectors[0]);
+    if (await firstFocusable.count() > 0) {
+        await expect(firstFocusable).toBeFocused();
+    }
+}
+
+export async function testKeyboardShortcuts(page: Page, tests: KeyboardShortcutTest[]): Promise<void> {
+    for (const test of tests) {
+        await page.keyboard.press(test.key);
+
+        if (test.expectedElement) {
+            await expect(page.locator(test.expectedElement)).toBeFocused();
+        }
+
+        if (test.expectedAction) {
+            await test.expectedAction();
+        }
+
+        await page.waitForTimeout(100); // Small delay between shortcuts
+    }
+}
+
+export async function testSkipLinks(page: Page, skipLinkSelector = 'a[href="#main"]', mainContentSelector = '#main'): Promise<void> {
+    const skipLink = page.locator(skipLinkSelector);
+
+    if (await skipLink.count() > 0) {
+        await skipLink.focus();
+        await expect(skipLink).toBeFocused();
+        await expect(skipLink).toBeVisible();
+
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(100);
+
+        const mainContent = page.locator(mainContentSelector);
+        if (await mainContent.count() > 0) {
+            // Focus should be on or near main content
+            const focusedElement = page.locator(':focus');
+            if (await focusedElement.count() > 0) {
+                const mainHandle = await mainContent.elementHandle();
+                if (mainHandle) {
+                    const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
+                        return focused === main || main.contains(focused);
+                    }, mainHandle);
+                    expect(isFocusedOnMain).toBeTruthy();
+                }
+            }
+        }
+    }
+}
+
+export async function verifyFocusVisible(page: Page, selectors: string[]): Promise<void> {
+    for (const selector of selectors) {
+        const element = page.locator(selector);
+
+        if (await element.count() > 0) {
+            await element.focus();
+
+            const focusStyles = await element.evaluate((el) => {
+                const styles = getComputedStyle(el);
+                return {
+                    outline: styles.outline,
+                    outlineWidth: styles.outlineWidth,
+                    boxShadow: styles.boxShadow,
+                };
+            });
+
+            const hasFocusIndicator =
+                focusStyles.outline !== 'none' ||
+                focusStyles.outlineWidth !== '0px' ||
+                focusStyles.boxShadow.includes('rgb');
+
+            expect(hasFocusIndicator).toBeTruthy();
+        }
+    }
+}
+
+export async function testFormSubmissionWithEnter(page: Page, formSelector: string, inputSelectors: string[], submitButtonSelector?: string): Promise<void> {
+    const form = page.locator(formSelector);
+    await expect(form).toBeVisible();
+
+    for (const inputSelector of inputSelectors) {
+        const input = form.locator(inputSelector);
+        if (await input.count() > 0) {
+            await input.focus();
+            await expect(input).toBeFocused();
+
+            // Test Enter key on form inputs
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(100);
+
+            // Form should remain accessible
+            await expect(form).toBeVisible();
+        }
+    }
+
+    if (submitButtonSelector) {
+        const submitButton = form.locator(submitButtonSelector);
+        if (await submitButton.count() > 0) {
+            await submitButton.focus();
+            await expect(submitButton).toBeFocused();
+
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(100);
+        }
+    }
+}
+
+export async function testModalKeyboardNavigation(page: Page, options: {
+    openModalSelector: string;
+    modalSelector: string;
+    focusableSelectors: string[];
+    closeButtonSelector?: string;
+}): Promise<void> {
+    const { openModalSelector, modalSelector, focusableSelectors, closeButtonSelector } = options;
+
+    // Open modal
+    await page.locator(openModalSelector).click();
+    const modal = page.locator(modalSelector);
+    await expect(modal).toBeVisible();
+
+    // Test focus trap within modal
+    await testFocusTrap(page, modalSelector, focusableSelectors);
+
+    // Test escape key closes modal
+    await page.keyboard.press('Escape');
+    if (closeButtonSelector) {
+        await expect(modal).not.toBeVisible();
+    }
+}

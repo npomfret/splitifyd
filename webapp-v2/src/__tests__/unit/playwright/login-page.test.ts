@@ -278,22 +278,14 @@ test.describe('LoginPage - Behavioral Tests', () => {
         });
 
         test('should activate buttons with Enter key', async ({ page }) => {
-            const keyboardTests: KeyboardShortcutTest[] = [
-                {
-                    key: 'Enter',
-                    selector: SELECTORS.FORGOT_PASSWORD_BUTTON,
-                    expectedAction: 'activate',
-                },
-                {
-                    key: 'Enter',
-                    selector: SELECTORS.SIGNUP_BUTTON,
-                    expectedAction: 'activate',
-                },
+            const buttonSelectors = [
+                SELECTORS.FORGOT_PASSWORD_BUTTON,
+                SELECTORS.SIGNUP_BUTTON,
             ];
 
-            for (const test of keyboardTests) {
+            for (const selector of buttonSelectors) {
                 // Focus on the button
-                const button = page.locator(test.selector);
+                const button = page.locator(selector);
                 await button.focus();
                 await expect(button).toBeFocused();
 

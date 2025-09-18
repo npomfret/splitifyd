@@ -408,8 +408,10 @@ test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
 
                     if (await previousElement.count() > 0) {
                         const tagName = await previousElement.evaluate(el => el.tagName.toLowerCase());
-                        expect(['button', 'a', 'input', 'checkbox'].includes(tagName) ||
-                               previousElement.evaluate(el => el.type === 'checkbox')).toBeTruthy();
+                        const isCheckbox = await previousElement.evaluate(el =>
+                            (el as HTMLInputElement).type === 'checkbox'
+                        );
+                        expect(['button', 'a', 'input', 'checkbox'].includes(tagName) || isCheckbox).toBeTruthy();
                     }
                 }
             });
