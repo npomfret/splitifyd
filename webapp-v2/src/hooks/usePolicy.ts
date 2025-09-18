@@ -10,8 +10,8 @@ interface PolicyResponse {
     createdAt: string;
 }
 
-async function fetchCurrentPolicy(policyId: string): Promise<PolicyResponse> {
-    const response = await fetch('/api/policies/' + policyId + '/current');
+async function fetchCurrentPolicy(policyId: string, signal?: AbortSignal): Promise<PolicyResponse> {
+    const response = await fetch('/api/policies/' + policyId + '/current', { signal });
     if (!response.ok) {
         throw new Error('Failed to fetch policy ' + policyId + ': ' + response.status);
     }
@@ -25,25 +25,30 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        let cancelled = false;
+        const controller = new AbortController();
 
         const fetchPolicy = async () => {
             try {
                 setLoading(true);
                 setError(null);
-                const policyData = await fetchCurrentPolicy(PolicyIds[policyId]);
+                const policyData = await fetchCurrentPolicy(PolicyIds[policyId], controller.signal);
 
-                if (!cancelled) {
+                if (!controller.signal.aborted) {
                     setPolicy(policyData);
                 }
             } catch (err) {
-                if (!cancelled) {
+                if (!controller.signal.aborted) {
+                    // Don't log AbortError - these are expected when component unmounts
+                    if (err instanceof Error && err.name === 'AbortError') {
+                        return;
+                    }
+
                     const errorMessage = err instanceof Error ? err.message : 'Failed to load policy';
                     setError(errorMessage);
                     logError('Failed to fetch policy', err as Error, { policyId });
                 }
             } finally {
-                if (!cancelled) {
+                if (!controller.signal.aborted) {
                     setLoading(false);
                 }
             }
@@ -52,7 +57,7 @@ export function usePolicy(policyId: keyof typeof PolicyIds) {
         fetchPolicy();
 
         return () => {
-            cancelled = true;
+            controller.abort();
         };
     }, [policyId]);
 

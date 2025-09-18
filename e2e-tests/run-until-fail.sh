@@ -17,8 +17,8 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/expense-form-operations.e2e.test.ts"
-TEST_FILTER="should perform basic expense CRUD operations"
+TEST_FILE="src/__tests__/integration/policy-acceptance.e2e.test.ts"
+TEST_FILTER=""
 
 # Detect script location and set working directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
