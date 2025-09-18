@@ -20,6 +20,23 @@ export class JoinGroupPage extends BasePage {
         return new GroupDetailPage(page);
     }
 
+    static async attemptToJoinWithInvalidShareLink(page: Page, invalidShareLink: string): Promise<void> {
+        const joinGroupPage = new JoinGroupPage(page);
+
+        // Navigate to invalid share link
+        await joinGroupPage.navigateToShareLink(invalidShareLink);
+
+        // Should show error page OR join page without join button (both are valid error states)
+        const pageState = await joinGroupPage.getPageState();
+        const isErrorPage = await joinGroupPage.isErrorPage();
+        const joinButtonVisible = pageState.joinButtonVisible;
+
+        if (!isErrorPage && joinButtonVisible) {
+            // If no error message and join button is visible, that's unexpected
+            throw new Error(`Expected error page or disabled join but found active join page. Page state: ${JSON.stringify(pageState, null, 2)}`);
+        }
+    }
+
     getJoinGroupHeading(): Locator {
         return this.page.getByRole('heading', { name: translationEn.joinGroupPage.title });
     }
@@ -49,7 +66,7 @@ export class JoinGroupPage extends BasePage {
     }
 
     getBackToDashboardButton(): Locator {
-        return this.page.getByRole('button', { name: /back to dashboard/i });
+        return this.page.getByRole('button', { name: /Go to dashboard/i });
     }
 
     // Authentication state detection

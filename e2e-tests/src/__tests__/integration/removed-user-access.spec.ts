@@ -1,6 +1,4 @@
 import { expect, simpleTest } from '../../fixtures/simple-test.fixture';
-
-import { MultiUserWorkflow } from '../../workflows';
 import { generateShortId, generateTestGroupName } from '@splitifyd/test-support';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { DashboardPage, JoinGroupPage, GroupDetailPage } from '../../pages';
@@ -11,9 +9,6 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Create two browser instances - User 1 and User 2
         const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: user2Page, user: user2 } = await newLoggedInBrowser();
-
-        // Create page objects
-        const groupDetailPage2 = new GroupDetailPage(user2Page);
 
         // Verify both users start on dashboard
         await expect(user1Page).toHaveURL(/\/dashboard/);
@@ -27,12 +22,10 @@ simpleTest.describe('Multi-User Group Access', () => {
         await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
 
         // User 2 joins via share link using proper workflow
-        const multiUserWorkflow = new MultiUserWorkflow();
-        const shareLink = await multiUserWorkflow.getShareLink(user1Page);
+        const shareLink = await groupDetailPage.getShareLink();
 
         // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
-        const joinGroupPage = new JoinGroupPage(user2Page);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
+        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, groupId);
 
         // Verify user 2 is in the group
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
@@ -73,11 +66,9 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Create two browser instances - Owner and Member (to be removed)
         // Using only 2 users to avoid complications and focus on the core removal behavior
         const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
+        const { page: memberPage, dashboardPage: memberDashboardPage, user: memberUser } = await newLoggedInBrowser();
 
-        // Create page objects
-        const memberGroupDetailPage = new GroupDetailPage(memberPage);
-        const memberDashboardPage = new DashboardPage(memberPage, memberUser);
+        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Create group with unique identifier
         const uniqueId = generateShortId();
@@ -85,21 +76,12 @@ simpleTest.describe('Multi-User Group Access', () => {
         const createdGroupPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from group page');
         const groupId = createdGroupPage.inferGroupId();
 
-        // Add member to group
-        const multiUserWorkflow = new MultiUserWorkflow();
-        const shareLink = await multiUserWorkflow.getShareLink(ownerPage);
-
-        // Member joins
-        const memberJoinGroupPage = new JoinGroupPage(memberPage);
-        await memberJoinGroupPage.joinGroupUsingShareLink(shareLink);
-        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+        const shareLink = await createdGroupPage.getShareLink();
+        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
 
         // Wait for both users to see 2 members
         await createdGroupPage.waitForMemberCount(2);
         await memberGroupDetailPage.waitForMemberCount(2);
-
-        // Get member display name for removal
-        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Owner removes the member while member is viewing the group page
         // Note: This should work with no expenses/balances in the group
@@ -119,7 +101,9 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Create two browser instances - Owner and Member (to be removed)
         // Simplified to focus on core dashboard behavior without complications
         let { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage } = await newLoggedInBrowser();
+        let { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+
+        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Create group with unique identifier
         const uniqueId = generateShortId();
@@ -127,15 +111,14 @@ simpleTest.describe('Multi-User Group Access', () => {
         const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from dashboard perspective');
 
         // Add member to group
-        const multiUserWorkflow = new MultiUserWorkflow();
-        const shareLink = await multiUserWorkflow.getShareLink(ownerPage);
+        const shareLink = await ownerGroupDetailPage.getShareLink();
 
         // Member joins
         const memberGruopDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
 
         // Both users navigate to their dashboards to see the group
         ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
-        const memberDashboardPage = await memberGruopDetailPage.navigateToDashboard();
+        memberDashboardPage = await memberGruopDetailPage.navigateToDashboard();
 
         // Verify both users can see the group on their dashboards
         await ownerDashboardPage.waitForGroupToAppear(groupName);
@@ -143,7 +126,6 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Owner goes back to group page to remove member
         const ownerGroupPage = await ownerDashboardPage.clickGroupCard(groupName);
-        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Owner removes the member while member is on dashboard
         const removeMemberModal = await ownerGroupPage.clickRemoveMember(memberDisplayName);

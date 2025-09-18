@@ -365,12 +365,6 @@ export abstract class BasePage {
         await this.waitForDomContentLoaded();
     }
 
-
-    async navigateToShareLink(shareLink: string): Promise<void> {
-        await this._page.goto(shareLink);
-        await this.waitForDomContentLoaded();
-    }
-
     async navigateToStaticPath(path: string): Promise<void> {
         await this._page.goto(`${EMULATOR_URL}${path}`);
         await this.waitForDomContentLoaded();

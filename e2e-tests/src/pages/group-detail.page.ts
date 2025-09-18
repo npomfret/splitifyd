@@ -635,15 +635,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Navigates to a share link and handles the join process reliably.
-     * This method integrates with the new JoinGroupPage for better error handling.
-     */
-    async navigateToShareLink(shareLink: string): Promise<void> {
-        await this.page.goto(shareLink);
-        await this.waitForDomContentLoaded();
-    }
-
-    /**
      * Gets debt information from balances section
      */
     getDebtInfo(debtorName: string, creditorName: string) {

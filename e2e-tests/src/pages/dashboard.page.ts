@@ -58,6 +58,10 @@ export class DashboardPage extends BasePage {
         return this.page.getByRole('button', { name: /Create.*Group/i }).first();
     }
 
+    getBaseUrl() {
+        return this.page.url().split('/dashboard')[0];
+    }
+
     async clickSettings() {
         const settingsPage = new SettingsPage(this.page, this.userInfo);
         await settingsPage.navigate();
