@@ -11,7 +11,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         testInfo.setTimeout(60000); // 60 seconds
 
         // Create four browser instances - User 1, User 2, User 3, and User 4
-        const {page: user1Page, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
+        const {dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
         const {page: user2Page, dashboardPage: user2DashboardPage} = await newLoggedInBrowser();
         const {page: user3Page, dashboardPage: user3DashboardPage} = await newLoggedInBrowser();
         const {page: user4Page, dashboardPage: user4DashboardPage} = await newLoggedInBrowser();
@@ -314,8 +314,8 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
     simpleTest('should support real-time expense comments across multiple users', async ({newLoggedInBrowser}) => {
         // Create two browser instances - Alice and Bob
-        const {page: user1Page, user: user1, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
-        const {page: user2Page, user: user2, dashboardPage: user2DashboardPage} = await newLoggedInBrowser();
+        const {dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
+        const {page: user2Page } = await newLoggedInBrowser();
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
 
@@ -383,7 +383,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await expect(user2ExpenseDetailPage.getCommentByText(comment2)).toBeVisible();
     });
 
-    simpleTest('should handle concurrent expense editing by multiple users', async ({newLoggedInBrowser}, testInfo) => {
+    simpleTest('should handle concurrent expense editing by multiple users', async ({newLoggedInBrowser}) => {
         // Create three users - Editor1, Editor2, Watcher
         const {dashboardPage: editor1DashboardPage} = await newLoggedInBrowser();
         const {page: editor2Page, dashboardPage: editor2DashboardPage} = await newLoggedInBrowser();
@@ -525,7 +525,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
     });
 
-    simpleTest('should propagate expense deletion in real-time', async ({newLoggedInBrowser}, testInfo) => {
+    simpleTest('should propagate expense deletion in real-time', async ({newLoggedInBrowser}) => {
         // Create three users - Deleter, GroupWatcher, DashboardWatcher
         const {page: deleterPage, dashboardPage: deleterDashboardPage} = await newLoggedInBrowser();
         const {page: groupWatcherPage, dashboardPage: groupWatcherDashboardPage} = await newLoggedInBrowser();

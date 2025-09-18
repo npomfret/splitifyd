@@ -206,7 +206,7 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
 
         // Check that each call contains both change types in atomic update with merge:true
         const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
-        updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
+        updateCalls.forEach(([_, updates, merge]: [string, any, boolean]) => {
             expect(merge).toBe(true); // Should use merge:true for upsert behavior
             expect(updates).toEqual(
                 expect.objectContaining({
@@ -262,7 +262,7 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
 
         // Assert: Should process single change type correctly
         expect(mockFirestoreWriter.setUserNotifications).toHaveBeenCalledTimes(1);
-        const [userId, updates, merge] = mockFirestoreWriter.setUserNotifications.mock.calls[0];
+        const [_, updates, merge] = mockFirestoreWriter.setUserNotifications.mock.calls[0];
 
         expect(merge).toBe(true);
         expect(updates).toEqual(
@@ -297,7 +297,7 @@ describe('NotificationService.batchUpdateNotificationsMultipleTypes', () => {
 
         // Verify both calls contain atomic updates for both change types with merge:true
         const updateCalls = mockFirestoreWriter.setUserNotifications.mock.calls;
-        updateCalls.forEach(([userId, updates, merge]: [string, any, boolean]) => {
+        updateCalls.forEach(([_, updates, merge]: [string, any, boolean]) => {
             expect(merge).toBe(true); // Should use upsert behavior
             expect(updates).toEqual(
                 expect.objectContaining({

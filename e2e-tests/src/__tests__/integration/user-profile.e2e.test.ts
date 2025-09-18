@@ -66,7 +66,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should preserve other profile information when updating display name', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         const newDisplayName = `Test Name ${Date.now()}`;
@@ -87,7 +87,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should show loading states during profile updates', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         const testDisplayName = `Loading Test ${Date.now()}`;
@@ -112,7 +112,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should allow canceling password change', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page
@@ -132,7 +132,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should update display name in real-time across all UI components without page reload', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page
@@ -173,7 +173,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should validate display name requirements', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page using POM
@@ -203,7 +203,7 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should validate password change requirements', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, user } = await newLoggedInBrowser();
         const settingsPage = new SettingsPage(page, user);
 
         // Navigate to settings page using POM

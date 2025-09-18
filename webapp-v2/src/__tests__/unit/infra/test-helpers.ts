@@ -422,9 +422,8 @@ export async function setupAuthenticatedUserWithToken(page: Page, authToken: { i
  * Set up authenticated state by following the working pattern from dashboard tests
  * This approach acknowledges that redirect behavior is expected and tests navigation flow
  */
-export async function setupAuthenticatedUser(page: Page, email = someValidEmail()): Promise<void> {
+export async function setupAuthenticatedUser(page: Page): Promise<void> {
     const userId = 'test-user-id';
-    const idToken = 'mock-id-token-' + Date.now();
 
     // Mock the Firebase config
     await page.route('**/api/config', (route) => {
@@ -770,47 +769,4 @@ export async function testFormValidation(page: Page, requiredFields: string[], s
     // Fill last field - button should be enabled
     await fillFormField(page, requiredFields[requiredFields.length - 1], 'test-value');
     await expect(submitButton).toBeEnabled();
-}
-
-/**
- * Session storage persistence test helper
- */
-export async function testSessionStoragePersistence(page: Page, testData: Record<string, { selector: string; value: string; storageKey: string }>): Promise<void> {
-    // Fill all fields
-    for (const [, data] of Object.entries(testData)) {
-        await fillFormField(page, data.selector, data.value);
-    }
-
-    // Wait for storage to be updated using proper state-based waiting
-    await page.waitForFunction(
-        (storageKeys) => {
-            return storageKeys.some(key => sessionStorage.getItem(key) !== null);
-        },
-        Object.values(testData).map((d) => d.storageKey),
-        {timeout: 2000}
-    );
-
-    // Verify storage values
-    const storedValues = await page.evaluate(
-        (keys) => {
-            const result: Record<string, string | null> = {};
-            keys.forEach((key) => {
-                result[key] = sessionStorage.getItem(key);
-            });
-            return result;
-        },
-        Object.values(testData).map((d) => d.storageKey),
-    );
-
-    // Verify each stored value
-    for (const [, data] of Object.entries(testData)) {
-        expect(storedValues[data.storageKey]).toBe(data.value);
-    }
-
-    // Refresh and verify restoration
-    await page.reload();
-
-    for (const [, data] of Object.entries(testData)) {
-        await expect(page.locator(data.selector)).toHaveValue(data.value);
-    }
 }

@@ -8,8 +8,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
     simpleTest.describe('Share Link - Already Logged In User', () => {
         simpleTest('should allow logged-in user to join group via share link', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: page1, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: page2, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
+            const { page: page1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: page2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
             const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
             const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -40,8 +40,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
 
         simpleTest('should show appropriate message when logged-in user is already a member', async ({ newLoggedInBrowser }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: page1, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: page2, user: user2 } = await newLoggedInBrowser();
+            const { page: page1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
+            const { page: page2 } = await newLoggedInBrowser();
 
             // Create page objects
 
@@ -55,8 +55,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const shareLink = await multiUserWorkflow.getShareLink(page1);
 
             // User2 joins first time
-            const joinGroupPage2 = new JoinGroupPage(page2);
-            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
+            await JoinGroupPage.joinGroupViaShareLink(page2, shareLink, groupId);
 
             // User2 tries to join again - should show already member message
             await multiUserWorkflow.testShareLinkAlreadyMember(page2, shareLink);
@@ -66,7 +65,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
     simpleTest.describe('Share Link - Not Logged In User', () => {
         simpleTest('should redirect non-logged-in user to login then to group after login', async ({ newLoggedInBrowser, newEmptyBrowser }) => {
             // Create authenticated user to set up the group
-            const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
+            const { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
 
             // Create unauthenticated browser
             const { page: unauthPage, loginPage } = await newEmptyBrowser();

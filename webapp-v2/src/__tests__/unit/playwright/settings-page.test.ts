@@ -14,16 +14,6 @@ import {
  * These tests focus on display name updates, password changes, and form validation
  */
 test.describe('SettingsPage - Comprehensive Behavioral Tests', () => {
-    const mockGroupData = {
-        id: 'test-group',
-        name: 'Test Group',
-        description: 'A test group for expenses',
-        currency: 'USD',
-        members: [
-            { id: 'test-user-id', email: 'test@example.com', displayName: 'Test User' }
-        ]
-    };
-
     test.describe('Unauthenticated Access', () => {
         test.beforeEach(async ({ page }) => {
             await setupTestPage(page, '/settings');

@@ -315,49 +315,6 @@ export abstract class BasePage {
     }
 
     /**
-     * Click a dropdown button and ensure it opens properly.
-     * Uses ARIA attributes to verify dropdown state instead of arbitrary timeouts.
-     * @param dropdownButton - The dropdown trigger button
-     * @param options - Configuration options
-     */
-    async clickDropdownButton(
-        dropdownButton: Locator,
-        options?: {
-            buttonName?: string; // Human-readable name for error messages
-            dropdownContent?: Locator; // Optional locator for dropdown content to verify it's visible
-        },
-    ): Promise<void> {
-        const { buttonName = 'dropdown', dropdownContent } = options || {};
-
-        // Ensure button is visible and enabled
-        await expect(dropdownButton).toBeVisible();
-        await expect(dropdownButton).toBeEnabled();
-
-        // Click the dropdown button
-        await dropdownButton.click();
-
-        // Check if dropdown opened using aria-expanded attribute
-        const ariaExpanded = await dropdownButton.getAttribute('aria-expanded');
-
-        if (ariaExpanded === 'true') {
-            // If dropdown content locator provided, verify it's visible
-            if (dropdownContent) {
-                await expect(dropdownContent).toBeVisible();
-            }
-            return; // Success!
-        }
-
-        // If aria-expanded not available or false, check for dropdown content visibility
-        if (!ariaExpanded && dropdownContent) {
-            await expect(dropdownContent).toBeVisible();
-            return; // Success!
-        }
-
-        throw new Error(`Dropdown "${buttonName}" did not open. aria-expanded="${ariaExpanded}"`);
-    }
-
-
-    /**
      * Expects the page to match a URL pattern
      */
     async expectUrl(pattern: string | RegExp): Promise<void> {

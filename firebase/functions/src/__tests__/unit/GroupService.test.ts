@@ -154,11 +154,11 @@ vi.mock('../../utils/dateHelpers', () => ({
         return null;
     }),
     timestampToISO: vi.fn(() => '2023-01-01T10:30:00.000Z'),
-    assertTimestamp: vi.fn((value: any, fieldName: string) => {
+    assertTimestamp: vi.fn((value: any, _: string) => {
         // Mock implementation for testing - return the value
         return value;
     }),
-    assertTimestampAndConvert: vi.fn((value: any, fieldName: string) => {
+    assertTimestampAndConvert: vi.fn((value: any, _: string) => {
         // Mock implementation for testing - return mock ISO string
         if (value && typeof value.toDate === 'function') {
             return value.toDate().toISOString();

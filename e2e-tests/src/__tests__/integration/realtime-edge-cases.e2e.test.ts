@@ -12,8 +12,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         // Create four users - ExpenseCreator, LeavingUser, StayingUser, Watcher
         const { dashboardPage: creatorDashboardPage, user: creator } = await newLoggedInBrowser();
         const { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving } = await newLoggedInBrowser();
-        const { page: stayingPage, dashboardPage: stayingDashboardPage, user: staying } = await newLoggedInBrowser();
-        const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
+        const { page: stayingPage, user: staying } = await newLoggedInBrowser();
+        const { page: watcherPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
         const leavingGroupDetailPage = new GroupDetailPage(leavingPage);
@@ -95,7 +95,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const { dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
         const { page: settlingPage, dashboardPage: settlingDashboardPage, user: settling } = await newLoggedInBrowser();
         const { page: targetPage, dashboardPage: targetDashboardPage, user: target } = await newLoggedInBrowser();
-        const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
+        const { page: watcherPage, user: watcher } = await newLoggedInBrowser();
 
         // Create page objects
         const settlingGroupDetailPage = new GroupDetailPage(settlingPage);
@@ -205,9 +205,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create four users for stress testing
         const { dashboardPage: user1DashboardPage, } = await newLoggedInBrowser();
-        const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-        const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
-        const { page: user4Page, dashboardPage: user4DashboardPage, user: user4 } = await newLoggedInBrowser();
+        const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+        const { page: user3Page, dashboardPage: user3DashboardPage } = await newLoggedInBrowser();
+        const { page: user4Page, dashboardPage: user4DashboardPage } = await newLoggedInBrowser();
 
         // Create page objects
         const user2GroupDetailPage = new GroupDetailPage(user2Page);
@@ -328,8 +328,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create three users - ActiveUser, WatcherOnline, WatcherOffline
         const { dashboardPage: activeDashboardPage } = await newLoggedInBrowser();
-        const { page: onlinePage, dashboardPage: onlineDashboardPage, user: online } = await newLoggedInBrowser();
-        const { page: offlinePage, dashboardPage: offlineDashboardPage, user: offline } = await newLoggedInBrowser();
+        const { page: onlinePage, } = await newLoggedInBrowser();
+        const { page: offlinePage, } = await newLoggedInBrowser();
 
         // Create page objects
         const onlineGroupDetailPage = new GroupDetailPage(onlinePage);
@@ -410,8 +410,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
 
         // Create three users - Editor1, Editor2, Watcher
         const { page: editor1Page, dashboardPage: editor1DashboardPage, user: editor1 } = await newLoggedInBrowser();
-        const { page: editor2Page, dashboardPage: editor2DashboardPage, user: editor2 } = await newLoggedInBrowser();
-        const { page: watcherPage, dashboardPage: watcherDashboardPage, user: watcher } = await newLoggedInBrowser();
+        const { page: editor2Page, user: editor2 } = await newLoggedInBrowser();
+        const { page: watcherPage } = await newLoggedInBrowser();
 
         // Create page objects
         const editor2GroupDetailPage = new GroupDetailPage(editor2Page);

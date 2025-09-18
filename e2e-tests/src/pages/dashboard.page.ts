@@ -58,21 +58,6 @@ export class DashboardPage extends BasePage {
         return this.page.getByRole('button', { name: /Create.*Group/i }).first();
     }
 
-    /**
-     * Override waitForUserMenu to also check for dashboard-specific elements.
-     */
-    async waitForUserMenu(): Promise<void> {
-        // Wait for authentication state to be fully loaded first
-        await this.waitForDomContentLoaded();
-
-        // Ensure we're logged in by checking for either welcome message (new users) or groups heading
-        // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
-        await expect(this.getGroupsHeading()).toBeVisible();
-
-        // Call header to wait for user menu
-        await this.header.waitForUserMenu();
-    }
-
     async clickSettings() {
         const settingsPage = new SettingsPage(this.page, this.userInfo);
         await settingsPage.navigate();

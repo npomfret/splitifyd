@@ -8,36 +8,6 @@ import {
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
 
-// Dashboard-specific selectors following established patterns
-const DASHBOARD_SELECTORS = {
-    // Main structure
-    MAIN_CONTENT: 'main',
-    WELCOME_HEADING: 'h2:has-text("Welcome")',
-    WELCOME_DESCRIPTION: 'p:has-text("Welcome")',
-    GROUPS_SECTION_TITLE: 'h3:has-text("Your Groups")',
-    GROUPS_CONTAINER: '.bg-white.rounded-lg.shadow-sm',
-
-    // Buttons and actions
-    CREATE_GROUP_BUTTON: 'button:has-text("Create Group")',
-    CREATE_GROUP_MODAL: '[role="dialog"]',
-    MODAL_CLOSE_BUTTON: '[data-testid*="close"], button:has-text("Cancel"), [aria-label*="close"]',
-
-    // Layout components
-    QUICK_ACTIONS_MOBILE: '.lg\\:hidden',
-    QUICK_ACTIONS_DESKTOP: '.hidden.lg\\:block',
-    DASHBOARD_GRID: '[class*="dashboard"], .space-y-4, .grid',
-    SIDEBAR_CONTENT: '.space-y-4',
-
-    // Loading and error states
-    LOADING_SPINNER: '.animate-spin',
-    ERROR_MESSAGE: '[role="alert"], [data-testid*="error"]',
-
-    // Groups display
-    GROUP_CARD: '[data-testid*="group"], .group-card',
-    GROUP_NAME: '[data-testid="group-name"], .group-name',
-    EMPTY_GROUPS_MESSAGE: '[data-testid="empty-groups"], text=No groups yet',
-} as const;
-
 // Test data for dashboard scenarios
 const DASHBOARD_TEST_DATA = {
     EMPTY_GROUPS: [],

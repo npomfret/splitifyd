@@ -110,18 +110,6 @@ export class HeaderPage {
     }
 
     /**
-     * Check if a user is logged in by checking for the user menu.
-     */
-    async isUserLoggedIn(): Promise<boolean> {
-        try {
-            const menuVisible = await this.getUserMenuButton().isVisible({ timeout: 2000 });
-            return menuVisible;
-        } catch {
-            return false;
-        }
-    }
-
-    /**
      * Navigate to dashboard via user menu.
      * This method solves the circular dependency issue by avoiding dynamic imports.
      * Returns void - caller should create DashboardPage instance if needed.

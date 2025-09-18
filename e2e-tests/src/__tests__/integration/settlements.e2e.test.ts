@@ -271,7 +271,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Share and join
             const shareLink = await groupDetailPage.getShareLink();
-            const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -299,7 +299,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Multi-User Settlement Scenarios', () => {
         simpleTest('should handle partial settlement with 3 users correctly', async ({ newLoggedInBrowser }) => {
             // Create three browser instances - User 1, User 2, and User 3
-            const { page: user1Page, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
+            const { dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
             const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
 

@@ -51,7 +51,7 @@ export class NotificationDriver {
      * Stop all active listeners
      */
     stopAllListeners(): void {
-        for (const [userId, listener] of this.activeListeners) {
+        for (const [_, listener] of this.activeListeners) {
             listener.stop();
         }
         this.activeListeners.clear();
@@ -61,7 +61,7 @@ export class NotificationDriver {
      * Clear events for all active listeners
      */
     clearEvents(): void {
-        for (const [userId, listener] of this.activeListeners) {
+        for (const [_, listener] of this.activeListeners) {
             listener.clearEvents();
         }
     }

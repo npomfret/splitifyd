@@ -119,7 +119,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Create two browser instances - Owner and Member (to be removed)
         // Simplified to focus on core dashboard behavior without complications
         let { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
+        const { page: memberPage } = await newLoggedInBrowser();
 
         // Create group with unique identifier
         const uniqueId = generateShortId();

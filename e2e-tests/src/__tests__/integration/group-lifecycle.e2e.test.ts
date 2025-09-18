@@ -111,8 +111,8 @@ simpleTest.describe('Group Management', () => {
 
     simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
         // Create two browser sessions with pooled users
-        const { page: ownerPage, user: owner, dashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, user: member } = await newLoggedInBrowser();
+        const { page: ownerPage, dashboardPage } = await newLoggedInBrowser();
+        const { page: memberPage } = await newLoggedInBrowser();
 
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage);
         const memberGroupDetailPage = new GroupDetailPage(memberPage);
@@ -286,13 +286,6 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         } catch (error) {
             throw error;
         }
-
-        // Verify all pages see complete member list
-        const allPages = [
-            { page: user1Page, groupDetailPage },
-            { page: user2Page, groupDetailPage: groupDetailPage2 },
-            { page: user3Page, groupDetailPage: groupDetailPage3 },
-        ];
 
         // Ensure all pages are on the correct group page
         await groupDetailPage.waitForPage(groupId, 3);

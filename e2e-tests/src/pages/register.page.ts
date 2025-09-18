@@ -117,14 +117,6 @@ export class RegisterPage extends BasePage {
         return this.page.getByRole(ARIA_ROLES.BUTTON, { name: this.createAccountButton });
     }
 
-    getTermsText() {
-        return this.page.locator(`text=${translation.registerPage.acceptTerms} ${translation.registerPage.termsOfService}`);
-    }
-
-    getCookieText() {
-        return this.page.locator(`text=${translation.registerPage.acceptTerms} ${translation.registerPage.cookiePolicy}`);
-    }
-
     getTermsLink() {
         return this.page.locator('a[href="/terms"]').first();
     }

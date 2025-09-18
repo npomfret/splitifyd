@@ -458,18 +458,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify expense appears on all provided pages
-     */
-    async verifyExpenseAcrossPages(pages: Array<{ page: any }>, expenseDescription: string, expenseAmount?: string): Promise<void> {
-        for (const { page } of pages) {
-            await expect(page.getByText(expenseDescription)).toBeVisible();
-            if (expenseAmount) {
-                await expect(page.getByText(expenseAmount)).toBeVisible();
-            }
-        }
-    }
-
-    /**
      * Create expense using proper page object composition
      */
     async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
@@ -653,20 +641,6 @@ export class GroupDetailPage extends BasePage {
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this.page.goto(shareLink);
         await this.waitForDomContentLoaded();
-    }
-
-    /**
-     * Gets the show history button
-     */
-    getHistoryButton() {
-        return this.page.getByRole('button', { name: 'Show History' });
-    }
-
-    /**
-     * Opens the history modal (idempotent - does nothing if already open)
-     */
-    async openHistory() {
-        await this.openHistoryIfClosed();
     }
 
     /**

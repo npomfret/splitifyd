@@ -5,7 +5,7 @@ import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 test.describe('Expense Form Operations E2E', () => {
     test('should perform basic expense CRUD operations', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+        const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Get the current user's display name
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();

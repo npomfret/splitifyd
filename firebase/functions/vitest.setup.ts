@@ -22,9 +22,6 @@ const testUserRegistry = new Map<string, TestUserEntry>();
     testUserRegistry.set(testId, { users, apiDriver });
 };
 
-// Run cleanup before each test (only for integration tests)
-beforeEach(async (context) => {});
-
 // Automatically clean up all borrowed test users after each test
 afterEach(async () => {
     if (testUserRegistry.size > 0) {
