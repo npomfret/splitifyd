@@ -1,5 +1,6 @@
 import { useSignal } from '@preact/signals';
 import { useRef, useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { parseTimeString, formatTime24, formatTime12, generateTimeSuggestions, filterTimeSuggestions, convertTo12HourDisplay } from '@/utils/timeParser.ts';
 
 interface TimeInputProps {
@@ -12,6 +13,7 @@ interface TimeInputProps {
 }
 
 export function TimeInput({ value, onChange, label, required = false, error, className = '' }: TimeInputProps) {
+    const { t } = useTranslation();
     const isEditing = useSignal(false);
     const inputValue = useSignal(convertTo12HourDisplay(value));
     const showSuggestions = useSignal(false);
@@ -136,7 +138,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     {label}{' '}
                     {required && (
                         <span className="text-red-500" data-testid="required-indicator">
-                            *
+                            {t('uiComponents.timeInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
@@ -151,7 +153,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                         error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     } dark:bg-gray-700 dark:text-white`}
                 >
-                    at {inputValue.value}
+                    {t('uiComponents.timeInput.at')}{inputValue.value}
                 </button>
             ) : (
                 // Edit mode - input field
@@ -162,7 +164,7 @@ export function TimeInput({ value, onChange, label, required = false, error, cla
                     onInput={handleInputChange}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
-                    placeholder="Enter time (e.g., 2:30pm)"
+                    placeholder={t('uiComponents.timeInput.placeholder')}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white ${
                         error ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}

@@ -1,4 +1,5 @@
 import { useCallback, useRef, useMemo } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { CurrencyService, type Currency } from '@/app/services/currencyService';
 import { useCurrencySelector } from '@/app/hooks/useCurrencySelector';
 
@@ -25,10 +26,11 @@ export function CurrencyAmountInput({
     error,
     required = false,
     disabled = false,
-    placeholder = '0.00',
+    placeholder,
     className = '',
     recentCurrencies = [],
 }: CurrencyAmountInputProps) {
+    const { t } = useTranslation();
     const inputRef = useRef<HTMLInputElement>(null);
     const currencyService = CurrencyService.getInstance();
 
@@ -121,7 +123,7 @@ export function CurrencyAmountInput({
                     {label}
                     {required && (
                         <span className="text-red-500 ml-1" data-testid="required-indicator">
-                            *
+                            {t('uiComponents.currencyAmountInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
@@ -142,7 +144,7 @@ export function CurrencyAmountInput({
               ${disabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-50 hover:bg-gray-100 text-gray-700 cursor-pointer'}
               ${error ? 'border-red-300' : 'border-gray-300'}
             `}
-                        aria-label="Select currency"
+                        aria-label={t('uiComponents.currencyAmountInput.selectCurrency')}
                         aria-expanded={isOpen}
                         aria-haspopup="listbox"
                     >
@@ -173,7 +175,7 @@ export function CurrencyAmountInput({
                         onChange={handleAmountChange}
                         onKeyDown={handleKeyDown}
                         disabled={disabled}
-                        placeholder={placeholder}
+                        placeholder={placeholder || t('uiComponents.currencyAmountInput.placeholder')}
                         required={required}
                         className={`
               flex-1 px-3 py-2
@@ -199,7 +201,7 @@ export function CurrencyAmountInput({
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Search by symbol, code, or country..."
+                                placeholder={t('uiComponents.currencyAmountInput.searchPlaceholder')}
                                 className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-600"
                                 aria-label="Search currencies"
                             />
@@ -210,18 +212,18 @@ export function CurrencyAmountInput({
                             {isLoadingCurrencies ? (
                                 <div className="px-3 py-4 text-sm text-gray-500 text-center" aria-live="polite">
                                     <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-                                    <span className="ml-2">Loading currencies...</span>
+                                    <span className="ml-2">{t('uiComponents.currencyAmountInput.loading')}</span>
                                 </div>
                             ) : filteredCurrencies.length === 0 ? (
                                 <div className="px-3 py-4 text-sm text-gray-500 text-center" role="status">
-                                    No currencies found
+                                    {t('uiComponents.currencyAmountInput.noCurrencies')}
                                 </div>
                             ) : (
                                 <>
-                                    {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? 'Recent' : '', groupedCurrencies.recent, 0)}
-                                    {renderCurrencyGroup(groupedCurrencies.common.length > 0 ? 'Common' : '', groupedCurrencies.common, groupedCurrencies.recent.length)}
+                                    {renderCurrencyGroup(groupedCurrencies.recent.length > 0 ? t('uiComponents.currencyAmountInput.recent') : '', groupedCurrencies.recent, 0)}
+                                    {renderCurrencyGroup(groupedCurrencies.common.length > 0 ? t('uiComponents.currencyAmountInput.common') : '', groupedCurrencies.common, groupedCurrencies.recent.length)}
                                     {renderCurrencyGroup(
-                                        groupedCurrencies.others.length > 0 ? 'All Currencies' : '',
+                                        groupedCurrencies.others.length > 0 ? t('uiComponents.currencyAmountInput.allCurrencies') : '',
                                         groupedCurrencies.others,
                                         groupedCurrencies.recent.length + groupedCurrencies.common.length,
                                     )}

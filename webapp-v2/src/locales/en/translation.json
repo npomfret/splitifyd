@@ -617,7 +617,8 @@
       "default": "Button"
     },
     "categorySuggestionInput": {
-      "requiredIndicator": "*"
+      "requiredIndicator": "*",
+      "placeholder": "Enter category..."
     },
     "confirmDialog": {
       "confirm": "Confirm",
@@ -630,7 +631,9 @@
       "noCurrencies": "No currencies found",
       "recent": "Recent",
       "common": "Common",
-      "allCurrencies": "All Currencies"
+      "allCurrencies": "All Currencies",
+      "placeholder": "0.00",
+      "requiredIndicator": "*"
     },
     "currencySelector": {
       "placeholder": "Select currency...",
@@ -658,7 +661,8 @@
     },
     "timeInput": {
       "at": "at ",
-      "placeholder": "Enter time (e.g., 2:30pm)"
+      "placeholder": "Enter time (e.g., 2:30pm)",
+      "requiredIndicator": "*"
     }
   },
   "pages": {
@@ -670,12 +674,15 @@
       "loadingTitle": "Loading... - Splitifyd",
       "groupNotFound": "Group Not Found",
       "groupNotFoundMessage": "The group you're trying to add an expense to doesn't exist or you don't have access to it.",
+      "backToGroup": "Back to Group",
       "copyExpenseTitle": "Copy Expense",
       "editExpenseTitle": "Edit Expense",
       "addExpenseTitle": "Add Expense",
       "copyExpenseAction": "Copy expense",
       "editExpenseAction": "Edit expense",
-      "addExpenseAction": "Add a new expense"
+      "addExpenseAction": "Add a new expense",
+      "titleSuffix": " - Splitifyd",
+      "titleIn": " in "
     },
     "expenseDetailPage": {
       "missingGroupId": "Missing group ID",

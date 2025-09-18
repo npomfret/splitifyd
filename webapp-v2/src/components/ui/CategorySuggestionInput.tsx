@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import type { ExpenseCategory } from '@splitifyd/shared';
 
 interface CategorySuggestionInputProps {
@@ -12,7 +13,8 @@ interface CategorySuggestionInputProps {
     required?: boolean;
 }
 
-export function CategorySuggestionInput({ value, onChange, suggestions, className = '', error, label, placeholder = 'Enter category...', required = false }: CategorySuggestionInputProps) {
+export function CategorySuggestionInput({ value, onChange, suggestions, className = '', error, label, placeholder, required = false }: CategorySuggestionInputProps) {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const [filteredSuggestions, setFilteredSuggestions] = useState<ExpenseCategory[]>(suggestions);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -132,7 +134,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     {label}
                     {required && (
                         <span className="text-red-500 ml-1" data-testid="required-indicator">
-                            *
+                            {t('uiComponents.categorySuggestionInput.requiredIndicator')}
                         </span>
                     )}
                 </label>
@@ -146,7 +148,7 @@ export function CategorySuggestionInput({ value, onChange, suggestions, classNam
                     onChange={handleInputChange}
                     onFocus={handleInputFocus}
                     onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
+                    placeholder={placeholder || t('uiComponents.categorySuggestionInput.placeholder')}
                     className={inputClasses}
                     aria-invalid={!!error}
                     aria-describedby={error ? `${inputId}-error` : undefined}

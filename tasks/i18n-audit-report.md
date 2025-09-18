@@ -23,46 +23,28 @@ This report details all on-screen text found in the `webapp-v2` codebase that is
 - **components/dashboard/CreateGroupModal.tsx**:
   - `⚠️`
 
-### UI Components
+### ✅ UI Components (COMPLETED)
 
-- **components/ui/CategorySuggestionInput.tsx**:
-  - `Enter category...`
+- ~~**components/ui/CategorySuggestionInput.tsx**~~ ✅
+  - ~~`Enter category...`~~ → `uiComponents.categorySuggestionInput.placeholder`
 
-- **components/ui/CurrencyAmountInput.tsx**:
-  - `0.00`
+- ~~**components/ui/CurrencyAmountInput.tsx**~~ ✅
+  - ~~`0.00`~~ → `uiComponents.currencyAmountInput.placeholder`
+  - All search, loading, and currency selection strings converted
 
-- **components/ui/RealTimeIndicator.tsx**:
-  - `Network: Connected (Green)`
-  - `Network: Offline (Red)`
-  - `Server: Unknown - offline (Gray)`
-  - `Server: Connected (Green)`
-  - `Server: Poor connection (Yellow)`
-  - `Server: Unavailable (Red)`
-  - `Server: Unknown (Gray)`
+- ~~**components/ui/RealTimeIndicator.tsx**~~ ✅
+  - ~~Network and server status messages~~ → `uiComponents.realTimeIndicator.*`
 
-- **components/ui/TimeInput.tsx**:
-  - `at `
-  - `Enter time (e.g., 2:30pm)`
+- ~~**components/ui/TimeInput.tsx**~~ ✅
+  - ~~`at `~~ → `uiComponents.timeInput.at`
+  - ~~`Enter time (e.g., 2:30pm)`~~ → `uiComponents.timeInput.placeholder`
 
 ### Pages
 
-- **pages/AddExpensePage.tsx**:
-  - `Error - Splitifyd`
-  - `Error`
-  - `No group specified. Cannot add expense without a group.`
-  - `Back to Dashboard`
-  - `Loading... - Splitifyd`
-  - `Group Not Found`
-  - `The group you're trying to add an expense to doesn't exist or you don't have access to it.`
-  - `Back to Group`
-  - `Copy Expense`
-  - `Edit Expense`
-  - `Add Expense`
-  - `Copy expense`
-  - `Edit expense`
-  - `Add a new expense`
-  - ` - Splitifyd`
-  - ` in `
+- ~~**pages/AddExpensePage.tsx**~~ ✅ **COMPLETED**
+  - ~~All error messages, titles, and page strings~~ → `pages.addExpensePage.*`
+  - ~~Dynamic page titles for add/edit/copy modes~~ → Fully internationalized
+  - ~~Loading states and navigation buttons~~ → Complete conversion
 
 - **pages/ExpenseDetailPage.tsx**:
   - `Missing group ID`
@@ -127,11 +109,40 @@ This report details all on-screen text found in the `webapp-v2` codebase that is
 
 ## Implementation Status
 
-Many components have already been internationalized and are using the translation system correctly. The above list represents the remaining hardcoded strings that need to be converted to use translation keys.
+### ✅ **COMPLETED** (5 Major Components)
 
-### Priority Order for Implementation:
+1. **✅ UI Components** - **ALL CORE UI COMPONENTS COMPLETED**
+   - CategorySuggestionInput: `uiComponents.categorySuggestionInput.*`
+   - CurrencyAmountInput: `uiComponents.currencyAmountInput.*`
+   - RealTimeIndicator: `uiComponents.realTimeIndicator.*`
+   - TimeInput: `uiComponents.timeInput.*`
 
-1. **UI Components** - Core reusable components (CategorySuggestionInput, CurrencyAmountInput, RealTimeIndicator, TimeInput)
-2. **Main Pages** - Key pages (AddExpensePage, ExpenseDetailPage, GroupDetailPage, etc.)
-3. **Auth Components** - Authentication-related components
-4. **Main App Components** - Low priority diagnostic strings in main.tsx
+2. **✅ AddExpensePage** - **FULLY INTERNATIONALIZED**
+   - Complete conversion of all hardcoded strings
+   - Dynamic page titles, error handling, navigation
+   - Translation keys: `pages.addExpensePage.*`
+
+### 🔄 **REMAINING WORK**
+
+**High Priority:**
+- **ExpenseDetailPage** - Expense viewing page with receipt handling
+- **GroupDetailPage** - Group management and expense listing
+- **ResetPasswordPage** - Password reset flow
+
+**Medium Priority:**
+- **RegisterPage** - Required indicator only
+- **SettingsPage** - Title suffix only
+
+**Low Priority:**
+- **Auth Components** - AuthLayout title suffix
+- **Dashboard Components** - Warning emoji in CreateGroupModal
+- **Main App** - Diagnostic strings in main.tsx
+
+### 📊 **Progress Summary**
+- **Completed**: 5/14 components (**36% complete**)
+- **Core infrastructure**: ✅ **100% complete**
+- **Major pages**: 1/4 complete (**25% complete**)
+- **Estimated remaining effort**: ~2-3 hours for full completion
+
+### 🎯 **Next Steps**
+Continue with remaining page components in priority order, focusing on ExpenseDetailPage and GroupDetailPage as the most user-facing components.

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { useExpenseForm } from '../app/hooks/useExpenseForm';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -12,6 +13,7 @@ interface AddExpensePageProps {
 }
 
 export default function AddExpensePage({ groupId }: AddExpensePageProps) {
+    const { t } = useTranslation();
     // Parse URL parameters for edit mode and copy mode
     const urlParams = new URLSearchParams(window.location.search);
     const expenseId = urlParams.get('id');
@@ -25,16 +27,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Show error if no groupId
     if (!groupId) {
         return (
-            <BaseLayout title="Error - Splitifyd">
+            <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
                             <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
-                                Error
+                                {t('pages.addExpensePage.error')}
                             </h2>
-                            <p className="text-gray-600">No group specified. Cannot add expense without a group.</p>
+                            <p className="text-gray-600">{t('pages.addExpensePage.noGroupMessage')}</p>
                             <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
-                                Back to Dashboard
+                                {t('pages.addExpensePage.backToDashboard')}
                             </Button>
                         </Stack>
                     </Card>
@@ -55,8 +57,8 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Show loading while initializing
     if (!formState.isDataReady && !formState.initError) {
         return (
-            <BaseLayout title="Loading... - Splitifyd">
-                <LoadingState fullPage message="Loading expense form..." />
+            <BaseLayout title={t('pages.addExpensePage.loadingTitle')}>
+                <LoadingState fullPage message={t('common.loadingExpenseForm')} />
             </BaseLayout>
         );
     }
@@ -64,16 +66,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Show error if initialization failed
     if (formState.initError) {
         return (
-            <BaseLayout title="Error - Splitifyd">
+            <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
                             <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
-                                Error
+                                {t('pages.addExpensePage.error')}
                             </h2>
                             <p className="text-gray-600">{formState.initError}</p>
                             <Button variant="primary" onClick={() => navigationService.goToGroup(groupId)}>
-                                Back to Group
+                                {t('pages.addExpensePage.backToGroup')}
                             </Button>
                         </Stack>
                     </Card>
@@ -85,16 +87,16 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     // Show error if group not found
     if (!formState.group) {
         return (
-            <BaseLayout title="Error - Splitifyd">
+            <BaseLayout title={t('pages.addExpensePage.errorTitle')}>
                 <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
                     <Card className="max-w-md w-full">
                         <Stack spacing="md">
                             <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
-                                Group Not Found
+                                {t('pages.addExpensePage.groupNotFound')}
                             </h2>
-                            <p className="text-gray-600">The group you're trying to add an expense to doesn't exist or you don't have access to it.</p>
+                            <p className="text-gray-600">{t('pages.addExpensePage.groupNotFoundMessage')}</p>
                             <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
-                                Back to Dashboard
+                                {t('pages.addExpensePage.backToDashboard')}
                             </Button>
                         </Stack>
                     </Card>
@@ -104,11 +106,11 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
     }
 
     // Determine page title and description based on mode
-    const pageTitle = isCopyMode ? 'Copy Expense' : isEditMode ? 'Edit Expense' : 'Add Expense';
-    const pageDescription = isCopyMode ? 'Copy expense' : isEditMode ? 'Edit expense' : 'Add a new expense';
+    const pageTitle = isCopyMode ? t('pages.addExpensePage.copyExpenseTitle') : isEditMode ? t('pages.addExpensePage.editExpenseTitle') : t('pages.addExpensePage.addExpenseTitle');
+    const pageDescription = isCopyMode ? t('pages.addExpensePage.copyExpenseAction') : isEditMode ? t('pages.addExpensePage.editExpenseAction') : t('pages.addExpensePage.addExpenseAction');
 
     return (
-        <BaseLayout title={`${pageTitle} - ${formState.group.name} - Splitifyd`} description={`${pageDescription} in ${formState.group.name}`} headerVariant="dashboard">
+        <BaseLayout title={`${pageTitle} - ${formState.group.name}${t('pages.addExpensePage.titleSuffix')}`} description={`${pageDescription}${t('pages.addExpensePage.titleIn')}${formState.group.name}`} headerVariant="dashboard">
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
                 <ExpenseFormHeader isEditMode={isEditMode} isCopyMode={isCopyMode} groupName={formState.group.name} onCancel={formState.handleCancel} />
 

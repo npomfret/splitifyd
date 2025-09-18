@@ -1,8 +1,10 @@
 import { FunctionalComponent } from 'preact';
 import { useComputed } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 import { ConnectionManager } from '@/utils/connection-manager';
 
 export const RealTimeIndicator: FunctionalComponent = () => {
+    const { t } = useTranslation();
     const connectionManager = ConnectionManager.getInstance();
     const isOnline = connectionManager.isOnline;
     const connectionQuality = connectionManager.connectionQuality;
@@ -13,7 +15,7 @@ export const RealTimeIndicator: FunctionalComponent = () => {
     });
 
     const networkStatusText = useComputed(() => {
-        return isOnline.value ? 'Network: Connected (Green)' : 'Network: Offline (Red)';
+        return isOnline.value ? t('uiComponents.realTimeIndicator.networkConnected') : t('uiComponents.realTimeIndicator.networkOffline');
     });
 
     // Server connectivity status
@@ -34,18 +36,18 @@ export const RealTimeIndicator: FunctionalComponent = () => {
     });
 
     const serverStatusText = useComputed(() => {
-        if (!isOnline.value) return 'Server: Unknown - offline (Gray)';
+        if (!isOnline.value) return t('uiComponents.realTimeIndicator.serverUnknownOffline');
         switch (connectionQuality.value) {
             case 'good':
-                return 'Server: Connected (Green)';
+                return t('uiComponents.realTimeIndicator.serverConnected');
             case 'poor':
-                return 'Server: Poor connection (Yellow)';
+                return t('uiComponents.realTimeIndicator.serverPoorConnection');
             case 'server-unavailable':
-                return 'Server: Unavailable (Red)';
+                return t('uiComponents.realTimeIndicator.serverUnavailable');
             case 'offline':
-                return 'Server: Unknown (Gray)';
+                return t('uiComponents.realTimeIndicator.serverUnknown');
             default:
-                return 'Server: Connected (Green)';
+                return t('uiComponents.realTimeIndicator.serverConnected');
         }
     });
 
