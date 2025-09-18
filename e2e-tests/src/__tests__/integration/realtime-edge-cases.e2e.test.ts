@@ -63,6 +63,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(creatorDisplayName)
                 .withSplitType('equal')
+                .withParticipants([creatorDisplayName]) // After user left, need to specify remaining participants
                 .build(),
         );
 
@@ -134,6 +135,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
+                .withParticipants([ownerDisplayName, settlingDisplayName, targetDisplayName])
                 .build(),
         );
 
@@ -255,6 +257,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(user1DisplayName)
                 .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName, user4DisplayName]) // 4-user group but user3DisplayName not captured
                 .build(),
         );
 
@@ -267,6 +270,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(user2DisplayName)
                 .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName, user4DisplayName]) // 4-user group but user3DisplayName not captured
                 .build(),
         );
 
@@ -282,6 +286,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(user4DisplayName)
                 .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName, user4DisplayName]) // 4-user group but user3DisplayName not captured
                 .build(),
         );
 
@@ -367,6 +372,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(activeDisplayName)
                 .withSplitType('equal')
+                .withParticipants([activeDisplayName]) // 3-user group but only activeDisplayName captured
                 .build(),
         );
 
@@ -393,6 +399,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(activeDisplayName)
                 .withSplitType('equal')
+                .withParticipants([activeDisplayName]) // 3-user group but only activeDisplayName captured
                 .build(),
         );
 
@@ -446,6 +453,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(editor1DisplayName)
                 .withSplitType('equal')
+                .withParticipants([editor1DisplayName]) // 3-user group but only editor1DisplayName captured
                 .build(),
         );
 

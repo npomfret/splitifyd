@@ -34,6 +34,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -50,6 +51,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('EUR')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -92,6 +94,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('EUR')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -107,6 +110,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('EUR') // Should be remembered by the system
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -142,6 +146,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -154,6 +159,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('EUR')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -204,6 +210,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -215,6 +222,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('EUR')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -226,6 +234,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                 .withCurrency('GBP')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -290,6 +299,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
                     .withCurrency(currency)
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
+                    .withParticipants([userDisplayName])
                     .build(),
             );
 

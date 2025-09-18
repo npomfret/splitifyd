@@ -49,6 +49,7 @@ simpleTest.describe('Multi-User Group Access', () => {
             .withCurrency('USD')
             .withPaidByDisplayName(user2DisplayName)
             .withSplitType('equal')
+            .withParticipants([user2DisplayName]) // 2-user group but only user2DisplayName captured
             .build();
 
         await expenseFormPage.submitExpense(sharedExpense);

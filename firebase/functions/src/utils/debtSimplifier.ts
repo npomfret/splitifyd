@@ -12,6 +12,12 @@ export interface NetBalance {
     netAmount: number;
 }
 
+/**
+ * Simplifies complex web of debts into minimal set of transactions using greedy algorithm.
+ *
+ * Example: If A owes B $10, B owes C $15, and A owes C $5
+ * Instead of 3 transactions, returns: A pays C $15 (settles both A→B→C and A→C directly)
+ */
 export function simplifyDebts(balances: Record<string, UserBalance>, currency: string): SimplifiedDebt[] {
     const netBalances = calculateNetBalances(balances);
     return createOptimalTransactions(netBalances, currency);
@@ -31,6 +37,7 @@ function calculateNetBalances(balances: Record<string, UserBalance>): Record<str
             netAmount += amount;
         });
 
+        // Only include users with significant balances (avoid floating-point precision issues)
         if (Math.abs(netAmount) > 0.01) {
             netBalances[user.userId] = {
                 userId: user.userId,

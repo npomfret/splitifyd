@@ -9,9 +9,9 @@ export interface ExpenseFormData {
     description: string;
     amount: number;
     currency: string; // Required: must be explicitly provided
-    paidByDisplayName: string; // the display name
+    paidByDisplayName: string; // the display name (not the uid)
     splitType: 'equal' | 'exact' | 'percentage';
-    participants?: string[]; // Optional: if not provided, selects all members
+    participants: string[]; // Required: must explicitly provide participant names (not the uids)
 }
 
 // Builder for ExpenseData used in UI tests
@@ -25,7 +25,7 @@ export class ExpenseFormDataBuilder {
             currency: this.randomCurrency(),
             paidByDisplayName: '', // No default - must be explicitly set
             splitType: this.randomChoice(['equal', 'exact', 'percentage']),
-            participants: undefined, // Will select all members by default
+            participants: []
         };
     }
 
@@ -84,13 +84,17 @@ export class ExpenseFormDataBuilder {
             throw new Error('ExpenseFormDataBuilder.build(): paidByDisplayName is required but was not set. Use .withPaidByDisplayName(displayName) to specify who paid for this expense.');
         }
 
+        if (!this.expense.participants || this.expense.participants.length === 0) {
+            throw new Error('ExpenseFormDataBuilder.build(): participants is required but was not set. Use .withParticipants(participantNames) to specify who should split this expense.');
+        }
+
         return {
             description: this.expense.description,
             amount: this.expense.amount,
             currency: this.expense.currency,
             paidByDisplayName: this.expense.paidByDisplayName,
             splitType: this.expense.splitType,
-            participants: this.expense.participants ? [...this.expense.participants] : undefined,
+            participants: [...this.expense.participants],
         };
     }
 }

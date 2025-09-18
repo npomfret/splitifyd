@@ -6,6 +6,7 @@ import translationEn from '../../../webapp-v2/src/locales/en/translation.json' w
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
 import {SettingsPage} from "./settings.page.ts";
+import {generateShortId} from "@splitifyd/test-support";
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -19,7 +20,7 @@ export class DashboardPage extends BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async createGroupAndNavigate(name: string, description?: string): Promise<GroupDetailPage> {
+    async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
         const currentUrl = this.page.url();
         if (!currentUrl.includes('/dashboard')) {
             await this.navigate();

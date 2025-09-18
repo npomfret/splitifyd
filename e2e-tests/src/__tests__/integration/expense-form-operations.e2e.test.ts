@@ -50,6 +50,7 @@ test.describe('Expense Form Operations E2E', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 

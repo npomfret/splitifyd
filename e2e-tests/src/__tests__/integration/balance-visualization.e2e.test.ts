@@ -43,6 +43,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -98,6 +99,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
                 .withPaidByDisplayName(user1DisplayName)
                 .withCurrency('USD')
                 .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
         );
 
@@ -117,6 +119,7 @@ test.describe('Balance Visualization - Comprehensive', () => {
                 .withPaidByDisplayName(user2DisplayName)
                 .withCurrency('USD')
                 .withSplitType('equal')
+                .withParticipants([user1DisplayName, user2DisplayName])
                 .build(),
         );
 

@@ -1,6 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
-import { ExpenseFormPage } from './expense-form.page';
+import { ExpenseFormPage, ExpenseFormData } from './expense-form.page';
 import { ExpenseDetailPage } from './expense-detail.page';
 import { SettlementData, SettlementFormPage } from './settlement-form.page';
 import { EditGroupModalPage } from './edit-group-modal.page';
@@ -462,7 +462,14 @@ export class GroupDetailPage extends BasePage {
      */
     async addExpense(expense: ExpenseData, expectedMemberCount: number): Promise<void> {
         const expenseFormPage = await this.clickAddExpenseButton(expectedMemberCount);
-        await expenseFormPage.submitExpense(expense);
+
+        // Convert ExpenseData to ExpenseFormData, ensuring participants is provided
+        const expenseFormData: ExpenseFormData = {
+            ...expense,
+            participants: expense.participants || [], // Default to empty array if not provided
+        };
+
+        await expenseFormPage.submitExpense(expenseFormData);
     }
 
     /**

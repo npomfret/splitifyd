@@ -167,6 +167,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
             currency: 'USD',
             paidByDisplayName: ownerDisplayName,
             splitType: 'equal',
+            participants: [ownerDisplayName, memberDisplayName],
         });
 
         // Wait for expense to be processed and balances to update
@@ -235,6 +236,7 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
             currency: 'USD',
             paidByDisplayName: memberDisplayName,
             splitType: 'equal',
+            participants: [ownerDisplayName, memberDisplayName],
         });
 
         // Wait for balances to update
@@ -537,6 +539,7 @@ test.describe('Leave Group E2E', () => {
         // Add member to group
         const shareLink = await ownerGroupDetailPage.getShareLink();
         const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
+        const memberDisplayName = await memberGroupDetailPage.header.getCurrentUserDisplayName();
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(2);
@@ -547,6 +550,7 @@ test.describe('Leave Group E2E', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(ownerDisplayName)
                 .withSplitType('equal')
+                .withParticipants([ownerDisplayName, memberDisplayName])
                 .build(),
         );
 

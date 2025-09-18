@@ -327,6 +327,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         // Bob joins the group
         const shareLink = await user1GroupDetailPage.getShareLink();
         const user2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink);
+        const user2DisplayName = await user2GroupDetailPage.header.getCurrentUserDisplayName();
 
         // Synchronize both users
         await user1GroupDetailPage.waitForPage(groupId, 2);
@@ -341,6 +342,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
             currency: 'USD',
             paidByDisplayName: user1DisplayName,
             splitType: 'equal',
+            participants: [user1DisplayName, user2DisplayName],
         });
 
         await user1GroupDetailPage.waitForExpense(expense1Description);
@@ -568,6 +570,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(deleterDisplayName)
                 .withSplitType('equal')
+                .withParticipants([deleterDisplayName, groupWatcherDisplayName, dashWatcherDisplayName])
                 .build(),
         );
 
