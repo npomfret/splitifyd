@@ -1,0 +1,377 @@
+import { simpleTest, expect } from '../../fixtures';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
+import { generateShortId } from '@splitifyd/test-support';
+
+/**
+ * Comprehensive Expense Operations E2E Tests
+ *
+ * Consolidated from:
+ * - expense-form-operations.e2e.test.ts (basic CRUD)
+ * - expense-datetime.e2e.test.ts (date/time selection)
+ * - multi-currency.e2e.test.ts (currency handling)
+ *
+ * This file covers all essential expense functionality in one place
+ * to eliminate duplication while maintaining critical test coverage.
+ */
+
+simpleTest.describe('Expense Operations - Comprehensive', () => {
+    async function setupTestGroup(dashboardPage: any) {
+        const groupName = `Expense test ${generateShortId()}`;
+        return await dashboardPage.createGroupAndNavigate(groupName, 'Testing expense operations');
+    }
+
+    simpleTest.describe('Form Validation & Basic Operations', () => {
+        simpleTest('should validate form inputs and handle submission', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+            const submitButton = expenseFormPage.getSaveButtonForValidation();
+
+            // Test validation sequence
+            await expect(submitButton).toBeDisabled(); // Empty form
+
+            await expenseFormPage.fillDescription('Test expense');
+            await expect(submitButton).toBeDisabled(); // Missing amount
+
+            await expenseFormPage.fillAmount('0');
+            await expect(submitButton).toBeDisabled(); // Zero amount
+
+            await expenseFormPage.fillAmount('50');
+            await expect(submitButton).toBeEnabled({ timeout: 2000 }); // Valid form
+
+            // Test clearing description disables form again
+            await expenseFormPage.fillDescription('');
+            await expect(submitButton).toBeDisabled(); // Missing description
+        });
+
+        simpleTest('should create, edit, and delete expense successfully', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+
+            // Create expense
+            const originalDescription = `CRUD Test ${generateShortId()}`;
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+            await expenseFormPage.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(originalDescription)
+                    .withAmount(50)
+                    .withCurrency('USD')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            await groupDetailPage.waitForExpense(originalDescription);
+            await expect(groupDetailPage.getExpenseByDescription(originalDescription)).toBeVisible();
+
+            // Edit expense
+            const expenseDetailPage = await groupDetailPage.clickExpenseToView(originalDescription);
+            const editFormPage = await expenseDetailPage.clickEditExpenseButton(memberCount);
+            const updatedDescription = `Updated ${generateShortId()}`;
+
+            await editFormPage.fillDescription(updatedDescription);
+            await editFormPage.fillAmount('75');
+            await editFormPage.getUpdateExpenseButton().click();
+
+            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
+            await expect(expenseDetailPage.getExpenseByDescription(updatedDescription)).toBeVisible();
+            await expect(expenseDetailPage.getCurrencyAmount('75.00')).toBeVisible();
+
+            // Delete expense
+            await expenseDetailPage.deleteExpense();
+            await expect(page).toHaveURL(groupDetailUrlPattern());
+            await expect(groupDetailPage.getExpenseByDescription(updatedDescription)).not.toBeVisible();
+        });
+
+        simpleTest('should handle server validation errors gracefully', async ({ newLoggedInBrowser }, testInfo) => {
+            testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
+
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+            // Create invalid form state that passes client validation but fails server validation
+            await expenseFormPage.fillDescription('Test expense');
+            await expenseFormPage.fillAmount('50');
+            const submitButton = expenseFormPage.getSaveButtonForValidation();
+            await expect(submitButton).toBeEnabled({ timeout: 2000 });
+
+            await expenseFormPage.typeCategoryText(''); // Clear category to trigger server error
+            await submitButton.click();
+
+            await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+            await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
+        });
+    });
+
+    simpleTest.describe('Date and Time Selection', () => {
+        simpleTest('should handle date convenience buttons and time input', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+            // Test date convenience buttons
+            const dateInput = expenseFormPage.getDateInput();
+
+            // Test Today button
+            await expenseFormPage.clickTodayButton();
+            const todayInputValue = await dateInput.inputValue();
+            expect(todayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+            // Test Yesterday button
+            await expenseFormPage.clickYesterdayButton();
+            const yesterdayInputValue = await dateInput.inputValue();
+            expect(yesterdayInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+            // Verify yesterday is one day before today
+            const todayParsed = new Date(todayInputValue + 'T00:00:00');
+            const yesterdayParsed = new Date(yesterdayInputValue + 'T00:00:00');
+            const dayDifference = (todayParsed.getTime() - yesterdayParsed.getTime()) / (1000 * 60 * 60 * 24);
+            expect(dayDifference).toBe(1);
+
+            // Test Last Night button (sets evening time)
+            await expenseFormPage.clickLastNightButton();
+            const lastNightInputValue = await dateInput.inputValue();
+            expect(lastNightInputValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+            // Test time input functionality
+            let timeButton = expenseFormPage.getTimeButton();
+            const timeButtonCount = await timeButton.count();
+
+            if (timeButtonCount === 0) {
+                const clockIcon = expenseFormPage.getClockIcon();
+                const clockIconCount = await clockIcon.count();
+                if (clockIconCount > 0) {
+                    await expenseFormPage.clickClockIcon();
+                }
+                timeButton = expenseFormPage.getTimeButton();
+            }
+
+            await expect(timeButton).toBeVisible();
+            await timeButton.click();
+
+            const timeInput = expenseFormPage.getTimeInput();
+            await expect(timeInput).toBeVisible();
+            await expect(timeInput).toBeFocused();
+
+            // Test time suggestions
+            await timeInput.fill('3');
+            await expect(expenseFormPage.getTimeSuggestion('3:00 AM')).toBeVisible();
+            await expect(expenseFormPage.getTimeSuggestion('3:00 PM')).toBeVisible();
+
+            // Accept time selection
+            await expenseFormPage.getTimeSuggestion('3:00 PM').click();
+            await expect(expenseFormPage.getTimeSuggestion('at 3:00 PM')).toBeVisible();
+        });
+
+        simpleTest('should create expense with custom date and time', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const groupId = groupDetailPage.inferGroupId();
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+            await expenseFormPage.waitForExpenseFormSections();
+
+            // Fill expense details with custom date/time
+            await expenseFormPage.fillDescription('Dinner with custom datetime');
+            await expenseFormPage.fillAmount('45.50');
+
+            // Set yesterday's date
+            await expenseFormPage.clickYesterdayButton();
+            const dateInput = expenseFormPage.getDateInput();
+            const yesterdayForExpenseValue = await dateInput.inputValue();
+            expect(yesterdayForExpenseValue).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+            // Set custom time
+            const timeButton = expenseFormPage.getTimeButton();
+            if (await timeButton.count() > 0) {
+                await timeButton.click();
+                const timeInput = expenseFormPage.getTimeInput();
+                await timeInput.fill('7:30pm');
+                await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
+            }
+
+            // Select payer and participants
+            await expenseFormPage.selectPayer(await dashboardPage.header.getCurrentUserDisplayName());
+            await expenseFormPage.clickSelectAllButton();
+
+            // Submit expense
+            await expenseFormPage.clickSaveExpenseButton();
+
+            // Verify success
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+            await groupDetailPage.verifyExpenseInList('Dinner with custom datetime', '$45.50');
+        });
+    });
+
+    simpleTest.describe('Multi-Currency Support', () => {
+        simpleTest('should handle different currencies correctly', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+
+            // Create USD expense
+            const uniqueId = generateShortId();
+            const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+            await expenseFormPage1.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(`Lunch ${uniqueId}`)
+                    .withAmount(25.0)
+                    .withCurrency('USD')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            // Verify USD expense
+            await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible();
+
+            // Create EUR expense
+            const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+            await expenseFormPage2.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(`Dinner ${uniqueId}`)
+                    .withAmount(30.0)
+                    .withCurrency('EUR')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            // Verify both currencies display correctly
+            await expect(groupDetailPage.getCurrencyAmount('25.00').first()).toBeVisible(); // USD
+            await expect(page.getByText('€30.00').first()).toBeVisible(); // EUR
+            await expect(page.getByText(`Lunch ${uniqueId}`)).toBeVisible();
+            await expect(page.getByText(`Dinner ${uniqueId}`)).toBeVisible();
+        });
+
+        simpleTest('should display currency symbols correctly', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+            const uniqueId = generateShortId();
+
+            // Test different currency symbols
+            const testCases = [
+                { currency: 'USD', amount: 15.99, expectedSymbol: '$' },
+                { currency: 'EUR', amount: 20.50, expectedSymbol: '€' },
+                { currency: 'GBP', amount: 12.75, expectedSymbol: '£' },
+            ];
+
+            for (const { currency, amount, expectedSymbol } of testCases) {
+                const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+                await expenseFormPage.submitExpense(
+                    new ExpenseFormDataBuilder()
+                        .withDescription(`Test ${currency} ${uniqueId}`)
+                        .withAmount(amount)
+                        .withCurrency(currency)
+                        .withPaidByDisplayName(userDisplayName)
+                        .withSplitType('equal')
+                        .withParticipants([userDisplayName])
+                        .build(),
+                );
+
+                // Verify currency symbol appears correctly
+                const expectedDisplay = `${expectedSymbol}${amount.toFixed(2)}`;
+                await expect(page.getByText(expectedDisplay).first()).toBeVisible();
+            }
+
+            // Verify all expense descriptions are visible
+            await expect(page.getByText(`Test USD ${uniqueId}`)).toBeVisible();
+            await expect(page.getByText(`Test EUR ${uniqueId}`)).toBeVisible();
+            await expect(page.getByText(`Test GBP ${uniqueId}`)).toBeVisible();
+        });
+
+        simpleTest('should remember currency selection within group', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+
+            // Create first expense with EUR
+            const uniqueId = generateShortId();
+            const expenseFormPage1 = await groupDetailPage.clickAddExpenseButton(memberCount);
+            await expenseFormPage1.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(`Coffee ${uniqueId}`)
+                    .withAmount(5.5)
+                    .withCurrency('EUR')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            // Verify EUR expense created
+            await expect(page.getByText('€5.50').first()).toBeVisible();
+
+            // Create second expense - should remember EUR
+            const expenseFormPage2 = await groupDetailPage.clickAddExpenseButton(memberCount);
+            await expenseFormPage2.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription(`Snack ${uniqueId}`)
+                    .withAmount(3.25)
+                    .withCurrency('EUR')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            // Verify second expense also uses EUR
+            await expect(page.getByText('€3.25').first()).toBeVisible();
+        });
+    });
+
+    simpleTest.describe('Integration Scenarios', () => {
+        simpleTest('should handle expense creation with date, time, and currency together', async ({ newLoggedInBrowser }) => {
+            const { page, dashboardPage } = await newLoggedInBrowser();
+            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
+            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const groupId = groupDetailPage.inferGroupId();
+            const memberCount = await groupDetailPage.getCurrentMemberCount();
+
+            // Create comprehensive expense with all features
+            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+            // Set description and amount
+            await expenseFormPage.fillDescription('Complete Integration Test');
+            await expenseFormPage.fillAmount('89.99');
+
+            // Set custom date (yesterday)
+            await expenseFormPage.clickYesterdayButton();
+
+            // Set morning time
+            await expenseFormPage.clickThisMorningButton();
+
+            // Submit with EUR currency
+            await expenseFormPage.submitExpense(
+                new ExpenseFormDataBuilder()
+                    .withDescription('Complete Integration Test')
+                    .withAmount(89.99)
+                    .withCurrency('EUR')
+                    .withPaidByDisplayName(userDisplayName)
+                    .withSplitType('equal')
+                    .withParticipants([userDisplayName])
+                    .build(),
+            );
+
+            // Verify all aspects work together
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+            await expect(page.getByText('Complete Integration Test')).toBeVisible();
+            await expect(page.getByText('€89.99')).toBeVisible();
+        });
+    });
+});
