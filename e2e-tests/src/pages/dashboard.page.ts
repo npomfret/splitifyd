@@ -1,23 +1,61 @@
-import { expect, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { HEADINGS, ARIA_ROLES } from '../constants/selectors';
-import { PooledTestUser } from '@splitifyd/shared';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
-import { CreateGroupModalPage } from './create-group-modal.page.ts';
-import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
+import {expect, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ARIA_ROLES, HEADINGS} from '../constants/selectors';
+import {PooledTestUser} from '@splitifyd/shared';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with {type: 'json'};
+import {CreateGroupModalPage} from './create-group-modal.page.ts';
+import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
 import {SettingsPage} from "./settings.page.ts";
-import {generateShortId} from "@splitifyd/test-support";
+import {generateShortId, generateTestGroupName} from "@splitifyd/test-support";
+import {JoinGroupPage} from "./join-group.page.ts";
+
+let i = 0;
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
         super(page, userInfo);
     }
+
     // Selectors
     readonly url = '/dashboard';
 
     async navigate() {
         await this.page.goto(this.url);
         await this.waitForDomContentLoaded();
+    }
+
+    async createMultiUserGroup(options: { name?: string, description?: string }, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
+        const groupName = options.name ?? generateTestGroupName(`g-${++i}`);
+        const groupDescription = options.description ?? `descr for ${groupName}`;
+
+        const groupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
+        const groupId = groupDetailPage.inferGroupId();
+        await groupDetailPage.waitForPage(groupId, 1);
+
+        // sanity check
+        const name = await groupDetailPage.getGroupName();
+        expect(groupName).toEqual(name);
+
+        console.log(`new group created: "${groupName}" (${groupId})`);
+
+        const groupDetailPages = [groupDetailPage];
+
+        if (dashboardPages.length) {
+            const shareLink = await groupDetailPage.getShareLink();
+
+            for (const dashboardPage of dashboardPages) {
+                const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(dashboardPage.page, shareLink, groupId);
+                groupDetailPages.push(memberGroupDetailPage);
+                const displayName = await dashboardPage.header.getCurrentUserDisplayName();
+                console.log(`member "${displayName}" has joined group "${groupName}" (${groupId})`);
+            };
+
+            for (const newGroupDetailPage of groupDetailPages) {// wait for each page to sync before adding the next user
+                await newGroupDetailPage.waitForPage(groupId, groupDetailPages.length)
+            }
+        }
+
+        return groupDetailPages;
     }
 
     async createGroupAndNavigate(name: string = generateShortId(), description: string = generateShortId()): Promise<GroupDetailPage> {
@@ -32,18 +70,14 @@ export class DashboardPage extends BasePage {
         await this.openCreateGroupModal();
         await createGroupModal.createGroup(name, description);
 
+
         // Wait for navigation and verify URL
         await this.expectUrl(groupDetailUrlPattern());
-        await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-
-        // Verify we're on the correct group page by checking URL contains the pattern
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-        await expect(this.page.getByText(name)).toBeVisible();
+        await this.page.waitForLoadState('domcontentloaded', {timeout: 5000});
+        await expect(this.page.getByRole('heading', { name })).toBeVisible();
 
         const groupDetailPage = new GroupDetailPage(this.page);
         const groupId = groupDetailPage.inferGroupId();
-
-        console.log(`group created: ${groupId} ${name}`);
 
         await expect(this.page).toHaveURL(groupDetailUrlPattern(groupId));
         await groupDetailPage.ensureNewGroupPageReadyWithOneMember(groupId);
@@ -52,11 +86,11 @@ export class DashboardPage extends BasePage {
     }
 
     getGroupsHeading() {
-        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.YOUR_GROUPS });
+        return this.page.getByRole(ARIA_ROLES.HEADING, {name: HEADINGS.YOUR_GROUPS});
     }
 
     getCreateGroupButton() {
-        return this.page.getByRole('button', { name: /Create.*Group/i }).first();
+        return this.page.getByRole('button', {name: /Create.*Group/i}).first();
     }
 
     getBaseUrl() {
@@ -73,12 +107,12 @@ export class DashboardPage extends BasePage {
         // Simply click the first visible create group button
         const createButton = this.page
             .getByRole('button')
-            .filter({ hasText: /Create.*Group/i }) //there are several
+            .filter({hasText: /Create.*Group/i}) //there are several
             .first();
 
         // First verify button is visible before clicking
-        await expect(createButton).toBeVisible({ timeout: 5000 });
-        await this.clickButton(createButton, { buttonName: 'Create Group' });
+        await expect(createButton).toBeVisible({timeout: 5000});
+        await this.clickButton(createButton, {buttonName: 'Create Group'});
 
         // Wait for the modal dialog container to appear first (more reliable)
         try {
@@ -93,7 +127,7 @@ export class DashboardPage extends BasePage {
         // Additional verification: wait for the modal heading to appear
         // This provides extra confidence that the modal content has fully loaded
         try {
-            await this.page.getByRole('heading', { name: translationEn.createGroupModal.title }).waitFor({
+            await this.page.getByRole('heading', {name: translationEn.createGroupModal.title}).waitFor({
                 state: 'visible',
                 timeout: 3000,
             });
@@ -117,7 +151,7 @@ export class DashboardPage extends BasePage {
         // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
         const loadingSpinner = this.page.locator('span:has-text("Loading your groups...")');
         try {
-            await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
+            await loadingSpinner.waitFor({state: 'hidden', timeout: 3000});
         } catch {
             // Spinner never appeared or disappeared quickly - expected behavior
         }
@@ -130,7 +164,7 @@ export class DashboardPage extends BasePage {
             const hasGroupsContainer = await groupsContainer.isVisible().catch(() => false);
 
             // Check if empty state is shown (means no groups but loading is complete)
-            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
+            const emptyState = this.page.getByRole('button', {name: /create.*first.*group/i});
             const hasEmptyState = await emptyState.isVisible().catch(() => false);
 
             // Check if error state is shown
@@ -162,12 +196,12 @@ export class DashboardPage extends BasePage {
         const currentUrl = this.page.url();
         if (currentUrl.includes('/404')) {
             // Look for the "Go to Dashboard" button and click it
-            const dashboardButton = this.page.getByRole('button', { name: 'Go to Dashboard' });
-            await expect(dashboardButton).toBeVisible({ timeout: 2000 });
+            const dashboardButton = this.page.getByRole('button', {name: 'Go to Dashboard'});
+            await expect(dashboardButton).toBeVisible({timeout: 2000});
             await dashboardButton.click();
 
             // Wait for navigation to dashboard
-            await expect(this.page).toHaveURL(/\/dashboard\/?$/, { timeout: 5000 });
+            await expect(this.page).toHaveURL(/\/dashboard\/?$/, {timeout: 5000});
         }
 
         // Now wait for dashboard to be ready (either directly or after 404 redirect)
@@ -184,7 +218,7 @@ export class DashboardPage extends BasePage {
 
         await expect(async () => {
             // Use exact match to avoid partial matches with updated group names
-            const groupCard = this.page.getByText(groupName, { exact: true });
+            const groupCard = this.page.getByText(groupName, {exact: true});
             const isVisible = await groupCard.isVisible();
             if (isVisible) {
                 throw new Error(`Group "${groupName}" is still visible on dashboard`);
@@ -228,7 +262,7 @@ export class DashboardPage extends BasePage {
 
         // If no groups container, check for empty state
         if (!containerExists) {
-            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
+            const emptyState = this.page.getByRole('button', {name: /create.*first.*group/i});
             const hasEmptyState = await emptyState.isVisible().catch(() => false);
 
             // Return empty array if we're in empty state
@@ -269,8 +303,8 @@ export class DashboardPage extends BasePage {
 
         // Find the group card button and click it
         // Group cards are typically buttons containing the group name
-        const groupCard = this.page.getByRole('button').filter({ hasText: groupName });
-        await this.clickButton(groupCard, { buttonName: `Group: ${groupName}` });
+        const groupCard = this.page.getByRole('button').filter({hasText: groupName});
+        await this.clickButton(groupCard, {buttonName: `Group: ${groupName}`});
 
         // Wait for navigation to complete
         await this.waitForDomContentLoaded();

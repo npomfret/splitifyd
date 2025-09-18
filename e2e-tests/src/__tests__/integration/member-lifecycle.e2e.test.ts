@@ -1,23 +1,18 @@
-import { simpleTest, expect } from '../../fixtures';
-import { simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { PLACEHOLDERS } from '../../constants/selectors';
-import { JoinGroupPage, GroupDetailPage } from '../../pages';
-import { generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
+import {expect, simpleTest} from '../../fixtures';
+import {simpleTest as test} from '../../fixtures/simple-test.fixture';
+import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
+import {PLACEHOLDERS} from '../../constants/selectors';
+import {GroupDetailPage, JoinGroupPage} from '../../pages';
+import {generateShortId, generateTestGroupName} from '@splitifyd/test-support';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page';
+import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 simpleTest.describe('Member Management - Owner Restrictions', () => {
-    simpleTest('group owner should not see leave button and should see settings', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage } = await newLoggedInBrowser();
+    simpleTest('group owner should not see leave button and should see settings', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Create a group as owner
-        const groupName = generateTestGroupName('Owner Test');
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Testing owner restrictions');
-
-        // Wait for group to load
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({})
 
         // Verify Leave Group button is NOT visible for owner
         await expect(groupDetailPage.getLeaveGroupButton()).not.toBeVisible();
@@ -28,29 +23,16 @@ simpleTest.describe('Member Management - Owner Restrictions', () => {
 });
 
 simpleTest.describe('Member Management - Multi-User Operations', () => {
-    simpleTest('non-owner member should be able to leave group', async ({ newLoggedInBrowser }) => {
+    simpleTest('non-owner member should be able to leave group', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member
-        const { page: ownerPage, dashboardPage: user1DashboardPage, } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: user2DashboardPage, } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
-        const ownerDisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Owner creates group
-        const groupName = generateTestGroupName('Leave Test');
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing member leave functionality');
-        const groupId = groupDetailPage.inferGroupId();
-
-        // Get share link
-        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // Member joins the group
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for both users to see each other in the member list
-        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
-        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage)
 
         // Verify member sees Leave Group button
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
@@ -59,10 +41,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const leaveModal = await memberGroupDetailPage.clickLeaveGroup();
 
         // Confirm in the dialog
-        await leaveModal.confirmLeaveGroup();
-
-        // Member should be redirected to dashboard
-        await expect(memberPage).toHaveURL(/\/dashboard/);
+        const memberDashboardPage = await leaveModal.confirmLeaveGroup();
+        await expect(memberDashboardPage.page).toHaveURL(/\/dashboard/);
 
         // Owner should see updated member count (only 1 member now)
         await groupDetailPage.waitForMemberCount(1);
@@ -71,14 +51,16 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await groupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
-    simpleTest('group owner should be able to remove multiple members', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('group owner should be able to remove multiple members', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - removed members will get expected 404s when trying to access group
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when removed members lose access to group' });
 
         // Create three browser instances - Owner, Member1 (on group page), Member2 (on dashboard)
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, } = await newLoggedInBrowser();
-        const { page: member1Page, dashboardPage: member1DashboardPage, } = await newLoggedInBrowser();
-        const { page: member2Page, dashboardPage: member2DashboardPage, } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { dashboardPage: member1DashboardPage },
+            { page: member2Page, dashboardPage: member2DashboardPage }
+        ] = await createLoggedInBrowsers(3);
 
         // Create page objects
 
@@ -86,21 +68,12 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const member2DisplayName = await member2DashboardPage.header.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupName = generateTestGroupName('Multi Remove Test');
-        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing multiple member removal scenarios');
+        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
+            {}, member1DashboardPage, member2DashboardPage);
+
+        // Get group details for later use
         const groupId = groupDetailPage.inferGroupId();
-
-        // Get share link
-        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // Both members join the group
-        const member1GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member1Page, shareLink, groupId);
-        const member2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(member2Page, shareLink, groupId);
-
-        // Wait for all users to see each other (3 members total)
-        await groupDetailPage.waitForMemberCount(3);
-        await member1GroupDetailPage.waitForMemberCount(3);
+        const groupName = await groupDetailPage.getGroupName();
 
         // Position users for different removal scenarios:
         // - Member1 stays on group page (will get 404 errors)
@@ -135,10 +108,12 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
     });
 
-    simpleTest('should prevent leaving group with outstanding balance', async ({ newLoggedInBrowser }) => {
+    simpleTest('should prevent leaving group with outstanding balance', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: user2DashboardPage, } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: memberPage, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Create page objects
 
@@ -146,17 +121,8 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupName = generateTestGroupName('Balance Test');
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing balance restrictions');
-        const groupId = groupDetailPage.inferGroupId();
-
-        // Get share link and have member join
-        const shareLink = await groupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
-        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage.inferGroupId()
 
         // Owner adds an expense that creates a balance
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(2);
@@ -205,33 +171,24 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await expect(memberPage).toHaveURL(/\/dashboard/);
     });
 
-    simpleTest('should prevent owner from removing member with outstanding balance', async ({ newLoggedInBrowser }) => {
+    simpleTest('should prevent owner from removing member with outstanding balance', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member
-        const { dashboardPage: user1DashboardPage, } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
-
-        // Create page objects
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: memberPage, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const ownerDisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Owner creates group
-        const groupName = generateTestGroupName('Remove Balance');
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing removal with balance');
-        const groupId = groupDetailPage.inferGroupId();
-
-        // Member joins
-        const shareLink = await groupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
-        await memberGroupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
+        const [groupDetailPage, memberGroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // Member adds expense creating a balance
         const expenseFormPage = await memberGroupDetailPage.clickAddExpenseButton(2);
+        const description = `Member expense ${generateShortId()}`;
         await expenseFormPage.submitExpense({
-            description: 'Member expense',
+            description: description,
             amount: 60,
             currency: 'USD',
             paidByDisplayName: memberDisplayName,
@@ -240,36 +197,27 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         });
 
         // Wait for balances to update
-        await groupDetailPage.waitForBalancesToLoad(groupId);
-        await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+        await groupDetailPage.waitForExpense(description);
+        await memberGroupDetailPage.waitForExpense(description);
 
         // Owner tries to remove member - button should be disabled
         const removeButton = groupDetailPage.getRemoveMemberButton(memberDisplayName);
         await expect(removeButton).toBeDisabled({ timeout: 5000 });
     });
 
-    simpleTest('should handle edge case of removing last non-owner member', async ({ newLoggedInBrowser }) => {
+    simpleTest('should handle edge case of removing last non-owner member', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member
-        const { page: ownerPage, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+        const [
+            { page: ownerPage, dashboardPage: user1DashboardPage },
+            { page: memberPage, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
-        // Create page objects
-
-        const ownerDisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const memberDisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Owner creates group
-        const groupName = generateTestGroupName('Last Member');
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing last member removal');
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
+        const groupName = await groupDetailPage.getGroupName();
 
-        // Member joins
-        const shareLink = await groupDetailPage.getShareLink();
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for synchronization
-        await groupDetailPage.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
-        await groupDetailPage2.waitForUserSynchronization(ownerDisplayName, memberDisplayName);
         await groupDetailPage2.navigateToDashboard(); // move away from the page to avoid 404 errors in console after the removal happens
 
         // Owner removes the only other member
@@ -286,38 +234,24 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
         await expect(groupDetailPage.getGroupTitle()).toHaveText(groupName);
     });
 
-    simpleTest('should show member removal in real-time to all viewers', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should show member removal in real-time to all viewers', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when removed members lose access to group' });
 
         // Create four users - Owner (removing), Member1 (being removed), Member2 (group watching), Member3 (dashboard watching)
-        const { dashboardPage: ownerDashboardPage} = await newLoggedInBrowser();
-        const { page: member1Page, dashboardPage: member1DashboardPage,} = await newLoggedInBrowser();
-        const { page: member2Page } = await newLoggedInBrowser();
-        const { page: member3Page, dashboardPage: member3DashboardPage, } = await newLoggedInBrowser();
-
-        // Create page objects
-        const member2GroupDetailPage = new GroupDetailPage(member2Page);
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { page: member1Page, dashboardPage: member1DashboardPage },
+            { page: member2Page, dashboardPage: member2DashboardPage },
+            { page: member3Page, dashboardPage: member3DashboardPage }
+        ] = await createLoggedInBrowsers(4);
 
         // Get display names
         const member1DisplayName = await member1DashboardPage.header.getCurrentUserDisplayName();
 
-        // Owner creates group
-        const groupName = generateTestGroupName('MemberRemoveRT');
-        const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time member removal');
+        const [groupDetailPage, member1GroupDetailPage, member2GroupDetailPage, member3GroupDetailPage] = await ownerDashboardPage.createMultiUserGroup(
+            {}, member1DashboardPage, member2DashboardPage, member3DashboardPage);
 
-        // All members join
-        const shareLink = await groupDetailPage.getShareLink();
-
-        const joinGroupPage1 = new JoinGroupPage(member1Page);
-        await joinGroupPage1.joinGroupUsingShareLink(shareLink);
-        const joinGroupPage2 = new JoinGroupPage(member2Page);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-        const joinGroupPage3 = new JoinGroupPage(member3Page);
-        await joinGroupPage3.joinGroupUsingShareLink(shareLink);
-
-        // Wait for all 4 members to be present
-        await groupDetailPage.waitForMemberCount(4);
-        await member2GroupDetailPage.waitForMemberCount(4);
+        const groupName = await groupDetailPage.getGroupName();
 
         // Position viewers: Member2 stays on group page, Member3 goes to dashboard
         await member3DashboardPage.navigate();
@@ -349,21 +283,18 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // 4. Member3 (on dashboard) should still see the group but removed member can't access
         await member3DashboardPage.waitForGroupToAppear(groupName);
-
-        console.log('✅ Real-time member removal updates working correctly');
     });
 });
 
 test.describe('Member Management E2E', () => {
-    test('should display current group members', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage, } = await newLoggedInBrowser();
+    test('should display current group members', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Navigate to dashboard
         await dashboardPage.waitForDashboard();
 
         // Create a group
-        const groupName = 'Members Display Group';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member display');
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Should show the current user as a member in the main content area
         // Use the groupDetailPage page object model instead of direct selectors
@@ -373,15 +304,11 @@ test.describe('Member Management E2E', () => {
         await expect(groupDetailPage.getMemberCountElement()).toBeVisible({ timeout: TIMEOUT_CONTEXTS.ELEMENT_VISIBILITY });
     });
 
-    test('should show member in expense split options', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage } = await newLoggedInBrowser();
-
-        // Navigate to dashboard
-        await dashboardPage.waitForDashboard();
+    test('should show member in expense split options', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Create a group
-        const groupName = 'Split Test Group';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for split options');
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Navigate to add expense
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
@@ -403,30 +330,20 @@ test.describe('Member Management E2E', () => {
         expect(isUserInSplit).toBe(true);
     });
 
-    test('should show creator as admin', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage } = await newLoggedInBrowser();
+    test('should show creator as admin', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
-        // Navigate to dashboard
-        await dashboardPage.waitForDashboard();
-
-        // Create a group
-        const groupName = 'Admin Test Group';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for admin badge');
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Creator should have admin badge - we expect a specific UI element
         // The UI must show "admin" text for the group creator
         await expect(groupDetailPage.getAdminBadge()).toBeVisible();
     });
 
-    test('should show share functionality', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage } = await newLoggedInBrowser();
+    test('should show share functionality', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
-        // Navigate to dashboard
-        await dashboardPage.waitForDashboard();
-
-        // Create a group
-        const groupName = 'Share Test Group';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for sharing');
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Share button should be visible and functional
         const shareButton = groupDetailPage.getShareButton();
@@ -439,15 +356,10 @@ test.describe('Member Management E2E', () => {
         expect(linkValue).toMatch(/\/join\?linkId=/);
     });
 
-    test('should handle member count display', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage } = await newLoggedInBrowser();
+    test('should handle member count display', async ({ createLoggedInBrowsers }) => {
+        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
 
-        // Navigate to dashboard
-        await dashboardPage.waitForDashboard();
-
-        // Create a group
-        const groupName = 'Member Count Group';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Test group for member count');
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Should show member count
         const memberCount = groupDetailPage.getMemberCountElement();
@@ -458,13 +370,15 @@ test.describe('Member Management E2E', () => {
 });
 
 test.describe('Leave Group E2E', () => {
-    test('user should be able to leave group and no longer access it', async ({ newLoggedInBrowser }, testInfo) => {
+    test('user should be able to leave group and no longer access it', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - 404 errors and console errors are expected when trying to access removed group
         testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when accessing removed group' });
 
         // Create two browser instances - owner and member
-        const { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner } = await newLoggedInBrowser();
-        let { page: memberPage, dashboardPage: memberDashboardPage, user: member } = await newLoggedInBrowser();
+        let [
+            { page: ownerPage, dashboardPage: ownerDashboardPage, user: owner },
+            { page: memberPage, user: member, dashboardPage: memberDashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Verify users are distinct
         expect(owner.email).not.toBe(member.email);
@@ -477,20 +391,9 @@ test.describe('Leave Group E2E', () => {
         // SETUP PHASE: Create group and add member
         // =============================================================
 
-        const groupName = generateTestGroupName('LeaveTest');
-        // Owner creates group
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing leave group functionality');
+        let [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const groupName = await ownerGroupDetailPage.getGroupName();
         const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Get share link for member to join
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-
-        // Member joins the group
-        let memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Verify both users can see the group
-        await ownerGroupDetailPage.waitForPage(groupId, 2);
-        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member navigates to dashboard to verify group is visible
         memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();
@@ -524,22 +427,18 @@ test.describe('Leave Group E2E', () => {
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
     });
 
-    test('user with outstanding balance cannot leave group until settled', async ({ newLoggedInBrowser }) => {
+    test('user with outstanding balance cannot leave group until settled', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - owner and member
-        const { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        let { page: memberPage, } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
         const ownerDisplayName = await ownerDashboardPage.header.getCurrentUserDisplayName();
+        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
-        // Create group and add member
-        const groupName = generateTestGroupName('BalanceLeaveTest');
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing leave with balance');
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Add member to group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-        const memberDisplayName = await memberGroupDetailPage.header.getCurrentUserDisplayName();
 
         // Create an expense where owner paid and member owes money (member should be blocked from leaving)
         const expenseFormPage = await ownerGroupDetailPage.clickAddExpenseButton(2);
@@ -555,8 +454,8 @@ test.describe('Leave Group E2E', () => {
         );
 
         // Wait for balances to update
-        await ownerGroupDetailPage.waitForBalancesToLoad(groupId);
-        await memberGroupDetailPage.waitForBalancesToLoad(groupId);
+        await ownerGroupDetailPage.waitForPage(groupId, 2);
+        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member tries to leave group but should be blocked due to outstanding balance
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();
@@ -570,29 +469,21 @@ test.describe('Leave Group E2E', () => {
         await ownerGroupDetailPage.waitForMemberCount(2);
     });
 
-    test('member removed while on group page should get 404 on refresh', async ({ newLoggedInBrowser }, testInfo) => {
+    test('member removed while on group page should get 404 on refresh', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - 404 errors and console errors are expected when member is removed
         testInfo.annotations.push({ type: 'skip-error-checking', description: '404 errors and console errors expected when member removed from group' });
 
         // Create owner and member browsers
-        const { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { dashboardPage: memberDashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Get display names for member removal
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
-        // Create group and add member
-        const groupName = generateTestGroupName('RemoveFromGroupPage');
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing member removal while on group page');
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Member joins group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.waitForPage(groupId, 2);
-        await memberGroupDetailPage.waitForPage(groupId, 2);
 
         // Member stays on group page while owner removes them
         // Owner removes the member using the remove member feature
@@ -608,26 +499,18 @@ test.describe('Leave Group E2E', () => {
         await ownerGroupDetailPage.verifyMemberNotVisible(memberDisplayName);
     });
 
-    test('member removed while on dashboard should see group disappear cleanly', async ({ newLoggedInBrowser }) => {
+    test('member removed while on dashboard should see group disappear cleanly', async ({ createLoggedInBrowsers }) => {
         // Create owner and member browsers
-        const { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        let { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+        let [
+            { dashboardPage: ownerDashboardPage },
+            { dashboardPage: memberDashboardPage  }
+        ] = await createLoggedInBrowsers(2);
 
         // Get display names for member removal
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
-        // Create group and add member
-        const groupName = generateTestGroupName('RemoveFromDashboard');
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing member removal while on dashboard');
-        const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Member joins group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        let memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Synchronize both users to ensure member is properly added
-        await ownerGroupDetailPage.waitForPage(groupId, 2);
-        await memberGroupDetailPage.waitForPage(groupId, 2);
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const groupName = await ownerGroupDetailPage.getGroupName();
 
         // Member navigates to dashboard and verifies group is visible
         memberDashboardPage = await memberGroupDetailPage.navigateToDashboard();

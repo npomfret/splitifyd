@@ -19,7 +19,7 @@ import { createGroup, updateGroup, deleteGroup, listGroups, getGroupFullDetails 
 import { updateGroupPermissions } from './groups/permissionHandlers';
 import { createSettlement, updateSettlement, deleteSettlement, listSettlements } from './settlements/handlers';
 import { createComment } from './comments/handlers';
-import { getFirestore } from './firebase';
+import { getFirestore, getAuth } from './firebase';
 import { listPolicies, getPolicy, getPolicyVersion, updatePolicy, publishPolicy, createPolicy, deletePolicyVersion } from './policies/handlers';
 import { acceptMultiplePolicies, getUserPolicyStatus } from './policies/user-handlers';
 import { updateUserProfile, changePassword } from './user/handlers';
@@ -97,14 +97,30 @@ function setupRoutes(app: express.Application): void {
             responseTime: firestoreHealthCheck.responseTime,
         };
 
+        // Lightweight auth health check - just verify auth service is accessible
         const authStart = Date.now();
-        const authService = appBuilder.buildAuthService();
-        // Simple auth health check - verify we can access the auth service
-        await authService.createCustomToken('health-check-uid');
-        checks.auth = {
-            status: 'healthy',
-            responseTime: Date.now() - authStart,
-        };
+        try {
+            const auth = getAuth();
+            // Just verify auth instance exists and is accessible (no operations needed)
+            if (auth) {
+                checks.auth = {
+                    status: 'healthy',
+                    responseTime: Date.now() - authStart,
+                };
+            } else {
+                checks.auth = {
+                    status: 'unhealthy',
+                    responseTime: Date.now() - authStart,
+                    error: 'Auth service not available'
+                };
+            }
+        } catch (error) {
+            checks.auth = {
+                status: 'unhealthy',
+                responseTime: Date.now() - authStart,
+                error: error instanceof Error ? error.message : 'Unknown auth error'
+            };
+        }
 
         sendHealthCheckResponse(res, checks);
     });

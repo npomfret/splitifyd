@@ -23,11 +23,11 @@ import {
     UserToken,
 } from '@splitifyd/shared';
 
-import { getFirebaseEmulatorConfig } from './firebase-emulator-config';
+import {getFirebaseEmulatorConfig} from './firebase-emulator-config';
 
 // Direct Firestore access for policy manipulation (bypass API)
-import { Matcher, PollOptions, pollUntil } from './Polling';
-import { UserRegistrationBuilder } from './builders';
+import {Matcher, PollOptions, pollUntil} from './Polling';
+import {UserRegistrationBuilder} from './builders';
 
 const config = getFirebaseEmulatorConfig();
 const FIREBASE_API_KEY = config.firebaseApiKey;
@@ -51,7 +51,6 @@ export class ApiDriver {
     }
 
 
-
     getBaseUrl(): string {
         return this.baseUrl;
     }
@@ -67,7 +66,7 @@ export class ApiDriver {
             }
         }
 
-        const { uid, token } = await this.firebaseSignIn(userRegistration);
+        const {uid, token} = await this.firebaseSignIn(userRegistration);
 
         return {
             uid,
@@ -80,11 +79,11 @@ export class ApiDriver {
     async borrowTestUser(): Promise<PooledTestUser> {
         const poolUser = (await this.apiRequest('/test-pool/borrow', 'POST', {})) as { email: string; token: string; password: string };
 
-        const { email, password, token } = poolUser;
+        const {email, password, token} = poolUser;
 
         // Always use the custom token approach - it's more reliable than caching ID tokens
         // The custom token won't be revoked and can be exchanged for a fresh ID token each time
-        const res = await this.firebaseSignIn({ email, password, token });
+        const res = await this.firebaseSignIn({email, password, token});
 
         if (!email) throw Error();
         if (!password) throw Error();
@@ -104,7 +103,7 @@ export class ApiDriver {
             // Exchange custom token for ID token
             signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${this.firebaseApiKey}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     token: userInfo.token,
                     returnSecureToken: true,
@@ -113,7 +112,7 @@ export class ApiDriver {
         } else {
             signInResponse = await fetch(`http://localhost:${this.authPort}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.firebaseApiKey}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     email: userInfo.email,
                     password: userInfo.password,
@@ -140,7 +139,7 @@ export class ApiDriver {
     }
 
     async returnTestUser(email: string): Promise<void> {
-        await this.apiRequest('/test-pool/return', 'POST', { email });
+        await this.apiRequest('/test-pool/return', 'POST', {email});
     }
 
     async createExpense(expenseData: Partial<CreateExpenseRequest>, token: string): Promise<ExpenseData> {
@@ -199,37 +198,37 @@ export class ApiDriver {
     }
 
     async pollGroupBalancesUntil(groupId: string, token: string, matcher: Matcher<GroupBalances>, options?: PollOptions): Promise<GroupBalances> {
-        return pollUntil(() => this.getGroupBalances(groupId, token), matcher, { errorMsg: `Group ${groupId} balance condition not met`, ...options });
+        return pollUntil(() => this.getGroupBalances(groupId, token), matcher, {errorMsg: `Group ${groupId} balance condition not met`, ...options});
     }
 
     async waitForBalanceUpdate(groupId: string, token: string, timeoutMs: number = 1000): Promise<GroupBalances> {
-        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), { timeout: timeoutMs });
+        return this.pollGroupBalancesUntil(groupId, token, ApiDriver.matchers.balanceHasUpdate(), {timeout: timeoutMs});
     }
 
     async generateShareLink(groupId: string, token: string): Promise<ShareLinkResponse> {
-        return await this.apiRequest('/groups/share', 'POST', { groupId }, token);
+        return await this.apiRequest('/groups/share', 'POST', {groupId}, token);
     }
 
     async joinGroupViaShareLink(linkId: string, token: string): Promise<JoinGroupResponse> {
-        return await this.apiRequest('/groups/join', 'POST', { linkId }, token);
+        return await this.apiRequest('/groups/join', 'POST', {linkId}, token);
     }
 
     async createGroupWithMembers(name: string, members: UserToken[], creatorToken: string): Promise<Group> {
         // Step 1: Create group with just the creator
-        const groupData = { name, description: `Test group created at ${new Date().toISOString()}` };
+        const groupData = {name, description: `Test group created at ${new Date().toISOString()}`};
 
         const group = await this.createGroup(groupData, creatorToken);
 
         // Step 2: If there are other members, generate a share link and have them join
         const otherMembers = members.filter((m) => m.token !== creatorToken);
         await this.addMembersViaShareLink(group.id, otherMembers, creatorToken);
-        const { group: updatedGroup } = await this.getGroupFullDetails(group.id, creatorToken);
+        const {group: updatedGroup} = await this.getGroupFullDetails(group.id, creatorToken);
         return updatedGroup;
     }
 
     async addMembersViaShareLink(groupId: string, toAdd: UserToken[], creatorToken: string) {
         if (toAdd.length > 0) {
-            const { linkId } = await this.generateShareLink(groupId, creatorToken);
+            const {linkId} = await this.generateShareLink(groupId, creatorToken);
 
             // Step 3: Have other members join using the share link
             for (const member of toAdd) {
@@ -293,7 +292,7 @@ export class ApiDriver {
     }
 
     async updateGroupPermissions(groupId: string, token: string, permissions: any): Promise<MessageResponse> {
-        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', { permissions }, token);
+        return await this.apiRequest(`/groups/${groupId}/permissions`, 'PUT', {permissions}, token);
     }
 
 
@@ -334,16 +333,16 @@ export class ApiDriver {
     }
 
     async changePassword(token: string | null, currentPassword: string, newPassword: string): Promise<MessageResponse> {
-        return await this.apiRequest('/user/change-password', 'POST', { currentPassword, newPassword }, token);
+        return await this.apiRequest('/user/change-password', 'POST', {currentPassword, newPassword}, token);
     }
 
     // Comment API methods
     async createGroupComment(groupId: string, text: string, token: string): Promise<CreateCommentResponse> {
-        return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', { text }, token);
+        return await this.apiRequest(`/groups/${groupId}/comments`, 'POST', {text}, token);
     }
 
     async createExpenseComment(expenseId: string, text: string, token: string): Promise<CreateCommentResponse> {
-        return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', { text }, token);
+        return await this.apiRequest(`/expenses/${expenseId}/comments`, 'POST', {text}, token);
     }
 
     private async apiRequest(endpoint: string, method: string = 'POST', body: unknown = null, token: string | null = null): Promise<any> {
@@ -352,7 +351,7 @@ export class ApiDriver {
             method,
             headers: {
                 'Content-Type': 'application/json',
-                ...(token && { Authorization: `Bearer ${token}` }),
+                ...(token && {Authorization: `Bearer ${token}`}),
             },
         };
 
@@ -432,31 +431,23 @@ export class ApiDriver {
     }
 
     async acceptCurrentPublishedPolicies(token: string): Promise<void> {
-        // This method accepts ALL currently published policies, including test policies
-        // Uses the /user/policies/status endpoint to get all policies that need acceptance
+        // Get user's policy status which includes all existing policies
+        const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
 
-        try {
-            // Get user's policy status which includes all existing policies
-            const policyStatus = await this.apiRequest('/user/policies/status', 'GET', null, token);
-
-            if (!policyStatus.policies || policyStatus.policies.length === 0) {
-                console.log('No policies found to accept');
-                return;
-            }
-
-            // Build acceptances for all policies (both accepted and unaccepted)
-            // This ensures test users accept everything regardless of current status
-            const acceptances = policyStatus.policies.map((policy: any) => ({
-                policyId: policy.policyId,
-                versionHash: policy.currentVersionHash,
-            }));
-
-            console.log(`Accepting ${acceptances.length} policies for test user`);
-            await this.apiRequest('/user/policies/accept-multiple', 'POST', { acceptances }, token);
-        } catch (error) {
-            console.warn('Failed to accept current policies:', error);
-            // Don't throw to avoid breaking test setup if policies endpoint fails
+        if (!policyStatus.policies || policyStatus.policies.length === 0) {
+            console.log('No policies found to accept');
+            return;
         }
+
+        // Build acceptances for all policies (both accepted and unaccepted)
+        // This ensures test users accept everything regardless of current status
+        const acceptances = policyStatus.policies.map((policy: any) => ({
+            policyId: policy.policyId,
+            versionHash: policy.currentVersionHash,
+        }));
+
+        // console.log(`Accepting ${acceptances.length} policies for test user`);
+        await this.apiRequest('/user/policies/accept-multiple', 'POST', {acceptances}, token);
     }
 
     async clearUserPolicyAcceptances(token: string): Promise<void> {
@@ -480,7 +471,7 @@ export class ApiDriver {
             const baseContent = `${policyName} base version reset at ${timestamp}.`;
 
             try {
-                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text: baseContent, publish: true }, adminToken);
+                await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {text: baseContent, publish: true}, adminToken);
                 console.log(`✓ Reset policy ${policyId} to base content`);
             } catch (error) {
                 console.warn(`Failed to reset policy ${policyId}:`, error);
@@ -519,13 +510,13 @@ export class ApiDriver {
     async updatePolicy(policyId: string, text: string, publish: boolean = true, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
-        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', { text, publish }, token);
+        return await this.apiRequest(`/admin/policies/${policyId}`, 'PUT', {text, publish}, token);
     }
 
     async createPolicy(policyName: string, text: string, adminToken?: string): Promise<any> {
         // Try with the adminToken first, then fall back to regular token
         const token = adminToken;
-        return await this.apiRequest('/admin/policies', 'POST', { policyName, text }, token);
+        return await this.apiRequest('/admin/policies', 'POST', {policyName, text}, token);
     }
 
     // Internal policy methods that bypass HTTP validation (for testing)

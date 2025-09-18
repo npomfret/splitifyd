@@ -5,8 +5,20 @@ describe('Public Endpoints Tests', () => {
     const apiDriver = new ApiDriver();
 
     describe('Health Check Endpoint', () => {
+        const healthUrl = `${apiDriver.getBaseUrl()}/health`;
+
+        test('health load test', async () => {
+            const arr = new Array(5).fill(0);
+            const responses = await Promise.all(arr.map(() => fetch(healthUrl)));
+
+            for (const response of responses) {
+                console.log(response.status);
+                expect(response.status).toBe(200);
+            }
+        });
+
         test('should return health status without authentication', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/health`);
+            const response = await fetch(healthUrl);
 
             expect(response.status).toBe(200);
 
@@ -22,7 +34,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should include proper headers', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/health`);
+            const response = await fetch(healthUrl);
 
             expect(response.headers.get('content-type')).toContain('application/json');
             expect(response.headers.get('x-content-type-options')).toBeDefined();
@@ -30,7 +42,7 @@ describe('Public Endpoints Tests', () => {
         });
 
         test('should handle HEAD requests', async () => {
-            const response = await fetch(`${apiDriver.getBaseUrl()}/health`, { method: 'HEAD' });
+            const response = await fetch(healthUrl, { method: 'HEAD' });
 
             expect(response.status).toBe(200);
             expect(response.headers.get('content-type')).toContain('application/json');

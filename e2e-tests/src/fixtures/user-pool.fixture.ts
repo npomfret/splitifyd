@@ -17,7 +17,7 @@ export class UserPool {
 
         UserPool.instance = this;
         this.apiDriver = new ApiDriver();
-        console.log('🔧 User pool initialized (remote API mode)');
+        // console.log('🔧 User pool initialized (remote API mode)');
     }
 
     static resetInstance(): void {
@@ -45,8 +45,7 @@ export class UserPool {
         this.usersInUse.delete(user.uid);
 
         await this.apiDriver.returnTestUser(user.email);
-
-        console.log(`🏊 Returned pool user: ${user.email}`);
+        // console.log(`🏊 Returned pool user: ${user.email}`);
     }
 }
 

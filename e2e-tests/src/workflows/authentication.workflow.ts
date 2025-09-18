@@ -20,7 +20,6 @@ export class AuthenticationWorkflow {
         const {email, password} = user;
         if (!email || !password) throw Error(`inavlid user: ${JSON.stringify(user)}`);
         await loginPage.login(email, password);
-        console.log(`using user: ${email} / ${password}`);
 
         // Wait for successful login and redirect to dashboard
         const dashboardPage = new DashboardPage(this.page);

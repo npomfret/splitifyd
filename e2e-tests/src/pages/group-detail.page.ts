@@ -38,6 +38,12 @@ export class GroupDetailPage extends BasePage {
         return this.page.locator('h1').first();
     }
 
+    async getGroupName(): Promise<string> {
+        // Returns the actual text content of the group title
+        const title = await this.getGroupTitle().textContent();
+        return title?.trim() || '';
+    }
+
     getGroupDescription() {
         // Target the paragraph element containing the group description
         // This is rendered in GroupHeader.tsx as: <p className="text-gray-600">{group.description}</p>

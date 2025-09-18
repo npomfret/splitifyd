@@ -17,6 +17,24 @@ interface BrowserInstance {
 export interface SimpleTestFixtures {
     newLoggedInBrowser(): Promise<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>;
     newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
+    /**
+     * Creates multiple logged-in browsers at once for multi-user testing scenarios.
+     *
+     * @param count Number of browsers to create
+     * @returns Array of browser instances with pages, dashboard pages, and users
+     *
+     * @example
+     * // Old way (verbose):
+     * const { page: ownerPage, dashboardPage: ownerDashboardPage, } = await newLoggedInBrowser();
+     * const { page: member1Page, dashboardPage: member1DashboardPage, } = await newLoggedInBrowser();
+     * const { page: member2Page, dashboardPage: member2DashboardPage, } = await newLoggedInBrowser();
+     *
+     * // New way (concise):
+     * const browsers = await createLoggedInBrowsers(3);
+     * const [owner, member1, member2] = browsers;
+     * // Use: owner.page, owner.dashboardPage, owner.user, etc.
+     */
+    createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>>;
 }
 
 const apiDriver = new ApiDriver();
@@ -39,18 +57,12 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
 
             // Set up console handling with user index
             const userIndex = browserInstances.length; // Use current length as index for this user
-            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
+            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex, userEmail: user.email });
 
             const authWorkflow = new AuthenticationWorkflow(page);
             await authWorkflow.loginExistingUser(user);
 
-            // Update console handler with user email now that we have it
-            consoleHandler.updateUserInfo({ userEmail: user.email });
-
-            // Create dashboard page
             const dashboardPage = new DashboardPage(page, user);
-
-            // Wait for dashboard to be fully loaded (including "Loading your groups" spinner)
             await dashboardPage.waitForDashboard();
 
             // Track this browser instance for cleanup
@@ -64,7 +76,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
 
             const displayName = await dashboardPage.header.getCurrentUserDisplayName();
 
-            console.log(`Using: "${displayName}" ${user.email} ${user.uid}`);
+            console.log(`Using (${userIndex}): "${displayName}" ${user.email} ${user.uid}`);
 
             return { page, dashboardPage, user };
         };
@@ -134,6 +146,98 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                     // Process any errors that occurred during the test
                     await instance.consoleHandler.processErrors(testInfo);
                     instance.consoleHandler.dispose();
+
+                    // Close context
+                    await instance.context.close();
+                } catch (error) {
+                    // Ignore trace file cleanup errors
+                    if (error instanceof Error && error.message?.includes('ENOENT') && error.message?.includes('.trace')) {
+                        console.warn(`Ignoring trace cleanup error:`, error.message);
+                    } else {
+                        throw error;
+                    }
+                }
+            }),
+        );
+    },
+
+    createLoggedInBrowsers: async ({ browser }, use, testInfo) => {
+        const browserInstances: BrowserInstance[] = [];
+        const userPool = getUserPool();
+
+        const createMultipleBrowsers = async (count: number) => {
+            // First, claim all users sequentially
+            const users: PooledTestUser[] = [];
+            for (let i = 0; i < count; i++) {
+                const user = await userPool.claimUser(browser);
+                users.push(user);
+            }
+
+            // Accept policies for all users in parallel
+            await Promise.all(users.map(user => apiDriver.acceptCurrentPublishedPolicies(user.token)));
+
+            // Then create browsers and login in parallel
+            const browserPromises = users.map(async (user, index) => {
+                // Create new browser context and page
+                const context = await browser.newContext();
+                const page = await context.newPage();
+
+                // Set up console handling with user index
+                const userIndex = browserInstances.length + index; // Use current length + index for this user
+                const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
+
+                const authWorkflow = new AuthenticationWorkflow(page);
+                await authWorkflow.loginExistingUser(user);
+
+                // Update console handler with user email now that we have it
+                consoleHandler.updateUserInfo({ userEmail: user.email });
+
+                // Create dashboard page
+                const dashboardPage = new DashboardPage(page, user);
+
+                // Wait for dashboard to be fully loaded (including "Loading your groups" spinner)
+                await dashboardPage.waitForDashboard();
+
+                // Track this browser instance for cleanup
+                const browserInstance: BrowserInstance = {
+                    page,
+                    context,
+                    user,
+                    consoleHandler,
+                };
+
+                const displayName = await dashboardPage.header.getCurrentUserDisplayName();
+
+                console.log(`Browser ${index + 1}: Using "${displayName}" ${user.email} (id: ${user.uid})`);
+
+                return { browserInstance, result: { page, dashboardPage, user } };
+            });
+
+            const browserResults = await Promise.all(browserPromises);
+
+            // Add all browser instances to the tracking array
+            browserResults.forEach(({ browserInstance }) => {
+                browserInstances.push(browserInstance);
+            });
+
+            // Return just the results
+            return browserResults.map(({ result }) => result);
+        };
+
+        await use(createMultipleBrowsers);
+
+        // Cleanup all browser instances
+        await Promise.all(
+            browserInstances.map(async (instance) => {
+                try {
+                    // Process any errors that occurred during the test
+                    await instance.consoleHandler.processErrors(testInfo);
+                    instance.consoleHandler.dispose();
+
+                    // Release user back to pool
+                    if (instance.user) {
+                        await userPool.releaseUser(instance.user);
+                    }
 
                     // Close context
                     await instance.context.close();

@@ -1545,7 +1545,7 @@ export class FirestoreWriter implements IFirestoreWriter {
     }
 
     /**
-     * Perform health check operations (test read/write)
+     * Perform health check operations (lightweight connectivity check)
      * @returns Health check result with timing information
      */
     async performHealthCheck(): Promise<{ success: boolean; responseTime: number }> {
@@ -1553,22 +1553,9 @@ export class FirestoreWriter implements IFirestoreWriter {
             const startTime = Date.now();
 
             try {
-                const testRef = this.db.collection('_health_check').doc('test');
-
-                // Test write
-                await testRef.set({
-                    timestamp: FieldValue.serverTimestamp(),
-                    test: 'health-check',
-                });
-
-                // Test read to verify write succeeded
-                const testDoc = await testRef.get();
-                if (!testDoc.exists) {
-                    throw new Error('Health check document not found after write');
-                }
-
-                // Clean up test document
-                await testRef.delete();
+                // Lightweight health check: just verify we can connect to Firestore
+                // This only checks connectivity without performing any database operations
+                await this.db.listCollections();
 
                 const responseTime = Date.now() - startTime;
 
