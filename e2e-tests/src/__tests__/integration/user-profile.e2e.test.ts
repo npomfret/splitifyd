@@ -11,7 +11,7 @@ simpleTest.describe('User Profile Management', () => {
         await settingsPage.navigate();
 
         // Verify profile information is displayed
-        const expectedDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const expectedDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
         await settingsPage.verifyProfileInformation(expectedDisplayName, user.email);
 
         // Verify profile form elements are present
@@ -20,13 +20,10 @@ simpleTest.describe('User Profile Management', () => {
     });
 
     simpleTest('should allow user to update their display name', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const settingsPage = new SettingsPage(page, user);
+        const { dashboardPage } = await newLoggedInBrowser();
 
+        const settingsPage = await dashboardPage.clickSettings();
         const newDisplayName = `Updated Name ${Date.now()}`;
-
-        // Navigate to settings page and wait for ready
-        await settingsPage.navigate();
 
         // Update display name using POM method
         await settingsPage.updateDisplayName(newDisplayName);
@@ -36,7 +33,7 @@ simpleTest.describe('User Profile Management', () => {
 
         // Also verify display name persists when navigating to dashboard
         await settingsPage.navigateToDashboard();
-        await expect(settingsPage.getUserMenuButton()).toContainText(newDisplayName);
+        await expect(settingsPage.header.getUserMenuButton()).toContainText(newDisplayName);
     });
 
     simpleTest('should allow user to change their password', async ({ newEmptyBrowser }) => {
@@ -146,7 +143,7 @@ simpleTest.describe('User Profile Management', () => {
 
         // Verify initial state shows current name (which we just read from the page)
         await expect(settingsPage.getProfileDisplayName()).toContainText(initialDisplayName);
-        await expect(settingsPage.getUserMenuButton()).toContainText(initialDisplayName);
+        await expect(settingsPage.header.getUserMenuButton()).toContainText(initialDisplayName);
 
         const realTimeDisplayName = `RealTime ${Date.now()}`;
 
@@ -161,18 +158,18 @@ simpleTest.describe('User Profile Management', () => {
         await expect(settingsPage.getProfileDisplayName()).not.toContainText(initialDisplayName);
 
         // 3. User menu shows NEW name
-        await expect(settingsPage.getUserMenuButton()).toContainText(realTimeDisplayName);
+        await expect(settingsPage.header.getUserMenuButton()).toContainText(realTimeDisplayName);
 
         // 4. User menu does NOT show OLD name
-        await expect(settingsPage.getUserMenuButton()).not.toContainText(initialDisplayName);
+        await expect(settingsPage.header.getUserMenuButton()).not.toContainText(initialDisplayName);
 
         // 5. Input field shows NEW value
         await expect(settingsPage.getDisplayNameInput()).toHaveValue(realTimeDisplayName);
 
         // 6. Open user dropdown to verify it also shows updated name and not old name
-        await settingsPage.getUserMenuButton().click();
-        await expect(settingsPage.getUserDropdownMenu()).toContainText(realTimeDisplayName);
-        await expect(settingsPage.getUserDropdownMenu()).not.toContainText(initialDisplayName);
+        await settingsPage.header.getUserMenuButton().click();
+        await expect(settingsPage.header.getUserDropdownMenu()).toContainText(realTimeDisplayName);
+        await expect(settingsPage.header.getUserDropdownMenu()).not.toContainText(initialDisplayName);
     });
 
     simpleTest('should validate display name requirements', async ({ newLoggedInBrowser }) => {

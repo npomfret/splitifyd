@@ -29,12 +29,12 @@ test.describe('Balance Visualization - Comprehensive', () => {
         await expect(
             groupDetailPage
                 .getMainSection()
-                .getByText(await dashboardPage.getCurrentUserDisplayName())
+                .getByText(await dashboardPage.header.getCurrentUserDisplayName())
                 .first(),
         ).toBeVisible();
 
         // Add a single expense to verify single-user balance calculation
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(1);
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
@@ -54,8 +54,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage2 = new GroupDetailPage(page2);
 
@@ -149,8 +149,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
@@ -199,8 +199,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
@@ -267,8 +267,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         console.log({user1DisplayName, user2DisplayName});
 
@@ -346,8 +346,8 @@ test.describe('Balance Visualization - Comprehensive', () => {
         const { user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         console.log({user1DisplayName, user2DisplayName});
 
@@ -398,8 +398,8 @@ test.describe('Balance with Settlement Calculations', () => {
         const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage2 = new GroupDetailPage(page2);
         const memberCount = 2;
@@ -499,8 +499,8 @@ test.describe('Balance with Settlement Calculations', () => {
         const { page, user: user1, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
         const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage2 = new GroupDetailPage(page2);
 

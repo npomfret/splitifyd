@@ -142,6 +142,11 @@ export class RegisterPage extends BasePage {
         await this.getTermsCheckbox().check();
     }
 
+    // Helper method to uncheck terms checkbox
+    async uncheckTermsCheckbox() {
+        await this.getTermsCheckbox().uncheck();
+    }
+
     // Helper method to check cookie checkbox
     async checkCookieCheckbox() {
         await this.getCookieCheckbox().check();

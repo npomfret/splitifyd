@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../fixtures';
-import { GroupDetailPage, JoinGroupPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../pages';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
 import { generateShortId, generateTestGroupName } from '@splitifyd/test-support';
 
@@ -222,7 +222,7 @@ simpleTest.describe('Multi-User Group Deletion Real-Time Updates', () => {
         // Member: Stays on group detail page (should get redirected to 404)
 
         // Owner navigates to dashboard to delete the group
-        ownerDashboardPage = await ownerDashboardPage.navigateToDashboard();
+        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
         await ownerDashboardPage.waitForDashboard();
         await ownerDashboardPage.waitForGroupToAppear(groupName);
 
@@ -300,9 +300,9 @@ simpleTest.describe('Parallel Group Joining Edge Cases', () => {
         await groupDetailPage3.waitForPage(groupId, 3);
 
         // Use the display names from the user fixtures instead of extracting from UI
-        const user1Name = await groupDetailPage.getCurrentUserDisplayName();
-        const user2Name = await groupDetailPage2.getCurrentUserDisplayName();
-        const user3Name = await groupDetailPage3.getCurrentUserDisplayName();
+        const user1Name = await groupDetailPage.header.getCurrentUserDisplayName();
+        const user2Name = await groupDetailPage2.header.getCurrentUserDisplayName();
+        const user3Name = await groupDetailPage3.header.getCurrentUserDisplayName();
 
         // Check that all 3 users can see all 3 members on their respective pages
         await expect(groupDetailPage.getTextElement(user1Name).first()).toBeVisible();

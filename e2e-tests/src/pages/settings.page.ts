@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { SETTINGS_SELECTORS, SETTINGS_TEXTS } from '../constants/selectors';
 import { PooledTestUser } from '@splitifyd/shared';
+import {DashboardPage} from "./dashboard.page.ts";
 
 export class SettingsPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -26,6 +27,11 @@ export class SettingsPage extends BasePage {
 
         // Wait for the form to be ready
         await this.waitForFormReady();
+    }
+
+    async navigateToDashboard() {
+        await this.header.navigateToDashboard();
+        return new DashboardPage(this.page, this.userInfo)
     }
 
     // Profile Information Elements (using strategic data-testid approach)
@@ -98,7 +104,7 @@ export class SettingsPage extends BasePage {
         // 1. In the profile display section
         await expect(this.getProfileDisplayName()).toContainText(newDisplayName);
         // 2. In the user menu at the top right corner
-        await expect(this.getUserMenuButton()).toContainText(newDisplayName);
+        await expect(this.header.getUserMenuButton()).toContainText(newDisplayName);
     }
 
     async verifyRealTimeDisplayNameUpdate(expectedName: string): Promise<void> {
@@ -106,7 +112,7 @@ export class SettingsPage extends BasePage {
         await expect(this.getProfileDisplayName()).toContainText(expectedName);
 
         // Verify the user menu in navigation also updates automatically
-        await expect(this.getUserMenuButton()).toContainText(expectedName);
+        await expect(this.header.getUserMenuButton()).toContainText(expectedName);
     }
 
     // Password Change Actions

@@ -11,8 +11,8 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const { page: page1, dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
             const { page: page2, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
 
-            const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-            const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+            const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
             // Create group with user1
             const uniqueId = generateShortId();
@@ -200,7 +200,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             await secondUserGroupDetailPage.waitForMemberCount(2);
 
             // Verify the second user is visible in the group members list
-            const secondUserDisplayName = await secondUserGroupDetailPage.getCurrentUserDisplayName();
+            const secondUserDisplayName = await secondUserGroupDetailPage.header.getCurrentUserDisplayName();
             await expect(unauthPage.getByText(secondUserDisplayName).first()).toBeVisible();
         });
     });

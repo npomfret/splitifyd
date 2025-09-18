@@ -5,6 +5,7 @@ import { PooledTestUser } from '@splitifyd/shared';
 import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 import { CreateGroupModalPage } from './create-group-modal.page.ts';
 import { GroupDetailPage, groupDetailUrlPattern } from './group-detail.page.ts';
+import {SettingsPage} from "./settings.page.ts";
 
 export class DashboardPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -68,8 +69,14 @@ export class DashboardPage extends BasePage {
         // Since welcome message only shows for users with no groups, check for groups heading as primary indicator
         await expect(this.getGroupsHeading()).toBeVisible();
 
-        // Call parent implementation to wait for user menu
-        await super.waitForUserMenu();
+        // Call header to wait for user menu
+        await this.header.waitForUserMenu();
+    }
+
+    async clickSettings() {
+        const settingsPage = new SettingsPage(this.page, this.userInfo);
+        await settingsPage.navigate();
+        return settingsPage;
     }
 
     async openCreateGroupModal() {

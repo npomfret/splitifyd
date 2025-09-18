@@ -2,9 +2,12 @@ import { Page, Locator, expect } from '@playwright/test';
 import { EMULATOR_URL } from '../helpers';
 import { createErrorHandlingProxy } from '../utils/error-proxy';
 import { PooledTestUser } from '@splitifyd/shared';
-import { DashboardPage } from './dashboard.page.ts';
+import { HeaderPage } from './header.page';
+import {DashboardPage} from "./dashboard.page.ts";
 
 export abstract class BasePage {
+    private _header?: HeaderPage;
+
     constructor(
         protected _page: Page,
         protected userInfo?: PooledTestUser,
@@ -34,6 +37,17 @@ export abstract class BasePage {
      */
     get page(): Page {
         return this._page;
+    }
+
+    /**
+     * Header page object for user menu and navigation functionality.
+     * Lazy loaded to avoid circular dependencies.
+     */
+    get header(): HeaderPage {
+        if (!this._header) {
+            this._header = new HeaderPage(this._page, this.userInfo);
+        }
+        return this._header;
     }
 
     // Common element accessors
@@ -342,106 +356,6 @@ export abstract class BasePage {
         throw new Error(`Dropdown "${buttonName}" did not open. aria-expanded="${ariaExpanded}"`);
     }
 
-    /**
-     * User Menu Methods - Available on all pages with authenticated users
-     */
-    getUserMenuButton() {
-        return this._page.locator('[data-testid="user-menu-button"]');
-    }
-
-    getUserDropdownMenu() {
-        return this._page.locator('[data-testid="user-dropdown-menu"]');
-    }
-
-    getDashboardLink() {
-        return this._page.locator('[data-testid="user-menu-dashboard-link"]');
-    }
-
-    /**
-     * Wait for the user menu to be available on the page.
-     * This indicates the user is authenticated and the page has loaded.
-     */
-    async waitForUserMenu(): Promise<void> {
-        await this.waitForDomContentLoaded();
-        await expect(this.getUserMenuButton()).toBeVisible({ timeout: 5000 });
-    }
-
-    /**
-     * Open the user menu dropdown using reliable ARIA-based state detection.
-     */
-    async openUserMenu(): Promise<void> {
-        const userMenuButton = this.getUserMenuButton();
-        const dropdownMenu = this.getUserDropdownMenu();
-
-        await this.clickDropdownButton(userMenuButton, {
-            buttonName: 'User Menu',
-            dropdownContent: dropdownMenu,
-        });
-    }
-
-    /**
-     * Logout the user using the user menu dropdown.
-     * This is a common action available on most authenticated pages.
-     */
-    async logout(): Promise<void> {
-        const userMenuButton = this.getUserMenuButton();
-        const dropdownMenu = this.getUserDropdownMenu();
-
-        // Ensure user menu button is visible and enabled
-        await expect(userMenuButton).toBeVisible();
-        await expect(userMenuButton).toBeEnabled();
-
-        // Click to open dropdown
-        await userMenuButton.click();
-
-        // Wait for both the dropdown to be visible AND the sign-out button to be present
-        await expect(dropdownMenu).toBeVisible();
-
-        const signOutButton = dropdownMenu.locator('[data-testid="sign-out-button"]');
-        await expect(signOutButton).toBeVisible();
-        await expect(signOutButton).toBeEnabled();
-
-        // Wait for the element to be stable (no animations/transitions)
-        await signOutButton.waitFor({ state: 'attached' });
-
-        // Click the sign-out button
-        await signOutButton.click();
-
-        // Wait for redirect to login page
-        await expect(this._page).toHaveURL(/\/login/);
-    }
-
-    /**
-     * Get the displayed user name from the user menu button.
-     * This returns the current display name as shown in the UI, which may have been
-     * modified by other tests (e.g., user profile management tests).
-     */
-    async getCurrentUserDisplayName(): Promise<string> {
-        const userMenuButton = this.getUserMenuButton();
-        await expect(userMenuButton).toBeVisible();
-
-        // The user name is displayed in the menu button with specific classes
-        const nameElement = userMenuButton.locator('.text-sm.font-medium.text-gray-700').first();
-        const textContent = await nameElement.textContent();
-
-        if (!textContent) {
-            throw new Error('Could not extract user display name from user menu button');
-        }
-
-        return textContent.trim();
-    }
-
-    /**
-     * Check if a user is logged in by checking for the user menu.
-     */
-    async isUserLoggedIn(): Promise<boolean> {
-        try {
-            const menuVisible = await this.getUserMenuButton().isVisible({ timeout: 2000 });
-            return menuVisible;
-        } catch {
-            return false;
-        }
-    }
 
     /**
      * Expects the page to match a URL pattern
@@ -494,17 +408,6 @@ export abstract class BasePage {
         await this.waitForDomContentLoaded();
     }
 
-    async navigateToDashboard(): Promise<DashboardPage> {
-        await this.openUserMenu();
-        await this.getDashboardLink().click();
-        await expect(this._page).toHaveURL(/\/dashboard/);
-
-        // Import DashboardPage dynamically to avoid circular dependency
-        const { DashboardPage } = await import('./dashboard.page');
-        const dashboardPage = new DashboardPage(this._page, this.userInfo);
-        await dashboardPage.waitForDashboard();
-        return dashboardPage;
-    }
 
     async navigateToShareLink(shareLink: string): Promise<void> {
         await this._page.goto(shareLink);

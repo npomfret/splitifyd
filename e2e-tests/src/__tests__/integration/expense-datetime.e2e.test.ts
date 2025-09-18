@@ -114,7 +114,7 @@ simpleTest.describe('Expense Date and Time Selection', () => {
         await expenseFormPage.getExpenseDetailsHeading().click(); // Blur to commit
 
         // Select the payer using POM method
-        await expenseFormPage.selectPayer(await dashboardPage.getCurrentUserDisplayName());
+        await expenseFormPage.selectPayer(await dashboardPage.header.getCurrentUserDisplayName());
 
         // Select participants for the split
         await expenseFormPage.clickSelectAllButton();

@@ -20,8 +20,8 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names and log user UIDs
-        const creatorDisplayName = await creatorDashboardPage.getCurrentUserDisplayName();
-        const leavingDisplayName = await leavingDashboardPage.getCurrentUserDisplayName();
+        const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
+        const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
 
         console.log(`👥 Test 1 User UIDs - Creator: ${creator.uid}, Leaving: ${leaving.uid}, Staying: ${staying.uid}, Watcher: ${watcher.uid}`);
 
@@ -102,9 +102,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names and log user UIDs
-        const ownerDisplayName = await ownerDashboardPage.getCurrentUserDisplayName();
-        const settlingDisplayName = await settlingDashboardPage.getCurrentUserDisplayName();
-        const targetDisplayName = await targetDashboardPage.getCurrentUserDisplayName();
+        const ownerDisplayName = await ownerDashboardPage.header.getCurrentUserDisplayName();
+        const settlingDisplayName = await settlingDashboardPage.header.getCurrentUserDisplayName();
+        const targetDisplayName = await targetDashboardPage.header.getCurrentUserDisplayName();
 
         console.log(`👥 Test 2 User UIDs - Owner: ${owner.uid}, Settling: ${settling.uid}, Target: ${target.uid}, Watcher: ${watcher.uid}`);
 
@@ -214,9 +214,9 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const user4GroupDetailPage = new GroupDetailPage(user4Page);
 
         // Get display names
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+        const user4DisplayName = await user4DashboardPage.header.getCurrentUserDisplayName();
 
         // User1 creates group
         const groupName = generateTestGroupName('StressRT');
@@ -336,7 +336,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const offlineGroupDetailPage = new GroupDetailPage(offlinePage);
 
         // Get display names
-        const activeDisplayName = await activeDashboardPage.getCurrentUserDisplayName();
+        const activeDisplayName = await activeDashboardPage.header.getCurrentUserDisplayName();
 
         // ActiveUser creates group
         const groupName = generateTestGroupName('NetworkRT');
@@ -418,7 +418,7 @@ simpleTest.describe('Real-Time Edge Cases', () => {
         const watcherGroupDetailPage = new GroupDetailPage(watcherPage);
 
         // Get display names
-        const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
+        const editor1DisplayName = await editor1DashboardPage.header.getCurrentUserDisplayName();
 
         // Editor1 creates group
         const groupName = generateTestGroupName('ConflictRT');

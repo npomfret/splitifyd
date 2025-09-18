@@ -15,7 +15,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -73,7 +73,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -123,7 +123,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -184,7 +184,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -262,7 +262,7 @@ simpleTest.describe('Multi-Currency Basic Functionality', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);

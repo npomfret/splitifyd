@@ -8,7 +8,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { page, dashboardPage, user } = await newLoggedInBrowser();
 
         // Get the current user's display name
-        const userDisplayName = await dashboardPage.getCurrentUserDisplayName();
+        const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         // Create group and navigate to it
         const groupName = generateTestGroupName('CRUD Test');

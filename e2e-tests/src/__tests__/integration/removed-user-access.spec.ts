@@ -39,8 +39,8 @@ simpleTest.describe('Multi-User Group Access', () => {
         await groupDetailPage2.waitForMemberCount(2);
 
         // Verify both users are visible in the group
-        await expect(groupDetailPage2.getTextElement(await new DashboardPage(user1Page).getCurrentUserDisplayName()).first()).toBeVisible();
-        await expect(groupDetailPage2.getTextElement(await groupDetailPage2.getCurrentUserDisplayName()).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(await new DashboardPage(user1Page).header.getCurrentUserDisplayName()).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(await groupDetailPage2.header.getCurrentUserDisplayName()).first()).toBeVisible();
 
         // User 2 adds an expense using ExpenseBuilder pattern with unique identifier
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
@@ -48,7 +48,7 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Get the actual display name from the dashboard page
         const user2DashboardPage = new DashboardPage(user2Page, user2);
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         const sharedExpense = new ExpenseFormDataBuilder()
             .withDescription(`Shared Expense ${uniqueId}`)
@@ -99,7 +99,7 @@ simpleTest.describe('Multi-User Group Access', () => {
         await memberGroupDetailPage.waitForMemberCount(2);
 
         // Get member display name for removal
-        const memberDisplayName = await memberDashboardPage.getCurrentUserDisplayName();
+        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Owner removes the member while member is viewing the group page
         // Note: This should work with no expenses/balances in the group
@@ -118,43 +118,39 @@ simpleTest.describe('Multi-User Group Access', () => {
     simpleTest('should remove group from removed user dashboard in real-time', async ({ newLoggedInBrowser }) => {
         // Create two browser instances - Owner and Member (to be removed)
         // Simplified to focus on core dashboard behavior without complications
-        const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
+        let { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
         const { page: memberPage, user: memberUser } = await newLoggedInBrowser();
-
-        // Create page objects
-        const memberDashboardPage = new DashboardPage(memberPage, memberUser);
 
         // Create group with unique identifier
         const uniqueId = generateShortId();
         const groupName = generateTestGroupName(`DashboardRemoval-${uniqueId}`);
-        const createdGroupPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from dashboard perspective');
+        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from dashboard perspective');
 
         // Add member to group
         const multiUserWorkflow = new MultiUserWorkflow();
         const shareLink = await multiUserWorkflow.getShareLink(ownerPage);
 
         // Member joins
-        const memberJoinGroupPage = new JoinGroupPage(memberPage);
-        await memberJoinGroupPage.joinGroupUsingShareLink(shareLink);
+        const memberGruopDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
 
         // Both users navigate to their dashboards to see the group
-        const ownerDashboard = await createdGroupPage.navigateToDashboard();
-        const memberDashboard = await new GroupDetailPage(memberPage).navigateToDashboard();
+        ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
+        const memberDashboardPage = await memberGruopDetailPage.navigateToDashboard();
 
         // Verify both users can see the group on their dashboards
-        await ownerDashboard.waitForGroupToAppear(groupName);
-        await memberDashboard.waitForGroupToAppear(groupName);
+        await ownerDashboardPage.waitForGroupToAppear(groupName);
+        await memberDashboardPage.waitForGroupToAppear(groupName);
 
         // Owner goes back to group page to remove member
-        const ownerGroupPage = await ownerDashboard.clickGroupCard(groupName);
-        const memberDisplayName = await memberDashboardPage.getCurrentUserDisplayName();
+        const ownerGroupPage = await ownerDashboardPage.clickGroupCard(groupName);
+        const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Owner removes the member while member is on dashboard
         const removeMemberModal = await ownerGroupPage.clickRemoveMember(memberDisplayName);
         await removeMemberModal.confirmRemoveMember();
 
         // CRITICAL TEST 1: Member's dashboard should no longer show the group (real-time update)
-        await memberDashboard.waitForGroupToNotBePresent(groupName);
+        await memberDashboardPage.waitForGroupToNotBePresent(groupName);
 
         // CRITICAL TEST 2: Owner's dashboard should still show the group (they're still in it)
         const ownerDashboardFinal = await ownerGroupPage.navigateToDashboard();

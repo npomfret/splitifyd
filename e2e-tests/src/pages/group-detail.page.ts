@@ -7,6 +7,7 @@ import { EditGroupModalPage } from './edit-group-modal.page';
 import { LeaveGroupModalPage } from './leave-group-modal.page';
 import { RemoveMemberModalPage } from './remove-member-modal.page';
 import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
+import {DashboardPage} from "./dashboard.page.ts";
 
 interface ExpenseData {
     description: string;
@@ -20,6 +21,11 @@ interface ExpenseData {
 export class GroupDetailPage extends BasePage {
     constructor(page: Page) {
         super(page);
+    }
+
+    async navigateToDashboard() {
+        await this.header.navigateToDashboard();
+        return new DashboardPage(this.page, this.userInfo)
     }
 
     inferGroupId() {
@@ -302,7 +308,7 @@ export class GroupDetailPage extends BasePage {
                     browserContext: {
                         user: browserUser,
                         userId: browserUserId,
-                        displayName: await this.getCurrentUserDisplayName(),
+                        displayName: await this.header.getCurrentUserDisplayName(),
                         pageUrl,
                         viewingAs: `Browser of: ${browserUser} (${browserUserId})`,
                     },
@@ -400,7 +406,7 @@ export class GroupDetailPage extends BasePage {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
 
-        await this.getCurrentUserDisplayName();// just a sanity check - top right by the menu
+        await this.header.getCurrentUserDisplayName();// just a sanity check - top right by the menu
 
         await this.waitForMemberCount(expectedMemberCount);
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);

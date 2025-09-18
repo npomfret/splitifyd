@@ -25,8 +25,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
+                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
+                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
                 amount: '100.50',
                 note: 'Test payment for history',
             };
@@ -69,8 +69,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await user2DashboardPage.getCurrentUserDisplayName(),
-                payeeName: await groupDetailPage.getCurrentUserDisplayName(),
+                payerName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payeeName: await groupDetailPage.header.getCurrentUserDisplayName(),
                 amount: '75.00',
                 note: 'Creator receives payment',
             };
@@ -111,8 +111,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData: SettlementData = {
-                payerName: await groupDetailPage.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
+                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
+                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
                 amount: '100.50',
                 note: 'Initial test payment',
             };
@@ -174,8 +174,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData: SettlementData = {
-                payerName: await groupDetailPage.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
+                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
+                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
                 amount: '50.00',
                 note: 'Validation test payment',
             };
@@ -234,8 +234,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
+                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
+                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
                 amount: '100.00',
                 note: 'Payment to be deleted',
             };
@@ -277,8 +277,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.getCurrentUserDisplayName(),
+                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
+                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
                 amount: '75.00',
                 note: 'Payment to keep',
             };
@@ -312,9 +312,9 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             expect(user1.email).not.toBe(user3.email);
             expect(user2.email).not.toBe(user3.email);
 
-            const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-            const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-            const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
+            const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+            const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
 
             // Assert all users have different display names
             expect(user1DisplayName).not.toBe(user2DisplayName);

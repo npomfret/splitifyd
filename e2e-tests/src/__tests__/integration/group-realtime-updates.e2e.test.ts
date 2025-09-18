@@ -17,10 +17,10 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const {page: user4Page, dashboardPage: user4DashboardPage} = await newLoggedInBrowser();
 
         // Get display names for verification
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
-        const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
+        const user4DisplayName = await user4DashboardPage.header.getCurrentUserDisplayName();
 
         // Assert all users have different display names
         // Assert all users have different display names
@@ -64,7 +64,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // User 2 navigates to dashboard to monitor group-level changes
         // Verify User 2 can see the group on dashboard with original name
-        await user2DashboardPage.navigateToDashboard();
+        await user2GroupDetailPage.navigateToDashboard();
         await user2DashboardPage.waitForGroupToAppear(originalGroupName);
 
         // =============================================================
@@ -114,10 +114,10 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const {page: user4Page, dashboardPage: user4DashboardPage} = await newLoggedInBrowser();
 
         // Get display names for verification
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.getCurrentUserDisplayName();
-        const user3DisplayName = await user3DashboardPage.getCurrentUserDisplayName();
-        const user4DisplayName = await user4DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
+        const user4DisplayName = await user4DashboardPage.header.getCurrentUserDisplayName();
 
         console.log({user1DisplayName, user2DisplayName, user3DisplayName, user4DisplayName})
 
@@ -160,7 +160,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
 
         // User 2 navigates to dashboard to monitor group-level changes
         // Verify User 2 can see the group on dashboard with original name
-        await user2DashboardPage.navigateToDashboard();
+        await user2GroupDetailPage.navigateToDashboard();
         await user2DashboardPage.waitForGroupToAppear(groupName);
 
         // =============================================================
@@ -317,7 +317,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const {page: user1Page, user: user1, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
         const {page: user2Page, user: user2, dashboardPage: user2DashboardPage} = await newLoggedInBrowser();
 
-        const user1DisplayName = await user1DashboardPage.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
 
         // Create page objects
         // Alice creates a group and adds an expense
@@ -390,9 +390,9 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const {page: watcherPage, dashboardPage: watcherDashboardPage} = await newLoggedInBrowser();
 
         // Get display names
-        const editor1DisplayName = await editor1DashboardPage.getCurrentUserDisplayName();
-        const editor2DisplayName = await editor2DashboardPage.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.getCurrentUserDisplayName();
+        const editor1DisplayName = await editor1DashboardPage.header.getCurrentUserDisplayName();
+        const editor2DisplayName = await editor2DashboardPage.header.getCurrentUserDisplayName();
+        const watcherDisplayName = await watcherDashboardPage.header.getCurrentUserDisplayName();
 
         // Editor1 creates group
         const editorGroupDetailPage = await editor1DashboardPage.createGroupAndNavigate(
@@ -532,9 +532,9 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         const {page: dashWatcherPage, dashboardPage: dashWatcherDashboardPage} = await newLoggedInBrowser();
 
         // Get display names
-        const deleterDisplayName = await deleterDashboardPage.getCurrentUserDisplayName();
-        const groupWatcherDisplayName = await groupWatcherDashboardPage.getCurrentUserDisplayName();
-        const dashWatcherDisplayName = await dashWatcherDashboardPage.getCurrentUserDisplayName();
+        const deleterDisplayName = await deleterDashboardPage.header.getCurrentUserDisplayName();
+        const groupWatcherDisplayName = await groupWatcherDashboardPage.header.getCurrentUserDisplayName();
+        const dashWatcherDisplayName = await dashWatcherDashboardPage.header.getCurrentUserDisplayName();
 
         // Deleter creates group
         const groupName = generateTestGroupName('DeleteRT');
@@ -554,7 +554,7 @@ simpleTest.describe('Group Real-Time Updates E2E', () => {
         await dashWatcherGroupDetailPage.waitForPage(groupId, 3);
 
         // Position watchers: GroupWatcher stays on group page, DashWatcher goes to dashboard
-        await dashWatcherDashboardPage.navigateToDashboard();
+        await dashWatcherGroupDetailPage.navigateToDashboard();
         await dashWatcherDashboardPage.waitForGroupToAppear(groupName);
 
         // Create expense involving GroupWatcher ($50 split = $25 each)

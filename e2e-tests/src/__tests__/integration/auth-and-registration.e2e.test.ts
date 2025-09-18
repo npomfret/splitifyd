@@ -50,7 +50,7 @@ simpleTest.describe('Authentication Security', () => {
         // Navigate back to dashboard and log out properly
         await dashboardPage.navigate();
         await dashboardPage.waitForDashboard();
-        await dashboardPage.logout();
+        await dashboardPage.header.logout();
 
         // Try to access the group page directly while logged out
         await page.goto(`/groups/${groupId}`);
@@ -109,7 +109,7 @@ test.describe('Duplicate User Registration E2E', () => {
 
         // Log out to attempt duplicate registration
         const dashboardPage = new DashboardPage(page);
-        await dashboardPage.logout();
+        await dashboardPage.header.logout();
 
         // STEP 2: Attempt duplicate registration and verify error handling
         await registerPage.navigate();
