@@ -451,12 +451,19 @@ The following components are part of the core application functionality and shou
 
 **Translation keys added:** ~100+ organized translation keys across multiple categories
 
+**E2E Test Updates:**
+- Updated test selectors to match new translated text
+- Fixed dashboard loading state detection
+
 ### 🎯 Implementation Strategy
 
 #### Phase 1: Core Application Components (In Progress)
 **Priority Order:**
-1. ✅ **Authentication & Comments** - Completed
-2. 🔄 **Expense Components** - In Progress (ExpenseFormActions, ParticipantSelector, PayerSelector, etc.)
+1. ✅ **Authentication & Comments & Dashboard** - Completed (Latest: 2025-01-18)
+   - EmailInput, PasswordInput, DefaultLoginButton
+   - CommentInput, CommentItem, CommentsList, CommentsSection
+   - GroupsList
+2. 🔄 **Expense Components** - Next Priority (ExpenseFormActions, ParticipantSelector, PayerSelector, etc.)
 3. **Group Components** - Group management and member handling
 4. **Join Group Components** - Group invitation flow
 5. **UI Components** - Reusable UI elements (Alert, Avatar, Button, etc.)
