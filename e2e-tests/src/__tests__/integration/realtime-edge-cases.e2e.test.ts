@@ -1,7 +1,7 @@
 import { simpleTest, expect } from '../../fixtures';
 import { GroupDetailPage, JoinGroupPage, ExpenseDetailPage } from '../../pages';
 import { generateTestGroupName, randomString } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 import { SettlementData } from '../../pages/settlement-form.page.ts';
 

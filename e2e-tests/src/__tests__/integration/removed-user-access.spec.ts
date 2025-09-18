@@ -2,7 +2,7 @@ import { expect, simpleTest } from '../../fixtures/simple-test.fixture';
 
 import { MultiUserWorkflow } from '../../workflows';
 import { generateShortId, generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { DashboardPage, JoinGroupPage, GroupDetailPage } from '../../pages';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 

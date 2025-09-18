@@ -1,7 +1,7 @@
 import { simpleTest, expect } from '../../fixtures';
 import { GroupDetailPage } from '../../pages';
 import { TestGroupWorkflow } from '../../helpers';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 import { generateShortId } from '@splitifyd/test-support';
 

@@ -3,7 +3,7 @@ import {expect, simpleTest} from '../../fixtures';
 import {ExpenseDetailPage, JoinGroupPage} from '../../pages';
 import {generateShortId, generateTestGroupName, randomString} from '@splitifyd/test-support';
 import {v4 as uuidv4} from 'uuid';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {SettlementData} from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Group Real-Time Updates E2E', () => {

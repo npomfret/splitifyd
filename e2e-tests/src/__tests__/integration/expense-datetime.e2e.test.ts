@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../fixtures';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 simpleTest.describe('Expense Date and Time Selection', () => {
     simpleTest('should handle all date convenience buttons and time input scenarios', async ({ newLoggedInBrowser }) => {

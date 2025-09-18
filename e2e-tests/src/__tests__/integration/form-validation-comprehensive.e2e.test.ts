@@ -1,7 +1,7 @@
 import { expect, simpleTest } from '../../fixtures/simple-test.fixture';
 import { generateTestGroupName } from '@splitifyd/test-support';
 import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 /**
  * Expense Form Validation Test Suite
  * Tests comprehensive expense form validation scenarios:

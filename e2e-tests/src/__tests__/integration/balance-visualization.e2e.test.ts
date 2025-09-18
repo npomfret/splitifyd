@@ -1,7 +1,7 @@
 import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
 import {generateShortId} from '@splitifyd/test-support';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page.ts';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 import {TestGroupWorkflow} from '../../helpers';
 

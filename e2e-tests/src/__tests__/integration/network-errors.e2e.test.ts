@@ -3,7 +3,7 @@ import { CreateGroupModalPage, LoginPage } from '../../pages';
 import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
 import { SELECTORS } from '../../constants/selectors';
 import { generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 test.describe('Error Handling', () => {
     test('displays error message when network fails during group creation', async ({ newLoggedInBrowser }) => {

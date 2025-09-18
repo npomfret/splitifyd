@@ -4,7 +4,7 @@ import { TIMEOUT_CONTEXTS } from '../../config/timeouts';
 import { PLACEHOLDERS } from '../../constants/selectors';
 import { JoinGroupPage, GroupDetailPage } from '../../pages';
 import { generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 simpleTest.describe('Member Management - Owner Restrictions', () => {

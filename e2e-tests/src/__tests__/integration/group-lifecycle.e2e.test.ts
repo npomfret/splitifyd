@@ -1,6 +1,6 @@
 import { simpleTest, expect } from '../../fixtures';
 import { GroupDetailPage, JoinGroupPage } from '../../pages';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page.ts';
+import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 simpleTest.describe('Group Management', () => {
     simpleTest('should comprehensively test group editing validation and functionality', async ({ newLoggedInBrowser }) => {
