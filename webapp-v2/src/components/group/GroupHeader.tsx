@@ -29,7 +29,7 @@ export function GroupHeader({ group, members, onSettings, isGroupOwner }: GroupH
             </div>
 
             <div className="flex gap-6 text-sm text-gray-600">
-                <div>{t('groupHeader.membersCount', { count: members.length })}</div>
+                <div data-testid="member-count">{t('groupHeader.membersCount', { count: members.length })}</div>
                 <div>
                     <span className="font-medium">{t('groupHeader.recent')}</span> {t('groupHeader.expenses')}
                 </div>

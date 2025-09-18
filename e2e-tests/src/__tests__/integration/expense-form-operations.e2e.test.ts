@@ -6,28 +6,31 @@ import {DashboardPage} from "../../pages";
 
 test.describe('Expense Form Operations E2E', () => {
 
-    let groupId: string | undefined;
-    const groupName = `Expense form test ${generateShortId()}`;
-    const memberCount = 1;
-
     async function navigateToGroupDetailPage(dashboardPage: DashboardPage) {
-        // only create 1 group for all test cases
-        // this assumes the test uses the same user in each test case
-        if(groupId) {
-            await dashboardPage.navigate();
-            await dashboardPage.waitForGroupToAppear(groupId);// this will fail if we some how use a different user
-            return await dashboardPage.clickGroupCard(groupName, groupId);
+        await dashboardPage.navigate();
+        await dashboardPage.waitForDashboard();
+
+        console.log(dashboardPage.header.getCurrentUserDisplayName());
+
+        // Get list of visible groups
+        const visibleGroups = await dashboardPage.getVisibleGroupNames();
+
+        // If there are any groups, pick the first one
+        if (visibleGroups.length > 0) {
+            const groupName = visibleGroups[0];
+            return await dashboardPage.clickGroupCard(groupName);
         }
 
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Testing expense form');
-        groupId = groupDetailPage.inferGroupId();
-        return groupDetailPage;
+        // No groups found, create a new one
+        const groupName = `Expense form test ${generateShortId()}`;
+        return await dashboardPage.createGroupAndNavigate(groupName, 'Testing expense form');
     }
 
     test('should validate negative amounts', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test negative amount validation
@@ -45,6 +48,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test category selection functionality
@@ -66,6 +70,7 @@ test.describe('Expense Form Operations E2E', () => {
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         const expenseDescription = `Create Test ${generateShortId()}`;
 
@@ -90,6 +95,7 @@ test.describe('Expense Form Operations E2E', () => {
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         const originalDescription = `Edit Test ${generateShortId()}`;
 
@@ -100,6 +106,7 @@ test.describe('Expense Form Operations E2E', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -138,6 +145,7 @@ test.describe('Expense Form Operations E2E', () => {
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         const expenseDescription = `Delete Test ${generateShortId()}`;
 
@@ -148,6 +156,7 @@ test.describe('Expense Form Operations E2E', () => {
                 .withCurrency('USD')
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
@@ -158,7 +167,7 @@ test.describe('Expense Form Operations E2E', () => {
         await groupDetailPage.deleteExpense();
 
         // Should redirect back to group
-        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(page).toHaveURL(groupDetailUrlPattern());
 
         // Expense should no longer be visible
         await expect(groupDetailPage.getExpenseByDescription(expenseDescription)).not.toBeVisible();
@@ -168,6 +177,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test each split type selection
@@ -186,6 +196,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test "Today" button
@@ -214,6 +225,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Initially time field should be hidden (default noon)
@@ -231,6 +243,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Try to submit empty form
@@ -252,6 +265,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test "Select all" button
@@ -272,6 +286,7 @@ test.describe('Expense Form Operations E2E', () => {
         const { dashboardPage } = await newLoggedInBrowser();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test zero amount validation
@@ -286,6 +301,7 @@ test.describe('Expense Form Operations E2E', () => {
         const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
 
         const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
         // Test currency selection in form submission
@@ -300,10 +316,46 @@ test.describe('Expense Form Operations E2E', () => {
                 .withCurrency('EUR') // Different currency
                 .withPaidByDisplayName(userDisplayName)
                 .withSplitType('equal')
+                .withParticipants([userDisplayName])
                 .build(),
         );
 
         await groupDetailPage.waitForExpense(expenseDescription);
         await expect(groupDetailPage.getExpenseByDescription(expenseDescription)).toBeVisible();
+    });
+
+    test('should enable disabled button but catch validation error on submit', async ({ newLoggedInBrowser } , testInfo ) => {
+        testInfo.annotations.push({ type: 'skip-error-checking', description: 'expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
+
+        const { page, dashboardPage } = await newLoggedInBrowser();
+
+        const groupDetailPage = await navigateToGroupDetailPage(dashboardPage);
+        const memberCount = await groupDetailPage.getCurrentMemberCount();
+        const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+        // Start with form that has disabled button (missing required fields)
+        const submitButton = expenseFormPage.getSaveButtonForValidation();
+        await expect(submitButton).toBeDisabled();
+
+        // Fill minimum required fields to enable button
+        await expenseFormPage.fillDescription('Test expense');
+        await expenseFormPage.fillAmount('50');
+
+        // Button should now be enabled
+        await expect(submitButton).toBeEnabled({ timeout: 2000 });
+
+        // Now deliberately create invalid form state: clear the category field to be empty
+        // This will cause server validation to fail even though the button is enabled
+        await expenseFormPage.typeCategoryText('');
+
+        // Try to submit by clicking the enabled button directly
+        await submitButton.click();
+
+        // Should stay on the expense form due to validation error from empty category
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+
+        // The error proxy should catch and display the validation error
+        // We expect to see "Something went wrong" heading appear
+        await expect(page.getByRole('heading', { name: /something went wrong/i })).toBeVisible({ timeout: 5000 });
     });
 });

@@ -117,15 +117,40 @@ export class DashboardPage extends BasePage {
         // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
         const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
         try {
-            await loadingSpinner.waitFor({ state: 'hidden', timeout: 1000 });
+            await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
         } catch {
             // Spinner never appeared or disappeared quickly - expected behavior
         }
 
-        // Wait for DOM to be fully loaded instead of arbitrary timeout
-        await this.waitForDomContentLoaded();
+        // Wait for groups content to be fully loaded
+        // This ensures we wait for either groups to appear, empty state to show, or loading to complete
+        await expect(async () => {
+            // Check if groups container exists (means groups are loaded)
+            const groupsContainer = this.page.getByTestId('groups-container');
+            const hasGroupsContainer = await groupsContainer.isVisible().catch(() => false);
 
-        // Dashboard is now ready - we don't check for specific content since users may have existing groups
+            // Check if empty state is shown (means no groups but loading is complete)
+            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
+            const hasEmptyState = await emptyState.isVisible().catch(() => false);
+
+            // Check if error state is shown
+            const errorState = this.page.getByTestId('groups-load-error-title');
+            const hasErrorState = await errorState.isVisible().catch(() => false);
+
+            // Check if loading spinner is shown (means still loading groups)
+            const loadingSpinner = this.page.getByText('Loading your groups...');
+            const hasLoadingSpinner = await loadingSpinner.isVisible().catch(() => false);
+
+            if (!hasGroupsContainer && !hasEmptyState && !hasErrorState && !hasLoadingSpinner) {
+                throw new Error('Groups content not yet loaded - waiting for groups container, empty state, error state, or loading spinner');
+            }
+        }).toPass({
+            timeout: 5000,
+            intervals: [100, 250, 500],
+        });
+
+        // Wait for DOM to be fully loaded
+        await this.waitForDomContentLoaded();
     }
 
     /**
@@ -187,6 +212,51 @@ export class DashboardPage extends BasePage {
             timeout,
             intervals: [100, 250, 500], // Check frequently for appearance
         });
+    }
+
+    /**
+     * Get a list of visible group names on the dashboard
+     * Returns an array of group names that are currently visible
+     */
+    async getVisibleGroupNames(): Promise<string[]> {
+        // Ensure we're on the dashboard and it's loaded
+        await this.waitForDashboard();
+
+        // Check if groups container exists (it won't exist if there are no groups)
+        const groupsContainer = this.page.getByTestId('groups-container');
+        const containerExists = await groupsContainer.isVisible().catch(() => false);
+
+        // If no groups container, check for empty state
+        if (!containerExists) {
+            const emptyState = this.page.getByRole('button', { name: /create.*first.*group/i });
+            const hasEmptyState = await emptyState.isVisible().catch(() => false);
+
+            // Return empty array if we're in empty state
+            if (hasEmptyState) {
+                return [];
+            }
+
+            // If neither container nor empty state, something is wrong
+            throw new Error('Dashboard in unexpected state - no groups container and no empty state');
+        }
+
+        // Groups container exists, get the group cards
+        const groupCards = groupsContainer.getByTestId('group-card');
+        const groupNames: string[] = [];
+
+        const cardCount = await groupCards.count();
+        for (let i = 0; i < cardCount; i++) {
+            const card = groupCards.nth(i);
+            // Get the group name from the h4 element which contains the group title
+            const groupNameElement = card.locator('h4');
+            const groupName = await groupNameElement.textContent();
+
+            if (groupName && groupName.trim().length > 0) {
+                groupNames.push(groupName.trim());
+            }
+        }
+
+        return groupNames;
     }
 
     /**

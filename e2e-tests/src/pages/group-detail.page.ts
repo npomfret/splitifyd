@@ -703,6 +703,29 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Get the actual member count as a number by parsing the UI text
+     * Waits for the API-loaded member count to be available
+     */
+    async getCurrentMemberCount(): Promise<number> {
+        // Use the specific testid we added to the GroupHeader component
+        const memberCountElement = this.page.getByTestId('member-count');
+        await expect(memberCountElement).toBeVisible({ timeout: 10000 });
+
+        const memberText = await memberCountElement.textContent();
+        if (!memberText) {
+            throw new Error('Could not find member count text in UI');
+        }
+
+        // Extract number from text like "1 member" or "3 members"
+        const match = memberText.match(/(\d+)\s+member/i);
+        if (!match) {
+            throw new Error(`Could not parse member count from text: "${memberText}"`);
+        }
+
+        return parseInt(match[1], 10);
+    }
+
+    /**
      * Close modal or dialog
      */
     async closeModal(): Promise<void> {
