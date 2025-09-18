@@ -27,15 +27,6 @@ This report details all on-screen text found in the `webapp-v2` codebase that is
 - **components/auth/AuthLayout.tsx**:
   - ` - Splitifyd`
 
-- **components/auth/PasswordInput.tsx**:
-  - `Enter your password`
-  - `Password`
-
-### Comments System
-
-- **components/comments/CommentItem.tsx**:
-  - `just now`
-
 ### Dashboard Components
 
 - **components/dashboard/CreateGroupModal.tsx**:

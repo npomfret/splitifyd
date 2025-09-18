@@ -747,5 +747,14 @@
     "unknownLink": "Unknown Link",
     "elementClick": "Element Click: ",
     "unknownElement": "Unknown Element"
+  },
+  "authProvider": {
+    "authenticationError": "Authentication Error",
+    "retry": "Retry"
+  },
+  "userIndicator": {
+    "unknown": "Unknown",
+    "plus": "+",
+    "moreUsers": " more users"
   }
 }

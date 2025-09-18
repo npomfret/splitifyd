@@ -1,5 +1,6 @@
 import Router, { Route } from 'preact-router';
 import { Suspense, lazy } from 'preact/compat';
+import { useTranslation } from 'react-i18next';
 import { LoadingState, WarningBanner } from './components/ui';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { PolicyAcceptanceModal } from './components/policy/PolicyAcceptanceModal';
@@ -26,8 +27,9 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage').then((m) => ({ de
 
 // Wrapper component to handle Suspense for lazy-loaded components
 function LazyRoute({ component: Component, ...props }: any) {
+    const { t } = useTranslation();
     return (
-        <Suspense fallback={<LoadingState fullPage message="Loading page..." />}>
+        <Suspense fallback={<LoadingState fullPage message={t('app.loadingPage')} />}>
             <Component {...props} />
         </Suspense>
     );
@@ -35,16 +37,17 @@ function LazyRoute({ component: Component, ...props }: any) {
 
 // Auth guard wrapper for protected routes
 function ProtectedRoute({ component: Component, ...props }: any) {
+    const { t } = useTranslation();
     const authStore = useAuth();
 
     // Handle SSG case where useAuth returns null
     if (!authStore) {
-        return <LoadingState fullPage message="Loading..." />;
+        return <LoadingState fullPage message={t('app.loading')} />;
     }
 
     // Wait for auth initialization
     if (!authStore.initialized) {
-        return <LoadingState fullPage message="Loading..." />;
+        return <LoadingState fullPage message={t('app.loading')} />;
     }
 
     // Redirect to login if not authenticated (declarative approach)
@@ -56,7 +59,7 @@ function ProtectedRoute({ component: Component, ...props }: any) {
     }
 
     return (
-        <Suspense fallback={<LoadingState fullPage message="Loading page..." />}>
+        <Suspense fallback={<LoadingState fullPage message={t('app.loadingPage')} />}>
             <Component {...props} />
         </Suspense>
     );

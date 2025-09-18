@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Card, Avatar, Button } from '../ui';
 import { Stack } from '../ui/Stack';
 
@@ -17,22 +18,24 @@ interface ParticipantSelectorProps {
 }
 
 export function ParticipantSelector({ members, participants, paidBy, validationErrors, handleParticipantToggle, handleSelectAll, handleSelectNone }: ParticipantSelectorProps) {
+    const { t } = useTranslation();
+
     return (
         <Card>
             <Stack spacing="md">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Split between{' '}
+                        {t('expenseComponents.participantSelector.label')}{' '}
                         <span className="text-red-500" data-testid="required-indicator">
-                            *
+                            {t('expenseComponents.participantSelector.requiredIndicator')}
                         </span>
                     </h2>
                     <div className="flex gap-2">
                         <Button type="button" variant="ghost" size="sm" onClick={handleSelectAll}>
-                            Select all
+                            {t('expenseComponents.participantSelector.selectAll')}
                         </Button>
                         <Button type="button" variant="ghost" size="sm" onClick={handleSelectNone}>
-                            Select none
+                            {t('expenseComponents.participantSelector.selectNone')}
                         </Button>
                     </div>
                 </div>
@@ -59,7 +62,7 @@ export function ParticipantSelector({ members, participants, paidBy, validationE
                                 <Avatar displayName={member.displayName} userId={member.uid} size="sm" />
                                 <span className="text-sm font-medium text-gray-900 dark:text-white flex-1">
                                     {member.displayName}
-                                    {isPayer && <span className="text-green-600 dark:text-green-400 ml-1">(Payer)</span>}
+                                    {isPayer && <span className="text-green-600 dark:text-green-400 ml-1">{t('expenseComponents.participantSelector.payerSuffix')}</span>}
                                 </span>
                             </label>
                         );

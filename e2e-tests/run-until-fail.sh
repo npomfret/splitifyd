@@ -17,7 +17,7 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/member-lifecycle.e2e.test.ts"
+TEST_FILE="src/__tests__/integration/auth-and-registration.e2e.test.ts"
 TEST_FILTER=""
 
 # Detect script location and set working directory

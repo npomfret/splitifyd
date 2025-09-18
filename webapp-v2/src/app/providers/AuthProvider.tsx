@@ -1,5 +1,6 @@
 import { createContext } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import type { ComponentChildren } from 'preact';
 import type { AuthStore } from '@/types/auth.ts';
 import { getAuthStore } from '../stores/auth-store';
@@ -13,6 +14,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+    const { t } = useTranslation();
     const [authStore, setAuthStore] = useState<AuthStore | null>(null);
     const [initError, setInitError] = useState<string | null>(null);
 
@@ -57,11 +59,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
             <div class="min-h-screen flex items-center justify-center">
                 <div class="text-center">
                     <h2 class="text-2xl font-bold text-red-600 mb-2" role="alert" data-testid="auth-error-heading">
-                        Authentication Error
+                        {t('authProvider.authenticationError')}
                     </h2>
                     <p class="text-gray-600 mb-4">{initError}</p>
                     <button onClick={() => window.location.reload()} class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                        Retry
+                        {t('authProvider.retry')}
                     </button>
                 </div>
             </div>
