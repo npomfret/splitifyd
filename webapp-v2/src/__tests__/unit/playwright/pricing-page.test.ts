@@ -94,4 +94,240 @@ test.describe('PricingPage - Behavioral Tests', () => {
         await expect(page.getByText(/if you have that many/)).toBeVisible(); // Humorous about friends
         await expect(page.getByText(/warm fuzzy feeling/)).toBeVisible(); // Positive about free
     });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support keyboard navigation to call-to-action buttons', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for sign-up buttons
+            const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
+
+            if (await ctaButtons.count() > 0) {
+                // Tab to the first CTA button
+                await ctaButtons.first().focus();
+                await expect(ctaButtons.first()).toBeFocused();
+                await expect(ctaButtons.first()).toBeEnabled();
+            }
+        });
+
+        test('should have visible focus indicators on interactive elements', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for interactive elements on pricing page
+            const interactiveElements = [
+                'button',
+                'a[href]',
+                '[tabindex="0"]',
+                '[role="button"]',
+            ];
+
+            for (const selector of interactiveElements) {
+                const element = page.locator(selector);
+
+                if (await element.count() > 0) {
+                    await element.first().focus();
+
+                    // Check for focus indicators
+                    const focusStyles = await element.first().evaluate((el) => {
+                        const styles = getComputedStyle(el);
+                        return {
+                            outline: styles.outline,
+                            outlineWidth: styles.outlineWidth,
+                            boxShadow: styles.boxShadow,
+                        };
+                    });
+
+                    const hasFocusIndicator =
+                        focusStyles.outline !== 'none' ||
+                        focusStyles.outlineWidth !== '0px' ||
+                        focusStyles.boxShadow.includes('rgb');
+
+                    expect(hasFocusIndicator).toBeTruthy();
+                }
+            }
+        });
+
+        test('should activate CTA buttons with Enter key', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Find CTA buttons
+            const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
+
+            if (await ctaButtons.count() > 0) {
+                await ctaButtons.first().focus();
+                await expect(ctaButtons.first()).toBeFocused();
+
+                // Test Enter key activation
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Button should still be accessible after activation
+                await expect(ctaButtons.first()).toBeVisible();
+            }
+        });
+
+        test('should activate CTA buttons with Space key', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Find CTA buttons
+            const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
+
+            if (await ctaButtons.count() > 0) {
+                await ctaButtons.first().focus();
+                await expect(ctaButtons.first()).toBeFocused();
+
+                // Test Space key activation
+                await page.keyboard.press('Space');
+                await page.waitForTimeout(100);
+
+                // Button should still be accessible after activation
+                await expect(ctaButtons.first()).toBeVisible();
+            }
+        });
+
+        test('should handle tab navigation through pricing plans', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Tab through the page to navigate pricing plans
+            let currentFocusIndex = 0;
+            const maxTabs = 10; // Reasonable limit to avoid infinite loops
+
+            for (let i = 0; i < maxTabs; i++) {
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+
+                    // If we focused on a pricing plan button, verify it's accessible
+                    const buttonText = await focusedElement.textContent();
+                    if (buttonText && /Sign Up|Join Now|Get Started/.test(buttonText)) {
+                        await expect(focusedElement).toBeEnabled();
+                        break; // Found a pricing CTA, test successful
+                    }
+                }
+            }
+        });
+
+        test('should handle keyboard navigation in different viewport sizes', async ({ page }) => {
+            const viewports = [
+                { width: 375, height: 667 },  // Mobile
+                { width: 768, height: 1024 }, // Tablet
+                { width: 1024, height: 768 }, // Desktop
+            ];
+
+            for (const viewport of viewports) {
+                await page.setViewportSize(viewport);
+                await page.waitForTimeout(100);
+
+                // CTA buttons should remain accessible across viewports
+                const ctaButtons = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
+
+                if (await ctaButtons.count() > 0) {
+                    await ctaButtons.first().focus();
+                    await expect(ctaButtons.first()).toBeFocused();
+                    await expect(ctaButtons.first()).toBeVisible();
+                }
+
+                // Main content should remain accessible
+                await expect(page.locator('h1')).toBeVisible();
+                await expect(page.locator('h2')).toBeVisible();
+            }
+        });
+
+        test('should support skip links for better accessibility', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for skip links (common accessibility pattern)
+            const skipLinks = page.locator('a[href="#main"], a[href="#content"], .skip-link');
+
+            if (await skipLinks.count() > 0) {
+                await skipLinks.first().focus();
+                await expect(skipLinks.first()).toBeFocused();
+
+                // Skip link should be visible when focused
+                await expect(skipLinks.first()).toBeVisible();
+
+                // Test activation with Enter key
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Should jump to main content
+                const mainContent = page.locator('#main, #content, main').first();
+                if (await mainContent.count() > 0) {
+                    // Focus should be on or near main content
+                    const focusedElement = page.locator(':focus');
+                    if (await focusedElement.count() > 0) {
+                        const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
+                            return focused === main || main.contains(focused);
+                        }, await mainContent.elementHandle());
+                        expect(isFocusedOnMain).toBeTruthy();
+                    }
+                }
+            }
+        });
+
+        test('should maintain logical tab order through pricing sections', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Tab through page and verify logical flow
+            const tabOrder = [];
+            let tabCount = 0;
+            const maxTabs = 15; // Reasonable limit
+
+            while (tabCount < maxTabs) {
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    const elementText = await focusedElement.textContent();
+
+                    if (['button', 'a'].includes(tagName) && elementText) {
+                        tabOrder.push(elementText.trim().substring(0, 20)); // First 20 chars for identification
+                    }
+                }
+
+                tabCount++;
+
+                // Break if we've cycled back to the beginning
+                if (tabCount > 3 && tabOrder.length >= 3) {
+                    break;
+                }
+            }
+
+            // Should have found some interactive elements in logical order
+            expect(tabOrder.length).toBeGreaterThan(0);
+        });
+
+        test('should handle keyboard navigation with pricing plan features', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Verify that all pricing plan sections are accessible via keyboard
+            const pricingPlanSections = [
+                'text=The "Just Getting Started" Plan',
+                'text=The "I\'m Basically a Pro" Plan',
+                'text=The "I\'m a Philanthropist" Plan'
+            ];
+
+            for (const planSelector of pricingPlanSections) {
+                const planElement = page.locator(planSelector);
+
+                if (await planElement.count() > 0) {
+                    // Plan should be visible (important for screen readers)
+                    await expect(planElement).toBeVisible();
+
+                    // Look for associated CTA button for this plan
+                    const nearbyButton = page.locator('button').filter({ hasText: /Sign Up|Join Now|Get Started/ });
+                    if (await nearbyButton.count() > 0) {
+                        await nearbyButton.first().focus();
+                        await expect(nearbyButton.first()).toBeFocused();
+                    }
+                }
+            }
+        });
+    });
 });

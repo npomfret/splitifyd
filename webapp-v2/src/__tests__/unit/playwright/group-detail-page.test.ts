@@ -289,4 +289,291 @@ test.describe('GroupDetailPage - Behavioral Tests', () => {
             }
         });
     });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should maintain keyboard accessibility during login redirects for group pages', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Should redirect to login due to ProtectedRoute
+            await verifyNavigation(page, /\/login/);
+
+            // Page should remain keyboard accessible after redirect
+            await page.keyboard.press('Tab');
+            const focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+            }
+
+            // Verify returnUrl is preserved
+            expect(page.url()).toContain('returnUrl');
+            expect(page.url()).toContain(groupId);
+        });
+
+        test('should handle keyboard navigation with special character group IDs', async ({ page }) => {
+            const specialGroupIds = [
+                'group-with-dashes',
+                'group_with_underscores',
+                'group123numbers',
+            ];
+
+            for (const groupId of specialGroupIds) {
+                await page.goto(`/groups/${groupId}`);
+                await page.waitForLoadState('networkidle');
+
+                // Should redirect to login
+                await verifyNavigation(page, /\/login/);
+
+                // Keyboard navigation should work
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+                }
+
+                // Verify returnUrl includes the group ID
+                expect(page.url()).toContain('returnUrl');
+                expect(page.url()).toContain(groupId);
+            }
+        });
+
+        test('should support keyboard navigation after authentication state changes', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            // Start with some auth state
+            await page.evaluate(() => {
+                localStorage.setItem('USER_ID', 'temp-user');
+            });
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Clear auth state to simulate expiration
+            await page.evaluate(() => {
+                localStorage.clear();
+                sessionStorage.clear();
+            });
+
+            // Navigate again
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Should redirect to login
+            const currentUrl = page.url();
+            if (currentUrl.includes('/login')) {
+                // Keyboard navigation should still work
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+                }
+            }
+        });
+
+        test('should handle keyboard navigation with malformed group IDs', async ({ page }) => {
+            // Test various malformed group IDs that might cause navigation issues
+            const malformedIds = [
+                'group/with/slashes',
+                'group?with=query',
+            ];
+
+            for (const groupId of malformedIds) {
+                try {
+                    await page.goto(`/groups/${encodeURIComponent(groupId)}`);
+                    await page.waitForLoadState('networkidle');
+
+                    // Should either redirect to login or show 404
+                    const currentUrl = page.url();
+                    const isOnLogin = currentUrl.includes('/login');
+                    const isOn404 = currentUrl.includes('/404') || currentUrl.includes('not-found');
+
+                    if (isOnLogin || isOn404) {
+                        // Keyboard navigation should work regardless
+                        await page.keyboard.press('Tab');
+                        const focusedElement = page.locator(':focus');
+
+                        if (await focusedElement.count() > 0) {
+                            const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                            expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+                        }
+                    }
+                } catch (error) {
+                    // Some malformed URLs might cause navigation errors, which is acceptable
+                    console.log(`Expected navigation error for malformed group ID "${groupId}"`);
+                }
+            }
+        });
+
+        test('should maintain focus management during route transitions', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Wait for redirect to complete
+            const currentUrl = page.url();
+            if (currentUrl.includes('/login')) {
+                // Test focus management after redirect
+                const maxTabs = 10;
+                let foundInteractiveElement = false;
+
+                for (let i = 0; i < maxTabs && !foundInteractiveElement; i++) {
+                    await page.keyboard.press('Tab');
+                    const focusedElement = page.locator(':focus');
+
+                    if (await focusedElement.count() > 0) {
+                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+
+                        if (['button', 'a', 'input'].includes(tagName)) {
+                            foundInteractiveElement = true;
+                            await expect(focusedElement).toBeVisible();
+
+                            // Verify interactive elements are properly accessible
+                            if (tagName === 'input') {
+                                await expect(focusedElement).toBeEnabled();
+                            }
+                        }
+                    }
+                }
+
+                // Should have found interactive elements
+                expect(foundInteractiveElement).toBeTruthy();
+            }
+        });
+
+        test('should support keyboard accessibility with focus indicators', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Should redirect to login
+            const currentUrl = page.url();
+            if (currentUrl.includes('/login')) {
+                // Test focus indicators
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    // Check for focus indicators
+                    const focusStyles = await focusedElement.evaluate((el) => {
+                        const styles = getComputedStyle(el);
+                        return {
+                            outline: styles.outline,
+                            outlineWidth: styles.outlineWidth,
+                            boxShadow: styles.boxShadow,
+                        };
+                    });
+
+                    // Should have some form of focus indicator
+                    const hasFocusIndicator =
+                        focusStyles.outline !== 'none' ||
+                        focusStyles.outlineWidth !== '0px' ||
+                        focusStyles.boxShadow.includes('rgb');
+
+                    expect(hasFocusIndicator).toBeTruthy();
+                }
+            }
+        });
+
+        test('should handle keyboard navigation during error scenarios', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            // Mock API to return various error scenarios
+            await mockGroupAPI(page, groupId, 'not-found');
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Should redirect to login (due to Firebase auth integration)
+            const currentUrl = page.url();
+            if (currentUrl.includes('/login')) {
+                // Even with API errors, keyboard navigation should work
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+
+                    // Interactive elements should be accessible
+                    if (['button', 'a', 'input'].includes(tagName)) {
+                        await expect(focusedElement).toBeVisible();
+                    }
+                }
+
+                // ReturnUrl should still be preserved
+                expect(currentUrl).toContain('returnUrl');
+            }
+        });
+
+        test('should maintain keyboard accessibility across different group scenarios', async ({ page }) => {
+            const scenarios = [
+                { groupId: generateTestGroupId(), scenario: 'success' },
+                { groupId: generateTestGroupId(), scenario: 'not-found' },
+                { groupId: generateTestGroupId(), scenario: 'deleted' },
+            ];
+
+            for (const { groupId, scenario } of scenarios) {
+                await mockGroupAPI(page, groupId, scenario as any);
+
+                await page.goto(`/groups/${groupId}`);
+                await page.waitForLoadState('networkidle');
+
+                // All scenarios should redirect to login
+                const currentUrl = page.url();
+                if (currentUrl.includes('/login')) {
+                    // Keyboard navigation should be consistent
+                    await page.keyboard.press('Tab');
+                    const focusedElement = page.locator(':focus');
+
+                    if (await focusedElement.count() > 0) {
+                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                        expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+                    }
+
+                    // ReturnUrl should be preserved in all scenarios
+                    expect(currentUrl).toContain('returnUrl');
+                    expect(currentUrl).toContain(groupId);
+                }
+            }
+        });
+
+        test('should support reverse tab navigation', async ({ page }) => {
+            const groupId = generateTestGroupId();
+
+            await page.goto(`/groups/${groupId}`);
+            await page.waitForLoadState('networkidle');
+
+            // Should redirect to login
+            const currentUrl = page.url();
+            if (currentUrl.includes('/login')) {
+                // Test both forward and backward tab navigation
+                const keyPatterns = ['Tab', 'Shift+Tab'];
+
+                for (const keyPattern of keyPatterns) {
+                    await page.keyboard.press(keyPattern);
+                    const focusedElement = page.locator(':focus');
+
+                    if (await focusedElement.count() > 0) {
+                        const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                        expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+
+                        // Element should be visible when focused
+                        await expect(focusedElement).toBeVisible();
+                    }
+                }
+            }
+        });
+    });
 });

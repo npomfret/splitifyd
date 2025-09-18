@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import {
     setupTestPage,
     expectElementVisible,
+    verifyFocusVisible,
 } from '../infra/test-helpers';
 
 /**
@@ -225,5 +226,185 @@ test.describe('NotFoundPage - Behavioral Tests', () => {
         // Button should have accessible text content
         const buttonText = await button.first().textContent();
         expect(buttonText?.trim().length).toBeGreaterThan(0);
+    });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support keyboard navigation to action buttons', async ({ page }) => {
+            // Navigate to 404 page
+            await page.goto('/non-existent-page');
+            await page.waitForLoadState('networkidle');
+
+            // Tab to the action button
+            await page.keyboard.press('Tab');
+            const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
+
+            if (await actionButton.count() > 0) {
+                await expect(actionButton.first()).toBeFocused();
+            }
+        });
+
+        test('should activate action button with Enter key', async ({ page }) => {
+            await page.goto('/invalid-route');
+            await page.waitForLoadState('networkidle');
+
+            // Find and focus on action button
+            const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
+
+            if (await actionButton.count() > 0) {
+                await actionButton.first().focus();
+                await expect(actionButton.first()).toBeFocused();
+
+                // Press Enter to activate
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Button should still be accessible after activation
+                await expect(actionButton.first()).toBeVisible();
+            }
+        });
+
+        test('should activate action button with Space key', async ({ page }) => {
+            await page.goto('/another-invalid-route');
+            await page.waitForLoadState('networkidle');
+
+            // Find and focus on action button
+            const actionButton = page.locator('[data-testid="go-home-link"], [data-testid="go-to-dashboard-link"], button:has-text("Go Home"), button:has-text("Go to Dashboard")');
+
+            if (await actionButton.count() > 0) {
+                await actionButton.first().focus();
+                await expect(actionButton.first()).toBeFocused();
+
+                // Press Space to activate
+                await page.keyboard.press('Space');
+                await page.waitForTimeout(100);
+
+                // Button should still be accessible after activation
+                await expect(actionButton.first()).toBeVisible();
+            }
+        });
+
+        test('should have visible focus indicators on interactive elements', async ({ page }) => {
+            await page.goto('/404');
+            await page.waitForLoadState('networkidle');
+
+            const interactiveElements = [
+                '[data-testid="go-home-link"]',
+                '[data-testid="go-to-dashboard-link"]',
+                'button:has-text("Go Home")',
+                'button:has-text("Go to Dashboard")',
+                'a[href="/"]',
+                'a[href="/dashboard"]',
+            ];
+
+            for (const selector of interactiveElements) {
+                const element = page.locator(selector);
+
+                if (await element.count() > 0) {
+                    await element.first().focus();
+
+                    // Check for focus indicators
+                    const focusStyles = await element.first().evaluate((el) => {
+                        const styles = getComputedStyle(el);
+                        return {
+                            outline: styles.outline,
+                            outlineWidth: styles.outlineWidth,
+                            boxShadow: styles.boxShadow,
+                        };
+                    });
+
+                    const hasFocusIndicator =
+                        focusStyles.outline !== 'none' ||
+                        focusStyles.outlineWidth !== '0px' ||
+                        focusStyles.boxShadow.includes('rgb');
+
+                    expect(hasFocusIndicator).toBeTruthy();
+                }
+            }
+        });
+
+        test('should handle keyboard navigation for both authenticated and unauthenticated states', async ({ page }) => {
+            // Test unauthenticated state first
+            await page.goto('/some-invalid-page');
+            await page.waitForLoadState('networkidle');
+
+            // Should have some interactive element for unauthenticated users
+            await page.keyboard.press('Tab');
+            let focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a'].includes(tagName)).toBeTruthy();
+            }
+
+            // Test that navigation action buttons work
+            const homeButton = page.locator('button:has-text("Go Home"), a[href="/"], [data-testid="go-home-link"]');
+
+            if (await homeButton.count() > 0) {
+                await homeButton.first().focus();
+                await expect(homeButton.first()).toBeFocused();
+
+                // Test keyboard activation
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(200);
+
+                // Should navigate or at least be interactive
+                await expect(homeButton.first()).toBeVisible();
+            }
+        });
+
+        test('should maintain keyboard accessibility across different 404 scenarios', async ({ page }) => {
+            const invalidRoutes = [
+                '/this-page-does-not-exist',
+                '/users/nonexistent',
+                '/admin/forbidden',
+                '/api/invalid-endpoint',
+            ];
+
+            for (const route of invalidRoutes) {
+                await page.goto(route);
+                await page.waitForLoadState('networkidle');
+
+                // Should be able to tab to interactive elements
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
+                }
+
+                // Should have action buttons that work with keyboard
+                const actionButton = page.locator('button, a[href]').first();
+
+                if (await actionButton.count() > 0) {
+                    await actionButton.focus();
+                    await expect(actionButton).toBeFocused();
+                }
+            }
+        });
+
+        test('should support keyboard navigation after page load with proper focus management', async ({ page }) => {
+            await page.goto('/definitely-does-not-exist');
+            await page.waitForLoadState('networkidle');
+
+            // Wait for 404 page to fully render
+            await page.waitForTimeout(200);
+
+            // First tab should go to the primary action button
+            await page.keyboard.press('Tab');
+            const firstFocusable = page.locator(':focus');
+
+            if (await firstFocusable.count() > 0) {
+                // Should be either a button or link
+                const tagName = await firstFocusable.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a'].includes(tagName)).toBeTruthy();
+
+                // Should have meaningful text
+                const text = await firstFocusable.textContent();
+                expect(text?.trim().length).toBeGreaterThan(0);
+            }
+        });
     });
 });

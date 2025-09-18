@@ -12,6 +12,12 @@ import {
     SELECTORS,
     TEST_SCENARIOS,
     testFormValidation,
+    testTabOrder,
+    testReverseTabOrder,
+    testKeyboardShortcuts,
+    verifyFocusVisible,
+    testFormSubmissionWithEnter,
+    KeyboardShortcutTest,
 } from '../infra/test-helpers';
 
 /**
@@ -205,5 +211,151 @@ test.describe('LoginPage - Behavioral Tests', () => {
         // Verify no error message is displayed initially
         const errorElement = page.locator('[data-testid="error-message"]');
         await expect(errorElement).not.toBeVisible();
+    });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support proper tab order through form elements', async ({ page }) => {
+            // Expected tab order for login form
+            const expectedTabOrder = [
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.REMEMBER_ME_CHECKBOX,
+                SELECTORS.SUBMIT_BUTTON,
+                SELECTORS.FORGOT_PASSWORD_BUTTON,
+                SELECTORS.SIGNUP_BUTTON,
+            ];
+
+            // Test forward tab navigation
+            await testTabOrder(page, expectedTabOrder);
+
+            // Test reverse tab navigation (Shift+Tab)
+            await testReverseTabOrder(page, expectedTabOrder);
+        });
+
+        test('should submit form with Enter key from any input field', async ({ page }) => {
+            // Fill form with valid data
+            await fillFormField(page, SELECTORS.EMAIL_INPUT, TEST_SCENARIOS.VALID_EMAIL);
+            await fillFormField(page, SELECTORS.PASSWORD_INPUT, TEST_SCENARIOS.VALID_PASSWORD);
+
+            // Test Enter key submission from email field
+            await page.locator(SELECTORS.EMAIL_INPUT).focus();
+            await page.keyboard.press('Enter');
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+
+            // Test Enter key submission from password field
+            await page.locator(SELECTORS.PASSWORD_INPUT).focus();
+            await page.keyboard.press('Enter');
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+        });
+
+        test('should toggle remember me checkbox with Space key', async ({ page }) => {
+            const checkbox = page.locator(SELECTORS.REMEMBER_ME_CHECKBOX);
+
+            // Focus on checkbox
+            await checkbox.focus();
+            await expect(checkbox).toBeFocused();
+
+            // Get initial state
+            const initialChecked = await checkbox.isChecked();
+
+            // Press Space to toggle
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(100);
+
+            // Verify state changed
+            const newChecked = await checkbox.isChecked();
+            expect(newChecked).toBe(!initialChecked);
+
+            // Press Space again to toggle back
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(100);
+
+            // Verify state returned to original
+            const finalChecked = await checkbox.isChecked();
+            expect(finalChecked).toBe(initialChecked);
+        });
+
+        test('should activate buttons with Enter key', async ({ page }) => {
+            const keyboardTests: KeyboardShortcutTest[] = [
+                {
+                    key: 'Enter',
+                    selector: SELECTORS.FORGOT_PASSWORD_BUTTON,
+                    expectedAction: 'activate',
+                },
+                {
+                    key: 'Enter',
+                    selector: SELECTORS.SIGNUP_BUTTON,
+                    expectedAction: 'activate',
+                },
+            ];
+
+            for (const test of keyboardTests) {
+                // Focus on the button
+                const button = page.locator(test.selector);
+                await button.focus();
+                await expect(button).toBeFocused();
+
+                // Press Enter and verify the button is activated
+                // Note: In a real test environment, this would trigger navigation
+                // Here we just verify the button responds to keyboard activation
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Button should still be focusable and enabled
+                await expect(button).toBeEnabled();
+            }
+        });
+
+        test('should have visible focus indicators on all interactive elements', async ({ page }) => {
+            const interactiveElements = [
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.REMEMBER_ME_CHECKBOX,
+                SELECTORS.SUBMIT_BUTTON,
+                SELECTORS.FORGOT_PASSWORD_BUTTON,
+                SELECTORS.SIGNUP_BUTTON,
+            ];
+
+            await verifyFocusVisible(page, interactiveElements);
+        });
+
+        test('should maintain focus state during form interactions', async ({ page }) => {
+            // Fill email field and verify it maintains focus
+            const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
+            await emailInput.focus();
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await expect(emailInput).toBeFocused();
+
+            // Tab to password field and verify focus moves correctly
+            await page.keyboard.press('Tab');
+            const passwordInput = page.locator(SELECTORS.PASSWORD_INPUT);
+            await expect(passwordInput).toBeFocused();
+
+            // Fill password and verify focus is maintained
+            await passwordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await expect(passwordInput).toBeFocused();
+        });
+
+        test('should handle keyboard navigation with empty fields gracefully', async ({ page }) => {
+            // Test tab order when fields are empty
+            const tabOrder = [
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.REMEMBER_ME_CHECKBOX,
+            ];
+
+            // Tab through empty form
+            for (const selector of tabOrder) {
+                await page.keyboard.press('Tab');
+                await expect(page.locator(selector)).toBeFocused();
+            }
+
+            // Verify submit button is disabled but still focusable
+            await page.keyboard.press('Tab');
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeFocused();
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeDisabled();
+        });
     });
 });

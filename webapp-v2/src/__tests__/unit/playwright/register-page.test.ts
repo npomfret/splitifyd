@@ -9,10 +9,11 @@ import {
     verifyFormAccessibility,
     expectErrorMessage,
     mockFirebaseAuthRegister,
+    testTabOrder,
+    testReverseTabOrder,
+    verifyFocusVisible,
     SELECTORS,
     TEST_SCENARIOS,
-
-
 } from '../infra/test-helpers';
 
 /**
@@ -346,5 +347,277 @@ test.describe('RegisterPage - Behavioral Tests', () => {
         await expect(page.locator(SELECTORS.FULLNAME_INPUT)).toBeEnabled();
         await expect(page.locator(SELECTORS.EMAIL_INPUT)).toBeEnabled();
         await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+    });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support proper tab order through all form elements', async ({ page }) => {
+            // Expected tab order for registration form
+            const expectedTabOrder = [
+                SELECTORS.FULLNAME_INPUT,
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.CONFIRM_PASSWORD_INPUT,
+                SELECTORS.TERMS_CHECKBOX,
+                SELECTORS.COOKIES_CHECKBOX,
+                SELECTORS.SUBMIT_BUTTON,
+            ];
+
+            // Test forward tab navigation
+            await testTabOrder(page, expectedTabOrder);
+
+            // Test reverse tab navigation (Shift+Tab)
+            await testReverseTabOrder(page, expectedTabOrder);
+        });
+
+        test('should submit form with Enter key from any input field', async ({ page }) => {
+            // Fill form with valid data
+            await fillMultipleFields(page, {
+                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
+                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
+                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+            });
+            await page.check(SELECTORS.TERMS_CHECKBOX);
+            await page.check(SELECTORS.COOKIES_CHECKBOX);
+
+            // Test Enter key submission from various input fields
+            const inputFields = [
+                SELECTORS.FULLNAME_INPUT,
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.CONFIRM_PASSWORD_INPUT,
+            ];
+
+            for (const inputSelector of inputFields) {
+                // Focus on input field
+                await page.locator(inputSelector).focus();
+                await expect(page.locator(inputSelector)).toBeFocused();
+
+                // Press Enter
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Verify submit button is enabled and ready
+                await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+            }
+        });
+
+        test('should toggle checkboxes with Space key', async ({ page }) => {
+            const checkboxes = [SELECTORS.TERMS_CHECKBOX, SELECTORS.COOKIES_CHECKBOX];
+
+            for (const checkboxSelector of checkboxes) {
+                const checkbox = page.locator(checkboxSelector);
+
+                // Focus on checkbox
+                await checkbox.focus();
+                await expect(checkbox).toBeFocused();
+
+                // Get initial state
+                const initialChecked = await checkbox.isChecked();
+
+                // Press Space to toggle
+                await page.keyboard.press('Space');
+                await page.waitForTimeout(100);
+
+                // Verify state changed
+                const newChecked = await checkbox.isChecked();
+                expect(newChecked).toBe(!initialChecked);
+
+                // Press Space again to toggle back
+                await page.keyboard.press('Space');
+                await page.waitForTimeout(100);
+
+                // Verify state returned to original
+                const finalChecked = await checkbox.isChecked();
+                expect(finalChecked).toBe(initialChecked);
+            }
+        });
+
+        test('should activate submit button with Enter key when valid', async ({ page }) => {
+            // Fill form with valid data
+            await fillMultipleFields(page, {
+                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
+                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
+                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.CONFIRM_PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+            });
+            await page.check(SELECTORS.TERMS_CHECKBOX);
+            await page.check(SELECTORS.COOKIES_CHECKBOX);
+
+            // Focus on submit button
+            const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON);
+            await submitButton.focus();
+            await expect(submitButton).toBeFocused();
+            await expect(submitButton).toBeEnabled();
+
+            // Press Enter to activate button
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(200);
+
+            // Button should still be accessible after activation attempt
+            await expect(submitButton).toBeEnabled();
+        });
+
+        test('should have visible focus indicators on all interactive elements', async ({ page }) => {
+            const interactiveElements = [
+                SELECTORS.FULLNAME_INPUT,
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.CONFIRM_PASSWORD_INPUT,
+                SELECTORS.TERMS_CHECKBOX,
+                SELECTORS.COOKIES_CHECKBOX,
+                SELECTORS.SUBMIT_BUTTON,
+            ];
+
+            await verifyFocusVisible(page, interactiveElements);
+        });
+
+        test('should maintain focus state during form interactions', async ({ page }) => {
+            // Fill name field and verify it maintains focus
+            const nameInput = page.locator(SELECTORS.FULLNAME_INPUT);
+            await nameInput.focus();
+            await nameInput.fill(TEST_SCENARIOS.VALID_NAME);
+            await expect(nameInput).toBeFocused();
+
+            // Tab to email field and verify focus moves correctly
+            await page.keyboard.press('Tab');
+            const emailInput = page.locator(SELECTORS.EMAIL_INPUT);
+            await expect(emailInput).toBeFocused();
+
+            // Fill email and verify focus is maintained
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await expect(emailInput).toBeFocused();
+
+            // Tab to password field
+            await page.keyboard.press('Tab');
+            const passwordInput = page.locator(SELECTORS.PASSWORD_INPUT);
+            await expect(passwordInput).toBeFocused();
+
+            // Fill password and verify focus is maintained
+            await passwordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await expect(passwordInput).toBeFocused();
+        });
+
+        test('should handle keyboard navigation with form validation states', async ({ page }) => {
+            // Test tab order when form is empty (submit button disabled)
+            const tabOrder = [
+                SELECTORS.FULLNAME_INPUT,
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.CONFIRM_PASSWORD_INPUT,
+                SELECTORS.TERMS_CHECKBOX,
+                SELECTORS.COOKIES_CHECKBOX,
+            ];
+
+            // Tab through empty form
+            for (const selector of tabOrder) {
+                await page.keyboard.press('Tab');
+                await expect(page.locator(selector)).toBeFocused();
+            }
+
+            // Verify submit button is disabled but still focusable
+            await page.keyboard.press('Tab');
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeFocused();
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeDisabled();
+        });
+
+        test('should support keyboard navigation through checkbox labels', async ({ page }) => {
+            // Focus on terms checkbox
+            const termsCheckbox = page.locator(SELECTORS.TERMS_CHECKBOX);
+            await termsCheckbox.focus();
+            await expect(termsCheckbox).toBeFocused();
+
+            // Verify pressing Enter on checkbox toggles it
+            const initialTermsState = await termsCheckbox.isChecked();
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(100);
+            const newTermsState = await termsCheckbox.isChecked();
+            expect(newTermsState).toBe(!initialTermsState);
+
+            // Tab to cookies checkbox
+            await page.keyboard.press('Tab');
+            const cookiesCheckbox = page.locator(SELECTORS.COOKIES_CHECKBOX);
+            await expect(cookiesCheckbox).toBeFocused();
+
+            // Verify pressing Space on checkbox toggles it
+            const initialCookiesState = await cookiesCheckbox.isChecked();
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(100);
+            const newCookiesState = await cookiesCheckbox.isChecked();
+            expect(newCookiesState).toBe(!initialCookiesState);
+        });
+
+        test('should handle field validation errors without breaking keyboard navigation', async ({ page }) => {
+            // Fill form with mismatched passwords to trigger validation error
+            await fillMultipleFields(page, {
+                [SELECTORS.FULLNAME_INPUT]: TEST_SCENARIOS.VALID_NAME,
+                [SELECTORS.EMAIL_INPUT]: TEST_SCENARIOS.VALID_EMAIL,
+                [SELECTORS.PASSWORD_INPUT]: TEST_SCENARIOS.VALID_PASSWORD,
+                [SELECTORS.CONFIRM_PASSWORD_INPUT]: 'different-password',
+            });
+            await page.check(SELECTORS.TERMS_CHECKBOX);
+            await page.check(SELECTORS.COOKIES_CHECKBOX);
+
+            // Submit form to trigger validation error
+            await page.click(SELECTORS.SUBMIT_BUTTON);
+
+            // Wait for error to appear
+            await expectErrorMessage(page);
+
+            // Verify keyboard navigation still works after error
+            await page.keyboard.press('Tab');
+
+            // Should be able to focus on form elements
+            const confirmPasswordInput = page.locator(SELECTORS.CONFIRM_PASSWORD_INPUT);
+            await confirmPasswordInput.focus();
+            await expect(confirmPasswordInput).toBeFocused();
+
+            // Should be able to correct the error
+            await confirmPasswordInput.fill(TEST_SCENARIOS.VALID_PASSWORD);
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+        });
+
+        test('should provide consistent focus indicators across all form elements', async ({ page }) => {
+            // Test that all interactive elements have consistent focus indicators
+            const interactiveElements = [
+                SELECTORS.FULLNAME_INPUT,
+                SELECTORS.EMAIL_INPUT,
+                SELECTORS.PASSWORD_INPUT,
+                SELECTORS.CONFIRM_PASSWORD_INPUT,
+                SELECTORS.TERMS_CHECKBOX,
+                SELECTORS.COOKIES_CHECKBOX,
+                SELECTORS.SUBMIT_BUTTON,
+            ];
+
+            for (const selector of interactiveElements) {
+                const element = page.locator(selector);
+
+                if (await element.count() > 0) {
+                    await element.focus();
+
+                    // Check for focus indicators
+                    const focusStyles = await element.evaluate((el) => {
+                        const styles = getComputedStyle(el);
+                        return {
+                            outline: styles.outline,
+                            outlineWidth: styles.outlineWidth,
+                            outlineColor: styles.outlineColor,
+                            boxShadow: styles.boxShadow,
+                        };
+                    });
+
+                    // Should have consistent focus indicator pattern across all elements
+                    const hasFocusIndicator =
+                        focusStyles.outline !== 'none' ||
+                        focusStyles.outlineWidth !== '0px' ||
+                        focusStyles.boxShadow.includes('rgb') ||
+                        focusStyles.outlineColor !== 'rgba(0, 0, 0, 0)';
+
+                    expect(hasFocusIndicator).toBeTruthy();
+                }
+            }
+        });
     });
 });

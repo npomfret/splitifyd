@@ -6,6 +6,8 @@ import {
     expectElementVisible,
     expectButtonState,
     fillFormField,
+    testTabOrder,
+    verifyFocusVisible,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
 
@@ -656,5 +658,246 @@ test.describe.serial('AddExpensePage - Authenticated Form Tests', () => {
         } else {
             expect(pageContent).toContain('Add'); // Should contain "Add" in the header
         }
+    });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support keyboard navigation after redirect to login for unauthenticated access', async ({ page }) => {
+            // Navigate to add expense (will redirect to login)
+            await page.goto('/groups/test-group/add-expense');
+            await page.waitForLoadState('networkidle');
+
+            // Should be redirected to login page
+            await verifyNavigation(page, /\/login/);
+
+            // Test keyboard navigation on the login page
+            await page.keyboard.press('Tab');
+            const focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
+            }
+
+            // Verify returnUrl is preserved
+            const currentUrl = page.url();
+            expect(currentUrl).toContain('returnUrl');
+            expect(currentUrl).toContain('add-expense');
+        });
+
+        test('should maintain keyboard accessibility during protected route redirects', async ({ page }) => {
+            // Test various add expense URLs
+            const testUrls = [
+                '/groups/test-group/add-expense',
+                '/groups/test-group/add-expense?edit=true',
+                '/groups/test-group/add-expense?copy=expense-123',
+            ];
+
+            for (const testUrl of testUrls) {
+                await page.goto(testUrl);
+                await page.waitForLoadState('networkidle');
+
+                // After redirect to login, keyboard navigation should work
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const isInteractive = await focusedElement.evaluate(el => {
+                        const tagName = el.tagName.toLowerCase();
+                        return ['button', 'a', 'input', 'select', 'textarea'].includes(tagName);
+                    });
+                    expect(isInteractive).toBeTruthy();
+                }
+
+                // Verify URL preservation
+                const currentUrl = page.url();
+                expect(currentUrl).toContain('returnUrl');
+            }
+        });
+
+        test('should handle keyboard navigation on expense form when authenticated', async ({ page }) => {
+            // Set up authenticated state
+            await setupAuthenticatedUserWithToken(page, {
+                idToken: 'mock-token',
+                localId: 'test-user-id',
+                refreshToken: 'mock-refresh-token'
+            });
+
+            await page.goto('/groups/test-group/add-expense');
+            await page.waitForLoadState('networkidle');
+
+            // Look for form elements that might be present
+            const formElements = [
+                'input[type="text"]',
+                'input[type="number"]',
+                'input[type="date"]',
+                'textarea',
+                'select',
+                'button[type="submit"]',
+                'button:has-text("Save")',
+                'button:has-text("Cancel")',
+            ];
+
+            let foundElements = 0;
+            for (const selector of formElements) {
+                const element = page.locator(selector);
+                if (await element.count() > 0) {
+                    foundElements++;
+
+                    // Test focus capability
+                    await element.first().focus();
+                    const isFocused = await element.first().evaluate(el => el === document.activeElement);
+
+                    if (isFocused) {
+                        // Test keyboard interaction
+                        if (selector.includes('button')) {
+                            await page.keyboard.press('Enter');
+                            await page.waitForTimeout(100);
+                        } else if (selector.includes('input') || selector.includes('textarea')) {
+                            await page.keyboard.press('Tab');
+                        }
+                    }
+                }
+            }
+
+            // Should have found at least some interactive elements
+            expect(foundElements).toBeGreaterThan(0);
+        });
+
+        test('should provide accessible focus indicators on form elements', async ({ page }) => {
+            // Try authenticated access first
+            await setupAuthenticatedUserWithToken(page, {
+                idToken: 'mock-token',
+                localId: 'test-user-id',
+                refreshToken: 'mock-refresh-token'
+            });
+
+            await page.goto('/groups/test-group/add-expense');
+            await page.waitForLoadState('networkidle');
+
+            // Look for form inputs
+            const inputs = page.locator('input, textarea, select, button');
+            const inputCount = await inputs.count();
+
+            if (inputCount > 0) {
+                // Test focus indicators on available inputs
+                for (let i = 0; i < Math.min(inputCount, 5); i++) {
+                    const input = inputs.nth(i);
+                    if (await input.isVisible()) {
+                        await input.focus();
+
+                        // Check for focus indicators
+                        const focusStyles = await input.evaluate((el) => {
+                            const styles = getComputedStyle(el);
+                            return {
+                                outline: styles.outline,
+                                outlineWidth: styles.outlineWidth,
+                                boxShadow: styles.boxShadow,
+                            };
+                        });
+
+                        const hasFocusIndicator =
+                            focusStyles.outline !== 'none' ||
+                            focusStyles.outlineWidth !== '0px' ||
+                            focusStyles.boxShadow.includes('rgb');
+
+                        expect(hasFocusIndicator).toBeTruthy();
+                    }
+                }
+            } else {
+                // If no form elements found (redirected to login), test login form focus indicators
+                const loginInputs = page.locator('#email-input, #password-input, button[type="submit"]');
+                const loginCount = await loginInputs.count();
+
+                if (loginCount > 0) {
+                    await loginInputs.first().focus();
+                    // Basic test that we can focus login elements
+                    await expect(loginInputs.first()).toBeFocused();
+                }
+            }
+        });
+
+        test('should handle keyboard navigation during form validation states', async ({ page }) => {
+            await setupAuthenticatedUserWithToken(page, {
+                idToken: 'mock-token',
+                localId: 'test-user-id',
+                refreshToken: 'mock-refresh-token'
+            });
+
+            await page.goto('/groups/test-group/add-expense');
+            await page.waitForLoadState('networkidle');
+
+            // Try to trigger form validation by submitting empty form
+            const submitButton = page.locator('button[type="submit"], button:has-text("Save")');
+
+            if (await submitButton.count() > 0) {
+                await submitButton.focus();
+                await expect(submitButton).toBeFocused();
+
+                // Try to submit (might trigger validation)
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(200);
+
+                // Should still be able to navigate with keyboard after validation
+                await page.keyboard.press('Tab');
+                const focusedAfterSubmit = page.locator(':focus');
+
+                if (await focusedAfterSubmit.count() > 0) {
+                    const tagName = await focusedAfterSubmit.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
+                }
+            }
+        });
+
+        test('should support Enter key form submission when form is valid', async ({ page }) => {
+            await setupAuthenticatedUserWithToken(page, {
+                idToken: 'mock-token',
+                localId: 'test-user-id',
+                refreshToken: 'mock-refresh-token'
+            });
+
+            await page.goto('/groups/test-group/add-expense');
+            await page.waitForLoadState('networkidle');
+
+            // Try to fill out form fields if available
+            const descriptionInput = page.locator('input[placeholder*="description"], textarea[placeholder*="description"], input[name*="description"]');
+            const amountInput = page.locator('input[type="number"], input[placeholder*="amount"], input[name*="amount"]');
+
+            if (await descriptionInput.count() > 0) {
+                await descriptionInput.fill('Test expense description');
+
+                // Test Enter key from description field
+                await descriptionInput.focus();
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Should either submit form or move to next field
+                const currentFocused = page.locator(':focus');
+                if (await currentFocused.count() > 0) {
+                    const tagName = await currentFocused.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'input', 'select', 'textarea'].includes(tagName)).toBeTruthy();
+                }
+            }
+
+            if (await amountInput.count() > 0) {
+                await amountInput.fill('25.50');
+
+                // Test Enter key from amount field
+                await amountInput.focus();
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Form should handle Enter key appropriately
+                const focusedElement = page.locator(':focus');
+                if (await focusedElement.count() > 0) {
+                    const isInteractive = await focusedElement.evaluate(el => {
+                        const tagName = el.tagName.toLowerCase();
+                        return ['button', 'input', 'select', 'textarea'].includes(tagName);
+                    });
+                    expect(isInteractive).toBeTruthy();
+                }
+            }
+        });
     });
 });

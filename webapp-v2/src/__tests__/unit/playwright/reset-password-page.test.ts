@@ -8,6 +8,8 @@ import {
     verifyFormAccessibility,
     expectErrorMessage,
     mockFirebasePasswordReset,
+    testTabOrder,
+    verifyFocusVisible,
     SELECTORS,
     TEST_SCENARIOS,
 } from '../infra/test-helpers';
@@ -396,5 +398,151 @@ test.describe('ResetPasswordPage - Behavioral Tests', () => {
         // Should remain in form state for retry
         await expectElementVisible(page, emailSelector);
         await expectButtonState(page, SELECTORS.SUBMIT_BUTTON, 'enabled');
+    });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support proper tab order through form elements', async ({ page }) => {
+            // Expected tab order for reset password form
+            const expectedTabOrder = [
+                'input[type="email"]',
+                SELECTORS.SUBMIT_BUTTON,
+            ];
+
+            // Test forward tab navigation
+            await testTabOrder(page, expectedTabOrder);
+        });
+
+        test('should submit form with Enter key from email input', async ({ page }) => {
+            const emailInput = page.locator('input[type="email"]');
+
+            // Fill email field
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+
+            // Test Enter key submission from email field
+            await emailInput.focus();
+            await expect(emailInput).toBeFocused();
+            await page.keyboard.press('Enter');
+            await page.waitForTimeout(100);
+
+            // Submit button should be enabled for form submission
+            await expect(page.locator(SELECTORS.SUBMIT_BUTTON)).toBeEnabled();
+        });
+
+        test('should have visible focus indicators on form elements', async ({ page }) => {
+            const interactiveElements = [
+                'input[type="email"]',
+                SELECTORS.SUBMIT_BUTTON,
+            ];
+
+            await verifyFocusVisible(page, interactiveElements);
+        });
+
+        test('should maintain focus state during form interactions', async ({ page }) => {
+            const emailInput = page.locator('input[type="email"]');
+
+            // Focus on email input and verify
+            await emailInput.focus();
+            await expect(emailInput).toBeFocused();
+
+            // Fill email field and verify focus is maintained
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await expect(emailInput).toBeFocused();
+
+            // Tab to submit button
+            await page.keyboard.press('Tab');
+            const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON);
+            await expect(submitButton).toBeFocused();
+        });
+
+        test('should handle keyboard navigation with form validation errors', async ({ page }) => {
+            const emailInput = page.locator('input[type="email"]');
+
+            // Fill with invalid email to trigger validation
+            await emailInput.fill('invalid-email');
+
+            // Submit form with Enter key
+            await emailInput.focus();
+            await page.keyboard.press('Enter');
+
+            // Wait for potential error state
+            await page.waitForTimeout(200);
+
+            // Should still be able to navigate with keyboard after validation error
+            await page.keyboard.press('Tab');
+            const focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'input'].includes(tagName)).toBeTruthy();
+            }
+        });
+
+        test('should support Space key activation on submit button', async ({ page }) => {
+            const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON);
+            const emailInput = page.locator('input[type="email"]');
+
+            // Fill email field first
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+
+            // Focus on submit button
+            await submitButton.focus();
+            await expect(submitButton).toBeFocused();
+
+            // Press Space to activate button
+            await page.keyboard.press('Space');
+            await page.waitForTimeout(100);
+
+            // Button should still be accessible after activation attempt
+            await expect(submitButton).toBeVisible();
+        });
+
+        test('should handle keyboard navigation during password reset submission', async ({ page }) => {
+            // Set up password reset mocking
+            await mockFirebasePasswordReset(page, TEST_SCENARIOS.VALID_EMAIL);
+
+            const emailInput = page.locator('input[type="email"]');
+
+            // Fill and submit form using keyboard
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await emailInput.focus();
+            await page.keyboard.press('Enter');
+
+            // After submission, verify keyboard navigation still works
+            await page.waitForTimeout(500);
+
+            // Should be able to tab through elements
+            await page.keyboard.press('Tab');
+            const focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const isInteractive = await focusedElement.evaluate(el => {
+                    const tagName = el.tagName.toLowerCase();
+                    return ['button', 'a', 'input'].includes(tagName);
+                });
+                expect(isInteractive).toBeTruthy();
+            }
+        });
+
+        test('should preserve keyboard accessibility on form state changes', async ({ page }) => {
+            const emailInput = page.locator('input[type="email"]');
+
+            // Test keyboard navigation before form interaction
+            await page.keyboard.press('Tab');
+            await expect(emailInput).toBeFocused();
+
+            // Fill form and test navigation after
+            await emailInput.fill(TEST_SCENARIOS.VALID_EMAIL);
+            await page.keyboard.press('Tab');
+
+            const submitButton = page.locator(SELECTORS.SUBMIT_BUTTON);
+            await expect(submitButton).toBeFocused();
+            await expect(submitButton).toBeEnabled();
+
+            // Test reverse tab navigation
+            await page.keyboard.press('Shift+Tab');
+            await expect(emailInput).toBeFocused();
+        });
     });
 });

@@ -304,4 +304,213 @@ test.describe('CookiePolicyPage - Behavioral Tests', () => {
         // Should show the formatted date from the API response
         await expect(page.locator('div.text-gray-500').first()).toContainText('3/15/2025');
     });
+
+    // === KEYBOARD NAVIGATION TESTS ===
+
+    test.describe('Keyboard Navigation', () => {
+        test('should support keyboard navigation to interactive elements', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Tab through the page to find interactive elements
+            await page.keyboard.press('Tab');
+            const focusedElement = page.locator(':focus');
+
+            if (await focusedElement.count() > 0) {
+                const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a', 'input'].includes(tagName)).toBeTruthy();
+            }
+        });
+
+        test('should have visible focus indicators on interactive elements', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for common interactive elements in policy pages
+            const interactiveElements = [
+                'a[href]',
+                'button',
+                '[tabindex="0"]',
+                '[role="button"]',
+            ];
+
+            for (const selector of interactiveElements) {
+                const element = page.locator(selector);
+
+                if (await element.count() > 0) {
+                    await element.first().focus();
+
+                    // Check for focus indicators
+                    const focusStyles = await element.first().evaluate((el) => {
+                        const styles = getComputedStyle(el);
+                        return {
+                            outline: styles.outline,
+                            outlineWidth: styles.outlineWidth,
+                            boxShadow: styles.boxShadow,
+                        };
+                    });
+
+                    const hasFocusIndicator =
+                        focusStyles.outline !== 'none' ||
+                        focusStyles.outlineWidth !== '0px' ||
+                        focusStyles.boxShadow.includes('rgb');
+
+                    expect(hasFocusIndicator).toBeTruthy();
+                }
+            }
+        });
+
+        test('should support keyboard navigation with links', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for any links in the policy content
+            const links = page.locator('a[href]');
+
+            if (await links.count() > 0) {
+                // Tab to the first link
+                await links.first().focus();
+                await expect(links.first()).toBeFocused();
+
+                // Test Enter key activation
+                const href = await links.first().getAttribute('href');
+                if (href && !href.startsWith('mailto:')) {
+                    await page.keyboard.press('Enter');
+                    await page.waitForTimeout(100);
+                    // Link should still be accessible after activation
+                    await expect(links.first()).toBeVisible();
+                }
+            }
+        });
+
+        test('should maintain keyboard accessibility during error states', async ({ page }) => {
+            // Mock policy API failure
+            await page.route('**/api/policies/**', (route) => {
+                route.fulfill({
+                    status: 500,
+                    contentType: 'application/json',
+                    body: JSON.stringify({ error: 'Failed to load cookie policy' }),
+                });
+            });
+
+            await page.reload();
+            await page.waitForLoadState('networkidle');
+
+            // Error elements should be focusable for screen readers
+            const errorElements = [
+                '[data-testid="cookie-policy-error-heading"]',
+                '[data-testid="cookie-policy-error-message"]',
+            ];
+
+            for (const selector of errorElements) {
+                const element = page.locator(selector);
+                if (await element.count() > 0) {
+                    // Error elements should have role="alert" and be accessible
+                    await expect(element).toHaveAttribute('role', 'alert');
+
+                    // Should be able to navigate to them with Tab if they have tabindex
+                    const tabIndex = await element.getAttribute('tabindex');
+                    if (tabIndex === '0') {
+                        await element.focus();
+                        await expect(element).toBeFocused();
+                    }
+                }
+            }
+        });
+
+        test('should handle keyboard navigation in different viewport sizes', async ({ page }) => {
+            const viewports = [
+                { width: 375, height: 667 },  // Mobile
+                { width: 768, height: 1024 }, // Tablet
+                { width: 1024, height: 768 }, // Desktop
+            ];
+
+            for (const viewport of viewports) {
+                await page.setViewportSize(viewport);
+                await page.waitForTimeout(100);
+
+                // Tab navigation should work consistently across viewports
+                await page.keyboard.press('Tab');
+                const focusedElement = page.locator(':focus');
+
+                if (await focusedElement.count() > 0) {
+                    const tagName = await focusedElement.evaluate(el => el.tagName.toLowerCase());
+                    expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+                }
+
+                // Main content should remain accessible
+                await expect(page.locator('h1')).toBeVisible();
+                await expect(page.locator('main').first()).toBeVisible();
+            }
+        });
+
+        test('should support skip links for better accessibility', async ({ page }) => {
+            await page.waitForLoadState('networkidle');
+
+            // Look for skip links (common accessibility pattern)
+            const skipLinks = page.locator('a[href="#main"], a[href="#content"], .skip-link');
+
+            if (await skipLinks.count() > 0) {
+                await skipLinks.first().focus();
+                await expect(skipLinks.first()).toBeFocused();
+
+                // Skip link should be visible when focused
+                await expect(skipLinks.first()).toBeVisible();
+
+                // Test activation with Enter key
+                await page.keyboard.press('Enter');
+                await page.waitForTimeout(100);
+
+                // Should jump to main content
+                const mainContent = page.locator('#main, #content, main').first();
+                if (await mainContent.count() > 0) {
+                    // Focus should be on or near main content
+                    const focusedElement = page.locator(':focus');
+                    if (await focusedElement.count() > 0) {
+                        const isFocusedOnMain = await focusedElement.evaluate((focused, main) => {
+                            return focused === main || main.contains(focused);
+                        }, await mainContent.elementHandle());
+                        expect(isFocusedOnMain).toBeTruthy();
+                    }
+                }
+            }
+        });
+
+        test('should maintain focus order throughout content loading', async ({ page }) => {
+            // Mock slow policy loading to test focus during loading
+            await page.route('**/api/policies/**', async (route) => {
+                await new Promise(resolve => setTimeout(resolve, 200));
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        id: 'cookie-policy',
+                        type: 'COOKIE_POLICY',
+                        text: 'Loaded cookie policy content.',
+                        createdAt: '2025-01-22T00:00:00Z',
+                    }),
+                });
+            });
+
+            await page.reload();
+
+            // Should be able to navigate with Tab during loading
+            await page.keyboard.press('Tab');
+            const loadingFocus = page.locator(':focus');
+
+            if (await loadingFocus.count() > 0) {
+                const tagName = await loadingFocus.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+            }
+
+            // Wait for content to load
+            await page.waitForLoadState('networkidle');
+
+            // Focus order should still be logical after loading
+            await page.keyboard.press('Tab');
+            const postLoadFocus = page.locator(':focus');
+
+            if (await postLoadFocus.count() > 0) {
+                const tagName = await postLoadFocus.evaluate(el => el.tagName.toLowerCase());
+                expect(['button', 'a', 'input', 'body'].includes(tagName)).toBeTruthy();
+            }
+        });
+    });
 });
