@@ -367,6 +367,8 @@ export class ExpenseFormPage extends BasePage {
      * This method handles the full expense creation flow.
      */
     async submitExpense(expense: ExpenseFormData): Promise<void> {
+        await expect(this.page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+
         // Fill expense description
         await this.fillDescription(expense.description);
 
