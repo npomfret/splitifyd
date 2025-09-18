@@ -4,7 +4,7 @@ import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 test.describe('Expense Form Operations E2E', () => {
-    test('should perform basic expense CRUD operations', async ({ newLoggedInBrowser }) => {
+    test('should perform basic expense CRUD operations with form validation', async ({ newLoggedInBrowser }) => {
         const { page, dashboardPage } = await newLoggedInBrowser();
 
         // Get the current user's display name
@@ -16,8 +16,32 @@ test.describe('Expense Form Operations E2E', () => {
         const groupId = groupDetailPageNav.inferGroupId();
         const memberCount = 1;
 
-        // CREATE: Create expense using page object
+        // VALIDATION: Test form validation before creating expense
         const expenseFormPage = await groupDetailPageNav.clickAddExpenseButton(memberCount);
+
+        // Test negative amount validation
+        await expenseFormPage.fillAmount('-50');
+        const submitButton = expenseFormPage.getSaveButtonForValidation();
+        await submitButton.click();
+        // Should stay on form due to browser validation
+        await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
+
+        // Test category selection functionality
+        await expenseFormPage.fillDescription('Test with category');
+        await expenseFormPage.fillAmount('25');
+        const categoryInput = expenseFormPage.getCategoryInput();
+        await categoryInput.focus();
+        // Select predefined category
+        await expenseFormPage.selectCategoryFromSuggestions('Food & Dining');
+        const categoryValue = await categoryInput.inputValue();
+        expect(categoryValue).toBe('food');
+
+        // Reset form for actual CRUD test
+        await expenseFormPage.fillDescription('');
+        await expenseFormPage.fillAmount('');
+        await expenseFormPage.typeCategoryText('');
+
+        // CREATE: Create expense using page object
         const expenseDescription = `CRUD Test ${(generateShortId())}`;
         await expenseFormPage.submitExpense(
             new ExpenseFormDataBuilder()
