@@ -14,21 +14,23 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
     // Note: Basic authentication form validation (login/register) is tested in auth-and-registration.e2e.test.ts
 
     simpleTest.describe('Expense Form Basic Validation', () => {
-        simpleTest('Expense form required fields and negative values', async ({ newLoggedInBrowser }) => {
+        simpleTest('comprehensive expense form validation scenarios', async ({ newLoggedInBrowser }) => {
             const { page, dashboardPage } = await newLoggedInBrowser();
 
             // Create group and navigate to it
-            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('Validation'), 'Testing form validation');
+            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('ComprehensiveValidation'), 'Testing comprehensive form validation');
             const memberCount = 1;
 
             // Navigate to expense form with proper waiting
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
-            // Test 1: Empty form - submit disabled
+            // === Test 1: Required fields and negative values ===
+
+            // Empty form - submit disabled
             const submitButton = expenseFormPage.getSaveButtonForValidation();
             await expect(submitButton).toBeDisabled();
 
-            // Test 2: Negative amount validation
+            // Negative amount validation
             const amountField = expenseFormPage.getAmountInput();
             const minValue = await amountField.getAttribute('min');
             expect(minValue).toBe('0.01');
@@ -49,7 +51,7 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
             const validationMessage = await amountField.evaluate((el: HTMLInputElement) => el.validationMessage);
             expect(validationMessage).toBeTruthy();
 
-            // Test 3: Valid positive amount enables submission
+            // Valid positive amount enables submission
             await expenseFormPage.fillAmount('50');
             await expenseFormPage.fillDescription('Valid expense');
 
@@ -58,19 +60,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
 
             // Should now be able to submit
             await expect(submitButton).toBeEnabled();
-        });
 
-        simpleTest('Exact split validation', async ({ newLoggedInBrowser }) => {
-            const { dashboardPage } = await newLoggedInBrowser();
+            // === Test 2: Exact split validation ===
 
-            // Create group and navigate to it
-            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('ExactSplit'), 'Testing exact split validation');
-            const memberCount = 1;
-
-            // Navigate to expense form with proper waiting
-            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-
-            // Fill basic expense details using page object methods
+            // Reset form for split testing
             await expenseFormPage.fillDescription('Split Test Expense');
             await expenseFormPage.fillAmount('100');
 
@@ -82,19 +75,10 @@ simpleTest.describe('Comprehensive Form Validation E2E', () => {
 
             // Submit should be disabled when exact amounts don't add up correctly
             await expect(expenseFormPage.getSaveButtonForValidation()).toBeDisabled();
-        });
 
-        simpleTest('Percentage split validation', async ({ newLoggedInBrowser }) => {
-            const { dashboardPage } = await newLoggedInBrowser();
+            // === Test 3: Percentage split validation ===
 
-            // Create group and navigate to it
-            const groupDetailPage = await dashboardPage.createGroupAndNavigate(generateTestGroupName('PercentSplit'), 'Testing percentage split validation');
-            const memberCount = 1;
-
-            // Navigate to expense form with proper waiting
-            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-
-            // Fill basic expense details using page object methods
+            // Reset form for percentage testing
             await expenseFormPage.fillDescription('Percentage Test Expense');
             await expenseFormPage.fillAmount('200');
 
