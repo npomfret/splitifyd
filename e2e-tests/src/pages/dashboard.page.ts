@@ -115,7 +115,7 @@ export class DashboardPage extends BasePage {
         await this.page.locator('h3:has-text("Your Groups")').waitFor();
 
         // Wait for loading spinner to disappear (handles race condition where spinner might never appear)
-        const loadingSpinner = this.page.locator('span:has-text("Loading your groups")');
+        const loadingSpinner = this.page.locator('span:has-text("Loading your groups...")');
         try {
             await loadingSpinner.waitFor({ state: 'hidden', timeout: 3000 });
         } catch {

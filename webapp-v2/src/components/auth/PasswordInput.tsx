@@ -1,5 +1,6 @@
 import { signal } from '@preact/signals';
 import { useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface PasswordInputProps {
     value: string;
@@ -28,6 +29,7 @@ export function PasswordInput({
     autoComplete = 'current-password',
     id = 'password-input',
 }: PasswordInputProps) {
+    const { t } = useTranslation();
     const [showPassword, setShowPassword] = useState(false);
     const localError = signal<string | null>(null);
 
@@ -48,10 +50,10 @@ export function PasswordInput({
 
     const validatePassword = (password: string) => {
         if (!password && required) {
-            return 'Password is required';
+            return t('auth.passwordInput.validation.required');
         }
         if (password && password.length < 6) {
-            return 'Password must be at least 6 characters long';
+            return t('auth.passwordInput.validation.tooShort');
         }
         return null;
     };
@@ -89,21 +91,21 @@ export function PasswordInput({
     const getStrengthText = (strength: PasswordStrength) => {
         switch (strength) {
             case 'weak':
-                return 'Weak';
+                return t('auth.passwordInput.strengthWeak');
             case 'medium':
-                return 'Medium';
+                return t('auth.passwordInput.strengthMedium');
             case 'strong':
-                return 'Strong';
+                return t('auth.passwordInput.strengthStrong');
         }
     };
 
     return (
         <div class="space-y-1">
             <label for={id} class="block text-sm font-medium text-gray-700">
-                {label}{' '}
+                {label || t('auth.passwordInput.label')}{' '}
                 {required && (
                     <span class="text-red-500" data-testid="required-indicator">
-                        *
+                        {t('auth.passwordInput.requiredIndicator')}
                     </span>
                 )}
             </label>
@@ -133,7 +135,7 @@ export function PasswordInput({
                     type="button"
                     onClick={togglePasswordVisibility}
                     disabled={disabled}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? t('auth.passwordInput.hidePassword') : t('auth.passwordInput.showPassword')}
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:opacity-50"
                 >
                     {showPassword ? (
@@ -162,7 +164,7 @@ export function PasswordInput({
             {showStrength && value && strength && (
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-600">Password strength:</span>
+                        <span class="text-xs text-gray-600">{t('auth.passwordInput.strength')}</span>
                         <span
                             class={`text-xs font-medium ${strength === 'weak' ? 'text-red-600' : strength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}
                             data-testid={`password-strength-${strength}`}

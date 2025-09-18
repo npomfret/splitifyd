@@ -1,5 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { useComputed } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 import { CommentsList } from './CommentsList';
 import { CommentInput } from './CommentInput';
 import { commentsStore } from '@/stores/comments-store.ts';
@@ -13,6 +14,8 @@ interface CommentsSectionProps {
 }
 
 export function CommentsSection({ targetType, targetId, maxHeight = '400px', className = '' }: CommentsSectionProps) {
+    const { t } = useTranslation();
+
     // Use signals for reactive state
     const comments = useComputed(() => commentsStore.commentsSignal.value);
     const loading = useComputed(() => commentsStore.loadingSignal.value);
@@ -54,7 +57,7 @@ export function CommentsSection({ targetType, targetId, maxHeight = '400px', cla
 
             {/* Comment input */}
             <div className="border-t pt-4 dark:border-gray-700">
-                <CommentInput onSubmit={handleSubmit} disabled={submitting.value} placeholder={targetType === 'group' ? 'Add a comment to this group...' : 'Add a comment to this expense...'} />
+                <CommentInput onSubmit={handleSubmit} disabled={submitting.value} placeholder={targetType === 'group' ? t('comments.commentsSection.placeholderGroup') : t('comments.commentsSection.placeholderExpense')} />
             </div>
         </div>
     );

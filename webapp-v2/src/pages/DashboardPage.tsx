@@ -80,7 +80,7 @@ export function DashboardPage() {
                         )}
 
                         {/* Groups Section */}
-                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="groups-container">
                             <div class="flex items-center justify-between mb-6">
                                 <h3 class="text-lg font-semibold text-gray-900">{t('dashboard.yourGroups')}</h3>
                                 <button

@@ -2,11 +2,31 @@
 
 This report details all on-screen text found in the `webapp-v2` codebase that is not currently being read from the i18n configuration.
 
-## Summary of Findings
+## Implementation Progress
 
-The following is a list of hardcoded strings found in the application's components and pages. These strings should be moved to the `translation.json` file to support internationalization.
+### ✅ Completed Migrations
 
-### General Components
+The following components have been successfully migrated to use i18n translations:
+
+#### Authentication Components
+- ✅ **EmailInput.tsx** - Email form input with validation messages
+- ✅ **PasswordInput.tsx** - Password input with strength indicator and show/hide toggle
+- ✅ **DefaultLoginButton.tsx** - Development login button
+
+#### Comments System
+- ✅ **CommentInput.tsx** - Comment text input with validation and help text
+- ✅ **CommentItem.tsx** - Individual comment display with timestamps
+- ✅ **CommentsList.tsx** - Comments list with loading states and pagination
+- ✅ **CommentsSection.tsx** - Complete comments section with different placeholders
+
+#### Dashboard Components
+- ✅ **GroupsList.tsx** - Groups listing with loading and error states
+
+### 📋 Remaining Work
+
+The following sections contain hardcoded strings that still need to be migrated:
+
+### General Components (App-level)
 
 - **App.tsx**:
   - `Loading page...`
@@ -19,58 +39,7 @@ The following is a list of hardcoded strings found in the application's componen
   - `Element Click: `
   - `Unknown Element`
 
-### Authentication Components
-
-- **components/auth/DefaultLoginButton.tsx**:
-  - `Default Login`
-
-- **components/auth/EmailInput.tsx**:
-  - `Email address`
-  - `*`
-  - `Email is required`
-  - `Please enter a valid email address`
-
-- **components/auth/PasswordInput.tsx**:
-  - `Password`
-  - `*`
-  - `Hide password`
-  - `Show password`
-  - `Password strength:`
-  - `Weak`
-  - `Medium`
-  - `Strong`
-  - `Password is required`
-  - `Password must be at least 6 characters long`
-
-### Comments Components
-
-- **components/comments/CommentInput.tsx**:
-  - `Add a comment...`
-  - `Comment is too long`
-  - `Failed to add comment`
-  - `Press Enter to send, Shift+Enter for new line`
-
-- **components/comments/CommentItem.tsx**:
-  - `recently`
-
-- **components/comments/CommentsList.tsx**:
-  - `Loading comments...`
-  - `No comments yet`
-  - `Be the first to comment!`
-  - `Loading...`
-  - `Load more comments`
-
-- **components/comments/CommentsSection.tsx**:
-  - `Add a comment to this group...`
-  - `Add a comment to this expense...`
-
-### Dashboard Components
-
-- **components/dashboard/GroupsList.tsx**:
-  - `Loading your groups...`
-  - `Failed to load groups`
-  - `Try Again`
-  - `Creating group...`
+### 🔄 Next Priority: Expense Components
 
 ### Expense Form Components
 
@@ -169,14 +138,9 @@ The following is a list of hardcoded strings found in the application's componen
   - `member`
   - `members`
 
-### Landing Page Components
+### UI Components (Remaining)
 
-- **components/landing/CTASection.tsx**:
-  - `Ready to Simplify Your Shared Expenses?`
-  - `Join thousands who are already making group payments stress-free and transparent. Get started today!`
-  - `Sign Up for Free`
-
-- **components/landing/FeaturesGrid.tsx**:
+- **components/ui/Alert.tsx**:
   - `Smart Group Management`
   - `Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.`
   - `Flexible Splitting`
@@ -358,6 +322,70 @@ The following is a list of hardcoded strings found in the application's componen
   - `Enter the email address associated with your account and we'll send you a link to reset your password.`
   - `Send Reset Instructions`
 
+## Phase 2: Remaining Core Components
+
+The following components are part of the core application functionality and should be migrated next:
+
+### Landing Page Components
+
+- **components/landing/CTASection.tsx**:
+  - `Ready to Simplify Your Shared Expenses?`
+  - `Join thousands who are already making group payments stress-free and transparent. Get started today!`
+  - `Sign Up for Free`
+
+- **components/landing/FeaturesGrid.tsx**:
+  - `Smart Group Management`
+  - `Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.`
+  - `Flexible Splitting`
+  - `Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to.`
+  - `Debt Simplification`
+  - `Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle.`
+  - `100% Free to Use`
+  - `Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone.`
+  - `Unlimited Use`
+  - `Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits.`
+  - `Zero Ads, Ever`
+  - `Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority.`
+  - `Everything You Need, Nothing You Don't`
+
+- **components/landing/Globe.tsx**:
+  - `Unable to load 3D globe`
+
+- **components/landing/HeroSection.tsx**:
+  - `Effortless Bill Splitting,`
+  - `Simplified & Smart.`
+  - `Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.`
+  - `It's 100% free, with no ads and no limits.`
+  - `Focus on what matters, not on the math.`
+
+### Policy Components
+
+- **components/policy/PolicyAcceptanceModal.tsx**:
+  - `Accept Updated Policies`
+  - `Policy `
+  - ` of `
+  - `: `
+  - `Close`
+  - `Progress`
+  - ` accepted`
+  - `✓ Accepted`
+  - `Loading policy content...`
+  - `Policy Acceptance Required`
+  - `Please read the policy above and click "Accept" to continue using Splitify.`
+  - `I have read and accept this `
+  - `Previous`
+  - `Next`
+  - ` policies accepted`
+  - `Accepting...`
+  - `Accept All & Continue`
+
+- **components/policy/PolicyRenderer.tsx**:
+  - `• `
+
+## Phase 3: Static Pages (Future Implementation)
+
+### Static Pages
+
 - **pages/static/CookiePolicyPage.tsx**:
   - `Cookie Policy`
   - `Cookie Policy for Splitifyd - Learn about how we use cookies and similar technologies.`
@@ -412,6 +440,50 @@ The following is a list of hardcoded strings found in the application's componen
   - `January 22, 2025`
   - `Error loading terms`
 
-## Recommendations
+## Implementation Status & Next Steps
 
-It is recommended to move all of the above strings into the `webapp-v2/src/locales/en/translation.json` file and replace the hardcoded strings with calls to the `t()` function from `react-i18next`. This will make the application fully translatable and easier to maintain.
+### ✅ Current Progress Summary
+
+**Completed Migrations (8 components):**
+- Authentication system (3 components): EmailInput, PasswordInput, DefaultLoginButton
+- Comments system (4 components): CommentInput, CommentItem, CommentsList, CommentsSection
+- Dashboard (1 component): GroupsList
+
+**Translation keys added:** ~100+ organized translation keys across multiple categories
+
+### 🎯 Implementation Strategy
+
+#### Phase 1: Core Application Components (In Progress)
+**Priority Order:**
+1. ✅ **Authentication & Comments** - Completed
+2. 🔄 **Expense Components** - In Progress (ExpenseFormActions, ParticipantSelector, PayerSelector, etc.)
+3. **Group Components** - Group management and member handling
+4. **Join Group Components** - Group invitation flow
+5. **UI Components** - Reusable UI elements (Alert, Avatar, Button, etc.)
+6. **Page Components** - Main application pages
+7. **App-level Components** - Root application components
+
+#### Phase 2: Landing & Marketing Components
+- Landing page components (Hero, Features, CTA)
+- Policy components (PolicyAcceptanceModal, PolicyRenderer)
+
+#### Phase 3: Static Pages (Future)
+- Pricing page, Privacy Policy, Terms of Service, Cookie Policy
+- Marketing copy and legal text (lower priority)
+
+### 🔧 Technical Implementation
+
+Each component migration follows this pattern:
+1. Import `useTranslation` from 'react-i18next'
+2. Initialize `const { t } = useTranslation()` in component
+3. Replace hardcoded strings with `t('category.component.key')`
+4. Use interpolation for dynamic content: `t('key', { variable })`
+5. Maintain semantic attributes and accessibility
+
+### ⚡ Next Actions
+
+**Immediate Priority**: Complete expense components migration
+- ExpenseFormActions, ParticipantSelector, PayerSelector, SplitAmountInputs, SplitTypeSelector
+- ExpenseActions, SplitBreakdown
+
+This will cover the core expense management functionality that users interact with most frequently.

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { enhancedGroupsStore } from '@/app/stores/groups-store-enhanced.ts';
 import { LoadingSpinner } from '../ui';
@@ -11,11 +12,12 @@ interface GroupsListProps {
 }
 
 export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsListProps) {
-    if (!enhancedGroupsStore.initialized || (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized)) {
+    const { t } = useTranslation();
+    if (enhancedGroupsStore.loading && !enhancedGroupsStore.initialized) {
         return (
             <div class="flex items-center justify-center py-8">
                 <LoadingSpinner />
-                <span class="ml-3 text-gray-600">Loading your groups...</span>
+                <span class="ml-3 text-gray-600">{t('dashboardComponents.groupsList.loading')}</span>
             </div>
         );
     }
@@ -33,7 +35,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                         />
                     </svg>
                     <h4 class="text-lg font-medium text-red-800" role="alert" data-testid="groups-load-error-title">
-                        Failed to load groups
+                        {t('dashboardComponents.groupsList.loadFailed')}
                     </h4>
                     <p class="text-red-600 mt-1" role="alert" data-testid="groups-load-error-message">
                         {enhancedGroupsStore.error}
@@ -46,7 +48,7 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
                     }}
                     class="bg-red-100 text-red-700 px-4 py-2 rounded-md hover:bg-red-200 transition-colors text-sm font-medium"
                 >
-                    Try Again
+                    {t('dashboardComponents.groupsList.tryAgain')}
                 </button>
             </div>
         );
@@ -57,11 +59,11 @@ export function GroupsList({ onCreateGroup, onInvite, onAddExpense }: GroupsList
     }
 
     return (
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" data-testid="groups-container">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {enhancedGroupsStore.isCreatingGroup && (
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 flex items-center justify-center">
                     <LoadingSpinner />
-                    <span class="ml-3 text-gray-600">Creating group...</span>
+                    <span class="ml-3 text-gray-600">{t('dashboardComponents.groupsList.creating')}</span>
                 </div>
             )}
             {enhancedGroupsStore.groups.map((group) => (

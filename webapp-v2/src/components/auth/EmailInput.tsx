@@ -1,4 +1,5 @@
 import { signal } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 
 interface EmailInputProps {
     value: string;
@@ -13,14 +14,15 @@ interface EmailInputProps {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function EmailInput({ value, onInput, error, placeholder = 'Enter your email', required = true, autoFocus = false, disabled = false }: EmailInputProps) {
+    const { t } = useTranslation();
     const localError = signal<string | null>(null);
 
     const validateEmail = (email: string) => {
         if (!email && required) {
-            return 'Email is required';
+            return t('auth.emailInput.validation.required');
         }
         if (email && !emailRegex.test(email)) {
-            return 'Please enter a valid email address';
+            return t('auth.emailInput.validation.invalid');
         }
         return null;
     };
@@ -42,10 +44,10 @@ export function EmailInput({ value, onInput, error, placeholder = 'Enter your em
     return (
         <div class="space-y-1">
             <label for="email-input" class="block text-sm font-medium text-gray-700">
-                Email address{' '}
+                {t('auth.emailInput.label')}{' '}
                 {required && (
                     <span class="text-red-500" data-testid="required-indicator">
-                        *
+                        {t('auth.emailInput.requiredIndicator')}
                     </span>
                 )}
             </label>
@@ -60,7 +62,7 @@ export function EmailInput({ value, onInput, error, placeholder = 'Enter your em
                 autoFocus={autoFocus}
                 disabled={disabled}
                 autocomplete="email"
-                aria-label="Email address"
+                aria-label={t('auth.emailInput.label')}
                 aria-required={required}
                 aria-invalid={hasError}
                 aria-describedby={hasError ? 'email-error' : undefined}

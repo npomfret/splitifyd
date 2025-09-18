@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CommentItem } from './CommentItem';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import type { CommentApiResponse } from '@splitifyd/shared';
@@ -12,12 +13,13 @@ interface CommentsListProps {
 }
 
 export function CommentsList({ comments, loading = false, hasMore = false, onLoadMore, maxHeight = '400px', className = '' }: CommentsListProps) {
+    const { t } = useTranslation();
     if (loading && comments.length === 0) {
         return (
             <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                     <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('comments.commentsList.loading')}</p>
                 </div>
             </div>
         );
@@ -27,8 +29,8 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
         return (
             <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
                 <ChatBubbleLeftRightIcon className="w-12 h-12 mb-2 opacity-50" />
-                <p className="text-sm">No comments yet</p>
-                <p className="text-xs mt-1">Be the first to comment!</p>
+                <p className="text-sm">{t('comments.commentsList.empty')}</p>
+                <p className="text-xs mt-1">{t('comments.commentsList.emptySubtext')}</p>
             </div>
         );
     }
@@ -51,10 +53,10 @@ export function CommentsList({ comments, loading = false, hasMore = false, onLoa
                         {loading ? (
                             <span className="flex items-center gap-2">
                                 <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                Loading...
+                                {t('comments.commentsList.loadingMore')}
                             </span>
                         ) : (
-                            'Load more comments'
+                            t('comments.commentsList.loadMore')
                         )}
                     </button>
                 </div>

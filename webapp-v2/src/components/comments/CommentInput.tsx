@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
 interface CommentInputProps {
@@ -9,7 +10,8 @@ interface CommentInputProps {
     className?: string;
 }
 
-export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a comment...', className = '' }: CommentInputProps) {
+export function CommentInput({ onSubmit, disabled = false, placeholder, className = '' }: CommentInputProps) {
+    const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const isEditing = useSignal(false);
@@ -39,7 +41,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
         }
 
         if (isOverLimit) {
-            setError('Comment is too long');
+            setError(t('comments.commentInput.tooLong'));
             return;
         }
 
@@ -61,7 +63,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
                 isEditing.value = false;
             }, 100);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add comment');
+            setError(err instanceof Error ? err.message : t('comments.commentInput.addFailed'));
             // Keep editing state on error so user can retry
         } finally {
             setIsSubmitting(false);
@@ -98,7 +100,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
                         text.value = newValue;
                     }}
                     onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
+                    placeholder={placeholder || t('comments.commentInput.placeholder')}
                     disabled={(disabled && !isEditing.value) || isSubmitting}
                     className={`
                         w-full px-3 py-2 pr-10
@@ -142,7 +144,7 @@ export function CommentInput({ onSubmit, disabled = false, placeholder = 'Add a 
                             {error}
                         </span>
                     ) : (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">Press Enter to send, Shift+Enter for new line</span>
+                        <span className="text-xs text-gray-400 dark:text-gray-500">{t('comments.commentInput.helpText')}</span>
                     )}
                 </div>
                 {text.value.length > 0 && (
