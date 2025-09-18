@@ -746,13 +746,20 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Get the members container that contains the "Members" heading
+     */
+    getMembersContainer(): Locator {
+        // Find the visible Members container (either sidebar div or Card)
+        // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
+        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
+    }
+
+    /**
      * Wait for a specific member to become visible in the member list
      * This ensures the member has been fully added to the group before proceeding
      */
     async waitForMemberVisible(memberName: string, timeout: number = 3000): Promise<void> {
-        // Find the visible Members container (either sidebar div or Card)
-        // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
-        const membersContainer = this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
+        const membersContainer = this.getMembersContainer();
 
         // Look for visible member item with our name within the visible container
         const memberElement = membersContainer.locator('[data-testid="member-item"]:visible').filter({ hasText: memberName }).first();
@@ -1012,7 +1019,7 @@ export class GroupDetailPage extends BasePage {
      */
     async verifyAllSettledUp(groupId: string): Promise<void> {
         // Assert we're on the correct group page
-        const currentUrl = this.page.url();
+        const currentUrl = this.page.url();// todo: remove this
         if (!currentUrl.includes(`/groups/${groupId}`)) {
             throw new Error(`verifyAllSettledUp called but not on correct group page. Expected: /groups/${groupId}, Got: ${currentUrl}`);
         }
@@ -1065,10 +1072,11 @@ export class GroupDetailPage extends BasePage {
     }
 
     getMemberItem(memberName: string): Locator {
-        // Use data-member-name attribute for precise selection
+        // Use data-member-name attribute for precise selection within the members container
         // This avoids issues with "Admin" text or other content in the member item
-        // Important: Only select visible member items (both mobile and desktop views may be in DOM)
-        return this.page.locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
+        // Important: Only select visible member items within the Members section
+        const membersContainer = this.getMembersContainer();
+        return membersContainer.locator(`[data-testid="member-item"][data-member-name="${memberName}"]:visible`);
     }
 
     getRemoveMemberButton(memberName: string): Locator {
@@ -1141,7 +1149,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     async verifyMemberNotVisible(memberName: string): Promise<void> {
-        await expect(this.page.getByText(memberName)).not.toBeVisible();
+        await expect(this.getMemberItem(memberName)).not.toBeVisible();
     }
 
     // ====== COMMENTS METHODS ======
