@@ -2,35 +2,18 @@
 
 This report details all on-screen text found in the `webapp-v2` codebase that is not currently being read from the i18n configuration.
 
-## Implementation Progress
-
-### ✅ Completed Migrations
-
-The following components have been successfully migrated to use i18n translations:
-
-#### Authentication Components
-- ✅ **EmailInput.tsx** - Email form input with validation messages
-- ✅ **PasswordInput.tsx** - Password input with strength indicator and show/hide toggle
-- ✅ **DefaultLoginButton.tsx** - Development login button
-
-#### Comments System
-- ✅ **CommentInput.tsx** - Comment text input with validation and help text
-- ✅ **CommentItem.tsx** - Individual comment display with timestamps
-- ✅ **CommentsList.tsx** - Comments list with loading states and pagination
-- ✅ **CommentsSection.tsx** - Complete comments section with different placeholders
-
-#### Dashboard Components
-- ✅ **GroupsList.tsx** - Groups listing with loading and error states
-
-### 📋 Remaining Work
-
-The following sections contain hardcoded strings that still need to be migrated:
-
-### General Components (App-level)
+### App-level Components
 
 - **App.tsx**:
   - `Loading page...`
   - `Loading...`
+
+- **app/providers/AuthProvider.tsx**:
+  - `Authentication Error`
+  - `Retry`
+
+- **components/ErrorBoundary.tsx**:
+  - `errorBoundary.unexpectedError`
 
 - **main.tsx**:
   - `Unknown Button`
@@ -39,7 +22,24 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Element Click: `
   - `Unknown Element`
 
-### 🔄 Next Priority: Expense Components
+### Auth Components
+
+- **components/auth/AuthLayout.tsx**:
+  - ` - Splitifyd`
+
+- **components/auth/PasswordInput.tsx**:
+  - `Enter your password`
+  - `Password`
+
+### Comments System
+
+- **components/comments/CommentItem.tsx**:
+  - `just now`
+
+### Dashboard Components
+
+- **components/dashboard/CreateGroupModal.tsx**:
+  - `⚠️`
 
 ### Expense Form Components
 
@@ -80,14 +80,12 @@ The following sections contain hardcoded strings that still need to be migrated:
 
 - **components/expense/ExpenseActions.tsx**:
   - `Edit`
-  - `Copy expense`
   - `Copy`
   - `Share`
   - `Delete`
   - `Delete Expense`
   - `Are you sure you want to delete "`
   - `"? This action cannot be undone and will affect group balances.`
-  - `Delete`
   - `Cancel`
   - `Failed to delete expense`
 
@@ -102,12 +100,8 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Unknown`
   - `Paid`
   - `Owes `
-  - `Total: `
 
 ### Group Components
-
-- **components/group/EditGroupModal.tsx**:
-  - `⚠️`
 
 - **components/group/GroupHeader.tsx**:
   - `ago`
@@ -138,9 +132,14 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `member`
   - `members`
 
-### UI Components (Remaining)
+### Landing Page Components
 
-- **components/ui/Alert.tsx**:
+- **components/landing/CTASection.tsx**:
+  - `Ready to Simplify Your Shared Expenses?`
+  - `Join thousands who are already making group payments stress-free and transparent. Get started today!`
+  - `Sign Up for Free`
+
+- **components/landing/FeaturesGrid.tsx**:
   - `Smart Group Management`
   - `Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.`
   - `Flexible Splitting`
@@ -164,6 +163,7 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.`
   - `It's 100% free, with no ads and no limits.`
   - `Focus on what matters, not on the math.`
+  - `Splitifyd App Screenshot`
 
 ### Policy Components
 
@@ -185,6 +185,7 @@ The following sections contain hardcoded strings that still need to be migrated:
   - ` policies accepted`
   - `Accepting...`
   - `Accept All & Continue`
+  - `Error`
 
 - **components/policy/PolicyRenderer.tsx**:
   - `• `
@@ -202,12 +203,14 @@ The following sections contain hardcoded strings that still need to be migrated:
 
 - **components/ui/CategorySuggestionInput.tsx**:
   - `*`
+  - `Enter category...`
 
 - **components/ui/ConfirmDialog.tsx**:
   - `Confirm`
   - `Cancel`
 
 - **components/ui/CurrencyAmountInput.tsx**:
+  - `0.00`
   - `Select currency`
   - `Search by symbol, code, or country...`
   - `Loading currencies...`
@@ -215,6 +218,7 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Recent`
   - `Common`
   - `All Currencies`
+  - `*`
 
 - **components/ui/CurrencySelector.tsx**:
   - `Select currency...`
@@ -224,6 +228,7 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Recent`
   - `Common`
   - `All Currencies`
+  - `*`
 
 - **components/ui/Input.tsx**:
   - `*`
@@ -243,6 +248,12 @@ The following sections contain hardcoded strings that still need to be migrated:
 - **components/ui/TimeInput.tsx**:
   - `at `
   - `Enter time (e.g., 2:30pm)`
+  - `*`
+
+- **components/ui/UserIndicator.tsx**:
+  - `Unknown`
+  - `+`
+  - ` more users`
 
 ### Pages
 
@@ -254,12 +265,15 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Loading... - Splitifyd`
   - `Group Not Found`
   - `The group you're trying to add an expense to doesn't exist or you don't have access to it.`
+  - `Back to Group`
   - `Copy Expense`
   - `Edit Expense`
   - `Add Expense`
   - `Copy expense`
   - `Edit expense`
   - `Add a new expense`
+  - ` - Splitifyd`
+  - ` in `
 
 - **pages/ExpenseDetailPage.tsx**:
   - `Missing group ID`
@@ -293,6 +307,8 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Payment History`
   - `Hide History`
   - `Show History`
+  - ` - Splitifyd`
+  - `Manage expenses for `
 
 - **pages/LandingPage.tsx**:
   - `Effortless Bill Splitting - Splitifyd`
@@ -322,69 +338,8 @@ The following sections contain hardcoded strings that still need to be migrated:
   - `Enter the email address associated with your account and we'll send you a link to reset your password.`
   - `Send Reset Instructions`
 
-## Phase 2: Remaining Core Components
-
-The following components are part of the core application functionality and should be migrated next:
-
-### Landing Page Components
-
-- **components/landing/CTASection.tsx**:
-  - `Ready to Simplify Your Shared Expenses?`
-  - `Join thousands who are already making group payments stress-free and transparent. Get started today!`
-  - `Sign Up for Free`
-
-- **components/landing/FeaturesGrid.tsx**:
-  - `Smart Group Management`
-  - `Create groups for any occasion. Easily add members and track shared expenses in one place, keeping everyone on the same page.`
-  - `Flexible Splitting`
-  - `Split bills equally, by exact amounts, or by percentages. We handle all the complex math, so you don't have to.`
-  - `Debt Simplification`
-  - `Our algorithm minimizes transactions, showing you the simplest way to settle up, saving everyone time and hassle.`
-  - `100% Free to Use`
-  - `Our service is and always will be free. No hidden fees or premium tiers—just a powerful, accessible tool for everyone.`
-  - `Unlimited Use`
-  - `Create as many groups, add as many friends, and track as many expenses as you need. No restrictions, no limits.`
-  - `Zero Ads, Ever`
-  - `Enjoy a clean, focused experience. We will never sell your data or clutter your screen with ads. Your privacy is our priority.`
-  - `Everything You Need, Nothing You Don't`
-
-- **components/landing/Globe.tsx**:
-  - `Unable to load 3D globe`
-
-- **components/landing/HeroSection.tsx**:
-  - `Effortless Bill Splitting,`
-  - `Simplified & Smart.`
-  - `Say goodbye to awkward IOUs and complex calculations. Our app makes sharing expenses with friends, family, and roommates easy, fair, and transparent.`
-  - `It's 100% free, with no ads and no limits.`
-  - `Focus on what matters, not on the math.`
-
-### Policy Components
-
-- **components/policy/PolicyAcceptanceModal.tsx**:
-  - `Accept Updated Policies`
-  - `Policy `
-  - ` of `
-  - `: `
-  - `Close`
-  - `Progress`
-  - ` accepted`
-  - `✓ Accepted`
-  - `Loading policy content...`
-  - `Policy Acceptance Required`
-  - `Please read the policy above and click "Accept" to continue using Splitify.`
-  - `I have read and accept this `
-  - `Previous`
-  - `Next`
-  - ` policies accepted`
-  - `Accepting...`
-  - `Accept All & Continue`
-
-- **components/policy/PolicyRenderer.tsx**:
-  - `• `
-
-## Phase 3: Static Pages (Future Implementation)
-
-### Static Pages
+- **pages/SettingsPage.tsx**:
+  - ` - Splitifyd`
 
 - **pages/static/CookiePolicyPage.tsx**:
   - `Cookie Policy`
@@ -439,58 +394,3 @@ The following components are part of the core application functionality and shou
   - `Last updated: `
   - `January 22, 2025`
   - `Error loading terms`
-
-## Implementation Status & Next Steps
-
-### ✅ Current Progress Summary
-
-**Completed Migrations (8 components):**
-- Authentication system (3 components): EmailInput, PasswordInput, DefaultLoginButton
-- Comments system (4 components): CommentInput, CommentItem, CommentsList, CommentsSection
-- Dashboard (1 component): GroupsList
-
-**Translation keys added:** ~100+ organized translation keys across multiple categories
-
-**E2E Test Updates:**
-- Updated test selectors to match new translated text
-- Fixed dashboard loading state detection
-
-### 🎯 Implementation Strategy
-
-#### Phase 1: Core Application Components (In Progress)
-**Priority Order:**
-1. ✅ **Authentication & Comments & Dashboard** - Completed (Latest: 2025-01-18)
-   - EmailInput, PasswordInput, DefaultLoginButton
-   - CommentInput, CommentItem, CommentsList, CommentsSection
-   - GroupsList
-2. 🔄 **Expense Components** - Next Priority (ExpenseFormActions, ParticipantSelector, PayerSelector, etc.)
-3. **Group Components** - Group management and member handling
-4. **Join Group Components** - Group invitation flow
-5. **UI Components** - Reusable UI elements (Alert, Avatar, Button, etc.)
-6. **Page Components** - Main application pages
-7. **App-level Components** - Root application components
-
-#### Phase 2: Landing & Marketing Components
-- Landing page components (Hero, Features, CTA)
-- Policy components (PolicyAcceptanceModal, PolicyRenderer)
-
-#### Phase 3: Static Pages (Future)
-- Pricing page, Privacy Policy, Terms of Service, Cookie Policy
-- Marketing copy and legal text (lower priority)
-
-### 🔧 Technical Implementation
-
-Each component migration follows this pattern:
-1. Import `useTranslation` from 'react-i18next'
-2. Initialize `const { t } = useTranslation()` in component
-3. Replace hardcoded strings with `t('category.component.key')`
-4. Use interpolation for dynamic content: `t('key', { variable })`
-5. Maintain semantic attributes and accessibility
-
-### ⚡ Next Actions
-
-**Immediate Priority**: Complete expense components migration
-- ExpenseFormActions, ParticipantSelector, PayerSelector, SplitAmountInputs, SplitTypeSelector
-- ExpenseActions, SplitBreakdown
-
-This will cover the core expense management functionality that users interact with most frequently.
