@@ -2,6 +2,7 @@ import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './base.page';
 import { ExpenseFormPage } from './expense-form.page';
 import { PooledTestUser } from '@splitifyd/shared';
+import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with { type: 'json' };
 
 export class ExpenseDetailPage extends BasePage {
     constructor(page: Page, userInfo?: PooledTestUser) {
@@ -173,8 +174,8 @@ export class ExpenseDetailPage extends BasePage {
         const confirmDialog = this.page.getByTestId('confirmation-dialog');
         await expect(confirmDialog).toBeVisible();
 
-        // Verify the dialog shows the expense deletion message
-        await expect(confirmDialog.getByText(/delete.*this action cannot be undone/i)).toBeVisible();
+        // Verify the dialog shows the expense deletion message - using partial text match for the key parts
+        await expect(confirmDialog.getByText(/this action cannot be undone and will affect group balances/i)).toBeVisible();
 
         // Click the confirm button to actually delete
         const confirmButton = confirmDialog.getByTestId('confirm-button');

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Stack } from '../ui/Stack';
@@ -16,6 +17,7 @@ interface PolicyAcceptanceModalProps {
 }
 
 export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcceptanceModalProps) {
+    const { t } = useTranslation();
     const [acceptedPolicies, setAcceptedPolicies] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -105,7 +107,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                         </p>
                     </div>
                     {onClose && (
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close">
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label={t('policyComponents.policyAcceptanceModal.closeAriaLabel')}>
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -130,7 +132,7 @@ export function PolicyAcceptanceModal({ policies, onAccept, onClose }: PolicyAcc
                 <div className="flex-1 overflow-y-auto p-6">
                     <Container>
                         <Stack spacing="md">
-                            {error && <ErrorState title="Error" error={error} onRetry={() => setError(null)} />}
+                            {error && <ErrorState title={t('policyComponents.policyAcceptanceModal.errorTitle')} error={error} onRetry={() => setError(null)} />}
 
                             <Card>
                                 <Stack spacing="md">

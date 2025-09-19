@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { useTranslation } from 'react-i18next';
 import { Button, ConfirmDialog, Alert } from '../ui';
 import type { ExpenseData } from '@splitifyd/shared';
 import { logError } from '@/utils/browser-logger.ts';
@@ -12,6 +13,7 @@ interface ExpenseActionsProps {
 }
 
 export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy }: ExpenseActionsProps) {
+    const { t } = useTranslation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -94,10 +96,10 @@ export function ExpenseActions({ expense, onEdit, onDelete, onShare, onCopy }: E
             {/* Delete Confirmation Dialog */}
             <ConfirmDialog
                 isOpen={showDeleteConfirm}
-                title="Delete Expense"
-                message={`Are you sure you want to delete "${expense.description}"? This action cannot be undone and will affect group balances.`}
-                confirmText="Delete"
-                cancelText="Cancel"
+                title={t('expenseComponents.expenseActions.deleteTitle')}
+                message={t('expenseComponents.expenseActions.deleteConfirm', { expenseName: expense.description })}
+                confirmText={t('expenseComponents.expenseActions.deleteButton')}
+                cancelText={t('expenseComponents.expenseActions.cancel')}
                 variant="danger"
                 loading={isDeleting}
                 onConfirm={handleDeleteConfirm}

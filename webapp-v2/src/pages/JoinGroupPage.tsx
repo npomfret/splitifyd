@@ -69,7 +69,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show error if no link ID provided
     if (!actualLinkId) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')} - Splitifyd`} headerVariant="dashboard">
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
@@ -91,7 +91,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show loading state while loading preview
     if (loadingPreview) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')} - Splitifyd`} headerVariant="dashboard">
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
@@ -107,7 +107,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show error state
     if (error && !group) {
         return (
-            <BaseLayout title={`${t('joinGroupPage.title')} - Splitifyd`} headerVariant="dashboard">
+            <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
@@ -129,13 +129,13 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show success state
     if (joinSuccess && group) {
         return (
-            <BaseLayout title={`Joined ${group.name} - Splitifyd`} headerVariant="dashboard">
+            <BaseLayout title={t('joinGroupPage.joinedTitle', { groupName: group.name })} headerVariant="dashboard">
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4" data-join-success="true">
                     <Card className="w-full max-w-md">
                         <div className="text-center py-8">
                             <div className="text-green-500 text-4xl mb-4">✅</div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome to {group.name}!</h2>
-                            <p className="text-gray-600 mb-6">You've successfully joined the group. Redirecting to group page...</p>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('joinGroupPage.welcome', { groupName: group.name })}</h2>
+                            <p className="text-gray-600 mb-6">{t('joinGroupPage.joinSuccess')}</p>
                             <LoadingSpinner size="sm" />
                         </div>
                     </Card>
@@ -147,7 +147,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
     // Show group preview and join option
     if (group) {
         return (
-            <BaseLayout title={`${isAlreadyMember ? group.name : t('joinGroupPage.title')} - Splitifyd`} headerVariant="dashboard">
+            <BaseLayout title={`${isAlreadyMember ? group.name : t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-md">
                         <div className="text-center mb-6">
@@ -182,7 +182,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
                                         {error}
                                     </p>
                                     <Button variant="ghost" size="sm" onClick={joinGroupStore.clearError} className="mt-2 text-red-600 hover:text-red-700">
-                                        Dismiss
+                                        {t('common.dismiss')}
                                     </Button>
                                 </div>
                             )}
@@ -214,7 +214,7 @@ export function JoinGroupPage({ linkId }: JoinGroupPageProps) {
 
     // Fallback - shouldn't reach here
     return (
-        <BaseLayout title="Join Group - Splitifyd" headerVariant="dashboard">
+        <BaseLayout title={`${t('joinGroupPage.title')}${t('common.titleSuffix')}`} headerVariant="dashboard">
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <Card className="w-full max-w-md">
                     <div className="text-center py-8">

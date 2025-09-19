@@ -132,7 +132,8 @@
     "joinGroup": "Join Group",
     "understood": "Understood",
     "you": "You",
-    "titleSuffix": " - Splitifyd"
+    "titleSuffix": " - Splitifyd",
+    "dismiss": "Dismiss"
   },
   "errors": {
     "displayNameEmpty": "Display name cannot be empty",
@@ -394,6 +395,7 @@
     "cancel": "Cancel",
     "welcome": "Welcome to {{groupName}}!",
     "joinSuccess": "You've successfully joined the group. Redirecting to group page...",
+    "joinedTitle": "Joined {{groupName}} - Splitifyd",
     "errors": {
       "invalidLink": "This invitation link is invalid or has expired",
       "groupNotFound": "This group no longer exists",
@@ -601,7 +603,9 @@
       "next": "Next",
       "policiesAccepted": " policies accepted",
       "accepting": "Accepting...",
-      "acceptAll": "Accept All & Continue"
+      "acceptAll": "Accept All & Continue",
+      "closeAriaLabel": "Close",
+      "errorTitle": "Error"
     },
     "policyRenderer": {
       "bulletPoint": "• "
