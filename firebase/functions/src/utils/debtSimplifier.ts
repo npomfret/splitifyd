@@ -1,11 +1,4 @@
-import { SimplifiedDebt } from '@splitifyd/shared';
-
-export interface UserBalance {
-    userId: string;
-    owes: Record<string, number>;
-    owedBy: Record<string, number>;
-    netBalance: number;
-}
+import { SimplifiedDebt, UserBalance } from '@splitifyd/shared';
 
 export interface NetBalance {
     userId: string;

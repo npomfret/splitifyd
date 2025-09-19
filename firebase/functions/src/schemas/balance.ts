@@ -91,7 +91,6 @@ export const BalanceCalculationInputSchema = z.object({
 // Schema for BalanceCalculationResult / GroupBalance
 export const BalanceCalculationResultSchema = z.object({
     groupId: z.string(),
-    userBalances: z.record(z.string(), UserBalanceSchema),
     simplifiedDebts: z.array(SimplifiedDebtSchema),
     lastUpdated: FirestoreTimestampSchema,
     balancesByCurrency: CurrencyBalancesSchema,

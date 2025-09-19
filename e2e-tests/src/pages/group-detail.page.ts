@@ -402,8 +402,22 @@ export class GroupDetailPage extends BasePage {
     }
 
     async waitForExpense(expenseDescription: string) {
-        await this.page.waitForSelector(`text=${expenseDescription}`);
-        await expect(this.getExpenseByDescription(expenseDescription)).toBeVisible();
+        // Use polling to handle real-time expense creation
+        await expect(async () => {
+            const expenseElement = this.getExpenseByDescription(expenseDescription);
+            const count = await expenseElement.count();
+            if (count === 0) {
+                throw new Error(`Expense with description "${expenseDescription}" not found yet`);
+            }
+
+            const isVisible = await expenseElement.first().isVisible();
+            if (!isVisible) {
+                throw new Error(`Expense with description "${expenseDescription}" found but not visible yet`);
+            }
+        }).toPass({
+            timeout: 5000,
+            intervals: [100, 200, 300, 500, 1000],
+        });
     }
 
     private async sanityCheckPageUrl(currentUrl: string, targetGroupUrl: string) {
@@ -523,16 +537,17 @@ export class GroupDetailPage extends BasePage {
     }
 
     getExpenseByDescription(description: string) {
-        // Target the specific expense description within the ExpenseItem structure
-        // Based on ExpenseItem.tsx: <p className="font-medium">{expense.description}</p>
-        // This is inside a clickable expense container with specific styling
-        return this.page.locator('div[style*="border-left"]').filter({hasText: description}).locator('p.font-medium', {hasText: description});
+        // Simply look for the expense description text within the expenses container
+        // This matches what users actually see on the page
+        const expensesContainer = this.getExpensesContainer();
+        return expensesContainer.getByText(description);
     }
 
     getExpenseAmount(amount: string) {
-        // Target expense amount specifically in the expense list context
-        // Look for amount that's not in a balance/debt context (excludes data-financial-amount elements)
-        return this.page.getByText(amount).and(this.page.locator(':not([data-financial-amount])')).first();
+        // Target expense amount specifically within the expenses container
+        // This avoids conflicts with settlement amounts and balance amounts
+        const expensesContainer = this.getExpensesContainer();
+        return expensesContainer.locator('[data-testid="expense-amount"]').filter({hasText: amount});
     }
 
     /**
@@ -678,7 +693,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Close modal or dialog
+     * @deprecated  what modal!?
      */
     async closeModal(): Promise<void> {
         const closeButton = this.getCloseButton();
@@ -697,10 +712,52 @@ export class GroupDetailPage extends BasePage {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
     }
 
+
     async verifyExpenseInList(description: string, amount?: string) {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
         if (amount) {
             await expect(this.page.getByText(amount)).toBeVisible();
+        }
+    }
+
+    /**
+     * Verify expense details similar to settlement verification
+     * Allows checking specific fields of an expense within the expenses container
+     */
+    async verifyExpenseDetails(details: {
+        description: string;
+        amount?: string;
+        currency?: string;
+        paidBy?: string;
+        category?: string;
+        date?: string;
+    }): Promise<void> {
+        // Find the expense within the expenses container using the helper
+        const expenseItem = this.getExpenseItem(details.description);
+
+        // Verify expense is visible
+        await expect(expenseItem.first()).toBeVisible();
+
+        // Verify optional fields if provided
+        if (details.amount) {
+            await expect(expenseItem.getByText(details.amount)).toBeVisible();
+        }
+
+        if (details.currency) {
+            // Look for currency symbol or code within the expense
+            await expect(expenseItem.locator(`:has-text("${details.currency}")`)).toBeVisible();
+        }
+
+        if (details.paidBy) {
+            await expect(expenseItem.getByText(details.paidBy)).toBeVisible();
+        }
+
+        if (details.category) {
+            await expect(expenseItem.getByText(details.category)).toBeVisible();
+        }
+
+        if (details.date) {
+            await expect(expenseItem.getByText(details.date)).toBeVisible();
         }
     }
 
@@ -738,13 +795,39 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Get the expenses container that contains the "Expenses" heading
+     * This ensures all expense-related selectors are properly scoped
+     */
+    getExpensesContainer(): Locator {
+        // Find the main content area containing "Expenses" heading
+        // The expenses are in the main content area, not a sidebar card
+        return this.page.locator('main, .main-content, [role="main"]').filter({
+            has: this.page.getByRole('heading', {name: 'Expenses'})
+        });
+    }
+
+    /**
+     * Get expense item by description within the expenses container
+     * Properly scoped to avoid conflicts with settlements
+     */
+    private getExpenseItem(description: string) {
+        const expensesContainer = this.getExpensesContainer();
+        // Look for any element within the expenses container that contains the description text
+        // This matches what users see without relying on technical implementation details
+        return expensesContainer.locator(':has-text("' + description + '")');
+    }
+
+    /**
      * Get settlement payment history entry by note
      * Properly scoped to the payment history container
      */
-    private getSettlementHistoryEntry(settlementNote: string) {
+    private getSettlementHistoryEntry(settlementNote: string | RegExp) {
         const paymentHistoryContainer = this.getPaymentHistoryContainer();
+        const hasTextPattern = typeof settlementNote === 'string'
+            ? new RegExp(settlementNote, 'i')
+            : settlementNote;
         return paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
-            hasText: new RegExp(settlementNote, 'i')
+            hasText: hasTextPattern
         });
     }
 
@@ -842,41 +925,76 @@ export class GroupDetailPage extends BasePage {
     async verifySettlementNotInHistory(settlementNote: string): Promise<void> {
         await this.openHistoryIfClosed();
 
-        // Wait for real-time updates to complete by ensuring settlement is not visible
-        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-        await expect(settlementEntry).not.toBeVisible({timeout: 2000});
+        // Use polling to wait for real-time settlement deletion updates
+        await expect(async () => {
+            const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
+            const count = await settlementEntry.count();
+
+            if (count > 0) {
+                const isVisible = await settlementEntry.first().isVisible();
+                if (isVisible) {
+                    throw new Error(`Settlement "${settlementNote}" is still visible in history`);
+                }
+            }
+
+            // Settlement successfully removed
+        }).toPass({
+            timeout: 5000,
+            intervals: [100, 200, 300, 500, 1000],
+        });
     }
 
     /**
-     * Wait for a settlement to appear in the payment history
-     * This is used for real-time testing when multiple users need to see a settlement
-     * @param settlementNote - The note text of the settlement to wait for
-     * @param timeout - Optional timeout in milliseconds (default: 5000)
-     */
-    async waitForSettlementToAppear(settlementNote: string, timeout: number = 5000): Promise<void> {
-        // First ensure payment history is open so we can see settlements
-        await this.openHistoryIfClosed();
-
-        // Wait for the settlement to appear in the history
-        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-        await expect(settlementEntry).toBeVisible({timeout});
-    }
-
-    /**
-     * Open settlement history and verify settlement content
+     * Verify settlement details in history
      * Properly scoped to the payment history container
      */
-    async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
+    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string }): Promise<void> {
+        // Assert we're in the right state
+        await expect(this.page).toHaveURL(groupDetailUrlPattern());
+
         await this.openHistoryIfClosed();
 
-        // Find the settlement within the payment history container
-        const paymentHistoryContainer = this.getPaymentHistoryContainer();
-        const settlementEntry = paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
-            hasText: settlementText
-        });
+        // Use polling to wait for real-time settlement updates
+        await expect(async () => {
+            // Find the settlement within the payment history container
+            const settlementItem = this.getSettlementHistoryEntry(details.note);
 
-        // Wait for settlement to be visible within the payment history
-        await expect(settlementEntry.first()).toBeVisible();
+            const count = await settlementItem.count();
+            if (count === 0) {
+                throw new Error(`Settlement with note "${details.note}" not found in payment history yet`);
+            }
+
+            // Verify settlement is visible
+            const isVisible = await settlementItem.first().isVisible();
+            if (!isVisible) {
+                throw new Error(`Settlement with note "${details.note}" found but not visible yet`);
+            }
+
+            // Verify all expected details are present
+            if (details.amount) {
+                const amountVisible = await settlementItem.first().locator(`text=${details.amount}`).isVisible();
+                if (!amountVisible) {
+                    throw new Error(`Settlement amount "${details.amount}" not visible yet`);
+                }
+            }
+
+            if (details.payerName) {
+                const payerVisible = await settlementItem.first().locator(`text=${details.payerName}`).isVisible();
+                if (!payerVisible) {
+                    throw new Error(`Payer name "${details.payerName}" not visible yet`);
+                }
+            }
+
+            if (details.payeeName) {
+                const payeeVisible = await settlementItem.first().locator(`text=${details.payeeName}`).isVisible();
+                if (!payeeVisible) {
+                    throw new Error(`Payee name "${details.payeeName}" not visible yet`);
+                }
+            }
+        }).toPass({
+            timeout: 5000,
+            intervals: [100, 200, 300, 500, 1000],
+        });
     }
 
     /**
@@ -902,32 +1020,6 @@ export class GroupDetailPage extends BasePage {
             // More specific: wait for settlement list container
             await expect(this.page.locator('.space-y-2').first()).toBeVisible();
         }
-    }
-
-    /**
-     * Verify settlement details in history
-     * Properly scoped to the payment history container
-     */
-    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string }): Promise<void> {
-        await this.openHistoryIfClosed();
-
-        // Assert we're in the right state
-        await expect(this.page).toHaveURL(groupDetailUrlPattern());
-
-        // Find the settlement within the payment history container
-        const settlementItem = this.getSettlementHistoryEntry(details.note);
-
-        // Verify settlement is visible and contains all expected details
-        await expect(settlementItem.first()).toBeVisible();
-
-        if(details.amount)
-            await expect(settlementItem.first().locator(`text=${details.amount}`)).toBeVisible();
-
-        if(details.payerName)
-            await expect(settlementItem.first().locator(`text=${details.payerName}`)).toBeVisible();
-
-        if(details.payeeName)
-            await expect(settlementItem.first().locator(`text=${details.payeeName}`)).toBeVisible();
     }
 
     /**

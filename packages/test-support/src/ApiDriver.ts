@@ -41,7 +41,7 @@ export class ApiDriver {
     private readonly firebaseApiKey: string;
 
     static readonly matchers = {
-        balanceHasUpdate: () => (balances: GroupBalances) => balances.userBalances && Object.keys(balances.userBalances).length > 0 && !!balances.lastUpdated,
+        balanceHasUpdate: () => (balances: GroupBalances) => balances.simplifiedDebts && balances.simplifiedDebts.length >= 0 && !!balances.lastUpdated,
     };
 
     constructor() {

@@ -43,39 +43,29 @@ export function MembersListWithManagement({ groupId, variant = 'default', onInvi
     const createdBy = group.value?.createdBy || '';
     const isOwner = currentUserId === createdBy;
 
-    // Helper function to get user balance from Group.balance structure
-    // Structure: balancesByCurrency: Record<currency, Record<userId, UserBalance>>
-    const getUserBalance = (userId: string): number => {
-        if (!balances.value?.balancesByCurrency) {
-            return 0;
-        }
+    // Note: Balance display removed - balances are properly handled by BalanceSummary component
+    // which respects currency separation. Cross-currency arithmetic is not performed.
 
-        // Check each currency for this user's balance
-        for (const currency in balances.value.balancesByCurrency) {
-            const currencyBalances = balances.value.balancesByCurrency[currency];
-            const userBalance = currencyBalances?.[userId];
-
-            if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
-                return Math.abs(userBalance.netBalance);
-            }
-        }
-
-        return 0;
-    };
-
-    // Check if current user has outstanding balance
+    // Check if current user has outstanding balance using simplifiedDebts
     // Important: This must be reactive to both currentUserId and balances changes
     const hasOutstandingBalance = useComputed(() => {
-        // Force reactivity by accessing balances directly
         const currentBalances = balances.value;
-        if (!currentBalances) return false;
+        if (!currentBalances?.simplifiedDebts) return false;
 
-        return getUserBalance(currentUserId) > 0;
+        // Check if current user appears in any debt relationship
+        return currentBalances.simplifiedDebts.some(debt =>
+            debt.from.userId === currentUserId || debt.to.userId === currentUserId
+        );
     });
 
-    // Check if a specific member has outstanding balance
+    // Check if a specific member has outstanding balance using simplifiedDebts
     const memberHasOutstandingBalance = (memberId: string): boolean => {
-        return getUserBalance(memberId) > 0;
+        if (!balances.value?.simplifiedDebts) return false;
+
+        // Check if member appears in any debt relationship
+        return balances.value.simplifiedDebts.some(debt =>
+            debt.from.userId === memberId || debt.to.userId === memberId
+        );
     };
 
     // If parent provides handler, let parent control the dialog

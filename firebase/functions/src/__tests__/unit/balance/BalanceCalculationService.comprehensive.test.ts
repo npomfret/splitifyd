@@ -77,7 +77,6 @@ describe('BalanceCalculationService', () => {
 
             // Verify result structure
             expect(result.groupId).toBe(groupId);
-            expect(result.userBalances).toBeDefined();
             expect(result.simplifiedDebts).toBeDefined();
             expect(result.lastUpdated).toBeDefined();
             expect(result.balancesByCurrency).toBeDefined();

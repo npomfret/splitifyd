@@ -4,7 +4,7 @@
 #   ./run-until-fail.sh [max_runs] [--headed]
 #
 # Examples:
-#   ./run-until-fail.sh              # Run up to 25 times (default) in headless mode
+#   ./run-until-fail.sh              # Run up to 3 times (default) in headless mode
 #   ./run-until-fail.sh 50           # Run up to 50 times in headless mode
 #   ./run-until-fail.sh --headed     # Run up to 25 times in headed mode (visible browser)
 #   ./run-until-fail.sh 50 --headed  # Run up to 50 times in headed mode
@@ -17,7 +17,7 @@
 #   open -a "Google Chrome" "e2e-tests/playwright-report/ad-hoc/index.html"
 
 # edit these to pick your test cases
-TEST_FILE="src/__tests__/integration/group-deletion.e2e.test.ts"
+TEST_FILE="src/__tests__/integration/realtime-comprehensive.e2e.test.ts"
 TEST_FILTER=""
 
 # Detect script location and set working directory

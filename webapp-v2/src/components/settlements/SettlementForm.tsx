@@ -6,6 +6,7 @@ import { apiClient } from '@/app/apiClient.ts';
 import { enhancedGroupDetailStore } from '@/app/stores/group-detail-store-enhanced.ts';
 import { useAuthRequired } from '@/app/hooks/useAuthRequired.ts';
 import { getUTCMidnight, isDateInFuture } from '@/utils/dateUtils.ts';
+import { formatCurrency } from '@/utils/currency';
 import { useTranslation } from 'react-i18next';
 
 interface SettlementFormProps {
@@ -321,7 +322,7 @@ export function SettlementForm({ isOpen, onClose, groupId, preselectedDebt, onSu
                                     {t('settlementForm.paymentSummary', {
                                         payer: getMemberName(payerId),
                                         payee: getMemberName(payeeId),
-                                        amount: `$${parseFloat(amount).toFixed(2)}`,
+                                        amount: formatCurrency(parseFloat(amount), currency),
                                     })}
                                 </p>
                             </div>

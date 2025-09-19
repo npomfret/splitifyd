@@ -64,7 +64,6 @@ export interface CurrencyBalances {
 // Result interface - matches what the service returns
 export interface BalanceCalculationResult {
     groupId: string;
-    userBalances: Record<string, UserBalance>;
     simplifiedDebts: SimplifiedDebt[];
     lastUpdated: string;
     balancesByCurrency: CurrencyBalances;

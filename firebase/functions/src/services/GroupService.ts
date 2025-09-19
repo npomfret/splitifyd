@@ -397,7 +397,6 @@ export class GroupService {
                     return {
                         groupId: group.id,
                         balancesByCurrency: {},
-                        userBalances: {},
                         simplifiedDebts: [],
                         lastUpdated: new Date().toISOString(),
                     };
@@ -433,7 +432,6 @@ export class GroupService {
                 const groupBalances = balanceMap.get(group.id) || {
                     groupId: group.id,
                     balancesByCurrency: {},
-                    userBalances: {},
                     simplifiedDebts: [],
                     lastUpdated: Timestamp.now(),
                 };
@@ -1251,7 +1249,6 @@ export class GroupService {
         userId: string,
     ): Promise<{
         groupId: string;
-        userBalances: any;
         simplifiedDebts: any;
         lastUpdated: string;
         balancesByCurrency: Record<string, any>;
@@ -1264,7 +1261,6 @@ export class GroupService {
         userId: string,
     ): Promise<{
         groupId: string;
-        userBalances: any;
         simplifiedDebts: any;
         lastUpdated: string;
         balancesByCurrency: Record<string, any>;
@@ -1299,7 +1295,6 @@ export class GroupService {
 
         return {
             groupId: balances.groupId,
-            userBalances: balances.userBalances,
             simplifiedDebts: balances.simplifiedDebts,
             lastUpdated: balances.lastUpdated,
             balancesByCurrency: balances.balancesByCurrency || {},

@@ -467,7 +467,7 @@ describe('GroupService - Unit Tests', () => {
 
             expect(mockFirestoreReader.getGroup).toHaveBeenCalledWith(groupId);
             expect(result.groupId).toBe(groupId);
-            expect(result).toHaveProperty('userBalances');
+            expect(result).toHaveProperty('balancesByCurrency');
             expect(result).toHaveProperty('simplifiedDebts');
             expect(result).toHaveProperty('lastUpdated');
             expect(result).toHaveProperty('balancesByCurrency');

@@ -12,41 +12,12 @@ interface GroupCardProps {
 
 export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
     const { t } = useTranslation();
-    // Get all currency balances
-    const currencyBalances = group.balance?.balancesByCurrency || {};
 
-    // Determine balance display for currencies
-    const getBalanceDisplay = (balance: number, currency: string) => {
-        const absBalance = Math.abs(balance);
-
-        if (absBalance < 0.01) {
-            return {
-                text: t('groupCard.settledUp'),
-                color: 'text-blue-400',
-                bgColor: 'bg-blue-50',
-            };
-        } else if (balance > 0) {
-            return {
-                text: t('groupCard.youreOwed', { amount: formatCurrency(absBalance, currency) }),
-                color: 'text-green-600',
-                bgColor: 'bg-green-50',
-            };
-        } else {
-            return {
-                text: t('groupCard.youOwe', { amount: formatCurrency(absBalance, currency) }),
-                color: 'text-red-600',
-                bgColor: 'bg-red-50',
-            };
-        }
+    const balanceDisplay = {
+        text: t('groupCard.settledUp'),
+        color: 'text-blue-400',
+        bgColor: 'bg-blue-50',
     };
-
-    // Create balance displays for all currencies
-    const balanceDisplays = Object.values(currencyBalances).map((balance) => getBalanceDisplay(balance.netBalance, balance.currency));
-
-    // Determine overall status color (prioritize owed > owing > settled)
-    // const hasOwed = Object.values(currencyBalances).some((b) => b.netBalance < 0);
-    // const hasOwing = Object.values(currencyBalances).some((b) => b.netBalance > 0);
-    // const overallColor = hasOwed ? 'text-red-600' : hasOwing ? 'text-green-600' : 'text-blue-400';
     // const overallBgColor = hasOwed ? 'bg-red-50' : hasOwing ? 'bg-green-50' : 'bg-blue-50';
 
     const handleActionClick = (e: Event, action: () => void) => {
@@ -91,24 +62,9 @@ export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardP
                 {/* Group header */}
                 <div class="mb-3 pr-12">
                     <h4 class="font-semibold text-gray-900 text-lg mb-1">{group.name}</h4>
-                    {balanceDisplays.length === 0 ? (
-                        // No balances - show settled up
-                        <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-400">{t('groupCard.settledUp')}</div>
-                    ) : balanceDisplays.length > 1 ? (
-                        // Multiple currencies - show each balance
-                        <div class="space-y-1">
-                            {balanceDisplays.map((display, index) => (
-                                <div key={index} class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${display.bgColor} ${display.color} mr-2`} data-financial-amount="balance">
-                                    {display.text}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        // Single currency
-                        <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplays[0].bgColor} ${balanceDisplays[0].color}`} data-financial-amount="balance">
-                            {balanceDisplays[0].text}
-                        </div>
-                    )}
+                    <div class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${balanceDisplay.bgColor} ${balanceDisplay.color}`} data-financial-amount="balance">
+                        {balanceDisplay.text}
+                    </div>
                 </div>
 
                 {/* Group stats */}

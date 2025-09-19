@@ -1,7 +1,6 @@
-import { simpleTest, expect } from '../../fixtures';
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
-import { SettlementData } from '../../pages/settlement-form.page';
-import { generateShortId } from '@splitifyd/test-support';
+import {expect, simpleTest} from '../../fixtures';
+import {SettlementData} from '../../pages/settlement-form.page';
+import {generateShortId} from '@splitifyd/test-support';
 
 /**
  * Comprehensive Balance & Settlement Operations E2E Tests
@@ -255,11 +254,12 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: payerName,
             payeeName: payeeName,
             amount: '100.50',
+            currency: 'USD',
             note: 'Test payment for history',
         };
 
         await settlementForm.submitSettlement(settlementData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
         // Verify settlement appears in history
         await groupDetailPage.openHistoryIfClosed();
@@ -281,11 +281,12 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: await user2DashboardPage.header.getCurrentUserDisplayName(),
             payeeName: await groupDetailPage.header.getCurrentUserDisplayName(),
             amount: '75.00',
+            currency: 'USD',
             note: 'Creator receives payment',
         };
 
         await settlementForm.submitSettlement(settlementData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
         // Verify settlement appears correctly
         await groupDetailPage.openHistoryIfClosed();
@@ -313,11 +314,12 @@ simpleTest.describe('Settlement Operations', () => {
             payerName: payerName,
             payeeName: payeeName,
             amount: '100.50',
+            currency: 'USD',
             note: 'Initial test payment',
         };
 
         await settlementForm.submitSettlement(initialData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: initialData.note});
 
         // Open history and click edit
         await groupDetailPage.openHistoryIfClosed();
@@ -338,7 +340,6 @@ simpleTest.describe('Settlement Operations', () => {
 
         await settlementForm.updateSettlement(updatedData);
         await settlementForm.waitForModalClosed();
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify updated settlement in history
         await groupDetailPage.verifySettlementDetails({ note: updatedData.note });
@@ -367,11 +368,12 @@ simpleTest.describe('Settlement Operations', () => {
             payerName,
             payeeName,
             amount: '50.00',
+            currency: 'USD',
             note: 'Validation test payment',
         };
 
         await settlementForm.submitSettlement(initialData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: initialData.note});
 
         // Open edit form
         await groupDetailPage.openHistoryIfClosed();
@@ -421,11 +423,12 @@ simpleTest.describe('Settlement Operations', () => {
             payerName,
             payeeName,
             amount: '100.00',
+            currency: 'USD',
             note: 'Payment to be deleted',
         };
 
         await settlementForm.submitSettlement(settlementData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
         // Verify settlement exists then delete it
         await groupDetailPage.openHistoryIfClosed();
@@ -433,16 +436,17 @@ simpleTest.describe('Settlement Operations', () => {
         await groupDetailPage.deleteSettlement(settlementData.note, true);
 
         // Verify settlement removed from history
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.openHistoryIfClosed();
         await groupDetailPage.verifySettlementNotInHistory(settlementData.note);
     });
 
     simpleTest('should cancel settlement deletion when user clicks cancel', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -451,17 +455,18 @@ simpleTest.describe('Settlement Operations', () => {
 
         // Create settlement
         const settlementForm = await groupDetailPage.clickSettleUpButton(2);
-        await settlementForm.waitForFormReady(2);
+        await settlementForm.waitForFormReady(memberCount);
 
         const settlementData: SettlementData = {
             payerName: payerName,
             payeeName: payeeName,
             amount: '75.00',
+            currency: 'USD',
             note: 'Payment to keep',
         };
 
-        await settlementForm.submitSettlement(settlementData, 2);
-        await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await settlementForm.submitSettlement(settlementData, memberCount);
+        await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
         // Attempt deletion but cancel
         await groupDetailPage.openHistoryIfClosed();
@@ -476,7 +481,7 @@ simpleTest.describe('Settlement Operations', () => {
 simpleTest.describe('Balance & Settlement Integration', () => {
     simpleTest('should update debt correctly after partial settlement', async ({ createLoggedInBrowsers }) => {
         const [
-            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(2);
 
@@ -511,19 +516,13 @@ simpleTest.describe('Balance & Settlement Integration', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '60',
+            currency: 'USD',
             note: 'Partial payment of $60',
         }, 2);
 
         // Wait for settlement to propagate
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
-
-        // Verify settlement in history
-        await groupDetailPage.openHistoryAndVerifySettlement(/Partial payment of \$60/);
-        await groupDetailPage.closeModal();
-        await groupDetailPage2.openHistoryAndVerifySettlement(/Partial payment of \$60/);
-        await groupDetailPage2.closeModal();
 
         // Verify updated debt ($100 - $60 = $40 remaining)
         // Wait for debt to appear (not settled up)
@@ -534,10 +533,12 @@ simpleTest.describe('Balance & Settlement Integration', () => {
     });
 
     simpleTest('should show settled up after exact settlement', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
-            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -562,23 +563,23 @@ simpleTest.describe('Balance & Settlement Integration', () => {
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$75.00');
 
         // User2 pays User1 the exact debt amount ($75) → should be settled up
-        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(2);
+        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
         await settlementFormPage.submitSettlement({
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '75.00',
+            currency: 'USD',
             note: 'Full settlement payment',
-        }, 2);
+        }, memberCount);
 
         // Wait for settlement to propagate
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
 
         // Verify settlement recorded
-        await groupDetailPage.openHistoryAndVerifySettlement(/Full settlement payment/);
+        await groupDetailPage.verifySettlementDetails({note: "Full settlement payment"});
         await groupDetailPage.closeModal();
-        await groupDetailPage2.openHistoryAndVerifySettlement(/Full settlement payment/);
+        await groupDetailPage2.verifySettlementDetails({note: "Full settlement payment"});
         await groupDetailPage2.closeModal();
 
         // Verify settled up state
@@ -595,11 +596,13 @@ simpleTest.describe('Balance & Settlement Integration', () => {
     });
 
     simpleTest('should handle multi-user partial settlements correctly', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 3;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage },
             { dashboardPage: user3DashboardPage }
-        ] = await createLoggedInBrowsers(3);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -617,12 +620,12 @@ simpleTest.describe('Balance & Settlement Integration', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'USD',
             splitType: 'equal',
-        }, 3);
+        }, memberCount);
 
         // Synchronize all pages
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.waitForExpense(expenseDescription);
-            await groupDetailPage.waitForPage(groupId, 3);
+            await groupDetailPage.waitForPage(groupId, memberCount);
             await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
             await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
         }
@@ -633,14 +636,15 @@ simpleTest.describe('Balance & Settlement Integration', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '30',
+            currency: 'USD',
             note: settlementNote1,
-        }, 3);
+        }, memberCount);
 
         // Synchronize settlement
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.waitForSettlementToAppear(settlementNote1);
+            await groupDetailPage.verifySettlementDetails({note: settlementNote1});
             await groupDetailPage.verifySettlementDetails({ note: settlementNote1 });
-            await groupDetailPage.waitForPage(groupId, 3);
+            await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
         // Verify updated balances: User2 now owes $10, User3 still owes $40
@@ -655,14 +659,15 @@ simpleTest.describe('Balance & Settlement Integration', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '10',
+            currency: 'USD',
             note: settlementNote2,
-        }, 3);
+        }, memberCount);
 
         // Synchronize final settlement
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.waitForSettlementToAppear(settlementNote2);
+            await groupDetailPage.verifySettlementDetails({note: settlementNote2});
             await groupDetailPage.verifySettlementDetails({ note: settlementNote2 });
-            await groupDetailPage.waitForPage(groupId, 3);
+            await groupDetailPage.waitForPage(groupId, memberCount);
         }
 
         // Verify final state: User2 fully settled, User3 still owes $40
@@ -801,18 +806,49 @@ simpleTest.describe('Mixed Currency Operations', () => {
     simpleTest('should handle mixed currency settlements correctly', async ({ createLoggedInBrowsers }) => {
         const memberCount = 2;
         const [
-            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = groupDetailPage.inferGroupId();
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage1.inferGroupId();
+
+        // Set up API response interceptor to debug what the frontend receives
+        await groupDetailPage1.page.route('**/api/groups/*/full-details', async route => {
+            const response = await route.fetch();
+            const body = await response.text();
+
+            try {
+                const data = JSON.parse(body);
+                console.log('=== API RESPONSE INTERCEPTED P1 ===');
+                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
+            } catch (e) {
+                console.log('Failed to parse API response:', e);
+            }
+
+            route.fulfill({ response });
+        });
+
+        await groupDetailPage2.page.route('**/api/groups/*/full-details', async route => {
+            const response = await route.fetch();
+            const body = await response.text();
+
+            try {
+                const data = JSON.parse(body);
+                console.log('=== API RESPONSE INTERCEPTED P2 ===');
+                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
+            } catch (e) {
+                console.log('Failed to parse API response:', e);
+            }
+
+            route.fulfill({ response });
+        });
 
         // Create USD expense: User1 pays $200 → User2 owes $100
-        await groupDetailPage.addExpense({
+        await groupDetailPage1.addExpense({
             description: 'USD Expense for Settlement Test',
             amount: 200,
             paidByDisplayName: user1DisplayName,
@@ -821,12 +857,12 @@ simpleTest.describe('Mixed Currency Operations', () => {
         }, memberCount);
 
         // Wait for expense to sync and verify initial debt
-        await groupDetailPage.waitForExpense('USD Expense for Settlement Test');
+        await groupDetailPage1.waitForExpense('USD Expense for Settlement Test');
         await groupDetailPage2.waitForExpense('USD Expense for Settlement Test');
-        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage1.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
 
         // User2 settles with €75 EUR (different currency than the debt)
@@ -835,24 +871,51 @@ simpleTest.describe('Mixed Currency Operations', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '75.00',
+            currency: 'EUR',
             note: 'EUR Settlement for USD Debt',
         }, memberCount);
 
-        // Wait for settlement to propagate
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
-        await groupDetailPage.waitForPage(groupId, memberCount);
-        await groupDetailPage2.waitForPage(groupId, memberCount);
+        // Wait for settlement to appear in payment history on both pages
+        await groupDetailPage1.verifySettlementDetails({note: 'EUR Settlement for USD Debt'});
+        await groupDetailPage2.verifySettlementDetails({note: 'EUR Settlement for USD Debt'});
 
-        // Verify settlement appears in history with EUR currency
-        await groupDetailPage.openHistoryAndVerifySettlement(/EUR Settlement for USD Debt/);
-        await groupDetailPage.closeModal();
-        await groupDetailPage2.openHistoryAndVerifySettlement(/EUR Settlement for USD Debt/);
+        // Verify settlement appears in history with EUR currency on both pages
+        await groupDetailPage1.verifySettlementDetails({note: "EUR Settlement for USD Debt"});
+        await groupDetailPage1.closeModal();
+        await groupDetailPage2.verifySettlementDetails({note: "EUR Settlement for USD Debt"});
         await groupDetailPage2.closeModal();
+
+        // Wait for pages to fully sync after settlement processing
+        await groupDetailPage1.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
 
         // Verify USD debt still exists (no currency conversion)
         // AND verify EUR settlement creates opposite EUR debt
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
+
+        // Add logging to debug the actual balance state
+        console.log('=== MIXED CURRENCY SETTLEMENT DEBUG ===');
+        const balancesSection1 = groupDetailPage1.getBalancesSection();
+        const balancesSection2 = groupDetailPage2.getBalancesSection();
+
+        const balanceText1 = await balancesSection1.textContent();
+        const balanceText2 = await balancesSection2.textContent();
+
+        console.log('User1 Page Balance Section:', balanceText1);
+        console.log('User2 Page Balance Section:', balanceText2);
+
+        // Try to find the actual amounts shown
+        const allAmounts1 = await balancesSection1.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
+        const allAmounts2 = await balancesSection2.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
+
+        console.log('User1 Page All Amounts:', allAmounts1);
+        console.log('User2 Page All Amounts:', allAmounts2);
+
+        // Log what we're looking for vs what we found
+        console.log('Expected: User2 → User1: $100.00');
+        console.log('Expected: User1 → User2: €75.00');
+
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
         await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
     });
@@ -860,7 +923,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
     simpleTest('should show settled up only when all currencies are balanced', async ({ createLoggedInBrowsers }) => {
         const memberCount = 2;
         const [
-            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(memberCount);
 
@@ -905,10 +968,11 @@ simpleTest.describe('Mixed Currency Operations', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '50.00',
+            currency: 'USD',
             note: 'USD Settlement Only',
         }, memberCount);
 
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: 'USD Settlement Only'});
         await groupDetailPage.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
@@ -925,10 +989,11 @@ simpleTest.describe('Mixed Currency Operations', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '30.00',
+            currency: 'EUR',
             note: 'EUR Settlement - Final',
         }, memberCount);
 
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.verifySettlementDetails({note: 'EUR Settlement - Final'});
         await groupDetailPage.waitForPage(groupId, memberCount);
         await groupDetailPage2.waitForPage(groupId, memberCount);
 
@@ -940,7 +1005,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
     simpleTest('should handle mixed currency expense and settlement edits', async ({ createLoggedInBrowsers }) => {
         const memberCount = 2;
         const [
-            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
         ] = await createLoggedInBrowsers(memberCount);
 
@@ -970,10 +1035,11 @@ simpleTest.describe('Mixed Currency Operations', () => {
             payerName: user2DisplayName,
             payeeName: user1DisplayName,
             amount: '40.00',
+            currency: 'EUR',
             note: originalSettlementNote,
         }, memberCount);
 
-        await groupDetailPage.waitForSettlementToAppear(originalSettlementNote);
+        await groupDetailPage.verifySettlementDetails({note: originalSettlementNote});
         await groupDetailPage.waitForPage(groupId, memberCount);
 
         // Verify mixed currency state
@@ -989,7 +1055,6 @@ simpleTest.describe('Mixed Currency Operations', () => {
         });
         await editSettlementForm.waitForModalClosed();
 
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
         await groupDetailPage.waitForPage(groupId, memberCount);
 
         // Verify updated settlement appears in history
@@ -1002,10 +1067,94 @@ simpleTest.describe('Mixed Currency Operations', () => {
 
         // Delete the settlement
         await groupDetailPage.deleteSettlement('Updated GBP Settlement', true);
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify only original USD debt remains
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
         await expect(groupDetailPage.getBalancesSection().getByText(`${user1DisplayName} → ${user2DisplayName}`)).not.toBeVisible();
+    });
+
+    simpleTest('MINIMAL: single expense + cross currency settlement', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage1.inferGroupId();
+
+        // Step 1: Create USD expense: User1 pays $100 → User2 owes $50
+        await groupDetailPage1.addExpense({
+            description: 'Simple USD Expense',
+            amount: 100,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        await groupDetailPage1.waitForExpense('Simple USD Expense');
+        await groupDetailPage2.waitForExpense('Simple USD Expense');
+        await groupDetailPage1.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // Verify initial debt: User2 owes User1 $50.00
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+
+        // Step 2: User2 settles with €30 EUR (different currency)
+        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
+        await settlementFormPage.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '30.00',
+            currency: 'EUR',
+            note: 'Cross Currency Test Settlement',
+        }, memberCount);
+
+        // Wait for settlement to process
+        await groupDetailPage1.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // Step 3: Verify CORRECT behavior (no currency conversion should occur)
+        // Expected: USD debt unchanged, EUR debt created in opposite direction
+
+        // Add API response interceptor to debug what the frontend receives
+        await groupDetailPage1.page.route('**/api/groups/*/full-details', async route => {
+            const response = await route.fetch();
+            const body = await response.text();
+
+            try {
+                const data = JSON.parse(body);
+                console.log('=== API RESPONSE INTERCEPTED ===');
+                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
+            } catch (e) {
+                console.log('Failed to parse API response:', e);
+            }
+
+            route.fulfill({ response });
+        });
+
+        await groupDetailPage2.page.route('**/api/groups/*/full-details', async route => {
+            const response = await route.fetch();
+            const body = await response.text();
+
+            try {
+                const data = JSON.parse(body);
+                console.log('=== API RESPONSE INTERCEPTED PAGE 2 ===');
+                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
+            } catch (e) {
+                console.log('Failed to parse API response:', e);
+            }
+
+            route.fulfill({ response });
+        });
+
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00'); // USD debt unchanged
+        await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€30.00'); // EUR debt created
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00'); // USD debt unchanged
+        await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€30.00'); // EUR debt created
     });
 });

@@ -81,9 +81,9 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
             // Single user should have zero net balance (paid for themselves)
-            expect(result.userBalances['user-1'].netBalance).toBe(0);
-            expect(Object.keys(result.userBalances['user-1'].owes)).toHaveLength(0);
-            expect(Object.keys(result.userBalances['user-1'].owedBy)).toHaveLength(0);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(0);
+            expect(Object.keys(result.balancesByCurrency.USD['user-1'].owes)).toHaveLength(0);
+            expect(Object.keys(result.balancesByCurrency.USD['user-1'].owedBy)).toHaveLength(0);
         });
     });
 
@@ -116,11 +116,11 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(50); // Paid 100, owes 50
-            expect(result.userBalances['user-2'].netBalance).toBe(-50); // Paid 0, owes 50
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(50); // Paid 100, owes 50
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(-50); // Paid 0, owes 50
 
             // Conservation of money
-            expect(result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance + result.balancesByCurrency.USD['user-2'].netBalance).toBe(0);
         });
 
         it('should handle reciprocal expenses (the failing integration test scenario)', () => {
@@ -169,11 +169,11 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-0'].netBalance).toBe(10); // +50 -40 = +10
-            expect(result.userBalances['user-1'].netBalance).toBe(-10); // -50 +40 = -10
+            expect(result.balancesByCurrency.USD['user-0'].netBalance).toBe(10); // +50 -40 = +10
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(-10); // -50 +40 = -10
 
             // Conservation of money
-            expect(result.userBalances['user-0'].netBalance + result.userBalances['user-1'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-0'].netBalance + result.balancesByCurrency.USD['user-1'].netBalance).toBe(0);
         });
 
         it('should handle uneven splits', () => {
@@ -204,11 +204,11 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(70); // Paid 100, owes 30
-            expect(result.userBalances['user-2'].netBalance).toBe(-70); // Paid 0, owes 70
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(70); // Paid 100, owes 30
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(-70); // Paid 0, owes 70
 
             // Conservation of money
-            expect(result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance + result.balancesByCurrency.USD['user-2'].netBalance).toBe(0);
         });
     });
 
@@ -242,12 +242,12 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(60); // Paid 90, owes 30
-            expect(result.userBalances['user-2'].netBalance).toBe(-30); // Paid 0, owes 30
-            expect(result.userBalances['user-3'].netBalance).toBe(-30); // Paid 0, owes 30
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(60); // Paid 90, owes 30
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(-30); // Paid 0, owes 30
+            expect(result.balancesByCurrency.USD['user-3'].netBalance).toBe(-30); // Paid 0, owes 30
 
             // Conservation of money
-            const total = result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance + result.userBalances['user-3'].netBalance;
+            const total = result.balancesByCurrency.USD['user-1'].netBalance + result.balancesByCurrency.USD['user-2'].netBalance + result.balancesByCurrency.USD['user-3'].netBalance;
             expect(total).toBe(0);
         });
 
@@ -324,12 +324,12 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             // User 1: Paid 90, owes 60 (30+20+10) → net: +30
             // User 2: Paid 60, owes 60 (30+20+10) → net: 0
             // User 3: Paid 30, owes 60 (30+20+10) → net: -30
-            expect(result.userBalances['user-1'].netBalance).toBe(30);
-            expect(result.userBalances['user-2'].netBalance).toBe(0);
-            expect(result.userBalances['user-3'].netBalance).toBe(-30);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(30);
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-3'].netBalance).toBe(-30);
 
             // Conservation of money
-            const total = result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance + result.userBalances['user-3'].netBalance;
+            const total = result.balancesByCurrency.USD['user-1'].netBalance + result.balancesByCurrency.USD['user-2'].netBalance + result.balancesByCurrency.USD['user-3'].netBalance;
             expect(total).toBe(0);
         });
     });
@@ -441,11 +441,11 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             // Before settlement: User 1 +50, User 2 -50
             // After $30 settlement: User 1 +20, User 2 -20
-            expect(result.userBalances['user-1'].netBalance).toBe(20);
-            expect(result.userBalances['user-2'].netBalance).toBe(-20);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(20);
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(-20);
 
             // Conservation of money
-            expect(result.userBalances['user-1'].netBalance + result.userBalances['user-2'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance + result.balancesByCurrency.USD['user-2'].netBalance).toBe(0);
         });
     });
 
@@ -478,8 +478,8 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
 
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
-            expect(result.userBalances['user-1'].netBalance).toBe(0);
-            expect(result.userBalances['user-2'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-1'].netBalance).toBe(0);
+            expect(result.balancesByCurrency.USD['user-2'].netBalance).toBe(0);
         });
 
         it('should handle no expenses', () => {
@@ -492,7 +492,7 @@ describe('Balance Calculations - Comprehensive Scenarios', () => {
             const result = balanceCalculationService.calculateGroupBalancesWithData(input);
 
             // Should have empty balances when no expenses
-            expect(Object.keys(result.userBalances)).toHaveLength(0);
+            expect(Object.keys(result.balancesByCurrency)).toHaveLength(0);
         });
     });
 });

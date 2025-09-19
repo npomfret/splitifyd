@@ -6,6 +6,7 @@ export interface SettlementData {
     payerName: string; // Display name of who paid
     payeeName: string; // Display name of who received payment
     amount: string;
+    currency: string; // Currency for the settlement
     note: string;
 }
 
@@ -30,6 +31,11 @@ export class SettlementFormPage extends BasePage {
     getAmountInput(): Locator {
         // Amount input is now a text input with inputMode="decimal" instead of type="number"
         return this.getModal().locator('input[inputMode="decimal"]').first();
+    }
+
+    getCurrencyButton(): Locator {
+        // Currency selector button in the CurrencyAmountInput component
+        return this.getModal().locator('button').filter({ hasText: /USD|EUR|GBP|\$|€|£/ }).first();
     }
 
     getNoteInput(): Locator {
@@ -145,6 +151,16 @@ export class SettlementFormPage extends BasePage {
 
         const amountInput = this.getAmountInput();
         const noteInput = this.getNoteInput();
+
+        // Set currency if not USD
+        if (settlement.currency !== 'USD') {
+            const currencyButton = this.getCurrencyButton();
+            await currencyButton.click();
+
+            // Select the target currency from dropdown
+            const currencyOption = modal.getByRole('option', { name: settlement.currency });
+            await currencyOption.click();
+        }
 
         // Select payer by display name
         const payerValue = await this.findOptionByDisplayName(payerSelect, settlement.payerName);

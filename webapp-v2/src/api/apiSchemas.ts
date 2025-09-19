@@ -62,17 +62,7 @@ export const GroupSchema = z.object({
     id: z.string().min(1),
     name: z.string().min(1),
     description: z.string().optional(),
-    balance: z.object({
-        balancesByCurrency: z.record(
-            z.string(),
-            z.object({
-                currency: z.string(),
-                netBalance: z.number(),
-                totalOwed: z.number(),
-                totalOwing: z.number(),
-            }),
-        ),
-    }),
+    balance: z.object({}),
     lastActivity: z.string().min(1),
     lastActivityRaw: z.string(),
     lastExpense: z
@@ -156,13 +146,6 @@ export const ExpenseListResponseSchema = z.object({
     nextCursor: z.string().optional(),
 });
 
-// Balance schemas - Updated to match server response structure
-export const UserBalanceSchema = z.object({
-    userId: z.string(),
-    netBalance: z.number(),
-    owes: z.record(z.string(), z.number()),
-    owedBy: z.record(z.string(), z.number()),
-});
 
 export const SimplifiedDebtSchema = z.object({
     from: z.object({ userId: z.string() }),
@@ -173,10 +156,8 @@ export const SimplifiedDebtSchema = z.object({
 
 export const GroupBalancesSchema = z.object({
     groupId: z.string(),
-    userBalances: z.record(z.string(), UserBalanceSchema), // Legacy field for internal use
     simplifiedDebts: z.array(SimplifiedDebtSchema),
     lastUpdated: z.string(),
-    balancesByCurrency: z.record(z.string(), z.record(z.string(), UserBalanceSchema)),
 });
 
 // Group members response schema

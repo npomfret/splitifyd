@@ -64,13 +64,9 @@ export class BalanceCalculationService {
         const simplifiedDebts = this.debtSimplificationService.simplifyDebtsForAllCurrencies(balancesByCurrency);
         const debtSimplificationTime = Date.now() - debtSimplificationStart;
 
-        // 5. Get userBalances from balancesByCurrency
-        const userBalances = Object.keys(balancesByCurrency).length > 0 ? balancesByCurrency[Object.keys(balancesByCurrency)[0]] : {};
-
-        // 6. Create and validate result
+        // 5. Create and validate result
         const result = {
             groupId: validatedInput.groupId,
-            userBalances,
             simplifiedDebts,
             lastUpdated: timestampToISO(Timestamp.now()),
             balancesByCurrency,

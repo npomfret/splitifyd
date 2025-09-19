@@ -697,9 +697,7 @@ export class ApiClient {
                 memberApproval: 'automatic',
                 settingsManagement: 'admin-only',
             },
-            balance: {
-                balancesByCurrency: {},
-            },
+            balance: {},
             lastActivity: 'just now',
             lastActivityRaw: new Date().toISOString(),
         } as Group;

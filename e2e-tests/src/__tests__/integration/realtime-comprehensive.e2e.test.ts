@@ -109,14 +109,15 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
                 payerName: user2DisplayName,
                 payeeName: user1DisplayName,
                 amount: '20',
+                currency: 'USD',
                 note: settlementNote,
             } as SettlementData,
             2,
         );
 
         // Wait for settlement and verify balances
-        await user1GroupDetailPage.waitForSettlementToAppear(settlementNote);
-        await user2GroupDetailPage.waitForSettlementToAppear(settlementNote);
+        await user1GroupDetailPage.verifySettlementDetails({note: settlementNote});
+        await user2GroupDetailPage.verifySettlementDetails({note: settlementNote});
 
         // After $20 settlement, User2 owes User1 $10 ($30 - $20)
         await user1GroupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$10.00');
@@ -375,7 +376,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
 
         // Verify debt relationship (Receiver owes $40 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$40");
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$40.00");
 
         // Payer edits the expense
         const payerExpenseDetailPage = await payerGroupDetailPage.clickExpenseToView(expenseDescription);
@@ -396,7 +397,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expect(creatorGroupDetailPage.getTextElement('$100.00').first()).toBeVisible();
 
         // Verify updated debt (Receiver now owes $50 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$50");
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$50.00");
     });
 
     simpleTest('should handle expense deletion in real-time', async ({ createLoggedInBrowsers }) => {

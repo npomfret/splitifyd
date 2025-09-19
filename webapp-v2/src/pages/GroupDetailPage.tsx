@@ -44,18 +44,12 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
     // Check if user can leave group (not the owner and not the last member)
     const isLastMember = useComputed(() => members.value.length === 1);
     const hasOutstandingBalance = useComputed(() => {
-        if (!balances.value?.balancesByCurrency || !currentUser.value) return false;
+        if (!balances.value?.simplifiedDebts || !currentUser.value) return false;
 
-        for (const currency in balances.value.balancesByCurrency) {
-            const currencyBalances = balances.value.balancesByCurrency[currency];
-            const userBalance = currencyBalances?.[currentUser.value.uid];
-
-            if (userBalance && Math.abs(userBalance.netBalance) > 0.01) {
-                return true;
-            }
-        }
-
-        return false;
+        // Check if current user appears in any debt relationship
+        return balances.value.simplifiedDebts.some(debt =>
+            debt.from.userId === currentUser.value.uid || debt.to.userId === currentUser.value.uid
+        );
     });
     // Users can leave if they're not the owner and not the only member left
     const canLeaveGroup = useComputed(() => !isGroupOwner.value && !isLastMember.value);

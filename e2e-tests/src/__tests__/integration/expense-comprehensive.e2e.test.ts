@@ -17,15 +17,10 @@ import { generateShortId } from '@splitifyd/test-support';
  */
 
 simpleTest.describe('Expense Operations - Comprehensive', () => {
-    async function setupTestGroup(dashboardPage: any) {
-        const groupName = `Expense test ${generateShortId()}`;
-        return await dashboardPage.createGroupAndNavigate(groupName, 'Testing expense operations');
-    }
-
     simpleTest.describe('Form Validation & Basic Operations', () => {
         simpleTest('should validate form inputs and handle submission', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
             const submitButton = expenseFormPage.getSaveButtonForValidation();
@@ -50,7 +45,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
         simpleTest('should create, edit, and delete expense successfully', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
             // Create expense
@@ -93,7 +88,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected: Failed to load resource: the server responded with a status of 400 (Bad Request)' });
 
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
@@ -114,7 +109,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
     simpleTest.describe('Date and Time Selection', () => {
         simpleTest('should handle date convenience buttons and time input', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
 
@@ -174,7 +169,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
 
         simpleTest('should create expense with custom date and time', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const groupId = groupDetailPage.inferGroupId();
             const memberCount = await groupDetailPage.getCurrentMemberCount();
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -217,7 +212,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
         simpleTest('should handle different currencies correctly', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
             // Create USD expense
@@ -260,7 +255,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
         simpleTest('should remember currency selection within group', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
             // Create first expense with EUR
@@ -302,7 +297,7 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
         simpleTest('should handle expense creation with date, time, and currency together', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-            const groupDetailPage = await setupTestGroup(dashboardPage);
+            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
             const groupId = groupDetailPage.inferGroupId();
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
