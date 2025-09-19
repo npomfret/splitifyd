@@ -6,7 +6,7 @@ import translationEn from '../../../webapp-v2/src/locales/en/translation.json' w
 import {CreateGroupModalPage} from './create-group-modal.page.ts';
 import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
 import {SettingsPage} from "./settings.page.ts";
-import {generateShortId, generateTestGroupName} from "@splitifyd/test-support";
+import {generateShortId, generateTestGroupName, randomString} from "@splitifyd/test-support";
 import {JoinGroupPage} from "./join-group.page.ts";
 
 let i = 0;
@@ -25,7 +25,7 @@ export class DashboardPage extends BasePage {
     }
 
     async createMultiUserGroup(options: { name?: string, description?: string }, ...dashboardPages: DashboardPage[]): Promise<GroupDetailPage[]> {
-        const groupName = options.name ?? generateTestGroupName(`g-${++i}`);
+        const groupName = options.name ?? `g-${++i} ${randomString(4)} ${randomString(6)} ${randomString(8)}`;
         const groupDescription = options.description ?? `descr for ${groupName}`;
 
         const groupDetailPage = await this.createGroupAndNavigate(groupName, groupDescription);
