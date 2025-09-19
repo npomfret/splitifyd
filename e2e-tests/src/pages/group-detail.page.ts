@@ -1,12 +1,12 @@
-import { expect, Locator, Page } from '@playwright/test';
-import { BasePage } from './base.page';
-import { ExpenseFormPage, ExpenseFormData } from './expense-form.page';
-import { ExpenseDetailPage } from './expense-detail.page';
-import { SettlementData, SettlementFormPage } from './settlement-form.page';
-import { EditGroupModalPage } from './edit-group-modal.page';
-import { LeaveGroupModalPage } from './leave-group-modal.page';
-import { RemoveMemberModalPage } from './remove-member-modal.page';
-import { ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES } from '../constants/selectors';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {ExpenseFormData, ExpenseFormPage} from './expense-form.page';
+import {ExpenseDetailPage} from './expense-detail.page';
+import {SettlementData, SettlementFormPage} from './settlement-form.page';
+import {EditGroupModalPage} from './edit-group-modal.page';
+import {LeaveGroupModalPage} from './leave-group-modal.page';
+import {RemoveMemberModalPage} from './remove-member-modal.page';
+import {ARIA_ROLES, BUTTON_TEXTS, HEADINGS, MESSAGES} from '../constants/selectors';
 import {DashboardPage} from "./dashboard.page.ts";
 
 interface ExpenseData {
@@ -767,7 +767,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get settlement payment history entry by note
      */
-    getSettlementHistoryEntry(settlementNote: string) {
+    private getSettlementHistoryEntry(settlementNote: string) {
         return this.page.getByText(new RegExp(settlementNote, 'i'));
     }
 
@@ -792,7 +792,7 @@ export class GroupDetailPage extends BasePage {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        await this.openSettlementHistoryIfNeeded();
+        await this.openHistoryIfClosed();
 
         // Assert the edit button exists and is enabled
         const editButton = this.getSettlementEditButton(settlementNote);
@@ -816,7 +816,7 @@ export class GroupDetailPage extends BasePage {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        await this.openSettlementHistoryIfNeeded();
+        await this.openHistoryIfClosed();
 
         // Assert the delete button exists and is enabled
         const deleteButton = this.getSettlementDeleteButton(settlementNote);
@@ -851,7 +851,7 @@ export class GroupDetailPage extends BasePage {
      * Verify a settlement is no longer visible in history
      */
     async verifySettlementNotInHistory(settlementNote: string): Promise<void> {
-        await this.openSettlementHistoryIfNeeded();
+        await this.openHistoryIfClosed();
 
         // Wait for real-time updates to complete by ensuring settlement is not visible
         const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
@@ -881,7 +881,7 @@ export class GroupDetailPage extends BasePage {
      */
     async waitForSettlementToAppear(settlementNote: string, timeout: number = 5000): Promise<void> {
         // First ensure payment history is open so we can see settlements
-        await this.openSettlementHistoryIfNeeded();
+        await this.openHistoryIfClosed();
 
         // Wait for the settlement to appear in the history
         const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
@@ -897,16 +897,6 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for settlement history modal content to be rendered and verify it's visible
         await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();
-    }
-
-    /**
-     * Open settlement history if not already open
-     */
-    async openSettlementHistoryIfNeeded(): Promise<void> {
-        const showHistoryButton = this.getShowHistoryButton();
-        if (await showHistoryButton.isVisible()) {
-            await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
-        }
     }
 
     /**
