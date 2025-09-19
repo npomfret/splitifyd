@@ -1,6 +1,6 @@
-import { Page, Locator, expect } from '@playwright/test';
-import { BasePage } from './base.page';
-import { PooledTestUser } from '@splitifyd/shared';
+import {expect, Locator, Page} from '@playwright/test';
+import {BasePage} from './base.page';
+import {PooledTestUser} from '@splitifyd/shared';
 
 export interface SettlementData {
     payerName: string; // Display name of who paid
@@ -126,10 +126,6 @@ export class SettlementFormPage extends BasePage {
                 throw new Error(`Payee dropdown has ${realOptions.length} members but expected at least ${expectedMemberCount - 1}. Found: [${realOptions.join(', ')}]`);
             }
         }).toPass({ timeout: 5000 });
-
-        // Verify the form buttons are ready
-        const recordButton = this.getRecordPaymentButton();
-        await expect(recordButton).toBeVisible();
     }
 
     /**

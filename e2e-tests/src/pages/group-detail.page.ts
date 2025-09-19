@@ -78,7 +78,7 @@ export class GroupDetailPage extends BasePage {
         await this.clickButton(settleButton, { buttonName: 'Settle up' });
 
         // Verify modal opened
-        const settlementFormPage = new SettlementFormPage(this.page);
+        const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
         await expect(settlementFormPage.getModal()).toBeVisible();
         await settlementFormPage.waitForFormReady(expectedMemberCount);
         return settlementFormPage;
@@ -788,7 +788,7 @@ export class GroupDetailPage extends BasePage {
     /**
      * Click edit button for a settlement and wait for edit form to open
      */
-    async clickEditSettlement(settlementNote: string): Promise<void> {
+    async clickEditSettlement(settlementNote: string): Promise<SettlementFormPage> {
         // Assert we're on the group detail page before action
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
@@ -807,6 +807,14 @@ export class GroupDetailPage extends BasePage {
 
         // Verify we're in edit mode by checking for "Update Payment" title
         await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+
+        const expectedMemberCount = await this.getCurrentMemberCount();
+
+        const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
+        await expect(settlementFormPage.getModal()).toBeVisible();
+        await settlementFormPage.waitForFormReady(expectedMemberCount);
+
+        return settlementFormPage;
     }
 
     /**

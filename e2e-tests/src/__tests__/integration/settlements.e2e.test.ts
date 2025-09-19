@@ -7,29 +7,25 @@ import {SettlementData} from '../../pages/settlement-form.page.ts';
 simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
         simpleTest('should create settlement and display in history with proper formatting', async ({createLoggedInBrowsers}) => {
+            const memberCount = 2;
+
             // Create two browser instances - User 1 and User 2
             const [
                 {page: user1Page, dashboardPage: user1DashboardPage},
                 {page: user2Page, dashboardPage: user2DashboardPage}
-            ] = await createLoggedInBrowsers(2);
+            ] = await createLoggedInBrowsers(memberCount);
 
-            const memberCount = 2;
+            const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-            // Create group and add second user
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('SettlementHistory'), 'Testing settlement history');
-            const groupId = groupDetailPage.inferGroupId();
-
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            const [groupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             // Create settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
-            await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payerName: payerName,
+                payeeName: payeeName,
                 amount: '100.50',
                 note: 'Test payment for history',
             };
@@ -44,12 +40,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
 
             // Verify amount and participants are displayed correctly
-            await groupDetailPage.verifySettlementDetails({
-                note: settlementData.note,
-                amount: settlementData.amount,
-                payerName: settlementData.payerName,
-                payeeName: settlementData.payeeName,
-            });
+            await groupDetailPage.verifySettlementDetails(settlementData);
         });
 
         simpleTest('should handle settlements where creator is payee', async ({createLoggedInBrowsers}) => {
@@ -107,8 +98,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             // Create initial settlement
-            const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
-            await settlementForm.waitForFormReady(memberCount);
+            let settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
 
             const initialData: SettlementData = {
                 payerName: payerName,
@@ -122,7 +112,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Open history and click edit
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.clickEditSettlement(initialData.note);
+            settlementForm = await groupDetailPage.clickEditSettlement(initialData.note);
 
             // Verify update form is shown
             await settlementForm.verifyUpdateMode();
@@ -170,8 +160,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Create group and settlement
             const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
-            const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
-            await settlementForm.waitForFormReady(memberCount);
+            let settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
 
             const initialData: SettlementData = {
                 payerName,
@@ -185,7 +174,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Open edit form
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.clickEditSettlement(initialData.note);
+            settlementForm = await groupDetailPage.clickEditSettlement(initialData.note);
 
             // Test invalid amount
             await settlementForm.clearAndFillAmount('0');
@@ -267,6 +256,9 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
                 {page: user2Page, dashboardPage: user2DashboardPage}
             ] = await createLoggedInBrowsers(2);
 
+            const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
             // Create group and settlement
             const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
@@ -274,8 +266,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payerName: payerName,
+                payeeName: payeeName,
                 amount: '75.00',
                 note: 'Payment to keep',
             };
