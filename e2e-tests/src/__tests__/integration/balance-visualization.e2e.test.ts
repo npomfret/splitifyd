@@ -400,7 +400,7 @@ test.describe('Balance with Settlement Calculations', () => {
         // Test user1's browser
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
 
-        await groupDetailPage.assertAllSettledUp();
+        await groupDetailPage.assertGroupSettledUp();
 
         // Verify expenses still appear after settlement
         await expect(groupDetailPage.getExpensesHeading()).toBeVisible();
