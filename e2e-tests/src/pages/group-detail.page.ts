@@ -963,44 +963,56 @@ export class GroupDetailPage extends BasePage {
     }
 
     async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
-        const balancesSection = this.getBalancesSectionByContext();
+        // Use polling pattern to wait for real-time updates
+        await expect(async () => {
+            const balancesSection = this.getBalancesSectionByContext();
 
-        // First, find the debt relationship container WITHOUT filtering by amount
-        const debtRelationship = balancesSection
-            .getByText(new RegExp(`${debtorName}\\s*→\\s*${creditorName}`))
-            .locator('..');
+            // Find all debt relationship spans with the expected text pattern
+            const debtRelationshipSpans = balancesSection.locator('span').filter({
+                hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`)
+            });
 
-        // Check if the relationship exists at all
-        const relationshipExists = await debtRelationship.isVisible().catch(() => false);
+            const count = await debtRelationshipSpans.count();
+            if (count === 0) {
+                throw new Error(
+                    `Debt relationship not found: ${debtorName} → ${creditorName}\n` +
+                    `Check if both users are in the group and have expenses.`
+                );
+            }
 
-        if (!relationshipExists) {
-            // Provide helpful error about missing relationship
-            throw new Error(
-                `Debt relationship not found: ${debtorName} → ${creditorName}\n` +
-                `Check if both users are in the group and have expenses.`
-            );
-        }
+            // Check each relationship to find one with the matching amount
+            let foundMatchingAmount = false;
+            let actualAmounts: string[] = [];
 
-        // Now find the actual amount within this relationship
-        const actualAmountElement = debtRelationship.locator('[data-financial-amount="debt"]').first();
-        const actualAmount = await actualAmountElement.textContent().catch(() => null);
+            for (let i = 0; i < count; i++) {
+                const relationshipSpan = debtRelationshipSpans.nth(i);
+                // Find the parent container and look for the amount span
+                const parentContainer = relationshipSpan.locator('..');
+                const amountSpan = parentContainer.locator('[data-financial-amount="debt"]');
 
-        if (!actualAmount) {
-            throw new Error(
-                `Found debt relationship ${debtorName} → ${creditorName} but no amount is displayed`
-            );
-        }
+                const actualAmount = await amountSpan.textContent().catch(() => null);
+                if (actualAmount) {
+                    actualAmounts.push(actualAmount);
+                    if (actualAmount === expectedAmount) {
+                        foundMatchingAmount = true;
+                        break;
+                    }
+                }
+            }
 
-        // Compare amounts
-        if (actualAmount !== expectedAmount) {
-            throw new Error(
-                `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
-                `Expected: ${expectedAmount}\n` +
-                `Actual:   ${actualAmount}`
-            );
-        }
+            if (!foundMatchingAmount) {
+                throw new Error(
+                    `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
+                    `Expected: ${expectedAmount}\n` +
+                    `Found amounts: ${actualAmounts.join(', ')}`
+                );
+            }
 
-        // If we get here, everything matches!
+            // If we get here, everything matches!
+        }).toPass({
+            timeout: 5000,
+            intervals: [100, 200, 300, 500, 1000],
+        });
     }
 
     /**

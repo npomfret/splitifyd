@@ -27,10 +27,12 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
     });
 
     simpleTest('should show settled up when both users pay equal amounts', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -45,7 +47,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'GBP',
             splitType: 'equal',
-        }, 2);
+        }, memberCount);
 
         await groupDetailPage2.addExpense({
             description: 'User2 Payment',
@@ -53,7 +55,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             paidByDisplayName: user2DisplayName,
             currency: 'GBP',
             splitType: 'equal',
-        }, 2);
+        }, memberCount);
 
         // Verify both users see settled up state
         await groupDetailPage.waitForSettledUpMessage();
@@ -61,10 +63,12 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
     });
 
     simpleTest('should calculate debt correctly when only one person pays', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -79,7 +83,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
             paidByDisplayName: user1DisplayName,
             currency: 'EUR',
             splitType: 'equal',
-        }, 2);
+        }, memberCount);
 
         // Verify debt calculation on both screens
         await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
@@ -87,10 +91,12 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
     });
 
     simpleTest('should handle complex multi-expense debt calculations', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -133,10 +139,12 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
     });
 
     simpleTest('should handle precise currency formatting in debt calculations', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -165,10 +173,12 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
     });
 
     simpleTest('should transition between settled and debt states predictably', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+
         const [
             { dashboardPage: user1DashboardPage },
             { dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -194,15 +204,15 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
 
         await groupDetailPage1.waitForExpense(expense1Description);
         await groupDetailPage2.waitForExpense(expense1Description);
-        await groupDetailPage1.waitForPage(groupId, 2);
-        await groupDetailPage2.waitForPage(groupId, 2);
+        await groupDetailPage1.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
 
         // Verify debt exists
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
 
         // State 3: User2 pays $100 → MUST be settled up
-        const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(2);
+        const expenseFormPage2 = await groupDetailPage2.clickAddExpenseButton(memberCount);
         const expense2Description = generateShortId();
         await expenseFormPage2.submitExpense({
             description: expense2Description,
@@ -666,5 +676,336 @@ simpleTest.describe('Balance & Settlement Integration', () => {
             await groupDetailPage.verifySettlementDetails({ note: "Partial payment from user2" });
             await groupDetailPage.verifySettlementDetails({ note: "Final payment from user2 - all settled!" });
         }
+    });
+});
+
+simpleTest.describe('Mixed Currency Operations', () => {
+    simpleTest('should handle mixed currency expenses from different users correctly', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 3;
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage },
+            { dashboardPage: user3DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+        const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
+        const groupId = groupDetailPage1.inferGroupId();
+
+        // User1 pays $60 USD, split 3 ways → User2 owes $20, User3 owes $20
+        await groupDetailPage1.addExpense({
+            description: 'USD Expense from User1',
+            amount: 60,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        // User2 pays €45 EUR, split 3 ways → User1 owes €15, User3 owes €15
+        await groupDetailPage2.addExpense({
+            description: 'EUR Expense from User2',
+            amount: 45,
+            paidByDisplayName: user2DisplayName,
+            currency: 'EUR',
+            splitType: 'equal',
+        }, memberCount);
+
+        // User3 pays £30 GBP, split 3 ways → User1 owes £10, User2 owes £10
+        await groupDetailPage3.addExpense({
+            description: 'GBP Expense from User3',
+            amount: 30,
+            paidByDisplayName: user3DisplayName,
+            currency: 'GBP',
+            splitType: 'equal',
+        }, memberCount);
+
+        // Wait for all expenses to synchronize
+        for (const groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+            await groupDetailPage.waitForExpense('USD Expense from User1');
+            await groupDetailPage.waitForExpense('EUR Expense from User2');
+            await groupDetailPage.waitForExpense('GBP Expense from User3');
+            await groupDetailPage.waitForPage(groupId, memberCount);
+        }
+
+        // Verify mixed currency debt relationships on all pages
+        // User1's perspective: User2 owes $20 and £10, User3 owes $20 and €15
+        for (const groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$20.00');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$20.00');
+            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€15.00');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user2DisplayName, '€15.00');
+            await groupDetailPage.verifyDebtRelationship(user1DisplayName, user3DisplayName, '£10.00');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user3DisplayName, '£10.00');
+        }
+    });
+
+    simpleTest('should handle same user creating expenses in multiple currencies', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage.inferGroupId();
+
+        // User1 pays $100 USD → User2 owes $50
+        await groupDetailPage.addExpense({
+            description: 'USD Expense',
+            amount: 100,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        // User1 pays €80 EUR → User2 owes €40
+        await groupDetailPage.addExpense({
+            description: 'EUR Expense',
+            amount: 80,
+            paidByDisplayName: user1DisplayName,
+            currency: 'EUR',
+            splitType: 'equal',
+        }, memberCount);
+
+        // User1 pays £60 GBP → User2 owes £30
+        await groupDetailPage.addExpense({
+            description: 'GBP Expense',
+            amount: 60,
+            paidByDisplayName: user1DisplayName,
+            currency: 'GBP',
+            splitType: 'equal',
+        }, memberCount);
+
+        // Wait for all expenses to synchronize
+        for (const page of [groupDetailPage, groupDetailPage2]) {
+            await page.waitForExpense('USD Expense');
+            await page.waitForExpense('EUR Expense');
+            await page.waitForExpense('GBP Expense');
+            await page.waitForPage(groupId, memberCount);
+        }
+
+        // Verify User2 owes User1 in all three currencies separately
+        for (const page of [groupDetailPage, groupDetailPage2]) {
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€40.00');
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '£30.00');
+        }
+    });
+
+    simpleTest('should handle mixed currency settlements correctly', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+        const [
+            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Create USD expense: User1 pays $200 → User2 owes $100
+        await groupDetailPage.addExpense({
+            description: 'USD Expense for Settlement Test',
+            amount: 200,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        // Wait for expense to sync and verify initial debt
+        await groupDetailPage.waitForExpense('USD Expense for Settlement Test');
+        await groupDetailPage2.waitForExpense('USD Expense for Settlement Test');
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+
+        // User2 settles with €75 EUR (different currency than the debt)
+        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
+        await settlementFormPage.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '75.00',
+            note: 'EUR Settlement for USD Debt',
+        }, memberCount);
+
+        // Wait for settlement to propagate
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // Verify settlement appears in history with EUR currency
+        await groupDetailPage.openHistoryAndVerifySettlement(/EUR Settlement for USD Debt/);
+        await groupDetailPage.closeModal();
+        await groupDetailPage2.openHistoryAndVerifySettlement(/EUR Settlement for USD Debt/);
+        await groupDetailPage2.closeModal();
+
+        // Verify USD debt still exists (no currency conversion)
+        // AND verify EUR settlement creates opposite EUR debt
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage2.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
+    });
+
+    simpleTest('should show settled up only when all currencies are balanced', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+        const [
+            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Create expenses in different currencies
+        await groupDetailPage.addExpense({
+            description: 'USD Expense',
+            amount: 100,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        await groupDetailPage.addExpense({
+            description: 'EUR Expense',
+            amount: 60,
+            paidByDisplayName: user1DisplayName,
+            currency: 'EUR',
+            splitType: 'equal',
+        }, memberCount);
+
+        // Wait for expenses to sync
+        await groupDetailPage.waitForExpense('USD Expense');
+        await groupDetailPage.waitForExpense('EUR Expense');
+        await groupDetailPage2.waitForExpense('USD Expense');
+        await groupDetailPage2.waitForExpense('EUR Expense');
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // Verify User2 owes in both currencies
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€30.00');
+
+        // User2 settles USD debt only
+        const settlementFormPage = await groupDetailPage2.clickSettleUpButton(memberCount);
+        await settlementFormPage.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '50.00',
+            note: 'USD Settlement Only',
+        }, memberCount);
+
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // Verify USD debt is settled but EUR debt remains
+        await expect(groupDetailPage.getBalancesSection().getByText(`${user2DisplayName} → ${user1DisplayName}`).filter({hasText: '$'})).not.toBeVisible();
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€30.00');
+
+        // Should NOT be settled up yet
+        await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).not.toBeVisible();
+
+        // User2 settles EUR debt
+        const settlementFormPage2 = await groupDetailPage2.clickSettleUpButton(memberCount);
+        await settlementFormPage2.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '30.00',
+            note: 'EUR Settlement - Final',
+        }, memberCount);
+
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+
+        // NOW should be settled up
+        await groupDetailPage.waitForSettledUpMessage();
+        await groupDetailPage2.waitForSettledUpMessage();
+    });
+
+    simpleTest('should handle mixed currency expense and settlement edits', async ({ createLoggedInBrowsers }) => {
+        const memberCount = 2;
+        const [
+            { page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(memberCount);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = groupDetailPage.inferGroupId();
+
+        // Create USD expense
+        await groupDetailPage.addExpense({
+            description: 'Original USD Expense',
+            amount: 100,
+            paidByDisplayName: user1DisplayName,
+            currency: 'USD',
+            splitType: 'equal',
+        }, memberCount);
+
+        await groupDetailPage.waitForPage(groupId, memberCount);
+        await groupDetailPage2.waitForPage(groupId, memberCount);
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+
+        // Create EUR settlement
+        const settlementFormPage = await groupDetailPage.clickSettleUpButton(memberCount);
+        const originalSettlementNote = 'Original EUR Settlement';
+        await settlementFormPage.submitSettlement({
+            payerName: user2DisplayName,
+            payeeName: user1DisplayName,
+            amount: '40.00',
+            note: originalSettlementNote,
+        }, memberCount);
+
+        await groupDetailPage.waitForSettlementToAppear(originalSettlementNote);
+        await groupDetailPage.waitForPage(groupId, memberCount);
+
+        // Verify mixed currency state
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await groupDetailPage.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€40.00');
+
+        // Edit settlement to GBP
+        await groupDetailPage.openHistoryIfClosed();
+        const editSettlementForm = await groupDetailPage.clickEditSettlement(originalSettlementNote);
+        await editSettlementForm.updateSettlement({
+            amount: '30.00',
+            note: 'Updated GBP Settlement',
+        });
+        await editSettlementForm.waitForModalClosed();
+
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await groupDetailPage.waitForPage(groupId, memberCount);
+
+        // Verify updated settlement appears in history
+        await groupDetailPage.openHistoryIfClosed();
+        await groupDetailPage.verifySettlementDetails({ note: 'Updated GBP Settlement' });
+
+        // Verify balances updated - EUR debt removed, new settlement amount
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await expect(groupDetailPage.getBalancesSection().getByText(`${user1DisplayName} → ${user2DisplayName}`).filter({hasText: '€'})).not.toBeVisible();
+
+        // Delete the settlement
+        await groupDetailPage.deleteSettlement('Updated GBP Settlement', true);
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Verify only original USD debt remains
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00');
+        await expect(groupDetailPage.getBalancesSection().getByText(`${user1DisplayName} → ${user2DisplayName}`)).not.toBeVisible();
     });
 });
