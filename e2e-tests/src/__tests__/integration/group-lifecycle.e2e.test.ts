@@ -1,6 +1,6 @@
 import { simpleTest, expect } from '../../fixtures';
 import { simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { GroupDetailPage, JoinGroupPage } from '../../pages';
+import { GroupDetailPage, JoinGroupPage, DashboardPage } from '../../pages';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 simpleTest.describe('Group Management', () => {
@@ -84,24 +84,17 @@ simpleTest.describe('Group Management', () => {
 
     simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
         // Create two browser sessions with pooled users
-        const [{ page: ownerPage, dashboardPage },  { page: memberPage }] = await createLoggedInBrowsers(2);
+        const [
+            { page: ownerPage, dashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
-        const ownerGroupDetailPage = new GroupDetailPage(ownerPage);
-        const memberGroupDetailPage = new GroupDetailPage(memberPage);
-
-        // Owner creates a group
-        const groupName = 'Owner Only Settings';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(groupName, 'Only owner can edit');
-        const groupId = groupDetailPage.inferGroupId();
+        // Owner creates a group with member
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const groupId = ownerGroupDetailPage.inferGroupId();
+        const groupName = await ownerGroupDetailPage.getGroupName();
 
         await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
-
-        // Get the share link
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-
-        // Member joins the group via share link
-        const joinGroupPage = new JoinGroupPage(memberPage);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
         await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
 
         // Verify owner CAN see settings button

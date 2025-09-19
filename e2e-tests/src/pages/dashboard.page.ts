@@ -49,10 +49,11 @@ export class DashboardPage extends BasePage {
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
                 console.log(`member "${displayName}" has joined group "${groupName}" (${groupId})`);
             };
+        }
 
-            for (const newGroupDetailPage of groupDetailPages) {// wait for each page to sync before adding the next user
-                await newGroupDetailPage.waitForPage(groupId, groupDetailPages.length)
-            }
+        for (const newGroupDetailPage of groupDetailPages) {// wait for each page to sync before adding the next user
+            await newGroupDetailPage.waitForPage(groupId, groupDetailPages.length);
+            await newGroupDetailPage.waitForSettledUpMessage();
         }
 
         return groupDetailPages;
@@ -66,10 +67,8 @@ export class DashboardPage extends BasePage {
         await this.waitForDashboard();
 
         // Open modal and create group
-        const createGroupModal = new CreateGroupModalPage(this.page);
-        await this.openCreateGroupModal();
+        const createGroupModal = await this.openCreateGroupModal();
         await createGroupModal.createGroup(name, description);
-
 
         // Wait for navigation and verify URL
         await this.expectUrl(groupDetailUrlPattern());

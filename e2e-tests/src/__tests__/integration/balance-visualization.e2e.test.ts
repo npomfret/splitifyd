@@ -3,7 +3,6 @@ import {generateShortId} from '@splitifyd/test-support';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
-import {TestGroupWorkflow} from '../../helpers';
 
 /**
  * Balance Visualization Tests
@@ -13,59 +12,19 @@ import {TestGroupWorkflow} from '../../helpers';
  */
 
 test.describe('Balance Visualization', () => {
-    test('should display settled state for single-user group', async ({ createLoggedInBrowsers }) => {
-        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
 
-        // Use cached group for better performance
-        const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
-        const groupDetailPage = new GroupDetailPage(page);
-
-        // Balance section should show "All settled up!" for empty group
-        const balancesHeading = groupDetailPage.getBalancesHeading();
-        await expect(balancesHeading).toBeVisible();
-
-        // Check for "All settled up!" message but handle cached groups gracefully
-        try {
-            await groupDetailPage.waitForSettledUpMessage(2000);
-        } catch {
-            // Cached groups might have existing balances - verify balances section exists
-            await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
-        }
-
-        // Members section should show the creator
-        await expect(
-            groupDetailPage
-                .getMainSection()
-                .getByText(await dashboardPage.header.getCurrentUserDisplayName())
-                .first(),
-        ).toBeVisible();
-
-        // Single user should be settled up even with expenses (paid for themselves)
-        await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
-    });
-
-    test('should show settled up when both users pay equal amounts', async ({ createLoggedInBrowsers }) => {
+    test('should show settled up when both users pay equal amounts', async ({createLoggedInBrowsers}) => {
         const [
-            { dashboardPage: user1DashboardPage },
-            { page: page2, dashboardPage: user2DashboardPage }
+            {dashboardPage: user1DashboardPage},
+            {page: page2, dashboardPage: user2DashboardPage}
         ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Setup 2-person group
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Equal Payment Test ${uniqueId}`, 'Testing equal payments');
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
-
-        // User2 joins group
-        const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage = new JoinGroupPage(page2);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
-
-        const groupDetailPage2 = new GroupDetailPage(page2);
-        await groupDetailPage.waitForMemberVisible(user2DisplayName);
-        await groupDetailPage2.waitForMemberVisible(user1DisplayName);
 
         // Create two equal expenses (simplified from comprehensive expense tests)
         await groupDetailPage.addExpense({
@@ -92,26 +51,17 @@ test.describe('Balance Visualization', () => {
         await expect(balancesSection2.getByText('All settled up!')).toBeVisible();
     });
 
-    test('should show specific debt when only one person pays', async ({ createLoggedInBrowsers }) => {
+    test('should show specific debt when only one person pays', async ({createLoggedInBrowsers}) => {
         const [
-            { dashboardPage: user1DashboardPage },
-            { page: page2, dashboardPage: user2DashboardPage }
+            {dashboardPage: user1DashboardPage},
+            {page: page2, dashboardPage: user2DashboardPage}
         ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Setup 2-person group
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Single Payer Test ${uniqueId}`, 'Testing single payer debt');
-
-        // User2 joins
-        const shareLink = await groupDetailPage.getShareLink();
-        const joinGroupPage2 = new JoinGroupPage(page2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-        const groupDetailPage2 = new GroupDetailPage(page2);
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // User1 pays $200, split equally → User2 owes $100
         await groupDetailPage.addExpense({
@@ -127,31 +77,19 @@ test.describe('Balance Visualization', () => {
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
     });
 
-    test('should calculate complex debts correctly', async ({ createLoggedInBrowsers }) => {
+    test('should calculate complex debts correctly', async ({createLoggedInBrowsers}) => {
+        const memberCount = 2;
+
         const [
-            { dashboardPage: user1DashboardPage },
-            { page: page2, user: user2, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            {dashboardPage: user1DashboardPage},
+            {page: page2, user: user2, dashboardPage: user2DashboardPage}
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2);
-        const memberCount = 2;
 
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Complex Debt Test ${uniqueId}`, 'Testing complex debt calculation');
-
-        // Get share link
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // User2 joins
-        const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-        // Wait for synchronization - no reloads needed
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
         // User1 pays $300 first
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -197,31 +135,19 @@ test.describe('Balance Visualization', () => {
         await groupDetailPage.verifyExpenseVisible('Small User2 Payment');
     });
 
-    test('should transition from settled to debt to settled predictably', async ({ createLoggedInBrowsers }) => {
+    test('should transition from settled to debt to settled predictably', async ({createLoggedInBrowsers}) => {
+        const memberCount = 2;
+
         const [
-            { dashboardPage: user1DashboardPage },
-            { page: page2, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            {dashboardPage: user1DashboardPage},
+            {page: page2, dashboardPage: user2DashboardPage}
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        console.log({user1DisplayName, user2DisplayName});
-
-        const memberCount = 2;
-
-        const groupDetailPage1 = await user1DashboardPage.createGroupAndNavigate(`State Transition Test ${(generateShortId())}`, 'Testing state transitions');
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({ }, user2DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
-
-        // Get share link
-        const shareLink = await groupDetailPage1.getShareLink();
-
-        // User2 joins
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(page2, shareLink);
-
-        // Wait for synchronization - no reloads needed
-        await groupDetailPage1.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // State 1: Empty group → ALWAYS settled up
         await expect(groupDetailPage1.getBalancesSection().getByText('All settled up!')).toBeVisible();
@@ -278,33 +204,19 @@ test.describe('Balance Visualization', () => {
 
     });
 
-    test('should handle currency formatting in debt amounts', async ({ createLoggedInBrowsers }) => {
+    test('should handle currency formatting in debt amounts', async ({createLoggedInBrowsers}) => {
+        const memberCount = 2;
+
         const [
-            { dashboardPage: user1DashboardPage },
-            { page: page2, user: user2, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            {dashboardPage: user1DashboardPage},
+            {page: page2, user: user2, dashboardPage: user2DashboardPage}
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        console.log({user1DisplayName, user2DisplayName});
-
-        const groupDetailPage2 = new GroupDetailPage(page2);
-        const memberCount = 2;
-
         const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Currency Format Test ${uniqueId}`, 'Testing currency formatting');
-
-        // Get share link
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // User2 joins
-        const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-        // Wait for synchronization - no reloads needed
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({ }, user2DashboardPage);
 
         // User1 pays $123.45 → User2 owes exactly $61.73
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
@@ -332,34 +244,20 @@ test.describe('Balance Visualization', () => {
 });
 
 test.describe('Balance with Settlement Calculations', () => {
-    test('should update debt correctly after partial settlement', async ({ createLoggedInBrowsers }) => {
+    test('should update debt correctly after partial settlement', async ({createLoggedInBrowsers}) => {
+        const memberCount = 2;
+
         const [
-            { page, dashboardPage: user1DashboardPage },
-            { page: page2, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            {page, dashboardPage: user1DashboardPage},
+            {page: page2, dashboardPage: user2DashboardPage}
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2);
-        const memberCount = 2;
-
         // Create group and verify
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Partial Settlement Test ${uniqueId}`, 'Testing partial settlements');
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({ }, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
-        await expect(groupDetailPage.getMemberCountText(1)).toBeVisible();
-
-        // Get share link
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // User 2 joins
-        const joinGroupPage = new JoinGroupPage(page2);
-        await joinGroupPage.joinGroupUsingShareLink(shareLink);
-
-        // Synchronize both users - no reloads needed with real-time updates
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
 
         // Verify no expenses yet
         await expect(groupDetailPage.getNoExpensesText()).toBeVisible();
@@ -408,7 +306,7 @@ test.describe('Balance with Settlement Calculations', () => {
         );
 
         // Wait for settlement to propagate via real-time updates
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await page.waitForLoadState('domcontentloaded', {timeout: 5000});
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
 
@@ -422,10 +320,10 @@ test.describe('Balance with Settlement Calculations', () => {
         // Wait for balance to update from "All settled up!" to showing the debt
         // This is necessary because balance recalculation after settlement is async
         const balancesSectionAfterSettlement = groupDetailPage.getBalancesSection();
-        await expect(balancesSectionAfterSettlement.getByText('All settled up!')).toBeHidden({ timeout: 5000 });
+        await expect(balancesSectionAfterSettlement.getByText('All settled up!')).toBeHidden({timeout: 5000});
 
         // Additional wait to ensure the new balance is rendered
-        await expect(balancesSectionAfterSettlement.getByText(`${user2DisplayName} → ${user1DisplayName}`)).toBeVisible({ timeout: 5000 });
+        await expect(balancesSectionAfterSettlement.getByText(`${user2DisplayName} → ${user1DisplayName}`)).toBeVisible({timeout: 5000});
 
         // Assert final balance ($100 - $60 = $40 remaining)
         // Verify updated debt relationship and amount after partial settlement
@@ -435,34 +333,21 @@ test.describe('Balance with Settlement Calculations', () => {
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
     });
 
-    test('should show settled up after exact settlement', async ({ createLoggedInBrowsers }) => {
+    test('should show settled up after exact settlement', async ({createLoggedInBrowsers}) => {
+        const memberCount = 2;
+
         const [
-            { page, dashboardPage: user1DashboardPage },
-            { page: page2, user: user2, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+            {page, dashboardPage: user1DashboardPage},
+            {page: page2, user: user2, dashboardPage: user2DashboardPage}
+        ] = await createLoggedInBrowsers(memberCount);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        const groupDetailPage2 = new GroupDetailPage(page2);
-
-        const uniqueId = generateShortId();
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(`Exact Settlement Test ${uniqueId}`, 'Testing exact settlements');
+        const [groupDetailPage, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage.inferGroupId();
 
-        // Get share link
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // User2 joins
-        const joinGroupPage2 = new JoinGroupPage(page2, user2);
-        await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-        // Wait for synchronization - no reloads needed
-        await groupDetailPage.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-        await groupDetailPage2.waitForUserSynchronization(user1DisplayName, user2DisplayName);
-
         // Create known debt: User1 pays $150 → User2 owes $75
-        const memberCount = 2;
         const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
         await expenseFormPage.submitExpense({
             description: 'One Person Pays',
@@ -498,7 +383,7 @@ test.describe('Balance with Settlement Calculations', () => {
         );
 
         // Wait for settlement to propagate via real-time updates
-        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        await page.waitForLoadState('domcontentloaded', {timeout: 5000});
         await groupDetailPage.waitForBalancesToLoad(groupId);
         await groupDetailPage2.waitForBalancesToLoad(groupId);
 

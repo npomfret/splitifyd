@@ -9,44 +9,31 @@ simpleTest.describe('Multi-User Group Access', () => {
         // Create two browser instances - User 1 and User 2
         const [
             { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, user: user2 }
+            { page: user2Page, user: user2, dashboardPage: user2DashboardPage },
         ] = await createLoggedInBrowsers(2);
+
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
         // Verify both users start on dashboard
         await expect(user1Page).toHaveURL(/\/dashboard/);
         await expect(user2Page).toHaveURL(/\/dashboard/);
 
-        // User 1 creates a group with unique identifier
-        const uniqueId = generateShortId();
-        const groupName = generateTestGroupName(`Collaboration-${uniqueId}`);
-        const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Multi-user testing with removed access scenarios');
-        const groupId = groupDetailPage.inferGroupId();
-        await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
-
-        // User 2 joins via share link using proper workflow
-        const shareLink = await groupDetailPage.getShareLink();
-
-        // Use JoinGroupPage directly instead of deprecated joinGroupViaShareLink
-        const groupDetailPage2 = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink);
-
-        // Verify user 2 is in the group
-        await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
-        await groupDetailPage2.waitForMemberCount(2);
+        // User 1 creates a group with user 2
+        const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({ }, user2DashboardPage);
+        const groupId = groupDetailPage1.inferGroupId();
 
         // Verify both users are visible in the group
-        await expect(groupDetailPage2.getTextElement(await new DashboardPage(user1Page).header.getCurrentUserDisplayName()).first()).toBeVisible();
-        await expect(groupDetailPage2.getTextElement(await groupDetailPage2.header.getCurrentUserDisplayName()).first()).toBeVisible();
+        await expect(groupDetailPage1.getTextElement(user1DisplayName).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(user2DisplayName).first()).toBeVisible();
 
         // User 2 adds an expense using ExpenseBuilder pattern with unique identifier
         const expenseFormPage = await groupDetailPage2.clickAddExpenseButton(2);
         await expect(user2Page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/add-expense/);
 
-        // Get the actual display name from the dashboard page
-        const user2DashboardPage = new DashboardPage(user2Page, user2);
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
+        const expenseDescription = `Shared Expense ${generateShortId()}`;
         const sharedExpense = new ExpenseFormDataBuilder()
-            .withDescription(`Shared Expense ${uniqueId}`)
+            .withDescription(expenseDescription)
             .withAmount(25.5)
             .withCurrency('USD')
             .withPaidByDisplayName(user2DisplayName)
@@ -58,11 +45,11 @@ simpleTest.describe('Multi-User Group Access', () => {
 
         // Verify expense was created and we're back on group page
         await expect(user2Page).toHaveURL(groupDetailUrlPattern(groupId));
-        await expect(groupDetailPage2.getTextElement(`Shared Expense ${uniqueId}`).first()).toBeVisible();
+        await expect(groupDetailPage2.getTextElement(expenseDescription).first()).toBeVisible();
 
         // Verify user 1 can also see the expense (wait for real-time sync)
-        await groupDetailPage.waitForBalancesToLoad(groupId);
-        await expect(groupDetailPage.getTextElement(`Shared Expense ${uniqueId}`).first()).toBeVisible();
+        await groupDetailPage1.waitForBalancesToLoad(groupId);
+        await expect(groupDetailPage1.getTextElement(expenseDescription).first()).toBeVisible();
     });
 
     simpleTest('should redirect removed user to dashboard when viewing group page', async ({ createLoggedInBrowsers }) => {
@@ -76,17 +63,8 @@ simpleTest.describe('Multi-User Group Access', () => {
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Create group with unique identifier
-        const uniqueId = generateShortId();
-        const groupName = generateTestGroupName(`UserRemoval-${uniqueId}`);
-        const createdGroupPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from group page');
+        const [createdGroupPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({ }, memberDashboardPage);
         const groupId = createdGroupPage.inferGroupId();
-
-        const shareLink = await createdGroupPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
-
-        // Wait for both users to see 2 members
-        await createdGroupPage.waitForMemberCount(2);
-        await memberGroupDetailPage.waitForMemberCount(2);
 
         // Owner removes the member while member is viewing the group page
         // Note: This should work with no expenses/balances in the group
@@ -113,15 +91,8 @@ simpleTest.describe('Multi-User Group Access', () => {
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Create group with unique identifier
-        const uniqueId = generateShortId();
-        const groupName = generateTestGroupName(`DashboardRemoval-${uniqueId}`);
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing user removal from dashboard perspective');
-
-        // Add member to group
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-
-        // Member joins
-        const memberGruopDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
+        const [ownerGroupDetailPage, memberGruopDetailPage] = await ownerDashboardPage.createMultiUserGroup({  }, memberDashboardPage);
+        const groupName = await ownerGroupDetailPage.getGroupName();
 
         // Both users navigate to their dashboards to see the group
         ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();

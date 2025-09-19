@@ -1,17 +1,17 @@
-import { simpleTest, expect } from '../../fixtures';
-import { simpleTest as test } from '../../fixtures/simple-test.fixture';
-import { JoinGroupPage, GroupDetailPage } from '../../pages';
-import { generateTestGroupName } from '@splitifyd/test-support';
-import { SettlementData } from '../../pages/settlement-form.page.ts';
+import {simpleTest, expect} from '../../fixtures';
+import {simpleTest as test} from '../../fixtures/simple-test.fixture';
+import {JoinGroupPage, GroupDetailPage} from '../../pages';
+import {generateTestGroupName} from '@splitifyd/test-support';
+import {SettlementData} from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
-        simpleTest('should create settlement and display in history with proper formatting', async ({ createLoggedInBrowsers }) => {
+        simpleTest('should create settlement and display in history with proper formatting', async ({createLoggedInBrowsers}) => {
             // Create two browser instances - User 1 and User 2
             const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
+            ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -37,7 +37,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.submitSettlement(settlementData, memberCount);
 
             // Wait for settlement to propagate
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Open history and verify settlement appears
             await groupDetailPage.openHistoryIfClosed();
@@ -52,26 +52,21 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             });
         });
 
-        simpleTest('should handle settlements where creator is payee', async ({ createLoggedInBrowsers }) => {
+        simpleTest('should handle settlements where creator is payee', async ({createLoggedInBrowsers}) => {
             const memberCount = 2;
 
             // Create two browser instances - User 1 and User 2
             const [
-                { page: user1Page, dashboardPage: user1DashboardPage},
-                { page: user2Page, dashboardPage: user2DashboardPage }
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
             ] = await createLoggedInBrowsers(memberCount);
 
             // Create group and add second user
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('PayeeCreator'), 'Testing payee as creator');
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
             const groupId = groupDetailPage.inferGroupId();
-
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
 
             // Create settlement where creator is the payee (receives money)
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
-            await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
                 payerName: await user2DashboardPage.header.getCurrentUserDisplayName(),
@@ -83,7 +78,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await settlementForm.submitSettlement(settlementData, memberCount);
 
             // Wait for settlement to propagate
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Verify settlement appears correctly
             await groupDetailPage.openHistoryIfClosed();
@@ -96,36 +91,34 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Settlement Editing', () => {
-        simpleTest('should edit settlement successfully', async ({ createLoggedInBrowsers }) => {
-            // Create two browser instances - User 1 and User 2
-            const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
+        simpleTest('should edit settlement successfully', async ({createLoggedInBrowsers}) => {
             const memberCount = 2;
 
-            // Create group and setup
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('EditSettlement'), 'Testing settlement editing');
-            const groupId = groupDetailPage.inferGroupId();
+            // Create two browser instances - User 1 and User 2
+            const [
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
+            ] = await createLoggedInBrowsers(memberCount);
 
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+            // Create group and setup
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             // Create initial settlement
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData: SettlementData = {
-                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payerName: payerName,
+                payeeName: payeeName,
                 amount: '100.50',
                 note: 'Initial test payment',
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Open history and click edit
             await groupDetailPage.openHistoryIfClosed();
@@ -150,7 +143,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Wait for modal to close and update to propagate
             await settlementForm.waitForModalClosed();
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Verify updated settlement in history
             await groupDetailPage.verifySettlementInHistoryVisible(updatedData.note);
@@ -162,35 +155,33 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             });
         });
 
-        simpleTest('should validate form inputs during edit', async ({ createLoggedInBrowsers }) => {
-            // Create two browser instances - User 1 and User 2
-            const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
+        simpleTest('should validate form inputs during edit', async ({createLoggedInBrowsers}) => {
             const memberCount = 2;
 
-            // Create group and settlement
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('ValidationTest'), 'Testing form validation');
-            const groupId = groupDetailPage.inferGroupId();
+            // Create two browser instances - User 1 and User 2
+            const [
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
+            ] = await createLoggedInBrowsers(memberCount);
 
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+            // Create group and settlement
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
             const initialData: SettlementData = {
-                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payerName,
+                payeeName,
                 amount: '50.00',
                 note: 'Validation test payment',
             };
 
             await settlementForm.submitSettlement(initialData, memberCount);
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Open edit form
             await groupDetailPage.openHistoryIfClosed();
@@ -224,35 +215,33 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Settlement Deletion', () => {
-        simpleTest('should delete settlement successfully', async ({ createLoggedInBrowsers }) => {
-            // Create two browser instances - User 1 and User 2
-            const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
+        simpleTest('should delete settlement successfully', async ({createLoggedInBrowsers}) => {
             const memberCount = 2;
 
-            // Create group and settlement
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('DeleteSettlement'), 'Testing settlement deletion');
-            const groupId = groupDetailPage.inferGroupId();
+            // Create two browser instances - User 1 and User 2
+            const [
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
+            ] = await createLoggedInBrowsers(memberCount);
 
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            const payerName = await user1DashboardPage.header.getCurrentUserDisplayName();
+            const payeeName = await user2DashboardPage.header.getCurrentUserDisplayName();
+
+            // Create group and settlement
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
 
             const settlementData: SettlementData = {
-                payerName: await groupDetailPage.header.getCurrentUserDisplayName(),
-                payeeName: await user2DashboardPage.header.getCurrentUserDisplayName(),
+                payerName,
+                payeeName,
                 amount: '100.00',
                 note: 'Payment to be deleted',
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Open history and verify settlement exists
             await groupDetailPage.openHistoryIfClosed();
@@ -262,29 +251,24 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await groupDetailPage.deleteSettlement(settlementData.note, true);
 
             // Wait for deletion to propagate
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Verify settlement is removed from history
             await groupDetailPage.openHistoryIfClosed();
             await groupDetailPage.verifySettlementNotInHistory(settlementData.note);
         });
 
-        simpleTest('should cancel settlement deletion when user clicks cancel', async ({ createLoggedInBrowsers }) => {
-            // Create two browser instances - User 1 and User 2
-            const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { page: user2Page, dashboardPage: user2DashboardPage }
-        ] = await createLoggedInBrowsers(2);
-
+        simpleTest('should cancel settlement deletion when user clicks cancel', async ({createLoggedInBrowsers}) => {
             const memberCount = 2;
 
-            // Create group and settlement
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('CancelDelete'), 'Testing deletion cancellation');
-            const groupId = groupDetailPage.inferGroupId();
+            // Create two browser instances - User 1 and User 2
+            const [
+                {page: user1Page, dashboardPage: user1DashboardPage},
+                {page: user2Page, dashboardPage: user2DashboardPage}
+            ] = await createLoggedInBrowsers(2);
 
-            // Share and join
-            const shareLink = await groupDetailPage.getShareLink();
-            await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink, groupId);
+            // Create group and settlement
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
 
             const settlementForm = await groupDetailPage.clickSettleUpButton(memberCount);
             await settlementForm.waitForFormReady(memberCount);
@@ -297,7 +281,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             };
 
             await settlementForm.submitSettlement(settlementData, memberCount);
-            await user1Page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+            await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Open history and attempt deletion
             await groupDetailPage.openHistoryIfClosed();
@@ -310,67 +294,22 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Multi-User Settlement Scenarios', () => {
-        simpleTest('should handle partial settlement with 3 users correctly', async ({ createLoggedInBrowsers }) => {
+        simpleTest('should handle partial settlement with 3 users correctly', async ({createLoggedInBrowsers}) => {
             // Create three browser instances - User 1, User 2, and User 3
+            const memberCount = 3;
+
             const [
-            { dashboardPage: user1DashboardPage, user: user1 },
-            { page: user2Page, dashboardPage: user2DashboardPage, user: user2 },
-            { page: user3Page, dashboardPage: user3DashboardPage, user: user3 }
-        ] = await createLoggedInBrowsers(3);
-
-            // Create page objects
-            const groupDetailPage2 = new GroupDetailPage(user2Page);
-            const groupDetailPage3 = new GroupDetailPage(user3Page);
-
-            // Verify all 3 users are distinct to prevent flaky test failures
-            expect(user1.email).not.toBe(user2.email);
-            expect(user1.email).not.toBe(user3.email);
-            expect(user2.email).not.toBe(user3.email);
+                {dashboardPage: user1DashboardPage, user: user1},
+                {page: user2Page, dashboardPage: user2DashboardPage, user: user2},
+                {page: user3Page, dashboardPage: user3DashboardPage, user: user3}
+            ] = await createLoggedInBrowsers(memberCount);
 
             const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
             const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
             const user3DisplayName = await user3DashboardPage.header.getCurrentUserDisplayName();
 
-            // Assert all users have different display names
-            expect(user1DisplayName).not.toBe(user2DisplayName);
-            expect(user1DisplayName).not.toBe(user3DisplayName);
-            expect(user2DisplayName).not.toBe(user3DisplayName);
-
-            // 1. Create a group with 3 users
-            const groupDetailPage1 = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('3UserSettle'), 'Testing 3-user settlement');
+            const [groupDetailPage1, groupDetailPage2, groupDetailPage3] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage, user3DashboardPage);
             const groupId = groupDetailPage1.inferGroupId();
-
-            // Get share link and have users join SEQUENTIALLY (not concurrently)
-            const shareLink = await groupDetailPage1.getShareLink();
-
-            // SEQUENTIAL JOIN 1: Second user joins first
-            const joinGroupPage2 = new JoinGroupPage(user2Page);
-            await joinGroupPage2.joinGroupUsingShareLink(shareLink);
-
-            // Verify second user can actually access the group page
-            const page2Url = user2Page.url();
-            if (!page2Url.includes(`/groups/${groupId}`)) {
-                throw new Error(`Second user join verification failed. Expected to be on /groups/${groupId}, but on: ${page2Url}`);
-            }
-
-            // WAIT for second user to be fully synchronized before third user joins
-            await groupDetailPage1.waitForPage(groupId, 2);
-            await groupDetailPage2.waitForPage(groupId, 2);
-
-            // SEQUENTIAL JOIN 2: Third user joins ONLY AFTER second user is fully synchronized
-            const joinGroupPage3 = new JoinGroupPage(user3Page);
-            await joinGroupPage3.joinGroupUsingShareLink(shareLink);
-
-            // Verify third user can actually access the group page
-            const page3Url = user3Page.url();
-            if (!page3Url.includes(`/groups/${groupId}`)) {
-                throw new Error(`Third user join verification failed. Expected to be on /groups/${groupId}, but on: ${page3Url}`);
-            }
-
-            // Synchronize all pages to see all 3 members
-            await groupDetailPage1.waitForPage(groupId, 3);
-            await groupDetailPage2.waitForPage(groupId, 3);
-            await groupDetailPage3.waitForPage(groupId, 3);
 
             // 2. User 1 makes a expense for 120, split equally
             // DEBT CALCULATION:
@@ -381,26 +320,23 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - User2 owes: $40 to User1
             // - User3 owes: $40 to User1
 
+            const expect1Description = 'Group dinner expense';
             await groupDetailPage1.addExpense(
                 {
-                    description: 'Group dinner expense',
+                    description: expect1Description,
                     amount: 120,
                     paidByDisplayName: user1DisplayName,
                     currency: 'USD',
                     splitType: 'equal',
                 },
-                3,
+                memberCount,
             );
 
             // Synchronize all pages to see the expense
-            await groupDetailPage1.waitForPage(groupId, 3);
-            await groupDetailPage2.waitForPage(groupId, 3);
-            await groupDetailPage3.waitForPage(groupId, 3);
-
-            // Verify expense appears across all pages
-            await groupDetailPage1.waitForExpense('Group dinner expense');
-            await groupDetailPage2.waitForExpense('Group dinner expense');
-            await groupDetailPage3.waitForExpense('Group dinner expense');
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.waitForExpense(expect1Description)
+                await groupDetailPage.waitForPage(groupId, memberCount);
+            }
 
             // 3. Assert initial balances after first expense
             // EXPECTED STATE:
@@ -410,9 +346,9 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // This represents the initial debt distribution after the group dinner
 
             // Verify both debts exist across all pages
-            await groupDetailPage1.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage2.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage3.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
+            }
 
             // 4. User 2 makes partial settlement of 30
             // SETTLEMENT CALCULATION:
@@ -420,25 +356,23 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - Payment amount: $30
             // - Remaining debt after payment: $40 - $30 = $10
 
+            const settlementNote1 = 'Partial payment from user2';
             await groupDetailPage1.recordSettlement(
                 {
                     payerName: user2DisplayName,
                     payeeName: user1DisplayName,
                     amount: '30',
-                    note: 'Partial payment from user2',
+                    note: settlementNote1,
                 },
-                3,
+                memberCount,
             );
 
             // Synchronize all pages to see the settlement
-            await groupDetailPage1.waitForPage(groupId, 3);
-            await groupDetailPage2.waitForPage(groupId, 3);
-            await groupDetailPage3.waitForPage(groupId, 3);
-
-            // Verify settlement appears in history across all pages
-            await groupDetailPage1.verifySettlementInHistory('Partial payment from user2');
-            await groupDetailPage2.verifySettlementInHistory('Partial payment from user2');
-            await groupDetailPage3.verifySettlementInHistory('Partial payment from user2');
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.waitForSettlementToAppear(settlementNote1)
+                await groupDetailPage.verifySettlementInHistory(settlementNote1)
+                await groupDetailPage1.waitForPage(groupId, memberCount);
+            }
 
             // 5. Assert updated balances after partial settlement
             // EXPECTED STATE AFTER $30 PAYMENT:
@@ -448,13 +382,10 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // The partial payment reduces User2's debt but doesn't fully settle
 
             // Verify updated debts across all pages
-            await groupDetailPage1.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
-            await groupDetailPage2.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
-            await groupDetailPage3.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
-
-            await groupDetailPage1.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage2.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage3.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
+                await groupDetailPage.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            }
 
             // 6. User 2 makes final settlement of remaining $10
             // FINAL SETTLEMENT CALCULATION:
@@ -462,20 +393,22 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // - Payment amount: $10
             // - User2 will be fully settled after this payment
 
+            const settlementNote2 = 'Final payment from user2 - all settled!';
             await groupDetailPage1.recordSettlement(
                 {
                     payerName: user2DisplayName,
                     payeeName: user1DisplayName,
                     amount: '10',
-                    note: 'Final payment from user2 - all settled!',
+                    note: settlementNote2,
                 },
-                3,
+                memberCount,
             );
 
-            // Synchronize all pages to see the final settlement
-            await groupDetailPage1.waitForPage(groupId, 3);
-            await groupDetailPage2.waitForPage(groupId, 3);
-            await groupDetailPage3.waitForPage(groupId, 3);
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.waitForSettlementToAppear(settlementNote2)
+                await groupDetailPage.verifySettlementInHistory(settlementNote2)
+                await groupDetailPage1.waitForPage(groupId, memberCount);
+            }
 
             // 7. Assert final state after all settlements
             // EXPECTED FINAL STATE:
@@ -485,23 +418,20 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // This verifies that partial settlements work correctly in 3-user groups
 
             // User2 should no longer appear in debt list (settled up)
-            await expect(groupDetailPage1.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
+            }
 
             // User3 should still owe $40
-            await groupDetailPage1.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage2.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
-            await groupDetailPage3.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+            }
 
             // Verify both settlements appear in history
-            await groupDetailPage1.verifySettlementInHistory("Partial payment from user2");
-            await groupDetailPage1.verifySettlementInHistory("Final payment from user2 - all settled!");
-
-            await groupDetailPage2.verifySettlementInHistory("Partial payment from user2");
-            await groupDetailPage2.verifySettlementInHistory("Final payment from user2 - all settled!");
-
-            await groupDetailPage3.verifySettlementInHistory("Partial payment from user2");
-            await groupDetailPage3.verifySettlementInHistory("Final payment from user2 - all settled!");
-
+            for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
+                await groupDetailPage.verifySettlementInHistory("Partial payment from user2");
+                await groupDetailPage.verifySettlementInHistory("Final payment from user2 - all settled!");
+            }
         });
     });
 });

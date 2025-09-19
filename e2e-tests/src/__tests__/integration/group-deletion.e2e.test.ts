@@ -1,5 +1,5 @@
 import { simpleTest, expect } from '../../fixtures';
-import { JoinGroupPage } from '../../pages';
+import { JoinGroupPage, DashboardPage } from '../../pages';
 import { generateShortId } from '@splitifyd/test-support';
 
 simpleTest.describe('Group Deletion', () => {
@@ -11,17 +11,9 @@ simpleTest.describe('Group Deletion', () => {
         ] = await createLoggedInBrowsers(2);
 
         // Setup 2-person group with unique ID
-        const groupName = `Owner Delete Test ${generateShortId()}`;
-        let ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing owner deletion');
+        let [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({  }, memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Get share link and have member join
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for synchronization - both users should see 2 members total
-        await ownerGroupDetailPage.waitForMemberCount(2);
-        await memberGroupDetailPage.waitForMemberCount(2);
+        const groupName = await ownerGroupDetailPage.getGroupName();
 
         // Both users navigate to dashboard to see the group
         ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();
@@ -51,21 +43,14 @@ simpleTest.describe('Group Deletion', () => {
         // Create two browser instances - owner and member
         let [
             { dashboardPage: ownerDashboardPage },
-            { page: memberPage }
+            { dashboardPage: memberDashboardPage }
         ] = await createLoggedInBrowsers(2);
 
         // Setup 2-person group with unique ID
-        const groupName = `Member On Detail Test ${generateShortId()}`;
-        let ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing deletion while member on detail page');
+        // Create memberDashboardPage since it's not in the destructured variables
+        let [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({ }, memberDashboardPage);
         const groupId = ownerGroupDetailPage.inferGroupId();
-
-        // Get share link and have member join
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink, groupId);
-
-        // Wait for synchronization - both users should see 2 members total
-        await ownerGroupDetailPage.waitForMemberCount(2);
-        await memberGroupDetailPage.waitForMemberCount(2);
+        const groupName = await ownerGroupDetailPage.getGroupName();
 
         // Owner navigates to dashboard to delete the group
         ownerDashboardPage = await ownerGroupDetailPage.navigateToDashboard();

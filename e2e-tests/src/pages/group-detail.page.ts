@@ -433,14 +433,6 @@ export class GroupDetailPage extends BasePage {
         }
     }
 
-    async verifySettlementInHistory(settlementNote: string): Promise<void> {
-        // Open history if not already open
-        await this.openHistoryIfClosed();
-
-        // Verify settlement is visible in history
-        await expect(this.page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
-    }
-
     async verifyDebt( debtorName: string, creditorName: string, amount: string | undefined) {
         const balancesSection = this.page
             .locator('.bg-white')
@@ -775,18 +767,8 @@ export class GroupDetailPage extends BasePage {
     /**
      * Get settlement payment history entry by note
      */
-    getSettlementHistoryEntry(note: string) {
-        return this.page.getByText(new RegExp(note, 'i'));
-    }
-
-    /**
-     * Open settlement history if not already open
-     */
-    async openSettlementHistoryIfNeeded(): Promise<void> {
-        const showHistoryButton = this.getShowHistoryButton();
-        if (await showHistoryButton.isVisible()) {
-            await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
-        }
+    getSettlementHistoryEntry(settlementNote: string) {
+        return this.page.getByText(new RegExp(settlementNote, 'i'));
     }
 
     /**
@@ -879,8 +861,16 @@ export class GroupDetailPage extends BasePage {
     /**
      * Verify settlement is in history
      */
-    async verifySettlementInHistoryVisible(note: string): Promise<void> {
-        await expect(this.getSettlementHistoryEntry(note)).toBeVisible();
+    async verifySettlementInHistoryVisible(settlementNote: string): Promise<void> {
+        await expect(this.getSettlementHistoryEntry(settlementNote)).toBeVisible();
+    }
+
+    async verifySettlementInHistory(settlementNote: string): Promise<void> {
+        // Open history if not already open
+        await this.openHistoryIfClosed();
+
+        // Verify settlement is visible in history
+        await expect(this.page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
     }
 
     /**
@@ -907,6 +897,16 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for settlement history modal content to be rendered and verify it's visible
         await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();
+    }
+
+    /**
+     * Open settlement history if not already open
+     */
+    async openSettlementHistoryIfNeeded(): Promise<void> {
+        const showHistoryButton = this.getShowHistoryButton();
+        if (await showHistoryButton.isVisible()) {
+            await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
+        }
     }
 
     /**
