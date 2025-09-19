@@ -981,7 +981,7 @@ export class GroupDetailPage extends BasePage {
             .first();
     }
 
-    assertGroupSettledUp() {
+    async assertGroupSettledUp() {
         const balanceSection = this.getBalancesSectionByContext();
 
         // Should be settled up after paying the full debt amount
