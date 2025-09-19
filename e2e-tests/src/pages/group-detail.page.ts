@@ -962,19 +962,45 @@ export class GroupDetailPage extends BasePage {
             .first();
     }
 
-    async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
-        // If testid approach doesn't work, fall back to a more precise text-based approach
-        const debtContainerFallback = this.getBalancesSectionByContext()
-            .locator('div')
-            .filter({hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`)})
-            .filter({hasText: amount})
-            .last(); // Get the most specific (deepest) match
+    async verifyDebtRelationship(debtorName: string, creditorName: string, expectedAmount: string): Promise<void> {
+        const balancesSection = this.getBalancesSectionByContext();
 
-        await expect(debtContainerFallback).toBeVisible({timeout: 3000});
+        // First, find the debt relationship container WITHOUT filtering by amount
+        const debtRelationship = balancesSection
+            .getByText(new RegExp(`${debtorName}\\s*→\\s*${creditorName}`))
+            .locator('..');
 
-        // Verify the debt amount is present within this container
-        const debtAmount = debtContainerFallback.locator('[data-financial-amount="debt"]').filter({hasText: amount});
-        await expect(debtAmount).toBeVisible({timeout: 2000});
+        // Check if the relationship exists at all
+        const relationshipExists = await debtRelationship.isVisible().catch(() => false);
+
+        if (!relationshipExists) {
+            // Provide helpful error about missing relationship
+            throw new Error(
+                `Debt relationship not found: ${debtorName} → ${creditorName}\n` +
+                `Check if both users are in the group and have expenses.`
+            );
+        }
+
+        // Now find the actual amount within this relationship
+        const actualAmountElement = debtRelationship.locator('[data-financial-amount="debt"]').first();
+        const actualAmount = await actualAmountElement.textContent().catch(() => null);
+
+        if (!actualAmount) {
+            throw new Error(
+                `Found debt relationship ${debtorName} → ${creditorName} but no amount is displayed`
+            );
+        }
+
+        // Compare amounts
+        if (actualAmount !== expectedAmount) {
+            throw new Error(
+                `Debt amount mismatch for ${debtorName} → ${creditorName}\n` +
+                `Expected: ${expectedAmount}\n` +
+                `Actual:   ${actualAmount}`
+            );
+        }
+
+        // If we get here, everything matches!
     }
 
     /**

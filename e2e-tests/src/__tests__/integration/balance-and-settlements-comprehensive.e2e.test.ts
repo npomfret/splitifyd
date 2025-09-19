@@ -75,15 +75,15 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         // User1 pays $200, split equally → User2 owes $100
         await groupDetailPage.addExpense({
             description: 'One Person Pays',
-            amount: 200,
+            amount: 100.00,
             paidByDisplayName: user1DisplayName,
-            currency: 'USD',
+            currency: 'EUR',
             splitType: 'equal',
         }, 2);
 
         // Verify debt calculation on both screens
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
     });
 
     simpleTest('should handle complex multi-expense debt calculations', async ({ createLoggedInBrowsers }) => {
