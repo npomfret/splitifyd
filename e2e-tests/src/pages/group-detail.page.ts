@@ -1007,7 +1007,7 @@ export class GroupDetailPage extends BasePage {
      * Assert that a user is settled up (has no debts)
      * @param userName - The display name of the user to check
      */
-    async assertSettledUp(userName: string): Promise<void> {
+    async assertUserSettledUp(userName: string): Promise<void> {
         const balancesSection = this.getBalancesSection();
 
         // User should not appear in any debt relationships

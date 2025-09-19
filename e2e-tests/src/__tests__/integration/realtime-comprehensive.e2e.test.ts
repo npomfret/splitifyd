@@ -452,7 +452,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await deleterGroupDetailPage.waitForSettledUpMessage();
         await watcherGroupDetailPage.waitForSettledUpMessage();
 
-        await watcherGroupDetailPage.assertSettledUp(watcherDisplayName);
-        await deleterGroupDetailPage.assertSettledUp(watcherDisplayName);
+        await watcherGroupDetailPage.assertUserSettledUp(watcherDisplayName);
+        await deleterGroupDetailPage.assertUserSettledUp(watcherDisplayName);
     });
 });
