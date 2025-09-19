@@ -136,6 +136,8 @@ export class DashboardPage extends BasePage {
                 `Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error instanceof Error ? error.message : String(error)}`,
             );
         }
+
+        return new CreateGroupModalPage(this.page, this.userInfo);
     }
 
     async waitForDashboard() {

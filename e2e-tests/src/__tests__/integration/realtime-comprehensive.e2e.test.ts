@@ -18,36 +18,30 @@ import { SettlementData } from '../../pages/settlement-form.page.ts';
  */
 
 simpleTest.describe('Real-Time Updates - Core Functionality', () => {
-    simpleTest('should handle real-time group changes across users', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should handle real-time group changes across users', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.setTimeout(45000); // 45 seconds
 
         // Create two browser instances - Owner and Member
-        const { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: ownerDashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Get display names for verification
         const ownerDisplayName = await ownerDashboardPage.header.getCurrentUserDisplayName();
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup: Create group and join member
-        const originalGroupName = generateTestGroupName(`Realtime ${generateShortId()}`);
-        const originalDescription = 'Testing real-time group updates';
 
-        const ownerGroupDetailPage = await ownerDashboardPage.createGroupAndNavigate(originalGroupName, originalDescription);
-        const groupId = ownerGroupDetailPage.inferGroupId();
-
-        const shareLink = await ownerGroupDetailPage.getShareLink();
-        const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(memberPage, shareLink);
-
-        await ownerGroupDetailPage.waitForPage(groupId, 2);
-        await memberGroupDetailPage.waitForPage(groupId, 2);
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await ownerDashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const originalGroupName = await ownerGroupDetailPage.getGroupName();
 
         // Member on dashboard to monitor group-level changes
         await memberGroupDetailPage.navigateToDashboard();
         await memberDashboardPage.waitForGroupToAppear(originalGroupName);
 
         // Test 1: Edit Group Name
-        const newGroupName = `${originalGroupName} UPDATED ${randomString(4)}`;
+        const newGroupName = `UPDATED name ${randomString(4)}`;
         const editModal = await ownerGroupDetailPage.openEditGroupModal();
         await editModal.editGroupName(newGroupName);
         await editModal.saveChanges();
@@ -57,7 +51,7 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         await memberDashboardPage.waitForGroupToNotBePresent(originalGroupName);
 
         // Test 2: Edit Group Description
-        const newDescription = `${originalDescription} UPDATED ${randomString(4)}`;
+        const newDescription = `UPDATED descrption ${randomString(4)}`;
         const editModal2 = await ownerGroupDetailPage.openEditGroupModal();
         await editModal2.editDescription(newDescription);
         await editModal2.saveChanges();
@@ -65,26 +59,18 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         await ownerGroupDetailPage.waitForGroupDescription(newDescription);
     });
 
-    simpleTest('should handle real-time expense and settlement operations', async ({ newLoggedInBrowser }, testInfo) => {
-        testInfo.setTimeout(45000); // 45 seconds
-
+    simpleTest('should handle real-time expense and settlement operations', async ({ createLoggedInBrowsers }, testInfo) => {
         // Create two browser instances - User1 and User2
-        const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: user2Page } = await newLoggedInBrowser();
+        const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Setup group
-        const groupName = generateTestGroupName(`Transactions ${generateShortId()}`);
-        const user1GroupDetailPage = await user1DashboardPage.createGroupAndNavigate(groupName, 'Testing transactions');
+        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = user1GroupDetailPage.inferGroupId();
-
-        const shareLink = await user1GroupDetailPage.getShareLink();
-        const user2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(user2Page, shareLink);
-        const user2DisplayName = await user2GroupDetailPage.header.getCurrentUserDisplayName();
-
-        await user1GroupDetailPage.waitForPage(groupId, 2);
-        await user2GroupDetailPage.waitForPage(groupId, 2);
 
         // Test 1: Add Expense
         const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
@@ -154,45 +140,37 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         await user2GroupDetailPage.waitForBalancesToLoad(groupId);
     });
 
-    simpleTest('should support real-time expense comments', async ({ newLoggedInBrowser }) => {
+    simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Alice and Bob
-        const { dashboardPage: aliceDashboardPage } = await newLoggedInBrowser();
-        const { page: bobPage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: user1DashboardPage },
+            { dashboardPage: user2DashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
-        const aliceDisplayName = await aliceDashboardPage.header.getCurrentUserDisplayName();
+        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
+        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Setup group
-        const aliceGroupDetailPage = await aliceDashboardPage.createGroupAndNavigate(
-            generateTestGroupName('ExpenseComments'),
-            'Testing expense comments'
-        );
-        const groupId = aliceGroupDetailPage.inferGroupId();
-
-        const shareLink = await aliceGroupDetailPage.getShareLink();
-        const bobGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(bobPage, shareLink);
-        const bobDisplayName = await bobGroupDetailPage.header.getCurrentUserDisplayName();
-
-        await aliceGroupDetailPage.waitForPage(groupId, 2);
-        await bobGroupDetailPage.waitForPage(groupId, 2);
+        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
+        const groupId = user1GroupDetailPage.inferGroupId();
 
         // Create expense
-        const expenseFormPage = await aliceGroupDetailPage.clickAddExpenseButton(2);
+        const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
         const expenseDescription = 'Test Expense for Comments';
         await expenseFormPage.submitExpense({
             description: expenseDescription,
             amount: 50.0,
             currency: 'USD',
-            paidByDisplayName: aliceDisplayName,
+            paidByDisplayName: user1DisplayName,
             splitType: 'equal',
-            participants: [aliceDisplayName, bobDisplayName],
+            participants: [user1DisplayName, user2DisplayName],
         });
 
-        await aliceGroupDetailPage.waitForExpense(expenseDescription);
-        await bobGroupDetailPage.waitForExpense(expenseDescription);
+        await user1GroupDetailPage.waitForExpense(expenseDescription);
+        await user2GroupDetailPage.waitForExpense(expenseDescription);
 
         // Navigate to expense detail pages
-        const aliceExpenseDetailPage = await aliceGroupDetailPage.clickExpenseToView(expenseDescription);
-        const bobExpenseDetailPage = await bobGroupDetailPage.clickExpenseToView(expenseDescription);
+        const aliceExpenseDetailPage = await user1GroupDetailPage.clickExpenseToView(expenseDescription);
+        const bobExpenseDetailPage = await user2GroupDetailPage.clickExpenseToView(expenseDescription);
 
         await aliceExpenseDetailPage.verifyCommentsSection();
         await bobExpenseDetailPage.verifyCommentsSection();
@@ -218,31 +196,22 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
 });
 
 simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
-    simpleTest('should handle user leaving during expense operations', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should handle user leaving during expense operations', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Edge case testing may generate expected transient errors and 404s' });
 
         // Create three users - Creator, LeavingUser, WatchingUser
-        const { dashboardPage: creatorDashboardPage, user: creator } = await newLoggedInBrowser();
-        const { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving } = await newLoggedInBrowser();
-        const { page: watchingPage, user: watching } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: creatorDashboardPage, user: creator },
+            { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving },
+            { page: watchingPage, dashboardPage: watchingDashboardPage, user: watching }
+        ] = await createLoggedInBrowsers(3);
 
         const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
         const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
 
-        console.log(`👥 User UIDs - Creator: ${creator.uid}, Leaving: ${leaving.uid}, Watching: ${watching.uid}`);
-
         // Setup group
-        const groupName = generateTestGroupName('LeaveEdge');
-        const creatorGroupDetailPage = await creatorDashboardPage.createGroupAndNavigate(groupName, 'Testing user leaving during expense creation');
+        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup({}, leavingDashboardPage, watchingDashboardPage);
         const groupId = creatorGroupDetailPage.inferGroupId();
-
-        const shareLink = await creatorGroupDetailPage.getShareLink();
-        const leavingGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(leavingPage, shareLink);
-        const watchingGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(watchingPage, shareLink);
-
-        await creatorGroupDetailPage.waitForPage(groupId, 3);
-        await leavingGroupDetailPage.waitForPage(groupId, 3);
-        await watchingGroupDetailPage.waitForPage(groupId, 3);
 
         // LeavingUser leaves
         const leaveModal = await leavingGroupDetailPage.clickLeaveGroup();
@@ -277,29 +246,19 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await watchingGroupDetailPage.verifyMemberNotVisible(leavingDisplayName);
     });
 
-    simpleTest('should handle concurrent expense editing', async ({ newLoggedInBrowser }) => {
+    simpleTest('should handle concurrent expense editing', async ({ createLoggedInBrowsers }) => {
         // Create two editors and one watcher
-        const { dashboardPage: editor1DashboardPage } = await newLoggedInBrowser();
-        const { page: editor2Page, dashboardPage: editor2DashboardPage } = await newLoggedInBrowser();
-        const { page: watcherPage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: editor1DashboardPage },
+            { page: editor2Page, dashboardPage: editor2DashboardPage },
+            { page: watcherPage, dashboardPage: watcherDashboardPage },
+        ] = await createLoggedInBrowsers(3);
 
         const editor1DisplayName = await editor1DashboardPage.header.getCurrentUserDisplayName();
         const editor2DisplayName = await editor2DashboardPage.header.getCurrentUserDisplayName();
 
-        // Setup group
-        const editor1GroupDetailPage = await editor1DashboardPage.createGroupAndNavigate(
-            generateTestGroupName('ConcurrentEdit'),
-            'Testing concurrent expense editing'
-        );
+        const [editor1GroupDetailPage, editor2GroupDetailPage, watcherGroupDetailPage] = await editor1DashboardPage.createMultiUserGroup({}, editor2DashboardPage, watcherDashboardPage);
         const groupId = editor1GroupDetailPage.inferGroupId();
-
-        const shareLink = await editor1GroupDetailPage.getShareLink();
-        const editor2GroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(editor2Page, shareLink);
-        const watcherGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(watcherPage, shareLink);
-
-        await editor1GroupDetailPage.waitForPage(groupId, 3);
-        await editor2GroupDetailPage.waitForPage(groupId, 3);
-        await watcherGroupDetailPage.waitForPage(groupId, 3);
 
         // Create initial expense
         const expense1FormPage = await editor1GroupDetailPage.clickAddExpenseButton(3);
@@ -363,27 +322,20 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await editor1GroupDetailPage.verifyDebtRelationship(editor2DisplayName, editor1DisplayName, '$7.50');
     });
 
-    simpleTest('should handle network instability simulation', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should handle network instability simulation', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Network simulation may generate expected connection errors' });
 
         // Create two users - ActiveUser and OfflineUser
-        const { dashboardPage: activeDashboardPage } = await newLoggedInBrowser();
-        const { page: offlinePage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: activeDashboardPage },
+            { page: offlinePage, dashboardPage: offlineDashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
         const activeDisplayName = await activeDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
-        const activeGroupDetailPage = await activeDashboardPage.createGroupAndNavigate(
-            generateTestGroupName('NetworkRT'),
-            'Testing network instability'
-        );
+        const [activeGroupDetailPage, offlineGroupDetailPage] = await activeDashboardPage.createMultiUserGroup({}, offlineDashboardPage);
         const groupId = activeGroupDetailPage.inferGroupId();
-
-        const shareLink = await activeGroupDetailPage.getShareLink();
-        const offlineGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(offlinePage, shareLink);
-
-        await activeGroupDetailPage.waitForPage(groupId, 2);
-        await offlineGroupDetailPage.waitForPage(groupId, 2);
 
         // Simulate offline by navigating away
         await offlineGroupDetailPage.navigateToHomepage();
@@ -430,29 +382,22 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await offlineGroupDetailPage.waitForExpense(afterReconnectDescription);
     });
 
-    simpleTest('should allow third-party expense creation and editing', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should allow third-party expense creation and editing', async ({ createLoggedInBrowsers }, testInfo) => {
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Testing third-party expense creation and editing' });
 
         // Create three users - Creator (not involved), Payer, Receiver
-        const { dashboardPage: creatorDashboardPage } = await newLoggedInBrowser();
-        const { page: payerPage, dashboardPage: payerDashboardPage } = await newLoggedInBrowser();
-        const { page: receiverPage, dashboardPage: receiverDashboardPage } = await newLoggedInBrowser();
+        const [
+            { dashboardPage: creatorDashboardPage },
+            { page: payerPage, dashboardPage: payerDashboardPage },
+            { page: receiverPage, dashboardPage: receiverDashboardPage }
+        ] = await createLoggedInBrowsers(3);
 
         const payerDisplayName = await payerDashboardPage.header.getCurrentUserDisplayName();
         const receiverDisplayName = await receiverDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
-        const groupName = generateTestGroupName('ThirdPartyExpense');
-        const creatorGroupDetailPage = await creatorDashboardPage.createGroupAndNavigate(groupName, 'Testing third-party expense creation');
+        const [creatorGroupDetailPage, payerGroupDetailPage, receiverGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup({}, payerDashboardPage, receiverDashboardPage);
         const groupId = creatorGroupDetailPage.inferGroupId();
-
-        const shareLink = await creatorGroupDetailPage.getShareLink();
-        const payerGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(payerPage, shareLink);
-        const receiverGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(receiverPage, shareLink);
-
-        await creatorGroupDetailPage.waitForPage(groupId, 3);
-        await payerGroupDetailPage.waitForPage(groupId, 3);
-        await receiverGroupDetailPage.waitForPage(groupId, 3);
 
         // Creator creates expense for other users (creator not involved)
         const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton(3);
@@ -502,24 +447,20 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await creatorGroupDetailPage.verifyDebt(receiverDisplayName, payerDisplayName, "$50");
     });
 
-    simpleTest('should handle expense deletion in real-time', async ({ newLoggedInBrowser }) => {
+    simpleTest('should handle expense deletion in real-time', async ({ createLoggedInBrowsers }) => {
         // Create two users - Deleter and Watcher
-        const { page: deleterPage, dashboardPage: deleterDashboardPage } = await newLoggedInBrowser();
-        const { page: watcherPage } = await newLoggedInBrowser();
+        const [
+            { page: deleterPage, dashboardPage: deleterDashboardPage },
+            { page: watcherPage, dashboardPage: watcherDashboardPage },
+        ] = await createLoggedInBrowsers(2);
 
         const deleterDisplayName = await deleterDashboardPage.header.getCurrentUserDisplayName();
+        const watcherDisplayName = await watcherDashboardPage.header.getCurrentUserDisplayName();
 
         // Setup group
-        const groupName = generateTestGroupName('DeleteRT');
-        const deleterGroupDetailPage = await deleterDashboardPage.createGroupAndNavigate(groupName, 'Testing real-time expense deletion');
+        // Setup group
+        const [deleterGroupDetailPage, watcherGroupDetailPage] = await deleterDashboardPage.createMultiUserGroup({}, watcherDashboardPage);
         const groupId = deleterGroupDetailPage.inferGroupId();
-
-        const shareLink = await deleterGroupDetailPage.getShareLink();
-        const watcherGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(watcherPage, shareLink);
-        const watcherDisplayName = await watcherGroupDetailPage.header.getCurrentUserDisplayName();
-
-        await deleterGroupDetailPage.waitForPage(groupId, 2);
-        await watcherGroupDetailPage.waitForPage(groupId, 2);
 
         // Create expense involving both users
         const expenseFormPage = await deleterGroupDetailPage.clickAddExpenseButton(2);

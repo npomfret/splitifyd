@@ -1,10 +1,11 @@
 import { simpleTest, expect } from '../../fixtures';
+import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { GroupDetailPage, JoinGroupPage } from '../../pages';
 import { groupDetailUrlPattern } from '../../pages/group-detail.page';
 
 simpleTest.describe('Group Management', () => {
-    simpleTest('should comprehensively test group editing validation and functionality', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage } = await newLoggedInBrowser();
+    simpleTest('should comprehensively test group editing validation and functionality', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
 
         // Verify starting state
         await expect(page).toHaveURL(/\/dashboard/);
@@ -81,10 +82,9 @@ simpleTest.describe('Group Management', () => {
         await expect(editModal.getModal()).not.toBeVisible();
     });
 
-    simpleTest('should not show settings button for non-owner', async ({ newLoggedInBrowser }) => {
+    simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
         // Create two browser sessions with pooled users
-        const { page: ownerPage, dashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage } = await newLoggedInBrowser();
+        const [{ page: ownerPage, dashboardPage },  { page: memberPage }] = await createLoggedInBrowsers(2);
 
         const ownerGroupDetailPage = new GroupDetailPage(ownerPage);
         const memberGroupDetailPage = new GroupDetailPage(memberPage);

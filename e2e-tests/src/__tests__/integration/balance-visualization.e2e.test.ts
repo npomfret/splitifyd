@@ -13,8 +13,8 @@ import {TestGroupWorkflow} from '../../helpers';
  */
 
 test.describe('Balance Visualization', () => {
-    test('should display settled state for single-user group', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+    test('should display settled state for single-user group', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
 
         // Use cached group for better performance
         const groupId = await TestGroupWorkflow.getOrCreateGroupSmarter(page, user.email);
@@ -44,9 +44,11 @@ test.describe('Balance Visualization', () => {
         await expect(groupDetailPage.getBalancesSection().getByText('All settled up!')).toBeVisible();
     });
 
-    test('should show settled up when both users pay equal amounts', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should show settled up when both users pay equal amounts', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: page2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -90,9 +92,11 @@ test.describe('Balance Visualization', () => {
         await expect(balancesSection2.getByText('All settled up!')).toBeVisible();
     });
 
-    test('should show specific debt when only one person pays', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should show specific debt when only one person pays', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: page2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -123,9 +127,11 @@ test.describe('Balance Visualization', () => {
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
     });
 
-    test('should calculate complex debts correctly', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should calculate complex debts correctly', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: page2, user: user2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -191,9 +197,11 @@ test.describe('Balance Visualization', () => {
         await groupDetailPage.verifyExpenseVisible('Small User2 Payment');
     });
 
-    test('should transition from settled to debt to settled predictably', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should transition from settled to debt to settled predictably', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: page2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -270,9 +278,11 @@ test.describe('Balance Visualization', () => {
 
     });
 
-    test('should handle currency formatting in debt amounts', async ({ newLoggedInBrowser }) => {
-        const { dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should handle currency formatting in debt amounts', async ({ createLoggedInBrowsers }) => {
+        const [
+            { dashboardPage: user1DashboardPage },
+            { page: page2, user: user2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -322,9 +332,11 @@ test.describe('Balance Visualization', () => {
 });
 
 test.describe('Balance with Settlement Calculations', () => {
-    test('should update debt correctly after partial settlement', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should update debt correctly after partial settlement', async ({ createLoggedInBrowsers }) => {
+        const [
+            { page, dashboardPage: user1DashboardPage },
+            { page: page2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
@@ -423,9 +435,11 @@ test.describe('Balance with Settlement Calculations', () => {
         await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
     });
 
-    test('should show settled up after exact settlement', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: page2, user: user2, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+    test('should show settled up after exact settlement', async ({ createLoggedInBrowsers }) => {
+        const [
+            { page, dashboardPage: user1DashboardPage },
+            { page: page2, user: user2, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
         const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();

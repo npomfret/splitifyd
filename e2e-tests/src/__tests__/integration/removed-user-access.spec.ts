@@ -5,10 +5,12 @@ import { DashboardPage, JoinGroupPage, GroupDetailPage } from '../../pages';
 import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
 
 simpleTest.describe('Multi-User Group Access', () => {
-    simpleTest('multiple users can collaborate in shared group', async ({ newLoggedInBrowser }) => {
+    simpleTest('multiple users can collaborate in shared group', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - User 1 and User 2
-        const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-        const { page: user2Page, user: user2 } = await newLoggedInBrowser();
+        const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, user: user2 }
+        ] = await createLoggedInBrowsers(2);
 
         // Verify both users start on dashboard
         await expect(user1Page).toHaveURL(/\/dashboard/);
@@ -63,11 +65,13 @@ simpleTest.describe('Multi-User Group Access', () => {
         await expect(groupDetailPage.getTextElement(`Shared Expense ${uniqueId}`).first()).toBeVisible();
     });
 
-    simpleTest('should redirect removed user to dashboard when viewing group page', async ({ newLoggedInBrowser }) => {
+    simpleTest('should redirect removed user to dashboard when viewing group page', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member (to be removed)
         // Using only 2 users to avoid complications and focus on the core removal behavior
-        const { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage, dashboardPage: memberDashboardPage, user: memberUser } = await newLoggedInBrowser();
+        const [
+            { page: ownerPage, dashboardPage: ownerDashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage, user: memberUser }
+        ] = await createLoggedInBrowsers(2);
 
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 
@@ -98,11 +102,13 @@ simpleTest.describe('Multi-User Group Access', () => {
         await createdGroupPage.verifyMemberNotVisible(memberDisplayName);
     });
 
-    simpleTest('should remove group from removed user dashboard in real-time', async ({ newLoggedInBrowser }) => {
+    simpleTest('should remove group from removed user dashboard in real-time', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Owner and Member (to be removed)
         // Simplified to focus on core dashboard behavior without complications
-        let { page: ownerPage, dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        let { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+        let [
+            { page: ownerPage, dashboardPage: ownerDashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         const memberDisplayName = await memberDashboardPage.header.getCurrentUserDisplayName();
 

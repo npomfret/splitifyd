@@ -3,10 +3,12 @@ import { JoinGroupPage } from '../../pages';
 import { generateShortId } from '@splitifyd/test-support';
 
 simpleTest.describe('Group Deletion', () => {
-    simpleTest('should update dashboards when owner deletes group', async ({ newLoggedInBrowser }) => {
+    simpleTest('should update dashboards when owner deletes group', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - owner and member (both on dashboard)
-        let { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        let { page: memberPage, dashboardPage: memberDashboardPage } = await newLoggedInBrowser();
+        let [
+            { dashboardPage: ownerDashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Setup 2-person group with unique ID
         const groupName = `Owner Delete Test ${generateShortId()}`;
@@ -42,13 +44,15 @@ simpleTest.describe('Group Deletion', () => {
         await memberDashboardPage.waitForGroupToNotBePresent(groupName);
     });
 
-    simpleTest('should redirect member when group deleted while viewing', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should redirect member when group deleted while viewing', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - console errors may occur during redirect
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Console errors may occur during redirect when group is deleted while member viewing it' });
 
         // Create two browser instances - owner and member
-        let { dashboardPage: ownerDashboardPage } = await newLoggedInBrowser();
-        const { page: memberPage } = await newLoggedInBrowser();
+        let [
+            { dashboardPage: ownerDashboardPage },
+            { page: memberPage }
+        ] = await createLoggedInBrowsers(2);
 
         // Setup 2-person group with unique ID
         const groupName = `Member On Detail Test ${generateShortId()}`;

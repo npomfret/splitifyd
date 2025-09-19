@@ -1,14 +1,17 @@
 import { simpleTest, expect } from '../../fixtures';
+import { simpleTest as test } from '../../fixtures/simple-test.fixture';
 import { JoinGroupPage, GroupDetailPage } from '../../pages';
 import { generateTestGroupName } from '@splitifyd/test-support';
 import { SettlementData } from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Settlements - Complete Functionality', () => {
     simpleTest.describe('Settlement Creation and History', () => {
-        simpleTest('should create settlement and display in history with proper formatting', async ({ newLoggedInBrowser }) => {
+        simpleTest('should create settlement and display in history with proper formatting', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+            const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -49,12 +52,14 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             });
         });
 
-        simpleTest('should handle settlements where creator is payee', async ({ newLoggedInBrowser }) => {
-            // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage} = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
-
+        simpleTest('should handle settlements where creator is payee', async ({ createLoggedInBrowsers }) => {
             const memberCount = 2;
+
+            // Create two browser instances - User 1 and User 2
+            const [
+                { page: user1Page, dashboardPage: user1DashboardPage},
+                { page: user2Page, dashboardPage: user2DashboardPage }
+            ] = await createLoggedInBrowsers(memberCount);
 
             // Create group and add second user
             const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(generateTestGroupName('PayeeCreator'), 'Testing payee as creator');
@@ -91,10 +96,12 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Settlement Editing', () => {
-        simpleTest('should edit settlement successfully', async ({ newLoggedInBrowser }) => {
+        simpleTest('should edit settlement successfully', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+            const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -155,10 +162,12 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             });
         });
 
-        simpleTest('should validate form inputs during edit', async ({ newLoggedInBrowser }) => {
+        simpleTest('should validate form inputs during edit', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+            const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -215,10 +224,12 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Settlement Deletion', () => {
-        simpleTest('should delete settlement successfully', async ({ newLoggedInBrowser }) => {
+        simpleTest('should delete settlement successfully', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+            const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -258,10 +269,12 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await groupDetailPage.verifySettlementNotInHistory(settlementData.note);
         });
 
-        simpleTest('should cancel settlement deletion when user clicks cancel', async ({ newLoggedInBrowser }) => {
+        simpleTest('should cancel settlement deletion when user clicks cancel', async ({ createLoggedInBrowsers }) => {
             // Create two browser instances - User 1 and User 2
-            const { page: user1Page, dashboardPage: user1DashboardPage } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage } = await newLoggedInBrowser();
+            const [
+            { page: user1Page, dashboardPage: user1DashboardPage },
+            { page: user2Page, dashboardPage: user2DashboardPage }
+        ] = await createLoggedInBrowsers(2);
 
             const memberCount = 2;
 
@@ -297,11 +310,13 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
     });
 
     simpleTest.describe('Multi-User Settlement Scenarios', () => {
-        simpleTest('should handle partial settlement with 3 users correctly', async ({ newLoggedInBrowser }) => {
+        simpleTest('should handle partial settlement with 3 users correctly', async ({ createLoggedInBrowsers }) => {
             // Create three browser instances - User 1, User 2, and User 3
-            const { dashboardPage: user1DashboardPage, user: user1 } = await newLoggedInBrowser();
-            const { page: user2Page, dashboardPage: user2DashboardPage, user: user2 } = await newLoggedInBrowser();
-            const { page: user3Page, dashboardPage: user3DashboardPage, user: user3 } = await newLoggedInBrowser();
+            const [
+            { dashboardPage: user1DashboardPage, user: user1 },
+            { page: user2Page, dashboardPage: user2DashboardPage, user: user2 },
+            { page: user3Page, dashboardPage: user3DashboardPage, user: user3 }
+        ] = await createLoggedInBrowsers(3);
 
             // Create page objects
             const groupDetailPage2 = new GroupDetailPage(user2Page);

@@ -1,15 +1,14 @@
-import { simpleTest as test, expect } from '../../fixtures/simple-test.fixture';
-import { CreateGroupModalPage, LoginPage } from '../../pages';
-import { TIMEOUT_CONTEXTS, TIMEOUTS } from '../../config/timeouts';
-import { SELECTORS } from '../../constants/selectors';
-import { generateTestGroupName } from '@splitifyd/test-support';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
+import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
+import {CreateGroupModalPage, LoginPage} from '../../pages';
+import {TIMEOUT_CONTEXTS, TIMEOUTS} from '../../config/timeouts';
+import {SELECTORS} from '../../constants/selectors';
+import {generateTestGroupName} from '@splitifyd/test-support';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 
 test.describe('Error Handling', () => {
-    test('displays error message when network fails during group creation', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
-        const createGroupModalPage = new CreateGroupModalPage(page, user);
-        const context = page.context();
+    test('displays error message when network fails during group creation', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
+
         // NOTE: This test intentionally triggers network errors
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -19,14 +18,14 @@ test.describe('Error Handling', () => {
         // Already authenticated via fixture
 
         // Try to create group while network is failing using page object methods
-        await dashboardPage.openCreateGroupModal();
-        await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+        const createGroupModal = await dashboardPage.openCreateGroupModal();
+        await expect(createGroupModal.isOpen()).resolves.toBe(true);
 
         // Wait for any initial dashboard API calls to settle before setting up interception
         await dashboardPage.page.waitForTimeout(1000);
 
         // Intercept API calls to simulate network failure - be very specific to only intercept group creation
-        await context.route(/\/groups$/, (route) => {
+        await page.context().route(/\/groups$/, (route) => {
             const method = route.request().method();
             if (method === 'POST') {
                 route.fulfill({
@@ -39,33 +38,33 @@ test.describe('Error Handling', () => {
         });
 
         // Fill and submit form using page object methods
-        await createGroupModalPage.fillGroupForm('Network Test Group', 'Testing network error handling');
-        await createGroupModalPage.submitForm();
+        await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
+        await createGroupModal.submitForm();
 
         // Wait for error handling using page object method
         await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
 
         // Verify error indication is shown using page object method for error detection
         // Wait for the error to appear (might be async) - check for any error message first
-        const anyErrorElement = createGroupModalPage.getErrorMessage();
+        const anyErrorElement = createGroupModal.getErrorMessage();
         await expect(anyErrorElement.first()).toBeVisible({ timeout: 5000 });
 
         // Note: Modal behavior on network errors may have changed
         // The app might now close the modal and show the error elsewhere
         // We're primarily testing that errors are handled without crashes
-        const isModalOpen = await createGroupModalPage.isOpen();
+        const isModalOpen = await createGroupModal.isOpen();
         if (!isModalOpen) {
             // If modal closed, verify we're still on dashboard with error shown
             await dashboardPage.expectUrl(/\/dashboard/);
             await expect(anyErrorElement.first()).toBeVisible();
         } else {
             // If modal is still open, that's also valid
-            await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+            await expect(createGroupModal.isOpen()).resolves.toBe(true);
         }
     });
 
-    test('prevents form submission with invalid data', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+    test('prevents form submission with invalid data', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         await dashboardPage.openCreateGroupModal();
@@ -89,8 +88,8 @@ test.describe('Error Handling', () => {
         await expect(dashboardPage.page).toHaveURL(groupDetailUrlPattern());
     });
 
-    test('handles server errors gracefully', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+    test('handles server errors gracefully', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
         const context = page.context();
         // NOTE: This test intentionally triggers server errors
@@ -141,8 +140,8 @@ test.describe('Error Handling', () => {
         }
     });
 
-    test('handles malformed API responses', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage } = await newLoggedInBrowser();
+    test('handles malformed API responses', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
         const context = page.context();
         // NOTE: This test intentionally triggers JSON parse errors
         test.info().annotations.push({
@@ -181,8 +180,8 @@ test.describe('Error Handling', () => {
     // NOTE: The 'verifies group access control behavior' test has been removed as it's a duplicate
     // of the test in security-errors.e2e.test.ts which now properly uses multiUserTest fixture
 
-    test('handles API timeouts appropriately', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+    test('handles API timeouts appropriately', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
         const context = page.context();
         // NOTE: This test simulates timeout scenarios

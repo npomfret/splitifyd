@@ -31,8 +31,8 @@ simpleTest.describe('Authentication Security', () => {
         await expect(page).toHaveURL(/\/login/);
     });
 
-    simpleTest('should protect group pages from unauthorized access', async ({ newLoggedInBrowser }) => {
-        const { page, dashboardPage, user } = await newLoggedInBrowser();
+    simpleTest('should protect group pages from unauthorized access', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
 
         // Create a group while authenticated
@@ -61,12 +61,14 @@ simpleTest.describe('Authentication Security', () => {
 });
 
 simpleTest.describe('Multi-User Security', () => {
-    simpleTest('should prevent users from accessing other users groups', async ({ newLoggedInBrowser }, testInfo) => {
+    simpleTest('should prevent users from accessing other users groups', async ({ createLoggedInBrowsers }, testInfo) => {
         // Skip error checking - unauthorized user will get expected 404s when trying to access private group
         testInfo.annotations.push({ type: 'skip-error-checking', description: 'Expected 404 errors when unauthorized user tries to access private group' });
         // Create two browser instances - User 1 and User 2
-        const { page: page1, dashboardPage, user: user1 } = await newLoggedInBrowser();
-        const { page: page2, } = await newLoggedInBrowser();
+        const [
+            { page: page1, dashboardPage, user: user1 },
+            { page: page2 }
+        ] = await createLoggedInBrowsers(2);
 
         // Create page objects
         const createGroupModalPage = new CreateGroupModalPage(page1, user1);
