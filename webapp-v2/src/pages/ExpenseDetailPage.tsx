@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import { useSignal, useComputed, batch } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { apiClient } from '../app/apiClient';
 import { BaseLayout } from '../components/layout/BaseLayout';
@@ -27,6 +28,7 @@ const truncateDescription = (description: string, maxLength: number = 40): strin
 };
 
 export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailPageProps) {
+    const { t } = useTranslation();
     const expense = useSignal<ExpenseData | null>(null);
     const loading = useSignal(true);
     const error = useSignal<string | null>(null);
@@ -50,13 +52,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
     // Load expense data
     useEffect(() => {
         if (!groupId) {
-            error.value = 'Missing group ID';
+            error.value = t('pages.expenseDetailPage.missingGroupId');
             loading.value = false;
             return;
         }
 
         if (!expenseId) {
-            error.value = 'Missing expense ID';
+            error.value = t('pages.expenseDetailPage.missingExpenseId');
             loading.value = false;
             return;
         }
@@ -76,8 +78,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                     members.value = fullDetails.members.members;
                 });
             } catch (err) {
-                logError('Failed to load expense', err);
-                error.value = err instanceof Error ? err.message : 'Failed to load expense';
+                logError(t('pages.expenseDetailPage.failedToLoad'), err);
+                error.value = err instanceof Error ? err.message : t('pages.expenseDetailPage.failedToLoad');
             } finally {
                 loading.value = false;
             }
@@ -122,13 +124,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
         if (navigator.share) {
             navigator
                 .share({
-                    title: `Expense: ${expense.value?.description}`,
-                    text: `Check out this expense: ${expense.value?.description} - ${formatCurrency(expense.value?.amount || 0, expense.value?.currency || 'USD')}`,
+                    title: `${t('pages.expenseDetailPage.expenseLabel')}${expense.value?.description}`,
+                    text: `${t('pages.expenseDetailPage.checkOutExpense')}${expense.value?.description} - ${formatCurrency(expense.value?.amount || 0, expense.value?.currency || 'USD')}`,
                     url: url,
                 })
                 .catch((error) => {
                     // Fallback to clipboard if share fails
-                    logError('Share API failed, falling back to clipboard', error);
+                    logError(t('pages.expenseDetailPage.shareApiFailed'), error);
                     // Intentionally not awaited - fire-and-forget fallback operation
                     copyToClipboard(url);
                 });
@@ -143,7 +145,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
             await navigator.clipboard.writeText(text);
             // TODO: Add toast notification for successful copy
         } catch (error) {
-            logError('Failed to copy to clipboard', error);
+            logError(t('pages.expenseDetailPage.failedToCopy'), error);
             // Fallback: select text for manual copy
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -171,10 +173,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                     <Card className="max-w-md mx-auto mt-8">
                         <Stack spacing="md">
                             <h2 className="text-xl font-semibold text-red-600" role="alert" data-testid="page-error-title">
-                                Error
+                                {t('pages.expenseDetailPage.error')}
                             </h2>
-                            <p className="text-gray-600 dark:text-gray-400">{error.value || 'Expense not found'}</p>
-                            <Button onClick={handleBack}>Back to Group</Button>
+                            <p className="text-gray-600 dark:text-gray-400">{error.value || t('pages.expenseDetailPage.expenseNotFound')}</p>
+                            <Button onClick={handleBack}>{t('pages.expenseDetailPage.backToGroup')}</Button>
                         </Stack>
                     </Card>
                 </div>
@@ -186,8 +188,8 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
 
     return (
         <BaseLayout
-            title={`${truncateDescription(expense.value.description)} - ${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
-            description={`Expense for ${expense.value.description} - ${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
+            title={`${truncateDescription(expense.value.description)}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
+            description={`${t('pages.expenseDetailPage.expenseFor')}${expense.value.description}${t('pages.expenseDetailPage.titleSeparator')}${formatCurrency(expense.value.amount, expense.value.currency || 'USD')}`}
             headerVariant="dashboard"
         >
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -196,10 +198,10 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                     <div className="max-w-3xl mx-auto px-4 py-4">
                         <div className="flex items-center justify-between">
                             <Button variant="ghost" onClick={handleBack}>
-                                ← Back
+                                {t('pages.expenseDetailPage.backButton')}
                             </Button>
                             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                                {truncateDescription(expense.value.description)} - {formatCurrency(expense.value.amount, expense.value.currency || 'USD')}
+                                {truncateDescription(expense.value.description)}{t('pages.expenseDetailPage.titleSeparator')}{formatCurrency(expense.value.amount, expense.value.currency || 'USD')}
                             </h1>
                             <div className="w-16"></div> {/* Spacer for centered title */}
                         </div>
@@ -222,24 +224,24 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     {/* Date */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Date</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.expenseDetailPage.date')}</p>
                                         <p className="font-medium text-gray-900 dark:text-white">{formatExpenseDateTime(expense.value.date)}</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">({formatDistanceToNow(new Date(expense.value.date))} ago)</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">({formatDistanceToNow(new Date(expense.value.date))}{t('pages.expenseDetailPage.ago')})</p>
                                     </div>
 
                                     {/* Category */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Category</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('pages.expenseDetailPage.category')}</p>
                                         <p className="font-medium text-gray-900 dark:text-white">{expense.value.category}</p>
                                     </div>
 
                                     {/* Paid By */}
                                     <div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Paid by</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('pages.expenseDetailPage.paidBy')}</p>
                                         <div className="flex items-center gap-2">
                                             <Avatar displayName={payer?.displayName || 'Unknown'} userId={expense.value.paidBy} size="sm" />
                                             <div>
-                                                <p className="font-medium text-gray-900 dark:text-white text-sm">{payer?.displayName || 'Unknown'}</p>
+                                                <p className="font-medium text-gray-900 dark:text-white text-sm">{payer?.displayName || t('pages.expenseDetailPage.unknown')}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -260,7 +262,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         {/* Comments Section */}
                         <Card>
                             <Stack spacing="md">
-                                <h3 className="font-semibold text-gray-900 dark:text-white">Discussion</h3>
+                                <h3 className="font-semibold text-gray-900 dark:text-white">{t('pages.expenseDetailPage.discussion')}</h3>
                                 <CommentsSection targetType="expense" targetId={expenseId!} maxHeight="300px" />
                             </Stack>
                         </Card>
@@ -269,7 +271,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         {expense.value.receiptUrl && (
                             <Card>
                                 <Stack spacing="md">
-                                    <h3 className="font-semibold text-gray-900 dark:text-white">Receipt</h3>
+                                    <h3 className="font-semibold text-gray-900 dark:text-white">{t('pages.expenseDetailPage.receipt')}</h3>
                                     <div className="text-center">
                                         <img
                                             src={expense.value.receiptUrl}
@@ -278,7 +280,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                                             loading="lazy"
                                             onClick={() => setShowReceiptModal(true)}
                                         />
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Click to view full size</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{t('pages.expenseDetailPage.clickToViewFullSize')}</p>
                                     </div>
                                 </Stack>
                             </Card>
@@ -288,12 +290,12 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         <Card className="bg-gray-50 dark:bg-gray-800/50">
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                                 <div className="flex items-center justify-between">
-                                    <span>Added {formatDistanceToNow(new Date(expense.value.createdAt))}</span>
+                                    <span>{t('pages.expenseDetailPage.added')}{formatDistanceToNow(new Date(expense.value.createdAt))}</span>
                                     <span className="text-xs">{formatLocalDateTime(expense.value.createdAt)}</span>
                                 </div>
                                 {expense.value.updatedAt !== expense.value.createdAt && (
                                     <div className="flex items-center justify-between mt-1">
-                                        <span>Last updated {formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
+                                        <span>{t('pages.expenseDetailPage.lastUpdated')}{formatDistanceToNow(new Date(expense.value.updatedAt))}</span>
                                         <span className="text-xs">{formatLocalDateTime(expense.value.updatedAt)}</span>
                                     </div>
                                 )}
@@ -309,7 +311,7 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                         onClick={() => setShowReceiptModal(false)}
                         role="dialog"
                         aria-modal="true"
-                        aria-label="Receipt viewer"
+                        aria-label={t('pages.expenseDetailPage.receiptViewer')}
                         onKeyDown={(e) => {
                             if (e.key === 'Escape') {
                                 setShowReceiptModal(false);
@@ -321,13 +323,13 @@ export default function ExpenseDetailPage({ groupId, expenseId }: ExpenseDetailP
                             <button
                                 onClick={() => setShowReceiptModal(false)}
                                 className="absolute top-2 right-2 z-10 bg-black bg-opacity-50 text-white rounded-full p-2 hover:bg-opacity-75 transition-all focus:outline-none focus:ring-2 focus:ring-white"
-                                aria-label="Close receipt viewer"
+                                aria-label={t('pages.expenseDetailPage.closeReceiptViewer')}
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            <img src={expense.value.receiptUrl} alt="Receipt - Full Size" className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
+                            <img src={expense.value.receiptUrl} alt={t('pages.expenseDetailPage.receiptFullSize')} className="max-w-full max-h-full object-contain rounded-lg" onClick={(e) => e.stopPropagation()} />
                         </div>
                     </div>
                 )}

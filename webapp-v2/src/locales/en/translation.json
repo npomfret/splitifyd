@@ -131,7 +131,8 @@
     "showHistory": "Show History",
     "joinGroup": "Join Group",
     "understood": "Understood",
-    "you": "You"
+    "you": "You",
+    "titleSuffix": " - Splitifyd"
   },
   "errors": {
     "displayNameEmpty": "Display name cannot be empty",
@@ -687,35 +688,40 @@
     "expenseDetailPage": {
       "missingGroupId": "Missing group ID",
       "missingExpenseId": "Missing expense ID",
-      "loadFailed": "Failed to load expense",
-      "expenseTitle": "Expense: ",
-      "shareMessage": "Check out this expense: ",
+      "failedToLoad": "Failed to load expense",
+      "expenseLabel": "Expense: ",
+      "checkOutExpense": "Check out this expense: ",
+      "shareApiFailed": "Share API failed, falling back to clipboard",
+      "failedToCopy": "Failed to copy to clipboard",
       "error": "Error",
       "expenseNotFound": "Expense not found",
       "backToGroup": "Back to Group",
-      "separator": " - ",
+      "titleSeparator": " - ",
+      "expenseFor": "Expense for ",
       "backButton": "← Back",
       "date": "Date",
-      "agoSuffix": " ago)",
+      "ago": " ago",
       "category": "Category",
       "paidBy": "Paid by",
       "unknown": "Unknown",
       "discussion": "Discussion",
       "receipt": "Receipt",
-      "receiptHover": "Click to view full size",
-      "addedPrefix": "Added ",
-      "lastUpdatedPrefix": "Last updated ",
+      "clickToViewFullSize": "Click to view full size",
+      "added": "Added ",
+      "lastUpdated": "Last updated ",
       "receiptViewer": "Receipt viewer",
       "closeReceiptViewer": "Close receipt viewer",
       "receiptFullSize": "Receipt - Full Size"
     },
     "groupDetailPage": {
-      "errorLoading": "Error Loading Group",
+      "errorLoadingGroup": "Error Loading Group",
       "backToDashboard": "Back to Dashboard",
       "comments": "Comments",
       "paymentHistory": "Payment History",
       "hideHistory": "Hide History",
-      "showHistory": "Show History"
+      "showHistory": "Show History",
+      "titleSuffix": " - Splitifyd",
+      "manageExpensesFor": "Manage expenses for "
     },
     "landingPage": {
       "title": "Effortless Bill Splitting - Splitifyd",
@@ -728,32 +734,34 @@
       "requiredIndicator": "*"
     },
     "resetPasswordPage": {
-      "sendFailed": "Failed to send reset email",
-      "checkEmailTitle": "Check Your Email",
-      "checkEmailMessage": "Password reset instructions have been sent to your email",
-      "emailSentTitle": "Email Sent Successfully",
-      "emailSentMessage": "We've sent password reset instructions to:",
+      "failedToSendReset": "Failed to send reset email",
+      "checkYourEmail": "Check Your Email",
+      "resetInstructionsSent": "Password reset instructions have been sent to your email",
+      "emailSentSuccessfully": "Email Sent Successfully",
+      "sentInstructionsTo": "We've sent password reset instructions to:",
       "whatsNext": "What's next?",
-      "step1": "• Check your email inbox (and spam folder)",
-      "step2": "• Click the reset link in the email",
-      "step3": "• Create a new password",
-      "step4": "• Sign in with your new password",
-      "sendToDifferent": "Send to Different Email",
+      "checkEmailInbox": "• Check your email inbox (and spam folder)",
+      "clickResetLink": "• Click the reset link in the email",
+      "createNewPassword": "• Create a new password",
+      "signInWithNewPassword": "• Sign in with your new password",
+      "sendToDifferentEmail": "Send to Different Email",
       "backToSignIn": "← Back to Sign In",
-      "title": "Reset Password",
-      "subtitle": "Enter your email address to receive password reset instructions",
-      "description": "Enter the email address associated with your account and we'll send you a link to reset your password.",
-      "sendButton": "Send Reset Instructions"
+      "resetPassword": "Reset Password",
+      "enterEmailForReset": "Enter your email address to receive password reset instructions",
+      "enterEmailDescription": "Enter the email address associated with your account and we'll send you a link to reset your password.",
+      "emailPlaceholder": "Enter your email address",
+      "sendResetInstructions": "Send Reset Instructions"
     }
   },
-  "app": {
-    "loadingPage": "Loading page...",
-    "loading": "Loading...",
+  "main": {
     "unknownButton": "Unknown Button",
     "linkClick": "Link Click: ",
     "unknownLink": "Unknown Link",
     "elementClick": "Element Click: ",
     "unknownElement": "Unknown Element"
+  },
+  "authLayout": {
+    "titleSuffix": " - Splitifyd"
   },
   "authProvider": {
     "authenticationError": "Authentication Error",

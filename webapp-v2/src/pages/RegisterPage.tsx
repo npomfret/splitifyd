@@ -154,7 +154,7 @@ export function RegisterPage() {
                     <label for="fullname-input" class="block text-sm font-medium text-gray-700">
                         {t('registerPage.fullNameLabel')}{' '}
                         <span class="text-red-500" data-testid="required-indicator">
-                            *
+                            {t('registerPage.requiredIndicator')}
                         </span>
                     </label>
                     <input

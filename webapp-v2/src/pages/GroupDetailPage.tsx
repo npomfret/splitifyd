@@ -1,5 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { useSignal, useComputed } from '@preact/signals';
+import { useTranslation } from 'react-i18next';
 import { navigationService } from '@/services/navigation.service';
 import { enhancedGroupDetailStore } from '../app/stores/group-detail-store-enhanced';
 import { useAuthRequired } from '../app/hooks/useAuthRequired';
@@ -20,6 +21,7 @@ interface GroupDetailPageProps {
 }
 
 export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
+    const { t } = useTranslation();
     const isInitialized = useSignal(false);
     const showDeletedExpenses = useSignal(false);
     const showLeaveGroupDialog = useSignal(false);
@@ -126,10 +128,10 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
             <BaseLayout>
                 <div className="container mx-auto px-4 py-8">
                     <Card className="p-6 text-center">
-                        <h2 className="text-xl font-semibold mb-2">Error Loading Group</h2>
+                        <h2 className="text-xl font-semibold mb-2">{t('pages.groupDetailPage.errorLoadingGroup')}</h2>
                         <p className="text-gray-600 mb-4">{error.value}</p>
                         <Button variant="primary" onClick={() => navigationService.goToDashboard()}>
-                            Back to Dashboard
+                            {t('pages.groupDetailPage.backToDashboard')}
                         </Button>
                     </Card>
                 </div>
@@ -202,7 +204,7 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
 
     // Render group detail
     return (
-        <BaseLayout title={`${group.value!.name} - Splitifyd`} description={`Manage expenses for ${group.value!.name}`} headerVariant="dashboard">
+        <BaseLayout title={`${group.value!.name}${t('pages.groupDetailPage.titleSuffix')}`} description={`${t('pages.groupDetailPage.manageExpensesFor')}${group.value!.name}`} headerVariant="dashboard">
             <GroupDetailGrid
                 leftSidebar={
                     <>
@@ -274,15 +276,15 @@ export default function GroupDetailPage({ id: groupId }: GroupDetailPageProps) {
                         <BalanceSummary variant="sidebar" />
 
                         {/* Comments Section */}
-                        <SidebarCard title="Comments" className="flex-1">
+                        <SidebarCard title={t('pages.groupDetailPage.comments')} className="flex-1">
                             <CommentsSection targetType="group" targetId={groupId!} maxHeight="300px" />
                         </SidebarCard>
 
                         {/* Settlement History Section */}
-                        <SidebarCard title="Payment History">
+                        <SidebarCard title={t('pages.groupDetailPage.paymentHistory')}>
                             <div className="space-y-3">
                                 <Button variant="secondary" size="sm" className="w-full" onClick={() => modals.toggleSettlementHistory()}>
-                                    {modals.showSettlementHistory.value ? 'Hide History' : 'Show History'}
+                                    {modals.showSettlementHistory.value ? t('pages.groupDetailPage.hideHistory') : t('pages.groupDetailPage.showHistory')}
                                 </Button>
                                 {modals.showSettlementHistory.value && <SettlementHistory groupId={groupId!} onEditSettlement={handleEditSettlement} />}
                             </div>

@@ -1,4 +1,5 @@
 import { ComponentChildren } from 'preact';
+import { useTranslation } from 'react-i18next';
 import { BaseLayout } from '../layout/BaseLayout';
 
 interface AuthLayoutProps {
@@ -8,8 +9,9 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ title, description, children }: AuthLayoutProps) {
+    const { t } = useTranslation();
     return (
-        <BaseLayout title={title} description={description || `${title} - Splitifyd`} headerVariant="minimal">
+        <BaseLayout title={title} description={description || `${title}${t('authLayout.titleSuffix')}`} headerVariant="minimal">
             <main class="flex-1 flex items-center justify-center px-4 py-12">
                 <div class="w-full max-w-md">
                     <div class="bg-white rounded-lg shadow-md border p-8">

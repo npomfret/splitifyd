@@ -2,8 +2,8 @@ import { render } from 'preact';
 import { App } from './App';
 import { AuthProvider } from './app/providers/AuthProvider';
 import { logUserAction, logButtonClick } from './utils/browser-logger';
+import i18n from './i18n';
 import './styles/global.css';
-import './i18n';
 
 // Global click interceptor for audit trail
 document.addEventListener(
@@ -19,7 +19,7 @@ document.addEventListener(
         // Handle native button elements
         if (target.tagName === 'BUTTON' || target.closest('button')) {
             const button = target.tagName === 'BUTTON' ? target : (target.closest('button') as HTMLButtonElement);
-            const buttonText = button.textContent?.trim() || button.getAttribute('aria-label') || 'Unknown Button';
+            const buttonText = button.textContent?.trim() || button.getAttribute('aria-label') || i18n.t('main.unknownButton');
 
             logButtonClick(buttonText, {
                 id: button.id,
@@ -32,9 +32,9 @@ document.addEventListener(
         // Handle link clicks
         else if (target.tagName === 'A' || target.closest('a')) {
             const link = (target.tagName === 'A' ? target : target.closest('a')) as HTMLAnchorElement;
-            const linkText = link.textContent?.trim() || link.getAttribute('aria-label') || 'Unknown Link';
+            const linkText = link.textContent?.trim() || link.getAttribute('aria-label') || i18n.t('main.unknownLink');
 
-            logUserAction(`Link Click: ${linkText}`, {
+            logUserAction(`${i18n.t('main.linkClick')}${linkText}`, {
                 href: link.href,
                 id: link.id,
                 className: link.className,
@@ -45,9 +45,9 @@ document.addEventListener(
 
         // Handle other clickable elements with onclick or role="button"
         else if (target.onclick || target.getAttribute('role') === 'button') {
-            const elementText = target.textContent?.trim() || target.getAttribute('aria-label') || 'Unknown Element';
+            const elementText = target.textContent?.trim() || target.getAttribute('aria-label') || i18n.t('main.unknownElement');
 
-            logUserAction(`Element Click: ${elementText}`, {
+            logUserAction(`${i18n.t('main.elementClick')}${elementText}`, {
                 tagName: target.tagName.toLowerCase(),
                 id: target.id,
                 className: target.className,
