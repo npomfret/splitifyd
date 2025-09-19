@@ -208,25 +208,6 @@ export class GroupDetailPage extends BasePage {
     // CONTEXT-SPECIFIC SELECTORS TO FIX STRICT MODE VIOLATIONS
 
     /**
-     * Waits for "All settled up!" message to appear in the balance section
-     * The Balances section is always visible (no collapse/expand functionality)
-     * This method waits for the text to appear as balances are calculated
-     */
-    async waitForSettledUpMessage(timeout: number = 5000): Promise<void> {
-        // Wait for at least one "All settled up!" text to appear in the DOM
-        // Using polling to handle dynamic rendering
-        await expect(async () => {
-            const count = await this.page.getByText('All settled up!').count();
-            if (count === 0) {
-                throw new Error('No "All settled up!" text found yet');
-            }
-        }).toPass({
-            timeout,
-            intervals: [100, 200, 300, 400, 500, 1000],
-        });
-    }
-
-    /**
      * Waits for the group to have the expected number of members.
      * Relies on real-time updates to show the correct member count.
      */
@@ -981,13 +962,6 @@ export class GroupDetailPage extends BasePage {
             .first();
     }
 
-    async assertGroupSettledUp() {
-        const balanceSection = this.getBalancesSectionByContext();
-
-        // Should be settled up after paying the full debt amount
-        await expect(balanceSection.getByText('All settled up!')).toBeVisible();
-    }
-
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
         // If testid approach doesn't work, fall back to a more precise text-based approach
         const debtContainerFallback = this.getBalancesSectionByContext()
@@ -1001,6 +975,26 @@ export class GroupDetailPage extends BasePage {
         // Verify the debt amount is present within this container
         const debtAmount = debtContainerFallback.locator('[data-financial-amount="debt"]').filter({hasText: amount});
         await expect(debtAmount).toBeVisible({timeout: 2000});
+    }
+
+    /**
+     * Waits for "All settled up!" message to appear in the balance section
+     * The Balances section is always visible (no collapse/expand functionality)
+     * This method waits for the text to appear as balances are calculated
+     */
+    async waitForSettledUpMessage(timeout: number = 3000): Promise<void> {
+        // Wait for at least one "All settled up!" text to appear in the DOM
+        // Using polling to handle dynamic rendering
+        await expect(async () => {
+            const balanceSection = this.getBalancesSectionByContext();
+            const count = await balanceSection.getByText('All settled up!').count();
+            if (count === 0) {
+                throw new Error('No "All settled up!" in balances section found yet');
+            }
+        }).toPass({
+            timeout,
+            intervals: [100, 200, 300, 400, 500, 1000],
+        });
     }
 
     /**

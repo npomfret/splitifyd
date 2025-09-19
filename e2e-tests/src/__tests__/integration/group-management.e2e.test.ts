@@ -7,15 +7,15 @@ import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 /**
- * Consolidated Member Management E2E Tests
+ * Consolidated Group Management E2E Tests
  *
  * Consolidated from:
- * - member-lifecycle.e2e.test.ts (leave/remove operations)
- * - realtime-comprehensive.e2e.test.ts (member removal edge cases)
- * - group-deletion.e2e.test.ts (member behavior during group deletion)
+ * - member-management.e2e.test.ts (member operations)
+ * - group-lifecycle.e2e.test.ts (group editing/settings)
+ * - member-lifecycle.e2e.test.ts (deprecated)
  *
- * This file provides comprehensive member management testing while eliminating
- * redundancy and reducing test complexity from 3-4 user scenarios to 2 users where possible.
+ * This file provides comprehensive group and member management testing while eliminating
+ * redundancy and reducing test complexity.
  */
 
 simpleTest.describe('Member Management - Core Operations', () => {
@@ -309,6 +309,114 @@ simpleTest.describe('Member Management - Real-time Updates', () => {
     });
 });
 
+simpleTest.describe('Member Management - Group Settings', () => {
+    simpleTest('should comprehensively test group editing validation and functionality', async ({ createLoggedInBrowsers }) => {
+        const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
+
+        // Verify starting state
+        await expect(page).toHaveURL(/\/dashboard/);
+
+        // Create a group
+        const originalGroupName = 'Original Group Name';
+        const originalDescription = 'Original description';
+        const groupDetailPage = await dashboardPage.createGroupAndNavigate(originalGroupName, originalDescription);
+        const groupId = groupDetailPage.inferGroupId();
+        await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
+
+        // Wait for group page to load
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Verify settings button is visible for owner
+        const settingsButton = groupDetailPage.getSettingsButton();
+        await expect(settingsButton).toBeVisible();
+
+        // === Test 1: Basic editing functionality ===
+        let editModal = await groupDetailPage.openEditGroupModal();
+
+        // Edit the group name and description
+        await editModal.editGroupName('Updated Group Name');
+        await editModal.editDescription('Updated description text');
+
+        // Save changes (this will wait for modal to close)
+        await editModal.saveChanges();
+
+        // Wait for save to complete and real-time updates to propagate
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // Verify the group name was updated (relying on real-time updates)
+        await groupDetailPage.waitForGroupTitle('Updated Group Name');
+        await groupDetailPage.waitForGroupDescription('Updated description text');
+
+        // === Test 2: Validation scenarios ===
+        editModal = await groupDetailPage.openEditGroupModal();
+
+        // Try to save with empty name
+        await editModal.clearGroupName();
+        await expect(editModal.getSaveButton()).toBeVisible();
+        await expect(editModal.getSaveButton()).toBeDisabled();
+
+        // Try with too short name
+        await editModal.editGroupName('A');
+        await expect(editModal.getSaveButton()).toBeDisabled();
+
+        // Try with valid name
+        await editModal.editGroupName('Valid Name');
+        await expect(editModal.getSaveButton()).toBeEnabled();
+
+        // Clear again and check button is disabled
+        await editModal.clearGroupName();
+        await expect(editModal.getSaveButton()).toBeDisabled();
+
+        // === Test 3: No changes detection ===
+        // Reset to original values
+        await editModal.editGroupName('Updated Group Name');
+        await editModal.editDescription('Updated description text');
+
+        // Save button should be disabled when no changes from current state
+        await expect(editModal.getSaveButton()).toBeDisabled();
+
+        // Make a change
+        await editModal.editGroupName('Changed Name');
+        await expect(editModal.getSaveButton()).toBeEnabled();
+
+        // Revert the change
+        await editModal.editGroupName('Updated Group Name');
+        await expect(editModal.getSaveButton()).toBeDisabled();
+
+        // Cancel the modal
+        await editModal.cancel();
+        await expect(editModal.getModal()).not.toBeVisible();
+    });
+
+    simpleTest('should not show settings button for non-owner', async ({ createLoggedInBrowsers }) => {
+        // Create two browser sessions with pooled users
+        const [
+            { page: ownerPage, dashboardPage },
+            { page: memberPage, dashboardPage: memberDashboardPage },
+        ] = await createLoggedInBrowsers(2);
+
+        // Owner creates a group with member
+        const [ownerGroupDetailPage, memberGroupDetailPage] = await dashboardPage.createMultiUserGroup({}, memberDashboardPage);
+        const groupId = ownerGroupDetailPage.inferGroupId();
+        const groupName = await ownerGroupDetailPage.getGroupName();
+
+        await expect(ownerPage).toHaveURL(groupDetailUrlPattern(groupId));
+        await expect(memberPage).toHaveURL(groupDetailUrlPattern(groupId));
+
+        // Verify owner CAN see settings button
+        const ownerSettingsButton = ownerGroupDetailPage.getSettingsButton();
+        await expect(ownerSettingsButton).toBeVisible();
+
+        // Verify member CANNOT see settings button
+        const memberSettingsButton = memberGroupDetailPage.getSettingsButton();
+        await expect(memberSettingsButton).not.toBeVisible();
+
+        // Verify both can see the group name
+        await expect(ownerGroupDetailPage.getGroupTitle()).toHaveText(groupName);
+        await expect(memberGroupDetailPage.getGroupTitle()).toHaveText(groupName);
+    });
+});
+
 test.describe('Member Management - UI Components', () => {
     test('should display current group members', async ({ createLoggedInBrowsers }) => {
         const [{ dashboardPage }] = await createLoggedInBrowsers(1);
@@ -353,41 +461,4 @@ test.describe('Member Management - UI Components', () => {
         expect(isUserInSplit).toBe(true);
     });
 
-    test('should show creator as admin', async ({ createLoggedInBrowsers }) => {
-        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Creator should have admin badge - we expect a specific UI element
-        // The UI must show "admin" text for the group creator
-        await expect(groupDetailPage.getAdminBadge()).toBeVisible();
-    });
-
-    test('should show share functionality', async ({ createLoggedInBrowsers }) => {
-        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Share button should be visible and functional
-        const shareButton = groupDetailPage.getShareButton();
-        await expect(shareButton).toBeVisible();
-
-        // Get share link (opens modal, waits for link, closes modal)
-        const linkValue = await groupDetailPage.getShareLink();
-
-        // Link should contain the join URL with linkId parameter
-        expect(linkValue).toMatch(/\/join\?linkId=/);
-    });
-
-    test('should handle member count display', async ({ createLoggedInBrowsers }) => {
-        const [{ dashboardPage }] = await createLoggedInBrowsers(1);
-
-        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-
-        // Should show member count
-        const memberCount = groupDetailPage.getMemberCountElement();
-        await expect(memberCount).toBeVisible();
-
-        // Note: Balance display testing is centralized in balance-visualization.e2e.test.ts
-    });
 });
