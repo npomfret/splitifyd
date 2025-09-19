@@ -1,10 +1,10 @@
-import { ExpenseFormDataBuilder } from '../../pages/expense-form.page';
-import { expect, simpleTest } from '../../fixtures';
-import { ExpenseDetailPage, JoinGroupPage } from '../../pages';
-import { generateShortId, generateTestGroupName, randomString } from '@splitifyd/test-support';
-import { v4 as uuidv4 } from 'uuid';
-import { groupDetailUrlPattern } from '../../pages/group-detail.page';
-import { SettlementData } from '../../pages/settlement-form.page.ts';
+import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
+import {expect, simpleTest} from '../../fixtures';
+import {ExpenseDetailPage} from '../../pages';
+import {randomString} from '@splitifyd/test-support';
+import {v4 as uuidv4} from 'uuid';
+import {groupDetailUrlPattern} from '../../pages/group-detail.page';
+import {SettlementData} from '../../pages/settlement-form.page.ts';
 
 /**
  * Comprehensive Real-Time Updates E2E Tests
@@ -423,7 +423,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
 
         // Verify debt relationship (Receiver owes $40 to Payer)
-        await creatorGroupDetailPage.verifyDebt(receiverDisplayName, payerDisplayName, "$40");
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$40");
 
         // Payer edits the expense
         const payerExpenseDetailPage = await payerGroupDetailPage.clickExpenseToView(expenseDescription);
@@ -444,7 +444,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await expect(creatorGroupDetailPage.getTextElement('$100.00').first()).toBeVisible();
 
         // Verify updated debt (Receiver now owes $50 to Payer)
-        await creatorGroupDetailPage.verifyDebt(receiverDisplayName, payerDisplayName, "$50");
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$50");
     });
 
     simpleTest('should handle expense deletion in real-time', async ({ createLoggedInBrowsers }) => {

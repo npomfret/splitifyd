@@ -2,8 +2,7 @@ import {expect, simpleTest} from '../../fixtures';
 import {simpleTest as test} from '../../fixtures/simple-test.fixture';
 import {TIMEOUT_CONTEXTS} from '../../config/timeouts';
 import {PLACEHOLDERS} from '../../constants/selectors';
-import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {generateShortId, generateTestGroupName} from '@splitifyd/test-support';
+import {generateShortId} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
 import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
@@ -138,10 +137,10 @@ simpleTest.describe('Member Management - Multi-User Operations', () => {
 
         // Wait for expense to be processed and balances to update
         await groupDetailPage.waitForExpense(expenseDescription);
-        await groupDetailPage.verifyDebt(memberDisplayName, ownerDisplayName, "$50");
+        await groupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "$50");
 
         await memberGroupDetailPage.waitForExpense(expenseDescription);
-        await memberGroupDetailPage.verifyDebt(memberDisplayName, ownerDisplayName, "$50");
+        await memberGroupDetailPage.verifyDebtRelationship(memberDisplayName, ownerDisplayName, "$50");
 
         // Member tries to leave group
         await expect(memberGroupDetailPage.getLeaveGroupButton()).toBeVisible();

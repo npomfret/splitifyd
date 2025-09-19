@@ -1,7 +1,4 @@
-import {simpleTest, expect} from '../../fixtures';
-import {simpleTest as test} from '../../fixtures/simple-test.fixture';
-import {JoinGroupPage, GroupDetailPage} from '../../pages';
-import {generateTestGroupName} from '@splitifyd/test-support';
+import {expect, simpleTest} from '../../fixtures';
 import {SettlementData} from '../../pages/settlement-form.page.ts';
 
 simpleTest.describe('Settlements - Complete Functionality', () => {
@@ -339,7 +336,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Verify both debts exist across all pages
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-                await groupDetailPage.verifyDebt(user2DisplayName, user1DisplayName, '$40.00');
+                await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$40.00');
             }
 
             // 4. User 2 makes partial settlement of 30
@@ -375,8 +372,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Verify updated debts across all pages
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-                await groupDetailPage.verifyDebt(user2DisplayName, user1DisplayName, '$10.00');
-                await groupDetailPage.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+                await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$10.00');
+                await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
             }
 
             // 6. User 2 makes final settlement of remaining $10
@@ -416,7 +413,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // User3 should still owe $40
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-                await groupDetailPage.verifyDebt(user3DisplayName, user1DisplayName, '$40.00');
+                await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '$40.00');
             }
 
             // Verify both settlements appear in history

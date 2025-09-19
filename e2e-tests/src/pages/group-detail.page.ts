@@ -55,7 +55,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     getBalancesHeading() {
-        return this.page.getByRole('heading', { name: /balances/i });
+        return this.page.getByRole('heading', {name: /balances/i});
     }
 
     // Element accessors for expenses
@@ -64,7 +64,7 @@ export class GroupDetailPage extends BasePage {
         // Fallback: use role and name for robustness
         return this.page
             .locator('[data-testid="add-expense-button"]')
-            .or(this.page.getByRole('button', { name: /add expense/i }))
+            .or(this.page.getByRole('button', {name: /add expense/i}))
             .first();
     }
 
@@ -75,7 +75,7 @@ export class GroupDetailPage extends BasePage {
         // Get button and click it (clickButton will handle attachment wait internally)
         const settleButton = this.getSettleUpButton();
 
-        await this.clickButton(settleButton, { buttonName: 'Settle up' });
+        await this.clickButton(settleButton, {buttonName: 'Settle up'});
 
         // Verify modal opened
         const settlementFormPage = new SettlementFormPage(this.page, this.userInfo);
@@ -85,7 +85,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     getSettleUpButton(): Locator {
-        return this.page.getByRole('button', { name: /settle up/i });
+        return this.page.getByRole('button', {name: /settle up/i});
     }
 
     /**
@@ -96,10 +96,10 @@ export class GroupDetailPage extends BasePage {
         const addButton = this.getAddExpenseButton();
 
         // Wait for button to be visible
-        await expect(addButton).toBeVisible({ timeout });
+        await expect(addButton).toBeVisible({timeout});
 
         // Wait for button to be enabled
-        await expect(addButton).toBeEnabled({ timeout });
+        await expect(addButton).toBeEnabled({timeout});
     }
 
     async clickAddExpenseButton(expectedMemberCount: number): Promise<ExpenseFormPage> {
@@ -149,7 +149,7 @@ export class GroupDetailPage extends BasePage {
 
         // Button readiness is already checked in clickAddExpenseButton
         // Trust that the button is ready when this method is called
-        await this.clickButton(addButton, { buttonName: 'Add Expense' });
+        await this.clickButton(addButton, {buttonName: 'Add Expense'});
 
         // Wait for navigation to expense form
         await expect(this.page).toHaveURL(expectedUrlPattern);
@@ -166,8 +166,8 @@ export class GroupDetailPage extends BasePage {
         const loadingText = this.page.getByText('Loading expense form...');
 
         if ((await loadingSpinner.count()) > 0 || (await loadingText.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 });
-            await expect(loadingText).not.toBeVisible({ timeout: 5000 });
+            await expect(loadingSpinner).not.toBeVisible({timeout: 5000});
+            await expect(loadingText).not.toBeVisible({timeout: 5000});
         }
 
         // Verify we're still on the correct page
@@ -185,7 +185,7 @@ export class GroupDetailPage extends BasePage {
 
     // Share functionality accessors
     getShareButton() {
-        return this.page.getByRole('button', { name: /invite others/i }).first();
+        return this.page.getByRole('button', {name: /invite others/i}).first();
     }
 
     getShareDialog() {
@@ -197,7 +197,7 @@ export class GroupDetailPage extends BasePage {
     }
 
     getCloseButton() {
-        return this.page.getByRole('button', { name: /close|×/i }).first();
+        return this.page.getByRole('button', {name: /close|×/i}).first();
     }
 
     // User-related accessors
@@ -244,7 +244,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for member count to appear in the main group heading
         try {
-            await expect(this.page.getByText(expectedText).first()).toBeVisible({ timeout });
+            await expect(this.page.getByText(expectedText).first()).toBeVisible({timeout});
         } catch (error) {
             // Get actual visible member count for better error reporting
             const visibleMemberTexts = await this.page.locator('text=/\\d+ member/').allTextContents();
@@ -273,7 +273,7 @@ export class GroupDetailPage extends BasePage {
         // Primary approach: verify all users are visible in the group (more reliable than member count)
         for (const userName of allUserNames) {
             try {
-                await expect(this.page.getByText(userName).first()).toBeVisible({ timeout: 5000 });
+                await expect(this.page.getByText(userName).first()).toBeVisible({timeout: 5000});
             } catch (e) {
                 // Capture detailed state for debugging - handle page closure gracefully
                 let visibleMembers: Array<{ name: string; id: string; text: string }> = [];
@@ -303,7 +303,7 @@ export class GroupDetailPage extends BasePage {
                 } catch (debugError: any) {
                     // Page was closed or became inaccessible
                     console.warn('Could not capture debug info - page may be closed:', debugError.message);
-                    visibleMembers = [{ name: 'debug-capture-failed', id: 'unknown', text: 'Page inaccessible' }];
+                    visibleMembers = [{name: 'debug-capture-failed', id: 'unknown', text: 'Page inaccessible'}];
                 }
 
                 // Get browser context info
@@ -364,13 +364,13 @@ export class GroupDetailPage extends BasePage {
         const balancesSection = this.page
             .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
+                has: this.page.getByRole('heading', {name: 'Balances'}),
             })
             .first();
 
         // Wait for balances section to be visible
         try {
-            await expect(balancesSection).toBeVisible({ timeout: 5000 });
+            await expect(balancesSection).toBeVisible({timeout: 5000});
         } catch (e) {
             const pageContent = await this.page.textContent('body');
             throw new Error(`Balances section failed to load within 8 seconds on group ${groupId}. Page content: ${pageContent?.substring(0, 500)}...`);
@@ -378,7 +378,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for loading to disappear
         try {
-            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({ timeout: 5000 });
+            await expect(balancesSection.getByText('Loading balances...')).not.toBeVisible({timeout: 5000});
         } catch (e) {
             // Loading text might not be present, that's okay
         }
@@ -392,7 +392,7 @@ export class GroupDetailPage extends BasePage {
         const spinnerCount = await loadingSpinner.count();
         if (spinnerCount > 0) {
             try {
-                await expect(loadingSpinner.first()).not.toBeVisible({ timeout: 5000 });
+                await expect(loadingSpinner.first()).not.toBeVisible({timeout: 5000});
             } catch (e) {
                 throw new Error(`Members section loading spinner did not disappear within 5 seconds on group ${groupId}`);
             }
@@ -401,14 +401,14 @@ export class GroupDetailPage extends BasePage {
 
     async waitForBalanceUpdate(): Promise<void> {
         // Wait for the balance section to be stable
-        const balanceSection = this.page.getByRole('heading', { name: 'Balances' }).locator('..');
+        const balanceSection = this.page.getByRole('heading', {name: 'Balances'}).locator('..');
         await expect(balanceSection).toBeVisible();
 
         // Wait for network requests to complete
         await this.waitForDomContentLoaded();
     }
 
-    async waitForPage(groupId:string, expectedMemberCount: number) {
+    async waitForPage(groupId: string, expectedMemberCount: number) {
         const targetGroupUrl = `/groups/${groupId}`;
         await this.sanityCheckPageUrl(this.page.url(), targetGroupUrl);
 
@@ -430,28 +430,6 @@ export class GroupDetailPage extends BasePage {
         if (!currentUrl.includes(targetGroupUrl)) {
             // Take screenshot before throwing error
             throw new Error(`Navigation failed. Expected URL to contain ${targetGroupUrl}, but got: ${currentUrl}`);
-        }
-    }
-
-    async verifyDebt( debtorName: string, creditorName: string, amount: string | undefined) {
-        const balancesSection = this.page
-            .locator('.bg-white')
-            .filter({
-                has: this.page.getByRole('heading', {name: 'Balances'}),
-            })
-            .first();
-
-        // UI now uses arrow notation: "User A → User B" instead of "owes"
-        const debtText = balancesSection.getByText(`${debtorName} → ${creditorName}`).or(balancesSection.getByText(`${debtorName} owes ${creditorName}`));
-        await expect(debtText).toBeVisible();
-
-        if (amount) {
-            // Find the debt amount that's specifically associated with this debt relationship
-            // Look for the amount within the same container as the debt message
-            const debtRow = balancesSection.locator('div').filter({
-                hasText: new RegExp(`${debtorName}.*→.*${creditorName}|${debtorName}.*owes.*${creditorName}`),
-            });
-            await expect(debtRow.locator('.text-red-600').filter({hasText: amount}).first()).toBeVisible();
         }
     }
 
@@ -484,11 +462,11 @@ export class GroupDetailPage extends BasePage {
 
     // Headings
     getExpensesHeading() {
-        return this.page.getByRole(ARIA_ROLES.HEADING, { name: HEADINGS.EXPENSES });
+        return this.page.getByRole(ARIA_ROLES.HEADING, {name: HEADINGS.EXPENSES});
     }
 
     getShowHistoryButton() {
-        return this.page.getByRole(ARIA_ROLES.BUTTON, { name: BUTTON_TEXTS.SHOW_HISTORY });
+        return this.page.getByRole(ARIA_ROLES.BUTTON, {name: BUTTON_TEXTS.SHOW_HISTORY});
     }
 
     getNoExpensesText() {
@@ -520,7 +498,7 @@ export class GroupDetailPage extends BasePage {
         return this.page
             .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
+                has: this.page.getByRole('heading', {name: 'Balances'}),
             })
             .first();
     }
@@ -536,14 +514,14 @@ export class GroupDetailPage extends BasePage {
      * Gets the delete button for an expense
      */
     getExpenseDeleteButton() {
-        return this.page.getByRole('button', { name: /delete/i });
+        return this.page.getByRole('button', {name: /delete/i});
     }
 
     /**
      * Gets the confirmation delete button (second delete button in dialog)
      */
     getDeleteConfirmButton() {
-        return this.page.getByRole('button', { name: 'Delete' }).nth(1);
+        return this.page.getByRole('button', {name: 'Delete'}).nth(1);
     }
 
     /**
@@ -567,7 +545,7 @@ export class GroupDetailPage extends BasePage {
         // Target the specific expense description within the ExpenseItem structure
         // Based on ExpenseItem.tsx: <p className="font-medium">{expense.description}</p>
         // This is inside a clickable expense container with specific styling
-        return this.page.locator('div[style*="border-left"]').filter({ hasText: description }).locator('p.font-medium', { hasText: description });
+        return this.page.locator('div[style*="border-left"]').filter({hasText: description}).locator('p.font-medium', {hasText: description});
     }
 
     getExpenseAmount(amount: string) {
@@ -588,15 +566,16 @@ export class GroupDetailPage extends BasePage {
      */
     async deleteExpense() {
         const deleteButton = this.getExpenseDeleteButton();
-        await this.clickButton(deleteButton, { buttonName: 'Delete Expense' });
+        await this.clickButton(deleteButton, {buttonName: 'Delete Expense'});
 
         // Confirm deletion
         const confirmButton = this.getDeleteConfirmButton();
-        await this.clickButton(confirmButton, { buttonName: 'Confirm Delete' });
+        await this.clickButton(confirmButton, {buttonName: 'Confirm Delete'});
 
         // Wait for deletion to complete
         await this.waitForDomContentLoaded();
     }
+
     /**
      * Gets the share link from the group page.
      * Assumes the app works perfectly - no retries or workarounds.
@@ -615,12 +594,12 @@ export class GroupDetailPage extends BasePage {
         // Wait for loading spinner to disappear if present
         const loadingSpinner = dialog.locator('.animate-spin');
         if ((await loadingSpinner.count()) > 0) {
-            await expect(loadingSpinner).not.toBeVisible({ timeout: 5000 }); // for some reason this can be slow
+            await expect(loadingSpinner).not.toBeVisible({timeout: 5000}); // for some reason this can be slow
         }
 
         // Get the share link
         const shareLinkInput = this.getShareLinkInput();
-        await expect(shareLinkInput).toBeVisible({ timeout: 5000 });
+        await expect(shareLinkInput).toBeVisible({timeout: 5000});
         const shareLink = await shareLinkInput.inputValue();
 
         if (!shareLink || !shareLink.includes('/join?')) {
@@ -633,7 +612,7 @@ export class GroupDetailPage extends BasePage {
             await closeButton.click();
         } else {
             // Click outside modal to close
-            await this.page.click('body', { position: { x: 10, y: 10 } });
+            await this.page.click('body', {position: {x: 10, y: 10}});
         }
 
         return shareLink;
@@ -655,14 +634,14 @@ export class GroupDetailPage extends BasePage {
     getAdminBadge() {
         // Target the admin badge which is typically a small text element with specific styling
         // Use exact match and look for the element with the smallest font size (text-xs class)
-        return this.page.locator('.text-xs').filter({ hasText: 'Admin' }).first();
+        return this.page.locator('.text-xs').filter({hasText: 'Admin'}).first();
     }
 
     /**
      * Gets the settings button (only visible for group owner)
      */
     getSettingsButton() {
-        return this.page.getByRole('button', { name: /group settings/i }).first();
+        return this.page.getByRole('button', {name: /group settings/i}).first();
     }
 
     /**
@@ -670,7 +649,7 @@ export class GroupDetailPage extends BasePage {
      */
     async openEditGroupModal(): Promise<EditGroupModalPage> {
         const settingsButton = this.getSettingsButton();
-        await this.clickButton(settingsButton, { buttonName: 'Group Settings' });
+        await this.clickButton(settingsButton, {buttonName: 'Group Settings'});
 
         // Create and return the EditGroupModalPage instance
         const editModal = new EditGroupModalPage(this.page);
@@ -689,6 +668,7 @@ export class GroupDetailPage extends BasePage {
     getMainSection() {
         return this.page.getByRole('main');
     }
+
     /**
      * Get the amount input field (for expense or settlement forms)
      */
@@ -707,7 +687,7 @@ export class GroupDetailPage extends BasePage {
     async getCurrentMemberCount(): Promise<number> {
         // Use the specific testid we added to the GroupHeader component
         const memberCountElement = this.page.getByTestId('member-count');
-        await expect(memberCountElement).toBeVisible({ timeout: 10000 });
+        await expect(memberCountElement).toBeVisible({timeout: 10000});
 
         const memberText = await memberCountElement.textContent();
         if (!memberText) {
@@ -732,7 +712,7 @@ export class GroupDetailPage extends BasePage {
             await closeButton.click();
         } else {
             // Click outside modal to close
-            await this.page.click('body', { position: { x: 10, y: 10 } });
+            await this.page.click('body', {position: {x: 10, y: 10}});
         }
     }
 
@@ -749,7 +729,7 @@ export class GroupDetailPage extends BasePage {
     getMembersContainer(): Locator {
         // Find the visible Members container (either sidebar div or Card)
         // Use the specific classes from the TSX: sidebar has "border rounded-lg bg-white p-4"
-        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({ has: this.page.getByText('Members') });
+        return this.page.locator('.border.rounded-lg.bg-white, .p-6').filter({has: this.page.getByText('Members')});
     }
 
     /**
@@ -760,8 +740,8 @@ export class GroupDetailPage extends BasePage {
         const membersContainer = this.getMembersContainer();
 
         // Look for visible member item with our name within the visible container
-        const memberElement = membersContainer.locator('[data-testid="member-item"]:visible').filter({ hasText: memberName }).first();
-        await expect(memberElement).toBeVisible({ timeout });
+        const memberElement = membersContainer.locator('[data-testid="member-item"]:visible').filter({hasText: memberName}).first();
+        await expect(memberElement).toBeVisible({timeout});
     }
 
     /**
@@ -775,14 +755,14 @@ export class GroupDetailPage extends BasePage {
      * Get edit button for a specific settlement by identifying the settlement container
      */
     getSettlementEditButton(settlementNote: string): Locator {
-        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: settlementNote }).getByRole('button', { name: 'Edit payment' });
+        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: settlementNote}).getByRole('button', {name: 'Edit payment'});
     }
 
     /**
      * Get delete button for a specific settlement by identifying the settlement container
      */
     getSettlementDeleteButton(settlementNote: string): Locator {
-        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: settlementNote }).getByRole('button', { name: 'Delete payment' });
+        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: settlementNote}).getByRole('button', {name: 'Delete payment'});
     }
 
     /**
@@ -796,17 +776,17 @@ export class GroupDetailPage extends BasePage {
 
         // Assert the edit button exists and is enabled
         const editButton = this.getSettlementEditButton(settlementNote);
-        await expect(editButton).toBeVisible({ timeout: 2000 });
+        await expect(editButton).toBeVisible({timeout: 2000});
         await expect(editButton).toBeEnabled();
 
-        await this.clickButton(editButton, { buttonName: 'Edit Settlement' });
+        await this.clickButton(editButton, {buttonName: 'Edit Settlement'});
 
         // Wait for settlement form modal to open in edit mode
         const modal = this.page.getByRole('dialog');
-        await expect(modal).toBeVisible({ timeout: 3000 });
+        await expect(modal).toBeVisible({timeout: 3000});
 
         // Verify we're in edit mode by checking for "Update Payment" title
-        await expect(modal.getByRole('heading', { name: 'Update Payment' })).toBeVisible();
+        await expect(modal.getByRole('heading', {name: 'Update Payment'})).toBeVisible();
 
         const expectedMemberCount = await this.getCurrentMemberCount();
 
@@ -828,30 +808,30 @@ export class GroupDetailPage extends BasePage {
 
         // Assert the delete button exists and is enabled
         const deleteButton = this.getSettlementDeleteButton(settlementNote);
-        await expect(deleteButton).toBeVisible({ timeout: 2000 });
+        await expect(deleteButton).toBeVisible({timeout: 2000});
         await expect(deleteButton).toBeEnabled();
 
-        await this.clickButton(deleteButton, { buttonName: 'Delete Settlement' });
+        await this.clickButton(deleteButton, {buttonName: 'Delete Settlement'});
 
         // Wait for confirmation dialog - it uses data-testid, not role="dialog"
         const confirmDialog = this.page.locator('[data-testid="confirmation-dialog"]');
-        await expect(confirmDialog).toBeVisible({ timeout: 3000 });
+        await expect(confirmDialog).toBeVisible({timeout: 3000});
 
         // Verify it's the correct dialog
         await expect(confirmDialog.locator('h3')).toHaveText('Delete Payment');
 
         if (confirm) {
             const deleteButton = confirmDialog.locator('[data-testid="confirm-button"]');
-            await this.clickButton(deleteButton, { buttonName: 'Delete' });
+            await this.clickButton(deleteButton, {buttonName: 'Delete'});
 
             // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
+            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
         } else {
             const cancelButton = confirmDialog.locator('[data-testid="cancel-button"]');
-            await this.clickButton(cancelButton, { buttonName: 'Cancel' });
+            await this.clickButton(cancelButton, {buttonName: 'Cancel'});
 
             // Wait for dialog to close
-            await expect(confirmDialog).not.toBeVisible({ timeout: 3000 });
+            await expect(confirmDialog).not.toBeVisible({timeout: 3000});
         }
     }
 
@@ -863,7 +843,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for real-time updates to complete by ensuring settlement is not visible
         const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-        await expect(settlementEntry).not.toBeVisible({ timeout: 2000 });
+        await expect(settlementEntry).not.toBeVisible({timeout: 2000});
     }
 
     /**
@@ -893,7 +873,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for the settlement to appear in the history
         const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-        await expect(settlementEntry).toBeVisible({ timeout });
+        await expect(settlementEntry).toBeVisible({timeout});
     }
 
     /**
@@ -901,10 +881,10 @@ export class GroupDetailPage extends BasePage {
      */
     async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
         const showHistoryButton = this.getShowHistoryButton();
-        await this.clickButton(showHistoryButton, { buttonName: 'Show History' });
+        await this.clickButton(showHistoryButton, {buttonName: 'Show History'});
 
         // Wait for settlement history modal content to be rendered and verify it's visible
-        await expect(this.page.locator('div').filter({ hasText: settlementText }).first()).toBeVisible();
+        await expect(this.page.locator('div').filter({hasText: settlementText}).first()).toBeVisible();
     }
 
     /**
@@ -914,8 +894,8 @@ export class GroupDetailPage extends BasePage {
         // Assert we're on the group detail page
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        const showHistoryButton = this.page.getByRole('button', { name: 'Show History' });
-        const hideHistoryButton = this.page.getByRole('button', { name: 'Hide History' });
+        const showHistoryButton = this.page.getByRole('button', {name: 'Show History'});
+        const hideHistoryButton = this.page.getByRole('button', {name: 'Hide History'});
 
         // Check if history is already open
         const isHistoryOpen = await hideHistoryButton.isVisible();
@@ -941,7 +921,7 @@ export class GroupDetailPage extends BasePage {
 
         // The Payment History is in a SidebarCard within the page, not in a modal with role="region"
         // Look for the settlement card directly within the page
-        const settlementCard = this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({ hasText: details.note });
+        const settlementCard = this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: details.note});
 
         // Use first() to resolve ambiguity when multiple matches
         await expect(settlementCard.first()).toBeVisible();
@@ -980,26 +960,24 @@ export class GroupDetailPage extends BasePage {
         return this.page
             .locator('.bg-white')
             .filter({
-                has: this.page.getByRole('heading', { name: 'Balances' }),
+                has: this.page.getByRole('heading', {name: 'Balances'}),
             })
             .first();
     }
 
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {
-        const balancesSection = this.getBalancesSectionByContext();
-
         // If testid approach doesn't work, fall back to a more precise text-based approach
-        const debtContainerFallback = balancesSection
+        const debtContainerFallback = this.getBalancesSectionByContext()
             .locator('div')
-            .filter({ hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`) })
-            .filter({ hasText: amount })
+            .filter({hasText: new RegExp(`${debtorName}\\s*→\\s*${creditorName}`)})
+            .filter({hasText: amount})
             .last(); // Get the most specific (deepest) match
 
-        await expect(debtContainerFallback).toBeVisible({ timeout: 3000 });
+        await expect(debtContainerFallback).toBeVisible({timeout: 3000});
 
         // Verify the debt amount is present within this container
-        const debtAmount = debtContainerFallback.locator('[data-financial-amount="debt"]').filter({ hasText: amount });
-        await expect(debtAmount).toBeVisible({ timeout: 2000 });
+        const debtAmount = debtContainerFallback.locator('[data-financial-amount="debt"]').filter({hasText: amount});
+        await expect(debtAmount).toBeVisible({timeout: 2000});
     }
 
     /**
@@ -1091,7 +1069,7 @@ export class GroupDetailPage extends BasePage {
     // Member management actions
     async clickLeaveGroup(): Promise<LeaveGroupModalPage> {
         const leaveButton = this.getLeaveGroupButton();
-        await this.clickButton(leaveButton, { buttonName: 'Leave Group' });
+        await this.clickButton(leaveButton, {buttonName: 'Leave Group'});
 
         // Create and return the LeaveGroupModalPage instance
         const leaveModal = new LeaveGroupModalPage(this.page);
@@ -1123,13 +1101,13 @@ export class GroupDetailPage extends BasePage {
             }
 
             throw new Error(`Expected redirect to dashboard or away from group, but still on: ${newUrl}`);
-        }).toPass({ timeout: 2000, intervals: [100, 200] });
+        }).toPass({timeout: 2000, intervals: [100, 200]});
     }
 
     async clickRemoveMember(memberName: string): Promise<RemoveMemberModalPage> {
         const memberItem = this.getMemberItem(memberName);
         try {
-            await expect(memberItem).toBeVisible({ timeout: 5000 });
+            await expect(memberItem).toBeVisible({timeout: 5000});
         } catch (e) {
             // Only get visible member items for error message
             const visibleMemberItems = await this.page.locator('[data-testid="member-item"]:visible').all();
@@ -1144,7 +1122,7 @@ export class GroupDetailPage extends BasePage {
         }
 
         const removeButton = this.getRemoveMemberButton(memberName);
-        await this.clickButton(removeButton, { buttonName: `Remove ${memberName}` });
+        await this.clickButton(removeButton, {buttonName: `Remove ${memberName}`});
 
         // Create and return the RemoveMemberModalPage instance
         const removeModal = new RemoveMemberModalPage(this.page);
@@ -1169,14 +1147,14 @@ export class GroupDetailPage extends BasePage {
      * Get the comment input textarea
      */
     getCommentInput() {
-        return this.getCommentsSection().getByRole('textbox', { name: /comment text/i });
+        return this.getCommentsSection().getByRole('textbox', {name: /comment text/i});
     }
 
     /**
      * Get the send comment button
      */
     getSendCommentButton() {
-        return this.getCommentsSection().getByRole('button', { name: /send comment/i });
+        return this.getCommentsSection().getByRole('button', {name: /send comment/i});
     }
 
     /**
@@ -1203,10 +1181,10 @@ export class GroupDetailPage extends BasePage {
         await expect(sendButton).toBeEnabled();
 
         // Click send button
-        await this.clickButton(sendButton, { buttonName: 'Send comment' });
+        await this.clickButton(sendButton, {buttonName: 'Send comment'});
 
         // Wait for comment to be sent (button should become disabled briefly)
-        await expect(sendButton).toBeDisabled({ timeout: 2000 });
+        await expect(sendButton).toBeDisabled({timeout: 2000});
 
         // Verify input is cleared and button remains disabled (empty input = disabled button)
         await expect(input).toHaveValue('');
@@ -1218,7 +1196,7 @@ export class GroupDetailPage extends BasePage {
      */
     async waitForCommentToAppear(text: string, timeout: number = 5000): Promise<void> {
         const comment = this.getCommentByText(text);
-        await expect(comment).toBeVisible({ timeout });
+        await expect(comment).toBeVisible({timeout});
     }
 
     /**
@@ -1226,12 +1204,12 @@ export class GroupDetailPage extends BasePage {
      */
     async leaveGroup(): Promise<void> {
         // Look for a leave group button in GroupActions component
-        const leaveGroupButton = this.page.getByRole('button', { name: /leave group/i });
+        const leaveGroupButton = this.page.getByRole('button', {name: /leave group/i});
         await expect(leaveGroupButton).toBeVisible();
-        await this.clickButton(leaveGroupButton, { buttonName: 'Leave Group' });
+        await this.clickButton(leaveGroupButton, {buttonName: 'Leave Group'});
 
         // Wait for Leave Group confirmation UI to appear
-        const leaveGroupHeading = this.page.getByRole('heading', { name: /leave group/i });
+        const leaveGroupHeading = this.page.getByRole('heading', {name: /leave group/i});
         await expect(leaveGroupHeading).toBeVisible();
 
         // Check for any error messages that might prevent leaving
@@ -1251,7 +1229,7 @@ export class GroupDetailPage extends BasePage {
 
         // Wait for confirmation UI to close and navigation to occur with better error handling
         try {
-            await expect(leaveGroupHeading).not.toBeVisible({ timeout: 3000 });
+            await expect(leaveGroupHeading).not.toBeVisible({timeout: 3000});
             const closeTime = Date.now();
             const duration = closeTime - clickTime;
             console.log(`🕒 Modal closed after ${duration}ms`);
