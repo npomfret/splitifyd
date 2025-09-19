@@ -196,55 +196,7 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
 });
 
 simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
-    simpleTest('should handle user leaving during expense operations', async ({ createLoggedInBrowsers }, testInfo) => {
-        testInfo.annotations.push({ type: 'skip-error-checking', description: 'Edge case testing may generate expected transient errors and 404s' });
-
-        // Create three users - Creator, LeavingUser, WatchingUser
-        const [
-            { dashboardPage: creatorDashboardPage, user: creator },
-            { page: leavingPage, dashboardPage: leavingDashboardPage, user: leaving },
-            { page: watchingPage, dashboardPage: watchingDashboardPage, user: watching }
-        ] = await createLoggedInBrowsers(3);
-
-        const creatorDisplayName = await creatorDashboardPage.header.getCurrentUserDisplayName();
-        const leavingDisplayName = await leavingDashboardPage.header.getCurrentUserDisplayName();
-
-        // Setup group
-        const [creatorGroupDetailPage, leavingGroupDetailPage, watchingGroupDetailPage] = await creatorDashboardPage.createMultiUserGroup({}, leavingDashboardPage, watchingDashboardPage);
-        const groupId = creatorGroupDetailPage.inferGroupId();
-
-        // LeavingUser leaves
-        const leaveModal = await leavingGroupDetailPage.clickLeaveGroup();
-        await leaveModal.confirmLeaveGroup();
-
-        // Wait for removal to propagate
-        await creatorGroupDetailPage.waitForPage(groupId, 2);
-        await watchingGroupDetailPage.waitForPage(groupId, 2);
-
-        // Creator creates expense after user has left
-        const expenseFormPage = await creatorGroupDetailPage.clickAddExpenseButton(2);
-        const expenseDescription = `Edge Leave Test ${randomString(4)}`;
-
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder()
-                .withDescription(expenseDescription)
-                .withAmount(60)
-                .withCurrency('USD')
-                .withPaidByDisplayName(creatorDisplayName)
-                .withSplitType('equal')
-                .withParticipants([creatorDisplayName])
-                .build(),
-        );
-
-        // Verify expense appears for remaining users
-        await creatorGroupDetailPage.waitForExpense(expenseDescription);
-        await watchingGroupDetailPage.waitForExpense(expenseDescription);
-
-        // Verify leaving user is on dashboard and removed from group
-        await leavingDashboardPage.waitForDashboard();
-        await creatorGroupDetailPage.verifyMemberNotVisible(leavingDisplayName);
-        await watchingGroupDetailPage.verifyMemberNotVisible(leavingDisplayName);
-    });
+    // Member management edge cases moved to member-management.e2e.test.ts
 
     simpleTest('should handle concurrent expense editing', async ({ createLoggedInBrowsers }) => {
         // Create two editors and one watcher

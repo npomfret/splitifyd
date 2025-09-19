@@ -554,13 +554,6 @@ export class GroupDetailPage extends BasePage {
         return this.page.getByText(amount).and(this.page.locator(':not([data-financial-amount])')).first();
     }
 
-    async verifyExpenseInList(description: string, amount?: string) {
-        await expect(this.getExpenseByDescription(description)).toBeVisible();
-        if (amount) {
-            await expect(this.page.getByText(amount)).toBeVisible();
-        }
-    }
-
     /**
      * Deletes an expense with confirmation
      */
@@ -723,6 +716,13 @@ export class GroupDetailPage extends BasePage {
         await expect(this.getExpenseByDescription(description)).toBeVisible();
     }
 
+    async verifyExpenseInList(description: string, amount?: string) {
+        await expect(this.getExpenseByDescription(description)).toBeVisible();
+        if (amount) {
+            await expect(this.page.getByText(amount)).toBeVisible();
+        }
+    }
+
     /**
      * Get the members container that contains the "Members" heading
      */
@@ -867,22 +867,6 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Verify settlement is in history
-     */
-    async verifySettlementInHistoryVisible(settlementNote: string): Promise<void> {
-        await expect(this.getSettlementHistoryEntry(settlementNote)).toBeVisible();
-    }
-
-    async verifySettlementInHistory(settlementNote: string): Promise<void> {
-        // Open history if not already open
-        await this.openHistoryIfClosed();
-
-        // Verify settlement is visible in history using properly scoped selector
-        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
-        await expect(settlementEntry).toBeVisible();
-    }
-
-    /**
      * Wait for a settlement to appear in the payment history
      * This is used for real-time testing when multiple users need to see a settlement
      * @param settlementNote - The note text of the settlement to wait for
@@ -943,7 +927,9 @@ export class GroupDetailPage extends BasePage {
      * Verify settlement details in history
      * Properly scoped to the payment history container
      */
-    async verifySettlementDetails(details: { note: string; amount: string; payerName: string; payeeName: string }): Promise<void> {
+    async verifySettlementDetails(details: { note: string; amount?: string; payerName?: string; payeeName?: string }): Promise<void> {
+        await this.openHistoryIfClosed();
+
         // Assert we're in the right state
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
@@ -952,9 +938,15 @@ export class GroupDetailPage extends BasePage {
 
         // Verify settlement is visible and contains all expected details
         await expect(settlementItem.first()).toBeVisible();
-        await expect(settlementItem.first().locator(`text=${details.amount}`)).toBeVisible();
-        await expect(settlementItem.first().locator(`text=${details.payerName}`)).toBeVisible();
-        await expect(settlementItem.first().locator(`text=${details.payeeName}`)).toBeVisible();
+
+        if(details.amount)
+            await expect(settlementItem.first().locator(`text=${details.amount}`)).toBeVisible();
+
+        if(details.payerName)
+            await expect(settlementItem.first().locator(`text=${details.payerName}`)).toBeVisible();
+
+        if(details.payeeName)
+            await expect(settlementItem.first().locator(`text=${details.payeeName}`)).toBeVisible();
     }
 
     /**
@@ -980,16 +972,20 @@ export class GroupDetailPage extends BasePage {
         await this.clickDeleteSettlement(note, confirm);
     }
 
-    /**
-     * Get balances section with specific context (for multi-page tests)
-     */
-    getBalancesSectionByContext() {
+    private getBalancesSectionByContext() {
         return this.page
             .locator('.bg-white')
             .filter({
                 has: this.page.getByRole('heading', {name: 'Balances'}),
             })
             .first();
+    }
+
+    assertAllSettledUp() {
+        const balanceSection = this.getBalancesSectionByContext();
+
+        // Should be settled up after paying the full debt amount
+        await expect(balanceSection.getByText('All settled up!')).toBeVisible();
     }
 
     async verifyDebtRelationship(debtorName: string, creditorName: string, amount: string): Promise<void> {

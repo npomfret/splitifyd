@@ -1,8 +1,5 @@
 import {expect, simpleTest as test} from '../../fixtures/simple-test.fixture';
 import {generateShortId} from '@splitifyd/test-support';
-import {GroupDetailPage, JoinGroupPage} from '../../pages';
-import {groupDetailUrlPattern} from '../../pages/group-detail.page';
-import {ExpenseFormDataBuilder} from '../../pages/expense-form.page';
 
 /**
  * Balance Visualization Tests
@@ -391,22 +388,19 @@ test.describe('Balance with Settlement Calculations', () => {
         const showHistoryButton = groupDetailPage.getShowHistoryButton();
         await showHistoryButton.click();
 
-        await groupDetailPage.verifySettlementInHistoryVisible('Full settlement payment');
+        await groupDetailPage.verifySettlementDetails({note: 'Full settlement payment'});
         await groupDetailPage.closeModal();
 
         // Also verify user2 can see the settlement via real-time updates
         const showHistoryButton2 = groupDetailPage2.getShowHistoryButton();
         await showHistoryButton2.click();
-        await groupDetailPage2.verifySettlementInHistoryVisible('Full settlement payment');
+        await groupDetailPage2.verifySettlementDetails({note: 'Full settlement payment'});
         await groupDetailPage2.closeModal();
 
         // Test user1's browser
         await expect(groupDetailPage.getBalancesHeading()).toBeVisible();
 
-        const balanceSection = groupDetailPage.getBalancesSectionByContext();
-
-        // Should be settled up after paying the full debt amount
-        await expect(balanceSection.getByText('All settled up!')).toBeVisible();
+        await groupDetailPage.assertAllSettledUp();
 
         // Verify expenses still appear after settlement
         await expect(groupDetailPage.getExpensesHeading()).toBeVisible();

@@ -34,7 +34,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Open history and verify settlement appears
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
+            await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
             // Verify amount and participants are displayed correctly
             await groupDetailPage.verifySettlementDetails(settlementData);
@@ -70,7 +70,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Verify settlement appears correctly
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
+            await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
             // Verify creator can still edit/delete even when they're the payee
             await groupDetailPage.verifySettlementHasEditButton(settlementData.note);
@@ -133,7 +133,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             await user1Page.waitForLoadState('domcontentloaded', {timeout: 5000});
 
             // Verify updated settlement in history
-            await groupDetailPage.verifySettlementInHistoryVisible(updatedData.note);
+            await groupDetailPage.verifySettlementDetails({note: updatedData.note});
             await groupDetailPage.verifySettlementDetails({
                 note: updatedData.note,
                 amount: updatedData.amount,
@@ -231,7 +231,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Open history and verify settlement exists
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
+            await groupDetailPage.verifySettlementDetails({note: settlementData.note});
 
             // Delete the settlement
             await groupDetailPage.deleteSettlement(settlementData.note, true);
@@ -278,7 +278,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Verify settlement still exists
             await groupDetailPage.openHistoryIfClosed();
-            await groupDetailPage.verifySettlementInHistoryVisible(settlementData.note);
+            await groupDetailPage.verifySettlementDetails({note: settlementData.note});
         });
     });
 
@@ -359,7 +359,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
             // Synchronize all pages to see the settlement
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
                 await groupDetailPage.waitForSettlementToAppear(settlementNote1)
-                await groupDetailPage.verifySettlementInHistory(settlementNote1)
+                await groupDetailPage.verifySettlementDetails({note: settlementNote1})
                 await groupDetailPage1.waitForPage(groupId, memberCount);
             }
 
@@ -395,7 +395,7 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
                 await groupDetailPage.waitForSettlementToAppear(settlementNote2)
-                await groupDetailPage.verifySettlementInHistory(settlementNote2)
+                await groupDetailPage.verifySettlementDetails({note: settlementNote2})
                 await groupDetailPage1.waitForPage(groupId, memberCount);
             }
 
@@ -418,8 +418,8 @@ simpleTest.describe('Settlements - Complete Functionality', () => {
 
             // Verify both settlements appear in history
             for(let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-                await groupDetailPage.verifySettlementInHistory("Partial payment from user2");
-                await groupDetailPage.verifySettlementInHistory("Final payment from user2 - all settled!");
+                await groupDetailPage.verifySettlementDetails({note: "Partial payment from user2"});
+                await groupDetailPage.verifySettlementDetails({note: "Final payment from user2 - all settled!"});
             }
         });
     });
