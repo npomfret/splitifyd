@@ -745,24 +745,44 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
+     * Get the payment history container that contains the "Payment History" heading
+     * This ensures all settlement-related selectors are properly scoped
+     */
+    getPaymentHistoryContainer(): Locator {
+        // Find the SidebarCard containing "Payment History" heading
+        // Based on SidebarCard structure: bg-white rounded-lg shadow-sm border border-gray-200 p-4
+        return this.page.locator('.bg-white.rounded-lg.shadow-sm.border.border-gray-200.p-4').filter({
+            has: this.page.locator('h3').filter({hasText: 'Payment History'})
+        });
+    }
+
+    /**
      * Get settlement payment history entry by note
+     * Properly scoped to the payment history container
      */
     private getSettlementHistoryEntry(settlementNote: string) {
-        return this.page.getByText(new RegExp(settlementNote, 'i'));
+        const paymentHistoryContainer = this.getPaymentHistoryContainer();
+        return paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
+            hasText: new RegExp(settlementNote, 'i')
+        });
     }
 
     /**
      * Get edit button for a specific settlement by identifying the settlement container
+     * Properly scoped to the payment history container
      */
     getSettlementEditButton(settlementNote: string): Locator {
-        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: settlementNote}).getByRole('button', {name: 'Edit payment'});
+        const settlementItem = this.getSettlementHistoryEntry(settlementNote);
+        return settlementItem.locator('[data-testid="edit-settlement-button"]');
     }
 
     /**
      * Get delete button for a specific settlement by identifying the settlement container
+     * Properly scoped to the payment history container
      */
     getSettlementDeleteButton(settlementNote: string): Locator {
-        return this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: settlementNote}).getByRole('button', {name: 'Delete payment'});
+        const settlementItem = this.getSettlementHistoryEntry(settlementNote);
+        return settlementItem.locator('[data-testid="delete-settlement-button"]');
     }
 
     /**
@@ -857,8 +877,9 @@ export class GroupDetailPage extends BasePage {
         // Open history if not already open
         await this.openHistoryIfClosed();
 
-        // Verify settlement is visible in history
-        await expect(this.page.getByText(new RegExp(settlementNote, 'i'))).toBeVisible();
+        // Verify settlement is visible in history using properly scoped selector
+        const settlementEntry = this.getSettlementHistoryEntry(settlementNote);
+        await expect(settlementEntry).toBeVisible();
     }
 
     /**
@@ -877,14 +898,20 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * Open settlement history modal and verify content
+     * Open settlement history and verify settlement content
+     * Properly scoped to the payment history container
      */
     async openHistoryAndVerifySettlement(settlementText: string | RegExp): Promise<void> {
-        const showHistoryButton = this.getShowHistoryButton();
-        await this.clickButton(showHistoryButton, {buttonName: 'Show History'});
+        await this.openHistoryIfClosed();
 
-        // Wait for settlement history modal content to be rendered and verify it's visible
-        await expect(this.page.locator('div').filter({hasText: settlementText}).first()).toBeVisible();
+        // Find the settlement within the payment history container
+        const paymentHistoryContainer = this.getPaymentHistoryContainer();
+        const settlementEntry = paymentHistoryContainer.locator('[data-testid="settlement-item"]').filter({
+            hasText: settlementText
+        });
+
+        // Wait for settlement to be visible within the payment history
+        await expect(settlementEntry.first()).toBeVisible();
     }
 
     /**
@@ -914,20 +941,20 @@ export class GroupDetailPage extends BasePage {
 
     /**
      * Verify settlement details in history
+     * Properly scoped to the payment history container
      */
     async verifySettlementDetails(details: { note: string; amount: string; payerName: string; payeeName: string }): Promise<void> {
         // Assert we're in the right state
         await expect(this.page).toHaveURL(groupDetailUrlPattern());
 
-        // The Payment History is in a SidebarCard within the page, not in a modal with role="region"
-        // Look for the settlement card directly within the page
-        const settlementCard = this.page.locator('.p-4.bg-white.border.border-gray-200.rounded-lg').filter({hasText: details.note});
+        // Find the settlement within the payment history container
+        const settlementItem = this.getSettlementHistoryEntry(details.note);
 
-        // Use first() to resolve ambiguity when multiple matches
-        await expect(settlementCard.first()).toBeVisible();
-        await expect(settlementCard.first().locator(`text=${details.amount}`)).toBeVisible();
-        await expect(settlementCard.first().locator(`text=${details.payerName}`)).toBeVisible();
-        await expect(settlementCard.first().locator(`text=${details.payeeName}`)).toBeVisible();
+        // Verify settlement is visible and contains all expected details
+        await expect(settlementItem.first()).toBeVisible();
+        await expect(settlementItem.first().locator(`text=${details.amount}`)).toBeVisible();
+        await expect(settlementItem.first().locator(`text=${details.payerName}`)).toBeVisible();
+        await expect(settlementItem.first().locator(`text=${details.payeeName}`)).toBeVisible();
     }
 
     /**
