@@ -197,8 +197,6 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
 });
 
 simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
-    // Member management edge cases moved to member-management.e2e.test.ts
-
     simpleTest('should handle concurrent expense editing', async ({ createLoggedInBrowsers }) => {
         // Create two editors and one watcher
         const [
