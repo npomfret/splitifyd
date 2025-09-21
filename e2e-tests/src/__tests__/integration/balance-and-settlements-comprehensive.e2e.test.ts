@@ -22,7 +22,7 @@ simpleTest.describe('Balance Calculation Fundamentals', () => {
         const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
 
         // Empty group should always be settled up
-        await groupDetailPage.waitForSettledUpMessage()
+        await groupDetailPage.waitForSettledUpMessage();
     });
 
     simpleTest('should show settled up when both users pay equal amounts', async ({ createLoggedInBrowsers }) => {
@@ -816,36 +816,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
         const [groupDetailPage1, groupDetailPage2] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
         const groupId = groupDetailPage1.inferGroupId();
 
-        // Set up API response interceptor to debug what the frontend receives
-        await groupDetailPage1.page.route('**/api/groups/*/full-details', async route => {
-            const response = await route.fetch();
-            const body = await response.text();
-
-            try {
-                const data = JSON.parse(body);
-                console.log('=== API RESPONSE INTERCEPTED P1 ===');
-                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
-            } catch (e) {
-                console.log('Failed to parse API response:', e);
-            }
-
-            route.fulfill({ response });
-        });
-
-        await groupDetailPage2.page.route('**/api/groups/*/full-details', async route => {
-            const response = await route.fetch();
-            const body = await response.text();
-
-            try {
-                const data = JSON.parse(body);
-                console.log('=== API RESPONSE INTERCEPTED P2 ===');
-                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
-            } catch (e) {
-                console.log('Failed to parse API response:', e);
-            }
-
-            route.fulfill({ response });
-        });
+        // API interceptors are now automatically set up for all pages
 
         // Create USD expense: User1 pays $200 → User2 owes $100
         await groupDetailPage1.addExpense({
@@ -893,26 +864,15 @@ simpleTest.describe('Mixed Currency Operations', () => {
         // AND verify EUR settlement creates opposite EUR debt
 
         // Add logging to debug the actual balance state
-        console.log('=== MIXED CURRENCY SETTLEMENT DEBUG ===');
         const balancesSection1 = groupDetailPage1.getBalancesSection();
         const balancesSection2 = groupDetailPage2.getBalancesSection();
 
         const balanceText1 = await balancesSection1.textContent();
         const balanceText2 = await balancesSection2.textContent();
 
-        console.log('User1 Page Balance Section:', balanceText1);
-        console.log('User2 Page Balance Section:', balanceText2);
-
         // Try to find the actual amounts shown
         const allAmounts1 = await balancesSection1.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
         const allAmounts2 = await balancesSection2.locator('[data-testid*="amount"], .amount, .currency-amount').allTextContents();
-
-        console.log('User1 Page All Amounts:', allAmounts1);
-        console.log('User2 Page All Amounts:', allAmounts2);
-
-        // Log what we're looking for vs what we found
-        console.log('Expected: User2 → User1: $100.00');
-        console.log('Expected: User1 → User2: €75.00');
 
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$100.00');
         await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€75.00');
@@ -1121,36 +1081,7 @@ simpleTest.describe('Mixed Currency Operations', () => {
         // Step 3: Verify CORRECT behavior (no currency conversion should occur)
         // Expected: USD debt unchanged, EUR debt created in opposite direction
 
-        // Add API response interceptor to debug what the frontend receives
-        await groupDetailPage1.page.route('**/api/groups/*/full-details', async route => {
-            const response = await route.fetch();
-            const body = await response.text();
-
-            try {
-                const data = JSON.parse(body);
-                console.log('=== API RESPONSE INTERCEPTED ===');
-                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
-            } catch (e) {
-                console.log('Failed to parse API response:', e);
-            }
-
-            route.fulfill({ response });
-        });
-
-        await groupDetailPage2.page.route('**/api/groups/*/full-details', async route => {
-            const response = await route.fetch();
-            const body = await response.text();
-
-            try {
-                const data = JSON.parse(body);
-                console.log('=== API RESPONSE INTERCEPTED PAGE 2 ===');
-                console.log('Balance data from API:', JSON.stringify(data.balances, null, 2));
-            } catch (e) {
-                console.log('Failed to parse API response:', e);
-            }
-
-            route.fulfill({ response });
-        });
+        // API interceptors are now automatically set up for all pages
 
         await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$50.00'); // USD debt unchanged
         await groupDetailPage1.verifyDebtRelationship(user1DisplayName, user2DisplayName, '€30.00'); // EUR debt created

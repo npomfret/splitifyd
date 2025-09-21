@@ -1,8 +1,15 @@
 import { test as base } from '@playwright/test';
-import { attachConsoleHandler } from '../helpers';
+import { attachConsoleHandler, attachApiInterceptor, ApiInterceptor } from '../helpers';
 
 // Extend base test to inject Playwright flag, i18n language setting, and unified console handling
-export const test = base.extend({
+export const test = base.extend<{ apiInterceptor: ApiInterceptor }>({
+    apiInterceptor: async ({ page }, use, testInfo) => {
+        // Create the API interceptor
+        const apiInterceptor = attachApiInterceptor(page, { testInfo });
+        await use(apiInterceptor);
+        // Cleanup is handled in the page fixture
+    },
+
     page: async ({ page }, use, testInfo) => {
         // Inject __PLAYWRIGHT__ flag and i18n language setting before any page script executes.
         await page.addInitScript(() => {
@@ -19,12 +26,18 @@ export const test = base.extend({
         // Attach unified console handler for automatic error detection and logging
         const consoleHandler = attachConsoleHandler(page, { testInfo });
 
+        // Attach API interceptor for request/response logging
+        const apiInterceptor = attachApiInterceptor(page, { testInfo });
+
         try {
             await use(page);
         } finally {
             // Process any errors that occurred during the test
             await consoleHandler.processErrors(testInfo);
+            await apiInterceptor.processLogs(testInfo);
+
             consoleHandler.dispose();
+            apiInterceptor.dispose();
         }
     },
 });

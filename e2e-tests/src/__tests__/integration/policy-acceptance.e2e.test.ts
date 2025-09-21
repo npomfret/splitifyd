@@ -89,11 +89,9 @@ simpleTest.describe('Policy Acceptance', () => {
 
             // Borrow a test user from the pool and promote to admin
             const user = await apiDriver.borrowTestUser();
-            console.log(`Borrowed test user: ${user.email}`);
 
             // Promote user to admin for policy management operations
             await apiDriver.promoteUserToAdmin(user.token);
-            console.log(`Promoted user to admin: ${user.email}`);
 
             // Clean up test environment to remove any non-standard policies
             await apiDriver.cleanupTestEnvironment(user.token);
@@ -106,15 +104,12 @@ simpleTest.describe('Policy Acceptance', () => {
 
             // Accept base policies for this user (simulating a user who registered earlier)
             await apiDriver.acceptCurrentPublishedPolicies(user.token);
-            console.log('✓ User accepted base policies');
 
             // Now update all policies to newer versions that user hasn't seen
             const policies = ['terms-of-service', 'privacy-policy', 'cookie-policy'];
 
-            console.log('Updating policies to new versions...');
             for (const policyId of policies) {
                 await apiDriver.updateSpecificPolicy(policyId, user.token);
-                console.log(`✓ Updated policy ${policyId} to new version`);
             }
 
             // Now login the user manually
@@ -144,8 +139,6 @@ simpleTest.describe('Policy Acceptance', () => {
             await expect(page).toHaveURL(/\/dashboard/);
             await dashboardPage.waitForDashboard();
 
-            console.log(`✓ Test completed - all policies updated and accepted`);
-
             // Return the user to the pool
             await apiDriver.returnTestUser(user.email);
 
@@ -159,7 +152,6 @@ simpleTest.describe('Policy Acceptance', () => {
             // Get a test user and promote to admin for policy management
             const user = await apiDriver.borrowTestUser();
             await apiDriver.promoteUserToAdmin(user.token);
-            console.log(`Promoted user to admin: ${user.email}`);
 
             // Clean up test environment to remove any non-standard policies
             await apiDriver.cleanupTestEnvironment(user.token);
@@ -204,8 +196,6 @@ simpleTest.describe('Policy Acceptance', () => {
             // Verify we're back to dashboard
             await expect(page).toHaveURL(/\/dashboard/);
 
-            console.log(`✓ Successfully processed all policies at once`);
-
             // Close the browser context
             await context.close();
         });
@@ -216,7 +206,6 @@ simpleTest.describe('Policy Acceptance', () => {
             // Get a test user and promote to admin for policy management
             const user = await apiDriver.borrowTestUser();
             await apiDriver.promoteUserToAdmin(user.token);
-            console.log(`Promoted user to admin: ${user.email}`);
 
             // Clean up test environment to remove any non-standard policies
             await apiDriver.cleanupTestEnvironment(user.token);
@@ -271,8 +260,6 @@ simpleTest.describe('Policy Acceptance', () => {
 
             // Verify we're back to dashboard
             await expect(page).toHaveURL(/\/dashboard/);
-
-            console.log(`✓ Policy modal structure validation complete`);
 
             // Close the browser context
             await context.close();

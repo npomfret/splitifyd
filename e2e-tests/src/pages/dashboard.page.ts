@@ -36,7 +36,7 @@ export class DashboardPage extends BasePage {
         const name = await groupDetailPage.getGroupName();
         expect(groupName).toEqual(name);
 
-        console.log(`new group created: "${groupName}" (${groupId})`);
+        console.log(`New group created: "${groupName}" (id: ${groupId})`);
 
         const groupDetailPages = [groupDetailPage];
 
@@ -47,7 +47,7 @@ export class DashboardPage extends BasePage {
                 const memberGroupDetailPage = await JoinGroupPage.joinGroupViaShareLink(dashboardPage.page, shareLink, groupId);
                 groupDetailPages.push(memberGroupDetailPage);
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
-                console.log(`member "${displayName}" has joined group "${groupName}" (${groupId})`);
+                console.log(`User "${displayName}" has joined group "${groupName}" (id: ${groupId})`);
             };
         }
 
@@ -109,32 +109,20 @@ export class DashboardPage extends BasePage {
             .filter({hasText: /Create.*Group/i}) //there are several
             .first();
 
-        // First verify button is visible before clicking
-        await expect(createButton).toBeVisible({timeout: 5000});
         await this.clickButton(createButton, {buttonName: 'Create Group'});
 
         // Wait for the modal dialog container to appear first (more reliable)
-        try {
-            await this.page.getByRole('dialog').waitFor({
-                state: 'visible',
-                timeout: 3000,
-            });
-        } catch (error) {
-            throw new Error(`Create Group modal did not open after clicking button. Dialog element not found. Original error: ${error instanceof Error ? error.message : String(error)}`);
-        }
+        await this.page.getByRole('dialog').waitFor({
+            state: 'visible',
+            timeout: 1000,
+        });
 
         // Additional verification: wait for the modal heading to appear
         // This provides extra confidence that the modal content has fully loaded
-        try {
-            await this.page.getByRole('heading', {name: translationEn.createGroupModal.title}).waitFor({
-                state: 'visible',
-                timeout: 3000,
-            });
-        } catch (error) {
-            throw new Error(
-                `Create Group modal opened but content did not load properly. Modal heading "${translationEn.createGroupModal.title}" not found. Original error: ${error instanceof Error ? error.message : String(error)}`,
-            );
-        }
+        await this.page.getByRole('heading', {name: translationEn.createGroupModal.title}).waitFor({
+            state: 'visible',
+            timeout: 1000,
+        });
 
         return new CreateGroupModalPage(this.page, this.userInfo);
     }

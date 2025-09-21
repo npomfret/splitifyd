@@ -32,8 +32,8 @@ test.describe('Network & Server Error Handling', () => {
         // Wait for initial dashboard API calls to settle
         await dashboardPage.page.waitForTimeout(1000);
 
-        // Intercept API calls to simulate network failure - be specific to group creation
-        await page.context().route(/\/groups$/, (route) => {
+        // Intercept API calls to simulate network failure - be more specific to avoid conflicts
+        await page.route('**/api/groups', (route) => {
             const method = route.request().method();
             if (method === 'POST') {
                 route.fulfill({
@@ -44,6 +44,9 @@ test.describe('Network & Server Error Handling', () => {
                 route.continue();
             }
         });
+
+        // Verify modal is still open before filling form
+        await expect(createGroupModal.isOpen()).resolves.toBe(true);
 
         // Fill and submit form
         await createGroupModal.fillGroupForm('Network Test Group', 'Testing network error handling');
@@ -57,10 +60,10 @@ test.describe('Network & Server Error Handling', () => {
         await expect(anyErrorElement.first()).toBeVisible({ timeout: 5000 });
 
         // Test 2: Malformed API responses (within same test to avoid setup overhead)
-        await page.context().unroute(/\/groups$/);
+        await page.unroute('**/api/groups');
 
         // Intercept API calls to return malformed JSON - only for GET requests
-        await page.context().route(/\/groups$/, (route) => {
+        await page.route('**/api/groups', (route) => {
             const method = route.request().method();
             if (method === 'GET') {
                 route.fulfill({
@@ -87,7 +90,6 @@ test.describe('Network & Server Error Handling', () => {
     test('should handle server errors and timeouts appropriately', async ({ createLoggedInBrowsers }) => {
         const [{ page, dashboardPage, user }] = await createLoggedInBrowsers(1);
         const createGroupModalPage = new CreateGroupModalPage(page, user);
-        const context = page.context();
 
         test.info().annotations.push({
             type: 'skip-error-checking',
@@ -99,7 +101,7 @@ test.describe('Network & Server Error Handling', () => {
         await dashboardPage.page.waitForTimeout(1000);
 
         // Intercept API calls to simulate server error
-        await context.route(/\/groups$/, (route) => {
+        await page.route('**/api/groups', (route) => {
             const method = route.request().method();
             if (method === 'POST') {
                 route.fulfill({
@@ -121,10 +123,10 @@ test.describe('Network & Server Error Handling', () => {
         await expect(errorIndication.first()).toBeVisible({ timeout: 5000 });
 
         // Test 2: Timeout scenario (within same test)
-        await context.unroute(/\/groups$/);
+        await page.unroute('**/api/groups');
 
         // Intercept API calls to simulate timeout
-        await context.route('**/groups', async (route) => {
+        await page.route('**/api/groups', async (route) => {
             const method = route.request().method();
             if (method === 'POST') {
                 // Wait for timeout delay then respond with timeout
@@ -194,7 +196,7 @@ test.describe('Network & Server Error Handling', () => {
         });
 
         // Intercept to simulate server validation error
-        await page.context().route(/\/groups$/, (route) => {
+        await page.route('**/api/groups', (route) => {
             const method = route.request().method();
             if (method === 'POST') {
                 route.fulfill({
@@ -209,12 +211,20 @@ test.describe('Network & Server Error Handling', () => {
 
         await createGroupModalPage.submitForm();
 
-        // Should show error and stay on form
-        await dashboardPage.page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+        // Wait for the response to be processed
+        await page.waitForLoadState('domcontentloaded', { timeout: 5000 });
+
+        // The application behavior: modal should stay open and display the error message
+        // The error is displayed via enhancedGroupsStore.errorSignal in the modal
+
+        // Modal should still be open
+        await expect(createGroupModalPage.isOpen()).resolves.toBe(true);
+
+        // Should show error message within the modal
         const errorMessage = createGroupModalPage.getErrorMessage();
         await expect(errorMessage.first()).toBeVisible({ timeout: 5000 });
 
-        // Should remain on dashboard (not navigate away)
+        // Should remain on dashboard URL but modal should still be open
         await dashboardPage.expectUrl(/\/dashboard/);
     });
 

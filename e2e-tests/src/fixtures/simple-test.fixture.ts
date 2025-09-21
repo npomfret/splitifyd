@@ -4,7 +4,7 @@ import { getUserPool } from './user-pool.fixture';
 import { AuthenticationWorkflow } from '../workflows';
 import { LoginPage, DashboardPage } from '../pages';
 import { PooledTestUser } from '@splitifyd/shared';
-import { attachConsoleHandler } from '../helpers';
+import { attachConsoleHandler, attachApiInterceptor, ApiInterceptor } from '../helpers';
 import { ApiDriver } from '@splitifyd/test-support';
 
 interface BrowserInstance {
@@ -12,11 +12,12 @@ interface BrowserInstance {
     context: BrowserContext;
     user?: PooledTestUser;
     consoleHandler: ReturnType<typeof attachConsoleHandler>;
+    apiInterceptor: ApiInterceptor;
 }
 
 export interface SimpleTestFixtures {
-    newLoggedInBrowser(): Promise<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>;
     newEmptyBrowser(): Promise<{ page: Page; loginPage: LoginPage }>;
+
     /**
      * Creates multiple logged-in browsers at once for multi-user testing scenarios.
      *
@@ -35,80 +36,12 @@ export interface SimpleTestFixtures {
      * // Use: owner.page, owner.dashboardPage, owner.user, etc.
      */
     createLoggedInBrowsers(count: number): Promise<Array<{ page: Page; dashboardPage: DashboardPage; user: PooledTestUser }>>;
+
 }
 
 const apiDriver = new ApiDriver();
 
 export const simpleTest = base.extend<SimpleTestFixtures>({
-    newLoggedInBrowser: async ({ browser }, use, testInfo) => {
-        const browserInstances: BrowserInstance[] = [];
-        const userPool = getUserPool();
-
-        const createLoggedInBrowser = async () => {
-            // Get user from pool and accept current policies before any browser setup
-            const user = await userPool.claimUser(browser);
-
-            // Accept any updated policies to prevent modal interference
-            await apiDriver.acceptCurrentPublishedPolicies(user.token);
-
-            // Create new browser context and page
-            const context = await browser.newContext();
-            const page = await context.newPage();
-
-            // Set up console handling with user index
-            const userIndex = browserInstances.length; // Use current length as index for this user
-            const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex, userEmail: user.email });
-
-            const authWorkflow = new AuthenticationWorkflow(page);
-            await authWorkflow.loginExistingUser(user);
-
-            const dashboardPage = new DashboardPage(page, user);
-            await dashboardPage.waitForDashboard();
-
-            // Track this browser instance for cleanup
-            const browserInstance: BrowserInstance = {
-                page,
-                context,
-                user,
-                consoleHandler,
-            };
-            browserInstances.push(browserInstance);
-
-            const displayName = await dashboardPage.header.getCurrentUserDisplayName();
-
-            console.log(`Using (${userIndex}): "${displayName}" ${user.email} ${user.uid}`);
-
-            return { page, dashboardPage, user };
-        };
-
-        await use(createLoggedInBrowser);
-
-        // Cleanup all browser instances
-        await Promise.all(
-            browserInstances.map(async (instance) => {
-                try {
-                    // Process any errors that occurred during the test
-                    await instance.consoleHandler.processErrors(testInfo);
-                    instance.consoleHandler.dispose();
-
-                    // Release user back to pool
-                    if (instance.user) {
-                        await userPool.releaseUser(instance.user);
-                    }
-
-                    // Close context
-                    await instance.context.close();
-                } catch (error) {
-                    // Ignore trace file cleanup errors
-                    if (error instanceof Error && error.message?.includes('ENOENT') && error.message?.includes('.trace')) {
-                        console.warn(`Ignoring trace cleanup error:`, error.message);
-                    } else {
-                        throw error;
-                    }
-                }
-            }),
-        );
-    },
 
     newEmptyBrowser: async ({ browser }, use, testInfo) => {
         const browserInstances: BrowserInstance[] = [];
@@ -122,6 +55,9 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
             const userIndex = browserInstances.length; // Use current length as index for this user
             const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
 
+            // Set up API interceptor
+            const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
+
             // Navigate to login page
             const loginPage = new LoginPage(page);
             await loginPage.navigate();
@@ -131,6 +67,7 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                 page,
                 context,
                 consoleHandler,
+                apiInterceptor,
             };
             browserInstances.push(browserInstance);
 
@@ -145,7 +82,10 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                 try {
                     // Process any errors that occurred during the test
                     await instance.consoleHandler.processErrors(testInfo);
+                    await instance.apiInterceptor.processLogs(testInfo);
+
                     instance.consoleHandler.dispose();
+                    instance.apiInterceptor.dispose();
 
                     // Close context
                     await instance.context.close();
@@ -186,11 +126,15 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                 const userIndex = browserInstances.length + index; // Use current length + index for this user
                 const consoleHandler = attachConsoleHandler(page, { testInfo, userIndex });
 
+                // Set up API interceptor
+                const apiInterceptor = attachApiInterceptor(page, { testInfo, userIndex });
+
                 const authWorkflow = new AuthenticationWorkflow(page);
                 await authWorkflow.loginExistingUser(user);
 
-                // Update console handler with user email now that we have it
+                // Update console handler and API interceptor with user email now that we have it
                 consoleHandler.updateUserInfo({ userEmail: user.email });
+                apiInterceptor.updateUserInfo({ userEmail: user.email });
 
                 // Create dashboard page
                 const dashboardPage = new DashboardPage(page, user);
@@ -204,11 +148,12 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                     context,
                     user,
                     consoleHandler,
+                    apiInterceptor,
                 };
 
                 const displayName = await dashboardPage.header.getCurrentUserDisplayName();
 
-                console.log(`Browser ${index + 1}: Using "${displayName}" ${user.email} (id: ${user.uid})`);
+                console.log(`Browser ${index + 1} using "${displayName}" ${user.email} (id: ${user.uid})`);
 
                 return { browserInstance, result: { page, dashboardPage, user } };
             });
@@ -232,7 +177,10 @@ export const simpleTest = base.extend<SimpleTestFixtures>({
                 try {
                     // Process any errors that occurred during the test
                     await instance.consoleHandler.processErrors(testInfo);
+                    await instance.apiInterceptor.processLogs(testInfo);
+
                     instance.consoleHandler.dispose();
+                    instance.apiInterceptor.dispose();
 
                     // Release user back to pool
                     if (instance.user) {
