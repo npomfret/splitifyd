@@ -1,6 +1,28 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Mock react-i18next
+vi.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string) => {
+            // Map specific keys to expected values for tests
+            const translations: Record<string, string> = {
+                'comments.commentsSection.placeholderExpense': 'Add a comment to this expense...',
+                'comments.commentsSection.placeholderGroup': 'Add a comment to this group...',
+                'comments.commentInput.tooLong': 'Comment is too long',
+            };
+            return translations[key] || key;
+        },
+        i18n: {
+            changeLanguage: () => new Promise(() => {}),
+        },
+    }),
+    initReactI18next: {
+        type: '3rdParty',
+        init: () => {},
+    },
+}));
+
 // Mock fetch for API client tests
 global.fetch = vi.fn();
 

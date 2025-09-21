@@ -13,12 +13,62 @@ interface GroupCardProps {
 export function GroupCard({ group, onClick, onInvite, onAddExpense }: GroupCardProps) {
     const { t } = useTranslation();
 
-    const balanceDisplay = {
-        text: t('groupCard.settledUp'),
-        color: 'text-blue-400',
-        bgColor: 'bg-blue-50',
+    // Calculate balance display based on group balance data
+    const calculateBalanceDisplay = () => {
+        if (!group.balance?.balancesByCurrency) {
+            return {
+                text: t('groupCard.settledUp'),
+                color: 'text-blue-400',
+                bgColor: 'bg-blue-50',
+            };
+        }
+
+        // Get all currency balances - display the first non-zero balance, or first balance if all zero
+        const currencies = Object.keys(group.balance.balancesByCurrency);
+        if (currencies.length === 0) {
+            return {
+                text: t('groupCard.settledUp'),
+                color: 'text-blue-400',
+                bgColor: 'bg-blue-50',
+            };
+        }
+
+        // Find first non-zero balance, or use first currency if all are zero
+        let balance = group.balance.balancesByCurrency[currencies[0]];
+        for (const currency of currencies) {
+            const currencyBalance = group.balance.balancesByCurrency[currency];
+            if (currencyBalance.netBalance !== 0) {
+                balance = currencyBalance;
+                break;
+            }
+        }
+
+        if (!balance || balance.netBalance === 0) {
+            return {
+                text: t('groupCard.settledUp'),
+                color: 'text-blue-400',
+                bgColor: 'bg-blue-50',
+            };
+        }
+
+        if (balance.netBalance > 0) {
+            // User is owed money
+            return {
+                text: `You're owed ${formatCurrency(balance.netBalance, balance.currency)}`,
+                color: 'text-green-600',
+                bgColor: 'bg-green-50',
+            };
+        } else {
+            // User owes money
+            return {
+                text: `You owe ${formatCurrency(Math.abs(balance.netBalance), balance.currency)}`,
+                color: 'text-red-600',
+                bgColor: 'bg-red-50',
+            };
+        }
     };
-    // const overallBgColor = hasOwed ? 'bg-red-50' : hasOwing ? 'bg-green-50' : 'bg-blue-50';
+
+    const balanceDisplay = calculateBalanceDisplay();
 
     const handleActionClick = (e: Event, action: () => void) => {
         e.preventDefault();
