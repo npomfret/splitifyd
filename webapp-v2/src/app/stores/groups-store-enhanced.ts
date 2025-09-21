@@ -1,4 +1,4 @@
-import { signal, batch, ReadonlySignal } from '@preact/signals';
+import { signal, batch, computed, ReadonlySignal } from '@preact/signals';
 import type { Group, CreateGroupRequest } from '@splitifyd/shared';
 import { apiClient, ApiError } from '../apiClient';
 import { logWarning, logInfo } from '@/utils/browser-logger.ts';
@@ -30,6 +30,7 @@ export interface EnhancedGroupsStore {
     updateGroup(id: string, updates: Partial<Group>): Promise<void>;
     refreshGroups(): Promise<void>;
     clearError(): void;
+    clearValidationError(): void;
     reset(): void;
     registerComponent(componentId: string, userId: string): void;
     deregisterComponent(componentId: string): void;
@@ -42,7 +43,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     // Private signals - encapsulated within the class
     readonly #groupsSignal = signal<Group[]>([]);
     readonly #loadingSignal = signal<boolean>(false);
-    readonly #errorSignal = signal<string | null>(null);
+    readonly #validationErrorSignal = signal<string | null>(null);  // Persists through refreshes
+    readonly #networkErrorSignal = signal<string | null>(null);     // Cleared on successful refresh
     readonly #initializedSignal = signal<boolean>(false);
     readonly #isRefreshingSignal = signal<boolean>(false);
     readonly #lastRefreshSignal = signal<number>(0);
@@ -70,7 +72,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         return this.#loadingSignal.value;
     }
     get error() {
-        return this.#errorSignal.value;
+        return this.#validationErrorSignal.value || this.#networkErrorSignal.value;
     }
     get initialized() {
         return this.#initializedSignal.value;
@@ -96,7 +98,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         return this.#loadingSignal;
     }
     get errorSignal(): ReadonlySignal<string | null> {
-        return this.#errorSignal;
+        // Create a computed signal that combines both error types
+        return computed(() => this.#validationErrorSignal.value || this.#networkErrorSignal.value);
     }
     get initializedSignal(): ReadonlySignal<boolean> {
         return this.#initializedSignal;
@@ -116,7 +119,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async fetchGroups(): Promise<void> {
         this.#loadingSignal.value = true;
-        this.#errorSignal.value = null;
+        this.#networkErrorSignal.value = null;  // Only clear network errors, not validation errors
 
         const startTime = Date.now();
 
@@ -147,7 +150,7 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
                 this.#lastRefreshSignal.value = Date.now();
                 this.#initializedSignal.value = true;
             } else {
-                this.#errorSignal.value = this.getErrorMessage(error);
+                this.#networkErrorSignal.value = this.getErrorMessage(error);
                 throw error;
             }
         } finally {
@@ -157,17 +160,24 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
 
     async createGroup(data: CreateGroupRequest): Promise<Group> {
         this.#isCreatingGroupSignal.value = true;
-        this.#errorSignal.value = null;
+        // Clear both error types when starting a new operation
+        this.#validationErrorSignal.value = null;
+        this.#networkErrorSignal.value = null;
 
         try {
             const newGroup = await apiClient.createGroup(data);
 
-            // Fetch fresh data from server to ensure consistency
+            // Fetch fresh data from server to ensure consistency - only on success
             await this.fetchGroups();
 
             return newGroup;
         } catch (error) {
-            this.#errorSignal.value = this.getErrorMessage(error);
+            // Categorize errors: validation (400s) vs network/server errors
+            if (error instanceof ApiError && (error.code?.startsWith('VALIDATION_') || error.requestContext?.status === 400)) {
+                this.#validationErrorSignal.value = this.getErrorMessage(error);
+            } else {
+                this.#networkErrorSignal.value = this.getErrorMessage(error);
+            }
             throw error;
         } finally {
             this.#isCreatingGroupSignal.value = false;
@@ -200,7 +210,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
             // This also ensures we get any server-side computed fields
             await this.fetchGroups();
         } catch (error) {
-            this.#errorSignal.value = this.getErrorMessage(error);
+            // Categorize errors: validation (400s) vs network/server errors
+            if (error instanceof ApiError && (error.code?.startsWith('VALIDATION_') || error.requestContext?.status === 400)) {
+                this.#validationErrorSignal.value = this.getErrorMessage(error);
+            } else {
+                this.#networkErrorSignal.value = this.getErrorMessage(error);
+            }
             throw error;
         } finally {
             // Remove from updating set
@@ -406,7 +421,12 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
     }
 
     clearError(): void {
-        this.#errorSignal.value = null;
+        this.#validationErrorSignal.value = null;
+        this.#networkErrorSignal.value = null;
+    }
+
+    clearValidationError(): void {
+        this.#validationErrorSignal.value = null;
     }
 
     reset(): void {
@@ -420,7 +440,8 @@ class EnhancedGroupsStoreImpl implements EnhancedGroupsStore {
         batch(() => {
             this.#groupsSignal.value = [];
             this.#loadingSignal.value = false;
-            this.#errorSignal.value = null;
+            this.#validationErrorSignal.value = null;
+            this.#networkErrorSignal.value = null;
             this.#initializedSignal.value = false;
             this.#isRefreshingSignal.value = false;
             this.#lastRefreshSignal.value = 0;

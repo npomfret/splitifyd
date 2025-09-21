@@ -26,6 +26,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
             groupNameSignal.value = '';
             groupDescriptionSignal.value = '';
             setValidationError(null);
+            // Clear any validation errors from previous attempts
+            enhancedGroupsStore.clearValidationError();
         }
     }, [isOpen]);
 
@@ -135,6 +137,8 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
                                 onChange={(value) => {
                                     groupNameSignal.value = value;
                                     setValidationError(null); // Clear error when user types
+                                    // Also clear store validation errors when user starts fixing the issue
+                                    enhancedGroupsStore.clearValidationError();
                                 }}
                                 required
                                 disabled={isSubmitting}
