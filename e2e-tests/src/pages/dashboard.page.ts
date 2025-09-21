@@ -2,11 +2,10 @@ import {expect, Page} from '@playwright/test';
 import {BasePage} from './base.page';
 import {ARIA_ROLES, HEADINGS} from '../constants/selectors';
 import {PooledTestUser} from '@splitifyd/shared';
-import translationEn from '../../../webapp-v2/src/locales/en/translation.json' with {type: 'json'};
 import {CreateGroupModalPage} from './create-group-modal.page.ts';
 import {GroupDetailPage, groupDetailUrlPattern} from './group-detail.page.ts';
 import {SettingsPage} from "./settings.page.ts";
-import {generateShortId, generateTestGroupName, randomString} from "@splitifyd/test-support";
+import {generateShortId, randomString} from "@splitifyd/test-support";
 import {JoinGroupPage} from "./join-group.page.ts";
 
 let i = 0;
@@ -111,20 +110,16 @@ export class DashboardPage extends BasePage {
 
         await this.clickButton(createButton, {buttonName: 'Create Group'});
 
-        // Wait for the modal dialog container to appear first (more reliable)
-        await this.page.getByRole('dialog').waitFor({
+        // Create modal page instance first
+        const createGroupModalPage = new CreateGroupModalPage(this.page, this.userInfo);
+
+        // Wait for the modal to appear using the modal's own strict selector
+        await createGroupModalPage.getModalDialog().waitFor({
             state: 'visible',
             timeout: 1000,
         });
 
-        // Additional verification: wait for the modal heading to appear
-        // This provides extra confidence that the modal content has fully loaded
-        await this.page.getByRole('heading', {name: translationEn.createGroupModal.title}).waitFor({
-            state: 'visible',
-            timeout: 1000,
-        });
-
-        return new CreateGroupModalPage(this.page, this.userInfo);
+        return createGroupModalPage;
     }
 
     async waitForDashboard() {

@@ -12,10 +12,14 @@ export class CreateGroupModalPage extends BasePage {
         super(page, userInfo);
     }
 
+    getModalDialog() {
+        // Very strict selector targeting the exact modal structure from TSX
+        // Checks for dialog with aria-modal="true" AND aria-labelledby="create-group-modal-title"
+        return this.page.locator('[role="dialog"][aria-modal="true"][aria-labelledby="create-group-modal-title"]');
+    }
+
     async isOpen(): Promise<boolean> {
-        // Modal either exists or it doesn't - no ambiguity
-        // Use heading role to avoid confusion with button text
-        return await this.page.getByRole('heading', { name: this.modalTitle }).isVisible();
+        return await this.getModalDialog().isVisible();
     }
 
     async fillGroupForm(name: string, description?: string) {
@@ -69,23 +73,11 @@ export class CreateGroupModalPage extends BasePage {
     }
 
     async createGroup(name: string, description?: string) {
-        // Ensure modal is open before proceeding
+        // Ensure modal is open and ready before proceeding
         const isModalOpen = await this.isOpen();
         if (!isModalOpen) {
-            throw new Error('Create Group modal is not open');
+            throw new Error(`Cannot create group - Create Group modal is not open. Make sure to call openCreateGroupModal() first.`);
         }
-
-        // Wait for any modal animation to complete
-        await this.page.waitForFunction(
-            (selector: string) => {
-                const modal = document.querySelector(selector);
-                if (!modal) return false;
-                const style = window.getComputedStyle(modal);
-                return style.opacity === '1' && style.visibility === 'visible';
-            },
-            SELECTORS.MODAL_OVERLAY,
-            { timeout: TIMEOUTS.EXTENDED },
-        );
 
         await this.fillGroupForm(name, description);
         await this.submitForm();

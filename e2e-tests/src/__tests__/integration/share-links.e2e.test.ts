@@ -2,6 +2,7 @@ import {simpleTest, expect} from '../../fixtures';
 import {GroupDetailPage, JoinGroupPage} from '../../pages';
 import {generateNewUserDetails, generateShortId, generateTestGroupName} from '@splitifyd/test-support';
 import {groupDetailUrlPattern} from '../../pages/group-detail.page';
+import {getUserPool} from '../../fixtures/user-pool.fixture';
 
 simpleTest.describe('Comprehensive Share Link Testing', () => {
     simpleTest.describe('Share Link - Already Logged In User', () => {
@@ -16,10 +17,10 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             ] = await createLoggedInBrowsers(2);
 
             const groupName = generateTestGroupName(`ShareLink`);
-            const groupDetailPage = await user1DashboardPage.createGroupAndNavigate(
-                groupName,
-                'Testing already member scenario'
-            );
+            const [groupDetailPage] = await user1DashboardPage.createMultiUserGroup({
+                name: groupName,
+                description: 'Testing already member scenario'
+            });
             const groupId = groupDetailPage.inferGroupId();
             const shareLink = await groupDetailPage.getShareLink();
 
@@ -50,9 +51,9 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const {page: unauthPage, loginPage} = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const groupName = generateTestGroupName('Login Required Test');
-            const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing login requirement');
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
             const groupId = groupDetailPage.inferGroupId();
+            const groupName = await groupDetailPage.getGroupName();
 
             // Get share link from the group
             const shareLink = await groupDetailPage.getShareLink();
@@ -63,7 +64,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             await expect(unauthPage).toHaveURL(/\/login/);
 
             // Get a second user to login with (but use the unauthenticated page)
-            const [{user: secondUser}] = await createLoggedInBrowsers(1);
+            const secondUser = await getUserPool().claimUser(unauthPage);
             await loginPage.login(secondUser.email, secondUser.password);
 
             // After successful login, user should be redirected to the join group page
@@ -72,13 +73,16 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             expect(unauthPage.url()).toContain('/join?linkId=');
 
             // Verify user can see the group details on the join page
-            await expect(unauthPage.getByText(groupName)).toBeVisible();
+            await expect(unauthPage.getByRole('heading', { name: groupName, level: 2 })).toBeVisible();
 
             // Complete the join process
             await joinGroupPage.joinGroupUsingShareLink(shareLink);
 
             // Verify user successfully joined and is now on the group detail page
             await expect(unauthPage).toHaveURL(new RegExp(`/groups/${groupId}`));
+
+            // Clean up the claimed user
+            await getUserPool().releaseUser(secondUser);
         });
 
         simpleTest('should allow unregistered user to register and join group via share link', async ({createLoggedInBrowsers, newEmptyBrowser}) => {
@@ -89,8 +93,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const {page: unauthPage, loginPage} = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const groupName = generateTestGroupName('Register Test');
-            const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing registration via share link');
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group
@@ -140,8 +143,7 @@ simpleTest.describe('Comprehensive Share Link Testing', () => {
             const {page: unauthPage, loginPage} = await newEmptyBrowser();
 
             // Create group with authenticated user
-            const groupName = generateTestGroupName('Login Then Join');
-            const groupDetailPage = await ownerDashboardPage.createGroupAndNavigate(groupName, 'Testing login then join flow');
+            const [groupDetailPage] = await ownerDashboardPage.createMultiUserGroup({});
             const groupId = groupDetailPage.inferGroupId();
 
             // Get share link from the group

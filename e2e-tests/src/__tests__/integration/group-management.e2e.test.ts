@@ -317,9 +317,7 @@ simpleTest.describe('Member Management - Group Settings', () => {
         await expect(page).toHaveURL(/\/dashboard/);
 
         // Create a group
-        const originalGroupName = 'Original Group Name';
-        const originalDescription = 'Original description';
-        const groupDetailPage = await dashboardPage.createGroupAndNavigate(originalGroupName, originalDescription);
+        const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
         const groupId = groupDetailPage.inferGroupId();
         await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
 

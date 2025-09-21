@@ -25,7 +25,9 @@ export class GroupDetailPage extends BasePage {
 
     async navigateToDashboard() {
         await this.header.navigateToDashboard();
-        return new DashboardPage(this.page, this.userInfo)
+        const dashboardPage = new DashboardPage(this.page, this.userInfo);
+        await dashboardPage.waitForDashboard();
+        return dashboardPage
     }
 
     inferGroupId() {

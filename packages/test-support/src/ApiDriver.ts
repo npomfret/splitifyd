@@ -530,12 +530,7 @@ export class ApiDriver {
             try {
                 await this.apiRequest(`/policies/${policyId}/current`, 'GET');
             } catch (error) {
-                try {
-                    await this.createPolicy(policyName, baseContent);
-                    console.log(`✓ Created base policy: ${policyId} via admin API`);
-                } catch (createError) {
-                    console.warn(`Failed to create base policy ${policyId}:`, createError);
-                }
+                await this.createPolicy(policyName, baseContent);
             }
         }
     }
