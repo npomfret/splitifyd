@@ -1,6 +1,7 @@
 import { Page, TestInfo } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PathUtils } from './path-utils';
 
 interface ApiRequest {
     url: string;
@@ -180,6 +181,7 @@ export class ApiInterceptor {
         };
     }
 
+
     /**
      * Process and attach API logs to test report
      */
@@ -191,12 +193,13 @@ export class ApiInterceptor {
 
         // On test failure, point to API log files
         if (testFailed && hasApiTraffic) {
+            const relativePath = PathUtils.getRelativePathWithFileUrl(this.logFile);
             console.log('\n' + '='.repeat(80));
             console.log('🌐 API REQUEST/RESPONSE LOGS (Test Failed)');
             console.log('='.repeat(80));
             console.log(`Test: ${testInfo.title}`);
             console.log(`File: ${testInfo.file}`);
-            console.log(`📄 API log: ${this.logFile}`);
+            console.log(`📄 API log: ${relativePath}`);
             console.log(`📊 Requests: ${this.requests.length}, Responses: ${this.responses.length}`);
             console.log('='.repeat(80) + '\n');
         }

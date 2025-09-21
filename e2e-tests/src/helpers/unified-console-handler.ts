@@ -1,6 +1,7 @@
-import { Page, TestInfo } from '@playwright/test';
+import {Page, TestInfo} from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import {PathUtils} from './path-utils';
 
 interface ConsoleError {
     message: string;
@@ -196,12 +197,13 @@ export class UnifiedConsoleHandler {
 
         // On test failure, point to console log files
         if (testFailed) {
+            const relativePath = PathUtils.getRelativePathWithFileUrl(this.logFile);
             console.log('\n' + '='.repeat(80));
             console.log('📋 BROWSER CONSOLE LOGS (Test Failed)');
             console.log('='.repeat(80));
             console.log(`Test: ${testInfo.title}`);
             console.log(`File: ${testInfo.file}`);
-            console.log(`📄 Console log: ${this.logFile}`);
+            console.log(`📄 Console log: ${relativePath}`);
             console.log('='.repeat(80) + '\n');
         }
 
@@ -269,10 +271,7 @@ export class UnifiedConsoleHandler {
                 if (this.consoleErrors.length > 0) {
                     const consoleErrorUsers = this.consoleErrors
                         .map((error) => {
-                            const userInfo = this.formatUserInfo(error.userInfo);
-                            // Debug: log what user info we have for this error
-                            console.log(`Console error userInfo:`, error.userInfo, `formatted as:`, userInfo);
-                            return userInfo;
+                            return this.formatUserInfo(error.userInfo);
                         })
                         .filter((user, index, arr) => arr.indexOf(user) === index) // unique users
                         .join(', ');
@@ -325,6 +324,7 @@ export class UnifiedConsoleHandler {
             console.log('='.repeat(80) + '\n');
         }
     }
+
 
     /**
      * Clean up resources

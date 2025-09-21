@@ -529,7 +529,6 @@ export class ApiDriver {
 
             try {
                 await this.apiRequest(`/policies/${policyId}/current`, 'GET');
-                console.log(`✓ Policy ${policyId} already exists`);
             } catch (error) {
                 try {
                     await this.createPolicy(policyName, baseContent);
