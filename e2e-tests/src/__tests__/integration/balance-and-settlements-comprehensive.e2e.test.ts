@@ -43,8 +43,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         }, 2);
 
         await groupDetailPage1.waitForExpense('Test Expense');
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a550');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a550');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥50');
 
         // Scenario 3: Equal expenses -> settled up
         await groupDetailPage2.addExpense({
@@ -71,8 +71,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         }, 2);
 
         await groupDetailPage1.waitForExpense('Final Test Payment');
-        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
+        await groupDetailPage1.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
 
         // Scenario 5: Full settlement clears debt -> settled up
         const settlementForm = await groupDetailPage2.clickSettleUpButton(2);
@@ -109,8 +109,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
             participants: [user1DisplayName, user2DisplayName]
         }, 2);
 
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u20ac50.00');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u20ac50.00');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '€50.00');
 
         // Test 2: JPY currency with no decimals + rounding
         await groupDetailPage.addExpense({
@@ -123,8 +123,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         }, 2);
 
         // JPY: 123/2 = 61.5 -> rounds up to \u00a562
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a562');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a562');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥62');
 
         // Verify original expense amount is preserved
         await expect(groupDetailPage.getCurrencyAmount('123')).toBeVisible();
@@ -167,8 +167,8 @@ simpleTest.describe('Balance Calculation & Settlement Lifecycle', () => {
         });
 
         // Net calculation: User1 owes \u00a5150, User2 owes \u00a5200 -> User2 owes User1 \u00a5100
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
     });
 
 
@@ -364,8 +364,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         // Verify expense appears and initial debt
         await groupDetailPage.verifyExpenseVisible('Test Expense for Settlement');
         await groupDetailPage2.verifyExpenseVisible('Test Expense for Settlement');
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a5100');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥100');
 
         // Record partial settlement of \u00a560
         const settlementFormPage = await groupDetailPage.clickSettleUpButton(2);
@@ -378,8 +378,8 @@ simpleTest.describe('Settlement CRUD Operations', () => {
         }, 2);
 
         // Verify updated debt (\u00a5100 - \u00a560 = \u00a540 remaining)
-        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
-        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
+        await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+        await groupDetailPage2.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
     });
 });
 
@@ -416,8 +416,8 @@ simpleTest.describe('Real-time Balance Updates', () => {
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await groupDetailPage.waitForExpense(expenseDescription);
             await groupDetailPage.waitForPage(groupId, memberCount);
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
         // User2 makes partial settlement of \u00a530 (leaving \u00a510 debt)
@@ -438,8 +438,8 @@ simpleTest.describe('Real-time Balance Updates', () => {
 
         // Verify updated balances: User2 now owes \u00a510, User3 still owes \u00a540
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
-            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a510');
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540');
+            await groupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
         // User2 makes final settlement of \u00a510 (fully settled)
@@ -461,7 +461,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
         // Verify final state: User2 fully settled, User3 still owes \u00a540
         for (let groupDetailPage of [groupDetailPage1, groupDetailPage2, groupDetailPage3]) {
             await expect(groupDetailPage.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible();
-            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540');
+            await groupDetailPage.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
         // Verify both settlements in history
@@ -501,8 +501,8 @@ simpleTest.describe('Real-time Balance Updates', () => {
         for (const page of pages) {
             await page.waitForExpense(expenseDescription);
             await page.waitForPage(groupId, 3);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a540');
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540');
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥40');
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40');
         }
 
         // User2 makes partial settlement
@@ -519,8 +519,8 @@ simpleTest.describe('Real-time Balance Updates', () => {
         for (const page of pages) {
             await page.verifySettlementDetails({note: settlementNote1});
             await page.waitForPage(groupId, 3);
-            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '\u00a510'); // 40 - 30 = 10
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540'); // unchanged
+            await page.verifyDebtRelationship(user2DisplayName, user1DisplayName, '¥10'); // 40 - 30 = 10
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // unchanged
         }
 
         // User2 completes final settlement
@@ -538,7 +538,7 @@ simpleTest.describe('Real-time Balance Updates', () => {
             await page.verifySettlementDetails({note: settlementNote2});
             await page.waitForPage(groupId, 3);
             await expect(page.getDebtInfo(user2DisplayName, user1DisplayName)).not.toBeVisible(); // User2 fully settled
-            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '\u00a540'); // User3 still owes
+            await page.verifyDebtRelationship(user3DisplayName, user1DisplayName, '¥40'); // User3 still owes
         }
     });
 });

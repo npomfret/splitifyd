@@ -963,9 +963,10 @@ export class GroupDetailPage extends BasePage {
 
                 const actualAmount = await amountSpan.textContent().catch(() => null);
                 if (actualAmount) {
-                    // Normalize spaces - replace non-breaking spaces (char 160) with regular spaces (char 32)
+                    // Normalize only the actual amount from screen - replace non-breaking spaces with regular spaces
+                    // Expected amount should use regular spaces in tests for readability
                     const normalizedActual = actualAmount.trim().replace(/\u00A0/g, ' ');
-                    const normalizedExpected = expectedAmount.trim().replace(/\u00A0/g, ' ');
+                    const trimmedExpected = expectedAmount.trim();
 
                     actualAmounts.push(actualAmount);
                     debugInfo.push({
@@ -975,7 +976,7 @@ export class GroupDetailPage extends BasePage {
                         charCodes: Array.from(normalizedActual).map(c => c.charCodeAt(0))
                     });
 
-                    if (normalizedActual === normalizedExpected) {
+                    if (normalizedActual === trimmedExpected) {
                         foundMatchingAmount = true;
                         break;
                     }
@@ -983,7 +984,7 @@ export class GroupDetailPage extends BasePage {
             }
 
             if (!foundMatchingAmount) {
-                const expectedTrimmed = expectedAmount.trim().replace(/\u00A0/g, ' ');
+                const expectedTrimmed = expectedAmount.trim();
                 const expectedDebugInfo = {
                     amount: expectedAmount,
                     trimmed: expectedTrimmed,
