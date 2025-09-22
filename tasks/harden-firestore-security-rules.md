@@ -285,7 +285,120 @@ const expenseLimits = {
 
 ---
 
-## 5. Overall Conclusion
+## 5. Implementation Plan
+
+### Status: **IMPLEMENTATION STARTED** (September 2025)
+
+The implementation has been broken down into **smaller, independently committable steps** that won't break the application. The approach prioritizes safety and allows for gradual deployment.
+
+### **Phase 1: Schema Validation for FirestoreWriter Updates** ✅ **PRIORITY 1**
+*Goal: Add validation without breaking existing functionality*
+
+**Step 1.1: Add validation helper methods to FirestoreWriter**
+- ✅ **Status: Ready to implement**
+- Create private helper methods for fetching and merging document data
+- Add schema validation utilities that handle FieldValue operations
+- No breaking changes - just adding new methods
+
+**Step 1.2: Enhance update methods with validation (backwards compatible)**
+- ✅ **Status: Ready to implement**
+- Update `updateUser()` to fetch, merge, validate, then write
+- Update `updateGroup()` to fetch, merge, validate, then write
+- Update `updateExpense()` to fetch, merge, validate, then write
+- Update `updateSettlement()` to fetch, merge, validate, then write
+- Keep existing behavior for FieldValue operations
+- Add comprehensive error logging
+
+**Step 1.3: Add validation tests**
+- Add unit tests for all enhanced update methods
+- Verify validation works correctly
+- Verify FieldValue operations still work
+
+### **Phase 2: HTTP Request Limiting** ✅ **PRIORITY 2**
+*Goal: Add rate limiting without breaking existing functionality*
+
+**Step 2.1: Create rate limiting infrastructure**
+- Add rate-limiter-flexible package
+- Create rate limiting middleware module
+- Create request size validation middleware
+- Configure but don't apply yet
+
+**Step 2.2: Apply rate limiting progressively**
+- Start with non-critical endpoints (health checks)
+- Add to authentication endpoints
+- Gradually roll out to data endpoints
+- Monitor and adjust limits based on usage
+
+**Step 2.3: Add monitoring and metrics**
+- Log rate limit violations
+- Track request patterns
+- Set up alerting thresholds
+
+### **Phase 3: Production Firestore Security Rules** ⚠️ **PRIORITY 3**
+*Goal: Create production rules without affecting development*
+
+**Step 3.1: Create production security rules file**
+- Create `firestore.prod.rules` with strict rules
+- Mirror backend authorization logic
+- Test rules in Firebase emulator
+
+**Step 3.2: Update deployment configuration**
+- Modify `firebase.template.json` for environment-specific rules
+- Update CI/CD pipeline to deploy production rules
+- Keep development rules permissive
+
+**Step 3.3: Add rules testing**
+- Create comprehensive test suite for security rules
+- Verify all access patterns work correctly
+- Document rule requirements
+
+### **Phase 4: Eliminate Direct Firestore Writes** ⚠️ **PRIORITY 4**
+*Goal: Replace direct writes with FirestoreWriter calls*
+
+**Step 4.1: Audit and list all direct write locations**
+- ✅ **Status: COMPLETED** - Audit found direct writes are minimal:
+  - `services/GroupService.ts` (transaction writes)
+  - `test/policy-handlers.ts` (test code)
+  - `__tests__/integration/groups-management-consolidated.test.ts` (test code)
+
+**Step 4.2: Migrate service-level direct writes**
+- Update GroupService transaction writes
+- Update any remaining service direct writes
+- Ensure all use FirestoreWriter methods
+
+**Step 4.3: Migrate test and utility direct writes**
+- Update test helpers to use FirestoreWriter
+- Update utility functions
+- Clean up any remaining direct writes
+
+### **Implementation Order & Safety**
+
+**✅ Safe to implement immediately (no breaking changes):**
+- Phase 1 (Steps 1-3): Schema validation enhancements
+- Phase 2 (Steps 4-6): HTTP rate limiting
+- Phase 3, Step 1: Create production rules file
+
+**⚠️ Requires careful testing:**
+- Phase 3, Steps 2-3: Deploy production rules
+- Phase 4: Migrate direct writes
+
+### **Key Benefits of This Approach:**
+1. ✅ Each step can be committed independently
+2. ✅ No breaking changes in early phases
+3. ✅ Validation is added progressively
+4. ✅ Rate limiting can be tuned without breaking the app
+5. ✅ Production rules don't affect development
+6. ✅ Direct write migration can be done gradually
+
+### **Audit Update:**
+Recent codebase audit (September 2025) revealed that the direct Firestore write issue is **less severe than initially thought**. Most writes already go through FirestoreWriter. Only a few locations need migration:
+- Service-level transaction writes (minimal)
+- Test code (acceptable for now)
+- Utility functions (low risk)
+
+---
+
+## 6. Overall Conclusion
 
 The project currently faces three significant security risks:
 
@@ -293,10 +406,6 @@ The project currently faces three significant security risks:
 2. **Data Integrity**: Unvalidated write operations bypassing schema enforcement
 3. **HTTP Security**: No rate limiting or request size controls
 
-Comprehensive remediation requires:
+**Implementation Status:** The comprehensive remediation plan is **actively being implemented** using a phased approach that prioritizes safety and allows for gradual deployment.
 
-- **Strict production security rules** for defense-in-depth
-- **Schema validation on all writes** for data integrity
-- **HTTP request limiting** for DoS protection and resource management
-
-All three security layers are essential for a production-ready system.
+**Next Action:** Start with Phase 1 (adding schema validation to FirestoreWriter update methods) as it provides immediate data integrity benefits without any breaking changes.
