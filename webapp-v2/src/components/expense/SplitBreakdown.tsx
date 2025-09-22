@@ -2,6 +2,7 @@ import { Avatar } from '../ui/Avatar';
 import { Stack } from '../ui/Stack';
 import type { ExpenseData, RegisteredUser } from '@splitifyd/shared';
 import { SplitTypes } from '@splitifyd/shared';
+import { formatCurrency } from '@/utils/currency';
 
 interface SplitBreakdownProps {
     expense: ExpenseData;
@@ -84,8 +85,8 @@ export function SplitBreakdown({ expense, members }: SplitBreakdownProps) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className={`font-semibold ${isOwing ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`} data-financial-amount="split">
-                                        ${split.amount.toFixed(2)}
+                                    <p className={`font-semibold ${isOwing ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`} data-financial-amount="split" data-testid="split-amount">
+                                        {formatCurrency(split.amount, expense.currency)}
                                     </p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{percentage.toFixed(1)}%</p>
                                 </div>

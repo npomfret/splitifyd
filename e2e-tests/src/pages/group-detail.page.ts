@@ -481,10 +481,18 @@ export class GroupDetailPage extends BasePage {
     }
 
     /**
-     * @deprecated far too vague - use a better selector
+     * Get currency amount element with flexible currency support
+     * @param amount - The numeric amount (e.g., "125.50")
+     * @param currency - Optional currency symbol (defaults to any currency)
      */
-    getCurrencyAmount(amount: string) {
-        return this.page.getByText(`$${amount}`);
+    getCurrencyAmount(amount: string, currency?: string) {
+        if (currency) {
+            // Target element with specific currency and amount
+            return this.page.getByText(`${currency}${amount}`);
+        } else {
+            // Target element containing the amount with any currency symbol
+            return this.page.locator(`text=/[\\$€£¥]${amount.replace('.', '\\.')}/`);
+        }
     }
 
     /**
@@ -543,6 +551,16 @@ export class GroupDetailPage extends BasePage {
         // This matches what users actually see on the page
         const expensesContainer = this.getExpensesContainer();
         return expensesContainer.getByText(description);
+    }
+
+    /**
+     * Wait for expense description to be visible (polls until found)
+     * @param description - The expense description text
+     * @param timeout - Optional timeout in milliseconds
+     */
+    async waitForExpenseDescription(description: string, timeout: number = 5000): Promise<void> {
+        const descriptionLocator = this.getExpenseByDescription(description);
+        await expect(descriptionLocator).toBeVisible({ timeout });
     }
 
     getExpenseAmount(amount: string) {

@@ -190,17 +190,84 @@ export class ExpenseDetailPage extends BasePage {
     }
 
     /**
-     * Get expense by description text (targets the main heading)
+     * Get the current expense description from the page
      */
-    getExpenseByDescription(description: string): Locator {
-        return this.page.getByRole('heading', { name: new RegExp(description, 'i') });
+    private async getCurrentExpenseDescription(): Promise<string> {
+        const headings = await this.page.getByRole('heading').allTextContents();
+        return headings.join(', ');
     }
 
     /**
-     * Get currency amount element (targets the main amount heading)
+     * Get the current currency amount from the page
      */
-    getCurrencyAmount(amount: string): Locator {
-        // Target the h2 heading that contains just the amount
-        return this.page.getByRole('heading', { name: `$${amount}`, exact: true });
+    private async getCurrentCurrencyAmount(): Promise<string> {
+        const headings = await this.page.getByRole('heading').allTextContents();
+        const currencyHeadings = headings.filter(h => /[€$£¥]\d+/.test(h));
+        return currencyHeadings.join(', ');
+    }
+
+    /**
+     * Get the current split amounts from the split section
+     */
+    private async getCurrentSplitAmounts(): Promise<string> {
+        // Use the data-testid we added to the SplitBreakdown component
+        const splitAmountElements = this.page.getByTestId('split-amount');
+        const count = await splitAmountElements.count();
+
+        if (count === 0) {
+            return 'no split amounts found (missing data-testid="split-amount")';
+        }
+
+        const amounts: string[] = [];
+        for (let i = 0; i < count; i++) {
+            const text = await splitAmountElements.nth(i).textContent() || '';
+            amounts.push(text.trim());
+        }
+
+        return amounts.join(', ');
+    }
+
+    /**
+     * Wait for expense description to be visible (polls until found)
+     * @param description - The expense description text
+     * @param timeout - Optional timeout in milliseconds
+     */
+    async waitForExpenseDescription(description: string, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const actual = await this.getCurrentExpenseDescription();
+            expect(actual, `Expected description "${description}". Found: ${actual}`).toContain(description);
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Wait for currency amount to be visible (polls until found)
+     * @param formattedAmount - The formatted currency amount (e.g., "£33.45", "$125.50")
+     * @param timeout - Optional timeout in milliseconds
+     */
+    async waitForCurrencyAmount(formattedAmount: string, timeout: number = 5000): Promise<void> {
+        await expect(async () => {
+            const actual = await this.getCurrentCurrencyAmount();
+            expect(actual, `Expected currency amount "${formattedAmount}". Found: ${actual}`).toContain(formattedAmount);
+        }).toPass({ timeout });
+    }
+
+    /**
+     * Verify that the split section displays the correct amount per person
+     * @param expectedAmountPerPerson - The formatted currency amount expected per person (e.g., "€50.00")
+     * @param expectedUserCount - Optional: verify this many users have the amount (defaults to at least 1)
+     */
+    async verifySplitAmount(expectedAmountPerPerson: string, expectedUserCount?: number): Promise<void> {
+        await expect(async () => {
+            const actual = await this.getCurrentSplitAmounts();
+            let errorMsg = `Expected split amount "${expectedAmountPerPerson}". Found: ${actual}`;
+
+            expect(actual, errorMsg).toContain(expectedAmountPerPerson);
+
+            if (expectedUserCount !== undefined) {
+                const matches = (actual.match(new RegExp(expectedAmountPerPerson.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+                errorMsg += ` (expected ${expectedUserCount} occurrences, found ${matches})`;
+                expect(matches, errorMsg).toBe(expectedUserCount);
+            }
+        }).toPass({ timeout: 5000 });
     }
 }

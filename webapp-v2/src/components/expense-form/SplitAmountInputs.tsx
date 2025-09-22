@@ -1,4 +1,5 @@
 import { Avatar } from '../ui';
+import { formatCurrency, getCurrency } from '@/utils/currency';
 
 interface Member {
     uid: string;
@@ -14,6 +15,7 @@ interface Split {
 interface SplitAmountInputsProps {
     splitType: string;
     amount: number;
+    currency: string;
     participants: string[];
     splits: Split[];
     members: Member[];
@@ -21,7 +23,7 @@ interface SplitAmountInputsProps {
     updateSplitPercentage: (userId: string, percentage: number) => void;
 }
 
-export function SplitAmountInputs({ splitType, amount, participants, splits, members, updateSplitAmount, updateSplitPercentage }: SplitAmountInputsProps) {
+export function SplitAmountInputs({ splitType, amount, currency, participants, splits, members, updateSplitAmount, updateSplitPercentage }: SplitAmountInputsProps) {
     const memberMap = members.reduce(
         (acc, member) => {
             acc[member.uid] = member;
@@ -48,7 +50,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{member?.displayName || 'Unknown'}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-gray-500">$</span>
+                                <span className="text-gray-500">{getCurrency(currency)!.symbol}</span>
                                 <input
                                     type="text"
                                     inputMode="decimal"
@@ -73,7 +75,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                             }`}
                             data-financial-amount="split-total"
                         >
-                            ${splits.reduce((sum, s) => sum + s.amount, 0).toFixed(2)} / ${amount.toFixed(2)}
+                            {formatCurrency(splits.reduce((sum, s) => sum + s.amount, 0), currency)} / {formatCurrency(amount, currency)}
                         </span>
                     </div>
                 </div>
@@ -107,7 +109,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                                     className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white text-right"
                                 />
                                 <span className="text-gray-500">%</span>
-                                <span className="text-xs text-gray-500 w-16 text-right">${split?.amount.toFixed(2) || '0.00'}</span>
+                                <span className="text-xs text-gray-500 w-16 text-right">{formatCurrency(split?.amount || 0, currency)}</span>
                             </div>
                         </div>
                     );
@@ -142,7 +144,7 @@ export function SplitAmountInputs({ splitType, amount, participants, splits, mem
                                     <Avatar displayName={member?.displayName || 'Unknown'} userId={split.userId} size="sm" />
                                     <span className="text-sm text-gray-600 dark:text-gray-400">{member?.displayName || 'Unknown'}</span>
                                 </div>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">${split.amount.toFixed(2)}</span>
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">{formatCurrency(split.amount, currency)}</span>
                             </div>
                         );
                     })}

@@ -13,8 +13,9 @@ import {SettlementData} from '../../pages/settlement-form.page.ts';
  * - group-realtime-updates.e2e.test.ts (group-level changes, transactions)
  * - realtime-edge-cases.e2e.test.ts (edge cases, stress tests)
  *
- * This file covers all essential real-time functionality while eliminating
- * duplication and reducing complexity from 4-user to 2-user scenarios where appropriate.
+ * This file focuses on real-time synchronization of group changes, comments, and edge cases.
+ * Balance and settlement real-time tests have been moved to balance-and-settlements-comprehensive.e2e.test.ts
+ * to eliminate duplication.
  */
 
 simpleTest.describe('Real-Time Updates - Core Functionality', () => {
@@ -59,87 +60,6 @@ simpleTest.describe('Real-Time Updates - Core Functionality', () => {
         await ownerGroupDetailPage.waitForGroupDescription(newDescription);
     });
 
-    simpleTest('should handle real-time expense and settlement operations', async ({ createLoggedInBrowsers }, testInfo) => {
-        // Create two browser instances - User1 and User2
-        const [
-            { page: user1Page, dashboardPage: user1DashboardPage },
-            { dashboardPage: user2DashboardPage },
-        ] = await createLoggedInBrowsers(2);
-
-        const user1DisplayName = await user1DashboardPage.header.getCurrentUserDisplayName();
-        const user2DisplayName = await user2DashboardPage.header.getCurrentUserDisplayName();
-
-        const [user1GroupDetailPage, user2GroupDetailPage] = await user1DashboardPage.createMultiUserGroup({}, user2DashboardPage);
-        const groupId = user1GroupDetailPage.inferGroupId();
-
-        // Test 1: Add Expense
-        const expenseFormPage = await user1GroupDetailPage.clickAddExpenseButton(2);
-        const expenseDescription = `Lunch ${randomString(4)}`;
-        const expenseAmount = 60; // $30 each
-
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder()
-                .withDescription(expenseDescription)
-                .withAmount(expenseAmount)
-                .withCurrency('USD')
-                .withPaidByDisplayName(user1DisplayName)
-                .withSplitType('equal')
-                .withParticipants([user1DisplayName, user2DisplayName])
-                .build(),
-        );
-
-        await user1GroupDetailPage.waitForExpense(expenseDescription);
-        await user2GroupDetailPage.waitForExpense(expenseDescription);
-
-        // Verify debt relationship ($30 each, User2 owes User1 $30)
-        await user1GroupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$30.00');
-        await user2GroupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$30.00');
-
-        // Test 2: Add Group Comment
-        const commentText = `Group comment ${randomString(6)}`;
-        await user1GroupDetailPage.addComment(commentText);
-        await user2GroupDetailPage.waitForCommentToAppear(commentText);
-        await expect(user2GroupDetailPage.getCommentByText(commentText)).toBeVisible();
-
-        // Test 3: Add Settlement
-        const settlementFormPage = await user2GroupDetailPage.clickSettleUpButton(2);
-        const settlementNote = `Settlement ${randomString(4)}`;
-        await settlementFormPage.submitSettlement(
-            {
-                payerName: user2DisplayName,
-                payeeName: user1DisplayName,
-                amount: '20',
-                currency: 'USD',
-                note: settlementNote,
-            } as SettlementData,
-            2,
-        );
-
-        // Wait for settlement and verify balances
-        await user1GroupDetailPage.verifySettlementDetails({note: settlementNote});
-        await user2GroupDetailPage.verifySettlementDetails({note: settlementNote});
-
-        // After $20 settlement, User2 owes User1 $10 ($30 - $20)
-        await user1GroupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$10.00');
-        await user2GroupDetailPage.verifyDebtRelationship(user2DisplayName, user1DisplayName, '$10.00');
-
-        // Test 4: Delete Expense
-        const expenseLocator = user1GroupDetailPage.getExpenseByDescription(expenseDescription);
-        await expenseLocator.click();
-
-        await expect(user1Page).toHaveURL(/\/groups\/[^\/]+\/expenses\/[^\/]+/);
-        const expenseDetailPage = new ExpenseDetailPage(user1Page);
-        await expenseDetailPage.deleteExpense();
-
-        await expect(user1Page).toHaveURL(groupDetailUrlPattern(groupId));
-
-        // Verify expense is gone and balances reset
-        await expect(user1GroupDetailPage.getExpenseByDescription(expenseDescription)).not.toBeVisible();
-        await expect(user2GroupDetailPage.getExpenseByDescription(expenseDescription)).not.toBeVisible();
-
-        await user1GroupDetailPage.waitForBalancesToLoad(groupId);
-        await user2GroupDetailPage.waitForBalancesToLoad(groupId);
-    });
 
     simpleTest('should support real-time expense comments', async ({ createLoggedInBrowsers }) => {
         // Create two browser instances - Alice and Bob
@@ -358,7 +278,7 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
             new ExpenseFormDataBuilder()
                 .withDescription(expenseDescription)
                 .withAmount(80)
-                .withCurrency('USD')
+                .withCurrency('EUR')
                 .withPaidByDisplayName(payerDisplayName)
                 .withSplitType('equal')
                 .withParticipants([payerDisplayName, receiverDisplayName])
@@ -373,14 +293,18 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await payerGroupDetailPage.waitForExpense(expenseDescription);
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
 
-        // Verify debt relationship (Receiver owes $40 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$40.00");
+        // Verify debt relationship (Receiver owes €40 to Payer)
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "€40.00");
 
         // Payer edits the expense
         const payerExpenseDetailPage = await payerGroupDetailPage.clickExpenseToView(expenseDescription);
         const payerEditFormPage = await payerExpenseDetailPage.clickEditExpenseButton(3);
         await payerEditFormPage.fillAmount('100');
         await payerEditFormPage.getUpdateExpenseButton().click();
+
+        // Verify split amounts display correctly in expense detail (2 people, €50 each)
+        await payerExpenseDetailPage.waitForCurrencyAmount('€100.00');
+        await payerExpenseDetailPage.verifySplitAmount('€50.00', 2);
 
         await payerGroupDetailPage.navigateToStaticPath(`/groups/${groupId}`);
         await expect(payerPage).toHaveURL(groupDetailUrlPattern(groupId));
@@ -390,68 +314,12 @@ simpleTest.describe('Real-Time Updates - Edge Cases & Stress Tests', () => {
         await receiverGroupDetailPage.waitForExpense(expenseDescription);
         await creatorGroupDetailPage.waitForExpense(expenseDescription);
 
-        await expect(payerPage.getByText('$100.00').first()).toBeVisible();
-        await expect(receiverPage.getByText('$100.00').first()).toBeVisible();
-        await expect(creatorGroupDetailPage.getTextElement('$100.00').first()).toBeVisible();
+        await expect(payerPage.getByText('€100.00').first()).toBeVisible();
+        await expect(receiverPage.getByText('€100.00').first()).toBeVisible();
+        await expect(creatorGroupDetailPage.getTextElement('€100.00').first()).toBeVisible();
 
-        // Verify updated debt (Receiver now owes $50 to Payer)
-        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "$50.00");
+        // Verify updated debt (Receiver now owes €50 to Payer)
+        await creatorGroupDetailPage.verifyDebtRelationship(receiverDisplayName, payerDisplayName, "€50.00");
     });
 
-    simpleTest('should handle expense deletion in real-time', async ({ createLoggedInBrowsers }) => {
-        // Create two users - Deleter and Watcher
-        const [
-            { page: deleterPage, dashboardPage: deleterDashboardPage },
-            { page: watcherPage, dashboardPage: watcherDashboardPage },
-        ] = await createLoggedInBrowsers(2);
-
-        const deleterDisplayName = await deleterDashboardPage.header.getCurrentUserDisplayName();
-        const watcherDisplayName = await watcherDashboardPage.header.getCurrentUserDisplayName();
-
-        // Setup group
-        // Setup group
-        const [deleterGroupDetailPage, watcherGroupDetailPage] = await deleterDashboardPage.createMultiUserGroup({}, watcherDashboardPage);
-        const groupId = deleterGroupDetailPage.inferGroupId();
-
-        // Create expense involving both users
-        const expenseFormPage = await deleterGroupDetailPage.clickAddExpenseButton(2);
-        const expenseDescription = `Delete Test ${randomString(4)}`;
-
-        await expenseFormPage.submitExpense(
-            new ExpenseFormDataBuilder()
-                .withDescription(expenseDescription)
-                .withAmount(60) // $30 each
-                .withCurrency('USD')
-                .withPaidByDisplayName(deleterDisplayName)
-                .withSplitType('equal')
-                .withParticipants([deleterDisplayName, watcherDisplayName])
-                .build(),
-        );
-
-        await deleterGroupDetailPage.waitForExpense(expenseDescription);
-        await watcherGroupDetailPage.waitForExpense(expenseDescription);
-
-        // Verify initial debt
-        await watcherGroupDetailPage.verifyDebtRelationship(watcherDisplayName, deleterDisplayName, '$30.00');
-        await deleterGroupDetailPage.verifyDebtRelationship(watcherDisplayName, deleterDisplayName, '$30.00');
-
-        // Delete the expense
-        const expenseToDelete = deleterGroupDetailPage.getExpenseByDescription(expenseDescription);
-        await expect(expenseToDelete).toBeVisible();
-
-        const expenseDetailPage = await deleterGroupDetailPage.clickExpenseToView(expenseDescription);
-        await expenseDetailPage.deleteExpense();
-
-        await expect(deleterPage).toHaveURL(groupDetailUrlPattern(groupId));
-
-        // Verify expense disappears for both users WITHOUT refresh
-        await expect(watcherGroupDetailPage.getExpenseByDescription(expenseDescription)).not.toBeVisible();
-
-        // Verify balances reset to settled up
-        await deleterGroupDetailPage.waitForSettledUpMessage();
-        await watcherGroupDetailPage.waitForSettledUpMessage();
-
-        await watcherGroupDetailPage.assertUserSettledUp(watcherDisplayName);
-        await deleterGroupDetailPage.assertUserSettledUp(watcherDisplayName);
-    });
 });

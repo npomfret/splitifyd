@@ -157,6 +157,7 @@ export default function AddExpensePage({ groupId }: AddExpensePageProps) {
                                         <SplitAmountInputs
                                             splitType={formState.splitType}
                                             amount={formState.amount}
+                                            currency={formState.currency}
                                             participants={formState.participants}
                                             splits={formState.splits}
                                             members={formState.members}

@@ -42,28 +42,44 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             await expect(submitButton).toBeDisabled(); // Missing description
         });
 
-        simpleTest('should create, edit, and delete expense successfully', async ({ createLoggedInBrowsers }) => {
+        simpleTest('should handle comprehensive expense lifecycle with date, time, currency, and CRUD operations', async ({ createLoggedInBrowsers }) => {
             const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
             const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
             const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
+            const groupId = groupDetailPage.inferGroupId();
             const memberCount = await groupDetailPage.getCurrentMemberCount();
 
-            // Create expense
-            const originalDescription = `CRUD Test ${generateShortId()}`;
+            // Create expense with date, time, and currency features
+            const originalDescription = `Comprehensive Test ${generateShortId()}`;
             const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
+
+            // Set description and amount
+            await expenseFormPage.fillDescription(originalDescription);
+            await expenseFormPage.fillAmount('89.99');
+
+            // Set custom date (yesterday)
+            await expenseFormPage.clickYesterdayButton();
+
+            // Set morning time
+            await expenseFormPage.clickThisMorningButton();
+
+            // Submit with EUR currency
             await expenseFormPage.submitExpense(
                 new ExpenseFormDataBuilder()
                     .withDescription(originalDescription)
-                    .withAmount(50)
-                    .withCurrency('USD')
+                    .withAmount(89.99)
+                    .withCurrency('EUR')
                     .withPaidByDisplayName(userDisplayName)
                     .withSplitType('equal')
                     .withParticipants([userDisplayName])
                     .build(),
             );
 
+            // Verify creation with all features
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
             await groupDetailPage.waitForExpense(originalDescription);
-            await expect(groupDetailPage.getExpenseByDescription(originalDescription)).toBeVisible();
+            await groupDetailPage.waitForExpenseDescription(originalDescription);
+            await expect(page.getByText('€89.99')).toBeVisible();
 
             // Edit expense
             const expenseDetailPage = await groupDetailPage.clickExpenseToView(originalDescription);
@@ -71,16 +87,19 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
             const updatedDescription = `Updated ${generateShortId()}`;
 
             await editFormPage.fillDescription(updatedDescription);
-            await editFormPage.fillAmount('75');
+            await editFormPage.fillAmount('125.50');
             await editFormPage.getUpdateExpenseButton().click();
 
             await expect(page).toHaveURL(/\/groups\/[a-zA-Z0-9]+\/expenses\/[a-zA-Z0-9]+/);
-            await expect(expenseDetailPage.getExpenseByDescription(updatedDescription)).toBeVisible();
-            await expect(expenseDetailPage.getCurrencyAmount('75.00')).toBeVisible();
+            await expenseDetailPage.waitForExpenseDescription(updatedDescription);
+            await expenseDetailPage.waitForCurrencyAmount('€125.50');
+
+            // Verify currency is correctly displayed in split view (single person gets full amount)
+            await expenseDetailPage.verifySplitAmount('€125.50', 1);
 
             // Delete expense
             await expenseDetailPage.deleteExpense();
-            await expect(page).toHaveURL(groupDetailUrlPattern());
+            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
             await expect(groupDetailPage.getExpenseByDescription(updatedDescription)).not.toBeVisible();
         });
 
@@ -293,43 +312,4 @@ simpleTest.describe('Expense Operations - Comprehensive', () => {
         });
     });
 
-    simpleTest.describe('Integration Scenarios', () => {
-        simpleTest('should handle expense creation with date, time, and currency together', async ({ createLoggedInBrowsers }) => {
-            const [{ page, dashboardPage }] = await createLoggedInBrowsers(1);
-            const userDisplayName = await dashboardPage.header.getCurrentUserDisplayName();
-            const [groupDetailPage] = await dashboardPage.createMultiUserGroup({});
-            const groupId = groupDetailPage.inferGroupId();
-            const memberCount = await groupDetailPage.getCurrentMemberCount();
-
-            // Create comprehensive expense with all features
-            const expenseFormPage = await groupDetailPage.clickAddExpenseButton(memberCount);
-
-            // Set description and amount
-            await expenseFormPage.fillDescription('Complete Integration Test');
-            await expenseFormPage.fillAmount('89.99');
-
-            // Set custom date (yesterday)
-            await expenseFormPage.clickYesterdayButton();
-
-            // Set morning time
-            await expenseFormPage.clickThisMorningButton();
-
-            // Submit with EUR currency
-            await expenseFormPage.submitExpense(
-                new ExpenseFormDataBuilder()
-                    .withDescription('Complete Integration Test')
-                    .withAmount(89.99)
-                    .withCurrency('EUR')
-                    .withPaidByDisplayName(userDisplayName)
-                    .withSplitType('equal')
-                    .withParticipants([userDisplayName])
-                    .build(),
-            );
-
-            // Verify all aspects work together
-            await expect(page).toHaveURL(groupDetailUrlPattern(groupId));
-            await expect(page.getByText('Complete Integration Test')).toBeVisible();
-            await expect(page.getByText('€89.99')).toBeVisible();
-        });
-    });
 });
